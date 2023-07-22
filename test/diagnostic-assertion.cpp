@@ -192,6 +192,14 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       out_assertion.members[1].type = extra_member->type;
       out_assertion.members[1].character = extra_member_value_span[0];
       break;
+
+    case Diagnostic_Arg_Type::string8_view:
+      out_assertion.members[1].name = extra_member->name;
+      out_assertion.members[1].offset = extra_member->offset;
+      out_assertion.members[1].type = extra_member->type;
+      out_assertion.members[1].string = extra_member_value_span;
+      break;
+
     default:
       errors.push_back(concat("member {."sv, to_string_view(extra_member_span),
                               "} has unsupported type"sv));
@@ -336,6 +344,9 @@ diagnostics_matcher(Padded_String_View code,
         break;
       case Diagnostic_Arg_Type::char8:
         field.character = member.character;
+        break;
+      case Diagnostic_Arg_Type::string8_view:
+        field.string = member.string;
         break;
       default:
         QLJS_ASSERT(false);

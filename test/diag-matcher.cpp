@@ -179,6 +179,14 @@ Char8 Diag_Matcher_Arg::get_char8(const void *error_object) const noexcept {
   return *static_cast<const Char8 *>(member_data);
 }
 
+String8_View Diag_Matcher_Arg::get_string8_view(const void *error_object) const
+    noexcept {
+  QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::string8_view);
+  const void *member_data =
+      reinterpret_cast<const char *>(error_object) + this->member_offset;
+  return *static_cast<const String8_View *>(member_data);
+}
+
 template <class State, class Field>
 class Diag_Fields_Matcher_Impl_Base
     : public testing::MatcherInterface<const Diag_Collector::Diag &> {
@@ -317,6 +325,16 @@ class Diag_Matcher_2::Impl
                 << static_cast<char>(character) << "') "
                 << (character_matches ? "equals" : "doesn't equal") << " '"
                 << static_cast<char>(f.character) << "'";
+      return character_matches;
+    }
+
+    case Diagnostic_Arg_Type::string8_view: {
+      String8_View string = f.arg.get_string8_view(error.data());
+      bool character_matches = string == f.string;
+      *listener << "whose ." << f.arg.member_name << " (\""
+                << to_string_view(string) << "\") "
+                << (character_matches ? "equals" : "doesn't equal") << " \""
+                << to_string_view(f.string) << "\"";
       return character_matches;
     }
 

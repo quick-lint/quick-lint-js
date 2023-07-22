@@ -209,6 +209,29 @@ TEST(Test_Diagnostic_Assertion, diag_type_with_char8_member_explicit) {
   }
 }
 
+TEST(Test_Diagnostic_Assertion, diag_type_with_string8_view_member_explicit) {
+  {
+    Diagnostic_Assertion da = parse_or_fail(
+        u8"^ "
+        u8"Diag_Integer_Literal_Will_Lose_Precision.characters{.rounded_val="
+        u8"hello}");
+    ASSERT_EQ(da.member_count(), 2);
+
+    EXPECT_STREQ(da.members[0].name, "characters");
+    EXPECT_EQ(da.members[0].type, Diagnostic_Arg_Type::source_code_span);
+    EXPECT_EQ(da.members[0].offset,
+              offsetof(Diag_Integer_Literal_Will_Lose_Precision, characters));
+    EXPECT_EQ(da.members[0].span_begin_offset, 0);
+    EXPECT_EQ(da.members[0].span_end_offset, 1);
+
+    EXPECT_STREQ(da.members[1].name, "rounded_val");
+    EXPECT_EQ(da.members[1].type, Diagnostic_Arg_Type::string8_view);
+    EXPECT_EQ(da.members[1].offset,
+              offsetof(Diag_Integer_Literal_Will_Lose_Precision, rounded_val));
+    EXPECT_EQ(da.members[1].string, u8"hello"_sv);
+  }
+}
+
 TEST(Test_Diagnostic_Assertion, adjust_with_no_escaped_characters) {
   Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
   da = da.adjusted_for_escaped_characters(u8"abcdef"_sv);
@@ -521,6 +544,43 @@ TEST(Test_Diagnostic_Assertion, char8_message) {
   EXPECT_EQ(get_matcher_message(matcher, {value}),
             "whose element #0 doesn't match, whose .where (0-1) equals 0-1 and "
             "whose .token ('(') doesn't equal ')'");
+}
+
+TEST(Test_Diagnostic_Assertion, match_span_and_string8_view) {
+  Padded_String code(u8"hi"_sv);
+
+  ::testing::Matcher matcher = diagnostics_matcher(
+      &code,
+      {u8"^ Diag_Integer_Literal_Will_Lose_Precision.characters{.rounded_val=hello}"_diag});
+  EXPECT_TRUE(matcher.Matches({
+      Diag_Collector::Diag(Diag_Integer_Literal_Will_Lose_Precision{
+          .characters = Source_Code_Span(&code[0], &code[1]),
+          .rounded_val = u8"hello"_sv,
+      }),
+  }));
+  EXPECT_FALSE(matcher.Matches({
+      Diag_Collector::Diag(Diag_Integer_Literal_Will_Lose_Precision{
+          .characters = Source_Code_Span(&code[0], &code[1]),
+          .rounded_val = u8"HELLO"_sv,
+      }),
+  }));
+}
+
+TEST(Test_Diagnostic_Assertion, string8_view_message) {
+  Padded_String code(u8"hi"_sv);
+
+  ::testing::Matcher matcher = diagnostics_matcher(
+      &code,
+      {u8"^ Diag_Integer_Literal_Will_Lose_Precision.characters{.rounded_val=hello}"_diag});
+
+  Diag_Collector::Diag value(Diag_Integer_Literal_Will_Lose_Precision{
+      .characters = Source_Code_Span(&code[0], &code[1]),
+      .rounded_val = u8"HELLO"_sv,
+  });
+  EXPECT_EQ(
+      get_matcher_message(matcher, {value}),
+      "whose element #0 doesn't match, whose .characters (0-1) equals 0-1 and "
+      "whose .rounded_val (\"HELLO\") doesn't equal \"hello\"");
 }
 
 TEST(Test_Diagnostic_Assertion, multiple_diagnostics_are_matched_in_any_order) {

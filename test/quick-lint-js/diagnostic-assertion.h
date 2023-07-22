@@ -87,6 +87,9 @@ struct Diagnostic_Assertion {
 
     // If type == Diagnostic_Arg_Type::char8:
     Char8 character;
+
+    // If type == Diagnostic_Arg_Type::string8_view:
+    String8_View string;
   };
 
   Diag_Type type = Diag_Type();
