@@ -100,57 +100,57 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       errors.push_back(concat("invalid diagnostic type: '"sv,
                               to_string_view(diag_type_span), "'"sv));
     }
-  } else {
-    out_assertion.type = diag_type_it->second;
-    const Diagnostic_Info_Debug& diag_info =
-        get_diagnostic_info_debug(out_assertion.type);
-    int member_count = 0;
-    for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
-      if (var.name != nullptr) {
-        member_count += 1;
-      }
-    }
-    bool member_is_required = member_count > 1;
-    if (member_is_required && diag_member_span.empty()) {
-      std::string members;
-      for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
-        if (var.name != nullptr &&
-            var.type == Diagnostic_Arg_Type::source_code_span) {
-          if (!members.empty()) {
-            members += " or "sv;
-          }
-          members += '.';
-          members += var.name;
-        }
-      }
-      errors.push_back(concat("member required for "sv,
-                              to_string_view(diag_type_span), "; try "sv,
-                              members));
-    }
-
-    const Diagnostic_Info_Variable_Debug* member = nullptr;
-    if (diag_member_span.empty()) {
-      // Default to the first Source_Code_Span member.
-      for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
-        if (var.name != nullptr &&
-            var.type == Diagnostic_Arg_Type::source_code_span) {
-          member = &var;
-        }
-      }
-    } else {
-      for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
-        if (var.name != nullptr &&
-            var.name == to_string_view(diag_member_span)) {
-          member = &var;
-        }
-      }
-    }
-    QLJS_ALWAYS_ASSERT(member != nullptr);
-
-    out_assertion.members[0].name = member->name;
-    out_assertion.members[0].offset = member->offset;
-    out_assertion.members[0].type = member->type;
+    return failed_result(std::move(errors));
   }
+
+  out_assertion.type = diag_type_it->second;
+  const Diagnostic_Info_Debug& diag_info =
+      get_diagnostic_info_debug(out_assertion.type);
+  int member_count = 0;
+  for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
+    if (var.name != nullptr) {
+      member_count += 1;
+    }
+  }
+  bool member_is_required = member_count > 1;
+  if (member_is_required && diag_member_span.empty()) {
+    std::string members;
+    for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
+      if (var.name != nullptr &&
+          var.type == Diagnostic_Arg_Type::source_code_span) {
+        if (!members.empty()) {
+          members += " or "sv;
+        }
+        members += '.';
+        members += var.name;
+      }
+    }
+    errors.push_back(concat("member required for "sv,
+                            to_string_view(diag_type_span), "; try "sv,
+                            members));
+  }
+
+  const Diagnostic_Info_Variable_Debug* member = nullptr;
+  if (diag_member_span.empty()) {
+    // Default to the first Source_Code_Span member.
+    for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
+      if (var.name != nullptr &&
+          var.type == Diagnostic_Arg_Type::source_code_span) {
+        member = &var;
+      }
+    }
+  } else {
+    for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
+      if (var.name != nullptr && var.name == to_string_view(diag_member_span)) {
+        member = &var;
+      }
+    }
+  }
+  QLJS_ALWAYS_ASSERT(member != nullptr);
+
+  out_assertion.members[0].name = member->name;
+  out_assertion.members[0].offset = member->offset;
+  out_assertion.members[0].type = member->type;
 
   if (!errors.empty()) {
     return failed_result(std::move(errors));
