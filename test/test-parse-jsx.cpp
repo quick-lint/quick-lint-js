@@ -253,118 +253,87 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
                                         opening_tag_name, u8"c = <"_sv.size(),
-                                        u8"div"_sv, closing_tag_name,
+                                        u8"div"_sv,  //
+                                        closing_tag_name,
                                         u8"c = <div></"_sv.size(), u8"span"_sv),
                 }));
   }
 
   // opening_tag_name span for normal tag:
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = < div ></span>;"_sv,                                    //
-        u8"      ^^^ Diag_Mismatched_JSX_Tags.opening_tag_name"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = < div ></span>;"_sv,                                    //
+      u8"      ^^^ Diag_Mismatched_JSX_Tags.opening_tag_name"_diag,  //
+      jsx_options);
 
   // opening_tag_name span for fragment tag:
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <  ></span>;"_sv,                                    //
-        u8"     ` Diag_Mismatched_JSX_Tags.opening_tag_name"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <  ></span>;"_sv,                                    //
+      u8"     ` Diag_Mismatched_JSX_Tags.opening_tag_name"_diag,  //
+      jsx_options);
 
   // opening_tag_name span for member tag:
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = < module . Component ></span>;"_sv,  //
-        u8"      ^^^^^^^^^^^^^^^^^^ Diag_Mismatched_JSX_Tags.opening_tag_name"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = < module . Component ></span>;"_sv,  //
+      u8"      ^^^^^^^^^^^^^^^^^^ Diag_Mismatched_JSX_Tags.opening_tag_name"_diag,  //
+      jsx_options);
 
   // opening_tag_name span for namespaced tag:
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = < svg : path ></span>;"_sv,                                    //
-        u8"      ^^^^^^^^^^ Diag_Mismatched_JSX_Tags.opening_tag_name"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = < svg : path ></span>;"_sv,                                    //
+      u8"      ^^^^^^^^^^ Diag_Mismatched_JSX_Tags.opening_tag_name"_diag,  //
+      jsx_options);
 
   // closing_tag_name span for normal tag:
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div></ span >;"_sv,                                           //
-        u8"            ^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></ span >;"_sv,                                           //
+      u8"            ^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag,  //
+      jsx_options);
 
   // closing_tag_name span for fragment tag:
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div></  >;"_sv,                                             //
-        u8"             ` Diag_Mismatched_JSX_Tags.closing_tag_name"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></  >;"_sv,                                             //
+      u8"             ` Diag_Mismatched_JSX_Tags.closing_tag_name"_diag,  //
+      jsx_options);
 
   // closing_tag_name span for member tag:
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div></ module . Component >;"_sv,  //
-        u8"            ^^^^^^^^^^^^^^^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></ module . Component >;"_sv,  //
+      u8"            ^^^^^^^^^^^^^^^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag,  //
+      jsx_options);
 
   // closing_tag_name span for namespaced tag:
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div></ svg : path >;"_sv,  //
-        u8"            ^^^^^^^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></ svg : path >;"_sv,  //
+      u8"            ^^^^^^^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag,  //
+      jsx_options);
 
   // opening_tag_name_pretty for normal tag:
-  {
-    Test_Parser p(u8"c = <div></span>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                    opening_tag_name_pretty, u8"div"_sv),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></span>;"_sv,  //
+      u8"           ^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=div}"_diag,  //
+      jsx_options);
 
   // opening_tag_name_pretty for fragment tag:
-  {
-    Test_Parser p(u8"c = <  ></span>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                              opening_tag_name_pretty, u8""_sv),
-                          }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <  ></span>;"_sv,  //
+      u8"          ^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=}"_diag,  //
+      jsx_options);
 
   // opening_tag_name_pretty for member tag:
-  {
-    Test_Parser p(u8"c = <module.Component></span>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                              opening_tag_name_pretty,
-                                              u8"module.Component"_sv),
-                          }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <module.Component></span>;"_sv,  //
+      u8"                        ^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=module.Component}"_diag,  //
+      jsx_options);
 
   // opening_tag_name_pretty for namespaced tag:
-  {
-    Test_Parser p(u8"c = <svg:path></span>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                    opening_tag_name_pretty, u8"svg:path"_sv),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <svg:path></span>;"_sv,  //
+      u8"                ^^^^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=svg:path}"_diag,  //
+      jsx_options);
 
   for (String8_View jsx : {
            u8"<div></span>"_sv,
@@ -418,72 +387,44 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
 
 TEST_F(Test_Parse_JSX,
        begin_and_end_tag_mismatch_message_excludes_comments_and_whitespace) {
-  {
-    Test_Parser p(u8"c = < div ></x>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                    opening_tag_name_pretty, u8"div"_sv),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"c = < div ></x>;"_sv,  //
+      u8"             ^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=div}"_diag,  //
+      jsx_options);
 
-  {
-    Test_Parser p(u8"c = < my . /* hello */ Component ></x>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                              opening_tag_name_pretty,
-                                              u8"my.Component"_sv),
-                          }));
-  }
+  test_parse_and_visit_module(
+      u8"c = < my . /* hello */ Component ></x>;"_sv,  //
+      u8"                                    ^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=my.Component}"_diag,  //
+      jsx_options);
 
-  {
-    Test_Parser p(u8"c = < svg /* */ : path ></x>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                    opening_tag_name_pretty, u8"svg:path"_sv),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"c = < svg /* */ : path ></x>;"_sv,  //
+      u8"                          ^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=svg:path}"_diag,  //
+      jsx_options);
 }
 
 TEST_F(Test_Parse_JSX,
        begin_and_end_tag_mismatch_message_include_unicode_escapes) {
-  {
-    Test_Parser p(u8R"(c = <d\u{69}v></x>;)"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                              opening_tag_name_pretty,
-                                              u8R"(d\u{69}v)"_sv),
-                          }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <d\\u{69}v></x>;"_sv,  //
+      u8"                 ^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=d\\u{69}v}"_diag,  //
+      jsx_options);
 
-  {
-    Test_Parser p(u8R"(c = <s\u{76}g:p\u{69}th></x>;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                              opening_tag_name_pretty,
-                                              u8R"(s\u{76}g:p\u{69}th)"_sv),
-                          }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <s\\u{76}g:p\\u{69}th></x>;"_sv,  //
+      u8"                            ^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=s\\u{76}g:p\\u{69}th}"_diag,  //
+      jsx_options);
 
-  {
-    Test_Parser p(u8R"(c = <m\u{79}.Com\u{70}onent></x>;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE_FIELD(Diag_Mismatched_JSX_Tags,
-                                              opening_tag_name_pretty,
-                                              u8R"(m\u{79}.Com\u{70}onent)"_sv),
-                          }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <m\\u{79}.Com\\u{70}onent></x>;"_sv,  //
+      u8"                                ^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
+      u8"{.opening_tag_name_pretty=m\\u{79}.Com\\u{70}onent}"_diag,  //
+      jsx_options);
 }
 
 TEST_F(Test_Parse_JSX, begin_and_end_tags_match_after_normalization) {

@@ -106,15 +106,16 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     ++p;
 
     const Char8* extra_member_value_begin = p;
-    for (; *p != u8'}'; ++p) {
-      if (*p == u8'\0') {
-        errors.push_back("expected closing '}'");
-        return failed_result(std::move(errors));
-      }
+    for (; *p != u8'\0'; ++p) {
+    }
+    --p;
+    if (*p != u8'}') {
+      errors.push_back("expected closing '}'");
+      return failed_result(std::move(errors));
     }
     const Char8* extra_member_value_end = p;
-    QLJS_ASSERT(*p == u8'}');
     ++p;
+    QLJS_ASSERT(*p == u8'\0');
 
     extra_member_span = make_string_view(extra_member_begin, extra_member_end);
     extra_member_value_span =

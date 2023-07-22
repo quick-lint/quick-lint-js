@@ -230,6 +230,14 @@ TEST(Test_Diagnostic_Assertion, diag_type_with_string8_view_member_explicit) {
               offsetof(Diag_Integer_Literal_Will_Lose_Precision, rounded_val));
     EXPECT_EQ(da.members[1].string, u8"hello"_sv);
   }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(
+        u8"^ Diag_Integer_Literal_Will_Lose_Precision.characters"
+        u8"{.rounded_val=hello{world}smiley}");
+    ASSERT_EQ(da.member_count(), 2);
+    EXPECT_EQ(da.members[1].string, u8"hello{world}smiley"_sv);
+  }
 }
 
 TEST(Test_Diagnostic_Assertion, adjust_with_no_escaped_characters) {
