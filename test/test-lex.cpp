@@ -1070,6 +1070,8 @@ world`)"_sv,
   {
     Diag_Collector v;
     Padded_String input(u8"`${un}terminated"_sv);
+    auto error = /*  */ u8"^^^^^^^^^^^^^^^^ Diag_Unclosed_Template"_diag;
+
     Lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, Token_Type::incomplete_template);
     const Char8* template_begin = l.peek().begin;
@@ -1082,12 +1084,7 @@ world`)"_sv,
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(&input, Diag_Unclosed_Template,  //
-                              incomplete_template, 0, u8"`${un}terminated"_sv),
-        }));
+    assert_diagnostics(&input, v.errors, {error});
   }
 
   this->check_tokens_with_errors(
@@ -1258,11 +1255,11 @@ TEST_F(Test_Lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, code.data() + u8"/first_line"_sv.size());
 
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(&code, Diag_Unclosed_Regexp_Literal,  //
-                                      regexp_literal, 0, u8"/first_line"_sv),
-                }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           // /first_line\nsecond_line/
+                           u8"^^^^^^^^^^^ Diag_Unclosed_Regexp_Literal"_diag,
+                       });
 
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
@@ -1281,11 +1278,11 @@ TEST_F(Test_Lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, code.data() + u8"/first[line"_sv.size());
 
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(&code, Diag_Unclosed_Regexp_Literal,  //
-                                      regexp_literal, 0, u8"/first[line"_sv),
-                }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           // /first[line\nsecond]line/
+                           u8"^^^^^^^^^^^ Diag_Unclosed_Regexp_Literal"_diag,
+                       });
 
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
@@ -1314,7 +1311,10 @@ TEST_F(Test_Lex, lex_regular_expression_literal_with_digit_flag) {
 
 TEST_F(Test_Lex, lex_unicode_escape_in_regular_expression_literal_flags) {
   Diag_Collector errors;
+  // clang-format off
   Padded_String input(u8"/hello/\\u{67}i"_sv);
+  auto error = /*  */ u8"       ^^^^^^^Diag_Regexp_Literal_Flags_Cannot_Contain_Unicode_Escapes"_diag;
+  // clang-format on
 
   Lexer l(&input, &errors);
   l.reparse_as_regexp();
@@ -1324,11 +1324,7 @@ TEST_F(Test_Lex, lex_unicode_escape_in_regular_expression_literal_flags) {
   l.skip();
   EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
 
-  EXPECT_THAT(
-      errors.errors,
-      ElementsAreArray({DIAG_TYPE_OFFSETS(
-          &input, Diag_Regexp_Literal_Flags_Cannot_Contain_Unicode_Escapes,  //
-          escape_sequence, u8"/hello/"_sv.size(), u8"\\u{67}"_sv)}));
+  assert_diagnostics(&input, errors.errors, {error});
 }
 
 TEST_F(Test_Lex, lex_non_ascii_in_regular_expression_literal_flags) {

@@ -132,6 +132,10 @@ void assert_diagnostics(Padded_String_View code,
                         const std::vector<Diag_Collector::Diag>& diagnostics,
                         Span<const Diagnostic_Assertion> assertions,
                         Source_Location caller);
+void assert_diagnostics(Padded_String_View code,
+                        const std::vector<Diag_Collector::Diag>& diagnostics,
+                        std::initializer_list<Diagnostic_Assertion> assertions,
+                        Source_Location caller = Source_Location::current());
 
 ::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
 diagnostics_matcher(Padded_String_View code,

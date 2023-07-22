@@ -296,6 +296,14 @@ void assert_diagnostics(Padded_String_View code,
   EXPECT_THAT_AT_CALLER(diagnostics, diagnostics_matcher(code, assertions));
 }
 
+void assert_diagnostics(Padded_String_View code,
+                        const std::vector<Diag_Collector::Diag>& diagnostics,
+                        std::initializer_list<Diagnostic_Assertion> assertions,
+                        Source_Location caller) {
+  assert_diagnostics(code, diagnostics,
+                     Span<const Diagnostic_Assertion>(assertions), caller);
+}
+
 ::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
 diagnostics_matcher(Padded_String_View code,
                     Span<const Diagnostic_Assertion> assertions) {
