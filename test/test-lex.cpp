@@ -934,139 +934,58 @@ TEST_F(Test_Lex, lex_string_with_ascii_control_characters) {
 TEST_F(Test_Lex, string_with_curly_quotes) {
   // Curly single quotes:
   this->check_tokens_with_errors(
-      u8"\u2018string here\u2019"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_2_FIELDS(
-                    Diag_Invalid_Quotes_Around_String_Literal,                //
-                    opening_quote, Offsets_Matcher(input, 0, u8"\u2018"_sv),  //
-                    suggested_quote, u8'\''),
-            }));
-      });
+      u8"\u2018string here\u2019"_sv,  //
+      u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote{.suggested_quote='}"_diag,
+      {Token_Type::string});
   this->check_tokens_with_errors(
-      u8"\u2019string here\u2018"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_2_FIELDS(
-                    Diag_Invalid_Quotes_Around_String_Literal,                //
-                    opening_quote, Offsets_Matcher(input, 0, u8"\u2019"_sv),  //
-                    suggested_quote, u8'\''),
-            }));
-      });
+      u8"\u2019string here\u2018"_sv,  //
+      u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote{.suggested_quote='}"_diag,
+      {Token_Type::string});
   this->check_tokens_with_errors(
-      u8"\u2018string \u201c \" \u201d here\u2019"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_2_FIELDS(
-                    Diag_Invalid_Quotes_Around_String_Literal,                //
-                    opening_quote, Offsets_Matcher(input, 0, u8"\u2018"_sv),  //
-                    suggested_quote, u8'\''),
-            }));
-      });
+      u8"\u2018string \u201c \" \u201d here\u2019"_sv,  //
+      u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote{.suggested_quote='}"_diag,
+      {Token_Type::string});
 
   // Curly double quotes:
   this->check_tokens_with_errors(
-      u8"\u201cstring here\u201d"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_2_FIELDS(
-                    Diag_Invalid_Quotes_Around_String_Literal,                //
-                    opening_quote, Offsets_Matcher(input, 0, u8"\u201d"_sv),  //
-                    suggested_quote, u8'"'),
-            }));
-      });
+      u8"\u201cstring here\u201d"_sv,  //
+      u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote{.suggested_quote=\"}"_diag,
+      {Token_Type::string});
   this->check_tokens_with_errors(
-      u8"\u201dstring here\u201c"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_2_FIELDS(
-                    Diag_Invalid_Quotes_Around_String_Literal,                //
-                    opening_quote, Offsets_Matcher(input, 0, u8"\u201c"_sv),  //
-                    suggested_quote, u8'"'),
-            }));
-      });
+      u8"\u201dstring here\u201c"_sv,  //
+      u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote{.suggested_quote=\"}"_diag,
+      {Token_Type::string});
   this->check_tokens_with_errors(
-      u8"\u201cstring \u2018 ' \u2019 here\u201d"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_2_FIELDS(
-                    Diag_Invalid_Quotes_Around_String_Literal,                //
-                    opening_quote, Offsets_Matcher(input, 0, u8"\u201d"_sv),  //
-                    suggested_quote, u8'"'),
-            }));
-      });
+      u8"\u201cstring \u2018 ' \u2019 here\u201d"_sv,  //
+      u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote{.suggested_quote=\"}"_diag,
+      {Token_Type::string});
 
   // Start with curly quote, but end with matching straight quote:
   this->check_tokens_with_errors(
-      u8"\u2018string here'"_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_2_FIELDS(
-                    Diag_Invalid_Quotes_Around_String_Literal,                //
-                    opening_quote, Offsets_Matcher(input, 0, u8"\u2018"_sv),  //
-                    suggested_quote, u8'\''),
-            }));
-      });
+      u8"\u2018string here'"_sv,  //
+      u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote{.suggested_quote='}"_diag,
+      {Token_Type::string});
   this->check_tokens_with_errors(
-      u8"\u201cstring here\""_sv, {Token_Type::string},
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_2_FIELDS(
-                    Diag_Invalid_Quotes_Around_String_Literal,                //
-                    opening_quote, Offsets_Matcher(input, 0, u8"\u201d"_sv),  //
-                    suggested_quote, u8'"'),
-            }));
-      });
+      u8"\u201cstring here\""_sv,  //
+      u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote{.suggested_quote=\"}"_diag,
+      {Token_Type::string});
 
   // Unclosed string:
   for (String8 opening_quote : {u8"\u2018", u8"\u201c"}) {
-    // HACK(strager): Use a static variable to avoid a closure in the lambda.
-    static String8 opening_quote_static;
-    opening_quote_static = opening_quote;
-
     this->check_tokens_with_errors(
-        opening_quote + u8"string here", {Token_Type::string},
-        [](Padded_String_View input, const auto& errors) {
-          EXPECT_THAT(
-              errors,
-              UnorderedElementsAreArray({
-                  DIAG_TYPE(Diag_Invalid_Quotes_Around_String_Literal),
-                  DIAG_TYPE_OFFSETS(input, Diag_Unclosed_String_Literal,  //
-                                    string_literal, 0,
-                                    opening_quote_static + u8"string here"),
-              }));
-        });
+        opening_quote + u8"string here",  //
+        // \u2018string here
+        u8"^^^^^^^^^^^^^^^^^ Diag_Unclosed_String_Literal"_diag,
+        u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote"_diag,
+        {Token_Type::string});
     for (String8_View line_terminator : line_terminators) {
       this->check_tokens_with_errors(
           opening_quote + u8"string here" + String8(line_terminator) +
-              u8"next_line",
-          {Token_Type::string, Token_Type::identifier},
-          [](Padded_String_View input, const auto& errors) {
-            EXPECT_THAT(
-                errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE(Diag_Invalid_Quotes_Around_String_Literal),
-                    DIAG_TYPE_OFFSETS(input, Diag_Unclosed_String_Literal,  //
-                                      string_literal, 0,
-                                      opening_quote_static + u8"string here"),
-                }));
-          });
+              u8"next_line",  //
+          // \u2018string here\nnext_line
+          u8"^^^^^^^^^^^^^^^^^ Diag_Unclosed_String_Literal"_diag,
+          u8"^^^^^^ Diag_Invalid_Quotes_Around_String_Literal.opening_quote"_diag,
+          {Token_Type::string, Token_Type::identifier});
     }
   }
 }

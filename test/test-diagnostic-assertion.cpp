@@ -364,6 +364,27 @@ TEST(Test_Diagnostic_Assertion,
   }
 }
 
+TEST(Test_Diagnostic_Assertion,
+     adjust_with_unicode_escaped_characters_before_span) {
+  {
+    static_assert(u8"\u0080"_sv.size() == 2);
+    Diagnostic_Assertion da = parse_or_fail(u8"      ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"\u0080bcdef"_sv);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 2);
+    EXPECT_EQ(da.members[0].span_end_offset, 4);
+  }
+
+  {
+    static_assert(u8"\u2603"_sv.size() == 3);
+    Diagnostic_Assertion da = parse_or_fail(u8"      ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"\u2603bcdef"_sv);
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 3);
+    EXPECT_EQ(da.members[0].span_end_offset, 5);
+  }
+}
+
 TEST(Test_Diagnostic_Assertion, match_error_type_with_1_field) {
   Padded_String code(u8"hello"_sv);
 

@@ -232,25 +232,52 @@ Diagnostic_Assertion Diagnostic_Assertion::parse_or_exit(
 
 Diagnostic_Assertion Diagnostic_Assertion::adjusted_for_escaped_characters(
     String8_View code) const {
-  static constexpr String8_View escaped_single_characters = u8"\b\n\t\"\\"_sv;
-  Diagnostic_Assertion result = *this;
+  static auto has_utf8_continuation = [](Char8 c) -> bool {
+    return (static_cast<std::uint8_t>(c) & 0x80) != 0;
+  };
   Padded_String_Size i;
+  // Returns an adjustment.
+  auto advance_character = [&code, &i]() -> int {
+    Char8 c = code[narrow_cast<std::size_t>(i)];
+    if (has_utf8_continuation(c)) {
+      // Assumption: The character was written as "\u1234" (6 source
+      // characters). It could have been written literally or as "\U00001234",
+      // but we don't handle those cases.
+      int source_width = 6;
+      int character_byte_count = 1;
+      ++i;
+      while (i < narrow_cast<Padded_String_Size>(code.size()) &&
+             has_utf8_continuation(code[narrow_cast<std::size_t>(i)])) {
+        character_byte_count += 1;
+        ++i;
+      }
+      return character_byte_count - source_width;
+    } else {
+      ++i;
+      static constexpr String8_View escaped_single_characters =
+          u8"\b\n\t\"\\"_sv;
+      if (escaped_single_characters.find(c) != String8_View::npos) {
+        int source_width = 2;
+        int character_byte_count = 1;
+        return character_byte_count - source_width;
+      }
+      return 0;
+    }
+  };
+
+  Diagnostic_Assertion result = *this;
   for (Member& member : result.members) {
     if (member.type != Diagnostic_Arg_Type::source_code_span) {
       continue;
     }
-    for (i = 0; i < member.span_begin_offset; ++i) {
-      if (escaped_single_characters.find(code[narrow_cast<std::size_t>(i)]) !=
-          String8_View::npos) {
-        member.span_begin_offset -= 1;
-        member.span_end_offset -= 1;
-      }
+    for (i = 0; i < member.span_begin_offset;) {
+      int adjustment = advance_character();
+      member.span_begin_offset += adjustment;
+      member.span_end_offset += adjustment;
     }
-    for (; i < member.span_end_offset; ++i) {
-      if (escaped_single_characters.find(code[narrow_cast<std::size_t>(i)]) !=
-          String8_View::npos) {
-        member.span_end_offset -= 1;
-      }
+    for (; i < member.span_end_offset;) {
+      int adjustment = advance_character();
+      member.span_end_offset += adjustment;
     }
   }
   return result;
