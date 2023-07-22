@@ -3379,8 +3379,7 @@ void Test_Lex::check_tokens_with_errors(
   EXPECT_THAT_AT_CALLER(lexed_token_types,
                         ::testing::ElementsAreArray(expected_token_types));
 
-  assert_diagnostics(&code, Span<const Diag_Collector::Diag>(errors.errors),
-                     diag_assertions, caller);
+  assert_diagnostics(&code, errors.errors, diag_assertions, caller);
 }
 
 void Test_Lex::check_tokens_with_errors(

@@ -5,8 +5,10 @@
 #define QUICK_LINT_JS_GTEST_H
 
 #include <cstdint>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/port/have.h>
+#include <string>
 #include <string_view>
 
 namespace testing::internal {
@@ -38,6 +40,14 @@ inline void PrintTo(const std::basic_string_view<char8_t> &s,
           out);
 }
 #endif
+
+template <class Value>
+std::string get_matcher_message(::testing::Matcher<const Value &> matcher,
+                                const Value &value) {
+  ::testing::StringMatchResultListener listener;
+  ExplainMatchResult(matcher, value, &listener);
+  return listener.str();
+}
 
 // Like EXPECT_THAT, but using the 'caller' variable for source locations.
 #define EXPECT_THAT_AT_CALLER(value, matcher)                                 \

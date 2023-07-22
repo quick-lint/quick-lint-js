@@ -338,6 +338,119 @@ TEST(Test_Diagnostic_Assertion,
     EXPECT_EQ(da.members[0].span_end_offset, 3);
   }
 }
+
+TEST(Test_Diagnostic_Assertion, match_error_type_with_1_field) {
+  Padded_String code(u8"hello"_sv);
+
+  ::testing::Matcher continue_matcher =
+      diagnostics_matcher(&code, {u8"^^^^^ Diag_Invalid_Continue"_diag});
+  EXPECT_TRUE(continue_matcher.Matches({
+      Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[0], &code[5]),
+      }),
+  }));
+  EXPECT_FALSE(continue_matcher.Matches({
+      Diag_Collector::Diag(Diag_Invalid_Break{
+          .break_statement = Source_Code_Span(&code[0], &code[5]),
+      }),
+  }));
+
+  ::testing::Matcher break_matcher =
+      diagnostics_matcher(&code, {u8"^^^^^ Diag_Invalid_Break"_diag});
+  EXPECT_FALSE(break_matcher.Matches({
+      Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[0], &code[5]),
+      }),
+  }));
+  EXPECT_TRUE(break_matcher.Matches({
+      Diag_Collector::Diag(Diag_Invalid_Break{
+          .break_statement = Source_Code_Span(&code[0], &code[5]),
+      }),
+  }));
+}
+
+TEST(Test_Diagnostic_Assertion, match_error_type_with_1_field_message) {
+  Padded_String code(u8"hello"_sv);
+  ::testing::Matcher matcher =
+      diagnostics_matcher(&code, {u8"^^^^^ Diag_Invalid_Continue"_diag});
+  Diag_Collector::Diag value(Diag_Invalid_Break{
+      .break_statement = Source_Code_Span(&code[0], &code[5]),
+  });
+  EXPECT_EQ(get_matcher_message(matcher, {value}),
+            "whose element #0 doesn't match, whose type (Diag_Invalid_Break) "
+            "isn't Diag_Invalid_Continue");
+}
+
+TEST(Test_Diagnostic_Assertion, match_offsets_of_1_field_span) {
+  Padded_String code(u8"hello"_sv);
+
+  ::testing::Matcher continue_matcher =
+      diagnostics_matcher(&code, {u8" ^^^^ Diag_Invalid_Continue"_diag});
+  EXPECT_TRUE(continue_matcher.Matches({
+      Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[1], &code[5]),
+      }),
+  }));
+  EXPECT_FALSE(continue_matcher.Matches({
+      Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[0], &code[5]),
+      }),
+  }));
+  EXPECT_FALSE(continue_matcher.Matches({
+      Diag_Collector::Diag(Diag_Invalid_Continue{
+          .continue_statement = Source_Code_Span(&code[0], &code[4]),
+      }),
+  }));
+}
+
+TEST(Test_Diagnostic_Assertion, match_offsets_of_1_field_message) {
+  Padded_String code(u8"hello"_sv);
+
+  {
+    ::testing::Matcher matcher =
+        diagnostics_matcher(&code, {u8"^^^^^ Diag_Invalid_Continue"_diag});
+    Diag_Collector::Diag value(Diag_Invalid_Continue{
+        .continue_statement = Source_Code_Span(&code[1], &code[4]),
+    });
+    EXPECT_EQ(get_matcher_message(matcher, {value}),
+              "whose element #0 doesn't match, whose .continue_statement (1-4) "
+              "doesn't equal 0-5");
+  }
+
+  {
+    ::testing::Matcher matcher =
+        diagnostics_matcher(&code, {u8"^^^^^ Diag_Invalid_Break"_diag});
+    Diag_Collector::Diag value(Diag_Invalid_Break{
+        .break_statement = Source_Code_Span(&code[1], &code[4]),
+    });
+    EXPECT_EQ(get_matcher_message(matcher, {value}),
+              "whose element #0 doesn't match, whose .break_statement (1-4) "
+              "doesn't equal 0-5");
+  }
+}
+
+TEST(Test_Diagnostic_Assertion, multiple_diagnostics_are_matched_in_any_order) {
+  Padded_String code(u8"hello"_sv);
+
+  ::testing::Matcher continue_break_matcher =
+      diagnostics_matcher(&code, {u8"^^^^^ Diag_Invalid_Continue"_diag,
+                                  u8"^^^^^ Diag_Invalid_Break"_diag});
+  ::testing::Matcher break_continue_matcher =
+      diagnostics_matcher(&code, {u8"^^^^^ Diag_Invalid_Break"_diag,
+                                  u8"^^^^^ Diag_Invalid_Continue"_diag});
+
+  Diag_Collector::Diag continue_diag(Diag_Invalid_Continue{
+      .continue_statement = Source_Code_Span(&code[0], &code[5]),
+  });
+  Diag_Collector::Diag break_diag(Diag_Invalid_Break{
+      .break_statement = Source_Code_Span(&code[0], &code[5]),
+  });
+
+  EXPECT_TRUE(break_continue_matcher.Matches({break_diag, continue_diag}));
+  EXPECT_TRUE(break_continue_matcher.Matches({continue_diag, break_diag}));
+  EXPECT_TRUE(continue_break_matcher.Matches({break_diag, continue_diag}));
+  EXPECT_TRUE(continue_break_matcher.Matches({continue_diag, break_diag}));
+}
 }
 }
 

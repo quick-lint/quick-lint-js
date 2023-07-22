@@ -117,9 +117,16 @@ Diagnostic_Assertion operator""_diag(const Char8* specification,
                                      std::size_t specification_length);
 
 void assert_diagnostics(Padded_String_View code,
-                        Span<const Diag_Collector::Diag> diagnostics,
+                        const std::vector<Diag_Collector::Diag>& diagnostics,
                         Span<const Diagnostic_Assertion> assertions,
                         Source_Location caller);
+
+::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
+diagnostics_matcher(Padded_String_View code,
+                    Span<const Diagnostic_Assertion> assertions);
+::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
+diagnostics_matcher(Padded_String_View code,
+                    std::initializer_list<Diagnostic_Assertion> assertions);
 }
 
 #endif

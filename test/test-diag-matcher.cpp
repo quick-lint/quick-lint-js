@@ -9,6 +9,7 @@
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/gtest.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <string_view>
 
@@ -16,14 +17,6 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-template <class Value>
-std::string get_matcher_message(::testing::Matcher<const Value &> matcher,
-                                const Value &value) {
-  ::testing::StringMatchResultListener listener;
-  ExplainMatchResult(matcher, value, &listener);
-  return listener.str();
-}
-
 TEST(Test_Diag_Matcher, match_error_type) {
   Padded_String code(u8"hello"_sv);
 

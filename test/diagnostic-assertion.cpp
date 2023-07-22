@@ -208,9 +208,15 @@ Diagnostic_Assertion operator""_diag(
 }
 
 void assert_diagnostics(Padded_String_View code,
-                        Span<const Diag_Collector::Diag> diagnostics,
+                        const std::vector<Diag_Collector::Diag>& diagnostics,
                         Span<const Diagnostic_Assertion> assertions,
                         Source_Location caller) {
+  EXPECT_THAT_AT_CALLER(diagnostics, diagnostics_matcher(code, assertions));
+}
+
+::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
+diagnostics_matcher(Padded_String_View code,
+                    Span<const Diagnostic_Assertion> assertions) {
   std::vector<Diag_Matcher> error_matchers;
   for (const Diagnostic_Assertion& diag : assertions) {
     Diagnostic_Assertion adjusted_diag =
@@ -239,12 +245,17 @@ void assert_diagnostics(Padded_String_View code,
   if (error_matchers.size() <= 1) {
     // ElementsAreArray produces better diagnostics than
     // UnorderedElementsAreArray.
-    EXPECT_THAT_AT_CALLER(diagnostics,
-                          ::testing::ElementsAreArray(error_matchers));
+    return ::testing::ElementsAreArray(std::move(error_matchers));
   } else {
-    EXPECT_THAT_AT_CALLER(diagnostics,
-                          ::testing::UnorderedElementsAreArray(error_matchers));
+    return ::testing::UnorderedElementsAreArray(std::move(error_matchers));
   }
+}
+
+::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
+diagnostics_matcher(Padded_String_View code,
+                    std::initializer_list<Diagnostic_Assertion> assertions) {
+  return diagnostics_matcher(code,
+                             Span<const Diagnostic_Assertion>(assertions));
 }
 }
 

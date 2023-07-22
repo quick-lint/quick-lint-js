@@ -354,9 +354,8 @@ std::string summarize(std::optional<Expression*> expression) {
 
 void Test_Parser::assert_diagnostics(Span<const Diagnostic_Assertion> diags,
                                      Source_Location caller) {
-  quick_lint_js::assert_diagnostics(
-      this->code, Span<const Diag_Collector::Diag>(this->errors_.errors), diags,
-      caller);
+  quick_lint_js::assert_diagnostics(this->code, this->errors_.errors, diags,
+                                    caller);
 }
 
 Spy_Visitor test_parse_and_visit_statement(String8_View input,
