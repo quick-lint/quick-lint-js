@@ -96,7 +96,7 @@ struct Diagnostic_Assertion {
   };
 
   Diag_Type type = Diag_Type();
-  std::array<Member, 2> members;
+  std::array<Member, 3> members;
 
   int member_count() const;
 

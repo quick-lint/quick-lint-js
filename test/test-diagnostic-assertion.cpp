@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/diag/diagnostic-types-2.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
@@ -182,6 +183,87 @@ TEST(Test_Diagnostic_Assertion, diag_type_with_multiple_members_explicit) {
         da.members[0].offset,
         offsetof(Diag_Assignment_Before_Variable_Declaration, assignment));
   }
+}
+
+TEST(Test_Diagnostic_Assertion,
+     diag_type_with_multiple_members_with_multiple_spans) {
+  {
+    Diagnostic_Assertion da = parse_or_fail(
+        u8"    ^ Diag_Assignment_Before_Variable_Declaration.declaration\n"
+        u8" ^^   .assignment");
+    ASSERT_EQ(da.member_count(), 2);
+
+    EXPECT_STREQ(da.members[0].name, "declaration");
+    EXPECT_EQ(da.members[0].type, Diagnostic_Arg_Type::source_code_span);
+    EXPECT_EQ(
+        da.members[0].offset,
+        offsetof(Diag_Assignment_Before_Variable_Declaration, declaration));
+    EXPECT_EQ(da.members[0].span_begin_offset, 4);
+    EXPECT_EQ(da.members[0].span_end_offset, 5);
+
+    EXPECT_STREQ(da.members[1].name, "assignment");
+    EXPECT_EQ(da.members[1].type, Diagnostic_Arg_Type::source_code_span);
+    EXPECT_EQ(
+        da.members[1].offset,
+        offsetof(Diag_Assignment_Before_Variable_Declaration, assignment));
+    EXPECT_EQ(da.members[1].span_begin_offset, 1);
+    EXPECT_EQ(da.members[1].span_end_offset, 3);
+  }
+
+  {
+    Diagnostic_Assertion da = parse_or_fail(
+        u8"    ^ "
+        u8"Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode.generic_"
+        u8"parameters_less\n"
+        u8" ^^   .expected_comma\n"
+        u8"^     .arrow");
+    ASSERT_EQ(da.member_count(), 3);
+
+    EXPECT_STREQ(da.members[0].name, "generic_parameters_less");
+    EXPECT_EQ(da.members[0].offset,
+              offsetof(Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,
+                       generic_parameters_less));
+
+    EXPECT_STREQ(da.members[1].name, "expected_comma");
+    EXPECT_EQ(da.members[1].offset,
+              offsetof(Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,
+                       expected_comma));
+
+    EXPECT_STREQ(da.members[2].name, "arrow");
+    EXPECT_EQ(
+        da.members[2].offset,
+        offsetof(Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode, arrow));
+  }
+}
+
+TEST(Test_Diagnostic_Assertion,
+     diag_type_with_multiple_members_with_multiple_spans_and_extra_member) {
+  Diagnostic_Assertion da = parse_or_fail(
+      u8"    ^ Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"
+      u8" ^^   .class_keyword"
+      u8"{.kind_of_statement=Statement_Kind::if_statement}");
+  ASSERT_EQ(da.member_count(), 3);
+
+  EXPECT_STREQ(da.members[0].name, "expected_body");
+  EXPECT_EQ(da.members[0].type, Diagnostic_Arg_Type::source_code_span);
+  EXPECT_EQ(da.members[0].offset,
+            offsetof(Diag_Class_Statement_Not_Allowed_In_Body, expected_body));
+  EXPECT_EQ(da.members[0].span_begin_offset, 4);
+  EXPECT_EQ(da.members[0].span_end_offset, 5);
+
+  EXPECT_STREQ(da.members[1].name, "class_keyword");
+  EXPECT_EQ(da.members[1].type, Diagnostic_Arg_Type::source_code_span);
+  EXPECT_EQ(da.members[1].offset,
+            offsetof(Diag_Class_Statement_Not_Allowed_In_Body, class_keyword));
+  EXPECT_EQ(da.members[1].span_begin_offset, 1);
+  EXPECT_EQ(da.members[1].span_end_offset, 3);
+
+  EXPECT_STREQ(da.members[2].name, "kind_of_statement");
+  EXPECT_EQ(da.members[2].type, Diagnostic_Arg_Type::statement_kind);
+  EXPECT_EQ(
+      da.members[2].offset,
+      offsetof(Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement));
+  EXPECT_EQ(da.members[2].statement_kind, Statement_Kind::if_statement);
 }
 
 TEST(Test_Diagnostic_Assertion, diag_type_with_char8_member_explicit) {

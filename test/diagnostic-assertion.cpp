@@ -121,6 +121,26 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   String8_View diag_type_span = lexer.parse_identifier();
   String8_View diag_member_span = lexer.try_parse_dot_identifier();
 
+  String8_View diag_member_2_span;
+  if (*lexer.p == u8'\n') {
+    ++lexer.p;
+    out_assertion.members[1].span_begin_offset = lexer.parse_leading_spaces();
+    out_assertion.members[1].span_end_offset =
+        out_assertion.members[1].span_begin_offset + lexer.parse_span_carets();
+    lexer.skip_spaces();
+    diag_member_2_span = lexer.try_parse_dot_identifier();
+  }
+
+  String8_View diag_member_3_span;
+  if (*lexer.p == u8'\n') {
+    ++lexer.p;
+    out_assertion.members[2].span_begin_offset = lexer.parse_leading_spaces();
+    out_assertion.members[2].span_end_offset =
+        out_assertion.members[2].span_begin_offset + lexer.parse_span_carets();
+    lexer.skip_spaces();
+    diag_member_3_span = lexer.try_parse_dot_identifier();
+  }
+
   String8_View extra_member_span;
   String8_View extra_member_value_span;
   if (*lexer.p == u8'{' && !diag_member_span.empty()) {
@@ -184,18 +204,44 @@ Diagnostic_Assertion::parse(const Char8* specification) {
                                   members));
   }
 
-  const Diagnostic_Info_Variable_Debug* member;
-  if (diag_member_span.empty()) {
-    // Default to the first Source_Code_Span member.
-    member = diag_info.find_first(Diagnostic_Arg_Type::source_code_span);
-  } else {
-    member = diag_info.find(to_string_view(diag_member_span));
-  }
-  QLJS_ALWAYS_ASSERT(member != nullptr);
+  int member_index = 0;
+  {
+    const Diagnostic_Info_Variable_Debug* member;
+    if (diag_member_span.empty()) {
+      // Default to the first Source_Code_Span member.
+      member = diag_info.find_first(Diagnostic_Arg_Type::source_code_span);
+    } else {
+      member = diag_info.find(to_string_view(diag_member_span));
+    }
+    QLJS_ALWAYS_ASSERT(member != nullptr);
 
-  out_assertion.members[0].name = member->name;
-  out_assertion.members[0].offset = member->offset;
-  out_assertion.members[0].type = member->type;
+    out_assertion.members[member_index].name = member->name;
+    out_assertion.members[member_index].offset = member->offset;
+    out_assertion.members[member_index].type = member->type;
+    member_index += 1;
+  }
+
+  if (!diag_member_2_span.empty()) {
+    const Diagnostic_Info_Variable_Debug* member =
+        diag_info.find(to_string_view(diag_member_2_span));
+    QLJS_ALWAYS_ASSERT(member != nullptr);
+
+    out_assertion.members[member_index].name = member->name;
+    out_assertion.members[member_index].offset = member->offset;
+    out_assertion.members[member_index].type = member->type;
+    member_index += 1;
+  }
+
+  if (!diag_member_3_span.empty()) {
+    const Diagnostic_Info_Variable_Debug* member =
+        diag_info.find(to_string_view(diag_member_3_span));
+    QLJS_ALWAYS_ASSERT(member != nullptr);
+
+    out_assertion.members[member_index].name = member->name;
+    out_assertion.members[member_index].offset = member->offset;
+    out_assertion.members[member_index].type = member->type;
+    member_index += 1;
+  }
 
   if (!extra_member_span.empty()) {
     const Diagnostic_Info_Variable_Debug* extra_member =
@@ -209,27 +255,28 @@ Diagnostic_Assertion::parse(const Char8* specification) {
                    "} is a Char8 but the given value is not one byte"sv));
         return failed_result(std::move(lexer.errors));
       }
-      out_assertion.members[1].name = extra_member->name;
-      out_assertion.members[1].offset = extra_member->offset;
-      out_assertion.members[1].type = extra_member->type;
-      out_assertion.members[1].character = extra_member_value_span[0];
+      out_assertion.members[member_index].name = extra_member->name;
+      out_assertion.members[member_index].offset = extra_member->offset;
+      out_assertion.members[member_index].type = extra_member->type;
+      out_assertion.members[member_index].character =
+          extra_member_value_span[0];
       break;
 
     case Diagnostic_Arg_Type::string8_view:
-      out_assertion.members[1].name = extra_member->name;
-      out_assertion.members[1].offset = extra_member->offset;
-      out_assertion.members[1].type = extra_member->type;
-      out_assertion.members[1].string = extra_member_value_span;
+      out_assertion.members[member_index].name = extra_member->name;
+      out_assertion.members[member_index].offset = extra_member->offset;
+      out_assertion.members[member_index].type = extra_member->type;
+      out_assertion.members[member_index].string = extra_member_value_span;
       break;
 
     case Diagnostic_Arg_Type::statement_kind: {
-      out_assertion.members[1].name = extra_member->name;
-      out_assertion.members[1].offset = extra_member->offset;
-      out_assertion.members[1].type = extra_member->type;
+      out_assertion.members[member_index].name = extra_member->name;
+      out_assertion.members[member_index].offset = extra_member->offset;
+      out_assertion.members[member_index].type = extra_member->type;
       std::optional<Statement_Kind> statement_kind =
           try_parse_statement_kind(extra_member_value_span);
       if (statement_kind.has_value()) {
-        out_assertion.members[1].statement_kind = *statement_kind;
+        out_assertion.members[member_index].statement_kind = *statement_kind;
       } else {
         lexer.errors.push_back(concat("invalid Statement_Kind: "sv,
                                       to_string_view(extra_member_value_span)));
