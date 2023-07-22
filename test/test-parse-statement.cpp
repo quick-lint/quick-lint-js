@@ -709,42 +709,27 @@ TEST_F(Test_Parse_Statement, if_without_parens) {
   }
 
   {
-    Test_Parser p(u8"if (cond { body; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond { body; }"_sv,  //
+        u8"        ` Diag_Expected_Parenthesis_Around_If_Condition.where{.token=)}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
                               "visit_enter_block_scope",  //
                               "visit_variable_use",       // body
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Expected_Parenthesis_Around_If_Condition,  //
-                where,
-                Offsets_Matcher(p.code, u8"if (cond"_sv.size(), u8""_sv),  //
-                token, u8')'),
-        }));
   }
 
   {
-    Test_Parser p(u8"if cond) { body; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if cond) { body; }"_sv,  //
+        u8"   ` Diag_Expected_Parenthesis_Around_If_Condition.where{.token=(}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
                               "visit_enter_block_scope",  //
                               "visit_variable_use",       // body
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Expected_Parenthesis_Around_If_Condition,               //
-                where, Offsets_Matcher(p.code, u8"if "_sv.size(), u8""_sv),  //
-                token, u8'('),
-        }));
   }
 }
 
@@ -1001,43 +986,27 @@ TEST_F(Test_Parse_Statement, switch_without_parens) {
   }
 
   {
-    Test_Parser p(u8"switch (cond { case ONE: break; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"switch (cond { case ONE: break; }"_sv,  //
+        u8"            ` Diag_Expected_Parenthesis_Around_Switch_Condition.where{.token=)}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
                               "visit_enter_block_scope",  //
                               "visit_variable_use",       // ONE
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_FIELDS(
-                        Diag_Expected_Parenthesis_Around_Switch_Condition,  //
-                        where,
-                        Offsets_Matcher(p.code, u8"switch (cond"_sv.size(),
-                                        u8""_sv),  //
-                        token, u8')'),
-                }));
   }
 
   {
-    Test_Parser p(u8"switch cond) { case ONE: break; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"switch cond) { case ONE: break; }"_sv,  //
+        u8"       ` Diag_Expected_Parenthesis_Around_Switch_Condition.where{.token=(}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
                               "visit_enter_block_scope",  //
                               "visit_variable_use",       // ONE
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Expected_Parenthesis_Around_Switch_Condition,  //
-                where,
-                Offsets_Matcher(p.code, u8"switch "_sv.size(), u8""_sv),  //
-                token, u8'('),
-        }));
   }
 }
 
@@ -1253,8 +1222,9 @@ TEST_F(Test_Parse_Statement, with_statement_without_parens) {
   }
 
   {
-    Test_Parser p(u8"with (cond { body; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"with (cond { body; }"_sv,  //
+        u8"          ` Diag_Expected_Parenthesis_Around_With_Expression.where{.token=)}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
                               "visit_enter_with_scope",   // with
@@ -1263,20 +1233,12 @@ TEST_F(Test_Parse_Statement, with_statement_without_parens) {
                               "visit_exit_block_scope",   //
                               "visit_exit_with_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Expected_Parenthesis_Around_With_Expression,  //
-                where,
-                Offsets_Matcher(p.code, u8"with (cond"_sv.size(), u8""_sv),  //
-                token, u8')'),
-        }));
   }
 
   {
-    Test_Parser p(u8"with cond) { body; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"with cond) { body; }"_sv,  //
+        u8"     ` Diag_Expected_Parenthesis_Around_With_Expression.where{.token=(}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
                               "visit_enter_with_scope",   // with
@@ -1285,15 +1247,6 @@ TEST_F(Test_Parse_Statement, with_statement_without_parens) {
                               "visit_exit_block_scope",   //
                               "visit_exit_with_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Expected_Parenthesis_Around_With_Expression,  //
-                where,
-                Offsets_Matcher(p.code, u8"with "_sv.size(), u8""_sv),  //
-                token, u8'('),
-        }));
   }
 }
 
