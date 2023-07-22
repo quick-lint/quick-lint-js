@@ -1729,26 +1729,13 @@ TEST_F(Test_Lex, lex_identifier_with_disallowed_character_escape_sequence) {
 
 TEST_F(Test_Lex, lex_identifier_with_disallowed_non_ascii_character) {
   this->check_single_token_with_errors(
-      u8"illegal\U0010ffff"_sv, u8"illegal\U0010ffff"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Character_Disallowed_In_Identifiers,  //
-                    character, u8"illegal"_sv.size(), u8"\U0010ffff"_sv),
-            }));
-      });
+      u8"illegal\U0010ffff"_sv,  //
+      u8"       ^^^^^^^^^^ Diag_Character_Disallowed_In_Identifiers"_diag,
+      u8"illegal\U0010ffff"_sv);
   this->check_single_token_with_errors(
-      u8"\U0010ffffillegal"_sv, u8"\U0010ffffillegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Character_Disallowed_In_Identifiers,  //
-                            character, 0, u8"\U0010ffff"_sv),
-                    }));
-      });
+      u8"\U0010ffffillegal"_sv,  //
+      u8"^^^^^^^^^^ Diag_Character_Disallowed_In_Identifiers"_diag,
+      u8"\U0010ffffillegal"_sv);
 }
 
 TEST_F(Test_Lex, lex_identifier_with_disallowed_escaped_initial_character) {

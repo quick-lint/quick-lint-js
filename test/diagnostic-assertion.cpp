@@ -240,10 +240,13 @@ Diagnostic_Assertion Diagnostic_Assertion::adjusted_for_escaped_characters(
   auto advance_character = [&code, &i]() -> int {
     Char8 c = code[narrow_cast<std::size_t>(i)];
     if (has_utf8_continuation(c)) {
-      // Assumption: The character was written as "\u1234" (6 source
-      // characters). It could have been written literally or as "\U00001234",
-      // but we don't handle those cases.
-      int source_width = 6;
+      // Assumption: Code points in the range U+0080 through U+ffff are written
+      // as "\u1234" (6 source characters). It could have been written literally
+      // or as "\U00001234", but we don't handle those cases.
+      //
+      // Assumption: Code points in the range U+10000 through U+10ffff are
+      // written as "\U00102345" (10 source characters). It could have been
+      // written literally, but we don't handle that case.
       int character_byte_count = 1;
       ++i;
       while (i < narrow_cast<Padded_String_Size>(code.size()) &&
@@ -251,6 +254,7 @@ Diagnostic_Assertion Diagnostic_Assertion::adjusted_for_escaped_characters(
         character_byte_count += 1;
         ++i;
       }
+      int source_width = character_byte_count <= 3 ? 6 : 10;
       return character_byte_count - source_width;
     } else {
       ++i;

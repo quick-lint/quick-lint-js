@@ -383,6 +383,17 @@ TEST(Test_Diagnostic_Assertion,
     EXPECT_EQ(da.members[0].span_begin_offset, 3);
     EXPECT_EQ(da.members[0].span_end_offset, 5);
   }
+
+  {
+    static_assert(u8"\U0001f3b8"_sv.size() == 4);
+    // clang-format off
+    Diagnostic_Assertion da = parse_or_fail(u8"          ^^ Diag_Unexpected_Token");
+    da = da.adjusted_for_escaped_characters(u8"\U0001f3b8bcdef"_sv);
+    // clang-format on
+    ASSERT_EQ(da.member_count(), 1);
+    EXPECT_EQ(da.members[0].span_begin_offset, 4);
+    EXPECT_EQ(da.members[0].span_end_offset, 6);
+  }
 }
 
 TEST(Test_Diagnostic_Assertion, match_error_type_with_1_field) {
