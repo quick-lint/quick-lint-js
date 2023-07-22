@@ -1346,10 +1346,10 @@ TEST_F(Test_Parse_Function, generator_function_with_misplaced_star) {
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Generator_Function_Star_Belongs_Before_Name, function_name,
-                Offsets_Matcher(p.code, u8"*function "_sv.size(), u8"f"_sv),
-                star, Offsets_Matcher(p.code, 0, u8"*"_sv)),
+            DIAG_TYPE_2_OFFSETS(
+                p.code, Diag_Generator_Function_Star_Belongs_Before_Name,  //
+                function_name, u8"*function "_sv.size(), u8"f"_sv,         //
+                star, 0, u8"*"_sv),
         }));
   }
 
@@ -1420,16 +1420,15 @@ TEST_F(Test_Parse_Function, generator_function_with_misplaced_star) {
                               "visit_variable_declaration",        // x
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Generator_Function_Star_Belongs_Before_Name, function_name,
-                Offsets_Matcher(p.code, u8"let x = *function "_sv.size(),
-                                u8"f"_sv),
-                star,
-                Offsets_Matcher(p.code, u8"let x = "_sv.size(), u8"*"_sv)),
-        }));
+    EXPECT_THAT(p.errors,
+                ElementsAreArray({
+                    DIAG_TYPE_2_OFFSETS(
+                        p.code,
+                        Diag_Generator_Function_Star_Belongs_Before_Name,  //
+                        function_name, u8"let x = *function "_sv.size(),
+                        u8"f"_sv,  //
+                        star, u8"let x = "_sv.size(), u8"*"_sv),
+                }));
   }
 
   {
@@ -1463,12 +1462,11 @@ TEST_F(Test_Parse_Function, generator_function_with_misplaced_star) {
     EXPECT_THAT(
         p.errors,
         ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Generator_Function_Star_Belongs_Before_Name, function_name,
-                Offsets_Matcher(p.code, u8"let x = *async function "_sv.size(),
-                                u8"f"_sv),
-                star,
-                Offsets_Matcher(p.code, u8"let x = "_sv.size(), u8"*"_sv)),
+            DIAG_TYPE_2_OFFSETS(
+                p.code, Diag_Generator_Function_Star_Belongs_Before_Name,  //
+                function_name, u8"let x = *async function "_sv.size(),
+                u8"f"_sv,  //
+                star, u8"let x = "_sv.size(), u8"*"_sv),
         }));
   }
 
