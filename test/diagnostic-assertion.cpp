@@ -84,10 +84,48 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     diag_member_span = make_string_view(diag_member_begin, diag_member_end);
   }
 
+  String8_View extra_member_span;
+  String8_View extra_member_value_span;
+  if (*p == u8'{' && !diag_member_span.empty()) {
+    ++p;
+    if (*p != u8'.') {
+      goto done_unexpected;
+    }
+    ++p;
+    const Char8* extra_member_begin = p;
+    for (; is_diag_type_char(*p); ++p) {
+    }
+    const Char8* extra_member_end = p;
+    if (extra_member_begin == extra_member_end) {
+      errors.push_back("expected member variable name after '{.'");
+    }
+
+    if (*p != u8'=') {
+      goto done_unexpected;
+    }
+    ++p;
+
+    const Char8* extra_member_value_begin = p;
+    for (; *p != u8'}'; ++p) {
+      if (*p == u8'\0') {
+        errors.push_back("expected closing '}'");
+        return failed_result(std::move(errors));
+      }
+    }
+    const Char8* extra_member_value_end = p;
+    QLJS_ASSERT(*p == u8'}');
+    ++p;
+
+    extra_member_span = make_string_view(extra_member_begin, extra_member_end);
+    extra_member_value_span =
+        make_string_view(extra_member_value_begin, extra_member_value_end);
+  }
+
   if (*p != u8'\0') {
     if (*p == ' ') {
       errors.push_back("trailing whitespace is not allowed in _diag");
     } else {
+    done_unexpected:
       errors.push_back(concat("unexpected '"sv,
                               to_string_view(String8_View(p, 1)),
                               "' in _diag"sv));
@@ -137,13 +175,45 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   out_assertion.members[0].offset = member->offset;
   out_assertion.members[0].type = member->type;
 
+  if (!extra_member_span.empty()) {
+    const Diagnostic_Info_Variable_Debug* extra_member =
+        diag_info.find(to_string_view(extra_member_span));
+    QLJS_ALWAYS_ASSERT(extra_member != nullptr);
+    switch (extra_member->type) {
+    case Diagnostic_Arg_Type::char8:
+      if (extra_member_value_span.size() != 1) {
+        errors.push_back(
+            concat("member {."sv, to_string_view(extra_member_span),
+                   "} is a Char8 but the given value is not one byte"sv));
+        return failed_result(std::move(errors));
+      }
+      out_assertion.members[1].name = extra_member->name;
+      out_assertion.members[1].offset = extra_member->offset;
+      out_assertion.members[1].type = extra_member->type;
+      out_assertion.members[1].character = extra_member_value_span[0];
+      break;
+    default:
+      errors.push_back(concat("member {."sv, to_string_view(extra_member_span),
+                              "} has unsupported type"sv));
+      break;
+    }
+  }
+
   if (!errors.empty()) {
     return failed_result(std::move(errors));
   }
   return out_assertion;
 }
 
-int Diagnostic_Assertion::member_count() const { return 1; }
+int Diagnostic_Assertion::member_count() const {
+  int count = 0;
+  for (const Diagnostic_Assertion::Member& member : this->members) {
+    if (member.name != nullptr) {
+      count += 1;
+    }
+  }
+  return count;
+}
 
 Diagnostic_Assertion Diagnostic_Assertion::parse_or_exit(
     const Char8* specification) {
@@ -206,22 +276,37 @@ diagnostics_matcher(Padded_String_View code,
   for (const Diagnostic_Assertion& diag : assertions) {
     Diagnostic_Assertion adjusted_diag =
         diag.adjusted_for_escaped_characters(code.string_view());
-    // TODO(strager): Support multiple members.
-    QLJS_ASSERT(adjusted_diag.member_count() == 1);
-    error_matchers.push_back(Diag_Matcher_2(
-        code, adjusted_diag.type,
-        Diag_Matcher_2::Field{
-            .arg =
-                Diag_Matcher_Arg{
-                    .member_name = adjusted_diag.members[0].name,
-                    .member_offset = adjusted_diag.members[0].offset,
-                    .member_type = adjusted_diag.members[0].type,
-                },
-            .begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
-                adjusted_diag.members[0].span_begin_offset),
-            .end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
-                adjusted_diag.members[0].span_end_offset),
-        }));
+
+    std::vector<Diag_Matcher_2::Field> fields;
+    int member_count = adjusted_diag.member_count();
+    for (int i = 0; i < member_count; ++i) {
+      const Diagnostic_Assertion::Member& member =
+          adjusted_diag.members[narrow_cast<std::size_t>(i)];
+      Diag_Matcher_2::Field field;
+      field.arg = Diag_Matcher_Arg{
+          .member_name = member.name,
+          .member_offset = member.offset,
+          .member_type = member.type,
+      };
+      switch (member.type) {
+      case Diagnostic_Arg_Type::source_code_span:
+        field.begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+            member.span_begin_offset);
+        field.end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+            member.span_end_offset);
+        break;
+      case Diagnostic_Arg_Type::char8:
+        field.character = member.character;
+        break;
+      default:
+        QLJS_ASSERT(false);
+        break;
+      }
+      fields.push_back(field);
+    }
+
+    error_matchers.push_back(
+        Diag_Matcher_2(code, adjusted_diag.type, std::move(fields)));
   }
   if (error_matchers.size() <= 1) {
     // ElementsAreArray produces better diagnostics than

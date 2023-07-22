@@ -9,6 +9,7 @@
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/unreachable.h>
@@ -171,6 +172,13 @@ Source_Code_Span Diag_Matcher_Arg::get_span(const void *error_object) const
   QLJS_UNREACHABLE();
 }
 
+Char8 Diag_Matcher_Arg::get_char8(const void *error_object) const noexcept {
+  QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::char8);
+  const void *member_data =
+      reinterpret_cast<const char *>(error_object) + this->member_offset;
+  return *static_cast<const Char8 *>(member_data);
+}
+
 template <class State, class Field>
 class Diag_Fields_Matcher_Impl_Base
     : public testing::MatcherInterface<const Diag_Collector::Diag &> {
@@ -270,8 +278,8 @@ class Diag_Matcher::Impl
 }
 
 Diag_Matcher_2::Diag_Matcher_2(Padded_String_View input, Diag_Type type,
-                               Field field_0)
-    : state_{type, input, {field_0}} {}
+                               std::vector<Field> fields)
+    : state_{type, input, std::move(fields)} {}
 
 class Diag_Matcher_2::Impl
     : public Diag_Fields_Matcher_Impl_Base<Diag_Matcher_2::State,
@@ -285,19 +293,37 @@ class Diag_Matcher_2::Impl
  protected:
   bool field_matches(const Diag_Collector::Diag &error, const Field &f,
                      testing::MatchResultListener *listener) const override {
-    Source_Code_Span span = f.arg.get_span(error.data());
-    auto span_begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
-        span.begin() - this->state_.input.data());
-    auto span_end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
-        span.end() - this->state_.input.data());
+    switch (f.arg.member_type) {
+    case Diagnostic_Arg_Type::source_code_span: {
+      Source_Code_Span span = f.arg.get_span(error.data());
+      auto span_begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+          span.begin() - this->state_.input.data());
+      auto span_end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+          span.end() - this->state_.input.data());
 
-    bool span_matches =
-        span_begin_offset == f.begin_offset && span_end_offset == f.end_offset;
-    *listener << "whose ." << f.arg.member_name << " (" << span_begin_offset
-              << "-" << span_end_offset << ") "
-              << (span_matches ? "equals" : "doesn't equal") << " "
-              << f.begin_offset << "-" << f.end_offset;
-    return span_matches;
+      bool span_matches = span_begin_offset == f.begin_offset &&
+                          span_end_offset == f.end_offset;
+      *listener << "whose ." << f.arg.member_name << " (" << span_begin_offset
+                << "-" << span_end_offset << ") "
+                << (span_matches ? "equals" : "doesn't equal") << " "
+                << f.begin_offset << "-" << f.end_offset;
+      return span_matches;
+    }
+
+    case Diagnostic_Arg_Type::char8: {
+      Char8 character = f.arg.get_char8(error.data());
+      bool character_matches = character == f.character;
+      *listener << "whose ." << f.arg.member_name << " ('"
+                << static_cast<char>(character) << "') "
+                << (character_matches ? "equals" : "doesn't equal") << " '"
+                << static_cast<char>(f.character) << "'";
+      return character_matches;
+    }
+
+    default:
+      QLJS_ASSERT(false);
+      return false;
+    }
   }
 };
 

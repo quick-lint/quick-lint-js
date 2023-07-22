@@ -184,6 +184,31 @@ TEST(Test_Diagnostic_Assertion, diag_type_with_multiple_members_explicit) {
   }
 }
 
+TEST(Test_Diagnostic_Assertion, diag_type_with_char8_member_explicit) {
+  {
+    Diagnostic_Assertion da = parse_or_fail(
+        u8"^ "
+        u8"Diag_Expected_Parenthesis_Around_Do_While_Condition.where{.token="
+        u8"x}");
+    ASSERT_EQ(da.member_count(), 2);
+
+    EXPECT_STREQ(da.members[0].name, "where");
+    EXPECT_EQ(da.members[0].type, Diagnostic_Arg_Type::source_code_span);
+    EXPECT_EQ(
+        da.members[0].offset,
+        offsetof(Diag_Expected_Parenthesis_Around_Do_While_Condition, where));
+    EXPECT_EQ(da.members[0].span_begin_offset, 0);
+    EXPECT_EQ(da.members[0].span_end_offset, 1);
+
+    EXPECT_STREQ(da.members[1].name, "token");
+    EXPECT_EQ(da.members[1].type, Diagnostic_Arg_Type::char8);
+    EXPECT_EQ(
+        da.members[1].offset,
+        offsetof(Diag_Expected_Parenthesis_Around_Do_While_Condition, token));
+    EXPECT_EQ(da.members[1].character, u8'x');
+  }
+}
+
 TEST(Test_Diagnostic_Assertion, adjust_with_no_escaped_characters) {
   Diagnostic_Assertion da = parse_or_fail(u8"  ^^ Diag_Unexpected_Token");
   da = da.adjusted_for_escaped_characters(u8"abcdef"_sv);
@@ -427,6 +452,43 @@ TEST(Test_Diagnostic_Assertion, match_offsets_of_1_field_message) {
               "whose element #0 doesn't match, whose .break_statement (1-4) "
               "doesn't equal 0-5");
   }
+}
+
+TEST(Test_Diagnostic_Assertion, match_span_and_char8) {
+  Padded_String code(u8"(hello"_sv);
+
+  ::testing::Matcher matcher = diagnostics_matcher(
+      &code,
+      {u8"^ Diag_Expected_Parenthesis_Around_Do_While_Condition.where{.token=)}"_diag});
+  EXPECT_TRUE(matcher.Matches({
+      Diag_Collector::Diag(Diag_Expected_Parenthesis_Around_Do_While_Condition{
+          .where = Source_Code_Span(&code[0], &code[1]),
+          .token = u8')',
+      }),
+  }));
+  EXPECT_FALSE(matcher.Matches({
+      Diag_Collector::Diag(Diag_Expected_Parenthesis_Around_Do_While_Condition{
+          .where = Source_Code_Span(&code[0], &code[1]),
+          .token = u8'(',
+      }),
+  }));
+}
+
+TEST(Test_Diagnostic_Assertion, char8_message) {
+  Padded_String code(u8"hello"_sv);
+
+  ::testing::Matcher matcher = diagnostics_matcher(
+      &code,
+      {u8"^ Diag_Expected_Parenthesis_Around_Do_While_Condition.where{.token=)}"_diag});
+
+  Diag_Collector::Diag value(
+      Diag_Expected_Parenthesis_Around_Do_While_Condition{
+          .where = Source_Code_Span(&code[0], &code[1]),
+          .token = u8'(',
+      });
+  EXPECT_EQ(get_matcher_message(matcher, {value}),
+            "whose element #0 doesn't match, whose .where (0-1) equals 0-1 and "
+            "whose .token ('(') doesn't equal ')'");
 }
 
 TEST(Test_Diagnostic_Assertion, multiple_diagnostics_are_matched_in_any_order) {

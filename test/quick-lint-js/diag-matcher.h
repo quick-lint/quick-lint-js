@@ -198,8 +198,11 @@ struct Diag_Matcher_Arg {
   std::size_t member_offset;
   Diagnostic_Arg_Type member_type;
 
-  // member_type must be Source_Code_Span.
+  // Precondition: this->member_type == Diagnostic_Arg_Type::source_code_span
   Source_Code_Span get_span(const void *error_object) const noexcept;
+
+  // Precondition: this->member_type == Diagnostic_Arg_Type::char8
+  Char8 get_char8(const void *error_object) const noexcept;
 };
 
 // Create a Diag_Matcher_Arg from a Diag_ struct type and the name of a member
@@ -265,12 +268,16 @@ class Diag_Matcher_2 {
   struct Field {
     Diag_Matcher_Arg arg;
 
-    // If this->arg == Diag_Matcher_Arg::source_code_span:
+    // If this->arg.member_type == Diag_Matcher_Arg::source_code_span:
     CLI_Source_Position::Offset_Type begin_offset;
     CLI_Source_Position::Offset_Type end_offset;
+
+    // If this->arg.member_type == Diag_Matcher_Arg::char8:
+    Char8 character;
   };
 
-  explicit Diag_Matcher_2(Padded_String_View input, Diag_Type type, Field);
+  explicit Diag_Matcher_2(Padded_String_View input, Diag_Type type,
+                          std::vector<Field>);
 
   Diag_Matcher_2(const Diag_Matcher_2 &) = default;
   Diag_Matcher_2(Diag_Matcher_2 &&) = default;

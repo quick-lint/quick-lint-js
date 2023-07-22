@@ -113,41 +113,25 @@ TEST_F(Test_Parse_Loop, do_while_without_parens) {
   }
 
   {
-    Test_Parser p(u8"do {} while (cond"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do {} while (cond"_sv,  //
+        u8"                 ` Diag_Expected_Parenthesis_Around_Do_While_Condition.where{.token=)}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",   //
                               "visit_variable_use",       // cond
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_FIELDS(
-                        Diag_Expected_Parenthesis_Around_Do_While_Condition,  //
-                        where,
-                        Offsets_Matcher(p.code, u8"do {} while (cond"_sv.size(),
-                                        u8""_sv),  //
-                        token, u8')'),
-                }));
   }
 
   {
-    Test_Parser p(u8"do {} while cond)"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do {} while cond)"_sv,  //
+        u8"            ` Diag_Expected_Parenthesis_Around_Do_While_Condition.where{.token=(}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",   //
                               "visit_variable_use",       // cond
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_FIELDS(
-                        Diag_Expected_Parenthesis_Around_Do_While_Condition,  //
-                        where,
-                        Offsets_Matcher(p.code, u8"do {} while "_sv.size(),
-                                        u8""_sv),  //
-                        token, u8'('),
-                }));
   }
 }
 
@@ -1108,43 +1092,27 @@ TEST_F(Test_Parse_Loop, while_without_parens) {
   }
 
   {
-    Test_Parser p(u8"while (cond { body; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while (cond { body; }"_sv,  //
+        u8"           ` Diag_Expected_Parenthesis_Around_While_Condition.where{.token=)}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
                               "visit_enter_block_scope",  //
                               "visit_variable_use",       // body
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Expected_Parenthesis_Around_While_Condition,  //
-                where,
-                Offsets_Matcher(p.code, u8"while (cond"_sv.size(), u8""_sv),  //
-                token, u8')'),
-        }));
   }
 
   {
-    Test_Parser p(u8"while cond) { body; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while cond) { body; }"_sv,  //
+        u8"      ` Diag_Expected_Parenthesis_Around_While_Condition.where{.token=(}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // cond
                               "visit_enter_block_scope",  //
                               "visit_variable_use",       // body
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(
-                Diag_Expected_Parenthesis_Around_While_Condition,  //
-                where,
-                Offsets_Matcher(p.code, u8"while "_sv.size(), u8""_sv),  //
-                token, u8'('),
-        }));
   }
 }
 

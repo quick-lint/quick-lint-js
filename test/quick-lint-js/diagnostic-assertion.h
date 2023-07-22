@@ -34,6 +34,9 @@ namespace quick_lint_js {
 // * (optional) Member variable: A field inside the Diag_ class. Written after
 //   '.' after the diagnostic type. If the Diag_ class only has one member
 //   variable, the member variable (including the '.') may be omitted.
+// * (optional) Extra member variable and value: A field inside the Diag_ class
+//   and its expected value. Written between '{' and '}' following the
+//   diagnostic.
 //
 // Diagnostic_Assertion objects are to be used with
 // test_parse_and_visit_statement and related functions.
@@ -65,6 +68,12 @@ namespace quick_lint_js {
 //      u8"                                   ^^^^^^^^^^ Diag_Unexpected_Token"_diag, //
 //      u8"          ^^ Diag_Unexpected_Token"_diag);
 //
+//    // Parse the code and assert that there is one diagnostic with two fields
+//    // (one Source_Code_Span (.where) and one Char8 (.token)).
+//    test_parse_and_visit_statement(
+//      u8"do {} while (cond"_sv,
+//      u8"                 ` Diag_Expected_Parenthesis_Around_Do_While_Condition.where{.token=)}"_diag);
+//
 // clang-format on
 struct Diagnostic_Assertion {
   struct Member {
@@ -75,10 +84,13 @@ struct Diagnostic_Assertion {
     // If type == Diagnostic_Arg_Type::source_code_span:
     Padded_String_Size span_begin_offset;
     Padded_String_Size span_end_offset;
+
+    // If type == Diagnostic_Arg_Type::char8:
+    Char8 character;
   };
 
   Diag_Type type = Diag_Type();
-  std::array<Member, 1> members;
+  std::array<Member, 2> members;
 
   int member_count() const;
 
