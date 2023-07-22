@@ -16,6 +16,8 @@ enum class Statement_Kind {
   labelled_statement,
 };
 
+std::ostream& operator<<(std::ostream&, Statement_Kind);
+
 enum class Enum_Kind {
   declare_const_enum,
   const_enum,

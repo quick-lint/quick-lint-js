@@ -36,6 +36,8 @@ bool is_diag_type_char(Char8 c) {
          (u8'0' <= c && c <= u8'9') ||  //
          c == u8'_';
 }
+
+std::optional<Statement_Kind> try_parse_statement_kind(String8_View);
 }
 
 Result<Diagnostic_Assertion, std::vector<std::string>>
@@ -201,6 +203,21 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       out_assertion.members[1].string = extra_member_value_span;
       break;
 
+    case Diagnostic_Arg_Type::statement_kind: {
+      out_assertion.members[1].name = extra_member->name;
+      out_assertion.members[1].offset = extra_member->offset;
+      out_assertion.members[1].type = extra_member->type;
+      std::optional<Statement_Kind> statement_kind =
+          try_parse_statement_kind(extra_member_value_span);
+      if (statement_kind.has_value()) {
+        out_assertion.members[1].statement_kind = *statement_kind;
+      } else {
+        errors.push_back(concat("invalid Statement_Kind: "sv,
+                                to_string_view(extra_member_value_span)));
+      }
+      break;
+    }
+
     default:
       errors.push_back(concat("member {."sv, to_string_view(extra_member_span),
                               "} has unsupported type"sv));
@@ -349,6 +366,9 @@ diagnostics_matcher(Padded_String_View code,
       case Diagnostic_Arg_Type::string8_view:
         field.string = member.string;
         break;
+      case Diagnostic_Arg_Type::statement_kind:
+        field.statement_kind = member.statement_kind;
+        break;
       default:
         QLJS_ASSERT(false);
         break;
@@ -373,6 +393,23 @@ diagnostics_matcher(Padded_String_View code,
                     std::initializer_list<Diagnostic_Assertion> assertions) {
   return diagnostics_matcher(code,
                              Span<const Diagnostic_Assertion>(assertions));
+}
+
+namespace {
+std::optional<Statement_Kind> try_parse_statement_kind(String8_View s) {
+#define QLJS_CASE(kind)                                          \
+  if (s == u8"Statement_Kind::"_sv QLJS_CPP_QUOTE_U8_SV(kind)) { \
+    return Statement_Kind::kind;                                 \
+  }
+  QLJS_CASE(do_while_loop)
+  QLJS_CASE(for_loop)
+  QLJS_CASE(if_statement)
+  QLJS_CASE(while_loop)
+  QLJS_CASE(with_statement)
+  QLJS_CASE(labelled_statement)
+  return std::nullopt;
+#undef QLJS_CASE
+}
 }
 }
 

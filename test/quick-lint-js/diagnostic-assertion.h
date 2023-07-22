@@ -90,6 +90,9 @@ struct Diagnostic_Assertion {
 
     // If type == Diagnostic_Arg_Type::string8_view:
     String8_View string;
+
+    // If type == Diagnostic_Arg_Type::statement_kind:
+    Statement_Kind statement_kind;
   };
 
   Diag_Type type = Diag_Type();

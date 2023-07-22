@@ -206,6 +206,9 @@ struct Diag_Matcher_Arg {
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::string8_view
   String8_View get_string8_view(const void *error_object) const noexcept;
+
+  // Precondition: this->member_type == Diagnostic_Arg_Type::statement_kind
+  Statement_Kind get_statement_kind(const void *error_object) const noexcept;
 };
 
 // Create a Diag_Matcher_Arg from a Diag_ struct type and the name of a member
@@ -280,6 +283,9 @@ class Diag_Matcher_2 {
 
     // If this->arg.member_type == Diag_Matcher_Arg::string8_view:
     String8_View string;
+
+    // If this->arg.member_type == Diag_Matcher_Arg::statement_kind:
+    Statement_Kind statement_kind;
   };
 
   explicit Diag_Matcher_2(Padded_String_View input, Diag_Type type,
