@@ -258,6 +258,39 @@ class Diag_Matcher {
   State state_;
 };
 
+// A mix of ::testing::VariantWith, ::testing::Field, and Offsets_Matcher. These
+// are combined into one matcher to significantly reduce compile times.
+class Diag_Matcher_2 {
+ public:
+  struct Field {
+    Diag_Matcher_Arg arg;
+
+    // If this->arg == Diag_Matcher_Arg::source_code_span:
+    CLI_Source_Position::Offset_Type begin_offset;
+    CLI_Source_Position::Offset_Type end_offset;
+  };
+
+  explicit Diag_Matcher_2(Padded_String_View input, Diag_Type type, Field);
+
+  Diag_Matcher_2(const Diag_Matcher_2 &) = default;
+  Diag_Matcher_2(Diag_Matcher_2 &&) = default;
+  Diag_Matcher_2 &operator=(const Diag_Matcher_2 &) = default;
+  Diag_Matcher_2 &operator=(Diag_Matcher_2 &&) = default;
+
+  /*implicit*/ operator testing::Matcher<const Diag_Collector::Diag &>() const;
+
+ private:
+  class Impl;
+
+  struct State {
+    Diag_Type type;
+    Padded_String_View input;
+    std::vector<Field> fields;
+  };
+
+  State state_;
+};
+
 // A mix of ::testing::VariantWith, ::testing::Field, and
 // source_code_span_matcher. These are combined into one matcher to
 // significantly reduce compile times.

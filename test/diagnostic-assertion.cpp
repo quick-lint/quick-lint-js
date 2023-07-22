@@ -202,15 +202,15 @@ void assert_diagnostics(Padded_String_View code,
 ::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
 diagnostics_matcher(Padded_String_View code,
                     Span<const Diagnostic_Assertion> assertions) {
-  std::vector<Diag_Matcher> error_matchers;
+  std::vector<Diag_Matcher_2> error_matchers;
   for (const Diagnostic_Assertion& diag : assertions) {
     Diagnostic_Assertion adjusted_diag =
         diag.adjusted_for_escaped_characters(code.string_view());
     // TODO(strager): Support multiple members.
     QLJS_ASSERT(adjusted_diag.member_count() == 1);
-    error_matchers.push_back(Diag_Matcher(
+    error_matchers.push_back(Diag_Matcher_2(
         code, adjusted_diag.type,
-        Diag_Matcher::Field{
+        Diag_Matcher_2::Field{
             .arg =
                 Diag_Matcher_Arg{
                     .member_name = adjusted_diag.members[0].name,
@@ -219,12 +219,8 @@ diagnostics_matcher(Padded_String_View code,
                 },
             .begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
                 adjusted_diag.members[0].span_begin_offset),
-            // TODO(strager): Make Diag_Matcher work with an end offset
-            // instead of a text span.
-            .text = String8(narrow_cast<std::size_t>(
-                                adjusted_diag.members[0].span_end_offset -
-                                adjusted_diag.members[0].span_begin_offset),
-                            u8'_'),
+            .end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+                adjusted_diag.members[0].span_end_offset),
         }));
   }
   if (error_matchers.size() <= 1) {

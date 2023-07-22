@@ -269,6 +269,43 @@ class Diag_Matcher::Impl
   return testing::Matcher<const Diag_Collector::Diag &>(new Impl(this->state_));
 }
 
+Diag_Matcher_2::Diag_Matcher_2(Padded_String_View input, Diag_Type type,
+                               Field field_0)
+    : state_{type, input, {field_0}} {}
+
+class Diag_Matcher_2::Impl
+    : public Diag_Fields_Matcher_Impl_Base<Diag_Matcher_2::State,
+                                           Diag_Matcher_2::Field> {
+ public:
+  using Base = Diag_Fields_Matcher_Impl_Base<Diag_Matcher_2::State,
+                                             Diag_Matcher_2::Field>;
+
+  using Base::Diag_Fields_Matcher_Impl_Base;
+
+ protected:
+  bool field_matches(const Diag_Collector::Diag &error, const Field &f,
+                     testing::MatchResultListener *listener) const override {
+    Source_Code_Span span = f.arg.get_span(error.data());
+    auto span_begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+        span.begin() - this->state_.input.data());
+    auto span_end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+        span.end() - this->state_.input.data());
+
+    bool span_matches =
+        span_begin_offset == f.begin_offset && span_end_offset == f.end_offset;
+    *listener << "whose ." << f.arg.member_name << " (" << span_begin_offset
+              << "-" << span_end_offset << ") "
+              << (span_matches ? "equals" : "doesn't equal") << " "
+              << f.begin_offset << "-" << f.end_offset;
+    return span_matches;
+  }
+};
+
+/*implicit*/ Diag_Matcher_2::operator testing::Matcher<
+    const Diag_Collector::Diag &>() const {
+  return testing::Matcher<const Diag_Collector::Diag &>(new Impl(this->state_));
+}
+
 Diag_Spans_Matcher::Diag_Spans_Matcher(Diag_Type type, Field field_0)
     : state_{type, {field_0}} {}
 
