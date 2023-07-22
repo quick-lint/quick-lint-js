@@ -784,6 +784,12 @@ kbd.keystroke {
   }
 }
 
+/* Scrollable container */
+.scrollable-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
 /*
  * quick-lint-js finds bugs in JavaScript programs.
  * Copyright (C) 2020  Matthew "strager" Glazar
