@@ -49,6 +49,10 @@ class Test_Lex : public ::testing::Test {
       void (*check_errors)(Padded_String_View input,
                            const std::vector<Diag_Collector::Diag>&),
       Source_Location = Source_Location::current());
+  void check_single_token_with_errors(
+      String8_View input, Diagnostic_Assertion,
+      String8_View expected_identifier_name,
+      Source_Location = Source_Location::current());
   void check_tokens(String8_View input,
                     std::initializer_list<Token_Type> expected_token_types,
                     Source_Location = Source_Location::current());
@@ -1585,40 +1589,20 @@ TEST_F(Test_Lex,
 
 TEST_F(Test_Lex, lex_identifier_with_malformed_escape_sequence) {
   this->check_single_token_with_errors(
-      u8" are\\ufriendly "_sv, u8"are\\ufriendly"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Expected_Hex_Digits_In_Unicode_Escape,  //
-                    escape_sequence, u8" are"_sv.size(), u8"\\ufr"_sv),
-            }));
-      });
+      u8" are\\ufriendly "_sv,  //
+      u8"    ^^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+      u8"are\\ufriendly"_sv);
   this->check_tokens_with_errors(
       u8"are\\uf riendly"_sv,  //
       u8"   ^^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
       {Token_Type::identifier, Token_Type::identifier});
   this->check_single_token_with_errors(
-      u8"stray\\backslash"_sv, u8"stray\\backslash"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unexpected_Backslash_In_Identifier,  //
-                            backslash, u8"stray"_sv.size(), u8"\\"_sv),
-                    }));
-      });
+      u8"stray\\backslash"_sv,  //
+      u8"     ^^ Diag_Unexpected_Backslash_In_Identifier"_diag,
+      u8"stray\\backslash"_sv);
   this->check_single_token_with_errors(
-      u8"stray\\"_sv, u8"stray\\"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unexpected_Backslash_In_Identifier,  //
-                            backslash, u8"stray"_sv.size(), u8"\\"_sv),
-                    }));
-      });
+      u8"stray\\"_sv,  //
+      u8"     ^^ Diag_Unexpected_Backslash_In_Identifier"_diag, u8"stray\\"_sv);
   this->check_tokens_with_errors(
       u8"hello\\u}world"_sv,  //
       u8"     ^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
@@ -1630,72 +1614,30 @@ TEST_F(Test_Lex, lex_identifier_with_malformed_escape_sequence) {
       {Token_Type::identifier, Token_Type::minus, Token_Type::number});
 
   this->check_single_token_with_errors(
-      u8"a\\u{}b"_sv, u8"a\\u{}b"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Expected_Hex_Digits_In_Unicode_Escape,  //
-                    escape_sequence, u8"a"_sv.size(), u8"\\u{}"_sv),
-            }));
-      });
+      u8"a\\u{}b"_sv,  //
+      u8" ^^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+      u8"a\\u{}b"_sv);
   this->check_single_token_with_errors(
-      u8"a\\u{q}b"_sv, u8"a\\u{q}b"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Expected_Hex_Digits_In_Unicode_Escape,  //
-                    escape_sequence, u8"a"_sv.size(), u8"\\u{q}"_sv),
-            }));
-      });
+      u8"a\\u{q}b"_sv,  //
+      u8" ^^^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+      u8"a\\u{q}b"_sv);
 
   this->check_single_token_with_errors(
-      u8"unterminated\\u"_sv, u8"unterminated\\u"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Expected_Hex_Digits_In_Unicode_Escape,  //
-                    escape_sequence, u8"unterminated"_sv.size(), u8"\\u"_sv),
-            }));
-      });
+      u8"unterminated\\u"_sv,  //
+      u8"            ^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+      u8"unterminated\\u"_sv);
   this->check_single_token_with_errors(
-      u8"unterminated\\u012"_sv, u8"unterminated\\u012"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Expected_Hex_Digits_In_Unicode_Escape,  //
-                    escape_sequence, u8"unterminated"_sv.size(), u8"\\u012"_sv),
-            }));
-      });
+      u8"unterminated\\u012"_sv,  //
+      u8"            ^^^^^^ Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+      u8"unterminated\\u012"_sv);
   this->check_single_token_with_errors(
-      u8"unterminated\\u{"_sv, u8"unterminated\\u{"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Unclosed_Identifier_Escape_Sequence,  //
-                    escape_sequence, u8"unterminated"_sv.size(), u8"\\u{"_sv),
-            }));
-      });
+      u8"unterminated\\u{"_sv,  //
+      u8"            ^^^^ Diag_Unclosed_Identifier_Escape_Sequence"_diag,
+      u8"unterminated\\u{"_sv);
   this->check_single_token_with_errors(
-      u8"unterminated\\u{0123"_sv, u8"unterminated\\u{0123"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Unclosed_Identifier_Escape_Sequence,  //
-                            escape_sequence, u8"unterminated"_sv.size(),
-                            u8"\\u{0123"_sv),
-                    }));
-      });
+      u8"unterminated\\u{0123"_sv,  //
+      u8"            ^^^^^^^^ Diag_Unclosed_Identifier_Escape_Sequence"_diag,
+      u8"unterminated\\u{0123"_sv);
 
   this->check_tokens_with_errors(
       u8"unclosed\\u{0123 'string'"_sv,  //
@@ -1709,29 +1651,13 @@ TEST_F(Test_Lex, lex_identifier_with_malformed_escape_sequence) {
 
 TEST_F(Test_Lex, lex_identifier_with_out_of_range_escaped_character) {
   this->check_single_token_with_errors(
-      u8"too\\u{110000}big"_sv, u8"too\\u{110000}big"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Code_Point_In_Unicode_Out_Of_Range,  //
-                    escape_sequence, u8"too"_sv.size(), u8"\\u{110000}"_sv),
-            }));
-      });
+      u8"too\\u{110000}big"_sv,  //
+      u8"   ^^^^^^^^^^^ Diag_Escaped_Code_Point_In_Unicode_Out_Of_Range"_diag,
+      u8"too\\u{110000}big"_sv);
   this->check_single_token_with_errors(
-      u8"waytoo\\u{100000000000000}big"_sv,
-      u8"waytoo\\u{100000000000000}big"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Code_Point_In_Unicode_Out_Of_Range,  //
-                    escape_sequence, u8"waytoo"_sv.size(),
-                    u8"\\u{100000000000000}"_sv),
-            }));
-      });
+      u8"waytoo\\u{100000000000000}big"_sv,  //
+      u8"      ^^^^^^^^^^^^^^^^^^^^ Diag_Escaped_Code_Point_In_Unicode_Out_Of_Range"_diag,
+      u8"waytoo\\u{100000000000000}big"_sv);
 }
 
 TEST_F(Test_Lex, lex_identifier_with_out_of_range_utf_8_sequence) {
@@ -1770,84 +1696,35 @@ TEST_F(Test_Lex, lex_identifier_with_malformed_utf_8_sequence) {
 
 TEST_F(Test_Lex, lex_identifier_with_disallowed_character_escape_sequence) {
   this->check_single_token_with_errors(
-      u8"illegal\\u0020"_sv, u8"illegal\\u0020"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, u8"illegal"_sv.size(), u8"\\u0020"_sv),
-            }));
-      });
+      u8"illegal\\u0020"_sv,  //
+      u8"       ^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"illegal\\u0020"_sv);
   this->check_single_token_with_errors(
-      u8"illegal\\u{0020}"_sv, u8"illegal\\u{0020}"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, u8"illegal"_sv.size(), u8"\\u{0020}"_sv),
-            }));
-      });
+      u8"illegal\\u{0020}"_sv,  //
+      u8"       ^^^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"illegal\\u{0020}"_sv);
   this->check_single_token_with_errors(
-      u8"\\u{20}illegal"_sv, u8"\\u{20}illegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, 0, u8"\\u{20}"_sv),
-            }));
-      });
+      u8"\\u{20}illegal"_sv,  //
+      u8"^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"\\u{20}illegal"_sv);
   this->check_single_token_with_errors(
-      u8"illegal\\u{10ffff}"_sv, u8"illegal\\u{10ffff}"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, u8"illegal"_sv.size(), u8"\\u{10ffff}"_sv),
-            }));
-      });
+      u8"illegal\\u{10ffff}"_sv,  //
+      u8"       ^^^^^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"illegal\\u{10ffff}"_sv);
   this->check_single_token_with_errors(
-      u8"\\u{10ffff}illegal"_sv, u8"\\u{10ffff}illegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, 0, u8"\\u{10ffff}"_sv),
-            }));
-      });
+      u8"\\u{10ffff}illegal"_sv,  //
+      u8"^^^^^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"\\u{10ffff}illegal"_sv);
 
   // U+005c is \ (backslash)
   this->check_single_token_with_errors(
-      u8"\\u{5c}u0061illegal"_sv, u8"\\u{5c}u0061illegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, 0, u8"\\u{5c}"_sv),
-            }));
-      });
+      u8"\\u{5c}u0061illegal"_sv,  //
+      u8"^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"\\u{5c}u0061illegal"_sv);
   this->check_single_token_with_errors(
-      u8"illegal\\u{5c}u0061"_sv, u8"illegal\\u{5c}u0061"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, u8"illegal"_sv.size(), u8"\\u{5c}"_sv),
-            }));
-      });
+      u8"illegal\\u{5c}u0061"_sv,  //
+      u8"       ^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"illegal\\u{5c}u0061"_sv);
 }
 
 TEST_F(Test_Lex, lex_identifier_with_disallowed_non_ascii_character) {
@@ -1877,41 +1754,21 @@ TEST_F(Test_Lex, lex_identifier_with_disallowed_non_ascii_character) {
 TEST_F(Test_Lex, lex_identifier_with_disallowed_escaped_initial_character) {
   // Identifiers cannot start with a digit.
   this->check_single_token_with_errors(
-      u8"\\u{30}illegal"_sv, u8"\\u{30}illegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, 0, u8"\\u{30}"_sv),
-            }));
-      });
+      u8"\\u{30}illegal"_sv,  //
+      u8"^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"\\u{30}illegal"_sv);
 
   this->check_single_token_with_errors(
-      u8"\\u0816illegal"_sv, u8"\\u0816illegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, 0, u8"\\u0816"_sv),
-            }));
-      });
+      u8"\\u0816illegal"_sv,  //
+      u8"^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"\\u0816illegal"_sv);
 }
 
 TEST_F(Test_Lex, lex_identifier_with_disallowed_non_ascii_initial_character) {
   this->check_single_token_with_errors(
-      u8"\u0816illegal"_sv, u8"\u0816illegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Character_Disallowed_In_Identifiers,  //
-                            character, 0, u8"\u0816"_sv),
-                    }));
-      });
+      u8"\u0816illegal"_sv,  //
+      u8"^^^^^^ Diag_Character_Disallowed_In_Identifiers"_diag,
+      u8"\u0816illegal"_sv);
 }
 
 TEST_F(
@@ -1977,15 +1834,9 @@ TEST_F(Test_Lex, private_identifier) {
 TEST_F(Test_Lex,
        private_identifier_with_disallowed_non_ascii_initial_character) {
   this->check_single_token_with_errors(
-      u8"#\u0816illegal"_sv, u8"#\u0816illegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAreArray({
-                        DIAG_TYPE_OFFSETS(
-                            input, Diag_Character_Disallowed_In_Identifiers,  //
-                            character, u8"#"_sv.size(), u8"\u0816"_sv),
-                    }));
-      });
+      u8"#\u0816illegal"_sv,  //
+      u8" ^^^^^^ Diag_Character_Disallowed_In_Identifiers"_diag,
+      u8"#\u0816illegal"_sv);
 
   this->check_tokens_with_errors(u8"#123"_sv,  //
                                  u8"^ Diag_Unexpected_Hash_Character"_diag,
@@ -1995,28 +1846,14 @@ TEST_F(Test_Lex,
 TEST_F(Test_Lex, private_identifier_with_disallowed_escaped_initial_character) {
   // Private identifiers cannot start with a digit.
   this->check_single_token_with_errors(
-      u8"#\\u{30}illegal"_sv, u8"#\\u{30}illegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, u8"#"_sv.size(), u8"\\u{30}"_sv),
-            }));
-      });
+      u8"#\\u{30}illegal"_sv,  //
+      u8" ^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"#\\u{30}illegal"_sv);
 
   this->check_single_token_with_errors(
-      u8"#\\u0816illegal"_sv, u8"#\\u0816illegal"_sv,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Escaped_Character_Disallowed_In_Identifiers,  //
-                    escape_sequence, u8"#"_sv.size(), u8"\\u0816"_sv),
-            }));
-      });
+      u8"#\\u0816illegal"_sv,  //
+      u8" ^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag,
+      u8"#\\u0816illegal"_sv);
 }
 
 TEST_F(Test_Lex, lex_reserved_keywords) {
@@ -3229,6 +3066,30 @@ void Test_Lex::check_single_token_with_errors(
                         expected_identifier_name);
   }
   check_errors(&code, errors.errors);
+}
+
+void Test_Lex::check_single_token_with_errors(
+    String8_View input, Diagnostic_Assertion diag0,
+    String8_View expected_identifier_name, Source_Location caller) {
+  Padded_String code(input);
+  Diag_Collector errors;
+  std::vector<Token> lexed_tokens = this->lex_to_eof(&code, errors);
+
+  EXPECT_THAT_AT_CALLER(
+      lexed_tokens,
+      ElementsAreArray({
+          ::testing::Field("type", &Token::type,
+                           ::testing::AnyOf(Token_Type::identifier,
+                                            Token_Type::private_identifier)),
+      }));
+  if (lexed_tokens.size() == 1 &&
+      (lexed_tokens[0].type == Token_Type::identifier ||
+       lexed_tokens[0].type == Token_Type::private_identifier)) {
+    EXPECT_EQ_AT_CALLER(lexed_tokens[0].identifier_name().normalized_name(),
+                        expected_identifier_name);
+  }
+
+  assert_diagnostics(&code, errors.errors, {diag0}, caller);
 }
 
 void Test_Lex::check_tokens(
