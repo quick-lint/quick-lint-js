@@ -1616,8 +1616,11 @@ TEST_F(Test_Parse_Function,
 
 TEST_F(Test_Parse_Function, function_as_do_while_loop_body_is_disallowed) {
   {
-    Test_Parser p(u8"do function f() {} while (cond);"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do function f() {} while (cond);"_sv,  //
+        u8"  ` Diag_Function_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^^^^^^ .function_keywords"_diag
+        u8"{.kind_of_statement=Statement_Kind::do_while_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
@@ -1625,17 +1628,6 @@ TEST_F(Test_Parse_Function, function_as_do_while_loop_body_is_disallowed) {
                               "visit_exit_function_scope",        // f
                               "visit_variable_use",               // cond
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Function_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::do_while_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"do"_sv.size(), u8""_sv),  //
-                function_keywords,
-                Offsets_Matcher(p.code, u8"do "_sv.size(), u8"function"_sv)),
-        }));
   }
 
   {
@@ -1655,8 +1647,11 @@ TEST_F(Test_Parse_Function, function_as_do_while_loop_body_is_disallowed) {
 
 TEST_F(Test_Parse_Function, function_as_for_loop_body_is_disallowed) {
   {
-    Test_Parser p(u8"for (;cond;) function f() {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;cond;) function f() {}"_sv,  //
+        u8"            ` Diag_Function_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^^^^^^ .function_keywords"_diag
+        u8"{.kind_of_statement=Statement_Kind::for_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",               // cond
                               "visit_variable_declaration",       // f
@@ -1664,19 +1659,6 @@ TEST_F(Test_Parse_Function, function_as_for_loop_body_is_disallowed) {
                               "visit_enter_function_scope_body",  // f
                               "visit_exit_function_scope",        // f
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Function_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::for_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"for (;cond;)"_sv.size(),
-                                u8""_sv),  //
-                function_keywords,
-                Offsets_Matcher(p.code, u8"for (;cond;) "_sv.size(),
-                                u8"function"_sv)),
-        }));
   }
 
   {
@@ -1696,8 +1678,11 @@ TEST_F(Test_Parse_Function, function_as_for_loop_body_is_disallowed) {
 
 TEST_F(Test_Parse_Function, function_as_while_loop_body_is_disallowed) {
   {
-    Test_Parser p(u8"while (cond) function f() {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while (cond) function f() {}"_sv,  //
+        u8"            ` Diag_Function_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^^^^^^ .function_keywords"_diag
+        u8"{.kind_of_statement=Statement_Kind::while_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",               // cond
                               "visit_variable_declaration",       // f
@@ -1705,19 +1690,6 @@ TEST_F(Test_Parse_Function, function_as_while_loop_body_is_disallowed) {
                               "visit_enter_function_scope_body",  // f
                               "visit_exit_function_scope",        // f
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Function_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::while_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"while (cond)"_sv.size(),
-                                u8""_sv),  //
-                function_keywords,
-                Offsets_Matcher(p.code, u8"while (cond) "_sv.size(),
-                                u8"function"_sv)),
-        }));
   }
 
   {
@@ -1737,8 +1709,11 @@ TEST_F(Test_Parse_Function, function_as_while_loop_body_is_disallowed) {
 
 TEST_F(Test_Parse_Function, function_as_with_statement_body_is_disallowed) {
   {
-    Test_Parser p(u8"with (obj) function f() {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"with (obj) function f() {}"_sv,  //
+        u8"          ` Diag_Function_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"           ^^^^^^^^ .function_keywords"_diag
+        u8"{.kind_of_statement=Statement_Kind::with_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",               // obj
                               "visit_enter_with_scope",           // with
@@ -1748,18 +1723,6 @@ TEST_F(Test_Parse_Function, function_as_with_statement_body_is_disallowed) {
                               "visit_exit_function_scope",        // f
                               "visit_exit_with_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Function_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::with_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"with (obj)"_sv.size(), u8""_sv),  //
-                function_keywords,
-                Offsets_Matcher(p.code, u8"with (obj) "_sv.size(),
-                                u8"function"_sv)),
-        }));
   }
 
   {

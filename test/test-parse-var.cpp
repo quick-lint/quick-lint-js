@@ -2020,178 +2020,185 @@ TEST_F(Test_Parse_Var, variables_can_be_named_contextual_keywords) {
 
 TEST_F(Test_Parse_Var,
        lexical_declaration_as_do_while_loop_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(
-        concat(u8"do "_sv, variable_kind, u8" x = y; while (cond);"_sv),
-        capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do const x = y; while (cond);"_sv,  //
+        u8"  ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::do_while_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                               "visit_variable_use",          // cond
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::do_while_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"do"_sv.size(), u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"do "_sv.size(), variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do let x = y; while (cond);"_sv,  //
+        u8"  ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::do_while_loop}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_variable_use",          // cond
+                          }));
   }
 }
 
 TEST_F(Test_Parse_Var, lexical_declaration_as_for_loop_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(concat(u8"for (;cond;) "_sv, variable_kind, u8" x = y;"_sv),
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;cond;) const x = y;"_sv,  //
+        u8"            ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::for_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // cond
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::for_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"for (;cond;)"_sv.size(),
-                                u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"for (;cond;) "_sv.size(),
-                                variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;cond;) let x = y;"_sv,  //
+        u8"            ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::for_loop}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
   }
 }
 
 TEST_F(Test_Parse_Var, lexical_declaration_as_if_statement_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    {
-      Test_Parser p(concat(u8"if (cond) "_sv, variable_kind, u8" x = y;"_sv),
-                    capture_diags);
-      SCOPED_TRACE(p.code);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_variable_use",          // cond
-                                "visit_variable_use",          // y
-                                "visit_variable_declaration",  // x
-                            }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_3_FIELDS(
-                  Diag_Lexical_Declaration_Not_Allowed_In_Body,
-                  kind_of_statement,
-                  Statement_Kind::if_statement,  //
-                  expected_body,
-                  Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
-                  declaring_keyword,
-                  Offsets_Matcher(p.code, u8"if (cond) "_sv.size(),
-                                  variable_kind)),
-          }));
-    }
-
-    {
-      Test_Parser p(
-          concat(u8"if (cond) "_sv, variable_kind, u8" x = y; else {}"_sv),
-          capture_diags);
-      SCOPED_TRACE(p.code);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_variable_use",          // cond
-                                "visit_variable_use",          // y
-                                "visit_variable_declaration",  // x
-                                "visit_enter_block_scope",     // else
-                                "visit_exit_block_scope",      // else
-                            }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_3_FIELDS(
-                  Diag_Lexical_Declaration_Not_Allowed_In_Body,
-                  kind_of_statement,
-                  Statement_Kind::if_statement,  //
-                  expected_body,
-                  Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
-                  declaring_keyword,
-                  Offsets_Matcher(p.code, u8"if (cond) "_sv.size(),
-                                  variable_kind)),
-          }));
-    }
-
-    {
-      Test_Parser p(
-          concat(u8"if (cond) {} else "_sv, variable_kind, u8" x = y;"_sv),
-          capture_diags);
-      SCOPED_TRACE(p.code);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_variable_use",          // cond
-                                "visit_enter_block_scope",     // if
-                                "visit_exit_block_scope",      // if
-                                "visit_variable_use",          // y
-                                "visit_variable_declaration",  // x
-                            }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_3_FIELDS(
-                  Diag_Lexical_Declaration_Not_Allowed_In_Body,
-                  kind_of_statement,
-                  Statement_Kind::if_statement,  //
-                  expected_body,
-                  Offsets_Matcher(p.code, u8"if (cond) {} else"_sv.size(),
-                                  u8""_sv),  //
-                  declaring_keyword,
-                  Offsets_Matcher(p.code, u8"if (cond) {} else "_sv.size(),
-                                  variable_kind)),
-          }));
-    }
-  }
-}
-
-TEST_F(Test_Parse_Var, lexical_declaration_as_while_loop_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(concat(u8"while (cond) "_sv, variable_kind, u8" x = y;"_sv),
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) const x = y;"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // cond
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::while_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"while (cond)"_sv.size(),
-                                u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"while (cond) "_sv.size(),
-                                variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) let x = y;"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) const x = y; else {}"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_enter_block_scope",     // else
+                              "visit_exit_block_scope",      // else
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) let x = y; else {}"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_enter_block_scope",     // else
+                              "visit_exit_block_scope",      // else
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) {} else const x = y;"_sv,  //
+        u8"                 ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"                  ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_enter_block_scope",     // if
+                              "visit_exit_block_scope",      // if
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) {} else let x = y;"_sv,  //
+        u8"                 ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"                  ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_enter_block_scope",     // if
+                              "visit_exit_block_scope",      // if
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
+  }
+}
+
+TEST_F(Test_Parse_Var, lexical_declaration_as_while_loop_body_is_disallowed) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while (cond) const x = y;"_sv,  //
+        u8"            ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::while_loop}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while (cond) let x = y;"_sv,  //
+        u8"            ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::while_loop}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
   }
 }
 
 TEST_F(Test_Parse_Var,
        lexical_declaration_as_with_statement_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(concat(u8"with (obj) "_sv, variable_kind, u8" x = y;"_sv),
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"with (obj) const x = y;"_sv,  //
+        u8"          ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"           ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::with_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // obj
                               "visit_enter_with_scope",      // with
@@ -2199,42 +2206,47 @@ TEST_F(Test_Parse_Var,
                               "visit_variable_declaration",  // x
                               "visit_exit_with_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::with_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"with (obj)"_sv.size(), u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"with (obj) "_sv.size(),
-                                variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"with (obj) let x = y;"_sv,  //
+        u8"          ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"           ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::with_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // obj
+                              "visit_enter_with_scope",      // with
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_exit_with_scope",
+                          }));
   }
 }
 
 TEST_F(Test_Parse_Var, lexical_declaration_as_label_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(concat(u8"l: "_sv, variable_kind, u8" x = y;"_sv),
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"l: const x = y;"_sv,  //
+        u8"  ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::labelled_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",
                               "visit_variable_declaration",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body,           //
-                kind_of_statement, Statement_Kind::labelled_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"l:"_sv.size(), u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"l: "_sv.size(), variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"l: let x = y;"_sv,  //
+        u8"  ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::labelled_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",
+                              "visit_variable_declaration",
+                          }));
   }
 }
 
@@ -2258,24 +2270,16 @@ TEST_F(Test_Parse_Var, spread_must_precede_variable_name) {
 TEST_F(Test_Parse_Var,
        let_as_statement_body_does_not_allow_asi_before_left_square) {
   {
-    Test_Parser p(u8"if (cond) let\n[x] = xs;"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) let\n[x] = xs;"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // cond
                               "visit_variable_use",          // xs
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::if_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"if (cond) "_sv.size(), u8"let"_sv)),
-        }));
   }
 }
 }

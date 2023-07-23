@@ -549,8 +549,11 @@ TEST_F(Test_Parse_Statement, finally_without_body) {
 
 TEST_F(Test_Parse_Statement, catch_without_variable_name_in_parentheses) {
   {
-    Test_Parser p(u8"try {} catch () { body; }"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"try {} catch () { body; }"_sv,  //
+        u8"             ^^ Diag_Missing_Catch_Variable_Between_Parentheses.left_paren_to_right_paren\n"_diag
+        u8"             ^ .left_paren\n"_diag
+        u8"              ^ .right_paren"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  // (try)
                               "visit_exit_block_scope",   // (try)
@@ -559,20 +562,6 @@ TEST_F(Test_Parse_Statement, catch_without_variable_name_in_parentheses) {
                               "visit_exit_block_scope",   // (catch)
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_3_FIELDS(
-                        Diag_Missing_Catch_Variable_Between_Parentheses,
-                        left_paren_to_right_paren,
-                        Offsets_Matcher(p.code, u8"try {} catch "_sv.size(),
-                                        u8"()"_sv),  //
-                        left_paren,
-                        Offsets_Matcher(p.code, u8"try {} catch "_sv.size(),
-                                        u8"("_sv),  //
-                        right_paren,
-                        Offsets_Matcher(p.code, u8"try {} catch ("_sv.size(),
-                                        u8")"_sv)),
-                }));
   }
 
   {
