@@ -204,7 +204,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
                                   members));
   }
 
-  int member_index = 0;
+  std::size_t member_index = 0;
   {
     const Diagnostic_Info_Variable_Debug* member;
     if (diag_member_span.empty()) {
