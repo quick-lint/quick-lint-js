@@ -585,9 +585,11 @@ TEST_F(Test_Parse_TypeScript_Function,
 TEST_F(Test_Parse_TypeScript_Function,
        arrow_parameter_without_parens_cannot_have_type_annotation) {
   {
-    Test_Parser p(u8"(param: Type => {});"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"(param: Type => {});"_sv,  //
+        u8" ^^^^^^^^^^^ Diag_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses.parameter_and_annotation\n"_diag
+        u8"      ^ .type_colon"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_type_use",          // Type
@@ -595,21 +597,14 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses,  //
-                parameter_and_annotation, u8"("_sv.size(), u8"param: Type"_sv,
-                type_colon, u8"(param"_sv.size(), u8":"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"(async param: Type => {});"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"(async param: Type => {});"_sv,  //
+        u8"       ^^^^^^^^^^^ Diag_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses.parameter_and_annotation\n"_diag
+        u8"            ^ .type_colon"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_type_use",          // Type
@@ -617,16 +612,6 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses,  //
-                parameter_and_annotation, u8"(async "_sv.size(),
-                u8"param: Type"_sv, type_colon, u8"(async param"_sv.size(),
-                u8":"_sv),
-        }));
   }
 }
 
@@ -790,54 +775,32 @@ TEST_F(Test_Parse_TypeScript_Function, optional_parameter_in_function_type) {
 TEST_F(Test_Parse_TypeScript_Function,
        optional_parameter_followed_by_required) {
   {
-    Test_Parser p(u8"(param1?, param2) => ReturnType"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter,  //
-                optional_parameter, u8"("_sv.size(), u8"param1?",
-                required_parameter, u8"(param1?, "_sv.size(), u8"param2"),
-        }));
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"(param1?, param2) => ReturnType"_sv,  //
+        u8" ^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
+        u8"          ^^^^^^ .required_parameter"_diag,  //
+        typescript_options);
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Function,
        optional_parameter_followed_by_required_type_annotated) {
   {
-    Test_Parser p(u8"(param1?: number, param2: number) => ReturnType"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter,  //
-                optional_parameter, u8"("_sv.size(), u8"param1?: number",
-                required_parameter, u8"(param1?: number, "_sv.size(),
-                u8"param2: number"),
-        }));
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"(param1?: number, param2: number) => ReturnType"_sv,  //
+        u8" ^^^^^^^^^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
+        u8"                  ^^^^^^^^^^^^^^ .required_parameter"_diag,  //
+
+        typescript_options);
   }
 
   {
-    Test_Parser p(
-        u8"(param1?: number, param2: number, param3: number) => ReturnType"_sv,
-        typescript_options, capture_diags);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter,  //
-                optional_parameter, u8"("_sv.size(), u8"param1?: number",
-                required_parameter, u8"(param1?: number, "_sv.size(),
-                u8"param2: number"),
-        }));
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"(param1?: number, param2: number, param3: number) => ReturnType"_sv,  //
+        u8" ^^^^^^^^^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
+        u8"                  ^^^^^^^^^^^^^^ .required_parameter"_diag,  //
+
+        typescript_options);
   }
 }
 
@@ -861,73 +824,50 @@ TEST_F(Test_Parse_TypeScript_Function,
 TEST_F(Test_Parse_TypeScript_Function,
        optional_parameters_cannot_have_initializers) {
   {
-    Test_Parser p(u8"(param? = init) => {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Optional_Parameter_Cannot_Have_Initializer,  //
-                        equal, u8"(param? "_sv.size(), u8"="_sv, question,
-                        u8"(param"_sv.size(), u8"?"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"(param? = init) => {}"_sv,  //
+        u8"        ^ Diag_Optional_Parameter_Cannot_Have_Initializer.equal\n"_diag
+        u8"      ^ .question"_diag,  //
+        typescript_options);
   }
 
   {
-    Test_Parser p(u8"function f(param? = init) {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Optional_Parameter_Cannot_Have_Initializer,  //
-                        equal, u8"function f(param? "_sv.size(), u8"="_sv,
-                        question, u8"function f(param"_sv.size(), u8"?"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(param? = init) {}"_sv,  //
+        u8"                  ^ Diag_Optional_Parameter_Cannot_Have_Initializer.equal\n"_diag
+        u8"                ^ .question"_diag,  //
+        typescript_options);
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Function,
        optional_arrow_parameter_must_have_parentheses) {
   {
-    Test_Parser p(u8"param? => {}"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"param? => {}"_sv,  //
+        u8"^^^^^^ Diag_Optional_Arrow_Parameter_Requires_Parentheses.parameter_and_question\n"_diag
+        u8"     ^ .question"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // param
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Optional_Arrow_Parameter_Requires_Parentheses,  //
-                        parameter_and_question, 0, u8"param?"_sv, question,
-                        u8"param"_sv.size(), u8"?"_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"async param? => {}"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"async param? => {}"_sv,  //
+        u8"      ^^^^^^ Diag_Optional_Arrow_Parameter_Requires_Parentheses.parameter_and_question\n"_diag
+        u8"           ^ .question"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // param
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Optional_Arrow_Parameter_Requires_Parentheses,  //
-                parameter_and_question, u8"async "_sv.size(), u8"param?"_sv,
-                question, u8"async param"_sv.size(), u8"?"_sv),
-        }));
   }
 }
 

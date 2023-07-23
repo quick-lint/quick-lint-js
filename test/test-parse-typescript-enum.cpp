@@ -474,18 +474,11 @@ TEST_F(Test_Parse_TypeScript_Enum,
 
 TEST_F(Test_Parse_TypeScript_Enum, normal_enum_auto_requires_constant_value) {
   {
-    Test_Parser p(u8"enum E { A = f(), B, }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Enum_Auto_Member_Needs_Initializer_After_Computed,  //
-                auto_member_name, u8"enum E { A = f(), "_sv.size(), u8"B"_sv,
-                computed_expression, u8"enum E { A = "_sv.size(), u8"f()"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"enum E { A = f(), B, }"_sv,  //
+        u8"                  ^ Diag_TypeScript_Enum_Auto_Member_Needs_Initializer_After_Computed.auto_member_name\n"_diag
+        u8"             ^^^ .computed_expression"_diag,  //
+        typescript_options);
   }
 
   {
@@ -501,19 +494,11 @@ TEST_F(Test_Parse_TypeScript_Enum, normal_enum_auto_requires_constant_value) {
   }
 
   {
-    Test_Parser p(u8"enum E { ['A'] = f(), ['B'], }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Enum_Auto_Member_Needs_Initializer_After_Computed,  //
-                auto_member_name, u8"enum E { ['A'] = f(), "_sv.size(),
-                u8"['B']"_sv, computed_expression,
-                u8"enum E { ['A'] = "_sv.size(), u8"f()"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"enum E { ['A'] = f(), ['B'], }"_sv,  //
+        u8"                      ^^^^^ Diag_TypeScript_Enum_Auto_Member_Needs_Initializer_After_Computed.auto_member_name\n"_diag
+        u8"                 ^^^ .computed_expression"_diag,  //
+        typescript_options);
   }
 
   {

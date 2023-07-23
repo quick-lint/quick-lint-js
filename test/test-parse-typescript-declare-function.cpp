@@ -56,24 +56,17 @@ TEST_F(Test_Parse_TypeScript_Declare_Function, basic_declare_function) {
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_cannot_have_body) {
   {
-    Test_Parser p(u8"declare function f() { }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare function f() { }"_sv,  //
+        u8"                     ^ Diag_Declare_Function_Cannot_Have_Body.body_start\n"_diag
+        u8"^^^^^^^ .declare_keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Declare_Function_Cannot_Have_Body,  //
-                        body_start, u8"declare function f() "_sv.size(),
-                        u8"{"_sv,  //
-                        declare_keyword, u8""_sv.size(), u8"declare"_sv),
-                }));
   }
 
   {

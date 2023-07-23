@@ -159,41 +159,27 @@ TEST_F(Test_Parse_Loop, do_while_without_body) {
 
 TEST_F(Test_Parse_Loop, do_while_without_while_and_condition) {
   {
-    Test_Parser p(u8"do {} "_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do {} "_sv,  //
+        u8"^^ Diag_Missing_While_And_Condition_For_Do_While_Statement.do_token\n"_diag
+        u8"     ` .expected_while"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Missing_While_And_Condition_For_Do_While_Statement,  //
-                do_token, 0, u8"do"_sv, expected_while, u8"do {}"_sv.size(),
-                u8""_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"do {}; while (x);"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"do {}; while (x);"_sv,  //
+        u8"^^ Diag_Missing_While_And_Condition_For_Do_While_Statement.do_token\n"_diag
+        u8"     ` .expected_while"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",   //
                               "visit_variable_use",       // x
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Missing_While_And_Condition_For_Do_While_Statement,  //
-                do_token, 0, u8"do"_sv, expected_while, u8"do {}"_sv.size(),
-                u8""_sv),
-        }));
   }
 }
 
@@ -324,17 +310,10 @@ TEST_F(Test_Parse_Loop, for_loop_with_missing_component) {
   }
 
   {
-    Test_Parser p(u8"for (myVar) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Missing_For_Loop_Rhs_Or_Components_After_Expression,  //
-                header, u8"for "_sv.size(), u8"(myVar)"_sv, for_token, 0,
-                u8"for"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (myVar) {}"_sv,  //
+        u8"    ^^^^^^^ Diag_Missing_For_Loop_Rhs_Or_Components_After_Expression.header\n"_diag
+        u8"^^^ .for_token"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // myVar
                               "visit_enter_block_scope",  //
@@ -343,17 +322,10 @@ TEST_F(Test_Parse_Loop, for_loop_with_missing_component) {
   }
 
   {
-    Test_Parser p(u8"for (let myVar) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Missing_For_Loop_Rhs_Or_Components_After_Declaration,  //
-                header, u8"for "_sv.size(), u8"(let myVar)"_sv, for_token, 0,
-                u8"for"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (let myVar) {}"_sv,  //
+        u8"    ^^^^^^^^^^^ Diag_Missing_For_Loop_Rhs_Or_Components_After_Declaration.header\n"_diag
+        u8"^^^ .for_token"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_declaration",  // myVar
@@ -366,17 +338,10 @@ TEST_F(Test_Parse_Loop, for_loop_with_missing_component) {
   }
 
   {
-    Test_Parser p(u8"for (init; cond) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_C_Style_For_Loop_Is_Missing_Third_Component,  //
-                existing_semicolon, u8"for (init"_sv.size(), u8";"_sv,
-                expected_last_component, u8"for (init; cond"_sv.size(),
-                u8")"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (init; cond) {}"_sv,  //
+        u8"         ^ Diag_C_Style_For_Loop_Is_Missing_Third_Component.existing_semicolon\n"_diag
+        u8"               ^ .expected_last_component"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // init
                               "visit_variable_use",       // cond

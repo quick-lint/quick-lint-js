@@ -315,9 +315,11 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_can_contain_exports) {
 
 TEST_F(Test_Parse_TypeScript_Namespace, namespace_disallows_exporting_default) {
   {
-    Test_Parser p(u8"namespace ns { export default Z; }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"namespace ns { export default Z; }"_sv,  //
+        u8"                      ^^^^^^^ Diag_TypeScript_Namespace_Cannot_Export_Default.default_keyword\n"_diag
+        u8"^^^^^^^^^ .namespace_keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_use",           // Z
@@ -325,15 +327,6 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_disallows_exporting_default) {
                               "visit_variable_declaration",   // ns
                               "visit_end_of_module",          //
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_TypeScript_Namespace_Cannot_Export_Default,  //
-                        default_keyword, u8"namespace ns { export "_sv.size(),
-                        u8"default"_sv,  //
-                        namespace_keyword, 0, u8"namespace"_sv),
-                }));
   }
 
   {
@@ -346,18 +339,12 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_disallows_exporting_default) {
   }
 
   {
-    Test_Parser p(u8"namespace ns { export default class C {} }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_TypeScript_Namespace_Cannot_Export_Default,  //
-                        default_keyword, u8"namespace ns { export "_sv.size(),
-                        u8"default"_sv,  //
-                        namespace_keyword, 0, u8"namespace"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"namespace ns { export default class C {} }"_sv,  //
+        u8"                      ^^^^^^^ Diag_TypeScript_Namespace_Cannot_Export_Default.default_keyword\n"_diag
+        u8"^^^^^^^^^ .namespace_keyword"_diag,  //
+
+        typescript_options);
   }
 
   {
@@ -670,21 +657,15 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_alias) {
 TEST_F(Test_Parse_TypeScript_Namespace,
        namespace_alias_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"import A = ns;"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"import A = ns;"_sv,  //
+        u8"^^^^^^ Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript.import_keyword\n"_diag
+        u8"         ^ .equal"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // A
                               "visit_variable_namespace_use",  // ns
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript,  //
-                import_keyword, 0, u8"import"_sv,                        //
-                equal, u8"import A "_sv.size(), u8"="_sv),
-        }));
   }
 }
 

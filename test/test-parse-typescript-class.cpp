@@ -385,19 +385,12 @@ TEST_F(Test_Parse_TypeScript_Class,
 TEST_F(Test_Parse_TypeScript_Class,
        assignment_asserted_field_cannot_have_initializers) {
   {
-    Test_Parser p(u8"class C { field!: any = init; }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { field!: any = init; }"_sv,  //
+        u8"                      ^ Diag_TypeScript_Assignment_Asserted_Field_Cannot_Have_Initializer.equal\n"_diag
+        u8"               ^ .bang"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Assignment_Asserted_Field_Cannot_Have_Initializer,  //
-                equal, u8"class C { field!: any "_sv.size(), u8"="_sv, bang,
-                u8"class C { field"_sv.size(), u8"!"_sv),
-        }));
   }
 }
 
@@ -1126,9 +1119,12 @@ TEST_F(Test_Parse_TypeScript_Class,
 
 TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_async) {
   {
-    Test_Parser p(u8"abstract class C { abstract async method(); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"abstract class C { abstract async method(); }"_sv,  //
+        u8"                            ^^^^^ Diag_Abstract_Methods_Cannot_Be_Async.async_keyword\n"_diag
+        u8"                   ^^^^^^^^ .abstract_keyword"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
@@ -1138,21 +1134,15 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_async) {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Abstract_Methods_Cannot_Be_Async,  //
-                async_keyword, u8"abstract class C { abstract "_sv.size(),
-                u8"async"_sv, abstract_keyword,
-                u8"abstract class C { "_sv.size(), u8"abstract"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"abstract class C { async abstract method(); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"abstract class C { async abstract method(); }"_sv,  //
+        u8"                   ^^^^^ Diag_Abstract_Methods_Cannot_Be_Async.async_keyword\n"_diag
+        u8"                         ^^^^^^^^ .abstract_keyword"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
@@ -1162,15 +1152,6 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_async) {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Abstract_Methods_Cannot_Be_Async,  //
-                async_keyword, u8"abstract class C { "_sv.size(), u8"async"_sv,
-                abstract_keyword, u8"abstract class C { async "_sv.size(),
-                u8"abstract"_sv),
-        }));
   }
 
   {
@@ -1192,9 +1173,12 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_async) {
 }
 
 TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_generators) {
-  Test_Parser p(u8"abstract class C { abstract *method(); }"_sv,
-                typescript_options, capture_diags);
-  p.parse_and_visit_statement();
+  Spy_Visitor p = test_parse_and_visit_statement(
+      u8"abstract class C { abstract *method(); }"_sv,  //
+      u8"                            ^ Diag_Abstract_Methods_Cannot_Be_Generators.star\n"_diag
+      u8"                   ^^^^^^^^ .abstract_keyword"_diag,  //
+
+      typescript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_class_scope",       // C
                             "visit_enter_class_scope_body",  // {
@@ -1204,14 +1188,6 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_generators) {
                             "visit_exit_class_scope",        // }
                             "visit_variable_declaration",    // C
                         }));
-  EXPECT_THAT(p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_2_OFFSETS(
-                      p.code, Diag_Abstract_Methods_Cannot_Be_Generators,  //
-                      star, u8"abstract class C { abstract "_sv.size(),
-                      u8"*"_sv, abstract_keyword,
-                      u8"abstract class C { "_sv.size(), u8"abstract"_sv),
-              }));
 }
 
 TEST_F(Test_Parse_TypeScript_Class, abstract_field) {
@@ -1232,10 +1208,12 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_field) {
 
 TEST_F(Test_Parse_TypeScript_Class, abstract_fields_cannot_have_initializers) {
   {
-    Test_Parser p(
-        u8"abstract class C { abstract myField: string = 'hello'; }"_sv,
-        typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"abstract class C { abstract myField: string = 'hello'; }"_sv,  //
+        u8"                                            ^ Diag_Abstract_Field_Cannot_Have_Initializer.equal\n"_diag
+        u8"                   ^^^^^^^^ .abstract_keyword"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
                               "visit_enter_class_scope_body",  // C
@@ -1243,26 +1221,17 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_fields_cannot_have_initializers) {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Abstract_Field_Cannot_Have_Initializer,  //
-                equal,
-                u8"abstract class C { abstract myField: string "_sv.size(),
-                u8"="_sv, abstract_keyword, u8"abstract class C { "_sv.size(),
-                u8"abstract"_sv),
-        }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Class,
        abstract_properties_are_not_allowed_in_non_abstract_classes) {
   {
-    Test_Parser p(u8"class C { abstract myField; }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { abstract myField; }"_sv,  //
+        u8"          ^^^^^^^^ Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class.abstract_keyword\n"_diag
+        u8"^^^^^ .class_keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
                               "visit_enter_class_scope_body",  // C
@@ -1270,21 +1239,14 @@ TEST_F(Test_Parse_TypeScript_Class,
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, u8"class C { "_sv.size(), u8"abstract"_sv,
-                class_keyword, 0, u8"class"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"class C { abstract myMethod(); }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { abstract myMethod(); }"_sv,  //
+        u8"          ^^^^^^^^ Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class.abstract_keyword\n"_diag
+        u8"^^^^^ .class_keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
                               "visit_enter_class_scope_body",  // C
@@ -1294,15 +1256,6 @@ TEST_F(Test_Parse_TypeScript_Class,
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, u8"class C { "_sv.size(), u8"abstract"_sv,
-                class_keyword, 0, u8"class"_sv),
-        }));
   }
 }
 
@@ -1413,9 +1366,12 @@ TEST_F(Test_Parse_TypeScript_Class, implements_comes_after_extends) {
   }
 
   {
-    Test_Parser p(u8"class C implements I extends Base {}"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"class C implements I extends Base {}"_sv,  //
+        u8"        ^^^^^^^^^^ Diag_TypeScript_Implements_Must_Be_After_Extends.implements_keyword\n"_diag
+        u8"                     ^^^^^^^ .extends_keyword"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
                               "visit_variable_type_use",       // I
@@ -1426,15 +1382,6 @@ TEST_F(Test_Parse_TypeScript_Class, implements_comes_after_extends) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"I", u8"Base"}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_TypeScript_Implements_Must_Be_After_Extends,  //
-                        implements_keyword, u8"class C "_sv.size(),
-                        u8"implements"_sv, extends_keyword,
-                        u8"class C implements I "_sv.size(), u8"extends"_sv),
-                }));
   }
 }
 

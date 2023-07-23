@@ -104,40 +104,25 @@ TEST_F(Test_Parse_Warning, condition_with_assignment_from_non_literal) {
 
 TEST_F(Test_Error_Equals_Does_Not_Distribute_Over_Or, examples) {
   {
-    Test_Parser p(u8"if (x === 'A' || 'B') {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (x === 'A' || 'B') {}"_sv,  //
+        u8"              ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+        u8"      ^^^ .equals_operator"_diag);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x"}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Equals_Does_Not_Distribute_Over_Or,  //
-                        or_operator, u8"if (x === 'A' "_sv.size(), u8"||"_sv,
-                        equals_operator, u8"if (x "_sv.size(), u8"==="_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"if (x === 10 || 0) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Equals_Does_Not_Distribute_Over_Or,  //
-                        or_operator, u8"if (x === 10 "_sv.size(), u8"||"_sv,
-                        equals_operator, u8"if (x "_sv.size(), u8"==="_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (x === 10 || 0) {}"_sv,  //
+        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+        u8"      ^^^ .equals_operator"_diag);
   }
 
   {
-    Test_Parser p(u8"if (x == 'A' || 'B') {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Equals_Does_Not_Distribute_Over_Or,  //
-                        or_operator, u8"if (x == 'A' "_sv.size(), u8"||"_sv,
-                        equals_operator, u8"if (x "_sv.size(), u8"=="_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (x == 'A' || 'B') {}"_sv,  //
+        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+        u8"      ^^ .equals_operator"_diag);
   }
 }
 
@@ -157,53 +142,33 @@ TEST_F(Test_Error_Equals_Does_Not_Distribute_Over_Or, not_equals) {
 
 TEST_F(Test_Error_Equals_Does_Not_Distribute_Over_Or, null_and_undefined) {
   {
-    Test_Parser p(u8"if (x == 'A' || null) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (x == 'A' || null) {}"_sv,  //
+        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+        u8"      ^^ .equals_operator"_diag);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x"}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Equals_Does_Not_Distribute_Over_Or,  //
-                        or_operator, u8"if (x == 'A' "_sv.size(), u8"||"_sv,
-                        equals_operator, u8"if (x "_sv.size(), u8"=="_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"if (x == 'A' || undefined) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (x == 'A' || undefined) {}"_sv,  //
+        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+        u8"      ^^ .equals_operator"_diag);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x", u8"undefined"}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Equals_Does_Not_Distribute_Over_Or,  //
-                        or_operator, u8"if (x == 'A' "_sv.size(), u8"||"_sv,
-                        equals_operator, u8"if (x "_sv.size(), u8"=="_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"if (x === 10 || null) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Equals_Does_Not_Distribute_Over_Or,  //
-                        or_operator, u8"if (x === 10 "_sv.size(), u8"||"_sv,
-                        equals_operator, u8"if (x "_sv.size(), u8"==="_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (x === 10 || null) {}"_sv,  //
+        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+        u8"      ^^^ .equals_operator"_diag);
   }
 
   {
-    Test_Parser p(u8"if (x === 10 || undefined) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Equals_Does_Not_Distribute_Over_Or,  //
-                        or_operator, u8"if (x === 10 "_sv.size(), u8"||"_sv,
-                        equals_operator, u8"if (x "_sv.size(), u8"==="_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (x === 10 || undefined) {}"_sv,  //
+        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+        u8"      ^^^ .equals_operator"_diag);
   }
 }
 
@@ -305,42 +270,24 @@ TEST_F(Test_Parse_Warning,
 TEST_F(Test_Parse_Warning,
        warn_on_comma_between_member_array_subscript_operators) {
   {
-    Test_Parser p(u8"a[1, 2, 3]"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Misleading_Comma_Operator_In_Index_Operation,
-                comma, u8"a[1, 2"_sv.size(), u8","_sv, left_square,
-                u8"a"_sv.size(), u8"["_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"a[1, 2, 3]"_sv,  //
+        u8"      ^ Diag_Misleading_Comma_Operator_In_Index_Operation.comma\n"_diag
+        u8" ^ .left_square"_diag);
   }
 
   {
-    Test_Parser p(u8"a[pow(1, 2), 2]"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Misleading_Comma_Operator_In_Index_Operation,
-                comma, u8"a[pow(1, 2)"_sv.size(), u8","_sv, left_square,
-                u8"a"_sv.size(), u8"["_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"a[pow(1, 2), 2]"_sv,  //
+        u8"           ^ Diag_Misleading_Comma_Operator_In_Index_Operation.comma\n"_diag
+        u8" ^ .left_square"_diag);
   }
 
   {
-    Test_Parser p(u8"a[b[1967, 1975]]"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Misleading_Comma_Operator_In_Index_Operation,
-                comma, u8"a[b[1967"_sv.size(), u8","_sv, left_square,
-                u8"a[b"_sv.size(), u8"["_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"a[b[1967, 1975]]"_sv,  //
+        u8"        ^ Diag_Misleading_Comma_Operator_In_Index_Operation.comma\n"_diag
+        u8"   ^ .left_square"_diag);
   }
 
   {

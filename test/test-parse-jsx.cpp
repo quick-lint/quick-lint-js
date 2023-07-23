@@ -247,16 +247,11 @@ TEST_F(Test_Parse_JSX, attribute_without_name_must_be_spread) {
 
 TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
   {
-    Test_Parser p(u8"c = <div></span>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
-                                        opening_tag_name, u8"c = <"_sv.size(),
-                                        u8"div"_sv,  //
-                                        closing_tag_name,
-                                        u8"c = <div></"_sv.size(), u8"span"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <div></span>;"_sv,  //
+        u8"     ^^^ Diag_Mismatched_JSX_Tags.opening_tag_name\n"_diag
+        u8"           ^^^^ .closing_tag_name"_diag,  //
+        jsx_options);
   }
 
   // opening_tag_name span for normal tag:

@@ -218,59 +218,40 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, not_allowed_when_destructuring) {
 
 TEST_F(Test_Parse_TypeScript_This_Parameters, not_allowed_when_spreading) {
   {
-    Test_Parser p(u8"function(...this) {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_expression();
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"function(...this) {}"_sv,  //
+        u8"            ^^^^ Diag_Spread_Parameter_Cannot_Be_This.this_keyword\n"_diag
+        u8"         ^^^ .spread_operator"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Spread_Parameter_Cannot_Be_This,  //
-                        this_keyword, u8"function(..."_sv.size(), u8"this"_sv,
-                        spread_operator, u8"function("_sv.size(), u8"..."_sv),
-                }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_This_Parameters, only_allowed_as_first_parameter) {
   {
-    Test_Parser p(u8"function( other, this ) {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_expression();
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"function( other, this ) {}"_sv,  //
+        u8"                 ^^^^ Diag_This_Parameter_Must_Be_First.this_keyword\n"_diag
+        u8"          ` .first_parameter_begin"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // other
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(p.code,
-                                Diag_This_Parameter_Must_Be_First,  //
-                                this_keyword, u8"function( other, "_sv.size(),
-                                u8"this"_sv, first_parameter_begin,
-                                u8"function( "_sv.size(), u8""_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"(other, this) => ReturnType"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(p.code,
-                                        Diag_This_Parameter_Must_Be_First,  //
-                                        this_keyword, u8"(other, "_sv.size(),
-                                        u8"this"_sv, first_parameter_begin,
-                                        u8"("_sv.size(), u8""_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"(other, this) => ReturnType"_sv,  //
+        u8"        ^^^^ Diag_This_Parameter_Must_Be_First.this_keyword\n"_diag
+        u8" ` .first_parameter_begin"_diag,  //
+        typescript_options);
   }
 }
 

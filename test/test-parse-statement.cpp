@@ -262,51 +262,31 @@ TEST_F(Test_Parse_Statement, return_statement_disallows_newline_in_block) {
 
 TEST_F(Test_Parse_Statement, empty_paren_after_control_statement) {
   {
-    Test_Parser p(u8"if(){}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Empty_Paren_After_Control_Statement,
-                        expected_expression, u8"if("_sv.size(), u8""_sv, token,
-                        u8""_sv.size(), u8"if"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if(){}"_sv,  //
+        u8"   ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
+        u8"^^ .token"_diag);
   }
 
   {
-    Test_Parser p(u8"switch(){}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Empty_Paren_After_Control_Statement,
-                        expected_expression, u8"switch("_sv.size(), u8""_sv,
-                        token, u8""_sv.size(), u8"switch"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"switch(){}"_sv,  //
+        u8"       ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
+        u8"^^^^^^ .token"_diag);
   }
 
   {
-    Test_Parser p(u8"while(){}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Empty_Paren_After_Control_Statement,
-                        expected_expression, u8"while("_sv.size(), u8""_sv,
-                        token, u8""_sv.size(), u8"while"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while(){}"_sv,  //
+        u8"      ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
+        u8"^^^^^ .token"_diag);
   }
 
   {
-    Test_Parser p(u8"with(){}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Empty_Paren_After_Control_Statement,
-                        expected_expression, u8"with("_sv.size(), u8""_sv,
-                        token, u8""_sv.size(), u8"with"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"with(){}"_sv,  //
+        u8"     ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
+        u8"^^^^ .token"_diag);
   }
 }
 
@@ -485,8 +465,10 @@ TEST_F(Test_Parse_Statement, finally_without_try) {
 
 TEST_F(Test_Parse_Statement, try_without_catch_or_finally) {
   {
-    Test_Parser p(u8"try { tryBody; }\nlet x = 3;"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"try { tryBody; }\nlet x = 3;"_sv,  //
+        u8"^^^ Diag_Missing_Catch_Or_Finally_For_Try_Statement.try_token\n"_diag
+        u8"                ` .expected_catch_or_finally"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",     // (try)
                               "visit_variable_use",          // tryBody
@@ -494,14 +476,6 @@ TEST_F(Test_Parse_Statement, try_without_catch_or_finally) {
                               "visit_variable_declaration",  // x
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Missing_Catch_Or_Finally_For_Try_Statement,  //
-                try_token, 0, u8"try"_sv, expected_catch_or_finally,
-                u8"try { tryBody; }"_sv.size(), u8""_sv),
-        }));
   }
 }
 
@@ -1065,34 +1039,16 @@ TEST_F(Test_Parse_Statement, switch_case_without_expression) {
 
 TEST_F(Test_Parse_Statement, switch_case_with_duplicated_cases) {
   {
-    Test_Parser p(u8"switch (cond) {case x: case y: case y:}"_sv,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Duplicated_Cases_In_Switch_Statement,
-                first_switch_case, u8"switch (cond) {case x: case "_sv.size(),
-                u8"y"_sv, duplicated_switch_case,
-                u8"switch (cond) {case x: case y: case "_sv.size(), u8"y"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"switch (cond) {case x: case y: case y:}"_sv,  //
+        u8"                            ^ Diag_Duplicated_Cases_In_Switch_Statement.first_switch_case\n"_diag
+        u8"                                    ^ .duplicated_switch_case"_diag);
   }
   {
-    Test_Parser p(
-        u8"switch (cond) {case MyEnum.A: break; case MyEnum.A: break;}"_sv,
-        capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Duplicated_Cases_In_Switch_Statement,
-                first_switch_case, u8"switch (cond) {case "_sv.size(),
-                u8"MyEnum.A"_sv, duplicated_switch_case,
-                u8"switch (cond) {case MyEnum.A: break; case "_sv.size(),
-                u8"MyEnum.A"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"switch (cond) {case MyEnum.A: break; case MyEnum.A: break;}"_sv,  //
+        u8"                    ^^^^^^^^ Diag_Duplicated_Cases_In_Switch_Statement.first_switch_case\n"_diag
+        u8"                                          ^^^^^^^^ .duplicated_switch_case"_diag);
   }
 }
 
@@ -1307,22 +1263,16 @@ TEST_F(Test_Parse_Statement, statement_label_can_be_a_contextual_keyword) {
 }
 
 TEST_F(Test_Parse_Statement, disallow_label_named_await_in_async_function) {
-  Test_Parser p(u8"async function f() {await:}"_sv, capture_diags);
-  p.parse_and_visit_statement();
+  Spy_Visitor p = test_parse_and_visit_statement(
+      u8"async function f() {await:}"_sv,  //
+      u8"                    ^^^^^ Diag_Label_Named_Await_Not_Allowed_In_Async_Function.await\n"_diag
+      u8"                         ^ .colon"_diag);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_declaration",       // f
                             "visit_enter_function_scope",       //
                             "visit_enter_function_scope_body",  //
                             "visit_exit_function_scope",
                         }));
-  EXPECT_THAT(
-      p.errors,
-      ElementsAreArray({
-          DIAG_TYPE_2_OFFSETS(
-              p.code, Diag_Label_Named_Await_Not_Allowed_In_Async_Function,  //
-              await, u8"async function f() {"_sv.size(), u8"await"_sv, colon,
-              u8"async function f() {await"_sv.size(), u8":"_sv),
-      }));
 }
 
 TEST_F(Test_Parse_Statement, disallow_label_named_yield_in_generator_function) {

@@ -252,50 +252,37 @@ TEST_F(Test_Parse_Expression_Statement, invalid_identifier_after_expression) {
 
 TEST_F(Test_Parse_Expression_Statement, function_call_without_right_paren) {
   {
-    Test_Parser p(u8"f(x "_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Expected_Right_Paren_For_Function_Call,  //
-                        expected_right_paren, u8"f(x"_sv.size(), u8""_sv,
-                        left_paren, u8"f"_sv.size(), u8"("_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"f(x "_sv,  //
+        u8"   ` Diag_Expected_Right_Paren_For_Function_Call.expected_right_paren\n"_diag
+        u8" ^ .left_paren"_diag);
   }
 
   {
-    Test_Parser p(u8"{ f( }"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Expected_Right_Paren_For_Function_Call,  //
-                        expected_right_paren, u8"{ f("_sv.size(), u8""_sv,
-                        left_paren, u8"{ f"_sv.size(), u8"("_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"{ f( }"_sv,  //
+        u8"    ` Diag_Expected_Right_Paren_For_Function_Call.expected_right_paren\n"_diag
+        u8"   ^ .left_paren"_diag);
   }
 
   {
-    Test_Parser p(u8"f(x; y;"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"f(x; y;"_sv,  //
+        u8"   ` Diag_Expected_Right_Paren_For_Function_Call.expected_right_paren\n"_diag
+        u8" ^ .left_paren"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // f
                               "visit_variable_use",  // x
                               "visit_variable_use",  // y
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Expected_Right_Paren_For_Function_Call,  //
-                        expected_right_paren, u8"f(x"_sv.size(), u8""_sv,
-                        left_paren, u8"f"_sv.size(), u8"("_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"f(x\n--y;"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"f(x\n--y;"_sv,  //
+        u8"   ` Diag_Expected_Right_Paren_For_Function_Call.expected_right_paren\n"_diag
+        u8" ^ .left_paren"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // f
                               "visit_variable_use",         // x
@@ -303,13 +290,6 @@ TEST_F(Test_Parse_Expression_Statement, function_call_without_right_paren) {
                               "visit_variable_assignment",  // y
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code, Diag_Expected_Right_Paren_For_Function_Call,  //
-                        expected_right_paren, u8"f(x"_sv.size(), u8""_sv,
-                        left_paren, u8"f"_sv.size(), u8"("_sv),
-                }));
   }
 }
 
@@ -1070,8 +1050,10 @@ TEST_F(Test_Parse_Expression_Statement,
 TEST_F(Test_Parse_Expression_Statement,
        async_followed_by_newline_and_arrow_function) {
   {
-    Test_Parser p(u8"x = async\n(a) => b;"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"x = async\n(a) => b;"_sv,  //
+        u8"    ^^^^^ Diag_Newline_Not_Allowed_Between_Async_And_Parameter_List.async\n"_diag
+        u8"               ^^ .arrow"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // a
@@ -1081,15 +1063,6 @@ TEST_F(Test_Parse_Expression_Statement,
                               "visit_variable_assignment",        // x
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Newline_Not_Allowed_Between_Async_And_Parameter_List,  //
-                async, u8"x = "_sv.size(), u8"async"_sv, arrow,
-                u8"x = async\n(x) "_sv.size(), u8"=>"_sv),
-        }));
   }
 }
 

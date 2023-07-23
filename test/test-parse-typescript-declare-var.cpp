@@ -28,51 +28,36 @@ class Test_Parse_TypeScript_Declare_Var : public Test_Parse_Expression {};
 TEST_F(Test_Parse_TypeScript_Declare_Var,
        declare_var_is_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"declare var x;"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare var x;"_sv,  //
+        u8"^^^^^^^ Diag_Declare_Var_Not_Allowed_In_JavaScript.declare_keyword\n"_diag
+        u8"        ^^^ .declaring_token"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Declare_Var_Not_Allowed_In_JavaScript,       //
-                        declare_keyword, u8""_sv.size(), u8"declare"_sv,  //
-                        declaring_token, u8"declare "_sv.size(), u8"var"_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"declare const x;"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare const x;"_sv,  //
+        u8"^^^^^^^ Diag_Declare_Var_Not_Allowed_In_JavaScript.declare_keyword\n"_diag
+        u8"        ^^^^^ .declaring_token"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Declare_Var_Not_Allowed_In_JavaScript,       //
-                        declare_keyword, u8""_sv.size(), u8"declare"_sv,  //
-                        declaring_token, u8"declare "_sv.size(), u8"const"_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"declare let x;"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare let x;"_sv,  //
+        u8"^^^^^^^ Diag_Declare_Var_Not_Allowed_In_JavaScript.declare_keyword\n"_diag
+        u8"        ^^^ .declaring_token"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Declare_Var_Not_Allowed_In_JavaScript,       //
-                        declare_keyword, u8""_sv.size(), u8"declare"_sv,  //
-                        declaring_token, u8"declare "_sv.size(), u8"let"_sv),
-                }));
   }
 }
 

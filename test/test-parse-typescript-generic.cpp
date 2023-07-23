@@ -271,21 +271,16 @@ TEST_F(Test_Parse_TypeScript_Generic, variance_specifiers) {
 
 TEST_F(Test_Parse_TypeScript_Generic, variance_specifiers_in_wrong_order) {
   {
-    Test_Parser p(u8"<out in T>"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<out in T>"_sv,  //
+        u8"     ^^ Diag_TypeScript_Variance_Keywords_In_Wrong_Order.in_keyword\n"_diag
+        u8" ^^^ .out_keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_TypeScript_Variance_Keywords_In_Wrong_Order,
-                in_keyword, u8"<out "_sv.size(), u8"in"_sv,  //
-                out_keyword, u8"<"_sv.size(), u8"out"_sv),
-        }));
   }
 }
 
