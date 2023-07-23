@@ -72,6 +72,8 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
         static_cast<Expression::Binary_Operator*>(ast));
     this->error_on_pointless_nullish_coalescing_operator(
         static_cast<Expression::Binary_Operator*>(ast));
+    this->warn_on_xor_operator_as_exponentiation(
+        static_cast<Expression::Binary_Operator*>(ast));
     break;
   case Expression_Kind::Trailing_Comma: {
     auto& trailing_comma_ast = static_cast<Expression::Trailing_Comma&>(*ast);

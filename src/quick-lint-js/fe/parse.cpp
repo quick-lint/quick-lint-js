@@ -452,6 +452,33 @@ void Parser::error_on_invalid_as_const(Expression* ast,
   }
 }
 
+void Parser::warn_on_xor_operator_as_exponentiation(
+    Expression::Binary_Operator* ast) {
+  auto is_xor_operator = [](String8_View s) -> bool { return s == u8"^"_sv; };
+
+  auto is_warnable_literal = [](String8_View s) -> bool {
+    return s == u8"2"_sv || s == u8"10"_sv;
+  };
+
+  Source_Code_Span op_span = ast->operator_spans_[0];
+  if (is_xor_operator(op_span.string_view())) {
+    bool report_diag = false;
+    switch (ast->child(0)->kind()) {
+    case Expression_Kind::Literal:
+      report_diag = is_warnable_literal(ast->child(0)->span().string_view()) &&
+                    (ast->child(1)->kind() == Expression_Kind::Literal);
+      break;
+
+    default:
+      break;
+    }
+    if (report_diag) {
+      this->diag_reporter_->report(
+          Diag_Xor_Used_As_Exponentiation{.xor_operator = op_span});
+    }
+  }
+}
+
 void Parser::error_on_pointless_compare_against_literal(
     Expression::Binary_Operator* ast) {
   auto is_comparison_operator = [](String8_View s) -> bool {

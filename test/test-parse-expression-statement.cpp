@@ -28,7 +28,7 @@ namespace {
 class Test_Parse_Expression_Statement : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_Expression_Statement, parse_math_expression) {
-  for (String8_View input : {u8"2"_sv, u8"2+2"_sv, u8"2^2"_sv, u8"2 + + 2"_sv,
+  for (String8_View input : {u8"2"_sv, u8"2+2"_sv, u8"3^2"_sv, u8"2 + + 2"_sv,
                              u8"2 * (3 + 4)"_sv, u8"1+1+1+1+1"_sv}) {
     SCOPED_TRACE(out_string8(u8"input = " + String8(input)));
     Test_Parser p(input);

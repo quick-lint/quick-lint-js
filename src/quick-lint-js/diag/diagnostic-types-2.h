@@ -2930,6 +2930,13 @@ struct Diag_Variable_Assigned_To_Self_Is_Noop {
                   ARG(assignment_statement))]]  //
   Source_Code_Span assignment_statement;
 };
+
+struct Diag_Xor_Used_As_Exponentiation {
+  [[qljs::diag("E0710", Diagnostic_Severity::warning)]]  //
+  [[qljs::message("'^' is the XOR operator; to exponentiate, use '**' instead",
+                  ARG(xor_operator))]]  //
+  Source_Code_Span xor_operator;
+};
 }
 
 QLJS_WARNING_POP

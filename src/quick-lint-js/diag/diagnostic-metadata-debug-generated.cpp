@@ -2825,6 +2825,13 @@ const QLJS_CONSTINIT Diagnostic_Info_Debug all_diagnostic_infos_debug[] = {
         {.name = "assignment_statement", .type = Diagnostic_Arg_Type::source_code_span, .offset = offsetof(Diag_Variable_Assigned_To_Self_Is_Noop, assignment_statement)},
       },
     },
+
+    // Diag_Xor_Used_As_Exponentiation
+    {
+      .variables = {
+        {.name = "xor_operator", .type = Diagnostic_Arg_Type::source_code_span, .offset = offsetof(Diag_Xor_Used_As_Exponentiation, xor_operator)},
+      },
+    },
 };
 
 const Diagnostic_Info_Debug &get_diagnostic_info_debug(Diag_Type type) noexcept {

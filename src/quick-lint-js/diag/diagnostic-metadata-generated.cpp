@@ -5710,6 +5710,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_Xor_Used_As_Exponentiation
+    {
+      .code = 710,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'^' is the XOR operator; to exponentiate, use '**' instead"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Xor_Used_As_Exponentiation, xor_operator), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 
