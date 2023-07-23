@@ -126,16 +126,14 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
                               "visit_variable_use",               // body
                               "visit_exit_function_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code,
-                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,  //
-                generic_parameters_less, 0, u8"<"_sv,                   //
-                expected_comma, u8"<T"_sv.size(), u8""_sv,              //
-                arrow, u8"<T>() "_sv.size(), u8"=>"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            // <T>() => {body} // </T>
+            u8"      ^^ Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode.arrow\n"_diag
+            u8"  `      .expected_comma\n"_diag
+            u8"^        .generic_parameters_less"_diag,
+        });
   }
 
   // TODO(strager): <T>({}) => {}         // '{' appears before '=>'.
@@ -186,16 +184,14 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
                   capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "asyncarrowfunc()");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code,
-                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,    //
-                generic_parameters_less, u8"async "_sv.size(), u8"<"_sv,  //
-                expected_comma, u8"async <T"_sv.size(), u8""_sv,          //
-                arrow, u8"async <T>() "_sv.size(), u8"=>"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            // async <T>() => {}
+            u8"            ^^ Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode.arrow\n"_diag
+            u8"        `      .expected_comma\n"_diag
+            u8"      ^        .generic_parameters_less"_diag,
+        });
   }
 
   {
@@ -203,16 +199,14 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
                   capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "asyncarrowfunc()");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code,
-                Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode,    //
-                generic_parameters_less, u8"async "_sv.size(), u8"<"_sv,  //
-                expected_comma, u8"async <T"_sv.size(), u8""_sv,          //
-                arrow, u8"async <T>(): ReturnType "_sv.size(), u8"=>"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            // async <T>(): ReturnType => {}
+            u8"                        ^^ Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode.arrow\n"_diag
+            u8"        `                  .expected_comma\n"_diag
+            u8"      ^                    .generic_parameters_less"_diag,
+        });
   }
 }
 
