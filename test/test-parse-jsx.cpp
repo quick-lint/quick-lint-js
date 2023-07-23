@@ -439,36 +439,21 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_match_after_normalization) {
 
 TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
   {
-    Test_Parser p(u8R"(c = <div></div> <div></div>;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code, Diag_Adjacent_JSX_Without_Parent,  //
-                begin, u8"c = "_sv.size(), u8""_sv,        //
-                begin_of_second_element, u8"c = <div></div> "_sv.size(),
-                u8""_sv,  //
-                end, u8"c = <div></div> <div></div>"_sv.size(), u8""_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <div></div> <div></div>;"_sv,  //
+        u8"    ` Diag_Adjacent_JSX_Without_Parent.begin\n"_diag
+        u8"                ` .begin_of_second_element\n"_diag
+        u8"                           ` .end"_diag,  //
+        jsx_options);
   }
 
   {
-    Test_Parser p(u8R"(c = <div></div> <div></div> <div></div>;)"_sv,
-                  jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code, Diag_Adjacent_JSX_Without_Parent,  //
-                begin, u8"c = "_sv.size(), u8""_sv,        //
-                begin_of_second_element, u8"c = <div></div> "_sv.size(),
-                u8""_sv,  //
-                end, u8"c = <div></div> <div></div> <div></div>"_sv.size(),
-                u8""_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <div></div> <div></div> <div></div>;"_sv,  //
+        u8"    ` Diag_Adjacent_JSX_Without_Parent.begin\n"_diag
+        u8"                ` .begin_of_second_element\n"_diag
+        u8"                                       ` .end"_diag,  //
+        jsx_options);
   }
 
   // Second element should be visited like normal.

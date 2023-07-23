@@ -657,18 +657,11 @@ TEST_F(Test_Parse_Module, parse_and_visit_import) {
 
 TEST_F(Test_Parse_Module, import_star_without_as_keyword) {
   {
-    Test_Parser p(u8"import * myExport from 'other';"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_3_OFFSETS(
-                        p.code,
-                        Diag_Expected_As_Before_Imported_Namespace_Alias,  //
-                        star_through_alias_token, u8"import "_sv.size(),
-                        u8"* myExport"_sv,                            //
-                        star_token, u8"import "_sv.size(), u8"*"_sv,  //
-                        alias, u8"import * "_sv.size(), u8"myExport"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"import * myExport from 'other';"_sv,  //
+        u8"       ^^^^^^^^^^ Diag_Expected_As_Before_Imported_Namespace_Alias.star_through_alias_token\n"_diag
+        u8"       ^ .star_token\n"_diag
+        u8"         ^^^^^^^^ .alias"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // myExport
                           }));

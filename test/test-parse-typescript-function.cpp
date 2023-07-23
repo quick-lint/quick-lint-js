@@ -935,9 +935,12 @@ TEST_F(Test_Parse_TypeScript_Function,
        optional_arrow_parameter_with_type_must_have_parentheses) {
   {
     // TODO(strager): Don't require surrounding parentheses for this diagnostic.
-    Test_Parser p(u8"(param?: Type => {})"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"(param?: Type => {})"_sv,  //
+        u8" ^^^^^^^^^^^^ Diag_Optional_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses.parameter_and_annotation\n"_diag
+        u8"      ^ .question\n"_diag
+        u8"       ^ .type_colon"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_type_use",          // Type
@@ -945,23 +948,15 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code,
-                Diag_Optional_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses,  //
-                parameter_and_annotation, u8"("_sv.size(),
-                u8"param?: Type"_sv,                       //
-                question, u8"(param"_sv.size(), u8"?"_sv,  //
-                type_colon, u8"(param?"_sv.size(), u8":"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"async param?: Type => {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"async param?: Type => {}"_sv,  //
+        u8"      ^^^^^^^^^^^^ Diag_Optional_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses.parameter_and_annotation\n"_diag
+        u8"           ^ .question\n"_diag
+        u8"            ^ .type_colon"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_type_use",          // Type
@@ -969,17 +964,6 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code,
-                Diag_Optional_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses,  //
-                parameter_and_annotation, u8"async "_sv.size(),
-                u8"param?: Type"_sv,                            //
-                question, u8"async param"_sv.size(), u8"?"_sv,  //
-                type_colon, u8"async param?"_sv.size(), u8":"_sv),
-        }));
   }
 }
 

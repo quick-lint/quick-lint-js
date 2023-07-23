@@ -1458,43 +1458,27 @@ TEST_F(Test_Parse_Expression_Statement,
 
 TEST_F(Test_Parse_Expression_Statement, invalid_parentheses) {
   {
-    Test_Parser p(u8"()"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_3_OFFSETS(
-                        p.code, Diag_Missing_Expression_Between_Parentheses,  //
-                        left_paren_to_right_paren, 0, u8"()"_sv,              //
-                        left_paren, 0, u8"("_sv,                              //
-                        right_paren, u8"("_sv.size(), u8")"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"()"_sv,  //
+        u8"^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren\n"_diag
+        u8"^ .left_paren\n"_diag
+        u8" ^ .right_paren"_diag);
   }
 
   {
-    Test_Parser p(u8"x = ()"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code, Diag_Missing_Expression_Between_Parentheses,       //
-                left_paren_to_right_paren, u8"x = "_sv.size(), u8"()"_sv,  //
-                left_paren, u8"x = "_sv.size(), u8"("_sv,                  //
-                right_paren, u8"x = ("_sv.size(), u8")"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"x = ()"_sv,  //
+        u8"    ^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren\n"_diag
+        u8"    ^ .left_paren\n"_diag
+        u8"     ^ .right_paren"_diag);
   }
 
   {
-    Test_Parser p(u8"() = x"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_3_OFFSETS(
-                        p.code, Diag_Missing_Expression_Between_Parentheses,  //
-                        left_paren_to_right_paren, 0, u8"()"_sv,              //
-                        left_paren, 0, u8"("_sv,                              //
-                        right_paren, u8"("_sv.size(), u8")"_sv),
-                }));
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"() = x"_sv,  //
+        u8"^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren\n"_diag
+        u8"^ .left_paren\n"_diag
+        u8" ^ .right_paren"_diag);
   }
 }
 
