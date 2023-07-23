@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/c-api.h"
 #include <ostream>
 #include <quick-lint-js/fe/language.h>
 
@@ -17,6 +18,22 @@ std::ostream& operator<<(std::ostream& out, Statement_Kind kind) {
     QLJS_CASE(while_loop)
     QLJS_CASE(with_statement)
     QLJS_CASE(labelled_statement)
+  }
+#undef QLJS_CASE
+  out << "???";
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, Enum_Kind kind) {
+#define QLJS_CASE(k) \
+  case Enum_Kind::k: \
+    out << #k;       \
+    return out;
+  switch (kind) {
+    QLJS_CASE(declare_const_enum)
+    QLJS_CASE(const_enum)
+    QLJS_CASE(declare_enum)
+    QLJS_CASE(normal)
   }
 #undef QLJS_CASE
   out << "???";

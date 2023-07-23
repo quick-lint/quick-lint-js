@@ -685,58 +685,33 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
        enum_inside_declare_namespace_acts_like_declare_enum) {
-  {
-    Test_Parser p(u8"declare namespace ns { enum E { A = f() } }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_FIELD(Diag_TypeScript_Enum_Value_Must_Be_Constant,
-                            declared_enum_kind, Enum_Kind::declare_enum),
-        }))
-        << "Diag_TypeScript_Enum_Value_Must_Be_Constant is not reported for "
-           "normal enums but is reported for declare enums";
-  }
+  // Diag_TypeScript_Enum_Value_Must_Be_Constant should not be reported for
+  // normal enums but should be reported for declare enums.
+  test_parse_and_visit_module(
+      u8"declare namespace ns { enum E { A = f() } }"_sv,  //
+      u8"                                    ^^^ Diag_TypeScript_Enum_Value_Must_Be_Constant.expression"_diag
+      u8"{.declared_enum_kind=Enum_Kind::declare_enum}"_diag,  //
+      typescript_options);
 
-  {
-    Test_Parser p(u8"declare namespace ns { export enum E { A = f() } }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_FIELD(Diag_TypeScript_Enum_Value_Must_Be_Constant,
-                            declared_enum_kind, Enum_Kind::declare_enum),
-        }))
-        << "Diag_TypeScript_Enum_Value_Must_Be_Constant is not reported for "
-           "normal enums but is reported for declare enums";
-  }
+  // Diag_TypeScript_Enum_Value_Must_Be_Constant should not be reported for
+  // normal enums but should be reported for declare enums.
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export enum E { A = f() } }"_sv,  //
+      u8"                                           ^^^ Diag_TypeScript_Enum_Value_Must_Be_Constant.expression"_diag
+      u8"{.declared_enum_kind=Enum_Kind::declare_enum}"_diag,  //
+      typescript_options);
 
-  {
-    Test_Parser p(u8"declare namespace ns { const enum E { A = f() } }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_FIELD(Diag_TypeScript_Enum_Value_Must_Be_Constant,
-                            declared_enum_kind, Enum_Kind::declare_const_enum),
-        }));
-  }
+  test_parse_and_visit_module(
+      u8"declare namespace ns { const enum E { A = f() } }"_sv,  //
+      u8"                                          ^^^ Diag_TypeScript_Enum_Value_Must_Be_Constant.expression"_diag
+      u8"{.declared_enum_kind=Enum_Kind::declare_const_enum}"_diag,  //
+      typescript_options);
 
-  {
-    Test_Parser p(
-        u8"declare namespace ns { export const enum E { A = f() } }"_sv,
-        typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_FIELD(Diag_TypeScript_Enum_Value_Must_Be_Constant,
-                            declared_enum_kind, Enum_Kind::declare_const_enum),
-        }));
-  }
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export const enum E { A = f() } }"_sv,  //
+      u8"                                                 ^^^ Diag_TypeScript_Enum_Value_Must_Be_Constant.expression"_diag
+      u8"{.declared_enum_kind=Enum_Kind::declare_const_enum}"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,

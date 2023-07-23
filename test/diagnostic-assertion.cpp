@@ -37,6 +37,7 @@ bool is_diag_type_char(Char8 c) {
          c == u8'_';
 }
 
+std::optional<Enum_Kind> try_parse_enum_kind(String8_View);
 std::optional<Statement_Kind> try_parse_statement_kind(String8_View);
 }
 
@@ -262,6 +263,21 @@ Diagnostic_Assertion::parse(const Char8* specification) {
           extra_member_value_span[0];
       break;
 
+    case Diagnostic_Arg_Type::enum_kind: {
+      out_assertion.members[member_index].name = extra_member->name;
+      out_assertion.members[member_index].offset = extra_member->offset;
+      out_assertion.members[member_index].type = extra_member->type;
+      std::optional<Enum_Kind> enum_kind =
+          try_parse_enum_kind(extra_member_value_span);
+      if (enum_kind.has_value()) {
+        out_assertion.members[member_index].enum_kind = *enum_kind;
+      } else {
+        lexer.errors.push_back(concat("invalid Enum_Kind: "sv,
+                                      to_string_view(extra_member_value_span)));
+      }
+      break;
+    }
+
     case Diagnostic_Arg_Type::string8_view:
       out_assertion.members[member_index].name = extra_member->name;
       out_assertion.members[member_index].offset = extra_member->offset;
@@ -430,6 +446,9 @@ diagnostics_matcher(Padded_String_View code,
       case Diagnostic_Arg_Type::char8:
         field.character = member.character;
         break;
+      case Diagnostic_Arg_Type::enum_kind:
+        field.enum_kind = member.enum_kind;
+        break;
       case Diagnostic_Arg_Type::string8_view:
         field.string = member.string;
         break;
@@ -463,6 +482,19 @@ diagnostics_matcher(Padded_String_View code,
 }
 
 namespace {
+std::optional<Enum_Kind> try_parse_enum_kind(String8_View s) {
+#define QLJS_CASE(kind)                                     \
+  if (s == u8"Enum_Kind::"_sv QLJS_CPP_QUOTE_U8_SV(kind)) { \
+    return Enum_Kind::kind;                                 \
+  }
+  QLJS_CASE(declare_const_enum)
+  QLJS_CASE(const_enum)
+  QLJS_CASE(declare_enum)
+  QLJS_CASE(normal)
+  return std::nullopt;
+#undef QLJS_CASE
+}
+
 std::optional<Statement_Kind> try_parse_statement_kind(String8_View s) {
 #define QLJS_CASE(kind)                                          \
   if (s == u8"Statement_Kind::"_sv QLJS_CPP_QUOTE_U8_SV(kind)) { \

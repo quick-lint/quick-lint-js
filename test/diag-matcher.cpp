@@ -179,6 +179,14 @@ Char8 Diag_Matcher_Arg::get_char8(const void *error_object) const noexcept {
   return *static_cast<const Char8 *>(member_data);
 }
 
+Enum_Kind Diag_Matcher_Arg::get_enum_kind(const void *error_object) const
+    noexcept {
+  QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::enum_kind);
+  const void *member_data =
+      reinterpret_cast<const char *>(error_object) + this->member_offset;
+  return *static_cast<const Enum_Kind *>(member_data);
+}
+
 String8_View Diag_Matcher_Arg::get_string8_view(const void *error_object) const
     noexcept {
   QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::string8_view);
@@ -334,6 +342,14 @@ class Diag_Matcher_2::Impl
                 << (character_matches ? "equals" : "doesn't equal") << " '"
                 << static_cast<char>(f.character) << "'";
       return character_matches;
+    }
+
+    case Diagnostic_Arg_Type::enum_kind: {
+      Enum_Kind enum_kind = f.arg.get_enum_kind(error.data());
+      bool matches = enum_kind == f.enum_kind;
+      *listener << "whose ." << f.arg.member_name << " (" << enum_kind << ") "
+                << (matches ? "equals" : "doesn't equal") << " " << f.enum_kind;
+      return matches;
     }
 
     case Diagnostic_Arg_Type::string8_view: {

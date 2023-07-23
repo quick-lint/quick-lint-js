@@ -204,6 +204,9 @@ struct Diag_Matcher_Arg {
   // Precondition: this->member_type == Diagnostic_Arg_Type::char8
   Char8 get_char8(const void *error_object) const noexcept;
 
+  // Precondition: this->member_type == Diagnostic_Arg_Type::enum_kind
+  Enum_Kind get_enum_kind(const void *error_object) const noexcept;
+
   // Precondition: this->member_type == Diagnostic_Arg_Type::string8_view
   String8_View get_string8_view(const void *error_object) const noexcept;
 
@@ -280,6 +283,9 @@ class Diag_Matcher_2 {
 
     // If this->arg.member_type == Diag_Matcher_Arg::char8:
     Char8 character;
+
+    // If this->arg.member_type == Diag_Matcher_Arg::enum_kind:
+    Enum_Kind enum_kind;
 
     // If this->arg.member_type == Diag_Matcher_Arg::string8_view:
     String8_View string;

@@ -25,6 +25,8 @@ enum class Enum_Kind {
   normal,
 };
 
+std::ostream& operator<<(std::ostream&, Enum_Kind);
+
 enum class Variable_Kind : unsigned char {
   _arrow_parameter,
   _catch,
