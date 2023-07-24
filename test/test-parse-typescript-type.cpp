@@ -458,19 +458,13 @@ TEST_F(Test_Parse_TypeScript_Type, tuple_type_optional_unnamed_element) {
   }
 
   {
-    Test_Parser p(u8"[A?, B?, C]"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_type_expression();
+    // Diagnostic should point to the last optional '?'.
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"[A?, B?, C]"_sv,  //
+        u8"          ` Diag_TypeScript_Required_Tuple_Element_After_Optional_Element.expected_question\n"_diag
+        u8"      ^ .previous_optional_question"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
-                expected_question, u8"[A?, B?, C"_sv.size(), u8""_sv,
-                previous_optional_question, u8"[A?, B"_sv.size(), u8"?"_sv),
-        }))
-        << "diagnostic should point to the last optional '?'";
   }
 
   {
@@ -719,22 +713,17 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
   }
 
   {
-    Test_Parser p(u8"[: A, B]"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_type_expression();
+    // Should not also report a missing name for the second element, because
+    // maybe the ':' was a mistake.
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"[: A, B]"_sv,                                               //
+        u8" ^ Diag_TypeScript_Missing_Name_In_Named_Tuple_Type"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // A
                               "visit_variable_type_use",  // B
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
-                              colon, u8"["_sv.size(), u8":"_sv),
-        }))
-        << "should not also report a missing name for the second element, "
-           "because maybe the ':' was a mistake";
   }
 
   {
@@ -1578,21 +1567,11 @@ TEST_F(Test_Parse_TypeScript_Type, arrow_function) {
 
 TEST_F(Test_Parse_TypeScript_Type, no_question_in_type_expression) {
   {
-    Test_Parser p(
-        u8"fs.promises.writeFile(outputPath, result).then((err: Error?) => {if (err) throw err;});"_sv,
-        typescript_options, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void,
-                question,
-                u8"fs.promises.writeFile(outputPath, result).then((err: "
-                u8"Error"_sv.size(),
-                u8"?"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"fs.promises.writeFile(outputPath, result).then((err: Error?) => {if (err) throw err;});"_sv,  //
+        u8"                                                          ^ Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void"_diag,  //
+
+        typescript_options);
   }
 
   {

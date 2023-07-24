@@ -776,31 +776,24 @@ TEST_F(Test_Parse_Statement, missing_if_after_else) {
   }
 
   {
-    Test_Parser p(u8"if (false) {} else () {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    // Should not report Diag_Missing_Arrow_Operator_In_Arrow_Function.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (false) {} else () {}"_sv,  //
+        u8"                   ^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren"_diag,  //
+        u8"                  ` Diag_Missing_If_After_Else"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  // if
                               "visit_exit_block_scope",   // if
                               "visit_enter_block_scope",  // else
                               "visit_exit_block_scope",   // else
                           }));
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Missing_Expression_Between_Parentheses,  //
-                              left_paren_to_right_paren,
-                              u8"if (false) {} else "_sv.size(), u8"()"_sv),
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_If_After_Else,  //
-                              expected_if, u8"if (false) {} else"_sv.size(),
-                              u8""_sv),
-        }))
-        << "should not report Diag_Missing_Arrow_Operator_In_Arrow_Function";
   }
 
   {
-    Test_Parser p(u8"if (false) {} else (x, y) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    // Should not report Diag_Missing_Arrow_Operator_In_Arrow_Function.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (false) {} else (x, y) {}"_sv,  //
+        u8"                  ` Diag_Missing_If_After_Else"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  // if
                               "visit_exit_block_scope",   // if
@@ -809,13 +802,6 @@ TEST_F(Test_Parse_Statement, missing_if_after_else) {
                               "visit_enter_block_scope",  // else
                               "visit_exit_block_scope",   // else
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_If_After_Else,  //
-                        expected_if, u8"if (false) {} else"_sv.size(), u8""_sv),
-                }))
-        << "should not report Diag_Missing_Arrow_Operator_In_Arrow_Function";
   }
 }
 

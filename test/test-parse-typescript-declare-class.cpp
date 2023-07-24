@@ -366,21 +366,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
         typescript_options);
   }
 
-  {
-    Test_Parser p(u8"declare class C { myField!: any = init; }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class,  //
-                bang, u8"declare class C { myField"_sv.size(), u8"!"_sv),
-        }))
-        << "Diag_Declare_Class_Fields_Cannot_Have_Initializers should not also "
-           "be reported";
-  }
+  // Diag_Declare_Class_Fields_Cannot_Have_Initializers should not also be
+  // reported.
+  test_parse_and_visit_module(
+      u8"declare class C { myField!: any = init; }"_sv,  //
+      u8"                         ^ Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class"_diag,
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,

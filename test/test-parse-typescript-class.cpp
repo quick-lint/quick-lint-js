@@ -243,35 +243,21 @@ TEST_F(Test_Parse_TypeScript_Class,
   }
 
   {
-    Test_Parser p(u8"class C { field!: any = init; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    // Should not also report
+    // Diag_TypeScript_Assignment_Asserted_Field_Cannot_Have_Initializer.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { field!: any = init; }"_sv,  //
+        u8"               ^ Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_JavaScript"_diag);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_JavaScript,  //
-                bang, u8"class C { field"_sv.size(), u8"!"_sv),
-        }))
-        << "should not also report "
-           "Diag_TypeScript_Assignment_Asserted_Field_Cannot_Have_Initializer";
   }
 
   {
-    Test_Parser p(u8"class C { field!; }"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    // Should not also report
+    // Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { field!; }"_sv,  //
+        u8"               ^ Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_JavaScript"_diag);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_JavaScript,  //
-                bang, u8"class C { field"_sv.size(), u8"!"_sv),
-        }))
-        << "should not also report "
-           "Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type";
   }
 }
 
@@ -1293,9 +1279,11 @@ TEST_F(Test_Parse_TypeScript_Class, implements_is_not_allowed_in_javascript) {
   }
 
   {
-    Test_Parser p(u8"class C implements I extends Base {}"_sv,
-                  javascript_options, capture_diags);
-    p.parse_and_visit_module();
+    // Should not report Diag_TypeScript_Implements_Must_Be_After_Extends.
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"class C implements I extends Base {}"_sv,  //
+        u8"        ^^^^^^^^^^ Diag_TypeScript_Class_Implements_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
                               "visit_variable_type_use",       // I
@@ -1305,15 +1293,6 @@ TEST_F(Test_Parse_TypeScript_Class, implements_is_not_allowed_in_javascript) {
                               "visit_variable_declaration",    // C
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Class_Implements_Not_Allowed_In_JavaScript,  //
-                implements_keyword, u8"class C "_sv.size(), u8"implements"_sv),
-        }))
-        << "should not report Diag_TypeScript_Implements_Must_Be_After_Extends";
   }
 }
 
