@@ -101,12 +101,11 @@ TEST_F(Test_Parse_Statement, return_statement_disallows_newline) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x"}));
 
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Return_Statement_Returns_Nothing,  //
-                              return_keyword, 0, u8"return"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"^^^^^^ Diag_Return_Statement_Returns_Nothing"_diag,
+        });
   }
 
   {
@@ -160,12 +159,11 @@ TEST_F(Test_Parse_Statement, return_statement_disallows_newline) {
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.errors,
-                  ElementsAreArray({
-                      DIAG_TYPE_OFFSETS(
-                          p.code, Diag_Return_Statement_Returns_Nothing,  //
-                          return_keyword, 0, u8"return"_sv),
-                  }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"^^^^^^ Diag_Return_Statement_Returns_Nothing"_diag,
+          });
     }
 
     {
@@ -173,12 +171,11 @@ TEST_F(Test_Parse_Statement, return_statement_disallows_newline) {
                     jsx_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.errors,
-                  ElementsAreArray({
-                      DIAG_TYPE_OFFSETS(
-                          p.code, Diag_Return_Statement_Returns_Nothing,  //
-                          return_keyword, u8"{ "_sv.size(), u8"return"_sv),
-                  }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"  ^^^^^^ Diag_Return_Statement_Returns_Nothing"_diag,
+          });
     }
 
     {
@@ -187,13 +184,11 @@ TEST_F(Test_Parse_Statement, return_statement_disallows_newline) {
           jsx_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(p.errors,
-                  ElementsAreArray({
-                      DIAG_TYPE_OFFSETS(
-                          p.code, Diag_Return_Statement_Returns_Nothing,  //
-                          return_keyword, u8"async function f() { "_sv.size(),
-                          u8"return"_sv),
-                  }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"                     ^^^^^^ Diag_Return_Statement_Returns_Nothing"_diag,
+          });
     }
 
     {
@@ -202,14 +197,11 @@ TEST_F(Test_Parse_Statement, return_statement_disallows_newline) {
                     jsx_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Return_Statement_Returns_Nothing,  //
-                  return_keyword, u8"switch (cond) {\ndefault:\n"_sv.size(),
-                  u8"return"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"                           ^^^^^^ Diag_Return_Statement_Returns_Nothing"_diag,
+          });
     }
   }
 }
@@ -632,12 +624,11 @@ TEST_F(Test_Parse_Statement, if_without_body) {
                               "visit_variable_use",       // a
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Body_For_If_Statement,  //
-                              expected_body, u8"{\nif (a)"_sv.size(), u8""_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ` Diag_Missing_Body_For_If_Statement"_diag,
+        });
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //

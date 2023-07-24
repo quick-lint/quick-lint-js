@@ -1144,13 +1144,11 @@ TEST_F(Test_Parse_Function, arrow_function_expression_without_arrow_operator) {
                               "visit_exit_function_scope",        //
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Missing_Arrow_Operator_In_Arrow_Function,  //
-                              where, u8"(()\n"_sv.size(), u8"{"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ^ Diag_Missing_Arrow_Operator_In_Arrow_Function"_diag,
+        });
   }
 
   {

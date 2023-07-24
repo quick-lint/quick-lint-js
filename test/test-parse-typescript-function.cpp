@@ -1175,15 +1175,12 @@ TEST_F(Test_Parse_TypeScript_Function,
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({function_decl(u8"f"_sv), function_decl(u8"g"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, u8"function "_sv.size(), u8"f"_sv, function_name,
-                u8"function f();\nfunction "_sv.size(), u8"g"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ^ Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name.overload_name\n"_diag
+            u8"                        ^ .function_name"_diag,
+        });
   }
 
   {
@@ -1211,23 +1208,14 @@ TEST_F(Test_Parse_TypeScript_Function,
                                              function_decl(u8"g"_sv),
                                              function_decl(u8"h"_sv),
                                          }));
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, u8"function "_sv.size(), u8"f"_sv, function_name,
-                u8"function f();\nfunction g();\nfunction "_sv.size(),
-                u8"h"_sv),
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, u8"function f();\nfunction "_sv.size(), u8"g"_sv,
-                function_name,
-                u8"function f();\nfunction g();\nfunction "_sv.size(),
-                u8"h"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                        ^ Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name.overload_name\n"_diag
+            u8"                                       ^ .function_name"_diag,  //
+            u8"         ^ Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name.overload_name\n"_diag
+            u8"                                       ^ .function_name"_diag,
+        });
   }
 
   {
@@ -1240,17 +1228,12 @@ TEST_F(Test_Parse_TypeScript_Function,
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({function_decl(u8"f"_sv), function_decl(u8"g"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, u8"function f();\nfunction "_sv.size(), u8"g"_sv,
-                function_name,
-                u8"function f();\nfunction g();\nfunction "_sv.size(),
-                u8"f"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                        ^ Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name.overload_name\n"_diag
+            u8"                                       ^ .function_name"_diag,
+        });
   }
 
   {
@@ -1263,16 +1246,12 @@ TEST_F(Test_Parse_TypeScript_Function,
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({function_decl(u8"f"_sv), function_decl(u8"g"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name, u8"function "_sv.size(), u8"f"_sv, function_name,
-                u8"function f();\nfunction g();\nfunction "_sv.size(),
-                u8"g"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ^ Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name.overload_name\n"_diag
+            u8"                                       ^ .function_name"_diag,
+        });
   }
 
   {
@@ -1402,16 +1381,12 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Newline_Not_Allowed_Between_Async_And_Function_Keyword,
-                async_keyword, u8"function f()\n"_sv.size(), u8"async"_sv,
-                function_keyword, u8"function f()\nasync\n"_sv.size(),
-                u8"function"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"              ^^^^^ Diag_Newline_Not_Allowed_Between_Async_And_Function_Keyword.async_keyword\n"_diag
+            u8"                     ^^^^^^^^ .function_keyword"_diag,
+        });
   }
 }
 
@@ -1434,14 +1409,11 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star,
-                generator_star, u8"function "_sv.size(), u8"*"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ^ Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star"_diag,
+        });
   }
 
   {
@@ -1452,19 +1424,12 @@ TEST_F(Test_Parse_TypeScript_Function,
         typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star,
-                generator_star, u8"function "_sv.size(), u8"*"_sv),
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star,
-                generator_star, u8"function *f(a);function "_sv.size(),
-                u8"*"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                        ^ Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star"_diag,  //
+            u8"         ^ Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star"_diag,
+        });
   }
 
   {
@@ -1476,14 +1441,11 @@ TEST_F(Test_Parse_TypeScript_Function,
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"yield", u8"myValue"}))
         << "'yield' should not be a keyword in the implementation";
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star,
-                generator_star, u8"function "_sv.size(), u8"*"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ^ Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star"_diag,
+        });
   }
 }
 }

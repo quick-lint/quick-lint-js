@@ -741,36 +741,26 @@ TEST_F(Test_Parse_TypeScript_Type, named_tuple_type_with_missing_name) {
     Test_Parser p(u8"[: A, b: B, C]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
-                              colon, u8"["_sv.size(), u8":"_sv),
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
-                expected_name_and_colon, u8"[: A, b: B, "_sv.size(), u8""_sv,
-                existing_name, u8"[: A, "_sv.size(), u8"b:"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"            ` Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type.expected_name_and_colon\n"_diag
+            u8"      ^^ .existing_name"_diag,  //
+            u8" ^ Diag_TypeScript_Missing_Name_In_Named_Tuple_Type"_diag,
+        });
   }
 
   {
     Test_Parser p(u8"[: A, B, c: C]"_sv, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_TypeScript_Missing_Name_In_Named_Tuple_Type,
-                              colon, u8"["_sv.size(), u8":"_sv),
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type,
-                expected_name_and_colon, u8"[: A, "_sv.size(), u8""_sv,
-                existing_name, u8"[: A, B, "_sv.size(), u8"c:"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"      ` Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type.expected_name_and_colon\n"_diag
+            u8"         ^^ .existing_name"_diag,  //
+            u8" ^ Diag_TypeScript_Missing_Name_In_Named_Tuple_Type"_diag,
+        });
   }
 }
 
@@ -810,16 +800,13 @@ TEST_F(Test_Parse_TypeScript_Type, tuple_type_optional_named_element) {
                   capture_diags);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B", u8"C"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Required_Tuple_Element_After_Optional_Element,
-                expected_question, u8"[a?: A, b?: B, c"_sv.size(), u8""_sv,
-                previous_optional_question, u8"[a?: A, b"_sv.size(), u8"?"_sv),
-        }))
-        << "diagnostic should point to the last optional '?'";
+    // Diagnostic should point to the last optional '?'.
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                ` Diag_TypeScript_Required_Tuple_Element_After_Optional_Element.expected_question\n"_diag
+            u8"         ^ .previous_optional_question"_diag,
+        });
   }
 }
 
@@ -2382,14 +2369,11 @@ TEST_F(Test_Parse_TypeScript_Type, readonly_requires_tuple_or_array_type) {
     SCOPED_TRACE(out_string8(code));
     Test_Parser p(code, typescript_options, capture_diags);
     p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Readonly_In_Type_Needs_Array_Or_Tuple_Type,
-                readonly_keyword, 0, u8"readonly"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"^^^^^^^^ Diag_TypeScript_Readonly_In_Type_Needs_Array_Or_Tuple_Type"_diag,
+        });
   }
 }
 

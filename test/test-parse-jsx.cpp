@@ -33,12 +33,10 @@ TEST_F(Test_Parse_JSX, jsx_is_not_supported_in_vanilla_javascript) {
       u8"<MyComponent attr={value}><Inner>hello</Inner></MyComponent>"_sv,
       options, capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(
-      p.errors,
-      ElementsAreArray({
-          DIAG_TYPE_OFFSETS(p.code, Diag_JSX_Not_Allowed_In_JavaScript,  //
-                            jsx_start, 0, u8"<"_sv),
-      }));
+  assert_diagnostics(p.code, p.errors,
+                     {
+                         u8"^ Diag_JSX_Not_Allowed_In_JavaScript"_diag,
+                     });
   EXPECT_THAT(p.variable_uses,
               ElementsAreArray({u8"MyComponent", u8"value", u8"Inner"}));
 }
@@ -53,12 +51,10 @@ TEST_F(Test_Parse_JSX, jsx_is_not_supported_in_vanilla_typescript) {
         u8"<MyComponent attr={value}><Inner>hello</Inner></MyComponent>"_sv,
         options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_JSX_Not_Allowed_In_TypeScript,  //
-                              jsx_start, 0, u8"<"_sv),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"^ Diag_JSX_Not_Allowed_In_TypeScript"_diag,
+                       });
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"MyComponent", u8"value", u8"Inner"}));
   }
@@ -67,12 +63,10 @@ TEST_F(Test_Parse_JSX, jsx_is_not_supported_in_vanilla_typescript) {
     Test_Parser p(u8"<><Inner>hello</Inner><Inner /></>"_sv, options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_JSX_Not_Allowed_In_TypeScript,  //
-                              jsx_start, 0, u8"<"_sv),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"^ Diag_JSX_Not_Allowed_In_TypeScript"_diag,
+                       });
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Inner", u8"Inner"}));
   }
 

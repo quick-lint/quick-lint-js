@@ -1117,12 +1117,10 @@ TEST_F(Test_Parse_Loop, break_statement) {
     Test_Parser p(u8"for (;;) { } break;"_sv, capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE_OFFSETS(p.code, Diag_Invalid_Break,  //
-                                                break_statement,
-                                                u8"for (;;) { } "_sv.size(),
-                                                u8"break"_sv),
-                          }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"             ^^^^^ Diag_Invalid_Break"_diag,
+                       });
   }
 
   {

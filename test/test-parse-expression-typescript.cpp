@@ -128,14 +128,11 @@ TEST_F(Test_Parse_Expression_TypeScript,
   Test_Parser p(u8"x!"_sv, javascript_options, capture_diags);
   Expression* ast = p.parse_expression();
   EXPECT_EQ(summarize(ast), "nonnull(var x)");
-  EXPECT_THAT(
-      p.errors,
-      ElementsAreArray({
-          DIAG_TYPE_OFFSETS(
-              p.code,
-              Diag_TypeScript_Non_Null_Assertion_Not_Allowed_In_JavaScript,  //
-              bang, u8"x"_sv.size(), u8"!"_sv),
-      }));
+  assert_diagnostics(
+      p.code, p.errors,
+      {
+          u8" ^ Diag_TypeScript_Non_Null_Assertion_Not_Allowed_In_JavaScript"_diag,
+      });
 }
 
 TEST_F(Test_Parse_Expression_TypeScript,
@@ -143,27 +140,21 @@ TEST_F(Test_Parse_Expression_TypeScript,
   {
     Test_Parser p(u8"x as y"_sv, javascript_options, capture_diags);
     EXPECT_EQ(summarize(p.parse_expression()), "as(var x)");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_As_Type_Assertion_Not_Allowed_In_JavaScript,  //
-                as_keyword, u8"x "_sv.size(), u8"as"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"  ^^ Diag_TypeScript_As_Type_Assertion_Not_Allowed_In_JavaScript"_diag,
+        });
   }
 
   {
     Test_Parser p(u8"{} as const"_sv, javascript_options, capture_diags);
     EXPECT_EQ(summarize(p.parse_expression()), "as(object())");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_As_Type_Assertion_Not_Allowed_In_JavaScript,  //
-                as_keyword, u8"{} "_sv.size(), u8"as"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"   ^^ Diag_TypeScript_As_Type_Assertion_Not_Allowed_In_JavaScript"_diag,
+        });
   }
 }
 
@@ -346,13 +337,11 @@ TEST_F(Test_Parse_Expression_TypeScript,
   {
     Test_Parser p(u8"x satisfies y"_sv, javascript_options, capture_diags);
     EXPECT_EQ(summarize(p.parse_expression()), "satisfies(var x)");
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_TypeScript_Satisfies_Not_Allowed_In_JavaScript,  //
-                        satisfies_keyword, u8"x "_sv.size(), u8"satisfies"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"  ^^^^^^^^^ Diag_TypeScript_Satisfies_Not_Allowed_In_JavaScript"_diag,
+        });
   }
 }
 

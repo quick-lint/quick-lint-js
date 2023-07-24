@@ -408,13 +408,11 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                               "visit_end_of_module",
                           }));
     // TODO(strager): Improve the span.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Unexpected_Token_In_Variable_Declaration,  //
-                unexpected_token, u8"let x, "_sv.size(), u8"`hello${"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"       ^^^^^^^^ Diag_Unexpected_Token_In_Variable_Declaration"_diag,
+        });
   }
 
   {
@@ -455,14 +453,12 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                               "visit_variable_assignment",  // x
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Let_With_No_Bindings,  //
-                                      where, 0, u8"let"_sv),
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, u8"let"_sv.size(), u8""_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"   ` Diag_Missing_Semicolon_After_Statement"_diag,  //
+            u8"^^^ Diag_Let_With_No_Bindings"_diag,
+        });
   }
 
   {
@@ -581,12 +577,11 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
     EXPECT_EQ(p.variable_declarations.size(), 0);
     // TODO(strager): Report a better message. We should say 'let statement',
     // not 'parameter'.
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Literal_In_Parameter_List,  //
-                        literal, u8"let ["_sv.size(), u8"42"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ^^ Diag_Unexpected_Literal_In_Parameter_List"_diag,
+        });
   }
 
   {
@@ -595,13 +590,11 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
     EXPECT_THAT(p.variable_declarations, IsEmpty());
     // TODO(strager): Report a better message. We should say 'let statement',
     // not 'parameter'.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_This_Parameter_Not_Allowed_When_Destructuring,  //
-                this_keyword, u8"let ["_sv.size(), u8"this"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ^^^^ Diag_This_Parameter_Not_Allowed_When_Destructuring"_diag,
+        });
   }
 
   {
@@ -636,14 +629,11 @@ TEST_F(Test_Parse_Var, parse_let_with_missing_equal) {
                               "visit_end_of_module",
                           }));
 
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Missing_Equal_After_Variable,  //
-                expected_equal,
-                u8"async function f() {return 1;}\nlet x"_sv.size(), u8""_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                                     ` Diag_Missing_Equal_After_Variable"_diag,
+        });
   }
 
   {
@@ -730,14 +720,11 @@ TEST_F(Test_Parse_Var, parse_let_with_missing_equal) {
                               "visit_end_of_module",
                           }));
 
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Missing_Equal_After_Variable,  //
-                expected_equal,
-                u8"async function f() {return 1;}\nlet x"_sv.size(), u8""_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                                     ` Diag_Missing_Equal_After_Variable"_diag,
+        });
   }
 
   {
@@ -847,14 +834,11 @@ TEST_F(Test_Parse_Var, report_missing_semicolon_for_declarations) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({let_init_decl(u8"x"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"console"}));
-    CLI_Source_Position::Offset_Type end_of_let_statement =
-        u8"let x = 2"_sv.size();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, end_of_let_statement, u8""_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ` Diag_Missing_Semicolon_After_Statement"_diag,
+        });
   }
   {
     Test_Parser p(u8"let x debugger"_sv, capture_diags);
@@ -862,13 +846,11 @@ TEST_F(Test_Parse_Var, report_missing_semicolon_for_declarations) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({let_noinit_decl(u8"x"_sv)}));
-    CLI_Source_Position::Offset_Type end_of_let_statement = u8"let x"_sv.size();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, end_of_let_statement, u8""_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ` Diag_Missing_Semicolon_After_Statement"_diag,
+        });
   }
 }
 
@@ -1210,12 +1192,11 @@ TEST_F(Test_Parse_Var, declare_await_in_async_function) {
                 ElementsAreArray({function_decl(u8"await"_sv)}));
     // TODO(strager): Include a note referencing the origin of the async
     // function.
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Cannot_Declare_Await_In_Async_Function,  //
-                        name, u8"function "_sv.size(), u8"await"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,
+        });
   }
 
   {
@@ -1224,12 +1205,11 @@ TEST_F(Test_Parse_Var, declare_await_in_async_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({var_noinit_decl(u8"await"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Cannot_Declare_Await_In_Async_Function,  //
-                        name, u8"var "_sv.size(), u8"await"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"    ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,
+        });
   }
 
   {
@@ -1238,12 +1218,11 @@ TEST_F(Test_Parse_Var, declare_await_in_async_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({catch_decl(u8"await"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Cannot_Declare_Await_In_Async_Function,  //
-                        name, u8"try {} catch ("_sv.size(), u8"await"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"              ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,
+        });
   }
 
   {
@@ -1501,12 +1480,10 @@ TEST_F(Test_Parse_Var, forced_top_level_await_operator) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Operand_For_Operator,  //
-                              where, 0, u8"await"_sv),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"^^^^^ Diag_Missing_Operand_For_Operator"_diag,
+                       });
   }
 }
 
@@ -1604,13 +1581,11 @@ TEST_F(Test_Parse_Var, declare_yield_in_generator_function) {
                 ElementsAreArray({function_decl(u8"yield"_sv)}));
     // TODO(strager): Include a note referencing the origin of the generator
     // function.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Cannot_Declare_Yield_In_Generator_Function,  //
-                name, u8"function "_sv.size(), u8"yield"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ^^^^^ Diag_Cannot_Declare_Yield_In_Generator_Function"_diag,
+        });
   }
 
   {
@@ -1619,13 +1594,11 @@ TEST_F(Test_Parse_Var, declare_yield_in_generator_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({var_noinit_decl(u8"yield"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Cannot_Declare_Yield_In_Generator_Function,  //
-                name, u8"var "_sv.size(), u8"yield"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"    ^^^^^ Diag_Cannot_Declare_Yield_In_Generator_Function"_diag,
+        });
   }
 
   {
@@ -1634,13 +1607,11 @@ TEST_F(Test_Parse_Var, declare_yield_in_generator_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({catch_decl(u8"yield"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Cannot_Declare_Yield_In_Generator_Function,  //
-                name, u8"try {} catch ("_sv.size(), u8"yield"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"              ^^^^^ Diag_Cannot_Declare_Yield_In_Generator_Function"_diag,
+        });
   }
 
   {

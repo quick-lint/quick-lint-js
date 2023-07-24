@@ -153,12 +153,11 @@ TEST_F(Test_Parse_TypeScript_Enum,
   Test_Parser p(u8"enum await {}"_sv, typescript_options, capture_diags);
   auto guard = p.enter_function(Function_Attributes::async);
   p.parse_and_visit_statement();
-  EXPECT_THAT(p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code, Diag_Cannot_Declare_Await_In_Async_Function,  //
-                      name, u8"enum "_sv.size(), u8"await"_sv),
-              }));
+  assert_diagnostics(
+      p.code, p.errors,
+      {
+          u8"     ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,
+      });
 }
 
 TEST_F(Test_Parse_TypeScript_Enum, enum_with_auto_members) {

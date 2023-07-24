@@ -351,15 +351,12 @@ TEST_F(Test_Parse, utter_garbage) {
                               "visit_variable_use",  // kjaslkjd
                               "visit_variable_use",  // kjaslkjd
                           }));
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Expected_Parentheses_Around_If_Condition,  //
-                              condition, u8"if "_sv.size(), u8":"_sv),
-            DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                              token, u8"if "_sv.size(), u8":"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"   ^ Diag_Expected_Parentheses_Around_If_Condition"_diag,  //
+            u8"   ^ Diag_Unexpected_Token"_diag,
+        });
   }
 }
 
@@ -402,13 +399,11 @@ TEST_F(
                                 "visit_end_of_module",
                             }));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, 0, u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
 
     {
@@ -420,13 +415,11 @@ TEST_F(
                                 "visit_end_of_module",
                             }));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, u8"("_sv.size(), u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8" ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
   }
 }

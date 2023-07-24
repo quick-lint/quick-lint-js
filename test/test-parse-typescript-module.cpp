@@ -125,14 +125,11 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({import_type_decl(u8"A"_sv), import_decl(u8"B"_sv)}))
         << "B should be imported as an 'import' not an 'import_type' in case "
            "the user thought that the 'type' keyword only applied to 'A'";
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named,
-                type_keyword, u8"import "_sv.size(), u8"type"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"       ^^^^ Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named"_diag,
+        });
   }
 
   {

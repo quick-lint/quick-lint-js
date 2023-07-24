@@ -180,15 +180,12 @@ TEST_F(Test_Parse_TypeScript, warn_on_mistyped_strict_inequality_operator) {
     Test_Parser p(u8"x! == y"_sv, typescript_options, capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(nonnull(var x), var y)");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion,  //
-                unexpected_space, u8"x!"_sv.size(), u8" "_sv,             //
-                bang, u8"x"_sv.size(), u8"!"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"  ^ Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion.unexpected_space\n"_diag
+            u8" ^ .bang"_diag,
+        });
   }
   {
     Spy_Visitor p = test_parse_and_visit_statement(

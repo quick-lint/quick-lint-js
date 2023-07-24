@@ -545,12 +545,11 @@ TEST_F(Test_Parse_Warning, warn_on_variable_assigned_to_self_is_noop) {
   {
     Test_Parser p(u8"x = \\u{78}"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Variable_Assigned_To_Self_Is_Noop,
-                              assignment_statement, 0, u8"x = \\u{78}"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"^^^^^^^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag,
+        });
   }
   {
     Spy_Visitor p = test_parse_and_visit_statement(
@@ -583,31 +582,29 @@ TEST_F(Test_Parse_Warning, warn_on_xor_operation_used_as_exponentiation) {
   {
     Test_Parser p(u8"2 ^ 8"_sv, capture_diags);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Xor_Used_As_Exponentiation,
-                                      xor_operator, u8"2 "_sv.size(), u8"^"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"  ^ Diag_Xor_Used_As_Exponentiation.xor_operator"_diag,
+        });
   }
   {
     Test_Parser p(u8"let a = 2 ^ 5"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Xor_Used_As_Exponentiation,
-                              xor_operator, u8"let a = 2 "_sv.size(), u8"^"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"          ^ Diag_Xor_Used_As_Exponentiation.xor_operator"_diag,
+        });
   }
   {
     Test_Parser p(u8"10 ^ 5"_sv, capture_diags);
     p.parse_and_visit_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Xor_Used_As_Exponentiation,
-                              xor_operator, u8"10 "_sv.size(), u8"^"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"   ^ Diag_Xor_Used_As_Exponentiation.xor_operator"_diag,
+        });
   }
   {
     Test_Parser p(u8"x ^ a"_sv, capture_diags);

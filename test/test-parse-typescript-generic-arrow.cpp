@@ -149,12 +149,11 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(T, var body)");
     EXPECT_THAT(p.visits, IsEmpty());
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code,
-                                      Diag_Unexpected_Greater_In_JSX_Text,  //
-                                      greater, u8"<T>() ="_sv.size(), u8">"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"       ^ Diag_Unexpected_Greater_In_JSX_Text"_diag,
+        });
   }
 }
 
@@ -165,13 +164,11 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
                   capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(T, var body)");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Unexpected_Greater_In_JSX_Text,  //
-                              greater, u8"<T>param ="_sv.size(), u8">"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"          ^ Diag_Unexpected_Greater_In_JSX_Text"_diag,
+        });
   }
 }
 

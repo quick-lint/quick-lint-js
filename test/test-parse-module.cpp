@@ -403,13 +403,11 @@ TEST_F(Test_Parse_Module,
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, IsEmpty());
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, u8"export {"_sv.size(), u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"        ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
 
     {
@@ -419,13 +417,11 @@ TEST_F(Test_Parse_Module,
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, IsEmpty());
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, u8"export {"_sv.size(), u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"        ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
   }
 }
@@ -570,12 +566,11 @@ TEST_F(Test_Parse_Module, invalid_export) {
   {
     Test_Parser p(u8"export += x"_sv, capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Token_After_Export,  //
-                        unexpected_token, u8"export "_sv.size(), u8"+="_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"       ^^ Diag_Unexpected_Token_After_Export"_diag,
+        });
     p.parse_and_visit_statement();  // Parse '+= x'.
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // x
@@ -936,13 +931,11 @@ TEST_F(Test_Parse_Module,
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({import_decl(keyword)}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, u8"import { "_sv.size(), u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"         ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
 
     {
@@ -953,14 +946,11 @@ TEST_F(Test_Parse_Module,
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({import_decl(keyword)}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, u8"import { someFunction as "_sv.size(),
-                  u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"                         ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
 
     {
@@ -971,14 +961,11 @@ TEST_F(Test_Parse_Module,
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({import_decl(keyword)}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, u8"import { 'someFunction' as "_sv.size(),
-                  u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"                           ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
 
     {
@@ -989,13 +976,11 @@ TEST_F(Test_Parse_Module,
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({import_decl(keyword)}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, u8"import "_sv.size(), u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"       ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
 
     {
@@ -1006,13 +991,11 @@ TEST_F(Test_Parse_Module,
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({import_decl(keyword)}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, u8"import * as "_sv.size(), u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"            ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
   }
 }

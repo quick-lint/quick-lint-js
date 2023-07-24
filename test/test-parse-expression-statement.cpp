@@ -137,22 +137,20 @@ TEST_F(Test_Parse_Expression_Statement, stray_right_parenthesis) {
     Test_Parser p(u8"await p)"_sv, capture_diags);
     auto guard = p.enter_function(Function_Attributes::async);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Unmatched_Parenthesis,  //
-                                      where, u8"await p"_sv.size(), u8")"_sv),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"       ^ Diag_Unmatched_Parenthesis"_diag,
+                       });
   }
 
   {
     Test_Parser p(u8"yield v)"_sv, capture_diags);
     auto guard = p.enter_function(Function_Attributes::generator);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Unmatched_Parenthesis,  //
-                                      where, u8"yield p"_sv.size(), u8")"_sv),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"       ^ Diag_Unmatched_Parenthesis"_diag,
+                       });
   }
 
   {
@@ -201,12 +199,10 @@ TEST_F(Test_Parse_Expression_Statement,
     Test_Parser p(u8".x; y;"_sv, capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Operand_For_Operator,  //
-                              where, 0, u8"."_sv),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"^ Diag_Missing_Operand_For_Operator"_diag,
+                       });
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // y
                           }));
@@ -1121,12 +1117,10 @@ TEST_F(Test_Parse_Expression_Statement,
                               "visit_variable_use",  // x
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Operand_For_Operator,  //
-                              where, 0, u8"!"_sv),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"^ Diag_Missing_Operand_For_Operator"_diag,
+                       });
   }
 
   {
@@ -1393,12 +1387,11 @@ TEST_F(Test_Parse_Expression_Statement,
                               "visit_variable_use",  // value
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"value"}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Object_Literal_Default_In_Expression,  //
-                        equal, u8"({eky "_sv.size(), u8"="_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"      ^ Diag_Object_Literal_Default_In_Expression"_diag,
+        });
   }
 }
 

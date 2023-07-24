@@ -39,13 +39,11 @@ TEST_F(Test_Parse_TypeScript_Interface, not_supported_in_vanilla_javascript) {
                             "visit_exit_interface_scope",   // I
                             "visit_end_of_module",
                         }));
-  EXPECT_THAT(p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(
-                      p.code,
-                      Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript,  //
-                      interface_keyword, 0, u8"interface"_sv),
-              }));
+  assert_diagnostics(
+      p.code, p.errors,
+      {
+          u8"^^^^^^^^^ Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript"_diag,
+      });
 }
 
 TEST_F(Test_Parse_TypeScript_Interface, empty_interface) {
@@ -937,13 +935,11 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
                                 "visit_exit_interface_scope",   //
                                 "visit_end_of_module",
                             }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                  static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,
+          });
     }
 
     {
@@ -960,13 +956,11 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
                                 "visit_exit_interface_scope",   //
                                 "visit_end_of_module",
                             }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                  static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,
+          });
     }
 
     {
@@ -984,13 +978,11 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
                                 "visit_exit_interface_scope",   //
                                 "visit_end_of_module",
                             }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                  static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,
+          });
     }
 
     {
@@ -1005,13 +997,11 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
                                 "visit_exit_interface_scope",   //
                                 "visit_end_of_module",
                             }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                  static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,
+          });
     }
 
     // TODO(#736): Fix 'static readonly static'.
@@ -1027,13 +1017,11 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
                                 "visit_exit_interface_scope",   //
                                 "visit_end_of_module",
                             }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                  static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,
+          });
     }
 
     {
@@ -1041,13 +1029,11 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
                            u8"(); }"_sv),
                     typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                  static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,
+          });
     }
 
     {
@@ -1058,13 +1044,11 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
           typescript_options, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.property_declarations, ElementsAreArray({property_name}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                  static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,
+          });
     }
 
     {
@@ -1075,13 +1059,11 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
           typescript_options, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.property_declarations, ElementsAreArray({property_name}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                  static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,
+          });
     }
   }
 
@@ -1134,13 +1116,11 @@ TEST_F(Test_Parse_TypeScript_Interface, async_methods_are_not_allowed) {
                                 "visit_exit_interface_scope",   //
                                 "visit_end_of_module",
                             }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Methods_Cannot_Be_Async,  //
-                  async_keyword, u8"interface I { "_sv.size(), u8"async"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,
+          });
     }
 
     {
@@ -1172,13 +1152,11 @@ TEST_F(Test_Parse_TypeScript_Interface, generator_methods_are_not_allowed) {
                                 "visit_exit_interface_scope",   //
                                 "visit_end_of_module",
                             }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(p.code,
-                                Diag_Interface_Methods_Cannot_Be_Generators,  //
-                                star, u8"interface I { "_sv.size(), u8"*"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"              ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,
+          });
     }
 
     {
@@ -1398,14 +1376,11 @@ TEST_F(Test_Parse_TypeScript_Interface,
                               "visit_exit_function_scope",   // (call signature)
                               "visit_exit_interface_scope",  // I
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Interfaces,  //
-                bang, u8"interface I {\n  field"_sv.size(), u8"!"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                      ^ Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Interfaces"_diag,
+        });
   }
 }
 

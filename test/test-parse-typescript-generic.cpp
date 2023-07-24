@@ -662,14 +662,11 @@ TEST_F(
                               "visit_variable_type_use",  // T
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Requires_Space_Between_Greater_And_Equal,
-                greater_equal, u8"foo<T"_sv.size(), u8">="_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ^^ Diag_TypeScript_Requires_Space_Between_Greater_And_Equal"_diag,
+        });
   }
 
   {
@@ -681,14 +678,11 @@ TEST_F(
                               "visit_variable_type_use",  // U
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv, u8"U"_sv}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Requires_Space_Between_Greater_And_Equal,
-                greater_equal, u8"foo<T<U>"_sv.size(), u8">="_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"        ^^ Diag_TypeScript_Requires_Space_Between_Greater_And_Equal"_diag,
+        });
   }
 
   {
@@ -702,14 +696,11 @@ TEST_F(
                           }));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"T"_sv, u8"U"_sv, u8"V"_sv}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Requires_Space_Between_Greater_And_Equal,
-                greater_equal, u8"foo<T<U<V>>"_sv.size(), u8">="_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"           ^^ Diag_TypeScript_Requires_Space_Between_Greater_And_Equal"_diag,
+        });
   }
 }
 
@@ -719,13 +710,11 @@ TEST_F(Test_Parse_TypeScript_Generic,
     Test_Parser p(u8"foo?.<T>(p)"_sv, javascript_options, capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_TypeScript_Generics_Not_Allowed_In_JavaScript,
-                opening_less, u8"foo?."_sv.size(), u8"<"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ^ Diag_TypeScript_Generics_Not_Allowed_In_JavaScript"_diag,
+        });
   }
 
   {
@@ -733,13 +722,11 @@ TEST_F(Test_Parse_TypeScript_Generic,
                   capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_TypeScript_Generics_Not_Allowed_In_JavaScript,
-                opening_less, u8"foo?."_sv.size(), u8"<"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ^ Diag_TypeScript_Generics_Not_Allowed_In_JavaScript"_diag,
+        });
   }
 }
 }

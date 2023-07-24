@@ -197,14 +197,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
     SCOPED_TRACE(code);
     Test_Parser p(code.string_view(), typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement,  //
-                static_token, u8"declare class C { "_sv.size(), u8"static"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                  ^^^^^^ Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement"_diag,
+        });
   }
 }
 
@@ -289,16 +286,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
     p.parse_and_visit_module();
     // TODO(strager): Should this be a different message? They can just drop the
     // 'abstract' keyword.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, u8"declare class C { "_sv.size(),
-                u8"abstract"_sv, class_keyword, u8"declare "_sv.size(),
-                u8"class"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                  ^^^^^^^^ Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class.abstract_keyword\n"_diag
+            u8"        ^^^^^ .class_keyword"_diag,
+        });
   }
 
   {
@@ -307,16 +300,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
     p.parse_and_visit_module();
     // TODO(strager): Should this be a different message? They can just drop the
     // 'abstract' keyword.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, u8"declare class C { "_sv.size(),
-                u8"abstract"_sv, class_keyword, u8"declare "_sv.size(),
-                u8"class"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                  ^^^^^^^^ Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class.abstract_keyword\n"_diag
+            u8"        ^^^^^ .class_keyword"_diag,
+        });
   }
 }
 

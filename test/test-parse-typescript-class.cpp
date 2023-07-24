@@ -77,12 +77,10 @@ TEST_F(Test_Parse_TypeScript_Class,
   {
     Test_Parser p(u8"class C { [key: KeyType]: ValueType; }"_sv, capture_diags);
     p.parse_and_visit_module_catching_fatal_parse_errors();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                              token, u8"class C { [key"_sv.size(), u8":"_sv),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"              ^ Diag_Unexpected_Token"_diag,
+                       });
   }
 }
 
@@ -303,15 +301,12 @@ TEST_F(Test_Parse_TypeScript_Class,
         typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Newline_Not_Allowed_Before_Assignment_Assertion_Operator,  //
-                bang, u8"class C {\n  field\n  "_sv.size(), u8"!"_sv,
-                field_name, u8"class C {\n  "_sv.size(), u8"field"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                      ^ Diag_Newline_Not_Allowed_Before_Assignment_Assertion_Operator.bang\n"_diag
+            u8"             ^^^^^ .field_name"_diag,
+        });
   }
 }
 
@@ -352,14 +347,11 @@ TEST_F(Test_Parse_TypeScript_Class,
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"field1", u8"field2"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type,  //
-                bang, u8"class C {\n  field1"_sv.size(), u8"!"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                   ^ Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type"_diag,
+        });
   }
 
   {
@@ -371,14 +363,11 @@ TEST_F(Test_Parse_TypeScript_Class,
         typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"field1", std::nullopt));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type,  //
-                bang, u8"class C {\n  field1"_sv.size(), u8"!"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                   ^ Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type"_diag,
+        });
   }
 }
 
@@ -716,14 +705,11 @@ TEST_F(Test_Parse_TypeScript_Class,
         typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"field", std::nullopt));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Missing_Class_Method_Name,  //
-                              expected_name,
-                              u8"class C {\n  field!\n  "_sv.size(), u8""_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                       ` Diag_Missing_Class_Method_Name"_diag,
+        });
   }
 
   {
@@ -735,14 +721,11 @@ TEST_F(Test_Parse_TypeScript_Class,
         typescript_options, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"field", std::nullopt));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Missing_Class_Method_Name,  //
-                              expected_name,
-                              u8"class C {\n  field!\n  "_sv.size(), u8""_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                       ` Diag_Missing_Class_Method_Name"_diag,
+        });
   }
 }
 
@@ -1573,18 +1556,12 @@ TEST_F(Test_Parse_TypeScript_Class, parameter_property_cannot_destructure) {
                 ElementsAreArray({func_param_decl(u8"field1"_sv),
                                   func_param_decl(u8"field2"_sv),
                                   class_decl(u8"C"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured,  //
-                destructure_token,
-                u8"class C {\n  constructor(public "_sv.size(),
-                u8"["_sv,  //
-                property_keyword, u8"class C {\n  constructor("_sv.size(),
-                u8"public"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                                ^ Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured.destructure_token\n"_diag
+            u8"                         ^^^^^^ .property_keyword"_diag,
+        });
   }
 
   {
@@ -1600,18 +1577,12 @@ TEST_F(Test_Parse_TypeScript_Class, parameter_property_cannot_destructure) {
                 ElementsAreArray({func_param_decl(u8"field1"_sv),
                                   func_param_decl(u8"field2"_sv),
                                   class_decl(u8"C"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured,  //
-                destructure_token,
-                u8"class C {\n  constructor(public "_sv.size(),
-                u8"{"_sv,  //
-                property_keyword, u8"class C {\n  constructor("_sv.size(),
-                u8"public"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                                ^ Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured.destructure_token\n"_diag
+            u8"                         ^^^^^^ .property_keyword"_diag,
+        });
   }
 }
 
@@ -1627,16 +1598,12 @@ TEST_F(Test_Parse_TypeScript_Class, parameter_property_cannot_be_rest) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray(
                     {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_TypeScript_Parameter_Property_Cannot_Be_Rest,  //
-                        spread, u8"class C {\n  constructor(public "_sv.size(),
-                        u8"..."_sv,  //
-                        property_keyword,
-                        u8"class C {\n  constructor("_sv.size(), u8"public"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                                ^^^ Diag_TypeScript_Parameter_Property_Cannot_Be_Rest.spread\n"_diag
+            u8"                         ^^^^^^ .property_keyword"_diag,
+        });
   }
 }
 
@@ -1757,15 +1724,11 @@ TEST_F(Test_Parse_TypeScript_Class,
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray(
                     {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Parameter_Property_Only_Allowed_In_Class_Constructor,  //
-                property_keyword, u8"class C {\n  notAConstructor("_sv.size(),
-                u8"public"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                             ^^^^^^ Diag_TypeScript_Parameter_Property_Only_Allowed_In_Class_Constructor"_diag,
+        });
   }
 }
 
@@ -1781,14 +1744,11 @@ TEST_F(Test_Parse_TypeScript_Class, constructor_keyword_with_escape_sequence) {
       typescript_options, capture_diags);
   p.parse_and_visit_statement();
 
-  EXPECT_THAT(p.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_OFFSETS(p.code,
-                                    Diag_Keyword_Contains_Escape_Characters,  //
-                                    escape_character_in_keyword,
-                                    u8"class C {\n  "_sv.size(),
-                                    u8"\\u{63}onstructor"_sv),
-              }));
+  assert_diagnostics(
+      p.code, p.errors,
+      {
+          u8"             ^^^^^^^^^^^^^^^^^ Diag_Keyword_Contains_Escape_Characters"_diag,
+      });
 }
 
 TEST_F(Test_Parse_TypeScript_Class, no_diag_for_more_than_one_escape) {
