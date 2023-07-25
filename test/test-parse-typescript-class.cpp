@@ -307,20 +307,12 @@ TEST_F(Test_Parse_TypeScript_Class,
   }
 
   {
-    Test_Parser p(u8"class C { field! = init; }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { field! = init; }"_sv,  //
+        u8"               ^ Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type"_diag,  //
+        u8"Diag_TypeScript_Assignment_Asserted_Field_Cannot_Have_Initializer"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"}));
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAreArray({
-            DIAG_TYPE(
-                Diag_TypeScript_Assignment_Asserted_Field_Cannot_Have_Initializer),
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Assignment_Asserted_Field_Must_Have_A_Type,  //
-                bang, u8"class C { field"_sv.size(), u8"!"_sv),
-        }));
   }
 
   {
@@ -440,36 +432,19 @@ TEST_F(Test_Parse_TypeScript_Class,
   }
 
   {
-    Test_Parser p(u8"class C { readonly field? method() {} }"_sv,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAreArray({
-            DIAG_TYPE(Diag_Missing_Semicolon_After_Field),
-            DIAG_TYPE(
-                Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript),
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { readonly field? method() {} }"_sv,  //
+        u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag,  //
+        u8"Diag_Missing_Semicolon_After_Field"_diag,  //
+        u8"Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript"_diag);
   }
 
   {
-    Test_Parser p(u8"class C { readonly field: any; }"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAreArray({
-            DIAG_TYPE(
-                Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript),
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript,  //
-                readonly_keyword, u8"class C { "_sv.size(), u8"readonly"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { readonly field: any; }"_sv,  //
+        u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag,  //
+        u8"Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
   }
 }
 

@@ -1226,21 +1226,15 @@ TEST_F(Test_Parse_Var, declare_await_in_async_function) {
   }
 
   {
-    Test_Parser p(u8"async function f(await) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    // TODO(strager): Drop the
+    // Diag_Missing_Operand_For_Operator error.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"async function f(await) {}"_sv,  //
+        u8"                 ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
+        u8"Diag_Missing_Operand_For_Operator"_diag);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({function_decl(u8"f"_sv),  //
                                   func_param_decl(u8"await"_sv)}));
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Cannot_Declare_Await_In_Async_Function,  //
-                        name, u8"async function f("_sv.size(), u8"await"_sv),
-                    // TODO(strager): Drop the
-                    // Diag_Missing_Operand_For_Operator error.
-                    DIAG_TYPE(Diag_Missing_Operand_For_Operator),
-                }));
   }
 }
 
@@ -2231,11 +2225,9 @@ TEST_F(Test_Parse_Var, var_declaration_as_label_body_is_allowed) {
 }
 
 TEST_F(Test_Parse_Var, spread_must_precede_variable_name) {
-  Test_Parser p(u8"const [a, b, ...] = z;"_sv, capture_diags);
-  p.parse_and_visit_statement();
-  EXPECT_THAT(
-      p.errors,
-      ElementsAreArray({DIAG_TYPE(Diag_Spread_Must_Precede_Variable_Name)}));
+  Spy_Visitor p = test_parse_and_visit_statement(
+      u8"const [a, b, ...] = z;"_sv,  //
+      u8"Diag_Spread_Must_Precede_Variable_Name"_diag);
 }
 
 TEST_F(Test_Parse_Var,

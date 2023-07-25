@@ -742,17 +742,14 @@ TEST_F(Test_Parse_Loop, for_in_loop_with_var_initializer) {
   // Previously, there was a bug which caused errors in parse_expression after
   // 'in' to be reported twice.
   {
-    Test_Parser p(u8"for (var x = 0 in ()) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (var x = 0 in ()) {}"_sv,  //
+        u8"Diag_Missing_Expression_Between_Parentheses"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
                               "visit_enter_block_scope",     //
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Missing_Expression_Between_Parentheses),
-                }));
   }
 }
 

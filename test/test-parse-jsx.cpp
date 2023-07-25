@@ -464,15 +464,13 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
   // TypeScript all agree that ASI does not kick in. Therefore, we report a
   // syntax error, despite what the specification says.
   {
-    Test_Parser p(
-        u8"c = <FirstComponent></FirstComponent>\n<SecondComponent></SecondComponent>;"_sv,
-        jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <FirstComponent></FirstComponent>\n<SecondComponent></SecondComponent>;"_sv,  //
+        u8"Diag_Adjacent_JSX_Without_Parent"_diag,  //
+
+        jsx_options);
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"FirstComponent", u8"SecondComponent"}));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Adjacent_JSX_Without_Parent),
-                          }));
   }
 
   // The following code looks like adjacent JSX elements, but it's actually a
@@ -482,23 +480,20 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
   // https://github.com/facebook/jsx/issues/120
   {
     //                  binary operators  v v           v (according to spec)
-    Test_Parser p(u8"c = <div></div> <i>/{child}</i>\ndone"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <div></div> <i>/{child}</i>\ndone"_sv,  //
+        u8"Diag_Adjacent_JSX_Without_Parent"_diag,     //
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"child", u8"done"}));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Adjacent_JSX_Without_Parent),
-                          }));
   }
 
   {
-    Test_Parser p(u8"c = <First></First><Second attr='value'></Second>;"_sv,
-                  jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <First></First><Second attr='value'></Second>;"_sv,  //
+        u8"Diag_Adjacent_JSX_Without_Parent"_diag,                  //
+
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"First", u8"Second"}));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Adjacent_JSX_Without_Parent),
-                          }));
   }
 }
 

@@ -238,15 +238,10 @@ TEST_F(Test_Parse_Expression_TypeScript,
   }
 
   {
-    Test_Parser p(u8"([x, y, z] as T) => {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(
-                Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"([x, y, z] as T) => {}"_sv,  //
+        u8"Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({arrow_param_decl(u8"x"_sv),
                                   arrow_param_decl(u8"y"_sv),

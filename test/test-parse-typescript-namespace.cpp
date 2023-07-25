@@ -330,12 +330,11 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_disallows_exporting_default) {
   }
 
   {
-    Test_Parser p(u8"namespace ns { export default 2+2; }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({DIAG_TYPE(
-                    Diag_TypeScript_Namespace_Cannot_Export_Default)}));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"namespace ns { export default 2+2; }"_sv,               //
+        u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
+
+        typescript_options);
   }
 
   {
@@ -348,12 +347,11 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_disallows_exporting_default) {
   }
 
   {
-    Test_Parser p(u8"namespace ns { export default function f() {} }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({DIAG_TYPE(
-                    Diag_TypeScript_Namespace_Cannot_Export_Default)}));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"namespace ns { export default function f() {} }"_sv,    //
+        u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
+
+        typescript_options);
   }
 }
 

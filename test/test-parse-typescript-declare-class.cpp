@@ -456,14 +456,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
   }
 
   {
-    Test_Parser p(u8"declare class C { async *myMethod(); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE(Diag_Declare_Class_Methods_Cannot_Be_Generators),
-                    DIAG_TYPE(Diag_Declare_Class_Methods_Cannot_Be_Async),
-                }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare class C { async *myMethod(); }"_sv,             //
+        u8"Diag_Declare_Class_Methods_Cannot_Be_Generators"_diag,  //
+        u8"Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,       //
+
+        typescript_options);
   }
 }
 

@@ -427,16 +427,12 @@ TEST_F(Test_Parse_TypeScript_Interface, optional_property) {
   }
 
   {
-    Test_Parser p(u8"interface I { field?; }"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    // should parse optional field but not complain about it
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { field?; }"_sv,                                 //
+        u8"Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript),
-        }))
-        << "should parse optional field but not complain about it";
   }
 }
 
@@ -602,9 +598,12 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_index_signature) {
   }
 
   {
-    Test_Parser p(u8"interface I { [key: KeyType]: ValueType; }"_sv,
-                  javascript_options, capture_diags);
-    p.parse_and_visit_statement();
+    // should parse index signature and not complain about it
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { [key: KeyType]: ValueType; }"_sv,              //
+        u8"Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript"_diag,  //
+
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",         // I
                               "visit_enter_interface_scope",        // I
@@ -615,12 +614,6 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_index_signature) {
                               "visit_exit_index_signature_scope",   //
                               "visit_exit_interface_scope",         // I
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript),
-        }))
-        << "should parse index signature and not complain about it";
   }
 }
 
@@ -731,19 +724,13 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_methods_cannot_have_bodies) {
   }
 
   {
-    Test_Parser p(u8"interface I { method() => { x } }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ::testing::UnorderedElementsAreArray({
-            // TODO(strager): Report only one diagnostic:
-            // Diag_Interface_Methods_Cannot_Contain_Bodies on the '=>'.
-            DIAG_TYPE(Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator),
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Interface_Methods_Cannot_Contain_Bodies,  //
-                body_start, u8"interface I { method() => "_sv.size(), u8"{"_sv),
-        }));
+    // TODO(strager): Report only one diagnostic:
+    // Diag_Interface_Methods_Cannot_Contain_Bodies on the '=>'.
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"interface I { method() => { x } }"_sv,  //
+        u8"                          ^ Diag_Interface_Methods_Cannot_Contain_Bodies"_diag,  //
+        u8"Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator"_diag,  //
+        typescript_options);
   }
 }
 
@@ -856,9 +843,13 @@ TEST_F(Test_Parse_TypeScript_Interface, private_properties_are_not_allowed) {
   }
 
   {
-    Test_Parser p(u8"interface I { async static #method(); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"interface I { async static #method(); }"_sv,  //
+        u8"                           ^^^^^^^ Diag_Interface_Properties_Cannot_Be_Private"_diag,  //
+        u8"Diag_Interface_Methods_Cannot_Be_Async"_diag,      //
+        u8"Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  //
@@ -868,22 +859,15 @@ TEST_F(Test_Parse_TypeScript_Interface, private_properties_are_not_allowed) {
                               "visit_exit_interface_scope",   //
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ::testing::UnorderedElementsAreArray({
-            DIAG_TYPE(Diag_Interface_Methods_Cannot_Be_Async),
-            DIAG_TYPE(Diag_Interface_Properties_Cannot_Be_Static),
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Interface_Properties_Cannot_Be_Private,  //
-                property_name_or_private_keyword,
-                u8"interface I { async static "_sv.size(), u8"#method"_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"interface I { readonly static #field; }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"interface I { readonly static #field; }"_sv,  //
+        u8"                              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Private"_diag,  //
+        u8"Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  //
@@ -891,15 +875,6 @@ TEST_F(Test_Parse_TypeScript_Interface, private_properties_are_not_allowed) {
                               "visit_exit_interface_scope",   //
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ::testing::UnorderedElementsAreArray({
-            DIAG_TYPE(Diag_Interface_Properties_Cannot_Be_Static),
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Interface_Properties_Cannot_Be_Private,  //
-                property_name_or_private_keyword,
-                u8"interface I { readonly static "_sv.size(), u8"#field"_sv),
-        }));
   }
 }
 
@@ -1070,17 +1045,12 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
   }
 
   {
-    Test_Parser p(u8"interface I { static field? method(); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ::testing::UnorderedElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Interface_Properties_Cannot_Be_Static,  //
-                static_keyword, u8"interface I { "_sv.size(), u8"static"_sv),
-            DIAG_TYPE(Diag_Missing_Semicolon_After_Field),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"interface I { static field? method(); }"_sv,  //
+        u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+        u8"Diag_Missing_Semicolon_After_Field"_diag,  //
+
+        typescript_options);
   }
 }
 
@@ -1462,16 +1432,12 @@ TEST_F(Test_Parse_TypeScript_Interface, static_blocks_are_not_allowed) {
 TEST_F(Test_Parse_TypeScript_Interface,
        type_annotations_dont_add_extra_diagnostic_in_javascript) {
   {
-    Test_Parser p(u8"interface I<T> { method(): Type; }"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript),
-        }))
-        << "Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript should "
-           "not be reported";
+    // Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript should not be
+    // reported.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I<T> { method(): Type; }"_sv,                      //
+        u8"Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
   }
 }
 

@@ -653,14 +653,13 @@ TEST_F(Test_Parse_TypeScript_Function, optional_expression) {
   }
 
   {
-    Test_Parser p(u8"(x?, other)"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_expression();
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"(x?, other)"_sv,                               //
+        u8"Diag_Unexpected_Question_In_Expression"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // x
                               "visit_variable_use",  // other
-                          }));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Unexpected_Question_In_Expression),
                           }));
   }
 }

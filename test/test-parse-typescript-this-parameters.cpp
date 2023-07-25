@@ -272,82 +272,61 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, not_allowed_in_javascript) {
 TEST_F(Test_Parse_TypeScript_This_Parameters,
        multiple_issues_reports_only_one_diagnostic) {
   {
-    Test_Parser p(u8"function(other, [this]) {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_This_Parameter_Not_Allowed_When_Destructuring),
-        }))
-        << "should not also report Diag_This_Parameter_Must_Be_First";
+    // should not also report Diag_This_Parameter_Must_Be_First
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"function(other, [this]) {}"_sv,                            //
+        u8"Diag_This_Parameter_Not_Allowed_When_Destructuring"_diag,  //
+        typescript_options);
   }
 
   {
-    Test_Parser p(u8"([this]) => {}"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_This_Parameter_Not_Allowed_In_Arrow_Functions),
-        }))
-        << "should not also report "
-           "Diag_This_Parameter_Not_Allowed_When_Destructuring";
+    // Should not also report
+    // Diag_This_Parameter_Not_Allowed_When_Destructuring.
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"([this]) => {}"_sv,                                        //
+        u8"Diag_This_Parameter_Not_Allowed_In_Arrow_Functions"_diag,  //
+        typescript_options);
   }
 
   {
-    Test_Parser p(u8"(other, this) => {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_This_Parameter_Not_Allowed_In_Arrow_Functions),
-        }))
-        << "should not also report Diag_This_Parameter_Must_Be_First";
+    // should not also report Diag_This_Parameter_Must_Be_First
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"(other, this) => {}"_sv,                                   //
+        u8"Diag_This_Parameter_Not_Allowed_In_Arrow_Functions"_diag,  //
+        typescript_options);
   }
 
   {
-    Test_Parser p(u8"(...this) => {}"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_This_Parameter_Not_Allowed_In_Arrow_Functions),
-        }))
-        << "should not also report Diag_Spread_Parameter_Cannot_Be_This";
+    // should not also report Diag_Spread_Parameter_Cannot_Be_This
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"(...this) => {}"_sv,                                       //
+        u8"Diag_This_Parameter_Not_Allowed_In_Arrow_Functions"_diag,  //
+        typescript_options);
   }
 
   {
-    Test_Parser p(u8"function(other, ...this) {}"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Spread_Parameter_Cannot_Be_This),
-                          }))
-        << "should not also report Diag_This_Parameter_Must_Be_First";
+    // should not also report Diag_This_Parameter_Must_Be_First
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"function(other, ...this) {}"_sv,             //
+        u8"Diag_Spread_Parameter_Cannot_Be_This"_diag,  //
+        typescript_options);
   }
 
   {
-    Test_Parser p(u8"(this) => {}"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_This_Parameter_Not_Allowed_In_JavaScript),
-                }))
-        << "should not also report "
-           "Diag_This_Parameter_Not_Allowed_In_Arrow_Functions";
+    // Should not also report
+    // Diag_This_Parameter_Not_Allowed_In_Arrow_Functions.
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"(this) => {}"_sv,                                     //
+        u8"Diag_This_Parameter_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
   }
 
   {
-    Test_Parser p(u8"function(other, this) {}"_sv, javascript_options,
-                  capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_This_Parameter_Not_Allowed_In_JavaScript),
-                }))
-        << "should not also report Diag_This_Parameter_Must_Be_First";
+    // should not also report Diag_This_Parameter_Must_Be_First
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"function(other, this) {}"_sv,                         //
+        u8"Diag_This_Parameter_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
   }
 }
 }
