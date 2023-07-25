@@ -114,6 +114,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
 
   Diagnostic_Assertion out_assertion;
 
+  out_assertion.members.emplace_back();
   out_assertion.members[0].span_begin_offset = lexer.parse_leading_spaces();
   out_assertion.members[0].span_end_offset =
       out_assertion.members[0].span_begin_offset + lexer.parse_span_carets();
@@ -125,6 +126,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   String8_View diag_member_2_span;
   if (*lexer.p == u8'\n') {
     ++lexer.p;
+    out_assertion.members.emplace_back();
     out_assertion.members[1].span_begin_offset = lexer.parse_leading_spaces();
     out_assertion.members[1].span_end_offset =
         out_assertion.members[1].span_begin_offset + lexer.parse_span_carets();
@@ -135,6 +137,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   String8_View diag_member_3_span;
   if (*lexer.p == u8'\n') {
     ++lexer.p;
+    out_assertion.members.emplace_back();
     out_assertion.members[2].span_begin_offset = lexer.parse_leading_spaces();
     out_assertion.members[2].span_end_offset =
         out_assertion.members[2].span_begin_offset + lexer.parse_span_carets();
@@ -205,7 +208,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
                                   members));
   }
 
-  std::size_t member_index = 0;
+  Fixed_Vector_Size member_index = 0;
   {
     const Diagnostic_Info_Variable_Debug* member;
     if (diag_member_span.empty()) {
@@ -248,6 +251,8 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     const Diagnostic_Info_Variable_Debug* extra_member =
         diag_info.find(to_string_view(extra_member_span));
     QLJS_ALWAYS_ASSERT(extra_member != nullptr);
+
+    out_assertion.members.emplace_back();
     switch (extra_member->type) {
     case Diagnostic_Arg_Type::char8:
       if (extra_member_value_span.size() != 1) {
@@ -312,16 +317,6 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     return failed_result(std::move(lexer.errors));
   }
   return out_assertion;
-}
-
-int Diagnostic_Assertion::member_count() const {
-  int count = 0;
-  for (const Diagnostic_Assertion::Member& member : this->members) {
-    if (member.name != nullptr) {
-      count += 1;
-    }
-  }
-  return count;
 }
 
 Diagnostic_Assertion Diagnostic_Assertion::parse_or_exit(
@@ -426,10 +421,7 @@ diagnostics_matcher(Padded_String_View code,
         diag.adjusted_for_escaped_characters(code.string_view());
 
     std::vector<Diag_Matcher_2::Field> fields;
-    int member_count = adjusted_diag.member_count();
-    for (int i = 0; i < member_count; ++i) {
-      const Diagnostic_Assertion::Member& member =
-          adjusted_diag.members[narrow_cast<std::size_t>(i)];
+    for (const Diagnostic_Assertion::Member& member : adjusted_diag.members) {
       Diag_Matcher_2::Field field;
       field.arg = Diag_Matcher_Arg{
           .member_name = member.name,

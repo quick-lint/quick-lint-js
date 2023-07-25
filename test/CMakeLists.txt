@@ -104,6 +104,7 @@ quick_lint_js_add_executable(
   test-file-canonical.cpp
   test-file-path.cpp
   test-file.cpp
+  test-fixed-vector.cpp
   test-function-ref.cpp
   test-heap-function.cpp
   test-instance-tracker.cpp

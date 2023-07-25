@@ -161,6 +161,7 @@ quick_lint_js_add_library(
   quick-lint-js/container/byte-buffer.h
   quick-lint-js/container/c-string-list.h
   quick-lint-js/container/concat.h
+  quick-lint-js/container/fixed-vector.h
   quick-lint-js/container/hash-map.h
   quick-lint-js/container/hash-set.h
   quick-lint-js/container/hash.h

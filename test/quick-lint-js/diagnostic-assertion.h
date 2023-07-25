@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/diag-collector.h>
@@ -99,9 +100,7 @@ struct Diagnostic_Assertion {
   };
 
   Diag_Type type = Diag_Type();
-  std::array<Member, 3> members;
-
-  int member_count() const;
+  Fixed_Vector<Member, 3> members;
 
   // If the specification is malformed, return a list of messages to report to
   // the user.
