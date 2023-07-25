@@ -56,16 +56,18 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       return leading_space_count;
     }
 
-    Padded_String_Size parse_span_carets() {
+    std::optional<Padded_String_Size> parse_span_carets() {
       if (*p == u8'`') {
         ++p;
         return 0;
-      } else {
+      } else if (*p == u8'^') {
         Padded_String_Size caret_count = 0;
         for (; *p == u8'^'; ++p) {
           caret_count += 1;
         }
         return caret_count;
+      } else {
+        return std::nullopt;
       }
     }
 
@@ -121,11 +123,42 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   Fixed_Vector<String8_View, 3> diag_members;
 
   String8_View diag_type_span;
+  String8_View extra_member_span;
+  String8_View extra_member_value_span;
+
   for (Fixed_Vector_Size i = 0; i < 3; ++i) {
+    Padded_String_Size leading_spaces = lexer.parse_leading_spaces();
+    std::optional<Padded_String_Size> span_carats = lexer.parse_span_carets();
+    if (!span_carats.has_value()) {
+      const Char8* old_p = lexer.p;
+
+      diag_type_span = lexer.parse_identifier();
+
+      String8_View member_variable = lexer.try_parse_dot_identifier();
+      if (member_variable.empty()) {
+        if (i != 0) {
+          lexer.p = old_p;
+          goto done_unexpected;
+        }
+      } else {
+        if (i == 0) {
+          lexer.errors.push_back(
+              "member variable is only allowed if a span (^^^) is provided");
+        } else {
+          lexer.errors.push_back(concat("missing span (^^^) before ."sv,
+                                        to_string_view(member_variable)));
+        }
+      }
+
+      // If just the type was given with no span, then other member spans are
+      // not allowed.
+      break;
+    }
+
     Member& member = out_assertion.members.emplace_back();
-    member.span_begin_offset = lexer.parse_leading_spaces();
-    member.span_end_offset =
-        member.span_begin_offset + lexer.parse_span_carets();
+    member.span_begin_offset = leading_spaces;
+    member.span_end_offset = member.span_begin_offset + *span_carats;
+
     lexer.skip_spaces();
 
     if (i == 0) {
@@ -139,9 +172,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     ++lexer.p;
   }
 
-  String8_View extra_member_span;
-  String8_View extra_member_value_span;
-  if (*lexer.p == u8'{' && !diag_members[0].empty()) {
+  if (*lexer.p == u8'{' && (diag_members.empty() || !diag_members[0].empty())) {
     ++lexer.p;
     if (*lexer.p != u8'.') {
       goto done_unexpected;
@@ -185,7 +216,8 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   const Diagnostic_Info_Debug& diag_info =
       get_diagnostic_info_debug(out_assertion.type);
   bool member_is_required = diag_info.variable_count() > 1;
-  if (member_is_required && diag_members[0].empty()) {
+  if (member_is_required &&
+      (!diag_members.empty() && diag_members[0].empty())) {
     std::string members;
     for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
       if (var.name != nullptr &&

@@ -25,6 +25,12 @@ Diagnostic_Assertion parse_or_fail(
   return *da;
 }
 
+TEST(Test_Diagnostic_Assertion, parse_diag_type_without_span) {
+  Diagnostic_Assertion da = parse_or_fail(u8"Diag_Unexpected_Token");
+  EXPECT_EQ(da.type, Diag_Type::Diag_Unexpected_Token);
+  ASSERT_EQ(da.members.size(), 0);
+}
+
 TEST(Test_Diagnostic_Assertion, parse_one_character_span) {
   Diagnostic_Assertion da = parse_or_fail(u8"^ Diag_Unexpected_Token");
   EXPECT_EQ(da.type, Diag_Type::Diag_Unexpected_Token);
@@ -266,6 +272,20 @@ TEST(Test_Diagnostic_Assertion,
   EXPECT_EQ(da.members[2].statement_kind, Statement_Kind::if_statement);
 }
 
+TEST(Test_Diagnostic_Assertion, diag_type_without_span_with_extra_member) {
+  Diagnostic_Assertion da = parse_or_fail(
+      u8"Diag_Class_Statement_Not_Allowed_In_Body"
+      u8"{.kind_of_statement=Statement_Kind::if_statement}");
+  EXPECT_EQ(da.type, Diag_Type::Diag_Class_Statement_Not_Allowed_In_Body);
+  ASSERT_EQ(da.members.size(), 1);
+  EXPECT_STREQ(da.members[0].name, "kind_of_statement");
+  EXPECT_EQ(da.members[0].type, Diagnostic_Arg_Type::statement_kind);
+  EXPECT_EQ(
+      da.members[0].offset,
+      offsetof(Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement));
+  EXPECT_EQ(da.members[0].statement_kind, Statement_Kind::if_statement);
+}
+
 TEST(Test_Diagnostic_Assertion, diag_type_with_char8_member_explicit) {
   {
     Diagnostic_Assertion da = parse_or_fail(
@@ -320,6 +340,38 @@ TEST(Test_Diagnostic_Assertion, diag_type_with_string8_view_member_explicit) {
     ASSERT_EQ(da.members.size(), 2);
     EXPECT_EQ(da.members[1].string, u8"hello{world}smiley"_sv);
   }
+}
+
+TEST(Test_Diagnostic_Assertion, diag_type_without_span_cannot_have_member) {
+  Result<Diagnostic_Assertion, std::vector<std::string>> da =
+      Diagnostic_Assertion::parse(u8"Diag_Unexpected_Token.where");
+  ASSERT_FALSE(da.ok());
+  EXPECT_THAT(da.error(),
+              ::testing::ElementsAreArray({
+                  "member variable is only allowed if a span (^^^) is provided",
+              }));
+}
+
+TEST(Test_Diagnostic_Assertion,
+     diag_type_without_span_cannot_appear_on_second_line) {
+  Result<Diagnostic_Assertion, std::vector<std::string>> da =
+      Diagnostic_Assertion::parse(
+          u8"^ Diag_Unexpected_Token\nDiag_Unexpected_Token");
+  ASSERT_FALSE(da.ok());
+  EXPECT_THAT(da.error(), ::testing::ElementsAreArray({
+                              "unexpected 'D' in _diag",
+                          }));
+}
+
+TEST(Test_Diagnostic_Assertion, diag_without_span_can_only_be_first) {
+  Result<Diagnostic_Assertion, std::vector<std::string>> da =
+      Diagnostic_Assertion::parse(
+          u8"^ Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"
+          u8".class_keyword");
+  ASSERT_FALSE(da.ok());
+  EXPECT_THAT(da.error(), ::testing::ElementsAreArray({
+                              "missing span (^^^) before .class_keyword",
+                          }));
 }
 
 TEST(Test_Diagnostic_Assertion, adjust_with_no_escaped_characters) {

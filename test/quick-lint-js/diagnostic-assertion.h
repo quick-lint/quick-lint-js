@@ -22,10 +22,10 @@ namespace quick_lint_js {
 //
 //   u8"^^^ Diag_Unexpected_Token"_diag
 //
-// A specification has four parts:
-// * Alignment: Zero or more space characters which position the diagnostic
-//   span.
-// * Diagnostic span: One of the following:
+// A specification has several parts:
+//
+// * (optional) Alignment and diagnostic span: Zero or more space characters
+//   which position the diagnostic span, followed by one of the following:
 //   * One or more '^' characters. Each '^' represents a code character that the
 //     diagnostic covers.
 //   * One '`' character. The '`' represents a diagnostic in between two code
