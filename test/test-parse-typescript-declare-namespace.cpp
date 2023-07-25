@@ -438,13 +438,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare module ns { import fs from 'fs'; }"_sv,     //
-        u8"Diag_Declare_Namespace_Cannot_Import_Module"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare module ns { import fs from 'fs'; }"_sv,     //
+      u8"Diag_Declare_Namespace_Cannot_Import_Module"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
   {
     Spy_Visitor p = test_parse_and_visit_module(
@@ -465,31 +463,25 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
        declare_namespace_disallows_import_from_module_with_export_keyword) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { export * from 'module'; }"_sv,  //
-        u8"                                ^^^^ Diag_Declare_Namespace_Cannot_Import_Module.importing_keyword\n"_diag
-        u8"^^^^^^^ .declare_keyword"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export * from 'module'; }"_sv,  //
+      u8"                                ^^^^ Diag_Declare_Namespace_Cannot_Import_Module.importing_keyword\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare module ns { export * from 'module'; }"_sv,  //
-        u8"Diag_Declare_Namespace_Cannot_Import_Module"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare module ns { export * from 'module'; }"_sv,  //
+      u8"Diag_Declare_Namespace_Cannot_Import_Module"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { export {Z} from 'module'; }"_sv,  //
-        u8"                                  ^^^^ Diag_Declare_Namespace_Cannot_Import_Module.importing_keyword\n"_diag
-        u8"^^^^^^^ .declare_keyword"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export {Z} from 'module'; }"_sv,  //
+      u8"                                  ^^^^ Diag_Declare_Namespace_Cannot_Import_Module.importing_keyword\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
@@ -554,38 +546,30 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { export default 2+2; }"_sv,       //
-        u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export default 2+2; }"_sv,       //
+      u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { export default class C { method(); } }"_sv,  //
-        u8"                              ^^^^^^^ Diag_TypeScript_Namespace_Cannot_Export_Default.default_keyword\n"_diag
-        u8"        ^^^^^^^^^ .namespace_keyword"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export default class C { method(); } }"_sv,  //
+      u8"                              ^^^^^^^ Diag_TypeScript_Namespace_Cannot_Export_Default.default_keyword\n"_diag
+      u8"        ^^^^^^^^^ .namespace_keyword"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { export default abstract class C { method(); } }"_sv,  //
-        u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export default abstract class C { method(); } }"_sv,  //
+      u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { export default function f(); }"_sv,  //
-        u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,      //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export default function f(); }"_sv,  //
+      u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,      //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
@@ -637,37 +621,29 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     p.parse_and_visit_module();
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { let myVariable = null; }"_sv,  //
-        u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,       //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { let myVariable = null; }"_sv,  //
+      u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,       //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { export let myVariable = null; }"_sv,  //
-        u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,              //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export let myVariable = null; }"_sv,  //
+      u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,              //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { var myVariable = null; }"_sv,  //
-        u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,       //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { var myVariable = null; }"_sv,  //
+      u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,       //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { export var myVariable = null; }"_sv,  //
-        u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,              //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export var myVariable = null; }"_sv,  //
+      u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,              //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
@@ -688,23 +664,17 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     p.parse_and_visit_module();
   }
 
-  {
-    // TODO(strager): Also link to the 'declare' keyword.
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { async function f(); }"_sv,  //
-        u8"                       ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { async function f(); }"_sv,  //
+      u8"                       ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    // TODO(strager): Also link to the 'declare' keyword.
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { export async function f(); }"_sv,  //
-        u8"                              ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { export async function f(); }"_sv,  //
+      u8"                              ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
@@ -743,51 +713,41 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
        namespace_inside_declare_namespace_acts_like_declare_namespace) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns1 { namespace ns2 { if (true) {} } }"_sv,  //
-        u8"                                        ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token\n"_diag
-        u8"^^^^^^^ .declare_keyword"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns1 { namespace ns2 { if (true) {} } }"_sv,  //
+      u8"                                        ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns1 { export namespace ns2 { if (true) {} } }"_sv,  //
-        u8"                                               ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token\n"_diag
-        u8"^^^^^^^ .declare_keyword"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns1 { export namespace ns2 { if (true) {} } }"_sv,  //
+      u8"                                               ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns1 { module ns2 { if (true) {} } }"_sv,  //
-        u8"                                     ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token\n"_diag
-        u8"^^^^^^^ .declare_keyword"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns1 { module ns2 { if (true) {} } }"_sv,  //
+      u8"                                     ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
        declare_namespace_disallows_most_statements) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { if (true) { } }"_sv,  //
-        u8"                       ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { if (true) { } }"_sv,  //
+      u8"                       ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { console.log('hello'); }"_sv,  //
-        u8"                       ^^^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { console.log('hello'); }"_sv,  //
+      u8"                       ^^^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,

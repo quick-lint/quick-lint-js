@@ -259,23 +259,18 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_methods_cannot_contain_bodies) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { myMethod() {} }"_sv,  //
-        u8"                             ^ Diag_Declare_Class_Methods_Cannot_Contain_Bodies"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { myMethod() {} }"_sv,  //
+      u8"                             ^ Diag_Declare_Class_Methods_Cannot_Contain_Bodies"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_methods_must_be_semicolon_terminated) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { myMethod() myOtherMethod() }"_sv,  //
-        u8"                            ` Diag_Missing_Semicolon_After_Declare_Class_Method"_diag,  //
-
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { myMethod() myOtherMethod() }"_sv,  //
+      u8"                            ` Diag_Missing_Semicolon_After_Declare_Class_Method"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
@@ -349,22 +344,18 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_cannot_have_field_with_initializer) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { myField = 42; }"_sv,  //
-        u8"                          ^ Diag_Declare_Class_Fields_Cannot_Have_Initializers"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { myField = 42; }"_sv,  //
+      u8"                          ^ Diag_Declare_Class_Fields_Cannot_Have_Initializers"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_cannot_have_assignment_asserted_field) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { myField!: any; }"_sv,  //
-        u8"                         ^ Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { myField!: any; }"_sv,  //
+      u8"                         ^ Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class"_diag,  //
+      typescript_options);
 
   // Diag_Declare_Class_Fields_Cannot_Have_Initializers should not also be
   // reported.
@@ -440,29 +431,23 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_methods_cannot_be_async_or_generator) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { async myMethod(); }"_sv,  //
-        u8"                  ^^^^^ Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare class C { async myMethod(); }"_sv,  //
+      u8"                  ^^^^^ Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { *myMethod(); }"_sv,  //
-        u8"                  ^ Diag_Declare_Class_Methods_Cannot_Be_Generators"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { *myMethod(); }"_sv,  //
+      u8"                  ^ Diag_Declare_Class_Methods_Cannot_Be_Generators"_diag,  //
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { async *myMethod(); }"_sv,             //
-        u8"Diag_Declare_Class_Methods_Cannot_Be_Generators"_diag,  //
-        u8"Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,       //
+  test_parse_and_visit_module(
+      u8"declare class C { async *myMethod(); }"_sv,             //
+      u8"Diag_Declare_Class_Methods_Cannot_Be_Generators"_diag,  //
+      u8"Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,       //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,

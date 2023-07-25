@@ -393,11 +393,9 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
     EXPECT_EQ(p.variable_declarations.size(), 0);
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"let x, `hello`;"_sv,  //
-        u8"       ^^^^^^^ Diag_Unexpected_Token_In_Variable_Declaration"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"let x, `hello`;"_sv,  //
+      u8"       ^^^^^^^ Diag_Unexpected_Token_In_Variable_Declaration"_diag);
 
   {
     Test_Parser p(u8"let x, `hello${world}`;"_sv, capture_diags);
@@ -1018,11 +1016,9 @@ TEST_F(Test_Parse_Var, new_style_variables_cannot_be_named_let) {
     EXPECT_EQ(p.variable_declarations[0].name, u8"let");
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"let {other, let} = stuff;"_sv,  //
-        u8"            ^^^ Diag_Cannot_Declare_Variable_Named_Let_With_Let"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"let {other, let} = stuff;"_sv,  //
+      u8"            ^^^ Diag_Cannot_Declare_Variable_Named_Let_With_Let"_diag);
 
   // import implies strict mode (because modules imply strict mode).
   {
@@ -2225,7 +2221,7 @@ TEST_F(Test_Parse_Var, var_declaration_as_label_body_is_allowed) {
 }
 
 TEST_F(Test_Parse_Var, spread_must_precede_variable_name) {
-  Spy_Visitor p = test_parse_and_visit_statement(
+  test_parse_and_visit_statement(
       u8"const [a, b, ...] = z;"_sv,  //
       u8"Diag_Spread_Must_Precede_Variable_Name"_diag);
 }

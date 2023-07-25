@@ -148,11 +148,9 @@ TEST_F(Test_Parse_Function, parse_function_statement) {
 }
 
 TEST_F(Test_Parse_Function, function_with_arrow_operator) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"function f() => {}"_sv,  //
-        u8"             ^^ Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"function f() => {}"_sv,  //
+      u8"             ^^ Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator"_diag);
 }
 
 TEST_F(Test_Parse_Function, function_statement_with_no_name) {
@@ -237,11 +235,8 @@ TEST_F(Test_Parse_Function, async_keyword_order_diagnostic) {
     EXPECT_EQ(p.variable_declarations[0].name, u8"f");
   }
 
-  {
-    Spy_Visitor p =
-        test_parse_and_visit_statement(u8"function async f() {};"_sv,  //
-                                       u8"Diag_Function_Async_Function"_diag);
-  }
+  test_parse_and_visit_statement(u8"function async f() {};"_sv,  //
+                                 u8"Diag_Function_Async_Function"_diag);
 }
 
 TEST_F(Test_Parse_Function,
@@ -619,17 +614,13 @@ TEST_F(Test_Parse_Function, nested_arrow_function) {
 }
 
 TEST_F(Test_Parse_Function, empty_parens_parameter_is_an_error) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"function f(()) {}"_sv,  //
-        u8"           ^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"function f(()) {}"_sv,  //
+      u8"           ^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"let f = (()) => {};"_sv,  //
-        u8"         ^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"let f = (()) => {};"_sv,  //
+      u8"         ^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren"_diag);
 }
 
 TEST_F(Test_Parse_Function,
@@ -981,11 +972,9 @@ TEST_F(Test_Parse_Function, function_with_invalid_parameters) {
         u8"Diag_Invalid_Parameter"_diag);
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"function f(42) {}"_sv,  //
-        u8"Diag_Unexpected_Literal_In_Parameter_List"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"function f(42) {}"_sv,  //
+      u8"Diag_Unexpected_Literal_In_Parameter_List"_diag);
 }
 
 TEST_F(Test_Parse_Function, arrow_function_with_invalid_parameters) {
@@ -1032,11 +1021,9 @@ TEST_F(Test_Parse_Function, arrow_function_with_invalid_parameters) {
                        });
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"((`<strong>hello</strong>`) => {});"_sv,  //
-        u8"                            ^^ Diag_Unexpected_Arrow_After_Literal.arrow"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"((`<strong>hello</strong>`) => {});"_sv,  //
+      u8"                            ^^ Diag_Unexpected_Arrow_After_Literal.arrow"_diag);
 
   {
     Test_Parser p(u8"([(x,)] => {});"_sv, capture_diags);
@@ -1067,23 +1054,16 @@ TEST_F(Test_Parse_Function, arrow_function_with_invalid_parameters) {
         });
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"((#priv) => {});"_sv,  //
-        u8"Diag_Cannot_Refer_To_Private_Variable_Without_Object"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"((#priv) => {});"_sv,  //
+      u8"Diag_Cannot_Refer_To_Private_Variable_Without_Object"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"((42,) => {});"_sv,  //
-        u8"Diag_Unexpected_Literal_In_Parameter_List"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"((42,) => {});"_sv,  //
+      u8"Diag_Unexpected_Literal_In_Parameter_List"_diag);
 
-  {
-    Spy_Visitor p =
-        test_parse_and_visit_statement(u8"((:) => {});"_sv,  //
-                                       u8"Diag_Unexpected_Token"_diag);
-  }
+  test_parse_and_visit_statement(u8"((:) => {});"_sv,  //
+                                 u8"Diag_Unexpected_Token"_diag);
 }
 
 TEST_F(Test_Parse_Function, arrow_function_expression_without_arrow_operator) {
@@ -1384,17 +1364,13 @@ TEST_F(Test_Parse_Function, generator_function_with_misplaced_star) {
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"let x = *function* f(y) { yield y; }"_sv,  //
-        u8"        ^ Diag_Generator_Function_Star_Belongs_After_Keyword_Function"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"let x = *function* f(y) { yield y; }"_sv,  //
+      u8"        ^ Diag_Generator_Function_Star_Belongs_After_Keyword_Function"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"let x = *async function* f(y) { yield y; }"_sv,  //
-        u8"        ^ Diag_Generator_Function_Star_Belongs_After_Keyword_Function"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"let x = *async function* f(y) { yield y; }"_sv,  //
+      u8"        ^ Diag_Generator_Function_Star_Belongs_After_Keyword_Function"_diag);
 }
 
 TEST_F(Test_Parse_Function,
@@ -1779,23 +1755,17 @@ TEST_F(Test_Parse_Function, function_body_is_visited_first_in_expression) {
 }
 
 TEST_F(Test_Parse_Function, return_with_comma_operator_missing_arguments) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"function f() { return 4, }"_sv,  //
-        u8"                       ^ Diag_Missing_Operand_For_Operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"function f() { return 4, }"_sv,  //
+      u8"                       ^ Diag_Missing_Operand_For_Operator"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"function f() { return 1,2, }"_sv,  //
-        u8"                         ^ Diag_Missing_Operand_For_Operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"function f() { return 1,2, }"_sv,  //
+      u8"                         ^ Diag_Missing_Operand_For_Operator"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"function f() { return ,-5 }"_sv,  //
-        u8"                      ^ Diag_Missing_Operand_For_Operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"function f() { return ,-5 }"_sv,  //
+      u8"                      ^ Diag_Missing_Operand_For_Operator"_diag);
 }
 }
 }

@@ -319,12 +319,10 @@ TEST_F(Test_Parse_Expression_TypeScript,
                 }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"(f()) as const"_sv,  //
-        u8" ^^^ Diag_TypeScript_As_Const_With_Non_Literal_Typeable.expression"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_expression(
+      u8"(f()) as const"_sv,  //
+      u8" ^^^ Diag_TypeScript_As_Const_With_Non_Literal_Typeable.expression"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_Expression_TypeScript,

@@ -187,20 +187,16 @@ TEST_F(Test_Parse_TypeScript, warn_on_mistyped_strict_inequality_operator) {
             u8" ^ .bang"_diag,
         });
   }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,  //
-        u8"               ^ Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion.unexpected_space"_diag,  //
+  test_parse_and_visit_statement(
+      u8"if (length + 1! == constraints.getMaxLength()) {}"_sv,  //
+      u8"               ^ Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion.unexpected_space"_diag,  //
 
-        typescript_options);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,  //
-        u8"                           ^ Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion.unexpected_space"_diag,  //
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"if (typeof diagnostic.code! == 'undefined') {}"_sv,  //
+      u8"                           ^ Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion.unexpected_space"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript,

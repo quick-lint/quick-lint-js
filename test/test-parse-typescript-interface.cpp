@@ -723,15 +723,11 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_methods_cannot_have_bodies) {
                           }));
   }
 
-  {
-    // TODO(strager): Report only one diagnostic:
-    // Diag_Interface_Methods_Cannot_Contain_Bodies on the '=>'.
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"interface I { method() => { x } }"_sv,  //
-        u8"                          ^ Diag_Interface_Methods_Cannot_Contain_Bodies"_diag,  //
-        u8"Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"interface I { method() => { x } }"_sv,  //
+      u8"                          ^ Diag_Interface_Methods_Cannot_Contain_Bodies"_diag,  //
+      u8"Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Interface, interface_with_keyword_property) {
@@ -1028,30 +1024,24 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
     }
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"interface I { static field\n method(); }"_sv,  //
-        u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+  test_parse_and_visit_module(
+      u8"interface I { static field\n method(); }"_sv,  //
+      u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"interface I { static field\n ['methodName'](); }"_sv,  //
-        u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+  test_parse_and_visit_module(
+      u8"interface I { static field\n ['methodName'](); }"_sv,  //
+      u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"interface I { static field? method(); }"_sv,  //
-        u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
-        u8"Diag_Missing_Semicolon_After_Field"_diag,  //
+  test_parse_and_visit_module(
+      u8"interface I { static field? method(); }"_sv,  //
+      u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+      u8"Diag_Missing_Semicolon_After_Field"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Interface, async_methods_are_not_allowed) {
@@ -1113,57 +1103,47 @@ TEST_F(Test_Parse_TypeScript_Interface, generator_methods_are_not_allowed) {
                             }));
     }
 
-    {
-      // clang-format off
-      test_parse_and_visit_module(
-          concat(u8"interface I { static *"_sv, method_name, u8"(); }"_sv), //
-          /*  */ u8"                     ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,  //
-          /*  */ u8"Diag_Interface_Properties_Cannot_Be_Static"_diag, //
-          typescript_options);
-      // clang-format on
-    }
+    // clang-format off
+    test_parse_and_visit_module(
+        concat(u8"interface I { static *"_sv, method_name, u8"(); }"_sv),  //
+        /*  */ u8"                     ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,  //
+        /*  */ u8"Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+        typescript_options);
+    // clang-format on
 
-    {
-      // clang-format off
-      test_parse_and_visit_module(
-          concat(u8"interface I { async *"_sv, method_name, u8"(); }"_sv), //
-          /*  */ u8"                    ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,  //
-          /*  */ u8"Diag_Interface_Methods_Cannot_Be_Async"_diag, //
-          typescript_options);
-      // clang-format on
-    }
+    // clang-format off
+    test_parse_and_visit_module(
+        concat(u8"interface I { async *"_sv, method_name, u8"(); }"_sv),  //
+        /*  */ u8"                    ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,  //
+        /*  */ u8"Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
+        typescript_options);
+    // clang-format on
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Interface,
        static_async_methods_are_definitely_not_allowed) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"interface I { static async method(); }"_sv,  //
-        u8"                     ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
-        u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+  test_parse_and_visit_module(
+      u8"interface I { static async method(); }"_sv,  //
+      u8"                     ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
+      u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"interface I { async static method(); }"_sv,  //
-        u8"                    ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
-        u8"              ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
+  test_parse_and_visit_module(
+      u8"interface I { async static method(); }"_sv,  //
+      u8"                    ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+      u8"              ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"interface I { async static *method(); }"_sv,  //
-        u8"                           ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,  //
-        u8"                    ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
-        u8"              ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
+  test_parse_and_visit_module(
+      u8"interface I { async static *method(); }"_sv,  //
+      u8"                           ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,  //
+      u8"                    ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
+      u8"              ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
@@ -1210,21 +1190,17 @@ TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
     }
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"interface I { 'fieldName' = init; }"_sv,  //
-        u8"                          ^ Diag_Interface_Fields_Cannot_Have_Initializers"_diag,  //
+  test_parse_and_visit_module(
+      u8"interface I { 'fieldName' = init; }"_sv,  //
+      u8"                          ^ Diag_Interface_Fields_Cannot_Have_Initializers"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"interface I { fieldName: typeName = init; }"_sv,  //
-        u8"                                  ^ Diag_Interface_Fields_Cannot_Have_Initializers"_diag,  //
+  test_parse_and_visit_module(
+      u8"interface I { fieldName: typeName = init; }"_sv,  //
+      u8"                                  ^ Diag_Interface_Fields_Cannot_Have_Initializers"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Interface,
@@ -1243,13 +1219,11 @@ TEST_F(Test_Parse_TypeScript_Interface,
     p.parse_and_visit_statement();
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"async function g() { interface await {} }"_sv,  //
-        u8"                               ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
+  test_parse_and_visit_module(
+      u8"async function g() { interface await {} }"_sv,  //
+      u8"                               ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Interface, call_signature) {
@@ -1419,14 +1393,10 @@ TEST_F(Test_Parse_TypeScript_Interface, static_blocks_are_not_allowed) {
 
 TEST_F(Test_Parse_TypeScript_Interface,
        type_annotations_dont_add_extra_diagnostic_in_javascript) {
-  {
-    // Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript should not be
-    // reported.
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"interface I<T> { method(): Type; }"_sv,                      //
-        u8"Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript"_diag,  //
-        javascript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"interface I<T> { method(): Type; }"_sv,                      //
+      u8"Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Interface, method_requires_semicolon_or_asi) {

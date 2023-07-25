@@ -28,12 +28,10 @@ class Test_Parse_TypeScript_Export_Declare : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        export_declare_is_not_allowed_in_javascript) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"export declare class C { }"_sv,  //
-        u8"       ^^^^^^^ Diag_Declare_Class_Not_Allowed_In_JavaScript"_diag,  //
-        javascript_options);
-  }
+  test_parse_and_visit_module(
+      u8"export declare class C { }"_sv,                                     //
+      u8"       ^^^^^^^ Diag_Declare_Class_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_class) {
@@ -71,23 +69,18 @@ TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_abstract_class) {
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        export_declare_import_alias_is_not_allowed) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"export declare import A = B;"_sv,                              //
-        u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"export declare import A = B;"_sv,                              //
+      u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        export_declare_import_is_not_allowed) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"export declare import a from 'mod';"_sv,                       //
-        u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
-
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"export declare import a from 'mod';"_sv,                       //
+      u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,

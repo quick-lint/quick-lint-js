@@ -31,12 +31,10 @@ class Test_Parse_TypeScript_Declare_Function : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_is_not_allowed_in_javascript) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"declare function f();"_sv,                                      //
-        u8"^^^^^^^ Diag_Declare_Function_Not_Allowed_In_JavaScript"_diag,  //
-        javascript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"declare function f();"_sv,                                      //
+      u8"^^^^^^^ Diag_Declare_Function_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Function, basic_declare_function) {
@@ -102,27 +100,21 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
 
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_cannot_be_async_or_generator) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"declare async function f();"_sv,                            //
-        u8"        ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"declare async function f();"_sv,                            //
+      u8"        ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"declare function* f();"_sv,  //
-        u8"                ^ Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"declare function* f();"_sv,                                         //
+      u8"                ^ Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"declare async function* f();"_sv,                 //
-        u8"Diag_Declare_Function_Cannot_Be_Async"_diag,      //
-        u8"Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"declare async function* f();"_sv,                 //
+      u8"Diag_Declare_Function_Cannot_Be_Async"_diag,      //
+      u8"Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
+      typescript_options);
 
   {
     Spy_Visitor p = test_parse_and_visit_statement(

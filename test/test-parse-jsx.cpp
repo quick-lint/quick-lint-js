@@ -240,13 +240,11 @@ TEST_F(Test_Parse_JSX, attribute_without_name_must_be_spread) {
 }
 
 TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div></span>;"_sv,  //
-        u8"     ^^^ Diag_Mismatched_JSX_Tags.opening_tag_name\n"_diag
-        u8"           ^^^^ .closing_tag_name"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></span>;"_sv,  //
+      u8"     ^^^ Diag_Mismatched_JSX_Tags.opening_tag_name\n"_diag
+      u8"           ^^^^ .closing_tag_name"_diag,  //
+      jsx_options);
 
   // opening_tag_name span for normal tag:
   test_parse_and_visit_module(
@@ -422,23 +420,19 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_match_after_normalization) {
 }
 
 TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div></div> <div></div>;"_sv,  //
-        u8"    ` Diag_Adjacent_JSX_Without_Parent.begin\n"_diag
-        u8"                ` .begin_of_second_element\n"_diag
-        u8"                           ` .end"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></div> <div></div>;"_sv,  //
+      u8"    ` Diag_Adjacent_JSX_Without_Parent.begin\n"_diag
+      u8"                ` .begin_of_second_element\n"_diag
+      u8"                           ` .end"_diag,  //
+      jsx_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div></div> <div></div> <div></div>;"_sv,  //
-        u8"    ` Diag_Adjacent_JSX_Without_Parent.begin\n"_diag
-        u8"                ` .begin_of_second_element\n"_diag
-        u8"                                       ` .end"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></div> <div></div> <div></div>;"_sv,  //
+      u8"    ` Diag_Adjacent_JSX_Without_Parent.begin\n"_diag
+      u8"                ` .begin_of_second_element\n"_diag
+      u8"                                       ` .end"_diag,  //
+      jsx_options);
 
   // Second element should be visited like normal.
   {
@@ -505,74 +499,58 @@ TEST_F(Test_Parse_JSX, correctly_capitalized_attribute) {
 }
 
 TEST_F(Test_Parse_JSX, event_attributes_should_be_camel_case) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div onclick={handler} />;"_sv,  //
-        u8"         ^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
-        u8"{.expected_attribute_name=onClick}"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onclick={handler} />;"_sv,  //
+      u8"         ^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
+      u8"{.expected_attribute_name=onClick}"_diag,  //
+      jsx_options);
 
   // TODO(strager): Should we also report that the handler's value is missing?
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div onclick />;"_sv,  //
-        u8"         ^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
-        u8"{.expected_attribute_name=onClick}"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onclick />;"_sv,  //
+      u8"         ^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
+      u8"{.expected_attribute_name=onClick}"_diag,  //
+      jsx_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div onmouseenter={handler} />;"_sv,  //
-        u8"         ^^^^^^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
-        u8"{.expected_attribute_name=onMouseEnter}"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onmouseenter={handler} />;"_sv,  //
+      u8"         ^^^^^^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
+      u8"{.expected_attribute_name=onMouseEnter}"_diag,  //
+      jsx_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div oncustomevent={handler} />;"_sv,  //
-        u8"         ^^^^^^^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
-        u8"{.expected_attribute_name=onCustomevent}"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div oncustomevent={handler} />;"_sv,  //
+      u8"         ^^^^^^^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
+      u8"{.expected_attribute_name=onCustomevent}"_diag,  //
+      jsx_options);
 }
 
 TEST_F(Test_Parse_JSX, miscapitalized_attribute) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <td colspan=\"2\" />;"_sv,  //
-        u8"        ^^^^^^^ Diag_JSX_Attribute_Has_Wrong_Capitalization.attribute_name"_diag
-        u8"{.expected_attribute_name=colSpan}"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <td colspan=\"2\" />;"_sv,  //
+      u8"        ^^^^^^^ Diag_JSX_Attribute_Has_Wrong_Capitalization.attribute_name"_diag
+      u8"{.expected_attribute_name=colSpan}"_diag,  //
+      jsx_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div onMouseenter={handler} />;"_sv,  //
-        u8"         ^^^^^^^^^^^^ Diag_JSX_Attribute_Has_Wrong_Capitalization.attribute_name"_diag
-        u8"{.expected_attribute_name=onMouseEnter}"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onMouseenter={handler} />;"_sv,  //
+      u8"         ^^^^^^^^^^^^ Diag_JSX_Attribute_Has_Wrong_Capitalization.attribute_name"_diag
+      u8"{.expected_attribute_name=onMouseEnter}"_diag,  //
+      jsx_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <div onmouseENTER={handler} />;"_sv,  //
-        u8"         ^^^^^^^^^^^^ Diag_JSX_Attribute_Has_Wrong_Capitalization.attribute_name"_diag
-        u8"{.expected_attribute_name=onMouseEnter}"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onmouseENTER={handler} />;"_sv,  //
+      u8"         ^^^^^^^^^^^^ Diag_JSX_Attribute_Has_Wrong_Capitalization.attribute_name"_diag
+      u8"{.expected_attribute_name=onMouseEnter}"_diag,  //
+      jsx_options);
 }
 
 TEST_F(Test_Parse_JSX, commonly_misspelled_attribute) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <span class=\"item\"></span>;"_sv,  //
-        u8"          ^^^^^ Diag_JSX_Attribute_Renamed_By_React.attribute_name"_diag
-        u8"{.react_attribute_name=className}"_diag,  //
-        jsx_options);
-  }
+  test_parse_and_visit_module(
+      u8"c = <span class=\"item\"></span>;"_sv,  //
+      u8"          ^^^^^ Diag_JSX_Attribute_Renamed_By_React.attribute_name"_diag
+      u8"{.react_attribute_name=className}"_diag,  //
+      jsx_options);
 }
 
 TEST_F(Test_Parse_JSX, attribute_checking_ignores_namespaced_attributes) {
@@ -646,21 +624,17 @@ TEST_F(Test_Parse_JSX, attribute_checking_ignores_user_components) {
 }
 
 TEST_F(Test_Parse_JSX, prop_needs_an_expression) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <MyComponent custom={}></MyComponent>;"_sv,  //
-        u8"                        ^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
+  test_parse_and_visit_module(
+      u8"c = <MyComponent custom={}></MyComponent>;"_sv,  //
+      u8"                        ^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
 
-        jsx_options);
-  }
+      jsx_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <MyComponent custom={ }></MyComponent>;"_sv,  //
-        u8"                        ^^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
+  test_parse_and_visit_module(
+      u8"c = <MyComponent custom={ }></MyComponent>;"_sv,  //
+      u8"                        ^^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
 
-        jsx_options);
-  }
+      jsx_options);
 }
 }
 }

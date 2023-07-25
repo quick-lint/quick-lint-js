@@ -57,48 +57,32 @@ TEST_F(Test_Parse_Expression_Statement, parse_math_expression) {
 }
 
 TEST_F(Test_Parse_Expression_Statement, parse_invalid_math_expression) {
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"2 +"_sv,  //
-        u8"  ^ Diag_Missing_Operand_For_Operator"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"2 +"_sv,  //
+      u8"  ^ Diag_Missing_Operand_For_Operator"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"^ 2"_sv,  //
-        u8"^ Diag_Missing_Operand_For_Operator"_diag);
-  }
+  test_parse_and_visit_expression(u8"^ 2"_sv,  //
+                                  u8"^ Diag_Missing_Operand_For_Operator"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"2 * * 2"_sv,  //
-        u8"  ^ Diag_Missing_Operand_For_Operator"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"2 * * 2"_sv,  //
+      u8"  ^ Diag_Missing_Operand_For_Operator"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"2 & & & 2"_sv,                                  //
-        u8"    ^ Diag_Missing_Operand_For_Operator"_diag,  //
-        u8"  ^ Diag_Missing_Operand_For_Operator"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"2 & & & 2"_sv,                                  //
+      u8"    ^ Diag_Missing_Operand_For_Operator"_diag,  //
+      u8"  ^ Diag_Missing_Operand_For_Operator"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"(2 *)"_sv,  //
-        u8"   ^ Diag_Missing_Operand_For_Operator"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"2 * (3 + 4"_sv,  //
-        u8"    ^ Diag_Unmatched_Parenthesis"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"(2 *)"_sv,  //
+      u8"   ^ Diag_Missing_Operand_For_Operator"_diag);
+  test_parse_and_visit_expression(u8"2 * (3 + 4"_sv,  //
+                                  u8"    ^ Diag_Unmatched_Parenthesis"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"2 * (3 + (4"_sv,                              //
-        u8"         ^ Diag_Unmatched_Parenthesis"_diag,  //
-        u8"    ^ Diag_Unmatched_Parenthesis"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"2 * (3 + (4"_sv,                              //
+      u8"         ^ Diag_Unmatched_Parenthesis"_diag,  //
+      u8"    ^ Diag_Unmatched_Parenthesis"_diag);
 
   {
     Spy_Visitor p = test_parse_and_visit_expression(
@@ -113,25 +97,16 @@ TEST_F(Test_Parse_Expression_Statement, parse_invalid_math_expression) {
 }
 
 TEST_F(Test_Parse_Expression_Statement, stray_right_parenthesis) {
-  {
-    Spy_Visitor p =
-        test_parse_and_visit_statement(u8")"_sv,  //
-                                       u8"^ Diag_Unmatched_Parenthesis"_diag);
-  }
+  test_parse_and_visit_statement(u8")"_sv,  //
+                                 u8"^ Diag_Unmatched_Parenthesis"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"x))"_sv,                               //
-        u8"  ^ Diag_Unmatched_Parenthesis"_diag,  //
-        u8" ^ Diag_Unmatched_Parenthesis"_diag);
-  }
+  test_parse_and_visit_statement(u8"x))"_sv,                               //
+                                 u8"  ^ Diag_Unmatched_Parenthesis"_diag,  //
+                                 u8" ^ Diag_Unmatched_Parenthesis"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"-x))"_sv,                               //
-        u8"   ^ Diag_Unmatched_Parenthesis"_diag,  //
-        u8"  ^ Diag_Unmatched_Parenthesis"_diag);
-  }
+  test_parse_and_visit_statement(u8"-x))"_sv,                               //
+                                 u8"   ^ Diag_Unmatched_Parenthesis"_diag,  //
+                                 u8"  ^ Diag_Unmatched_Parenthesis"_diag);
 
   {
     Test_Parser p(u8"await p)"_sv, capture_diags);
@@ -153,17 +128,13 @@ TEST_F(Test_Parse_Expression_Statement, stray_right_parenthesis) {
                        });
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"return result)"_sv,  //
-        u8"             ^ Diag_Unmatched_Parenthesis"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"return result)"_sv,  //
+      u8"             ^ Diag_Unmatched_Parenthesis"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"throw banana)"_sv,  //
-        u8"            ^ Diag_Unmatched_Parenthesis"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"throw banana)"_sv,  //
+      u8"            ^ Diag_Unmatched_Parenthesis"_diag);
 }
 
 TEST_F(Test_Parse_Expression_Statement,
@@ -210,11 +181,9 @@ TEST_F(Test_Parse_Expression_Statement,
 }
 
 TEST_F(Test_Parse_Expression_Statement, invalid_identifier_after_expression) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"one two"_sv,  //
-        u8"   ` Diag_Missing_Semicolon_After_Statement"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"one two"_sv,  //
+      u8"   ` Diag_Missing_Semicolon_After_Statement"_diag);
 
   {
     Spy_Visitor p = test_parse_and_visit_statement(
@@ -237,29 +206,23 @@ TEST_F(Test_Parse_Expression_Statement, invalid_identifier_after_expression) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"xs", u8"one", u8"two"}));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"(a b c d)"_sv,                                            //
-        u8"       ^ Diag_Unexpected_Identifier_In_Expression"_diag,  //
-        u8"     ^ Diag_Unexpected_Identifier_In_Expression"_diag,    //
-        u8"   ^ Diag_Unexpected_Identifier_In_Expression"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"(a b c d)"_sv,                                            //
+      u8"       ^ Diag_Unexpected_Identifier_In_Expression"_diag,  //
+      u8"     ^ Diag_Unexpected_Identifier_In_Expression"_diag,    //
+      u8"   ^ Diag_Unexpected_Identifier_In_Expression"_diag);
 }
 
 TEST_F(Test_Parse_Expression_Statement, function_call_without_right_paren) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"f(x "_sv,  //
-        u8"   ` Diag_Expected_Right_Paren_For_Function_Call.expected_right_paren\n"_diag
-        u8" ^ .left_paren"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"f(x "_sv,  //
+      u8"   ` Diag_Expected_Right_Paren_For_Function_Call.expected_right_paren\n"_diag
+      u8" ^ .left_paren"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"{ f( }"_sv,  //
-        u8"    ` Diag_Expected_Right_Paren_For_Function_Call.expected_right_paren\n"_diag
-        u8"   ^ .left_paren"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"{ f( }"_sv,  //
+      u8"    ` Diag_Expected_Right_Paren_For_Function_Call.expected_right_paren\n"_diag
+      u8"   ^ .left_paren"_diag);
 
   {
     Spy_Visitor p = test_parse_and_visit_module(
@@ -544,11 +507,9 @@ TEST_F(Test_Parse_Expression_Statement, object_literal) {
 
 TEST_F(Test_Parse_Expression_Statement,
        object_literal_method_with_arrow_operator) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"let o = {method() => {}}"_sv,  //
-        u8"                  ^^ Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"let o = {method() => {}}"_sv,  //
+      u8"                  ^^ Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator"_diag);
 }
 
 TEST_F(Test_Parse_Expression_Statement, expression_statement) {
@@ -1064,11 +1025,9 @@ TEST_F(Test_Parse_Expression_Statement,
 
 TEST_F(Test_Parse_Expression_Statement,
        trailing_comma_in_comma_expression_is_disallowed) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"(a, b, );"_sv,  //
-        u8"     ^ Diag_Missing_Operand_For_Operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"(a, b, );"_sv,  //
+      u8"     ^ Diag_Missing_Operand_For_Operator"_diag);
 }
 
 TEST_F(Test_Parse_Expression_Statement,
@@ -1358,13 +1317,11 @@ TEST_F(Test_Parse_Expression_Statement,
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"(async (await, await, await) => {})"_sv,  //
-        u8"                      ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
-        u8"               ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
-        u8"        ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"(async (await, await, await) => {})"_sv,  //
+      u8"                      ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
+      u8"               ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
+      u8"        ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag);
 
   {
     Spy_Visitor p = test_parse_and_visit_expression(
@@ -1423,38 +1380,30 @@ TEST_F(Test_Parse_Expression_Statement,
 }
 
 TEST_F(Test_Parse_Expression_Statement, invalid_parentheses) {
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"()"_sv,  //
-        u8"^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren\n"_diag
-        u8"^ .left_paren\n"_diag
-        u8" ^ .right_paren"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"()"_sv,  //
+      u8"^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren\n"_diag
+      u8"^ .left_paren\n"_diag
+      u8" ^ .right_paren"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"x = ()"_sv,  //
-        u8"    ^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren\n"_diag
-        u8"    ^ .left_paren\n"_diag
-        u8"     ^ .right_paren"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"x = ()"_sv,  //
+      u8"    ^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren\n"_diag
+      u8"    ^ .left_paren\n"_diag
+      u8"     ^ .right_paren"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"() = x"_sv,  //
-        u8"^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren\n"_diag
-        u8"^ .left_paren\n"_diag
-        u8" ^ .right_paren"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"() = x"_sv,  //
+      u8"^^ Diag_Missing_Expression_Between_Parentheses.left_paren_to_right_paren\n"_diag
+      u8"^ .left_paren\n"_diag
+      u8" ^ .right_paren"_diag);
 }
 
 TEST_F(Test_Parse_Expression_Statement,
        arrow_function_statement_requires_semicolon_or_asi) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"() => {} foo"_sv,  //
-        u8"        ` Diag_Missing_Semicolon_After_Statement"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"() => {} foo"_sv,  //
+      u8"        ` Diag_Missing_Semicolon_After_Statement"_diag);
 
   {
     Test_Parser p(u8"() => {} //ASI\nfoo"_sv);
@@ -1468,11 +1417,9 @@ TEST_F(Test_Parse_Expression_Statement,
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"async () => {} foo"_sv,  //
-        u8"              ` Diag_Missing_Semicolon_After_Statement"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"async () => {} foo"_sv,  //
+      u8"              ` Diag_Missing_Semicolon_After_Statement"_diag);
 
   {
     Test_Parser p(u8"async () => {} //ASI\nfoo"_sv);
@@ -1489,17 +1436,13 @@ TEST_F(Test_Parse_Expression_Statement,
 
 TEST_F(Test_Parse_Expression_Statement,
        parenthesized_expression_requires_semicolon_or_asi) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"(2+2) foo"_sv,  //
-        u8"     ` Diag_Missing_Semicolon_After_Statement"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"(2+2) foo"_sv,  //
+      u8"     ` Diag_Missing_Semicolon_After_Statement"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"if (true) { } else (2+2) foo"_sv,  //
-        u8"                        ` Diag_Missing_Semicolon_After_Statement"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"if (true) { } else (2+2) foo"_sv,  //
+      u8"                        ` Diag_Missing_Semicolon_After_Statement"_diag);
 }
 }
 }

@@ -227,7 +227,7 @@ TEST_F(Test_Parse_TypeScript_Class,
 
 TEST_F(Test_Parse_TypeScript_Class,
        optional_methods_are_not_allowed_in_javascript_classes) {
-  Spy_Visitor p = test_parse_and_visit_statement(
+  test_parse_and_visit_statement(
       u8"class C { method?() {} }"_sv,  //
       u8"                ^ Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript"_diag,  //
       javascript_options);
@@ -396,23 +396,17 @@ TEST_F(Test_Parse_TypeScript_Class,
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { readonly field = null; }"_sv,  //
-        u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { readonly field = null; }"_sv,  //
+      u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { readonly field\nmethod() {} }"_sv,  //
-        u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { readonly field\nmethod() {} }"_sv,  //
+      u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { readonly field\n[methodName]() {} }"_sv,  //
-        u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { readonly field\n[methodName]() {} }"_sv,  //
+      u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag);
 
   {
     Spy_Visitor p = test_parse_and_visit_statement(
@@ -431,21 +425,17 @@ TEST_F(Test_Parse_TypeScript_Class,
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { readonly field? method() {} }"_sv,  //
-        u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag,  //
-        u8"Diag_Missing_Semicolon_After_Field"_diag,  //
-        u8"Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { readonly field? method() {} }"_sv,  //
+      u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag,  //
+      u8"Diag_Missing_Semicolon_After_Field"_diag,  //
+      u8"Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { readonly field: any; }"_sv,  //
-        u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag,  //
-        u8"Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript"_diag,  //
-        javascript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { readonly field: any; }"_sv,  //
+      u8"          ^^^^^^^^ Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript"_diag,  //
+      u8"Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Class, readonly_fields_are_allowed_in_typescript) {
@@ -940,17 +930,13 @@ TEST_F(Test_Parse_TypeScript_Class,
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"export abstract class C { }"_sv,  //
-        u8"       ^^^^^^^^ Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"export abstract class C { }"_sv,  //
+      u8"       ^^^^^^^^ Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"export default abstract class C { }"_sv,  //
-        u8"               ^^^^^^^^ Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"export default abstract class C { }"_sv,  //
+      u8"               ^^^^^^^^ Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript"_diag);
 }
 
 TEST_F(Test_Parse_TypeScript_Class, abstract_class) {

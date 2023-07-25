@@ -39,11 +39,9 @@ TEST_F(Test_Parse_Warning, condition_with_assignment_from_literal) {
     EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"x"}));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (o.prop = 'hello') {}"_sv,  //
-        u8"           ^ Diag_Assignment_Makes_Condition_Constant"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"if (o.prop = 'hello') {}"_sv,  //
+      u8"           ^ Diag_Assignment_Makes_Condition_Constant"_diag);
 
   for (String8_View code : {
            u8"while (x = 'hello') {}"_sv,
@@ -106,19 +104,15 @@ TEST_F(Test_Error_Equals_Does_Not_Distribute_Over_Or, examples) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x"}));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (x === 10 || 0) {}"_sv,  //
-        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
-        u8"      ^^^ .equals_operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"if (x === 10 || 0) {}"_sv,  //
+      u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+      u8"      ^^^ .equals_operator"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (x == 'A' || 'B') {}"_sv,  //
-        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
-        u8"      ^^ .equals_operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"if (x == 'A' || 'B') {}"_sv,  //
+      u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+      u8"      ^^ .equals_operator"_diag);
 }
 
 TEST_F(Test_Error_Equals_Does_Not_Distribute_Over_Or, not_equals) {
@@ -152,19 +146,15 @@ TEST_F(Test_Error_Equals_Does_Not_Distribute_Over_Or, null_and_undefined) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x", u8"undefined"}));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (x === 10 || null) {}"_sv,  //
-        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
-        u8"      ^^^ .equals_operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"if (x === 10 || null) {}"_sv,  //
+      u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+      u8"      ^^^ .equals_operator"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (x === 10 || undefined) {}"_sv,  //
-        u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
-        u8"      ^^^ .equals_operator"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"if (x === 10 || undefined) {}"_sv,  //
+      u8"             ^^ Diag_Equals_Does_Not_Distribute_Over_Or.or_operator\n"_diag
+      u8"      ^^^ .equals_operator"_diag);
 }
 
 TEST_F(Test_Error_Equals_Does_Not_Distribute_Over_Or, logical_and) {
@@ -189,26 +179,20 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_string_compare) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
   }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"s.toLowerCase() == 'BANANA'"_sv,  //
-        u8"                ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"s.toLowerCase() == 'BANANA'"_sv,  //
+      u8"                ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
   {
     Test_Parser p(u8"s.toUpperCase() == 'BANANA'"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
   }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"s.toUpperCase() == 'banana'"_sv,  //
-        u8"                ^^ Diag_Pointless_String_Comp_Contains_Lower"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"s.toLowerCase() == \"BANANA\""_sv,  //
-        u8"                ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"s.toUpperCase() == 'banana'"_sv,  //
+      u8"                ^^ Diag_Pointless_String_Comp_Contains_Lower"_diag);
+  test_parse_and_visit_statement(
+      u8"s.toLowerCase() == \"BANANA\""_sv,  //
+      u8"                ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
 }
 
 TEST_F(Test_Parse_Warning, warn_on_pointless_string_compare_all_operators) {
@@ -245,45 +229,35 @@ TEST_F(Test_Parse_Warning,
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
   }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"stringBuilder.build().toLowerCase() == 'BANANA'"_sv,  //
-        u8"                                    ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"stringBuilder.build().toLowerCase() == 'BANANA'"_sv,  //
+      u8"                                    ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
   {
     Test_Parser p(u8"o.arr[0]() == 'BANANA'"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
   }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"'BANANA' == s.toLowerCase()"_sv,  //
-        u8"         ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"'BANANA' == s.toLowerCase()"_sv,  //
+      u8"         ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
 }
 
 TEST_F(Test_Parse_Warning,
        warn_on_comma_between_member_array_subscript_operators) {
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"a[1, 2, 3]"_sv,  //
-        u8"      ^ Diag_Misleading_Comma_Operator_In_Index_Operation.comma\n"_diag
-        u8" ^ .left_square"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"a[1, 2, 3]"_sv,  //
+      u8"      ^ Diag_Misleading_Comma_Operator_In_Index_Operation.comma\n"_diag
+      u8" ^ .left_square"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"a[pow(1, 2), 2]"_sv,  //
-        u8"           ^ Diag_Misleading_Comma_Operator_In_Index_Operation.comma\n"_diag
-        u8" ^ .left_square"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"a[pow(1, 2), 2]"_sv,  //
+      u8"           ^ Diag_Misleading_Comma_Operator_In_Index_Operation.comma\n"_diag
+      u8" ^ .left_square"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"a[b[1967, 1975]]"_sv,  //
-        u8"        ^ Diag_Misleading_Comma_Operator_In_Index_Operation.comma\n"_diag
-        u8"   ^ .left_square"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"a[b[1967, 1975]]"_sv,  //
+      u8"        ^ Diag_Misleading_Comma_Operator_In_Index_Operation.comma\n"_diag
+      u8"   ^ .left_square"_diag);
 
   {
     Test_Parser p(u8"a = [1, 2, 3]"_sv, capture_diags);
@@ -293,17 +267,13 @@ TEST_F(Test_Parse_Warning,
 }
 
 TEST_F(Test_Parse_Warning, warn_on_comma_operator_in_conditional_statement) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if(false, true){}"_sv,  //
-        u8"        ^ Diag_Misleading_Comma_Operator_In_Conditional_Statement"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"if(false, true){}"_sv,  //
+      u8"        ^ Diag_Misleading_Comma_Operator_In_Conditional_Statement"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"do{i++}while(i < 0, true)"_sv,  //
-        u8"                  ^ Diag_Misleading_Comma_Operator_In_Conditional_Statement"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"do{i++}while(i < 0, true)"_sv,  //
+      u8"                  ^ Diag_Misleading_Comma_Operator_In_Conditional_Statement"_diag);
 
   {
     Test_Parser p(u8"do{i++}while(i < (0, true))"_sv, capture_diags);
@@ -311,11 +281,9 @@ TEST_F(Test_Parse_Warning, warn_on_comma_operator_in_conditional_statement) {
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"for(; i < 5, i < 3; ){}"_sv,  //
-        u8"           ^ Diag_Misleading_Comma_Operator_In_Conditional_Statement"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"for(; i < 5, i < 3; ){}"_sv,  //
+      u8"           ^ Diag_Misleading_Comma_Operator_In_Conditional_Statement"_diag);
 
   {
     Test_Parser p(u8"for(let i = 0, j = 0;;){}"_sv, capture_diags);
@@ -335,42 +303,30 @@ TEST_F(Test_Parse_Warning, warn_on_comma_operator_in_conditional_statement) {
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"switch(cond1, cond2){case 1:break;}"_sv,  //
-        u8"            ^ Diag_Misleading_Comma_Operator_In_Conditional_Statement"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"switch(cond1, cond2){case 1:break;}"_sv,  //
+      u8"            ^ Diag_Misleading_Comma_Operator_In_Conditional_Statement"_diag);
 }
 
 TEST_F(Test_Parse_Warning,
        warn_on_pointless_string_compare_complex_expressions) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if(s.toLowerCase() === 'BANANA') {}"_sv,  //
-        u8"                   ^^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"((s.toLowerCase())) === 'BANANA'"_sv,  //
-        u8"                    ^^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"(((s.toLowerCase())) === ((('BANANA'))))"_sv,  //
-        u8"                     ^^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"s.toLowerCase() == 'BANANA' && s.toUpperCase() !== 'orange'"_sv,  //
-        u8"                                               ^^^ Diag_Pointless_String_Comp_Contains_Lower"_diag,  //
-        u8"                ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"((s.toLowerCase() == 'BANANA') && s.toUpperCase() !== 'orange')"_sv,  //
-        u8"                                                  ^^^ Diag_Pointless_String_Comp_Contains_Lower"_diag,  //
-        u8"                  ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"if(s.toLowerCase() === 'BANANA') {}"_sv,  //
+      u8"                   ^^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
+  test_parse_and_visit_expression(
+      u8"((s.toLowerCase())) === 'BANANA'"_sv,  //
+      u8"                    ^^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
+  test_parse_and_visit_expression(
+      u8"(((s.toLowerCase())) === ((('BANANA'))))"_sv,  //
+      u8"                     ^^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
+  test_parse_and_visit_statement(
+      u8"s.toLowerCase() == 'BANANA' && s.toUpperCase() !== 'orange'"_sv,  //
+      u8"                                               ^^^ Diag_Pointless_String_Comp_Contains_Lower"_diag,  //
+      u8"                ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
+  test_parse_and_visit_statement(
+      u8"((s.toLowerCase() == 'BANANA') && s.toUpperCase() !== 'orange')"_sv,  //
+      u8"                                                  ^^^ Diag_Pointless_String_Comp_Contains_Lower"_diag,  //
+      u8"                  ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
 }
 
 TEST_F(Test_Parse_Warning, warn_on_pointless_string_compare_literals) {
@@ -474,41 +430,29 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_compare_against_literals) {
 
 TEST_F(Test_Parse_Warning,
        warn_on_pointless_compare_against_literals_complex_expressions) {
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"({} == {} && (x) === [1, 2, 3]) || ((/pattern/) == y.prop)"_sv,  //
-        u8"                                                ^^ Diag_Pointless_Comp_Against_Regular_Expression_Literal.equals_operator"_diag,  //
-        u8"                 ^^^ Diag_Pointless_Strict_Comp_Against_Array_Literal"_diag,  //
-        u8"    ^^ Diag_Pointless_Comp_Against_Object_Literal.equals_operator"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"x === y || ({}) != obj.prop"_sv,  //
-        u8"                ^^ Diag_Pointless_Comp_Against_Object_Literal.equals_operator"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"({} == {} && (x) === [1, 2, 3]) || ((/pattern/) == y.prop)"_sv,  //
+      u8"                                                ^^ Diag_Pointless_Comp_Against_Regular_Expression_Literal.equals_operator"_diag,  //
+      u8"                 ^^^ Diag_Pointless_Strict_Comp_Against_Array_Literal"_diag,  //
+      u8"    ^^ Diag_Pointless_Comp_Against_Object_Literal.equals_operator"_diag);
+  test_parse_and_visit_expression(
+      u8"x === y || ({}) != obj.prop"_sv,  //
+      u8"                ^^ Diag_Pointless_Comp_Against_Object_Literal.equals_operator"_diag);
 }
 
 TEST_F(Test_Parse_Warning, warn_on_pointless_nullish_coalescing_operator) {
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"true ?? false"_sv,  //
-        u8"     ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"(a < b) ?? false"_sv,  //
-        u8"        ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"!b ?? false"_sv,  //
-        u8"   ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_expression(
-        u8"'hi' ?? true"_sv,  //
-        u8"     ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
-  }
+  test_parse_and_visit_expression(
+      u8"true ?? false"_sv,  //
+      u8"     ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
+  test_parse_and_visit_expression(
+      u8"(a < b) ?? false"_sv,  //
+      u8"        ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
+  test_parse_and_visit_expression(
+      u8"!b ?? false"_sv,  //
+      u8"   ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
+  test_parse_and_visit_expression(
+      u8"'hi' ?? true"_sv,  //
+      u8"     ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
   for (String8_View code : {
            u8"s.toLowerCase() ?? false"_sv,
            u8"s ?? false"_sv,
@@ -532,11 +476,9 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_nullish_coalescing_operator) {
 }
 
 TEST_F(Test_Parse_Warning, warn_on_variable_assigned_to_self_is_noop) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"x = x"_sv,  //
-        u8"^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"x = x"_sv,  //
+      u8"^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag);
   {
     Test_Parser p(u8"x = \\u{78}"_sv, capture_diags);
     p.parse_and_visit_statement();
@@ -546,16 +488,12 @@ TEST_F(Test_Parse_Warning, warn_on_variable_assigned_to_self_is_noop) {
             u8"^^^^^^^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag,
         });
   }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"x = ((x))"_sv,  //
-        u8"^^^^^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"(x) = x"_sv,  //
-        u8"^^^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"x = ((x))"_sv,  //
+      u8"^^^^^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag);
+  test_parse_and_visit_statement(
+      u8"(x) = x"_sv,  //
+      u8"^^^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag);
   {
     Test_Parser p(u8"i.x = i.x"_sv, capture_diags);
     p.parse_and_visit_statement();

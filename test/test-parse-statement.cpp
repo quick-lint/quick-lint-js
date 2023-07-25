@@ -253,33 +253,25 @@ TEST_F(Test_Parse_Statement, return_statement_disallows_newline_in_block) {
 }
 
 TEST_F(Test_Parse_Statement, empty_paren_after_control_statement) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if(){}"_sv,  //
-        u8"   ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
-        u8"^^ .token"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"if(){}"_sv,  //
+      u8"   ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
+      u8"^^ .token"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"switch(){}"_sv,  //
-        u8"       ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
-        u8"^^^^^^ .token"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"switch(){}"_sv,  //
+      u8"       ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
+      u8"^^^^^^ .token"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"while(){}"_sv,  //
-        u8"      ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
-        u8"^^^^^ .token"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"while(){}"_sv,  //
+      u8"      ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
+      u8"^^^^^ .token"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"with(){}"_sv,  //
-        u8"     ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
-        u8"^^^^ .token"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"with(){}"_sv,  //
+      u8"     ` Diag_Empty_Paren_After_Control_Statement.expected_expression\n"_diag
+      u8"^^^^ .token"_diag);
 }
 
 TEST_F(Test_Parse_Statement, throw_statement) {
@@ -292,17 +284,13 @@ TEST_F(Test_Parse_Statement, throw_statement) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Error"}));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"throw;"_sv,  //
-        u8"     ^ Diag_Expected_Expression_Before_Semicolon"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"throw;"_sv,  //
+      u8"     ^ Diag_Expected_Expression_Before_Semicolon"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"throw\nnew Error();"_sv,  //
-        u8"     ` Diag_Expected_Expression_Before_Newline"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"throw\nnew Error();"_sv,  //
+      u8"     ` Diag_Expected_Expression_Before_Newline"_diag);
 }
 
 TEST_F(Test_Parse_Statement, parse_and_visit_try) {
@@ -1015,18 +1003,14 @@ TEST_F(Test_Parse_Statement, switch_case_without_expression) {
 }
 
 TEST_F(Test_Parse_Statement, switch_case_with_duplicated_cases) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"switch (cond) {case x: case y: case y:}"_sv,  //
-        u8"                            ^ Diag_Duplicated_Cases_In_Switch_Statement.first_switch_case\n"_diag
-        u8"                                    ^ .duplicated_switch_case"_diag);
-  }
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"switch (cond) {case MyEnum.A: break; case MyEnum.A: break;}"_sv,  //
-        u8"                    ^^^^^^^^ Diag_Duplicated_Cases_In_Switch_Statement.first_switch_case\n"_diag
-        u8"                                          ^^^^^^^^ .duplicated_switch_case"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"switch (cond) {case x: case y: case y:}"_sv,  //
+      u8"                            ^ Diag_Duplicated_Cases_In_Switch_Statement.first_switch_case\n"_diag
+      u8"                                    ^ .duplicated_switch_case"_diag);
+  test_parse_and_visit_statement(
+      u8"switch (cond) {case MyEnum.A: break; case MyEnum.A: break;}"_sv,  //
+      u8"                    ^^^^^^^^ Diag_Duplicated_Cases_In_Switch_Statement.first_switch_case\n"_diag
+      u8"                                          ^^^^^^^^ .duplicated_switch_case"_diag);
 }
 
 TEST_F(Test_Parse_Statement, switch_clause_outside_switch_statement) {

@@ -684,17 +684,13 @@ TEST_F(Test_Parse_Module, import_without_from_keyword) {
 }
 
 TEST_F(Test_Parse_Module, import_as_invalid_token) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"import {myExport as 'string'} from 'module';"_sv,  //
-        u8"                    ^^^^^^^^ Diag_Expected_Variable_Name_For_Import_As"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"import {myExport as 'string'} from 'module';"_sv,  //
+      u8"                    ^^^^^^^^ Diag_Expected_Variable_Name_For_Import_As"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"import {'myExport' as 'string'} from 'module';"_sv,  //
-        u8"                      ^^^^^^^^ Diag_Expected_Variable_Name_For_Import_As"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"import {'myExport' as 'string'} from 'module';"_sv,  //
+      u8"                      ^^^^^^^^ Diag_Expected_Variable_Name_For_Import_As"_diag);
 }
 
 TEST_F(Test_Parse_Module, export_function) {

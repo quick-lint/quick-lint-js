@@ -736,13 +736,11 @@ TEST_F(Test_Parse_TypeScript_Module,
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"namespace ns { declare import fs from 'fs'; }"_sv,  //
-        u8"Diag_Import_Cannot_Have_Declare_Keyword"_diag,      //
+  test_parse_and_visit_module(
+      u8"namespace ns { declare import fs from 'fs'; }"_sv,  //
+      u8"Diag_Import_Cannot_Have_Declare_Keyword"_diag,      //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Module,

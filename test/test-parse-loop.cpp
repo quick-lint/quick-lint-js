@@ -390,13 +390,11 @@ TEST_F(Test_Parse_Loop, for_loop_with_extra_semicolons) {
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"for (;; ;;;) {}"_sv,                                              //
-        u8"          ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag,  //
-        u8"         ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag,   //
-        u8"        ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"for (;; ;;;) {}"_sv,                                              //
+      u8"          ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag,  //
+      u8"         ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag,   //
+      u8"        ^ Diag_Unexpected_Semicolon_In_C_Style_For_Loop"_diag);
 
   {
     Spy_Visitor p = test_parse_and_visit_statement(
@@ -1120,17 +1118,13 @@ TEST_F(Test_Parse_Loop, break_statement) {
                        });
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"for (;;) { function f() { break; } }"_sv,  //
-        u8"                          ^^^^^ Diag_Invalid_Break"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"for (;;) { function f() { break; } }"_sv,  //
+      u8"                          ^^^^^ Diag_Invalid_Break"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"for (;;) { () => { break; } }"_sv,  //
-        u8"                   ^^^^^ Diag_Invalid_Break"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"for (;;) { () => { break; } }"_sv,  //
+      u8"                   ^^^^^ Diag_Invalid_Break"_diag);
 
   {
     Test_Parser p(u8"switch (0) { default: break; }"_sv);
@@ -1207,23 +1201,17 @@ TEST_F(Test_Parse_Loop, continue_statement) {
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"switch (0) { default: continue; }"_sv,  //
-        u8"                      ^^^^^^^^ Diag_Invalid_Continue"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"switch (0) { default: continue; }"_sv,  //
+      u8"                      ^^^^^^^^ Diag_Invalid_Continue"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"for (;;) { function f() { continue; } }"_sv,  //
-        u8"                          ^^^^^^^^ Diag_Invalid_Continue"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"for (;;) { function f() { continue; } }"_sv,  //
+      u8"                          ^^^^^^^^ Diag_Invalid_Continue"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"for (;;) { () => { continue; } }"_sv,  //
-        u8"                   ^^^^^^^^ Diag_Invalid_Continue"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"for (;;) { () => { continue; } }"_sv,  //
+      u8"                   ^^^^^^^^ Diag_Invalid_Continue"_diag);
 
   {
     Test_Parser p(u8"do { continue; } while (0);"_sv);

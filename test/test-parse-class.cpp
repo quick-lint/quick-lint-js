@@ -698,23 +698,17 @@ TEST_F(Test_Parse_Class, class_methods_should_not_use_function_keyword) {
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { async function f() {} }"_sv,  //
-        u8"                ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { async function f() {} }"_sv,  //
+      u8"                ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { function* f() {} }"_sv,  //
-        u8"          ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { function* f() {} }"_sv,  //
+      u8"          ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { static function f() {} }"_sv,  //
-        u8"                 ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { static function f() {} }"_sv,  //
+      u8"                 ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
 }
 
 TEST_F(Test_Parse_Class, class_statement_with_keyword_property) {
@@ -949,17 +943,13 @@ TEST_F(Test_Parse_Class, class_method_without_parameter_list) {
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { [method+name] { body; } }"_sv,  //
-        u8"                       ` Diag_Missing_Function_Parameter_List"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { [method+name] { body; } }"_sv,  //
+      u8"                       ` Diag_Missing_Function_Parameter_List"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { 'method name' { body; } }"_sv,  //
-        u8"                       ` Diag_Missing_Function_Parameter_List"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { 'method name' { body; } }"_sv,  //
+      u8"                       ` Diag_Missing_Function_Parameter_List"_diag);
 }
 
 TEST_F(Test_Parse_Class, stray_identifier_before_class_method) {
@@ -1020,12 +1010,10 @@ TEST_F(Test_Parse_Class, stray_left_curly_in_class_is_ignored) {
 }
 
 TEST_F(Test_Parse_Class, stray_keyword_in_class_body) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { if method(arg) { body; } instanceof myField; }"_sv,  //
-        u8"                                   ^^^^^^^^^^ Diag_Unexpected_Token"_diag,  //
-        u8"          ^^ Diag_Unexpected_Token"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { if method(arg) { body; } instanceof myField; }"_sv,  //
+      u8"                                   ^^^^^^^^^^ Diag_Unexpected_Token"_diag,  //
+      u8"          ^^ Diag_Unexpected_Token"_diag);
 }
 
 TEST_F(Test_Parse_Class,
@@ -1195,11 +1183,9 @@ TEST_F(Test_Parse_Class, class_named_await_in_async_function) {
     p.parse_and_visit_statement();
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"async function g() { class await {} }"_sv,  //
-        u8"                           ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"async function g() { class await {} }"_sv,  //
+      u8"                           ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag);
 }
 
 TEST_F(Test_Parse_Class, async_static_method_is_disallowed) {

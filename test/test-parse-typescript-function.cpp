@@ -313,21 +313,10 @@ TEST_F(Test_Parse_TypeScript_Function,
 
 TEST_F(Test_Parse_TypeScript_Function,
        arrow_cannot_have_parenthesized_return_type_annotation) {
-  {
-    test_parse_and_visit_statement(
-        u8"((param): (number) => {})"_sv,
-        u8"Diag_TypeScript_Type_Annotation_In_Expression"_diag,
-        typescript_options);
-    // FIXME(strager): The above code is illegal TypeScript.
-    //
-    // Our parser currently interprets the above code as if '(param)' is a
-    // parameter list and '(number) => {}' is the function's return type. It
-    // then backtracks, thinking that ':' was bogus (E0254).
-    //
-    // We should parse intelligently and instead interpret '(param)' as a
-    // parameter list, '(number)' as the return type and '{}' as the function's
-    // body, and also produce a nice diagnostic.
-  }
+  test_parse_and_visit_statement(
+      u8"((param): (number) => {})"_sv,
+      u8"Diag_TypeScript_Type_Annotation_In_Expression"_diag,
+      typescript_options);
 }
 
 // If a variable or function or method has a type annotation, and that type is
@@ -770,70 +759,56 @@ TEST_F(Test_Parse_TypeScript_Function, optional_parameter_in_function_type) {
 
 TEST_F(Test_Parse_TypeScript_Function,
        optional_parameter_followed_by_required) {
-  {
-    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
-        u8"(param1?, param2) => ReturnType"_sv,  //
-        u8" ^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
-        u8"          ^^^^^^ .required_parameter"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_typescript_type_expression(
+      u8"(param1?, param2) => ReturnType"_sv,  //
+      u8" ^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
+      u8"          ^^^^^^ .required_parameter"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Function,
        optional_parameter_followed_by_required_type_annotated) {
-  {
-    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
-        u8"(param1?: number, param2: number) => ReturnType"_sv,  //
-        u8" ^^^^^^^^^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
-        u8"                  ^^^^^^^^^^^^^^ .required_parameter"_diag,  //
+  test_parse_and_visit_typescript_type_expression(
+      u8"(param1?: number, param2: number) => ReturnType"_sv,  //
+      u8" ^^^^^^^^^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
+      u8"                  ^^^^^^^^^^^^^^ .required_parameter"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
-        u8"(param1?: number, param2: number, param3: number) => ReturnType"_sv,  //
-        u8" ^^^^^^^^^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
-        u8"                  ^^^^^^^^^^^^^^ .required_parameter"_diag,  //
+  test_parse_and_visit_typescript_type_expression(
+      u8"(param1?: number, param2: number, param3: number) => ReturnType"_sv,  //
+      u8" ^^^^^^^^^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
+      u8"                  ^^^^^^^^^^^^^^ .required_parameter"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Function,
        optional_parameters_are_not_allowed_in_javascript) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"(param?) => {}"_sv,  //
-        u8"      ^ Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript"_diag,  //
-        javascript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"(param?) => {}"_sv,  //
+      u8"      ^ Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"function f(param?) {}"_sv,  //
-        u8"                ^ Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript"_diag,  //
-        javascript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"function f(param?) {}"_sv,  //
+      u8"                ^ Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Function,
        optional_parameters_cannot_have_initializers) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"(param? = init) => {}"_sv,  //
-        u8"        ^ Diag_Optional_Parameter_Cannot_Have_Initializer.equal\n"_diag
-        u8"      ^ .question"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"(param? = init) => {}"_sv,  //
+      u8"        ^ Diag_Optional_Parameter_Cannot_Have_Initializer.equal\n"_diag
+      u8"      ^ .question"_diag,  //
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"function f(param? = init) {}"_sv,  //
-        u8"                  ^ Diag_Optional_Parameter_Cannot_Have_Initializer.equal\n"_diag
-        u8"                ^ .question"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"function f(param? = init) {}"_sv,  //
+      u8"                  ^ Diag_Optional_Parameter_Cannot_Have_Initializer.equal\n"_diag
+      u8"                ^ .question"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Function,
