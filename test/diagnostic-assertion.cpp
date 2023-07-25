@@ -202,34 +202,23 @@ Diagnostic_Assertion::parse(const Char8* specification) {
                                   members));
   }
 
-  Fixed_Vector_Size member_index = 0;
-  {
+  for (Fixed_Vector_Size i = 0; i < diag_members.size(); ++i) {
     const Diagnostic_Info_Variable_Debug* member;
-    if (diag_members[0].empty()) {
+    bool can_infer_member_variable = i == 0;
+    if (can_infer_member_variable && diag_members[i].empty()) {
       // Default to the first Source_Code_Span member.
       member = diag_info.find_first(Diagnostic_Arg_Type::source_code_span);
     } else {
-      member = diag_info.find(to_string_view(diag_members[0]));
+      member = diag_info.find(to_string_view(diag_members[i]));
     }
     QLJS_ALWAYS_ASSERT(member != nullptr);
 
-    out_assertion.members[member_index].name = member->name;
-    out_assertion.members[member_index].offset = member->offset;
-    out_assertion.members[member_index].type = member->type;
-    member_index += 1;
+    out_assertion.members[i].name = member->name;
+    out_assertion.members[i].offset = member->offset;
+    out_assertion.members[i].type = member->type;
   }
 
-  for (Fixed_Vector_Size i = 1; i < diag_members.size(); ++i) {
-    const Diagnostic_Info_Variable_Debug* member =
-        diag_info.find(to_string_view(diag_members[i]));
-    QLJS_ALWAYS_ASSERT(member != nullptr);
-
-    out_assertion.members[member_index].name = member->name;
-    out_assertion.members[member_index].offset = member->offset;
-    out_assertion.members[member_index].type = member->type;
-    member_index += 1;
-  }
-
+  Fixed_Vector_Size member_index = diag_members.size();
   if (!extra_member_span.empty()) {
     const Diagnostic_Info_Variable_Debug* extra_member =
         diag_info.find(to_string_view(extra_member_span));
