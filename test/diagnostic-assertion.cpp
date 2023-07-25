@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/container/concat.h>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -114,6 +115,11 @@ Diagnostic_Assertion::parse(const Char8* specification) {
 
   Diagnostic_Assertion out_assertion;
 
+  // Names of diagnostic member variables.
+  //
+  // If an entry is empty, the member's name is inferred.
+  Fixed_Vector<String8_View, 3> diag_members;
+
   out_assertion.members.emplace_back();
   out_assertion.members[0].span_begin_offset = lexer.parse_leading_spaces();
   out_assertion.members[0].span_end_offset =
@@ -121,9 +127,8 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   lexer.skip_spaces();
 
   String8_View diag_type_span = lexer.parse_identifier();
-  String8_View diag_member_span = lexer.try_parse_dot_identifier();
+  diag_members.push_back(lexer.try_parse_dot_identifier());
 
-  String8_View diag_member_2_span;
   if (*lexer.p == u8'\n') {
     ++lexer.p;
     out_assertion.members.emplace_back();
@@ -131,10 +136,9 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     out_assertion.members[1].span_end_offset =
         out_assertion.members[1].span_begin_offset + lexer.parse_span_carets();
     lexer.skip_spaces();
-    diag_member_2_span = lexer.try_parse_dot_identifier();
+    diag_members.push_back(lexer.try_parse_dot_identifier());
   }
 
-  String8_View diag_member_3_span;
   if (*lexer.p == u8'\n') {
     ++lexer.p;
     out_assertion.members.emplace_back();
@@ -142,12 +146,12 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     out_assertion.members[2].span_end_offset =
         out_assertion.members[2].span_begin_offset + lexer.parse_span_carets();
     lexer.skip_spaces();
-    diag_member_3_span = lexer.try_parse_dot_identifier();
+    diag_members.push_back(lexer.try_parse_dot_identifier());
   }
 
   String8_View extra_member_span;
   String8_View extra_member_value_span;
-  if (*lexer.p == u8'{' && !diag_member_span.empty()) {
+  if (*lexer.p == u8'{' && !diag_members[0].empty()) {
     ++lexer.p;
     if (*lexer.p != u8'.') {
       goto done_unexpected;
@@ -191,7 +195,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   const Diagnostic_Info_Debug& diag_info =
       get_diagnostic_info_debug(out_assertion.type);
   bool member_is_required = diag_info.variable_count() > 1;
-  if (member_is_required && diag_member_span.empty()) {
+  if (member_is_required && diag_members[0].empty()) {
     std::string members;
     for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
       if (var.name != nullptr &&
@@ -211,11 +215,11 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   Fixed_Vector_Size member_index = 0;
   {
     const Diagnostic_Info_Variable_Debug* member;
-    if (diag_member_span.empty()) {
+    if (diag_members[0].empty()) {
       // Default to the first Source_Code_Span member.
       member = diag_info.find_first(Diagnostic_Arg_Type::source_code_span);
     } else {
-      member = diag_info.find(to_string_view(diag_member_span));
+      member = diag_info.find(to_string_view(diag_members[0]));
     }
     QLJS_ALWAYS_ASSERT(member != nullptr);
 
@@ -225,9 +229,9 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     member_index += 1;
   }
 
-  if (!diag_member_2_span.empty()) {
+  if (diag_members.size() > 1) {
     const Diagnostic_Info_Variable_Debug* member =
-        diag_info.find(to_string_view(diag_member_2_span));
+        diag_info.find(to_string_view(diag_members[1]));
     QLJS_ALWAYS_ASSERT(member != nullptr);
 
     out_assertion.members[member_index].name = member->name;
@@ -236,9 +240,9 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     member_index += 1;
   }
 
-  if (!diag_member_3_span.empty()) {
+  if (diag_members.size() > 2) {
     const Diagnostic_Info_Variable_Debug* member =
-        diag_info.find(to_string_view(diag_member_3_span));
+        diag_info.find(to_string_view(diag_members[2]));
     QLJS_ALWAYS_ASSERT(member != nullptr);
 
     out_assertion.members[member_index].name = member->name;
