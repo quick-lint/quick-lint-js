@@ -50,13 +50,8 @@ TEST_F(Test_Parse_Warning, condition_with_assignment_from_literal) {
            u8"for (; x = 'hello'; ) {}"_sv,
            u8"do {} while (x = 'hello');"_sv,
        }) {
-    SCOPED_TRACE(out_string8(code));
-    Test_Parser p(code, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Assignment_Makes_Condition_Constant),
-                }));
+    test_parse_and_visit_statement(
+        code, u8"Diag_Assignment_Makes_Condition_Constant"_diag);
   }
 }
 

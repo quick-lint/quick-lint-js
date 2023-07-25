@@ -364,13 +364,8 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
            u8"<A></A:A>"_sv,
            u8"<A:A></A>"_sv,
        }) {
-    Test_Parser p(concat(u8"c = "_sv, jsx, u8";"_sv), jsx_options,
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Mismatched_JSX_Tags),
-                          }));
+    test_parse_and_visit_module(concat(u8"c = "_sv, jsx, u8";"_sv),
+                                u8"Diag_Mismatched_JSX_Tags"_diag, jsx_options);
   }
 }
 
@@ -447,16 +442,12 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
 
   // Second element should be visited like normal.
   {
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8R"(c = <FirstComponent></FirstComponent> <SecondComponent>{child}</SecondComponent>;)"_sv,
-        jsx_options, capture_diags);
-    p.parse_and_visit_module();
+        u8"Diag_Adjacent_JSX_Without_Parent"_diag, jsx_options);
     EXPECT_THAT(
         p.variable_uses,
         ElementsAreArray({u8"FirstComponent", u8"SecondComponent", u8"child"}));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Adjacent_JSX_Without_Parent),
-                          }));
   }
 
   // Because the second element is on its own line, ASI should kick in, and the

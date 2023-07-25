@@ -2009,15 +2009,10 @@ TEST_F(Test_Parse_TypeScript_Type, typeof_generic_does_not_allow_dots_after) {
   }
 
   for (String8 keyword : keywords) {
-    Test_Parser p(concat(u8"typeof Class<T>."_sv, keyword), typescript_options,
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_typescript_type_expression();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type),
-        }));
+    test_parse_and_visit_typescript_type_expression(
+        concat(u8"typeof Class<T>."_sv, keyword),
+        u8"Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type"_diag,
+        typescript_options);
   }
 }
 

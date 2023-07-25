@@ -1096,9 +1096,12 @@ TEST_F(Test_Parse_TypeScript_Interface, generator_methods_are_not_allowed) {
     SCOPED_TRACE(out_string8(method_name));
 
     {
-      Test_Parser p(concat(u8"interface I { *"_sv, method_name, u8"(); }"_sv),
-                    typescript_options, capture_diags);
-      p.parse_and_visit_module();
+      // clang-format off
+      Spy_Visitor p = test_parse_and_visit_module(
+          concat(u8"interface I { *"_sv, method_name, u8"(); }"_sv), //
+          /*  */ u8"              ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag, //
+          typescript_options);
+      // clang-format on
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_declaration",   // I
                                 "visit_enter_interface_scope",  //
@@ -1108,41 +1111,26 @@ TEST_F(Test_Parse_TypeScript_Interface, generator_methods_are_not_allowed) {
                                 "visit_exit_interface_scope",   //
                                 "visit_end_of_module",
                             }));
-      assert_diagnostics(
-          p.code, p.errors,
-          {
-              u8"              ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,
-          });
     }
 
     {
-      Test_Parser p(
-          concat(u8"interface I { static *"_sv, method_name, u8"(); }"_sv),
-          typescript_options, capture_diags);
-      p.parse_and_visit_module();
-      EXPECT_THAT(
-          p.errors,
-          ::testing::UnorderedElementsAreArray({
-              DIAG_TYPE(Diag_Interface_Properties_Cannot_Be_Static),
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Methods_Cannot_Be_Generators,  //
-                  star, u8"interface I { static "_sv.size(), u8"*"_sv),
-          }));
+      // clang-format off
+      test_parse_and_visit_module(
+          concat(u8"interface I { static *"_sv, method_name, u8"(); }"_sv), //
+          /*  */ u8"                     ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,  //
+          /*  */ u8"Diag_Interface_Properties_Cannot_Be_Static"_diag, //
+          typescript_options);
+      // clang-format on
     }
 
     {
-      Test_Parser p(
-          concat(u8"interface I { async *"_sv, method_name, u8"(); }"_sv),
-          typescript_options, capture_diags);
-      p.parse_and_visit_module();
-      EXPECT_THAT(
-          p.errors,
-          ::testing::UnorderedElementsAreArray({
-              DIAG_TYPE(Diag_Interface_Methods_Cannot_Be_Async),
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Methods_Cannot_Be_Generators,  //
-                  star, u8"interface I { async "_sv.size(), u8"*"_sv),
-          }));
+      // clang-format off
+      test_parse_and_visit_module(
+          concat(u8"interface I { async *"_sv, method_name, u8"(); }"_sv), //
+          /*  */ u8"                    ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,  //
+          /*  */ u8"Diag_Interface_Methods_Cannot_Be_Async"_diag, //
+          typescript_options);
+      // clang-format on
     }
   }
 }

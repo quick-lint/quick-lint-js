@@ -388,15 +388,11 @@ TEST_F(Test_Parse_TypeScript_Enum,
     }
 
     {
-      Test_Parser p(concat(decl, u8" E { A = f(), B, C, D }"_sv),
-                    typescript_options, capture_diags);
-      SCOPED_TRACE(p.code);
-      p.parse_and_visit_module();
-      EXPECT_THAT(p.errors,
-                  ElementsAreArray({
-                      DIAG_TYPE(Diag_TypeScript_Enum_Value_Must_Be_Constant),
-                  }))
-          << "shouldn't complain about auto member following computed member";
+      // Shouldn't complain about auto member following computed member.
+      test_parse_and_visit_module(
+          concat(decl, u8" E { A = f(), B, C, D }"_sv),
+          u8"Diag_TypeScript_Enum_Value_Must_Be_Constant"_diag,
+          typescript_options);
     }
 
     {
@@ -414,14 +410,10 @@ TEST_F(Test_Parse_TypeScript_Enum,
     }
 
     {
-      Test_Parser p(concat(decl, u8" E { A = this }"_sv), typescript_options,
-                    capture_diags);
-      SCOPED_TRACE(p.code);
-      p.parse_and_visit_module();
-      EXPECT_THAT(p.errors,
-                  ElementsAreArray({
-                      DIAG_TYPE(Diag_TypeScript_Enum_Value_Must_Be_Constant),
-                  }));
+      test_parse_and_visit_module(
+          concat(decl, u8" E { A = this }"_sv),
+          u8"Diag_TypeScript_Enum_Value_Must_Be_Constant"_diag,
+          typescript_options);
     }
   }
 }

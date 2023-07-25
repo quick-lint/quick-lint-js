@@ -314,9 +314,10 @@ TEST_F(Test_Parse_TypeScript_Function,
 TEST_F(Test_Parse_TypeScript_Function,
        arrow_cannot_have_parenthesized_return_type_annotation) {
   {
-    Test_Parser p(u8"((param): (number) => {})"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    test_parse_and_visit_statement(
+        u8"((param): (number) => {})"_sv,
+        u8"Diag_TypeScript_Type_Annotation_In_Expression"_diag,
+        typescript_options);
     // FIXME(strager): The above code is illegal TypeScript.
     //
     // Our parser currently interprets the above code as if '(param)' is a
@@ -326,10 +327,6 @@ TEST_F(Test_Parse_TypeScript_Function,
     // We should parse intelligently and instead interpret '(param)' as a
     // parameter list, '(number)' as the return type and '{}' as the function's
     // body, and also produce a nice diagnostic.
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_TypeScript_Type_Annotation_In_Expression),
-                }));
   }
 }
 

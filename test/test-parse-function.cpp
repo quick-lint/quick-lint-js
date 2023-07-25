@@ -976,13 +976,9 @@ TEST_F(Test_Parse_Function, function_with_invalid_parameters) {
            u8"x.prop"_sv,
            u8"html`<strong>hello</strong>`"_sv,
        }) {
-    Test_Parser p(concat(u8"function f("_sv, parameter_list, u8") {}"_sv),
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Invalid_Parameter),
-                          }));
+    test_parse_and_visit_statement(
+        concat(u8"function f("_sv, parameter_list, u8") {}"_sv),
+        u8"Diag_Invalid_Parameter"_diag);
   }
 
   {
