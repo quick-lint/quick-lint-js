@@ -120,33 +120,23 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   // If an entry is empty, the member's name is inferred.
   Fixed_Vector<String8_View, 3> diag_members;
 
-  out_assertion.members.emplace_back();
-  out_assertion.members[0].span_begin_offset = lexer.parse_leading_spaces();
-  out_assertion.members[0].span_end_offset =
-      out_assertion.members[0].span_begin_offset + lexer.parse_span_carets();
-  lexer.skip_spaces();
-
-  String8_View diag_type_span = lexer.parse_identifier();
-  diag_members.push_back(lexer.try_parse_dot_identifier());
-
-  if (*lexer.p == u8'\n') {
-    ++lexer.p;
+  String8_View diag_type_span;
+  for (Fixed_Vector_Size i = 0; i < 3; ++i) {
     out_assertion.members.emplace_back();
-    out_assertion.members[1].span_begin_offset = lexer.parse_leading_spaces();
-    out_assertion.members[1].span_end_offset =
-        out_assertion.members[1].span_begin_offset + lexer.parse_span_carets();
+    out_assertion.members[i].span_begin_offset = lexer.parse_leading_spaces();
+    out_assertion.members[i].span_end_offset =
+        out_assertion.members[i].span_begin_offset + lexer.parse_span_carets();
     lexer.skip_spaces();
-    diag_members.push_back(lexer.try_parse_dot_identifier());
-  }
 
-  if (*lexer.p == u8'\n') {
-    ++lexer.p;
-    out_assertion.members.emplace_back();
-    out_assertion.members[2].span_begin_offset = lexer.parse_leading_spaces();
-    out_assertion.members[2].span_end_offset =
-        out_assertion.members[2].span_begin_offset + lexer.parse_span_carets();
-    lexer.skip_spaces();
+    if (i == 0) {
+      diag_type_span = lexer.parse_identifier();
+    }
     diag_members.push_back(lexer.try_parse_dot_identifier());
+
+    if (*lexer.p != u8'\n') {
+      break;
+    }
+    ++lexer.p;
   }
 
   String8_View extra_member_span;
@@ -229,20 +219,9 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     member_index += 1;
   }
 
-  if (diag_members.size() > 1) {
+  for (Fixed_Vector_Size i = 1; i < diag_members.size(); ++i) {
     const Diagnostic_Info_Variable_Debug* member =
-        diag_info.find(to_string_view(diag_members[1]));
-    QLJS_ALWAYS_ASSERT(member != nullptr);
-
-    out_assertion.members[member_index].name = member->name;
-    out_assertion.members[member_index].offset = member->offset;
-    out_assertion.members[member_index].type = member->type;
-    member_index += 1;
-  }
-
-  if (diag_members.size() > 2) {
-    const Diagnostic_Info_Variable_Debug* member =
-        diag_info.find(to_string_view(diag_members[2]));
+        diag_info.find(to_string_view(diag_members[i]));
     QLJS_ALWAYS_ASSERT(member != nullptr);
 
     out_assertion.members[member_index].name = member->name;
