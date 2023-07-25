@@ -1061,8 +1061,7 @@ TEST_F(Test_Parse_Function, arrow_function_with_invalid_parameters) {
                 left_paren_to_right_paren, u8"(["_sv.size(), u8"(x,)"_sv),    //
             DIAG_TYPE_OFFSETS(                                                //
                 p.code, Diag_Stray_Comma_In_Parameter,                        //
-                comma, u8"([(x"_sv.size(), u8","_sv)                          //
-            ,
+                comma, u8"([(x"_sv.size(), u8","_sv),                         //
         }));
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
