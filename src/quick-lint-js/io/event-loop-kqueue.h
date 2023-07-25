@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/io/event-loop-base.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/port/char8.h>
@@ -46,24 +47,22 @@ class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
       Platform_File_Ref pipe = this->const_derived().get_readable_pipe();
       QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
-      std::array<struct ::kevent, 2> changes;
-      std::size_t change_count = 0;
+      Fixed_Vector<struct ::kevent, 2> changes;
 
-      EV_SET(&changes[change_count++], pipe.get(), EVFILT_READ, EV_ADD, 0, 0,
+      EV_SET(&changes.emplace_back(), pipe.get(), EVFILT_READ, EV_ADD, 0, 0,
              reinterpret_cast<void*>(event_udata_readable_pipe));
 
       if (std::optional<POSIX_FD_File_Ref> fd =
               this->derived().get_pipe_write_fd()) {
-        EV_SET(&changes[change_count++], fd->get(), EVFILT_WRITE, EV_ADD, 0, 0,
+        EV_SET(&changes.emplace_back(), fd->get(), EVFILT_WRITE, EV_ADD, 0, 0,
                reinterpret_cast<void*>(event_udata_pipe_write));
       }
 
-      QLJS_ASSERT(change_count > 0);
-      QLJS_ASSERT(change_count <= changes.size());
+      QLJS_ASSERT(changes.size() > 0);
       ::timespec timeout = {.tv_sec = 0, .tv_nsec = 0};
       int rc = ::kevent(this->kqueue_fd_.get(),
                         /*changelist=*/changes.data(),
-                        /*nchanges=*/narrow_cast<int>(change_count),
+                        /*nchanges=*/narrow_cast<int>(changes.size()),
                         /*eventlist=*/nullptr, /*nevents=*/0,
                         /*timeout=*/&timeout);
       if (rc == -1) {
