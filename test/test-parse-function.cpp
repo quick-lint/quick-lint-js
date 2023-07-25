@@ -1751,15 +1751,9 @@ TEST_F(Test_Parse_Function, invalid_function_parameter) {
   }
 
   {
-    Test_Parser p(u8"let g = ((x)) => { }"_sv, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(                                                //
-                p.code, Diag_Unexpected_Function_Parameter_Is_Parenthesized,  //
-                left_paren_to_right_paren, u8"let g = ("_sv.size(), u8"(x)"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"let g = ((x)) => { }"_sv,  //
+        u8"         ^^^ Diag_Unexpected_Function_Parameter_Is_Parenthesized"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_enter_function_scope_body",  //
@@ -1770,16 +1764,9 @@ TEST_F(Test_Parse_Function, invalid_function_parameter) {
   }
 
   {
-    Test_Parser p(u8"let f = function ((x)) { }"_sv, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(                                                //
-                p.code, Diag_Unexpected_Function_Parameter_Is_Parenthesized,  //
-                left_paren_to_right_paren, u8"let f = function ("_sv.size(),
-                u8"(x)"_sv),
-        }));
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"let f = function ((x)) { }"_sv,  //
+        u8"                  ^^^ Diag_Unexpected_Function_Parameter_Is_Parenthesized"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       //
