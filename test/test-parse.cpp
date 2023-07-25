@@ -640,9 +640,10 @@ TEST_F(Test_Parse, unimplemented_token_returns_to_innermost_handler) {
     });
     EXPECT_TRUE(outer_ok);
     EXPECT_TRUE(inner_catch_returned);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Unexpected_Token),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Unexpected_Token"_diag,
+                       });
   }
 }
 
@@ -663,9 +664,10 @@ TEST_F(Test_Parse,
     });
     EXPECT_FALSE(outer_ok);
     EXPECT_TRUE(inner_catch_returned);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Unexpected_Token),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Unexpected_Token"_diag,
+                       });
   }
 }
 
@@ -706,11 +708,11 @@ TEST_F(Test_Parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
     EXPECT_THAT(v.errors, IsEmpty())
         << "Diag_Unexpected_Token should be buffered in the transaction";
     p.commit_transaction(std::move(transaction));
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Unexpected_Token),
-                          }))
-        << "Diag_Unexpected_Token should be reported when committing the "
-           "transaction";
+    // Diag_Unexpected_Token should be reported when committing the transaction.
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Unexpected_Token"_diag,
+                       });
   }
 }
 
@@ -880,9 +882,10 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
     Parser p(&code, &v, javascript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Depth_Limit_Exceeded"_diag,
+                       });
   }
 
   {
@@ -903,9 +906,10 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
                   capture_diags);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_FALSE(ok);
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded),
-                          }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Depth_Limit_Exceeded"_diag,
+                       });
   }
 
   for (const String8& jsx : {
@@ -926,9 +930,10 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
     Parser p(&code, &v, jsx_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Depth_Limit_Exceeded"_diag,
+                       });
   }
 
   for (const String8& type : {
@@ -940,9 +945,10 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
     Parser p(&code, &v, typescript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Depth_Limit_Exceeded"_diag,
+                       });
   }
 }
 }

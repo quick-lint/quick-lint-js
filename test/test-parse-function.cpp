@@ -1026,9 +1026,10 @@ TEST_F(Test_Parse_Function, arrow_function_with_invalid_parameters) {
     SCOPED_TRACE(p.code);
     auto guard = p.enter_function(Function_Attributes::async_generator);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Invalid_Parameter),
-                          }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Invalid_Parameter"_diag,
+                       });
   }
 
   {
@@ -1041,16 +1042,12 @@ TEST_F(Test_Parse_Function, arrow_function_with_invalid_parameters) {
     Test_Parser p(u8"([(x,)] => {});"_sv, capture_diags);
     auto guard = p.enter_function(Function_Attributes::generator);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(                                                //
-                p.code, Diag_Unexpected_Function_Parameter_Is_Parenthesized,  //
-                left_paren_to_right_paren, u8"(["_sv.size(), u8"(x,)"_sv),    //
-            DIAG_TYPE_OFFSETS(                                                //
-                p.code, Diag_Stray_Comma_In_Parameter,                        //
-                comma, u8"([(x"_sv.size(), u8","_sv),                         //
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"    ^ Diag_Stray_Comma_In_Parameter"_diag,  //
+            u8"  ^^^^ Diag_Unexpected_Function_Parameter_Is_Parenthesized"_diag,
+        });
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // x
@@ -1063,10 +1060,11 @@ TEST_F(Test_Parse_Function, arrow_function_with_invalid_parameters) {
     Test_Parser p(u8"((yield) => {});"_sv, capture_diags);
     auto guard = p.enter_function(Function_Attributes::generator);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Cannot_Declare_Yield_In_Generator_Function),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"Diag_Cannot_Declare_Yield_In_Generator_Function"_diag,
+        });
   }
 
   {

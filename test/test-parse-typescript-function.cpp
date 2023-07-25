@@ -1306,14 +1306,12 @@ TEST_F(Test_Parse_TypeScript_Function,
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({function_decl(u8"f"_sv), function_decl(u8"g"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Function_Body, expected_body,
-                              u8"function f()"_sv.size(), u8""_sv),
-        }))
-        << "missing function body is more likely, so don't report "
-           "Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name";
+    // Missing function body is more likely, so don't report
+    // Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name.
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"            ` Diag_Missing_Function_Body"_diag,
+                       });
   }
 
   {
@@ -1342,14 +1340,12 @@ TEST_F(Test_Parse_TypeScript_Function,
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"async", u8"await", u8"myPromise"}))
         << "'async' should be a variable reference, not a keyword";
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Function_Body, expected_body,
-                              u8"function f()"_sv.size(), u8""_sv),
-        }))
-        << "missing function body is more likely, so don't report "
-           "Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name";
+    // Missing function body is more likely, so don't report
+    // Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name.
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"            ` Diag_Missing_Function_Body"_diag,
+                       });
   }
 }
 

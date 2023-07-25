@@ -574,9 +574,10 @@ TEST_F(Test_Parse_TypeScript_Generic,
     Expression* ast = p.parse_expression();
     // FIXME(#557): Precedence is incorrect.
     EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, missing))");
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Missing_Operand_For_Operator),
-                          }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Missing_Operand_For_Operator"_diag,
+                       });
   }
 
   {

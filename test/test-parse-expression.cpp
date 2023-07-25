@@ -1461,10 +1461,10 @@ TEST_F(Test_Parse_Expression, parse_invalid_assignment) {
     Test_Parser p(code, capture_diags);
     p.parse_expression();
 
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Invalid_Expression_Left_Of_Assignment),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Invalid_Expression_Left_Of_Assignment"_diag,
+                       });
   }
 
   for (String8_View code : {
@@ -1474,10 +1474,10 @@ TEST_F(Test_Parse_Expression, parse_invalid_assignment) {
     Test_Parser p(code, typescript_options, capture_diags);
     p.parse_expression();
 
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Invalid_Expression_Left_Of_Assignment),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Invalid_Expression_Left_Of_Assignment"_diag,
+                       });
   }
 }
 
@@ -1716,40 +1716,40 @@ TEST_F(Test_Parse_Expression, untagged_template_with_invalid_escape) {
     Test_Parser p(u8R"(`invalid\uescape`)"_sv, capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "literal");
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Expected_Hex_Digits_In_Unicode_Escape),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+                       });
   }
 
   {
     Test_Parser p(u8R"(`invalid\u${expr}escape`)"_sv, capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(var expr)");
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Expected_Hex_Digits_In_Unicode_Escape),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+                       });
   }
 
   {
     Test_Parser p(u8R"(`invalid${expr}\uescape`)"_sv, capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(var expr)");
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Expected_Hex_Digits_In_Unicode_Escape),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+                       });
   }
 
   {
     Test_Parser p(u8R"(`invalid${expr1}\u${expr2}escape`)"_sv, capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(var expr1, var expr2)");
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Expected_Hex_Digits_In_Unicode_Escape),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Expected_Hex_Digits_In_Unicode_Escape"_diag,
+                       });
   }
 }
 
@@ -3519,10 +3519,11 @@ TEST_F(Test_Parse_Expression,
                     capture_diags);
       Expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
-      EXPECT_THAT(p.errors,
-                  ElementsAreArray({
-                      DIAG_TYPE(Diag_Methods_Should_Not_Use_Function_Keyword),
-                  }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"Diag_Methods_Should_Not_Use_Function_Keyword"_diag,
+          });
     }
   }
 }
@@ -3587,8 +3588,10 @@ TEST_F(Test_Parse_Expression, whitespace_between_bang_and_equal) {
 TEST_F(Test_Parse_Expression, Diag_Spread_Must_Precede_Expression) {
   Test_Parser p(u8"a = ...;"_sv, capture_diags);
   p.parse_and_visit_expression();
-  EXPECT_THAT(p.errors, ElementsAreArray(
-                            {DIAG_TYPE(Diag_Spread_Must_Precede_Expression)}));
+  assert_diagnostics(p.code, p.errors,
+                     {
+                         u8"Diag_Spread_Must_Precede_Expression"_diag,
+                     });
 }
 
 TEST_F(Test_Parse_Expression, precedence) {
