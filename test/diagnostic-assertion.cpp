@@ -122,10 +122,10 @@ Diagnostic_Assertion::parse(const Char8* specification) {
 
   String8_View diag_type_span;
   for (Fixed_Vector_Size i = 0; i < 3; ++i) {
-    out_assertion.members.emplace_back();
-    out_assertion.members[i].span_begin_offset = lexer.parse_leading_spaces();
-    out_assertion.members[i].span_end_offset =
-        out_assertion.members[i].span_begin_offset + lexer.parse_span_carets();
+    Member& member = out_assertion.members.emplace_back();
+    member.span_begin_offset = lexer.parse_leading_spaces();
+    member.span_end_offset =
+        member.span_begin_offset + lexer.parse_span_carets();
     lexer.skip_spaces();
 
     if (i == 0) {
@@ -213,18 +213,18 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     }
     QLJS_ALWAYS_ASSERT(member != nullptr);
 
-    out_assertion.members[i].name = member->name;
-    out_assertion.members[i].offset = member->offset;
-    out_assertion.members[i].type = member->type;
+    Member& out_member = out_assertion.members[i];
+    out_member.name = member->name;
+    out_member.offset = member->offset;
+    out_member.type = member->type;
   }
 
-  Fixed_Vector_Size member_index = diag_members.size();
   if (!extra_member_span.empty()) {
     const Diagnostic_Info_Variable_Debug* extra_member =
         diag_info.find(to_string_view(extra_member_span));
     QLJS_ALWAYS_ASSERT(extra_member != nullptr);
 
-    out_assertion.members.emplace_back();
+    Member& out_member = out_assertion.members.emplace_back();
     switch (extra_member->type) {
     case Diagnostic_Arg_Type::char8:
       if (extra_member_value_span.size() != 1) {
@@ -233,21 +233,20 @@ Diagnostic_Assertion::parse(const Char8* specification) {
                    "} is a Char8 but the given value is not one byte"sv));
         return failed_result(std::move(lexer.errors));
       }
-      out_assertion.members[member_index].name = extra_member->name;
-      out_assertion.members[member_index].offset = extra_member->offset;
-      out_assertion.members[member_index].type = extra_member->type;
-      out_assertion.members[member_index].character =
-          extra_member_value_span[0];
+      out_member.name = extra_member->name;
+      out_member.offset = extra_member->offset;
+      out_member.type = extra_member->type;
+      out_member.character = extra_member_value_span[0];
       break;
 
     case Diagnostic_Arg_Type::enum_kind: {
-      out_assertion.members[member_index].name = extra_member->name;
-      out_assertion.members[member_index].offset = extra_member->offset;
-      out_assertion.members[member_index].type = extra_member->type;
+      out_member.name = extra_member->name;
+      out_member.offset = extra_member->offset;
+      out_member.type = extra_member->type;
       std::optional<Enum_Kind> enum_kind =
           try_parse_enum_kind(extra_member_value_span);
       if (enum_kind.has_value()) {
-        out_assertion.members[member_index].enum_kind = *enum_kind;
+        out_member.enum_kind = *enum_kind;
       } else {
         lexer.errors.push_back(concat("invalid Enum_Kind: "sv,
                                       to_string_view(extra_member_value_span)));
@@ -256,20 +255,20 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     }
 
     case Diagnostic_Arg_Type::string8_view:
-      out_assertion.members[member_index].name = extra_member->name;
-      out_assertion.members[member_index].offset = extra_member->offset;
-      out_assertion.members[member_index].type = extra_member->type;
-      out_assertion.members[member_index].string = extra_member_value_span;
+      out_member.name = extra_member->name;
+      out_member.offset = extra_member->offset;
+      out_member.type = extra_member->type;
+      out_member.string = extra_member_value_span;
       break;
 
     case Diagnostic_Arg_Type::statement_kind: {
-      out_assertion.members[member_index].name = extra_member->name;
-      out_assertion.members[member_index].offset = extra_member->offset;
-      out_assertion.members[member_index].type = extra_member->type;
+      out_member.name = extra_member->name;
+      out_member.offset = extra_member->offset;
+      out_member.type = extra_member->type;
       std::optional<Statement_Kind> statement_kind =
           try_parse_statement_kind(extra_member_value_span);
       if (statement_kind.has_value()) {
-        out_assertion.members[member_index].statement_kind = *statement_kind;
+        out_member.statement_kind = *statement_kind;
       } else {
         lexer.errors.push_back(concat("invalid Statement_Kind: "sv,
                                       to_string_view(extra_member_value_span)));
