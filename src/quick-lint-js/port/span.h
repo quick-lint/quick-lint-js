@@ -13,6 +13,9 @@
 namespace quick_lint_js {
 using Span_Size = std::ptrdiff_t;
 
+template <class T, Span_Size max_size>
+class Fixed_Vector;
+
 // Like std::span.
 template <class T>
 class Span {
@@ -38,6 +41,11 @@ class Span {
 
   explicit Span(const std::vector<std::remove_const_t<T>> &data) noexcept
       : data_(data.data()), size_(narrow_cast<Span_Size>(data.size())) {}
+
+  template <Span_Size max_size>
+  explicit Span(
+      const Fixed_Vector<std::remove_const_t<T>, max_size> &data) noexcept
+      : Span(data.data(), data.size()) {}
 
   explicit Span(T *data, size_type size) noexcept : data_(data), size_(size) {}
 

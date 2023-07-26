@@ -76,8 +76,8 @@ class CXX_Lexer {
 
 struct CXX_Diagnostic_Message {
   // Each message_strings item is concatenated together by the C++ preprocessor.
-  std::vector<String8_View> message_strings;
-  std::vector<String8_View> argument_variables;
+  Fixed_Vector<String8_View, 4> message_strings;
+  Fixed_Vector<String8_View, 4> argument_variables;
 };
 
 struct CXX_Diagnostic_Variable {
@@ -89,8 +89,8 @@ struct CXX_Diagnostic_Type {
   String8_View name;
   String8_View code_string;
   String8_View severity;
-  std::vector<CXX_Diagnostic_Message> messages;
-  std::vector<CXX_Diagnostic_Variable> variables;
+  Fixed_Vector<CXX_Diagnostic_Message, 4> messages;
+  Fixed_Vector<CXX_Diagnostic_Variable, 4> variables;
 
   std::uint16_t code_number() const;
 

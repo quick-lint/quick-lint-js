@@ -586,13 +586,12 @@ const Diagnostic_Info_Debug& get_diagnostic_info_debug(Diag_Type type) {
       Diagnostic_Info_Debug& info = infos.emplace_back();
       Fixed_Vector<std::size_t, 4> variable_offsets = layout_offsets(
           Span<const CXX_Diagnostic_Variable>(diag_type.variables));
-      for (std::size_t i = 0; i < diag_type.variables.size(); ++i) {
+      for (Fixed_Vector_Size i = 0; i < diag_type.variables.size(); ++i) {
         CXX_Diagnostic_Variable& var = diag_type.variables[i];
         info.variables.push_back(Diagnostic_Info_Variable_Debug{
             .name = var.name,
             .type = parse_diagnostic_arg_type(var.type),
-            .offset = narrow_cast<std::uint8_t>(
-                variable_offsets[narrow_cast<Fixed_Vector_Size>(i)]),
+            .offset = narrow_cast<std::uint8_t>(variable_offsets[i]),
         });
       }
     }
