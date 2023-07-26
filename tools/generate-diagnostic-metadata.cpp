@@ -255,7 +255,9 @@ int main(int argc, char** argv) {
     std::exit(1);
   }
 
-  CXX_Parser cxx_parser(diagnostic_types_file_path, &*diagnostic_types_source);
+  CLI_Locator locator(&*diagnostic_types_source);
+  CXX_Parser cxx_parser(&*diagnostic_types_source, diagnostic_types_file_path,
+                        &locator);
   cxx_parser.parse_file();
 
   if (!cxx_parser.check_diag_codes()) {

@@ -3,6 +3,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/span.h>
@@ -14,6 +15,12 @@ using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
+class Test_CXX_Lexer : private CLI_Locator, public CXX_Lexer {
+ public:
+  explicit Test_CXX_Lexer(Padded_String_View code)
+      : CLI_Locator(code), CXX_Lexer(code, __FILE__ "(test)", this) {}
+};
+
 CXX_Diagnostic_Variable var(String8_View type) {
   return CXX_Diagnostic_Variable{
       .type = type,
@@ -23,14 +30,14 @@ CXX_Diagnostic_Variable var(String8_View type) {
 
 TEST(Test_CXX_Parser, lex_plain_string_literal) {
   Padded_String code(u8R"("hello world")"_sv);
-  CXX_Lexer l("", &code);
+  Test_CXX_Lexer l(&code);
   ASSERT_EQ(l.peek().type, CXX_Token_Type::string_literal);
   EXPECT_EQ(l.peek().decoded_string, u8"hello world"_sv);
 }
 
 TEST(Test_CXX_Parser, string_literal_decodes_escapes) {
   Padded_String code(u8R"("backslash=\\ newline=\n dquote=\" squote=\'")"_sv);
-  CXX_Lexer l("", &code);
+  Test_CXX_Lexer l(&code);
   ASSERT_EQ(l.peek().type, CXX_Token_Type::string_literal);
   EXPECT_EQ(l.peek().decoded_string,
             u8"backslash=\\ newline=\n dquote=\" squote='"_sv);
@@ -39,7 +46,7 @@ TEST(Test_CXX_Parser, string_literal_decodes_escapes) {
 TEST(Test_CXX_Parser, adjacent_string_literals_concatenate) {
   {
     Padded_String code(u8R"("hello " "world")"_sv);
-    CXX_Lexer l("", &code);
+    Test_CXX_Lexer l(&code);
     ASSERT_EQ(l.peek().type, CXX_Token_Type::string_literal);
     EXPECT_EQ(l.peek().decoded_string, u8"hello world"_sv);
   }
@@ -48,7 +55,7 @@ TEST(Test_CXX_Parser, adjacent_string_literals_concatenate) {
     Padded_String code(
         u8R"("hello "
 "world")"_sv);
-    CXX_Lexer l("", &code);
+    Test_CXX_Lexer l(&code);
     ASSERT_EQ(l.peek().type, CXX_Token_Type::string_literal);
     EXPECT_EQ(l.peek().decoded_string, u8"hello world"_sv);
   }
@@ -58,7 +65,7 @@ TEST(Test_CXX_Parser, adjacent_string_literals_concatenate) {
         u8R"("hello "
 // comment
 "world")"_sv);
-    CXX_Lexer l("", &code);
+    Test_CXX_Lexer l(&code);
     ASSERT_EQ(l.peek().type, CXX_Token_Type::string_literal);
     EXPECT_EQ(l.peek().decoded_string, u8"hello world"_sv);
   }

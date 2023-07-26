@@ -15,6 +15,8 @@
 #include <vector>
 
 namespace quick_lint_js {
+class CLI_Locator;
+
 enum class CXX_Token_Type {
   end_of_file,
   identifier,
@@ -44,7 +46,8 @@ struct CXX_Token {
 
 class CXX_Lexer {
  public:
-  explicit CXX_Lexer(const char* file_path, Padded_String_View input);
+  explicit CXX_Lexer(Padded_String_View input, const char* file_path,
+                     CLI_Locator* locator);
 
   const CXX_Token& peek() { return this->token_; }
 
@@ -70,9 +73,10 @@ class CXX_Lexer {
   [[noreturn]] void fatal();
 
   CXX_Token token_;
-  const char* file_path_;
   const Char8* input_;
-  Padded_String_View original_input_;
+
+  const char* file_path_;
+  CLI_Locator* locator_;
 
   Monotonic_Allocator decoded_string_allocator_{
       "CXX_Lexer::decoded_string_allocator_"};
@@ -106,7 +110,8 @@ struct CXX_Diagnostic_Type {
 
 class CXX_Parser {
  public:
-  explicit CXX_Parser(const char* file_path, Padded_String_View input);
+  explicit CXX_Parser(Padded_String_View input, const char* file_path,
+                      CLI_Locator* locator);
 
   void parse_file();
 

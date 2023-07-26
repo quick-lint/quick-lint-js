@@ -46,8 +46,9 @@ std::string_view to_string(CXX_Token_Type token_type) {
   QLJS_UNREACHABLE();
 }
 
-CXX_Lexer::CXX_Lexer(const char* file_path, Padded_String_View input)
-    : file_path_(file_path), input_(input.data()), original_input_(input) {
+CXX_Lexer::CXX_Lexer(Padded_String_View input, const char* file_path,
+                     CLI_Locator* locator)
+    : input_(input.data()), file_path_(file_path), locator_(locator) {
   this->parse_token();
 }
 
@@ -247,8 +248,7 @@ void CXX_Lexer::skip_newline() {
 }
 
 [[noreturn]] void CXX_Lexer::fatal() {
-  CLI_Locator locator(this->original_input_);
-  CLI_Source_Position p = locator.position(this->input_);
+  CLI_Source_Position p = this->locator_->position(this->input_);
   std::fprintf(stderr, "%s:%d:%d: error: failed to lex\n", this->file_path_,
                p.line_number, p.column_number);
   std::exit(1);
@@ -277,8 +277,9 @@ const CXX_Diagnostic_Variable* CXX_Diagnostic_Type::variable_from_name(
   return &*it;
 }
 
-CXX_Parser::CXX_Parser(const char* file_path, Padded_String_View input)
-    : lexer_(file_path, input) {}
+CXX_Parser::CXX_Parser(Padded_String_View input, const char* file_path,
+                       CLI_Locator* locator)
+    : lexer_(input, file_path, locator) {}
 
 void CXX_Parser::parse_file() {
   this->skip_preprocessor_directives();
@@ -422,8 +423,8 @@ bool CXX_Parser::check_diag_codes() {
     if (existing_it == code_to_diag_name.end()) {
       code_to_diag_name.emplace(type.code_string, type.name);
     } else {
-      CLI_Locator locator(this->lexer_.original_input_);
-      CLI_Source_Position p = locator.position(type.code_string.data());
+      CLI_Source_Position p =
+          this->lexer_.locator_->position(type.code_string.data());
       std::fprintf(
           stderr,
           "%s:%d:%d: error: diag code %s already in use; try this "
@@ -432,7 +433,7 @@ bool CXX_Parser::check_diag_codes() {
           quick_lint_js::to_string(type.code_string).c_str(),
           quick_lint_js::to_string(this->next_unused_diag_code_string())
               .c_str());
-      p = locator.position(existing_it->first.data());
+      p = this->lexer_.locator_->position(existing_it->first.data());
       std::fprintf(stderr, "%s:%d:%d: note: %s used code %s here\n",
                    this->lexer_.file_path_, p.line_number, p.column_number,
                    quick_lint_js::to_string(existing_it->second).c_str(),
@@ -441,8 +442,8 @@ bool CXX_Parser::check_diag_codes() {
     }
 
     if (!this->is_valid_code_string(type.code_string)) {
-      CLI_Locator locator(this->lexer_.original_input_);
-      CLI_Source_Position p = locator.position(type.code_string.data());
+      CLI_Source_Position p =
+          this->lexer_.locator_->position(type.code_string.data());
       std::fprintf(
           stderr,
           "%s:%d:%d: error: diag code %s is malformed; expected a code like "
@@ -526,8 +527,7 @@ void CXX_Parser::expect_skip(String8_View expected_identifier) {
 }
 
 [[noreturn]] void CXX_Parser::fatal(const char* message) {
-  CLI_Locator locator(this->lexer_.original_input_);
-  CLI_Source_Position p = locator.position(this->lexer_.input_);
+  CLI_Source_Position p = this->lexer_.locator_->position(this->lexer_.input_);
   std::fprintf(stderr, "%s:%d:%d: error: failed to parse before: %s\n",
                this->lexer_.file_path_, p.line_number, p.column_number,
                message);
