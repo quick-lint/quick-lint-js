@@ -407,15 +407,9 @@ TEST_F(Test_Parse_Warning, warn_on_variable_assigned_to_self_is_noop) {
   test_parse_and_visit_statement(
       u8"x = x"_sv,  //
       u8"^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag);
-  {
-    Test_Parser p(u8"x = \\u{78}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    assert_diagnostics(
-        p.code, p.errors,
-        {
-            u8"^^^^^^^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag,
-        });
-  }
+  test_parse_and_visit_statement(
+      u8"x = \\u{78}"_sv,  //
+      u8"^^^^^^^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag);
   test_parse_and_visit_statement(
       u8"x = ((x))"_sv,  //
       u8"^^^^^^^^^ Diag_Variable_Assigned_To_Self_Is_Noop"_diag);
@@ -428,33 +422,15 @@ TEST_F(Test_Parse_Warning, warn_on_variable_assigned_to_self_is_noop) {
 }
 
 TEST_F(Test_Parse_Warning, warn_on_xor_operation_used_as_exponentiation) {
-  {
-    Test_Parser p(u8"2 ^ 8"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    assert_diagnostics(
-        p.code, p.errors,
-        {
-            u8"  ^ Diag_Xor_Used_As_Exponentiation.xor_operator"_diag,
-        });
-  }
-  {
-    Test_Parser p(u8"let a = 2 ^ 5"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    assert_diagnostics(
-        p.code, p.errors,
-        {
-            u8"          ^ Diag_Xor_Used_As_Exponentiation.xor_operator"_diag,
-        });
-  }
-  {
-    Test_Parser p(u8"10 ^ 5"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    assert_diagnostics(
-        p.code, p.errors,
-        {
-            u8"   ^ Diag_Xor_Used_As_Exponentiation.xor_operator"_diag,
-        });
-  }
+  test_parse_and_visit_expression(
+      u8"2 ^ 8"_sv,  //
+      u8"  ^ Diag_Xor_Used_As_Exponentiation.xor_operator"_diag);
+  test_parse_and_visit_statement(
+      u8"let a = 2 ^ 5"_sv,  //
+      u8"          ^ Diag_Xor_Used_As_Exponentiation.xor_operator"_diag);
+  test_parse_and_visit_expression(
+      u8"10 ^ 5"_sv,  //
+      u8"   ^ Diag_Xor_Used_As_Exponentiation.xor_operator"_diag);
   test_parse_and_visit_expression(u8"x ^ a"_sv, no_diags);
   test_parse_and_visit_expression(u8"10 ^ x"_sv, no_diags);
   test_parse_and_visit_expression(u8"3 ^ x"_sv, no_diags);
