@@ -505,8 +505,8 @@ TEST_F(Test_Parse_Loop, for_in_loop) {
   }
 
   {
-    Test_Parser p(u8"for (const x in []) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p =
+        test_parse_and_visit_statement(u8"for (const x in []) {}"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_declaration",  // x
@@ -514,7 +514,6 @@ TEST_F(Test_Parse_Loop, for_in_loop) {
                               "visit_exit_block_scope",      //
                               "visit_exit_for_scope",
                           }));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -593,14 +592,13 @@ TEST_F(Test_Parse_Loop, for_in_loop_with_var_initializer) {
   }
 
   {
-    Test_Parser p(u8"for (var x = 10 in []) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (var x = 10 in []) {}"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
                               "visit_enter_block_scope",     //
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -854,8 +852,8 @@ TEST_F(Test_Parse_Loop, for_of_loop) {
   }
 
   {
-    Test_Parser p(u8"for (const x of []) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p =
+        test_parse_and_visit_statement(u8"for (const x of []) {}"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_declaration",  // x
@@ -863,7 +861,6 @@ TEST_F(Test_Parse_Loop, for_of_loop) {
                               "visit_exit_block_scope",      //
                               "visit_exit_for_scope",
                           }));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

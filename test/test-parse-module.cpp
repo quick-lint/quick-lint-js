@@ -264,9 +264,8 @@ TEST_F(Test_Parse_Module, export_sometimes_requires_semicolon) {
 
 TEST_F(Test_Parse_Module, export_sometimes_does_not_require_semicolon) {
   {
-    Test_Parser p(u8"export default async function f() {} console.log();"_sv,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default async function f() {} console.log();"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       //
@@ -275,13 +274,11 @@ TEST_F(Test_Parse_Module, export_sometimes_does_not_require_semicolon) {
                               "visit_variable_use",               // console
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"export default function() {} console.log();"_sv,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default function() {} console.log();"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_enter_function_scope_body",  //
@@ -289,7 +286,6 @@ TEST_F(Test_Parse_Module, export_sometimes_does_not_require_semicolon) {
                               "visit_variable_use",               // console
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -756,9 +752,7 @@ TEST_F(Test_Parse_Module, export_class_requires_a_name) {
 }
 
 TEST_F(Test_Parse_Module, parse_empty_module) {
-  Test_Parser p(u8""_sv, capture_diags);
-  p.parse_and_visit_module();
-  EXPECT_THAT(p.errors, IsEmpty());
+  Spy_Visitor p = test_parse_and_visit_module(u8""_sv, no_diags);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_end_of_module",
                         }));

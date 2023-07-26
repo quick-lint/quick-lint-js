@@ -557,21 +557,19 @@ TEST_F(Test_Parse_TypeScript_Type,
   }
 
   {
-    Test_Parser p(u8"[...A[], ...B]"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_type_expression();
+    // TypeScript's compiler only reports an error if the non-first spread is
+    // syntactically an array type.
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"[...A[], ...B]"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
-    EXPECT_THAT(p.errors, IsEmpty())
-        << "TypeScript's compiler only reports an error if the non-first "
-           "spread is syntactically an array type";
   }
 
   {
-    Test_Parser p(u8"[...A, ...B]"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_typescript_type_expression();
+    // TypeScript's compiler only reports an error if the non-first spread is
+    // syntactically an array type.
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"[...A, ...B]"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
-    EXPECT_THAT(p.errors, IsEmpty())
-        << "TypeScript's compiler only reports an error if the non-first "
-           "spread is syntactically an array type";
   }
 
   {

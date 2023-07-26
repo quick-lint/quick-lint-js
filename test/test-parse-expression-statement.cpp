@@ -685,13 +685,11 @@ TEST_F(Test_Parse_Expression_Statement, expression_statement) {
 }
 
 TEST_F(Test_Parse_Expression_Statement, delete_of_variable) {
-  Test_Parser p(u8"delete x;"_sv, capture_diags);
-  p.parse_and_visit_expression();
+  Spy_Visitor p = test_parse_and_visit_expression(u8"delete x;"_sv, no_diags);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_delete_use",
                         }));
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x"}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_Expression_Statement, delete_of_expression) {

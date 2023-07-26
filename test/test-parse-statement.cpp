@@ -744,23 +744,21 @@ TEST_F(Test_Parse_Statement, missing_if_after_else) {
   }
 
   {
-    Test_Parser p(u8"if (false) {} else (true)\n{}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (false) {} else (true)\n{}"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"if (false) {} else (true); {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (false) {} else (true); {}"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_exit_block_scope",
                           }));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {

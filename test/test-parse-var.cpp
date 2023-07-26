@@ -78,19 +78,16 @@ TEST_F(Test_Parse_Var, parse_simple_let) {
 }
 
 TEST_F(Test_Parse_Var, parse_simple_var) {
-  Test_Parser p(u8"var x"_sv, capture_diags);
-  p.parse_and_visit_statement();
+  Spy_Visitor p = test_parse_and_visit_statement(u8"var x"_sv, no_diags);
   EXPECT_THAT(p.variable_declarations,
               ElementsAreArray({var_noinit_decl(u8"x"_sv)}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_Var, parse_simple_const) {
-  Test_Parser p(u8"const x = null"_sv, capture_diags);
-  p.parse_and_visit_statement();
+  Spy_Visitor p =
+      test_parse_and_visit_statement(u8"const x = null"_sv, no_diags);
   EXPECT_THAT(p.variable_declarations,
               ElementsAreArray({const_init_decl(u8"x"_sv)}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_Var, parse_const_with_no_initializers) {
@@ -247,8 +244,8 @@ TEST_F(Test_Parse_Var,
 
 TEST_F(Test_Parse_Var, parse_valid_let) {
   {
-    Test_Parser p(u8"let x\nclass C{}"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"let x\nclass C{}"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // x
                               "visit_enter_class_scope",       // {
@@ -257,37 +254,31 @@ TEST_F(Test_Parse_Var, parse_valid_let) {
                               "visit_variable_declaration",    // C
                               "visit_end_of_module",
                           }));
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"let x\nnew Array()"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"let x\nnew Array()"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
                               "visit_variable_use",          // Array
                               "visit_end_of_module",
                           }));
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"let x\ntypeof Array"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"let x\ntypeof Array"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
                               "visit_variable_typeof_use",   // Array
                               "visit_end_of_module",
                           }));
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"let x\nclass C{}\nx = new C();"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"let x\nclass C{}\nx = new C();"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // x
                               "visit_enter_class_scope",       // {
@@ -298,8 +289,6 @@ TEST_F(Test_Parse_Var, parse_valid_let) {
                               "visit_variable_assignment",     // x
                               "visit_end_of_module",
                           }));
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

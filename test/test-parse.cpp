@@ -220,23 +220,11 @@ TEST_F(Test_Parse, asi_for_statement_at_newline) {
 }
 
 TEST_F(Test_Parse, asi_between_expression_statements) {
-  {
-    Test_Parser p(u8"false\nfalse"_sv, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
+  test_parse_and_visit_module(u8"false\nfalse"_sv, no_diags);
 
-  {
-    Test_Parser p(u8"true\ntrue"_sv, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
+  test_parse_and_visit_module(u8"true\ntrue"_sv, no_diags);
 
-  {
-    Test_Parser p(u8"true\nvoid x;"_sv, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
+  test_parse_and_visit_module(u8"true\nvoid x;"_sv, no_diags);
 
   {
     Test_Parser p(u8"true\nnew Animal();"_sv);

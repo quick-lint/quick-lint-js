@@ -177,9 +177,16 @@ class Test_Parser {
   Padded_String_View code = Padded_String_View(&this->code_);
 };
 
+struct No_Diags_Tag {};
+constexpr inline No_Diags_Tag no_diags;
+
 // Create a Parser and call Parser::parse_and_visit_statement. Assert that
 // exactly the given diagnostics were emitted. See NOTE[_diag-syntax] for
 // examples.
+Spy_Visitor test_parse_and_visit_statement(
+    String8_View input, No_Diags_Tag,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
 Spy_Visitor test_parse_and_visit_statement(
     String8_View input, Diagnostic_Assertion,
     Parser_Options = javascript_options,  // TODO(strager): Make explicit.
@@ -208,6 +215,10 @@ Spy_Visitor test_parse_and_visit_statement(
 // exactly the given diagnostics were emitted. See NOTE[_diag-syntax] for
 // examples.
 Spy_Visitor test_parse_and_visit_module(
+    String8_View input, No_Diags_Tag,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_module(
     String8_View input, Diagnostic_Assertion,
     Parser_Options = javascript_options,  // TODO(strager): Make explicit.
     Source_Location caller = Source_Location::current());
@@ -227,6 +238,10 @@ Spy_Visitor test_parse_and_visit_module(
 // Create a Parser and call Parser::parse_and_visit_expression. Assert that
 // exactly the given diagnostics were emitted. See NOTE[_diag-syntax] for
 // examples.
+Spy_Visitor test_parse_and_visit_expression(
+    String8_View input, No_Diags_Tag,
+    Parser_Options = javascript_options,  // TODO(strager): Make explicit.
+    Source_Location caller = Source_Location::current());
 Spy_Visitor test_parse_and_visit_expression(
     String8_View input, Diagnostic_Assertion,
     Parser_Options = javascript_options,  // TODO(strager): Make explicit.
@@ -248,6 +263,9 @@ Spy_Visitor test_parse_and_visit_expression(
 // Assert that exactly the given diagnostics were emitted. See
 // NOTE[_diag-syntax] for examples.
 Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, No_Diags_Tag, Parser_Options,
+    Source_Location caller = Source_Location::current());
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
     String8_View input, Diagnostic_Assertion, Parser_Options,
     Source_Location caller = Source_Location::current());
 Spy_Visitor test_parse_and_visit_typescript_type_expression(
@@ -264,6 +282,9 @@ Spy_Visitor test_parse_and_visit_typescript_type_expression(
 // Create a Parser and call
 // Parser::parse_and_visit_typescript_generic_parameters. Assert that exactly
 // the given diagnostics were emitted. See NOTE[_diag-syntax] for examples.
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, No_Diags_Tag, Parser_Options,
+    Source_Location caller = Source_Location::current());
 Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
     String8_View input, Diagnostic_Assertion, Parser_Options,
     Source_Location caller = Source_Location::current());

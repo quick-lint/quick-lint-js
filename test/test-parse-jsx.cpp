@@ -75,157 +75,129 @@ TEST_F(Test_Parse_JSX, jsx_is_not_supported_in_vanilla_typescript) {
 }
 
 TEST_F(Test_Parse_JSX, empty_intrinsic_element) {
-  Test_Parser p(u8"c = <div></div>;"_sv, jsx_options, capture_diags);
-  p.parse_and_visit_module();
+  Spy_Visitor p = test_parse_and_visit_module(u8"c = <div></div>;"_sv, no_diags,
+                                              jsx_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_assignment",  // c
                             "visit_end_of_module",
                         }));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_JSX, empty_user_element) {
-  Test_Parser p(u8"c = <MyComponent></MyComponent>;"_sv, jsx_options,
-                capture_diags);
-  p.parse_and_visit_module();
+  Spy_Visitor p = test_parse_and_visit_module(
+      u8"c = <MyComponent></MyComponent>;"_sv, no_diags, jsx_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_use",         // MyComponent
                             "visit_variable_assignment",  // c
                             "visit_end_of_module",
                         }));
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyComponent"}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_JSX, member_component) {
-  Test_Parser p(
+  Spy_Visitor p = test_parse_and_visit_module(
       u8"c = <module.submodule.MyComponent></module.submodule.MyComponent>;"_sv,
-      jsx_options, capture_diags);
-  p.parse_and_visit_module();
+      no_diags, jsx_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_use",         // module
                             "visit_variable_assignment",  // c
                             "visit_end_of_module",
                         }));
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"module"}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_JSX, element_child_element) {
   {
-    Test_Parser p(u8"c = <outer><INNER></INNER></outer>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <outer><INNER></INNER></outer>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <OUTER><INNER></INNER></OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <OUTER><INNER></INNER></OUTER>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OUTER", u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <NS:OUTER><INNER></INNER></NS:OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <NS:OUTER><INNER></INNER></NS:OUTER>;"_sv, no_diags,
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8"c = <outer.Component><INNER></INNER></outer.Component>;"_sv,
-        jsx_options, capture_diags);
-    p.parse_and_visit_module();
+        no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"outer", u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <><INNER></INNER></>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <><INNER></INNER></>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_JSX, element_child_expression) {
   {
-    Test_Parser p(u8"c = <outer>{INNER}</outer>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <outer>{INNER}</outer>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <OUTER>{INNER}</OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <OUTER>{INNER}</OUTER>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OUTER", u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <NS:OUTER>{INNER}</NS:OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <NS:OUTER>{INNER}</NS:OUTER>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <outer.Component>{INNER}</outer.Component>;"_sv,
-                  jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <outer.Component>{INNER}</outer.Component>;"_sv, no_diags,
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"outer", u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <>{INNER}</>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"c = <>{INNER}</>;"_sv,
+                                                no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_JSX, element_attribute_expression) {
   {
-    Test_Parser p(u8"c = <outer attr={attrValue}></outer>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <outer attr={attrValue}></outer>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"attrValue"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <OUTER attr={attrValue}></OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <OUTER attr={attrValue}></OUTER>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OUTER", u8"attrValue"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <NS:OUTER attr={attrValue}></NS:OUTER>;"_sv,
-                  jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <NS:OUTER attr={attrValue}></NS:OUTER>;"_sv, no_diags,
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"attrValue"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8"c = <outer.Component attr={attrValue}></outer.Component>;"_sv,
-        jsx_options, capture_diags);
-    p.parse_and_visit_module();
+        no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"outer", u8"attrValue"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
