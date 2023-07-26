@@ -21,6 +21,13 @@ CXX_Diagnostic_Variable var(String8_View type) {
   };
 }
 
+TEST(Test_CXX_Parser, lex_plain_string_literal) {
+  Padded_String code(u8R"("hello world")"_sv);
+  CXX_Lexer l("", &code);
+  ASSERT_EQ(l.peek().type, CXX_Token_Type::string_literal);
+  EXPECT_EQ(l.peek().decoded_string, u8"hello world"_sv);
+}
+
 TEST(Test_CXX_Parser, layout_offsets) {
   EXPECT_THAT(layout_offsets(Span<const CXX_Diagnostic_Variable>()),
               ::testing::IsEmpty());

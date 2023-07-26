@@ -38,7 +38,7 @@ struct CXX_Token {
   // If type == CXX_Token_Type::identifier:
   String8_View identifier;
   // If type == CXX_Token_Type::string_literal:
-  String8_View string;
+  String8_View decoded_string;
 };
 
 class CXX_Lexer {

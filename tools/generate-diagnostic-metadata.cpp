@@ -156,7 +156,9 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
     for (const CXX_Diagnostic_Message& message : type.messages) {
       out.append_literal(u8"        QLJS_TRANSLATABLE("_sv);
       for (String8_View string : message.message_strings) {
+        out.append_copy(u8'"');
         out.append_copy(string);
+        out.append_copy(u8'"');
       }
       out.append_literal(u8"),\n"_sv);
     }

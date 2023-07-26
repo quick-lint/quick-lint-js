@@ -65,7 +65,7 @@ parse_again:
     goto parse_again;
 
   case u8'"':
-    this->token_.string = this->lex_string_literal();
+    this->token_.decoded_string = this->lex_string_literal();
     this->token_.type = CXX_Token_Type::string_literal;
     break;
 
@@ -136,14 +136,14 @@ String8_View CXX_Lexer::lex_identifier() {
 
 String8_View CXX_Lexer::lex_string_literal() {
   QLJS_ASSERT(*this->input_ == u8'"');
-  const Char8* begin = this->input_;
   this->input_ += 1;
+  const Char8* decoded_begin = this->input_;
   for (;;) {
     switch (*this->input_) {
     case u8'"': {
+      const Char8* decoded_end = this->input_;
       this->input_ += 1;
-      const Char8* end = this->input_;
-      return make_string_view(begin, end);
+      return make_string_view(decoded_begin, decoded_end);
     }
 
     case u8'\\':
@@ -262,7 +262,7 @@ void CXX_Parser::parse_file() {
       this->expect_skip(CXX_Token_Type::left_paren);
 
       this->expect(CXX_Token_Type::string_literal);
-      this->reserved_code_strings.push_back(this->peek().string);
+      this->reserved_code_strings.push_back(this->peek().decoded_string);
       this->skip();
 
       this->expect_skip(CXX_Token_Type::right_paren);
@@ -293,7 +293,7 @@ void CXX_Parser::parse_diagnostic_struct_body(
         this->expect_skip(CXX_Token_Type::left_paren);
 
         this->expect(CXX_Token_Type::string_literal);
-        type.code_string = this->peek().string;
+        type.code_string = this->peek().decoded_string;
         this->skip();
 
         this->expect_skip(CXX_Token_Type::comma);
@@ -314,11 +314,11 @@ void CXX_Parser::parse_diagnostic_struct_body(
         CXX_Diagnostic_Message& message = type.messages.emplace_back();
 
         this->expect(CXX_Token_Type::string_literal);
-        message.message_strings.push_back(this->peek().string);
+        message.message_strings.push_back(this->peek().decoded_string);
         this->skip();
         while (this->peek().type == CXX_Token_Type::string_literal) {
           // Adjacent string literals: [[qljs::message("a" "b", ...)]]
-          message.message_strings.push_back(this->peek().string);
+          message.message_strings.push_back(this->peek().decoded_string);
           this->skip();
         }
 
@@ -418,17 +418,17 @@ bool CXX_Parser::check_diag_codes() {
 }
 
 bool CXX_Parser::is_valid_code_string(String8_View code_string) {
-  return code_string.size() == 7 && code_string[0] == u8'"' &&
-         code_string[1] == u8'E' && this->lexer_.is_digit(code_string[2]) &&
+  return code_string.size() == 5 && code_string[0] == u8'E' &&
+         this->lexer_.is_digit(code_string[1]) &&
+         this->lexer_.is_digit(code_string[2]) &&
          this->lexer_.is_digit(code_string[3]) &&
-         this->lexer_.is_digit(code_string[4]) &&
-         this->lexer_.is_digit(code_string[5]) && code_string[6] == u8'"';
+         this->lexer_.is_digit(code_string[4]);
 }
 
 String8 CXX_Parser::next_unused_diag_code_string() {
   for (int i = 1; i <= 9999; ++i) {
     char code_string_raw[8];
-    std::snprintf(code_string_raw, sizeof(code_string_raw), "\"E%04d\"", i);
+    std::snprintf(code_string_raw, sizeof(code_string_raw), "E%04d", i);
     String8_View code_string = to_string8_view(code_string_raw);
     bool in_use = any_of(this->parsed_types,
                          [&](const CXX_Diagnostic_Type& type) {
