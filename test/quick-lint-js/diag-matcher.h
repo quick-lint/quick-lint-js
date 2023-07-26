@@ -194,7 +194,7 @@ class Source_Code_Span_Matcher {
 
 // Metadata for a member of a diagnostic class.
 struct Diag_Matcher_Arg {
-  const char *member_name;
+  std::string_view member_name;
   std::size_t member_offset;
   Diagnostic_Arg_Type member_type;
 

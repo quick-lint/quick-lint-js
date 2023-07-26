@@ -240,6 +240,13 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
 endif ()
 quick_lint_js_enable_bigobj_if_supported(quick-lint-js-test)
 
+set_source_files_properties(
+  diagnostic-assertion.cpp
+  PROPERTIES
+  COMPILE_DEFINITIONS
+  QLJS_DIAGNOSTIC_TYPES_H_FILE_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/../src/quick-lint-js/diag/diagnostic-types-2.h\"
+)
+
 # HACK(strager): LTO builds are very slow. Our tests don't
 # *need* LTO optimizations. Disable LTO for our tests.
 set_target_properties(

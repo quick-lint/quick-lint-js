@@ -116,65 +116,6 @@ namespace quick_lint_js {
   write_file_end(out);
 }
 
-void write_debug_info_cpp(Span<const CXX_Diagnostic_Type> types,
-                          Output_Stream& out) {
-  write_file_begin(out);
-
-  out.append_literal(
-      u8R"(#include <cstddef>
-#include <quick-lint-js/diag/diagnostic-types-2.h>
-#include <quick-lint-js/diag/diagnostic.h>
-#include <quick-lint-js/port/constinit.h>
-
-namespace quick_lint_js {
-// clang-format off
-const QLJS_CONSTINIT Diagnostic_Info_Debug all_diagnostic_infos_debug[] = {
-)");
-  bool is_first = true;
-  for (const CXX_Diagnostic_Type& type : types) {
-    if (!is_first) {
-      out.append_literal(u8"\n"_sv);
-    }
-
-    out.append_literal(u8"    // "_sv);
-    out.append_copy(type.name);
-    out.append_literal(u8"\n"_sv);
-
-    out.append_literal(u8"    {\n"_sv);
-
-    out.append_literal(u8"      .variables = {\n"_sv);
-    for (const CXX_Diagnostic_Variable& var : type.variables) {
-      out.append_literal(u8"        {.name = \""_sv);
-      out.append_copy(var.name);
-      out.append_literal(u8"\", .type = Diagnostic_Arg_Type::"_sv);
-      out.append_copy(diagnostic_arg_type_code_from_type(var.type));
-      out.append_literal(u8", .offset = offsetof("_sv);
-      out.append_copy(type.name);
-      out.append_literal(u8", "_sv);
-      out.append_copy(var.name);
-      out.append_literal(u8")},\n"_sv);
-    }
-    out.append_literal(u8"      },\n"_sv);
-
-    out.append_literal(u8"    },\n"_sv);
-
-    if (is_first) {
-      is_first = false;
-    }
-  }
-
-  out.append_literal(
-      u8R"(};
-
-const Diagnostic_Info_Debug &get_diagnostic_info_debug(Diag_Type type) noexcept {
-  return all_diagnostic_infos_debug[static_cast<std::ptrdiff_t>(type)];
-}
-}
-)"_sv);
-
-  write_file_end(out);
-}
-
 void write_info_cpp(Span<const CXX_Diagnostic_Type> types, Output_Stream& out) {
   write_file_begin(out);
 
@@ -264,7 +205,6 @@ int main(int argc, char** argv) {
   using namespace quick_lint_js;
 
   const char* diagnostic_types_file_path = nullptr;
-  const char* output_debug_info_cpp_path = nullptr;
   const char* output_info_cpp_path = nullptr;
   const char* output_type_list_h_path = nullptr;
   Arg_Parser parser(argc, argv);
@@ -275,10 +215,6 @@ int main(int argc, char** argv) {
         std::exit(2);
       }
       diagnostic_types_file_path = argument;
-    }
-
-    QLJS_OPTION(const char* arg_value, "--output-debug-info-cpp"sv) {
-      output_debug_info_cpp_path = arg_value;
     }
 
     QLJS_OPTION(const char* arg_value, "--output-info-cpp"sv) {
@@ -325,19 +261,6 @@ int main(int argc, char** argv) {
     File_Output_Stream out(type_list_h->ref());
     write_type_list_h(Span<const CXX_Diagnostic_Type>(cxx_parser.parsed_types),
                       out);
-    out.flush();
-  }
-
-  {
-    Result<Platform_File, Write_File_IO_Error> info_cpp =
-        open_file_for_writing(output_debug_info_cpp_path);
-    if (!info_cpp.ok()) {
-      std::fprintf(stderr, "error: %s\n", info_cpp.error_to_string().c_str());
-      std::exit(1);
-    }
-    File_Output_Stream out(info_cpp->ref());
-    write_debug_info_cpp(
-        Span<const CXX_Diagnostic_Type>(cxx_parser.parsed_types), out);
     out.flush();
   }
 

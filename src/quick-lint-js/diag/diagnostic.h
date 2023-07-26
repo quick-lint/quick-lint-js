@@ -93,54 +93,9 @@ struct Diagnostic_Info {
   Diagnostic_Message_Args message_args[diagnostic_max_message_count];
 };
 
-// See NOTE[Diagnostic_Info_Debug].
-struct Diagnostic_Info_Variable_Debug {
-  const char* name = nullptr;
-  Diagnostic_Arg_Type type;
-  std::uint8_t offset;
-};
-
-// NOTE[Diagnostic_Info_Debug]: This class is for testing only. It is included
-// in quick-lint-js proper.
-struct Diagnostic_Info_Debug {
-  Diagnostic_Info_Variable_Debug variables[4];
-
-  int variable_count() const {
-    int count = 0;
-    for (const Diagnostic_Info_Variable_Debug& var : this->variables) {
-      if (var.name != nullptr) {
-        count += 1;
-      }
-    }
-    return count;
-  }
-
-  const Diagnostic_Info_Variable_Debug* find(std::string_view name) const {
-    for (const Diagnostic_Info_Variable_Debug& var : this->variables) {
-      if (var.name != nullptr && var.name == name) {
-        return &var;
-      }
-    }
-    return nullptr;
-  }
-
-  const Diagnostic_Info_Variable_Debug* find_first(
-      Diagnostic_Arg_Type type) const {
-    for (const Diagnostic_Info_Variable_Debug& var : this->variables) {
-      if (var.name != nullptr && var.type == type) {
-        return &var;
-      }
-    }
-    return nullptr;
-  }
-};
-
 const Diagnostic_Info& get_diagnostic_info(Diag_Type) noexcept;
 std::optional<Diag_Type> diag_type_from_code_slow(
     std::string_view code) noexcept;
-
-// See NOTE[Diagnostic_Info_Debug].
-const Diagnostic_Info_Debug& get_diagnostic_info_debug(Diag_Type) noexcept;
 
 template <class Arg_Type>
 constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type() noexcept;

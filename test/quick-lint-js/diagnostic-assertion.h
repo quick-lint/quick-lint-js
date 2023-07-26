@@ -78,7 +78,7 @@ namespace quick_lint_js {
 // clang-format on
 struct Diagnostic_Assertion {
   struct Member {
-    const char* name = nullptr;
+    String8_View name;
     std::uint8_t offset;
     Diagnostic_Arg_Type type = Diagnostic_Arg_Type::invalid;
 

@@ -12,7 +12,9 @@
 #include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/gtest.h>
+#include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/reflection/cxx-parser.h>
 #include <quick-lint-js/util/cpp.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <type_traits>
@@ -40,6 +42,37 @@ bool is_diag_type_char(Char8 c) {
 
 std::optional<Enum_Kind> try_parse_enum_kind(String8_View);
 std::optional<Statement_Kind> try_parse_statement_kind(String8_View);
+
+struct Diagnostic_Info_Variable_Debug {
+  String8_View name;
+  Diagnostic_Arg_Type type;
+  std::uint8_t offset;
+};
+
+struct Diagnostic_Info_Debug {
+  Fixed_Vector<Diagnostic_Info_Variable_Debug, 4> variables;
+
+  const Diagnostic_Info_Variable_Debug* find(String8_View name) const {
+    for (const Diagnostic_Info_Variable_Debug& var : this->variables) {
+      if (var.name == name) {
+        return &var;
+      }
+    }
+    return nullptr;
+  }
+
+  const Diagnostic_Info_Variable_Debug* find_first(
+      Diagnostic_Arg_Type type) const {
+    for (const Diagnostic_Info_Variable_Debug& var : this->variables) {
+      if (var.type == type) {
+        return &var;
+      }
+    }
+    return nullptr;
+  }
+};
+
+const Diagnostic_Info_Debug& get_diagnostic_info_debug(Diag_Type);
 }
 
 Result<Diagnostic_Assertion, std::vector<std::string>>
@@ -215,18 +248,17 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   out_assertion.type = diag_type_it->second;
   const Diagnostic_Info_Debug& diag_info =
       get_diagnostic_info_debug(out_assertion.type);
-  bool member_is_required = diag_info.variable_count() > 1;
+  bool member_is_required = diag_info.variables.size() > 1;
   if (member_is_required &&
       (!diag_members.empty() && diag_members[0].empty())) {
     std::string members;
     for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
-      if (var.name != nullptr &&
-          var.type == Diagnostic_Arg_Type::source_code_span) {
+      if (var.type == Diagnostic_Arg_Type::source_code_span) {
         if (!members.empty()) {
           members += " or "sv;
         }
         members += '.';
-        members += var.name;
+        members += to_string_view(var.name);
       }
     }
     lexer.errors.push_back(concat("member required for "sv,
@@ -241,7 +273,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       // Default to the first Source_Code_Span member.
       member = diag_info.find_first(Diagnostic_Arg_Type::source_code_span);
     } else {
-      member = diag_info.find(to_string_view(diag_members[i]));
+      member = diag_info.find(diag_members[i]);
     }
     QLJS_ALWAYS_ASSERT(member != nullptr);
 
@@ -253,7 +285,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
 
   if (!extra_member_span.empty()) {
     const Diagnostic_Info_Variable_Debug* extra_member =
-        diag_info.find(to_string_view(extra_member_span));
+        diag_info.find(extra_member_span);
     QLJS_ALWAYS_ASSERT(extra_member != nullptr);
 
     Member& out_member = out_assertion.members.emplace_back();
@@ -427,7 +459,7 @@ diagnostics_matcher(Padded_String_View code,
     for (const Diagnostic_Assertion::Member& member : adjusted_diag.members) {
       Diag_Matcher_2::Field field;
       field.arg = Diag_Matcher_Arg{
-          .member_name = member.name,
+          .member_name = to_string_view(member.name),
           .member_offset = member.offset,
           .member_type = member.type,
       };
@@ -503,6 +535,74 @@ std::optional<Statement_Kind> try_parse_statement_kind(String8_View s) {
   QLJS_CASE(labelled_statement)
   return std::nullopt;
 #undef QLJS_CASE
+}
+
+Diagnostic_Arg_Type parse_diagnostic_arg_type(String8_View code) {
+#define QLJS_CASE(type_name, arg_type)             \
+  do {                                             \
+    if (code == QLJS_CPP_QUOTE_U8_SV(type_name)) { \
+      return Diagnostic_Arg_Type::arg_type;        \
+    }                                              \
+  } while (false)
+
+  QLJS_CASE(Char8, char8);
+  QLJS_CASE(Enum_Kind, enum_kind);
+  QLJS_CASE(Source_Code_Span, source_code_span);
+  QLJS_CASE(Statement_Kind, statement_kind);
+  QLJS_CASE(String8_View, string8_view);
+  QLJS_CASE(Variable_Kind, variable_kind);
+
+#undef QLJS_CASE
+
+  QLJS_UNREACHABLE();
+}
+
+const Diagnostic_Info_Debug& get_diagnostic_info_debug(Diag_Type type) {
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wshadow=compatible-local")
+
+  static Padded_String diagnostic_types_code = []() -> Padded_String {
+    Result<Padded_String, Read_File_IO_Error> diagnostic_types_h =
+        read_file(QLJS_DIAGNOSTIC_TYPES_H_FILE_PATH);
+    if (!diagnostic_types_h.ok()) {
+      std::fprintf(
+          stderr,
+          "fatal: failed to read diagnostics file for test reflection: %s\n",
+          diagnostic_types_h.error_to_string().c_str());
+      std::exit(1);
+    }
+    return *std::move(diagnostic_types_h);
+  }();
+
+  static std::vector<Diagnostic_Info_Debug> infos =
+      []() -> std::vector<Diagnostic_Info_Debug> {
+    CXX_Parser parser(QLJS_DIAGNOSTIC_TYPES_H_FILE_PATH,
+                      &diagnostic_types_code);
+    parser.parse_file();
+
+    std::vector<Diagnostic_Info_Debug> infos;
+    infos.reserve(parser.parsed_types.size());
+    for (CXX_Diagnostic_Type& diag_type : parser.parsed_types) {
+      Diagnostic_Info_Debug& info = infos.emplace_back();
+      Fixed_Vector<std::size_t, 4> variable_offsets = layout_offsets(
+          Span<const CXX_Diagnostic_Variable>(diag_type.variables));
+      for (std::size_t i = 0; i < diag_type.variables.size(); ++i) {
+        CXX_Diagnostic_Variable& var = diag_type.variables[i];
+        info.variables.push_back(Diagnostic_Info_Variable_Debug{
+            .name = var.name,
+            .type = parse_diagnostic_arg_type(var.type),
+            .offset = narrow_cast<std::uint8_t>(
+                variable_offsets[narrow_cast<Fixed_Vector_Size>(i)]),
+        });
+      }
+    }
+
+    return infos;
+  }();
+
+  return infos.at(static_cast<std::size_t>(type));
+
+  QLJS_WARNING_POP
 }
 }
 }
