@@ -394,21 +394,28 @@ Running main() from gmock_main.cc
 
         <blockquote>
           <pre><code class="cxx">TEST_F(Test_Parse_Warning, warn_on_empty_string_literal_comparison) {
-  {
-    Test_Parser p(<mark class="arg-1">u8"a === ''"_sv</mark>, <mark class="arg-2">capture_diags</mark>);
-    <mark class="arg-3">p.parse_and_visit_expression();</mark>
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, <mark class="arg-4">Diag_Comparison_With_Empty_String</mark>,
-                              <mark class="arg-5">comparison_operator</mark>, <mark class="arg-6">strlen(u8"a "), u8"==="_sv</mark>),
-        }));
-  }
+  <mark class="arg-3">test_parse_and_visit_expression</mark>(
+      <mark class="arg-1">u8"a === ''"_sv</mark>,  //
+      u8"<mark class="arg-6">  ^^^</mark> <mark class="arg-4">Diag_Comparison_With_Empty_String</mark>"_diag);
 }</code></pre>
         </blockquote>
 
         <p>There are a few pieces of this test worth mentioning:</p>
         <dl>
+          <dt>
+            <code class="cxx"
+              ><span class="mark-reference arg-3"
+                >test_parse_and_visit_expression</span
+              ></code
+            >
+          </dt>
+          <dd>
+            quick-lint-js' parser can parse several things, including
+            statements, expressions, and TypeScript types. Our diagnostic is
+            specific to JavaScript expressions, so we call
+            <code class="cxx">test_parse_and_visit_expression</code>.
+          </dd>
+
           <dt>
             <code class="cxx"
               ><span class="mark-reference arg-1">u8"a == ''"_sv</span></code
@@ -423,28 +430,25 @@ Running main() from gmock_main.cc
 
           <dt>
             <code class="cxx"
-              ><span class="mark-reference arg-2">capture_diags</span></code
+              ><span class="mark-reference arg-6">&nbsp;&nbsp;^^^</span></code
             >
           </dt>
           <dd>
-            By default, <code class="cxx">test_parser</code> fails the test if
-            any diagnostics are reported. Because we want to check for
-            diagnostics ourselves, we must specify the
-            <code class="cxx">capture_diags</code> tag.
-          </dd>
-
-          <dt>
-            <code class="cxx"
-              ><span class="mark-reference arg-3"
-                >p.parse_and_visit_expression();</span
-              ></code
-            >
-          </dt>
-          <dd>
-            quick-lint-js' parser can parse several things, including
-            statements, expressions, and TypeScript types. Our diagnostic is
-            specific to JavaScript expressions, so we call
-            <code class="cxx">parse_and_visit_expression</code>.
+            We need to tell
+            <code class="cxx">test_parse_and_visit_expression</code> where in
+            the source code the diagnostic should be reported. This is
+            represented using two parts inside a string: alignment (spaces) and
+            a span (one or more <code>^</code>s, or one <code>`</code>). In our
+            example, there are two leading spaces, so the diagnostic should
+            start at the third character (byte offset 2). The span is three
+            characters wide (<code>^^^</code>), so the diagnostic covers three
+            characters (up until byte offset 5). The alignment and span specify
+            that the diagnostic should cover offsets 2, 3, and 4:
+            <blockquote>
+              <pre><code>a === ''
+<span class="mark-reference arg-6">  ^^^</span>
+  offsets 2, 3, and 4</code></pre>
+            </blockquote>
           </dd>
 
           <dt>
@@ -455,45 +459,22 @@ Running main() from gmock_main.cc
             >
           </dt>
           <dd>
-            We need to tell <code class="cxx">DIAG_TYPE_OFFSETS</code> which
-            kind of diagnostic we expect. We do this by writing the diagnostic
-            class's name.
-          </dd>
+            We need to tell
+            <code class="cxx">test_parse_and_visit_expression</code> which kind
+            of diagnostic we expect. We do this by writing the diagnostic
+            class's name after the span.
 
-          <dt>
-            <code class="cxx"
-              ><span class="mark-reference arg-5"
-                >comparison_operator</span
-              ></code
-            >
-          </dt>
-          <dd>
-            We need to tell <code class="cxx">DIAG_TYPE_OFFSETS</code> which
-            variable in the diagnostic class we want to check. Most diagnostic
-            classes (such as ours) have only one variable, but we still need to
-            write it explicitly.
-          </dd>
-
-          <dt>
-            <code class="cxx"
-              ><span class="mark-reference arg-6"
-                >strlen(u8"a "), u8"==="_sv</span
-              ></code
-            >
-          </dt>
-          <dd>
-            We need to tell <code class="cxx">DIAG_TYPE_OFFSETS</code> where in
-            the source code the diagnostic should be reported. This is
-            represented using two parameters: a beginning offset and a span of
-            characters. <code class="cxx">strlen(u8"a ")</code> is 2, so the
-            diagnostic should start at the character at offset 2.
-            <code class="cxx">u8"==="_sv</code> has 3 characters, so the
-            diagnostic should cover offsets 2, 3, and 4:
-            <blockquote>
-              <pre><code>a === ''
-  ^~~
-  offsets 2, 3, and 4</code></pre>
-            </blockquote>
+            <p>
+              If a diagnostic has multiple members (such as if the diagnostic
+              has multiple messages), the member name must appear after the
+              diagnostic class's name. See the
+              <a
+                href="https://github.com/quick-lint/quick-lint-js/blob/master/test/quick-lint-js/diagnostic-assertion.h#L20"
+                >documentation for <code class="cxx">_diag</code> and
+                NOTE[_diag-syntax]</a
+              >
+              for details.
+            </p>
           </dd>
         </dl>
 
