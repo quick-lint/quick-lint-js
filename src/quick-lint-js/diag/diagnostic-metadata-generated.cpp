@@ -148,7 +148,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 348,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("invalid usage of ? as a prefix or suffix in the a type ""expression, use '| void' instead"),
+        QLJS_TRANSLATABLE("invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead"),
       },
       .message_args = {
         {
@@ -1802,7 +1802,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 74,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("'.' operator needs a key name; use + to concatenate ""strings; use [] to access with a dynamic key"),
+        QLJS_TRANSLATABLE("'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key"),
       },
       .message_args = {
         {
@@ -2868,7 +2868,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 113,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("incomplete export; expected 'export default ...' or ""'export {{name}' or 'export * from ...' or 'export ""class' or 'export function' or 'export let'"),
+        QLJS_TRANSLATABLE("incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"),
       },
       .message_args = {
         {
@@ -2957,7 +2957,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 163,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("newline is not allowed between 'async' and arrow ""function parameter list"),
+        QLJS_TRANSLATABLE("newline is not allowed between 'async' and arrow function parameter list"),
         QLJS_TRANSLATABLE("arrow is here"),
       },
       .message_args = {
@@ -3355,7 +3355,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 198,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("unexpected statement before first switch case, expected ""'case' or 'default'"),
+        QLJS_TRANSLATABLE("unexpected statement before first switch case, expected 'case' or 'default'"),
       },
       .message_args = {
         {
@@ -3517,7 +3517,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 291,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("'as const' is only allowed on literals (array, object, ""string, boolean) and enum members"),
+        QLJS_TRANSLATABLE("'as const' is only allowed on literals (array, object, string, boolean) and enum members"),
         QLJS_TRANSLATABLE("'as const' located here"),
       },
       .message_args = {
@@ -3768,7 +3768,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 370,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("'export =' is not allowed; write 'export default' or ""'module.exports =' (CommonJS) instead"),
+        QLJS_TRANSLATABLE("'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"),
         QLJS_TRANSLATABLE("'export' keyword here"),
       },
       .message_args = {
@@ -4047,7 +4047,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .severity = Diagnostic_Severity::error,
       .message_formats = {
         QLJS_TRANSLATABLE("missing name for element in named tuple type"),
-        QLJS_TRANSLATABLE("this tuple type is a named tuple type because at least ""one element has a name"),
+        QLJS_TRANSLATABLE("this tuple type is a named tuple type because at least one element has a name"),
       },
       .message_args = {
         {
@@ -4110,7 +4110,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 329,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("'...' belongs only before the tuple element name, not ""also before the type"),
+        QLJS_TRANSLATABLE("'...' belongs only before the tuple element name, not also before the type"),
       },
       .message_args = {
         {
@@ -4534,7 +4534,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 165,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("const fields within classes are only allowed in ""TypeScript, not JavaScript"),
+        QLJS_TRANSLATABLE("const fields within classes are only allowed in TypeScript, not JavaScript"),
       },
       .message_args = {
         {
@@ -5082,7 +5082,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 95,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("unicode byte order mark (BOM) cannot appear before #! at ""beginning of script"),
+        QLJS_TRANSLATABLE("unicode byte order mark (BOM) cannot appear before #! at beginning of script"),
       },
       .message_args = {
         {
@@ -5124,7 +5124,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 112,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("unexpected token in export; expected 'export default ""...' or 'export {{name}' or 'export * from ...' or ""'export class' or 'export function' or 'export let'"),
+        QLJS_TRANSLATABLE("unexpected token in export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"),
       },
       .message_args = {
         {
@@ -5370,7 +5370,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 288,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("TypeScript interface properties are always public and ""cannot be marked protected"),
+        QLJS_TRANSLATABLE("TypeScript interface properties are always public and cannot be marked protected"),
       },
       .message_args = {
         {
@@ -5585,7 +5585,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 369,
       .severity = Diagnostic_Severity::warning,
       .message_formats = {
-        QLJS_TRANSLATABLE("nullish coalescing operator does nothing when left ""operand is never null"),
+        QLJS_TRANSLATABLE("nullish coalescing operator does nothing when left operand is never null"),
       },
       .message_args = {
         {

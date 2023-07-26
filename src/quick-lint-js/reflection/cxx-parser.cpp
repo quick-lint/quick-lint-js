@@ -146,6 +146,13 @@ String8_View CXX_Lexer::lex_string_literal() {
     switch (*this->input_) {
     case u8'"': {
       this->input_ += 1;
+      this->skip_whitespace_and_comments();
+
+      if (*this->input_ == u8'"') {
+        // Concatenated strings: "abc" "def"
+        this->input_ += 1;
+        continue;
+      }
 
       String8_View decoded_view(decoded);
       decoded.release();
@@ -182,6 +189,20 @@ String8_View CXX_Lexer::lex_string_literal() {
       this->fatal();
       break;
     }
+  }
+}
+
+void CXX_Lexer::skip_whitespace_and_comments() {
+  this->skip_whitespace();
+  while (this->input_[0] == u8'/' && this->input_[1] == u8'/') {
+    this->skip_line_comment();
+    this->skip_whitespace();
+  }
+}
+
+void CXX_Lexer::skip_whitespace() {
+  while (u8"\r\n\t "_sv.find(*this->input_) != String8_View::npos) {
+    this->input_ += 1;
   }
 }
 
@@ -338,13 +359,8 @@ void CXX_Parser::parse_diagnostic_struct_body(
         CXX_Diagnostic_Message& message = type.messages.emplace_back();
 
         this->expect(CXX_Token_Type::string_literal);
-        message.message_strings.push_back(this->peek().decoded_string);
+        message.message = this->peek().decoded_string;
         this->skip();
-        while (this->peek().type == CXX_Token_Type::string_literal) {
-          // Adjacent string literals: [[qljs::message("a" "b", ...)]]
-          message.message_strings.push_back(this->peek().decoded_string);
-          this->skip();
-        }
 
         this->expect_skip(CXX_Token_Type::comma);
 

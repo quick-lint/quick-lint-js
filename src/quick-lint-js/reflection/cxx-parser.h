@@ -60,6 +60,8 @@ class CXX_Lexer {
   String8_View lex_identifier();
   String8_View lex_string_literal();
 
+  void skip_whitespace_and_comments();
+  void skip_whitespace();
   void skip_line_comment();
   void skip_preprocessor_directive();
   void skip_to_end_of_line();
@@ -79,8 +81,7 @@ class CXX_Lexer {
 };
 
 struct CXX_Diagnostic_Message {
-  // Each message_strings item is concatenated together by the C++ preprocessor.
-  Fixed_Vector<String8_View, 4> message_strings;
+  String8_View message;
   Fixed_Vector<String8_View, 4> argument_variables;
 };
 
