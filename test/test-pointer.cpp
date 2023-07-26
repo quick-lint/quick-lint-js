@@ -1,27 +1,42 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_POINTER_H
-#define QUICK_LINT_JS_UTIL_POINTER_H
-
 #include <cstddef>
-#include <cstdint>
+#include <gtest/gtest.h>
+#include <quick-lint-js/util/pointer.h>
 
 namespace quick_lint_js {
-inline bool is_aligned(void* p, std::size_t alignment) noexcept {
-  std::size_t alignment_mask = alignment - 1;
-  return (reinterpret_cast<std::uintptr_t>(p) & alignment_mask) == 0;
+namespace {
+TEST(Test_Pointer, align_up_with_one_byte_alignment_never_changes_pointer) {
+  for (std::uintptr_t p :
+       {0ULL, 1ULL, 2ULL, 3ULL, 4ULL, 5ULL, 6ULL, 0xffffffffULL}) {
+    EXPECT_EQ(align_up(p, 1), p);
+  }
 }
 
-template <class Integer_Pointer>
-Integer_Pointer align_up(Integer_Pointer p, std::size_t alignment) noexcept {
-  Integer_Pointer alignment_mask = static_cast<Integer_Pointer>(alignment - 1);
-  // TODO(strager): What about integer overflow?
-  return ((p - 1) | alignment_mask) + 1;
-}
+TEST(Test_Pointer, align_up_to_even_address) {
+  EXPECT_EQ(align_up(0, 2), 0);
+  EXPECT_EQ(align_up(1, 2), 2);
+  EXPECT_EQ(align_up(2, 2), 2);
+  EXPECT_EQ(align_up(3, 2), 4);
+  EXPECT_EQ(align_up(4, 2), 4);
+  EXPECT_EQ(align_up(5, 2), 6);
 }
 
-#endif
+TEST(Test_Pointer, align_up_to_multiple_of_8) {
+  EXPECT_EQ(align_up(0, 8), 0);
+  EXPECT_EQ(align_up(1, 8), 8);
+  EXPECT_EQ(align_up(2, 8), 8);
+  EXPECT_EQ(align_up(3, 8), 8);
+  EXPECT_EQ(align_up(4, 8), 8);
+  EXPECT_EQ(align_up(5, 8), 8);
+  EXPECT_EQ(align_up(6, 8), 8);
+  EXPECT_EQ(align_up(7, 8), 8);
+  EXPECT_EQ(align_up(8, 8), 8);
+  EXPECT_EQ(align_up(9, 8), 16);
+}
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

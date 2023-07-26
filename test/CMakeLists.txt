@@ -91,6 +91,7 @@ quick_lint_js_add_executable(
   test-configuration-loader.cpp
   test-configuration.cpp
   test-crash.cpp
+  test-cxx-parser.cpp
   test-debug-server.cpp
   test-diag-code-list.cpp
   test-diag-matcher.cpp
@@ -167,6 +168,7 @@ quick_lint_js_add_executable(
   test-parse-warning.cpp
   test-parse.cpp
   test-pipe-writer.cpp
+  test-pointer.cpp
   test-result.cpp
   test-simd.cpp
   test-sorted-search.cpp

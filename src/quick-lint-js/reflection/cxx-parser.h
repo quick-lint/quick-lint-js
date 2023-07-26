@@ -4,9 +4,12 @@
 #ifndef QUICK_LINT_JS_REFLECTION_CXX_PARSER_H
 #define QUICK_LINT_JS_REFLECTION_CXX_PARSER_H
 
+#include <cstddef>
 #include <cstdint>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/span.h>
 #include <string_view>
 #include <vector>
 
@@ -127,6 +130,13 @@ class CXX_Parser {
 
   CXX_Lexer lexer_;
 };
+
+// Precondition: variables.size() <= 4
+//
+// Returns a corresponding array of the offset of each variable in a class. In
+// other words, return the result of offsetof() of each variable.
+Fixed_Vector<std::size_t, 4> layout_offsets(
+    Span<const CXX_Diagnostic_Variable> variables);
 }
 
 #endif

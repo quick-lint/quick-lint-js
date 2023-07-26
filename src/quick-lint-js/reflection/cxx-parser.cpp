@@ -8,11 +8,14 @@
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/reflection/cxx-parser.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/cpp.h>
 #include <quick-lint-js/util/integer.h>
+#include <quick-lint-js/util/pointer.h>
 #include <string_view>
 #include <vector>
 
@@ -489,6 +492,46 @@ void CXX_Parser::expect_skip(String8_View expected_identifier) {
                this->lexer_.file_path_, p.line_number, p.column_number,
                message);
   std::exit(1);
+}
+
+Fixed_Vector<std::size_t, 4> layout_offsets(
+    Span<const CXX_Diagnostic_Variable> variables) {
+  struct Type_Info {
+    String8_View name;
+    std::size_t size;
+    std::size_t alignment;
+  };
+  static constexpr Type_Info type_infos[] = {
+#define TYPE_INFO(type)                   \
+  {                                       \
+      .name = QLJS_CPP_QUOTE_U8_SV(type), \
+      .size = sizeof(type),               \
+      .alignment = alignof(type),         \
+  }
+
+      TYPE_INFO(Char8),
+      TYPE_INFO(Enum_Kind),
+      TYPE_INFO(Source_Code_Span),
+      TYPE_INFO(Statement_Kind),
+      TYPE_INFO(String8_View),
+      TYPE_INFO(Variable_Kind),
+
+#undef TYPE_INFO
+  };
+
+  Fixed_Vector<std::size_t, 4> offsets;
+  QLJS_ASSERT(variables.size() <= offsets.capacity());
+  std::size_t offset = 0;
+  for (const CXX_Diagnostic_Variable& var : variables) {
+    const Type_Info& var_type_info = *find_unique_existing_if(
+        type_infos, [&](const Type_Info& type_info) -> bool {
+          return type_info.name == var.type;
+        });
+    offset = align_up(offset, var_type_info.alignment);
+    offsets.push_back(offset);
+    offset += var_type_info.size;
+  }
+  return offsets;
 }
 }
 
