@@ -6,8 +6,10 @@
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/hash-map.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
@@ -137,20 +139,42 @@ String8_View CXX_Lexer::lex_identifier() {
 String8_View CXX_Lexer::lex_string_literal() {
   QLJS_ASSERT(*this->input_ == u8'"');
   this->input_ += 1;
-  const Char8* decoded_begin = this->input_;
+
+  Bump_Vector<Char8, Monotonic_Allocator> decoded(
+      "CXX_Lexer::lex_string_literal", &this->decoded_string_allocator_);
   for (;;) {
     switch (*this->input_) {
     case u8'"': {
-      const Char8* decoded_end = this->input_;
       this->input_ += 1;
-      return make_string_view(decoded_begin, decoded_end);
+
+      String8_View decoded_view(decoded);
+      decoded.release();
+      return decoded_view;
     }
 
     case u8'\\':
-      this->input_ += 2;
+      switch (this->input_[1]) {
+      case u8'\\':
+        decoded += u8'\\';
+        this->input_ += 2;
+        break;
+      case u8'n':
+        decoded += u8'\n';
+        this->input_ += 2;
+        break;
+      case u8'\'':
+      case u8'"':
+        decoded += this->input_[1];
+        this->input_ += 2;
+        break;
+      default:
+        this->fatal();
+        break;
+      }
       break;
 
     default:
+      decoded += *this->input_;
       this->input_ += 1;
       break;
 

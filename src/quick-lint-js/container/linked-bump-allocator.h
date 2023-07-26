@@ -13,6 +13,7 @@
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/pointer.h>
+#include <utility>
 
 #if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
 #include <sanitizer/asan_interface.h>

@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/container/fixed-vector.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/span.h>
@@ -70,6 +71,9 @@ class CXX_Lexer {
   const char* file_path_;
   const Char8* input_;
   Padded_String_View original_input_;
+
+  Monotonic_Allocator decoded_string_allocator_{
+      "CXX_Lexer::decoded_string_allocator_"};
 
   friend class CXX_Parser;
 };

@@ -28,6 +28,14 @@ TEST(Test_CXX_Parser, lex_plain_string_literal) {
   EXPECT_EQ(l.peek().decoded_string, u8"hello world"_sv);
 }
 
+TEST(Test_CXX_Parser, string_literal_decodes_escapes) {
+  Padded_String code(u8R"("backslash=\\ newline=\n dquote=\" squote=\'")"_sv);
+  CXX_Lexer l("", &code);
+  ASSERT_EQ(l.peek().type, CXX_Token_Type::string_literal);
+  EXPECT_EQ(l.peek().decoded_string,
+            u8"backslash=\\ newline=\n dquote=\" squote='"_sv);
+}
+
 TEST(Test_CXX_Parser, layout_offsets) {
   EXPECT_THAT(layout_offsets(Span<const CXX_Diagnostic_Variable>()),
               ::testing::IsEmpty());

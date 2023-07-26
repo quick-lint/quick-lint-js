@@ -121,6 +121,7 @@ quick_lint_js_add_library(
   quick-lint-js/util/utf-16.h
 )
 target_include_directories(quick-lint-js-tool-lib PUBLIC .)
+target_link_libraries(quick-lint-js-tool-lib PUBLIC boost)
 
 quick_lint_js_add_library(
   quick-lint-js-lib
