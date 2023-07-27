@@ -33,9 +33,9 @@ std::optional<std::wstring> mbstring_to_wstring(const char *mbstring);
 std::optional<std::string> wstring_to_mbstring(std::wstring_view);
 #endif
 
-std::size_t count_utf_8_code_units(std::u16string_view) noexcept;
+std::size_t count_utf_8_code_units(std::u16string_view);
 #if defined(_WIN32)
-std::size_t count_utf_8_code_units(std::wstring_view) noexcept;
+std::size_t count_utf_8_code_units(std::wstring_view);
 #endif
 
 String8 utf_16_to_utf_8(std::u16string_view);

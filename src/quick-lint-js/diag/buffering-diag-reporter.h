@@ -25,15 +25,15 @@ class Buffering_Diag_Reporter final : public Diag_Reporter {
   void copy_into(Diag_Reporter *other) const;
   void move_into(Diag_Reporter *other);
 
-  bool empty() const noexcept;
+  bool empty() const;
 
-  void clear() noexcept;
+  void clear();
 
  private:
   struct Impl;
 
   struct Impl_Deleter {
-    void operator()(Impl *) noexcept;
+    void operator()(Impl *);
   };
 
   std::unique_ptr<Impl, Impl_Deleter> impl_;

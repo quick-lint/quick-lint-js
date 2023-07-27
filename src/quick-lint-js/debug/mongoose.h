@@ -34,7 +34,7 @@ class Mongoose_Mgr {
 
   ~Mongoose_Mgr() { ::mg_mgr_free(&this->mgr_); }
 
-  ::mg_mgr *get() noexcept { return &this->mgr_; }
+  ::mg_mgr *get() { return &this->mgr_; }
 
  private:
   ::mg_mgr mgr_;

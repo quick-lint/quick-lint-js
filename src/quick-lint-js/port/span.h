@@ -30,47 +30,46 @@ class Span {
   using iterator = T *;
   using const_iterator = T *;
 
-  explicit Span() noexcept : data_(nullptr), size_(0) {}
+  explicit Span() : data_(nullptr), size_(0) {}
 
   template <std::size_t n>
-  explicit Span(const std::array<std::remove_const_t<T>, n> &data) noexcept
+  explicit Span(const std::array<std::remove_const_t<T>, n> &data)
       : data_(data.data()), size_(n) {}
 
   template <std::size_t n>
-  explicit Span(T (&data)[n]) noexcept : data_(data), size_(n) {}
+  explicit Span(T (&data)[n]) : data_(data), size_(n) {}
 
-  explicit Span(const std::vector<std::remove_const_t<T>> &data) noexcept
+  explicit Span(const std::vector<std::remove_const_t<T>> &data)
       : data_(data.data()), size_(narrow_cast<Span_Size>(data.size())) {}
 
   template <Span_Size max_size>
-  explicit Span(
-      const Fixed_Vector<std::remove_const_t<T>, max_size> &data) noexcept
+  explicit Span(const Fixed_Vector<std::remove_const_t<T>, max_size> &data)
       : Span(data.data(), data.size()) {}
 
-  explicit Span(T *data, size_type size) noexcept : data_(data), size_(size) {}
+  explicit Span(T *data, size_type size) : data_(data), size_(size) {}
 
-  explicit Span(T *begin, T *end) noexcept
+  explicit Span(T *begin, T *end)
       : data_(begin), size_(narrow_cast<Span_Size>(end - begin)) {}
 
-  T &operator[](size_type index) const noexcept {
+  T &operator[](size_type index) const {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index < this->size());
     return this->data_[index];
   }
 
-  T front() const noexcept { return (*this)[0]; }
+  T front() const { return (*this)[0]; }
 
-  T back() const noexcept { return (*this)[this->size() - 1]; }
+  T back() const { return (*this)[this->size() - 1]; }
 
-  T *data() const noexcept { return this->data_; }
+  T *data() const { return this->data_; }
 
-  size_type size() const noexcept { return this->size_; }
-  size_type byte_size() const noexcept { return this->size_ * sizeof(T); }
+  size_type size() const { return this->size_; }
+  size_type byte_size() const { return this->size_ * sizeof(T); }
 
-  T *begin() const noexcept { return this->data_; }
-  T *end() const noexcept { return this->data_ + this->size_; }
+  T *begin() const { return this->data_; }
+  T *end() const { return this->data_ + this->size_; }
 
-  bool empty() const noexcept { return this->size() == 0; }
+  bool empty() const { return this->size() == 0; }
 
  private:
   T *data_;

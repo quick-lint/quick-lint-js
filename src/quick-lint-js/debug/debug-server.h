@@ -77,8 +77,8 @@ class Debug_Server {
   // Run on the server thread:
   void run_on_current_thread();
   void begin_closing_all_connections(::mg_mgr *);
-  void http_server_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
-  void wakeup_pipe_callback(::mg_connection *c, int ev, void *ev_data) noexcept;
+  void http_server_callback(::mg_connection *c, int ev, void *ev_data);
+  void wakeup_pipe_callback(::mg_connection *c, int ev, void *ev_data);
   void publish_lsp_documents_if_needed();
 
   struct Shared_State {

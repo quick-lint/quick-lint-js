@@ -73,13 +73,11 @@ void LSP_Document_Text::replace_text(LSP_Range range,
   this->locator_.replace_text(range, replacement_text, this->buffers_.string());
 }
 
-Padded_String_View LSP_Document_Text::string() noexcept {
+Padded_String_View LSP_Document_Text::string() {
   return this->buffers_.string();
 }
 
-const LSP_Locator& LSP_Document_Text::locator() noexcept {
-  return this->locator_;
-}
+const LSP_Locator& LSP_Document_Text::locator() { return this->locator_; }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

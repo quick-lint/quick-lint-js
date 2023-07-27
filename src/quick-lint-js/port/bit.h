@@ -9,7 +9,7 @@
 
 namespace quick_lint_js {
 // TODO(strager): Use std::countr_zero if available.
-inline int countr_zero(std::uint32_t x) noexcept {
+inline int countr_zero(std::uint32_t x) {
 #if defined(__GNUC__)
   if (x == 0) {
     return 32;
@@ -27,7 +27,7 @@ inline int countr_zero(std::uint32_t x) noexcept {
 }
 
 // TODO(strager): Use std::countr_one if available.
-inline int countr_one(std::uint32_t x) noexcept {
+inline int countr_one(std::uint32_t x) {
 #if defined(__GNUC__)
   return countr_zero(~x);
 #else
@@ -43,7 +43,7 @@ inline int countr_one(std::uint32_t x) noexcept {
 
 // TODO(strager): Use std::countl_zero if available.
 template <class T>
-int countl_zero(T x) noexcept {
+int countl_zero(T x) {
   constexpr int width = sizeof(T) * 8;
 #if defined(__GNUC__)
   if (x == 0) {
@@ -68,11 +68,11 @@ int countl_zero(T x) noexcept {
 }
 
 // TODO(strager): Use std::bit_width if available.
-inline int bit_width(std::uint32_t x) noexcept { return 32 - countl_zero(x); }
+inline int bit_width(std::uint32_t x) { return 32 - countl_zero(x); }
 
 // TODO(strager): Use std::has_single_bit if available.
 template <class T>
-bool has_single_bit(T x) noexcept {
+bool has_single_bit(T x) {
   if (x == 0) {
     return false;
   }
@@ -84,7 +84,7 @@ bool has_single_bit(T x) noexcept {
 
 // TODO(strager): Use std::bit_ceil if available.
 template <class T>
-T bit_ceil(T x) noexcept {
+T bit_ceil(T x) {
   constexpr int width = sizeof(T) * 8;
   if (x == 0) {
     return 1;

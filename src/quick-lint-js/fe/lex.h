@@ -39,10 +39,10 @@ class Lexer {
     jsx,  // Allows '-'.
   };
 
-  explicit Lexer(Padded_String_View input, Diag_Reporter*) noexcept;
+  explicit Lexer(Padded_String_View input, Diag_Reporter*);
 
   // Return information about the current token.
-  const Token& peek() const noexcept { return this->last_token_; }
+  const Token& peek() const { return this->last_token_; }
 
   // Advance to the next token. Use this->peek() after to observe the next
   // token.
@@ -110,7 +110,7 @@ class Lexer {
   //
   // If '=>' was found, this function returns a pointer to the '='. Otherwise,
   // it returns nullptr.
-  const Char8* find_equal_greater_in_jsx_children() const noexcept;
+  const Char8* find_equal_greater_in_jsx_children() const;
 
   // After parsing a '<<' (less_less) token, call this function to reinterpret
   // the token as two '<' (less) tokens, then skip the first token.
@@ -173,15 +173,15 @@ class Lexer {
 
   // transaction_has_lex_diagnostics can only be called while the given
   // transaction is the most recent active transaction.
-  bool transaction_has_lex_diagnostics(const Lexer_Transaction&) const noexcept;
+  bool transaction_has_lex_diagnostics(const Lexer_Transaction&) const;
 
   void insert_semicolon();
 
   // Do not call this after calling insert_semicolon, unless skip has been
   // called after.
-  const Char8* end_of_previous_token() const noexcept;
+  const Char8* end_of_previous_token() const;
 
-  Padded_String_View original_input() const noexcept;
+  Padded_String_View original_input() const;
 
   void debug_dump_location() const;
   void debug_dump_location(const Char8*) const;
@@ -249,10 +249,10 @@ class Lexer {
   // this->last_token_.begin and other members of this->last_token_.
   bool try_parse_current_token();
 
-  const Char8* parse_string_literal() noexcept;
-  const Char8* parse_jsx_string_literal() noexcept;
+  const Char8* parse_string_literal();
+  const Char8* parse_jsx_string_literal();
   const Char8* parse_smart_quote_string_literal(
-      const Decode_UTF8_Result& opening_quote) noexcept;
+      const Decode_UTF8_Result& opening_quote);
 
   Parsed_Template_Body parse_template_body(const Char8* input,
                                            const Char8* template_begin,
@@ -269,11 +269,10 @@ class Lexer {
 
   template <class Func>
   const Char8* parse_digits_and_underscores(Func&& is_valid_digit,
-                                            const Char8* input) noexcept;
-  const Char8* parse_octal_digits(const Char8* input) noexcept;
-  const Char8* parse_decimal_digits_and_underscores(
-      const Char8* input) noexcept;
-  const Char8* parse_hex_digits_and_underscores(const Char8* input) noexcept;
+                                            const Char8* input);
+  const Char8* parse_octal_digits(const Char8* input);
+  const Char8* parse_decimal_digits_and_underscores(const Char8* input);
+  const Char8* parse_hex_digits_and_underscores(const Char8* input);
 
   struct Parsed_Unicode_Escape {
     const Char8* end;
@@ -281,7 +280,7 @@ class Lexer {
   };
 
   Parsed_Unicode_Escape parse_unicode_escape(const Char8* input,
-                                             Diag_Reporter*) noexcept;
+                                             Diag_Reporter*);
 
   Parsed_Identifier parse_identifier(const Char8*, Identifier_Kind);
   const Char8* parse_identifier_fast_only(const Char8*);
@@ -296,9 +295,9 @@ class Lexer {
   void skip_line_comment_body();
   void skip_jsx_text();
 
-  bool is_eof(const Char8*) const noexcept;
+  bool is_eof(const Char8*) const;
 
-  bool is_first_token_on_line() const noexcept;
+  bool is_first_token_on_line() const;
 
   static bool is_binary_digit(Char8);
   static bool is_octal_digit(Char8);
@@ -324,9 +323,9 @@ class Lexer {
   static bool is_ascii_character(char32_t code_point);
 
   static int newline_character_size(const Char8*);
-  static bool is_newline_character(char32_t code_point) noexcept;
+  static bool is_newline_character(char32_t code_point);
 
-  static Token_Type identifier_token_type(String8_View) noexcept;
+  static Token_Type identifier_token_type(String8_View);
 
   Token last_token_;
   const Char8* last_last_token_end_;

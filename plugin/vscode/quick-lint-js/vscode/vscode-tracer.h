@@ -21,7 +21,7 @@ class NAPI_String_Writer {
  public:
   explicit NAPI_String_Writer(::Napi::Env env) : env_(env) {}
 
-  std::size_t string_size(void* string) const noexcept {
+  std::size_t string_size(void* string) const {
     std::size_t size;
     ::napi_status status =
         ::napi_get_value_string_utf16(this->env_, this->get(string),
@@ -32,8 +32,7 @@ class NAPI_String_Writer {
     return size;
   }
 
-  void copy_string(void* string, char16_t* out, std::size_t capacity) const
-      noexcept {
+  void copy_string(void* string, char16_t* out, std::size_t capacity) const {
     std::size_t length;
     ::napi_status status =
         ::napi_get_value_string_utf16(this->env_, this->get(string),
@@ -47,7 +46,7 @@ class NAPI_String_Writer {
   }
 
  private:
-  static ::napi_value get(void* string) noexcept {
+  static ::napi_value get(void* string) {
     return reinterpret_cast<::napi_value>(string);
   }
 

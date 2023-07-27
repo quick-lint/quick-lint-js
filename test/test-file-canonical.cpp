@@ -44,7 +44,7 @@ namespace {
 class Test_File_Canonical : public ::testing::Test,
                             protected Filesystem_Test {};
 
-bool process_ignores_filesystem_permissions() noexcept {
+bool process_ignores_filesystem_permissions() {
 #if QLJS_HAVE_UNISTD_H
   return ::geteuid() == 0;
 #else

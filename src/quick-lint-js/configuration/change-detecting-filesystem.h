@@ -44,8 +44,8 @@ struct Watch_IO_Error {
 
   std::string to_string() const;
 
-  friend bool operator==(const Watch_IO_Error&, const Watch_IO_Error&) noexcept;
-  friend bool operator!=(const Watch_IO_Error&, const Watch_IO_Error&) noexcept;
+  friend bool operator==(const Watch_IO_Error&, const Watch_IO_Error&);
+  friend bool operator!=(const Watch_IO_Error&, const Watch_IO_Error&);
 };
 
 QLJS_WARNING_PUSH
@@ -70,7 +70,7 @@ class Change_Detecting_Filesystem_Inotify : public Configuration_Filesystem,
   void on_canonicalize_child_of_directory(const char*) override;
   void on_canonicalize_child_of_directory(const wchar_t*) override;
 
-  std::optional<POSIX_FD_File_Ref> get_inotify_fd() noexcept;
+  std::optional<POSIX_FD_File_Ref> get_inotify_fd();
   void handle_poll_event(const ::pollfd& event);
 
   std::vector<Watch_IO_Error> take_watch_errors();
@@ -108,7 +108,7 @@ class Change_Detecting_Filesystem_Kqueue : public Configuration_Filesystem,
   void on_canonicalize_child_of_directory(const char*) override;
   void on_canonicalize_child_of_directory(const wchar_t*) override;
 
-  POSIX_FD_File_Ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
+  POSIX_FD_File_Ref kqueue_fd() const { return this->kqueue_fd_; }
 
   void handle_kqueue_event(const struct ::kevent&);
 
@@ -121,8 +121,8 @@ class Change_Detecting_Filesystem_Kqueue : public Configuration_Filesystem,
 
     static File_ID from_open_file(POSIX_FD_File_Ref);
 
-    bool operator==(const File_ID&) const noexcept;
-    bool operator!=(const File_ID&) const noexcept;
+    bool operator==(const File_ID&) const;
+    bool operator!=(const File_ID&) const;
   };
 
   // A watched directory or regular file.
@@ -165,7 +165,7 @@ class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
   Result<Padded_String, Read_File_IO_Error> read_file(
       const Canonical_Path&) override;
 
-  Windows_Handle_File_Ref io_completion_port() const noexcept {
+  Windows_Handle_File_Ref io_completion_port() const {
     return this->io_completion_port_;
   }
 
@@ -188,7 +188,7 @@ class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
     Watched_Directory(const Watched_Directory&) = delete;
     Watched_Directory& operator=(const Watched_Directory&) = delete;
 
-    bool valid() const noexcept { return this->directory_handle.valid(); }
+    bool valid() const { return this->directory_handle.valid(); }
 
     Windows_Handle_File directory_handle;
     ::FILE_ID_INFO directory_id;
@@ -196,7 +196,7 @@ class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
     ::OVERLAPPED oplock_overlapped;
     ::REQUEST_OPLOCK_OUTPUT_BUFFER oplock_response;
 
-    static Watched_Directory* from_oplock_overlapped(OVERLAPPED*) noexcept;
+    static Watched_Directory* from_oplock_overlapped(OVERLAPPED*);
   };
 
   // Calls SetLastError and returns false on failure.

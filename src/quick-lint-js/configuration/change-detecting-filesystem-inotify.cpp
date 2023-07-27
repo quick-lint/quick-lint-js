@@ -37,7 +37,7 @@ int mock_inotify_force_add_watch_error = 0;
 namespace {
 std::vector<POSIX_FD_File> garbage_inotify_fds;
 
-int mockable_inotify_init1(int flags) noexcept {
+int mockable_inotify_init1(int flags) {
   if (mock_inotify_force_init_error != 0) {
     errno = mock_inotify_force_init_error;
     return -1;
@@ -46,7 +46,7 @@ int mockable_inotify_init1(int flags) noexcept {
 }
 
 int mockable_inotify_add_watch(int fd, const char* pathname,
-                               std::uint32_t mask) noexcept {
+                               std::uint32_t mask) {
   if (mock_inotify_force_add_watch_error != 0) {
     errno = mock_inotify_force_add_watch_error;
     return -1;
@@ -142,7 +142,7 @@ void Change_Detecting_Filesystem_Inotify::on_canonicalize_child_of_directory(
 QLJS_WARNING_POP
 
 std::optional<POSIX_FD_File_Ref>
-Change_Detecting_Filesystem_Inotify::get_inotify_fd() noexcept {
+Change_Detecting_Filesystem_Inotify::get_inotify_fd() {
   if (!this->inotify_fd_.ok()) {
     return std::nullopt;
   }

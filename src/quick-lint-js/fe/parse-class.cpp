@@ -274,7 +274,7 @@ void Parser::parse_and_visit_class_or_interface_member(
       Source_Code_Span span;
       Token_Type type;
 
-      bool is_access_specifier() const noexcept {
+      bool is_access_specifier() const {
         return this->type == Token_Type::kw_private ||
                this->type == Token_Type::kw_protected ||
                this->type == Token_Type::kw_public;

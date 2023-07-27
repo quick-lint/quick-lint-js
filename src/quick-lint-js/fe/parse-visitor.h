@@ -12,13 +12,13 @@ namespace quick_lint_js {
 // TODO(strager): Rename this class to Parse_Visitor.
 class Parse_Visitor_Base {
  public:
-  Parse_Visitor_Base() noexcept = default;
+  Parse_Visitor_Base() = default;
 
-  Parse_Visitor_Base(const Parse_Visitor_Base &) noexcept = default;
-  Parse_Visitor_Base &operator=(const Parse_Visitor_Base &) noexcept = default;
+  Parse_Visitor_Base(const Parse_Visitor_Base &) = default;
+  Parse_Visitor_Base &operator=(const Parse_Visitor_Base &) = default;
 
-  Parse_Visitor_Base(Parse_Visitor_Base &&) noexcept = default;
-  Parse_Visitor_Base &operator=(Parse_Visitor_Base &&) noexcept = default;
+  Parse_Visitor_Base(Parse_Visitor_Base &&) = default;
+  Parse_Visitor_Base &operator=(Parse_Visitor_Base &&) = default;
 
   virtual ~Parse_Visitor_Base() = default;
 

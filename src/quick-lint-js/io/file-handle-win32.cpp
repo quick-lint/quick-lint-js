@@ -24,11 +24,11 @@
 #include <utility>
 
 namespace quick_lint_js {
-bool Windows_File_IO_Error::is_file_not_found_error() const noexcept {
+bool Windows_File_IO_Error::is_file_not_found_error() const {
   return this->error == ERROR_FILE_NOT_FOUND;
 }
 
-bool Windows_File_IO_Error::is_not_a_directory_error() const noexcept {
+bool Windows_File_IO_Error::is_not_a_directory_error() const {
   return this->error == ERROR_DIRECTORY;
 }
 
@@ -36,29 +36,28 @@ std::string Windows_File_IO_Error::to_string() const {
   return windows_error_message(this->error);
 }
 
-bool operator==(Windows_File_IO_Error lhs, Windows_File_IO_Error rhs) noexcept {
+bool operator==(Windows_File_IO_Error lhs, Windows_File_IO_Error rhs) {
   return lhs.error == rhs.error;
 }
 
-bool operator!=(Windows_File_IO_Error lhs, Windows_File_IO_Error rhs) noexcept {
+bool operator!=(Windows_File_IO_Error lhs, Windows_File_IO_Error rhs) {
   return !(lhs == rhs);
 }
 
-Windows_Handle_File_Ref::Windows_Handle_File_Ref() noexcept
+Windows_Handle_File_Ref::Windows_Handle_File_Ref()
     : handle_(this->invalid_handle_1) {}
 
-Windows_Handle_File_Ref::Windows_Handle_File_Ref(HANDLE handle) noexcept
+Windows_Handle_File_Ref::Windows_Handle_File_Ref(HANDLE handle)
     : handle_(handle) {}
 
-bool Windows_Handle_File_Ref::valid() const noexcept {
+bool Windows_Handle_File_Ref::valid() const {
   return this->handle_ != this->invalid_handle_1 &&
          this->handle_ != this->invalid_handle_2;
 }
 
-HANDLE Windows_Handle_File_Ref::get() noexcept { return this->handle_; }
+HANDLE Windows_Handle_File_Ref::get() { return this->handle_; }
 
-File_Read_Result Windows_Handle_File_Ref::read(void *buffer,
-                                               int buffer_size) noexcept {
+File_Read_Result Windows_Handle_File_Ref::read(void *buffer, int buffer_size) {
   QLJS_ASSERT(this->valid());
   DWORD read_size;
   if (!::ReadFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
@@ -90,7 +89,7 @@ File_Read_Result Windows_Handle_File_Ref::read(void *buffer,
 }
 
 Result<std::size_t, Windows_File_IO_Error> Windows_Handle_File_Ref::write(
-    const void *buffer, std::size_t buffer_size) noexcept {
+    const void *buffer, std::size_t buffer_size) {
   QLJS_ASSERT(this->valid());
   ::DWORD size_to_write = narrow_cast<::DWORD>(buffer_size);
   ::DWORD write_size;
@@ -102,7 +101,7 @@ Result<std::size_t, Windows_File_IO_Error> Windows_Handle_File_Ref::write(
 }
 
 Result<void, Windows_File_IO_Error> Windows_Handle_File_Ref::write_full(
-    const void *buffer, std::size_t buffer_size) noexcept {
+    const void *buffer, std::size_t buffer_size) {
   QLJS_ASSERT(this->valid());
   auto write_result = this->write(buffer, buffer_size);
   if (!write_result.ok()) {
@@ -159,11 +158,11 @@ std::string Windows_Handle_File_Ref::get_last_error_message() {
   return windows_last_error_message();
 }
 
-Windows_Handle_File_Ref Windows_Handle_File_Ref::get_stdout() noexcept {
+Windows_Handle_File_Ref Windows_Handle_File_Ref::get_stdout() {
   return Windows_Handle_File_Ref(::GetStdHandle(STD_OUTPUT_HANDLE));
 }
 
-Windows_Handle_File_Ref Windows_Handle_File_Ref::get_stderr() noexcept {
+Windows_Handle_File_Ref Windows_Handle_File_Ref::get_stderr() {
   // HACK(strager): During a death test, Google Test closes the standard error
   // handle. Make our own copy of the handle to avoid conflicts with Google
   // Test.
@@ -186,17 +185,17 @@ Windows_Handle_File_Ref Windows_Handle_File_Ref::get_stderr() noexcept {
   return Windows_Handle_File_Ref(stderr_copy);
 }
 
-Windows_Handle_File::Windows_Handle_File() noexcept = default;
+Windows_Handle_File::Windows_Handle_File() = default;
 
-Windows_Handle_File::Windows_Handle_File(HANDLE handle) noexcept
+Windows_Handle_File::Windows_Handle_File(HANDLE handle)
     : Windows_Handle_File_Ref(handle) {}
 
-Windows_Handle_File::Windows_Handle_File(Windows_Handle_File &&other) noexcept
+Windows_Handle_File::Windows_Handle_File(Windows_Handle_File &&other)
     : Windows_Handle_File_Ref(
           std::exchange(other.handle_, this->invalid_handle_1)) {}
 
 Windows_Handle_File &Windows_Handle_File::operator=(
-    Windows_Handle_File &&other) noexcept {
+    Windows_Handle_File &&other) {
   if (this->valid()) {
     this->close();
   }
@@ -219,9 +218,7 @@ void Windows_Handle_File::close() {
   this->handle_ = this->invalid_handle_1;
 }
 
-Windows_Handle_File_Ref Windows_Handle_File::ref() const noexcept {
-  return *this;
-}
+Windows_Handle_File_Ref Windows_Handle_File::ref() const { return *this; }
 }
 
 #endif

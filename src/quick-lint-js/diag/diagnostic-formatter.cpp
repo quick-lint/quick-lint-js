@@ -18,7 +18,7 @@
 #include <utility>
 
 namespace quick_lint_js {
-String8_View headlinese_enum_kind(Enum_Kind ek) noexcept {
+String8_View headlinese_enum_kind(Enum_Kind ek) {
   switch (ek) {
   case Enum_Kind::const_enum:
     return u8"const enum"_sv;
@@ -32,7 +32,7 @@ String8_View headlinese_enum_kind(Enum_Kind ek) noexcept {
   QLJS_UNREACHABLE();
 }
 
-Translatable_Message headlinese_statement_kind(Statement_Kind sk) noexcept {
+Translatable_Message headlinese_statement_kind(Statement_Kind sk) {
   switch (sk) {
   case Statement_Kind::do_while_loop:
     return QLJS_TRANSLATABLE("'do-while' loop");
@@ -50,7 +50,7 @@ Translatable_Message headlinese_statement_kind(Statement_Kind sk) noexcept {
   QLJS_UNREACHABLE();
 }
 
-Translatable_Message singular_statement_kind(Statement_Kind sk) noexcept {
+Translatable_Message singular_statement_kind(Statement_Kind sk) {
   switch (sk) {
   case Statement_Kind::do_while_loop:
     return QLJS_TRANSLATABLE("a 'do-while' loop");
@@ -160,7 +160,7 @@ String8_View Diagnostic_Formatter_Base::expand_argument_singular(
 
 std::pair<const void*, Diagnostic_Arg_Type> Diagnostic_Formatter_Base::get_arg(
     const Diagnostic_Message_Args& args, const void* diagnostic,
-    int arg_index) noexcept {
+    int arg_index) {
   const Diagnostic_Message_Arg_Info& arg_info =
       args[narrow_cast<std::size_t>(arg_index)];
   const void* arg_data =

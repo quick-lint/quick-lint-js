@@ -48,7 +48,7 @@ class Thread {
 #endif
 
  public:
-  explicit Thread() noexcept;
+  explicit Thread();
 
   template <class Func>
   explicit Thread(Func &&func) : Thread() {
@@ -71,7 +71,7 @@ class Thread {
     closure.release();
   }
 
-  bool joinable() const noexcept;
+  bool joinable() const;
   void join();
 
  private:
@@ -115,7 +115,7 @@ class Mutex {
  public:
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
-  explicit constexpr Mutex() noexcept
+  explicit constexpr Mutex()
 #if defined(QLJS_THREADS_WINDOWS)
       : mutex_handle_(SRWLOCK_INIT)
 #elif defined(QLJS_THREADS_POSIX)
@@ -181,7 +181,7 @@ class Condition_Variable {
 #endif
 };
 
-std::uint64_t get_current_thread_id() noexcept;
+std::uint64_t get_current_thread_id();
 }
 
 #endif

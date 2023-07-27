@@ -11,7 +11,7 @@
 namespace quick_lint_js {
 // TODO(strager): Use std::in_range if supported.
 template <class Out, class In>
-constexpr bool in_range([[maybe_unused]] In x) noexcept {
+constexpr bool in_range([[maybe_unused]] In x) {
   [[maybe_unused]] constexpr Out min_out = Numeric_Limits<Out>::lowest();
   [[maybe_unused]] constexpr Out max_out = (Numeric_Limits<Out>::max)();
   using Unsigned_In = Make_Unsigned_T<In>;

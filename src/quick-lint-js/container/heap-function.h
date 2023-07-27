@@ -29,10 +29,10 @@ class Heap_Function<Result(Args...)> {
   /*implicit*/ Heap_Function(Func&& func)
       : callable_(new Dynamic_Callable<Func>(std::move(func))) {}
 
-  Heap_Function(Heap_Function&& other) noexcept
+  Heap_Function(Heap_Function&& other)
       : callable_(std::exchange(other.callable_, nullptr)) {}
 
-  Heap_Function& operator=(Heap_Function&& other) noexcept {
+  Heap_Function& operator=(Heap_Function&& other) {
     if (this != &other) {
       delete this->callable_;
       this->callable_ = std::exchange(other.callable_, nullptr);
@@ -42,7 +42,7 @@ class Heap_Function<Result(Args...)> {
 
   ~Heap_Function() { delete this->callable_; }
 
-  explicit operator bool() const noexcept { return this->callable_ != nullptr; }
+  explicit operator bool() const { return this->callable_ != nullptr; }
 
   Result operator()(Args... args) {
     return this->callable_->call(std::forward<Args>(args)...);

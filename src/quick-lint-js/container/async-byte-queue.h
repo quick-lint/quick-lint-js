@@ -99,10 +99,10 @@ class Async_Byte_Queue {
     // Number of malloc-allocated bytes in the data array.
     Size_Type capacity;
 
-    std::byte* capacity_begin() noexcept {
+    std::byte* capacity_begin() {
       return reinterpret_cast<std::byte*>(this) + sizeof(*this);
     }
-    std::byte* capacity_end() noexcept {
+    std::byte* capacity_end() {
       return this->capacity_begin() + this->capacity;
     }
 
@@ -110,11 +110,11 @@ class Async_Byte_Queue {
     static void deallocate(Memory_Resource*, Chunk*);
 
    private:
-    explicit Chunk(Size_Type capacity) noexcept : capacity(capacity) {}
+    explicit Chunk(Size_Type capacity) : capacity(capacity) {}
     ~Chunk() = default;
 
-    static std::size_t allocation_size(Size_Type capacity) noexcept;
-    std::size_t allocation_size() const noexcept;
+    static std::size_t allocation_size(Size_Type capacity);
+    std::size_t allocation_size() const;
   };
 
   // Writer thread only:
@@ -122,9 +122,9 @@ class Async_Byte_Queue {
   void reserve_aligned(Size_Type extra_byte_count, Size_Type alignment);
   void grow(Size_Type extra_byte_count);
   void add_new_chunk(Size_Type chunk_size);
-  void update_current_chunk_size(std::lock_guard<Mutex>&) noexcept;
-  Size_Type bytes_remaining_in_current_chunk() const noexcept;
-  Size_Type bytes_used_in_current_chunk() const noexcept;
+  void update_current_chunk_size(std::lock_guard<Mutex>&);
+  Size_Type bytes_remaining_in_current_chunk() const;
+  Size_Type bytes_used_in_current_chunk() const;
 
   // Usable by either reader or writer (mutex_ does not need to be held):
   Memory_Resource* memory_;

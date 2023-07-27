@@ -22,10 +22,10 @@ class Web_Demo_Locator {
  public:
   using Range_Type = Web_Demo_Source_Range;
 
-  explicit Web_Demo_Locator(Padded_String_View input) noexcept;
+  explicit Web_Demo_Locator(Padded_String_View input);
 
   Web_Demo_Source_Range range(Source_Code_Span) const;
-  Web_Demo_Source_Offset position(const Char8*) const noexcept;
+  Web_Demo_Source_Offset position(const Char8*) const;
 
  private:
   Padded_String_View input_;

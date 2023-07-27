@@ -152,8 +152,7 @@ Source_Code_Span_Matcher::operator testing::Matcher<const Source_Code_Span &>()
       new Span_Impl(this->expected_));
 }
 
-Source_Code_Span Diag_Matcher_Arg::get_span(const void *error_object) const
-    noexcept {
+Source_Code_Span Diag_Matcher_Arg::get_span(const void *error_object) const {
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   switch (this->member_type) {
@@ -172,23 +171,22 @@ Source_Code_Span Diag_Matcher_Arg::get_span(const void *error_object) const
   QLJS_UNREACHABLE();
 }
 
-Char8 Diag_Matcher_Arg::get_char8(const void *error_object) const noexcept {
+Char8 Diag_Matcher_Arg::get_char8(const void *error_object) const {
   QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::char8);
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   return *static_cast<const Char8 *>(member_data);
 }
 
-Enum_Kind Diag_Matcher_Arg::get_enum_kind(const void *error_object) const
-    noexcept {
+Enum_Kind Diag_Matcher_Arg::get_enum_kind(const void *error_object) const {
   QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::enum_kind);
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   return *static_cast<const Enum_Kind *>(member_data);
 }
 
-String8_View Diag_Matcher_Arg::get_string8_view(const void *error_object) const
-    noexcept {
+String8_View Diag_Matcher_Arg::get_string8_view(
+    const void *error_object) const {
   QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::string8_view);
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
@@ -196,7 +194,7 @@ String8_View Diag_Matcher_Arg::get_string8_view(const void *error_object) const
 }
 
 Statement_Kind Diag_Matcher_Arg::get_statement_kind(
-    const void *error_object) const noexcept {
+    const void *error_object) const {
   QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::statement_kind);
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;

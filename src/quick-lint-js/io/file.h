@@ -27,15 +27,15 @@ struct Read_File_IO_Error {
   std::string path;
   Platform_File_IO_Error io_error;
 
-  bool is_file_not_found_error() const noexcept;
+  bool is_file_not_found_error() const;
 
   std::string to_string() const;
   [[noreturn]] void print_and_exit() const;
 
   friend bool operator==(const Read_File_IO_Error &,
-                         const Read_File_IO_Error &) noexcept;
+                         const Read_File_IO_Error &);
   friend bool operator!=(const Read_File_IO_Error &,
-                         const Read_File_IO_Error &) noexcept;
+                         const Read_File_IO_Error &);
 };
 
 struct Write_File_IO_Error {
@@ -68,7 +68,7 @@ Result<Platform_File, Write_File_IO_Error> open_file_for_writing(
     const char *path);
 
 #if QLJS_HAVE_WINDOWS_H
-bool file_ids_equal(const ::FILE_ID_INFO &, const ::FILE_ID_INFO &) noexcept;
+bool file_ids_equal(const ::FILE_ID_INFO &, const ::FILE_ID_INFO &);
 #endif
 }
 

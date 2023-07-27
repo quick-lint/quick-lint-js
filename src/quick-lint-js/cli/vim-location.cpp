@@ -11,7 +11,7 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-Vim_Locator::Vim_Locator(Padded_String_View input) noexcept : input_(input) {}
+Vim_Locator::Vim_Locator(Padded_String_View input) : input_(input) {}
 
 Vim_Source_Range Vim_Locator::range(Source_Code_Span span) const {
   Vim_Source_Position begin = this->position(span.begin());
@@ -19,7 +19,7 @@ Vim_Source_Range Vim_Locator::range(Source_Code_Span span) const {
   return Vim_Source_Range{.begin = begin, .end = end};
 }
 
-Vim_Source_Position Vim_Locator::position(const Char8 *source) const noexcept {
+Vim_Source_Position Vim_Locator::position(const Char8 *source) const {
   Offset_Type offset = this->offset(source);
   int line_number = this->find_line_at_offset(offset);
   return this->position(line_number, offset);
@@ -59,13 +59,12 @@ int Vim_Locator::find_line_at_offset(Offset_Type offset) const {
          1;
 }
 
-Vim_Locator::Offset_Type Vim_Locator::offset(const Char8 *source) const
-    noexcept {
+Vim_Locator::Offset_Type Vim_Locator::offset(const Char8 *source) const {
   return narrow_cast<Offset_Type>(source - this->input_.data());
 }
 
 Vim_Source_Position Vim_Locator::position(int line_number,
-                                          Offset_Type offset) const noexcept {
+                                          Offset_Type offset) const {
   Offset_Type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number - 1)];
   int col = narrow_cast<int>(offset - beginning_of_line_offset) + 1;

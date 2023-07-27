@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-bool Parsed_Diag_Code_List::error_missing_predicate() const noexcept {
+bool Parsed_Diag_Code_List::error_missing_predicate() const {
   return this->included_codes.empty() && this->excluded_codes.empty() &&
          this->included_categories.empty() && this->excluded_categories.empty();
 }
@@ -153,7 +153,7 @@ std::vector<std::string> Compiled_Diag_Code_List::parse_warnings() const {
   return warnings;
 }
 
-bool Compiled_Diag_Code_List::is_present(Diag_Type type) const noexcept {
+bool Compiled_Diag_Code_List::is_present(Diag_Type type) const {
   bool is_default = true;  // For now, all codes are enabled by default.
   bool present = true;
   for (const Codes& c : this->parsed_diag_code_lists_) {
@@ -170,7 +170,7 @@ bool Compiled_Diag_Code_List::is_present(Diag_Type type) const noexcept {
   return present;
 }
 
-bool Compiled_Diag_Code_List::is_user_provided() const noexcept {
+bool Compiled_Diag_Code_List::is_user_provided() const {
   return !parsed_diag_code_lists_.empty();
 }
 }

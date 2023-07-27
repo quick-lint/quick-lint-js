@@ -19,29 +19,29 @@ inline std::basic_string_view<Char> make_string_view(const Char* begin,
 
 template <class Char>
 inline bool starts_with(std::basic_string_view<Char> haystack,
-                        std::basic_string_view<Char> needle) noexcept {
+                        std::basic_string_view<Char> needle) {
   return haystack.substr(0, needle.size()) == needle;
 }
 
 template <class Char>
 inline bool ends_with(std::basic_string_view<Char> haystack,
-                      std::basic_string_view<Char> needle) noexcept {
+                      std::basic_string_view<Char> needle) {
   return haystack.size() >= needle.size() &&
          haystack.substr(haystack.size() - needle.size()) == needle;
 }
 
 template <class Char>
 inline bool ends_with(std::basic_string<Char> haystack,
-                      std::basic_string_view<Char> needle) noexcept {
+                      std::basic_string_view<Char> needle) {
   return ends_with(std::basic_string_view<Char>(haystack), needle);
 }
 
-inline bool ends_with(std::string_view haystack, char needle) noexcept {
+inline bool ends_with(std::string_view haystack, char needle) {
   return haystack.size() >= 1 && haystack[haystack.size() - 1] == needle;
 }
 
-inline std::string_view remove_suffix_if_present(
-    std::string_view s, std::string_view suffix) noexcept {
+inline std::string_view remove_suffix_if_present(std::string_view s,
+                                                 std::string_view suffix) {
   if (ends_with(s, suffix)) {
     s.remove_suffix(suffix.size());
   }
@@ -51,7 +51,7 @@ inline std::string_view remove_suffix_if_present(
 template <class Char>
 inline std::basic_string_view<Char> trim_start(
     std::basic_string_view<Char> s,
-    std::basic_string_view<Char> character_set) noexcept {
+    std::basic_string_view<Char> character_set) {
   std::size_t index = s.find_first_not_of(character_set);
   if (index == std::basic_string_view<Char>::npos) {
     index = s.size();
@@ -62,7 +62,7 @@ inline std::basic_string_view<Char> trim_start(
 template <class Char>
 inline std::basic_string_view<Char> trim_end(
     std::basic_string_view<Char> s,
-    std::basic_string_view<Char> character_set) noexcept {
+    std::basic_string_view<Char> character_set) {
   std::size_t index = s.find_last_not_of(character_set);
   if (index == std::basic_string_view<Char>::npos) {
     index = static_cast<std::size_t>(-1);
@@ -73,7 +73,7 @@ inline std::basic_string_view<Char> trim_end(
 template <class Char>
 inline std::basic_string_view<Char> trim(
     std::basic_string_view<Char> s,
-    std::basic_string_view<Char> character_set) noexcept {
+    std::basic_string_view<Char> character_set) {
   return trim_start(trim_end(s, character_set), character_set);
 }
 
@@ -82,8 +82,7 @@ inline bool contains(std::string_view haystack, std::string_view needle) {
 }
 
 template <class Char>
-inline bool contains(std::basic_string_view<Char> haystack,
-                     Char needle) noexcept {
+inline bool contains(std::basic_string_view<Char> haystack, Char needle) {
   return haystack.find(needle) != haystack.npos;
 }
 }

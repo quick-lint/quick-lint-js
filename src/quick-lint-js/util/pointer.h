@@ -8,13 +8,13 @@
 #include <cstdint>
 
 namespace quick_lint_js {
-inline bool is_aligned(void* p, std::size_t alignment) noexcept {
+inline bool is_aligned(void* p, std::size_t alignment) {
   std::size_t alignment_mask = alignment - 1;
   return (reinterpret_cast<std::uintptr_t>(p) & alignment_mask) == 0;
 }
 
 template <class Integer_Pointer>
-Integer_Pointer align_up(Integer_Pointer p, std::size_t alignment) noexcept {
+Integer_Pointer align_up(Integer_Pointer p, std::size_t alignment) {
   Integer_Pointer alignment_mask = static_cast<Integer_Pointer>(alignment - 1);
   // TODO(strager): What about integer overflow?
   return ((p - 1) | alignment_mask) + 1;

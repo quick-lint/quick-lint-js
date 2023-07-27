@@ -24,15 +24,13 @@ TEST(Test_Array, concat_not_default_constructible) {
   struct Initialized_Int {
     Initialized_Int() = delete;
 
-    /*implicit*/ Initialized_Int(int value) noexcept : value(value) {}
+    /*implicit*/ Initialized_Int(int value) : value(value) {}
 
-    bool operator==(Initialized_Int other) const noexcept {
+    bool operator==(Initialized_Int other) const {
       return this->value == other.value;
     }
 
-    bool operator!=(Initialized_Int other) const noexcept {
-      return !(*this == other);
-    }
+    bool operator!=(Initialized_Int other) const { return !(*this == other); }
 
     int value;
   };

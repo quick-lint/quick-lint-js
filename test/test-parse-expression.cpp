@@ -3626,7 +3626,7 @@ TEST_F(Test_Parse_Expression, precedence) {
     String8_View op;
     const char* raw_kind;
 
-    std::string_view kind() const noexcept {
+    std::string_view kind() const {
       if (this->raw_kind) {
         return std::string_view(this->raw_kind);
       } else if (this->op.empty()) {

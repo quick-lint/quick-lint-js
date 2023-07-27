@@ -164,7 +164,7 @@ class Instrumented_Vector {
   using value_type = typename Vector::value_type;
 
   explicit Instrumented_Vector(const char *debug_owner,
-                               const allocator_type &allocator) noexcept
+                               const allocator_type &allocator)
       : data_(allocator), debug_owner_(debug_owner) {
     this->add_instrumentation_entry(Vector_Instrumentation::Event::create);
   }
@@ -202,48 +202,42 @@ class Instrumented_Vector {
     this->add_instrumentation_entry(Vector_Instrumentation::Event::destroy);
   }
 
-  QLJS_FORCE_INLINE allocator_type get_allocator() const noexcept {
+  QLJS_FORCE_INLINE allocator_type get_allocator() const {
     return this->data_.get_allocator();
   }
 
-  QLJS_FORCE_INLINE value_type *data() noexcept { return this->data_.data(); }
-  QLJS_FORCE_INLINE const value_type *data() const noexcept {
+  QLJS_FORCE_INLINE value_type *data() { return this->data_.data(); }
+  QLJS_FORCE_INLINE const value_type *data() const {
     return this->data_.data();
   }
 
-  QLJS_FORCE_INLINE size_type size() const noexcept {
-    return this->data_.size();
-  }
+  QLJS_FORCE_INLINE size_type size() const { return this->data_.size(); }
 
-  QLJS_FORCE_INLINE size_type capacity() const noexcept {
+  QLJS_FORCE_INLINE size_type capacity() const {
     return this->data_.capacity();
   }
 
-  QLJS_FORCE_INLINE bool empty() const noexcept { return this->data_.empty(); }
+  QLJS_FORCE_INLINE bool empty() const { return this->data_.empty(); }
 
-  QLJS_FORCE_INLINE value_type &front() noexcept { return this->data_.front(); }
-  QLJS_FORCE_INLINE value_type &back() noexcept { return this->data_.back(); }
+  QLJS_FORCE_INLINE value_type &front() { return this->data_.front(); }
+  QLJS_FORCE_INLINE value_type &back() { return this->data_.back(); }
 
-  QLJS_FORCE_INLINE const value_type &front() const noexcept {
+  QLJS_FORCE_INLINE const value_type &front() const {
     return this->data_.front();
   }
-  QLJS_FORCE_INLINE const value_type &back() const noexcept {
+  QLJS_FORCE_INLINE const value_type &back() const {
     return this->data_.back();
   }
 
-  QLJS_FORCE_INLINE value_type &operator[](size_type index) noexcept {
+  QLJS_FORCE_INLINE value_type &operator[](size_type index) {
     return this->data_[index];
   }
 
-  QLJS_FORCE_INLINE value_type *begin() noexcept { return this->data(); }
-  QLJS_FORCE_INLINE value_type *end() noexcept {
-    return this->begin() + this->size();
-  }
+  QLJS_FORCE_INLINE value_type *begin() { return this->data(); }
+  QLJS_FORCE_INLINE value_type *end() { return this->begin() + this->size(); }
 
-  QLJS_FORCE_INLINE const value_type *begin() const noexcept {
-    return this->data();
-  }
-  QLJS_FORCE_INLINE const value_type *end() const noexcept {
+  QLJS_FORCE_INLINE const value_type *begin() const { return this->data(); }
+  QLJS_FORCE_INLINE const value_type *end() const {
     return this->begin() + this->size();
   }
 
@@ -313,7 +307,7 @@ class Instrumented_Vector {
   }
 
   // NOTE(strager): This is a non-standard function.
-  explicit operator std::basic_string_view<value_type>() const noexcept {
+  explicit operator std::basic_string_view<value_type>() const {
     return std::basic_string_view<value_type>(this->data_);
   }
 

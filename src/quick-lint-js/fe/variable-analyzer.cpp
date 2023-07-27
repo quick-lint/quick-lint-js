@@ -99,8 +99,8 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 
 namespace quick_lint_js {
 namespace {
-bool is_runtime(Variable_Kind) noexcept;
-bool is_type(Variable_Kind) noexcept;
+bool is_runtime(Variable_Kind);
+bool is_type(Variable_Kind);
 }
 
 Variable_Analyzer::Variable_Analyzer(
@@ -1052,15 +1052,15 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
   }
 }
 
-bool Variable_Analyzer::Declared_Variable::is_runtime() const noexcept {
+bool Variable_Analyzer::Declared_Variable::is_runtime() const {
   return quick_lint_js::is_runtime(kind);
 }
 
-bool Variable_Analyzer::Declared_Variable::is_type() const noexcept {
+bool Variable_Analyzer::Declared_Variable::is_type() const {
   return quick_lint_js::is_type(this->kind);
 }
 
-bool Variable_Analyzer::Used_Variable::is_runtime() const noexcept {
+bool Variable_Analyzer::Used_Variable::is_runtime() const {
   switch (this->kind) {
   case Used_Variable_Kind::_delete:
   case Used_Variable_Kind::_export:
@@ -1074,7 +1074,7 @@ bool Variable_Analyzer::Used_Variable::is_runtime() const noexcept {
   QLJS_UNREACHABLE();
 }
 
-bool Variable_Analyzer::Used_Variable::is_type() const noexcept {
+bool Variable_Analyzer::Used_Variable::is_type() const {
   switch (this->kind) {
   case Used_Variable_Kind::_export:
   case Used_Variable_Kind::type:
@@ -1103,12 +1103,12 @@ Variable_Analyzer::Declared_Variable_Set::add_variable_declaration(
 }
 
 const Variable_Analyzer::Declared_Variable *
-Variable_Analyzer::Declared_Variable_Set::find(Identifier name) const noexcept {
+Variable_Analyzer::Declared_Variable_Set::find(Identifier name) const {
   return const_cast<Declared_Variable_Set *>(this)->find(name);
 }
 
 Variable_Analyzer::Declared_Variable *
-Variable_Analyzer::Declared_Variable_Set::find(Identifier name) noexcept {
+Variable_Analyzer::Declared_Variable_Set::find(Identifier name) {
   String8_View name_view = name.normalized_name();
   for (Declared_Variable &var : this->variables_) {
     if (var.declaration.normalized_name() == name_view) {
@@ -1119,8 +1119,7 @@ Variable_Analyzer::Declared_Variable_Set::find(Identifier name) noexcept {
 }
 
 Variable_Analyzer::Declared_Variable *
-Variable_Analyzer::Declared_Variable_Set::find_runtime(
-    Identifier name) noexcept {
+Variable_Analyzer::Declared_Variable_Set::find_runtime(Identifier name) {
   String8_View name_view = name.normalized_name();
   for (Declared_Variable &var : this->variables_) {
     if (var.is_runtime() && var.declaration.normalized_name() == name_view) {
@@ -1131,7 +1130,7 @@ Variable_Analyzer::Declared_Variable_Set::find_runtime(
 }
 
 Variable_Analyzer::Declared_Variable *
-Variable_Analyzer::Declared_Variable_Set::find_type(Identifier name) noexcept {
+Variable_Analyzer::Declared_Variable_Set::find_type(Identifier name) {
   String8_View name_view = name.normalized_name();
   for (Declared_Variable &var : this->variables_) {
     if (var.is_type() && var.declaration.normalized_name() == name_view) {
@@ -1141,21 +1140,21 @@ Variable_Analyzer::Declared_Variable_Set::find_type(Identifier name) noexcept {
   return nullptr;
 }
 
-void Variable_Analyzer::Declared_Variable_Set::clear() noexcept {
+void Variable_Analyzer::Declared_Variable_Set::clear() {
   this->variables_.clear();
 }
 
-bool Variable_Analyzer::Declared_Variable_Set::empty() const noexcept {
+bool Variable_Analyzer::Declared_Variable_Set::empty() const {
   return this->variables_.empty();
 }
 
 std::vector<Variable_Analyzer::Declared_Variable>::const_iterator
-Variable_Analyzer::Declared_Variable_Set::begin() const noexcept {
+Variable_Analyzer::Declared_Variable_Set::begin() const {
   return this->variables_.cbegin();
 }
 
 std::vector<Variable_Analyzer::Declared_Variable>::const_iterator
-Variable_Analyzer::Declared_Variable_Set::end() const noexcept {
+Variable_Analyzer::Declared_Variable_Set::end() const {
   return this->variables_.cend();
 }
 
@@ -1172,16 +1171,16 @@ Variable_Analyzer::Scopes::Scopes() {
   this->push();  // module_scope
 }
 
-Variable_Analyzer::Scope &Variable_Analyzer::Scopes::module_scope() noexcept {
+Variable_Analyzer::Scope &Variable_Analyzer::Scopes::module_scope() {
   return this->scopes_[0];
 }
 
-Variable_Analyzer::Scope &Variable_Analyzer::Scopes::current_scope() noexcept {
+Variable_Analyzer::Scope &Variable_Analyzer::Scopes::current_scope() {
   QLJS_ASSERT(!this->empty());
   return this->scopes_[narrow_cast<std::size_t>(this->size()) - 1];
 }
 
-Variable_Analyzer::Scope &Variable_Analyzer::Scopes::parent_scope() noexcept {
+Variable_Analyzer::Scope &Variable_Analyzer::Scopes::parent_scope() {
   QLJS_ASSERT(this->size() >= 2);
   return this->scopes_[narrow_cast<std::size_t>(this->size()) - 2];
 }
@@ -1204,16 +1203,14 @@ void Variable_Analyzer::Scopes::pop() {
   this->scope_count_ -= 1;
 }
 
-bool Variable_Analyzer::Scopes::empty() const noexcept {
+bool Variable_Analyzer::Scopes::empty() const {
   return this->scope_count_ == 0;
 }
 
-int Variable_Analyzer::Scopes::size() const noexcept {
-  return this->scope_count_;
-}
+int Variable_Analyzer::Scopes::size() const { return this->scope_count_; }
 
 namespace {
-bool is_runtime(Variable_Kind kind) noexcept {
+bool is_runtime(Variable_Kind kind) {
   switch (kind) {
   case Variable_Kind::_arrow_parameter:
   case Variable_Kind::_catch:
@@ -1240,7 +1237,7 @@ bool is_runtime(Variable_Kind kind) noexcept {
   QLJS_UNREACHABLE();
 }
 
-bool is_type(Variable_Kind kind) noexcept {
+bool is_type(Variable_Kind kind) {
   switch (kind) {
   case Variable_Kind::_class:
   case Variable_Kind::_enum:

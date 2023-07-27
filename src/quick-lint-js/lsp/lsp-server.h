@@ -131,9 +131,7 @@ class Linting_LSP_Server_Handler final : public JSON_RPC_Message_Handler {
                                       LSP_Linter* linter);
   ~Linting_LSP_Server_Handler() override;
 
-  Linting_LSP_Server_Config& server_config() noexcept {
-    return this->server_config_;
-  }
+  Linting_LSP_Server_Config& server_config() { return this->server_config_; }
 
   void handle_request(::simdjson::ondemand::object& request,
                       std::string_view method, String8_View id_json) override;

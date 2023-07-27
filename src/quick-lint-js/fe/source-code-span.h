@@ -13,24 +13,22 @@ namespace quick_lint_js {
 class Source_Code_Span {
  public:
   // A Source_Code_Span with no contained characters.
-  static Source_Code_Span unit(const Char8* c) noexcept {
+  static Source_Code_Span unit(const Char8* c) {
     return Source_Code_Span(c, c);
   }
 
-  explicit Source_Code_Span(const Char8* begin, const Char8* end) noexcept
+  explicit Source_Code_Span(const Char8* begin, const Char8* end)
       : begin_(begin), end_(end) {}
 
-  const Char8* begin() const noexcept { return this->begin_; }
+  const Char8* begin() const { return this->begin_; }
 
-  const Char8* end() const noexcept { return this->end_; }
+  const Char8* end() const { return this->end_; }
 
-  String8_View string_view() const noexcept {
+  String8_View string_view() const {
     return make_string_view(this->begin(), this->end());
   }
 
-  int size() const noexcept {
-    return narrow_cast<int>(this->end() - this->begin());
-  }
+  int size() const { return narrow_cast<int>(this->end() - this->begin()); }
 
  private:
   const Char8* begin_;
@@ -39,7 +37,7 @@ class Source_Code_Span {
 
 // Returns true of the given Source_Code_Span-s refer to the same span of code
 // (i.e. are completely identical).
-bool same_pointers(Source_Code_Span, Source_Code_Span) noexcept;
+bool same_pointers(Source_Code_Span, Source_Code_Span);
 
 std::ostream& operator<<(std::ostream&, Source_Code_Span);
 }

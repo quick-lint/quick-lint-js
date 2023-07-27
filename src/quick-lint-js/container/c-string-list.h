@@ -15,37 +15,36 @@ class C_String_List_Sentinel {};
 // See C_String_List_View.
 class C_String_List_Iterator {
  public:
-  explicit C_String_List_Iterator(const char* cursor) noexcept
+  explicit C_String_List_Iterator(const char* cursor)
       : cursor_(cursor), current_string_size_(std::strlen(cursor)) {}
 
   // The returned view's .data() is guaranteed to be null-terminated.
-  std::string_view operator*() const noexcept {
+  std::string_view operator*() const {
     return std::string_view(this->cursor_, this->current_string_size_);
   }
 
-  const char* c_str() const noexcept { return this->cursor_; }
+  const char* c_str() const { return this->cursor_; }
 
-  C_String_List_Iterator& operator++() noexcept {
+  C_String_List_Iterator& operator++() {
     *this =
         C_String_List_Iterator(this->cursor_ + this->current_string_size_ + 1);
     return *this;
   }
 
-  friend bool operator==(C_String_List_Iterator it,
-                         C_String_List_Sentinel) noexcept {
+  friend bool operator==(C_String_List_Iterator it, C_String_List_Sentinel) {
     return *it.cursor_ == '\0';
   }
   friend bool operator!=(C_String_List_Iterator it,
-                         C_String_List_Sentinel sentinel) noexcept {
+                         C_String_List_Sentinel sentinel) {
     return !(it == sentinel);
   }
 
   friend bool operator==(C_String_List_Sentinel sentinel,
-                         C_String_List_Iterator it) noexcept {
+                         C_String_List_Iterator it) {
     return it == sentinel;
   }
   friend bool operator!=(C_String_List_Sentinel sentinel,
-                         C_String_List_Iterator it) noexcept {
+                         C_String_List_Iterator it) {
     return !(sentinel == it);
   }
 
@@ -65,15 +64,13 @@ class C_String_List_View {
   //
   // Note that the list is terminated by two null bytes (one written
   // explicitly and one added by C++'s "" syntax.)
-  explicit C_String_List_View(const char* begin) noexcept : begin_(begin) {}
+  explicit C_String_List_View(const char* begin) : begin_(begin) {}
 
-  C_String_List_Iterator begin() const noexcept {
+  C_String_List_Iterator begin() const {
     return C_String_List_Iterator(this->begin_);
   }
 
-  C_String_List_Sentinel end() const noexcept {
-    return C_String_List_Sentinel();
-  }
+  C_String_List_Sentinel end() const { return C_String_List_Sentinel(); }
 
  private:
   const char* begin_;

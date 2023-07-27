@@ -82,20 +82,19 @@ TEST(Test_UTF8_Encode, non_standard_four_byte_output_extremes) {
 }
 
 namespace {
-Decode_UTF8_Result decode_utf_8(const Padded_String& code_units) noexcept {
+Decode_UTF8_Result decode_utf_8(const Padded_String& code_units) {
   return quick_lint_js::decode_utf_8(&code_units);
 }
 
 #if QLJS_HAVE_CHAR8_T
-Padded_String operator""_padded(const char8_t* chars,
-                                std::size_t size) noexcept {
+Padded_String operator""_padded(const char8_t* chars, std::size_t size) {
   return Padded_String(String8_View(chars, size));
 }
 #endif
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-Padded_String operator""_padded(const char* chars, std::size_t size) noexcept {
+Padded_String operator""_padded(const char* chars, std::size_t size) {
   return Padded_String(
       String8_View(reinterpret_cast<const Char8*>(chars), size));
 }
@@ -502,20 +501,18 @@ TEST(Test_Advance_LSP_Characters_In_UTF8,
 }
 
 namespace {
-std::ptrdiff_t count_lsp_characters_in_utf_8(
-    Padded_String_View utf_8) noexcept {
+std::ptrdiff_t count_lsp_characters_in_utf_8(Padded_String_View utf_8) {
   // TODO(strager): Get rid of this narrow_cast.
   return quick_lint_js::count_lsp_characters_in_utf_8(
       utf_8, narrow_cast<int>(utf_8.size()));
 }
 
-std::ptrdiff_t count_lsp_characters_in_utf_8(
-    const Padded_String& utf_8) noexcept {
+std::ptrdiff_t count_lsp_characters_in_utf_8(const Padded_String& utf_8) {
   return count_lsp_characters_in_utf_8(&utf_8);
 }
 
 std::ptrdiff_t count_lsp_characters_in_utf_8(const Padded_String& utf_8,
-                                             int offset) noexcept {
+                                             int offset) {
   return quick_lint_js::count_lsp_characters_in_utf_8(&utf_8, offset);
 }
 }
@@ -619,17 +616,17 @@ TEST(Test_Count_LSP_Characters_In_UTF8,
 }
 
 namespace {
-std::size_t count_utf_8_characters(Padded_String_View utf_8) noexcept {
+std::size_t count_utf_8_characters(Padded_String_View utf_8) {
   return quick_lint_js::count_utf_8_characters(
       utf_8, static_cast<std::size_t>(utf_8.size()));
 }
 
-std::size_t count_utf_8_characters(const Padded_String& utf_8) noexcept {
+std::size_t count_utf_8_characters(const Padded_String& utf_8) {
   return count_utf_8_characters(&utf_8);
 }
 
 std::size_t count_utf_8_characters(const Padded_String& utf_8,
-                                   std::size_t offset) noexcept {
+                                   std::size_t offset) {
   return count_utf_8_characters(&utf_8, offset);
 }
 }

@@ -14,24 +14,23 @@ namespace quick_lint_js {
 class Identifier {
  public:
   // For tests only.
-  explicit Identifier(Source_Code_Span span) noexcept
+  explicit Identifier(Source_Code_Span span)
       : span_begin_(span.begin()),
         normalized_begin_(this->span_begin_),
         span_size_(narrow_cast<unsigned>(span.end() - span.begin())),
         normalized_size_(this->span_size_) {}
 
-  explicit Identifier(Source_Code_Span span, String8_View normalized) noexcept
+  explicit Identifier(Source_Code_Span span, String8_View normalized)
       : span_begin_(span.begin()),
         normalized_begin_(normalized.data()),
         span_size_(narrow_cast<unsigned>(span.end() - span.begin())),
         normalized_size_(narrow_cast<unsigned>(normalized.size())) {}
 
-  explicit Identifier(Source_Code_Span span,
-                      const Char8* normalized) noexcept = delete;
+  explicit Identifier(Source_Code_Span span, const Char8* normalized) = delete;
 
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
-  Source_Code_Span span() const noexcept {
+  Source_Code_Span span() const {
     return Source_Code_Span(this->span_begin_,
                             this->span_begin_ + this->span_size_);
   }
@@ -45,7 +44,7 @@ class Identifier {
   // The returned pointers might not reside within the source code string. In
   // other words, the normalized name might be heap-allocated. Call span()
   // instead if you want pointers within the source code input.
-  String8_View normalized_name() const noexcept {
+  String8_View normalized_name() const {
     return String8_View(this->normalized_begin_, this->normalized_size_);
   }
 

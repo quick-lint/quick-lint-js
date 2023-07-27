@@ -22,7 +22,7 @@ class Configuration {
  public:
   explicit Configuration();
 
-  const Global_Declared_Variable_Set& globals() noexcept;
+  const Global_Declared_Variable_Set& globals();
 
   void reset_global_groups();
   bool add_global_group(String8_View group_name);

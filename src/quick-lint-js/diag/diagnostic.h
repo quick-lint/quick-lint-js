@@ -57,14 +57,14 @@ struct Diagnostic_Message_Arg_Info {
   static constexpr int offset_mask = (1 << offset_shift) - 1;
   static constexpr int offset_bits = 5;
 
-  /*implicit*/ constexpr Diagnostic_Message_Arg_Info() noexcept
+  /*implicit*/ constexpr Diagnostic_Message_Arg_Info()
       : compact_offset(0), type(Diagnostic_Arg_Type::invalid) {}
 
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_CLANG("-Wimplicit-int-conversion")
   QLJS_WARNING_IGNORE_GCC("-Wconversion")
-  /*implicit*/ constexpr Diagnostic_Message_Arg_Info(
-      std::size_t offset, Diagnostic_Arg_Type type) noexcept
+  /*implicit*/ constexpr Diagnostic_Message_Arg_Info(std::size_t offset,
+                                                     Diagnostic_Arg_Type type)
       : compact_offset(offset >> offset_shift), type(type) {
     // offset should be small.
     QLJS_CONSTEXPR_ASSERT((offset >> offset_shift) < (1 << offset_bits));
@@ -73,7 +73,7 @@ struct Diagnostic_Message_Arg_Info {
   }
   QLJS_WARNING_POP
 
-  constexpr std::size_t offset() const noexcept {
+  constexpr std::size_t offset() const {
     return static_cast<std::size_t>(this->compact_offset << offset_shift);
   }
 
@@ -84,7 +84,7 @@ struct Diagnostic_Message_Arg_Info {
 using Diagnostic_Message_Args = std::array<Diagnostic_Message_Arg_Info, 3>;
 
 struct Diagnostic_Info {
-  std::array<char, 5> code_string() const noexcept;
+  std::array<char, 5> code_string() const;
 
   std::uint16_t code : 14;
   Diagnostic_Severity severity : 2 QLJS_WORK_AROUND_GCC_BUG_105191;
@@ -93,35 +93,31 @@ struct Diagnostic_Info {
   Diagnostic_Message_Args message_args[diagnostic_max_message_count];
 };
 
-const Diagnostic_Info& get_diagnostic_info(Diag_Type) noexcept;
-std::optional<Diag_Type> diag_type_from_code_slow(
-    std::string_view code) noexcept;
+const Diagnostic_Info& get_diagnostic_info(Diag_Type);
+std::optional<Diag_Type> diag_type_from_code_slow(std::string_view code);
 
 template <class Arg_Type>
-constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type() noexcept;
+constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type();
 template <>
-constexpr Diagnostic_Arg_Type
-get_diagnostic_message_arg_type<Char8>() noexcept {
+constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type<Char8>() {
   return Diagnostic_Arg_Type::char8;
 }
 template <>
-constexpr Diagnostic_Arg_Type
-get_diagnostic_message_arg_type<Enum_Kind>() noexcept {
+constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type<Enum_Kind>() {
   return Diagnostic_Arg_Type::enum_kind;
 }
 template <>
 constexpr Diagnostic_Arg_Type
-get_diagnostic_message_arg_type<Source_Code_Span>() noexcept {
+get_diagnostic_message_arg_type<Source_Code_Span>() {
   return Diagnostic_Arg_Type::source_code_span;
 }
 template <>
 constexpr Diagnostic_Arg_Type
-get_diagnostic_message_arg_type<Statement_Kind>() noexcept {
+get_diagnostic_message_arg_type<Statement_Kind>() {
   return Diagnostic_Arg_Type::statement_kind;
 }
 template <>
-constexpr Diagnostic_Arg_Type
-get_diagnostic_message_arg_type<String8_View>() noexcept {
+constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type<String8_View>() {
   return Diagnostic_Arg_Type::string8_view;
 }
 }

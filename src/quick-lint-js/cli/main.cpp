@@ -125,11 +125,11 @@ class Any_Diag_Reporter {
         this->tape_);
   }
 
-  Diag_Reporter *get() noexcept {
+  Diag_Reporter *get() {
     return visit([](Diag_Reporter &r) { return &r; }, this->tape_);
   }
 
-  bool get_error() noexcept {
+  bool get_error() {
     return visit([](auto &r) { return r.found_matching_diag(); }, this->tape_);
   }
 

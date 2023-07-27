@@ -17,11 +17,11 @@ struct Vim_Source_Position {
   int lnum;
   int col;
 
-  bool operator==(const Vim_Source_Position& other) const noexcept {
+  bool operator==(const Vim_Source_Position& other) const {
     return this->lnum == other.lnum && this->col == other.col;
   }
 
-  bool operator!=(const Vim_Source_Position& other) const noexcept {
+  bool operator!=(const Vim_Source_Position& other) const {
     return !(*this == other);
   }
 };
@@ -35,10 +35,10 @@ struct Vim_Source_Range {
 
 class Vim_Locator {
  public:
-  explicit Vim_Locator(Padded_String_View input) noexcept;
+  explicit Vim_Locator(Padded_String_View input);
 
   Vim_Source_Range range(Source_Code_Span) const;
-  Vim_Source_Position position(const Char8*) const noexcept;
+  Vim_Source_Position position(const Char8*) const;
 
  private:
   using Offset_Type = int;
@@ -47,10 +47,9 @@ class Vim_Locator {
 
   int find_line_at_offset(Offset_Type offset) const;
 
-  Offset_Type offset(const Char8*) const noexcept;
+  Offset_Type offset(const Char8*) const;
 
-  Vim_Source_Position position(int line_number, Offset_Type offset) const
-      noexcept;
+  Vim_Source_Position position(int line_number, Offset_Type offset) const;
 
   Padded_String_View input_;
   mutable std::vector<Offset_Type> offset_of_lines_;

@@ -94,7 +94,7 @@ class Parser {
   explicit Parser(Padded_String_View input, Diag_Reporter *diag_reporter,
                   Parser_Options options);
 
-  quick_lint_js::Lexer &lexer() noexcept { return this->lexer_; }
+  quick_lint_js::Lexer &lexer() { return this->lexer_; }
 
   // For testing and internal use only.
   [[nodiscard]] Function_Guard enter_function(Function_Attributes);
@@ -430,8 +430,7 @@ class Parser {
   void parse_and_visit_typescript_enum(Parse_Visitor_Base &v, Enum_Kind);
   void parse_and_visit_typescript_enum_members(Parse_Visitor_Base &v,
                                                Enum_Kind);
-  static Enum_Value_Kind classify_enum_value_expression(
-      const Expression *ast) noexcept;
+  static Enum_Value_Kind classify_enum_value_expression(const Expression *ast);
 
   void parse_and_visit_try_maybe_catch_maybe_finally(Parse_Visitor_Base &v);
   [[nodiscard]] bool parse_and_visit_catch_or_finally_or_both(
@@ -524,7 +523,7 @@ class Parser {
   void parse_and_visit_let_bindings(Parse_Visitor_Base &v,
                                     const Parse_Let_Bindings_Options &);
   bool is_let_token_a_variable_reference(const Token &following_token,
-                                         bool allow_declarations) noexcept;
+                                         bool allow_declarations);
 
   struct Binding_Element_Info {
     Variable_Kind declaration_kind;
@@ -537,32 +536,30 @@ class Parser {
     bool is_destructuring = false;
     const Char8 *spread_operator_begin = nullptr;
 
-    bool has_spread_operator() const noexcept {
+    bool has_spread_operator() const {
       return this->spread_operator_begin != nullptr;
     }
 
-    Source_Code_Span spread_operator_span() const noexcept {
+    Source_Code_Span spread_operator_span() const {
       QLJS_ASSERT(this->has_spread_operator());
       return Source_Code_Span(
           this->spread_operator_begin,
           this->spread_operator_begin + this->spread_operator_length);
     }
 
-    Binding_Element_Info with_flags(Variable_Declaration_Flags flags) const
-        noexcept {
+    Binding_Element_Info with_flags(Variable_Declaration_Flags flags) const {
       Binding_Element_Info result = *this;
       result.flags = flags;
       return result;
     }
 
-    Binding_Element_Info with_destructuring() const noexcept {
+    Binding_Element_Info with_destructuring() const {
       Binding_Element_Info result = *this;
       result.is_destructuring = true;
       return result;
     }
 
-    Binding_Element_Info with_spread(Source_Code_Span spread_operator) const
-        noexcept {
+    Binding_Element_Info with_spread(Source_Code_Span spread_operator) const {
       QLJS_ASSERT(spread_operator.end() - spread_operator.begin() ==
                   spread_operator_length);
       Binding_Element_Info result = *this;
@@ -641,8 +638,8 @@ class Parser {
     explicit Binary_Expression_Builder(Monotonic_Allocator *,
                                        Expression *first_child);
 
-    Expression *last_expression() const noexcept;
-    bool has_multiple_children() const noexcept;
+    Expression *last_expression() const;
+    bool has_multiple_children() const;
 
     // Returns the given expression*.
     Expression *add_child(Source_Code_Span prior_operator_span, Expression *);
@@ -652,9 +649,9 @@ class Parser {
     void reset_after_build(Expression *new_first_child);
 
     Expression_Arena::Array_Ptr<Expression *> move_expressions(
-        Expression_Arena &) noexcept;
+        Expression_Arena &);
     Expression_Arena::Array_Ptr<Source_Code_Span> move_operator_spans(
-        Expression_Arena &) noexcept;
+        Expression_Arena &);
 
    private:
     Expression_Arena::Vector<Expression *> children_;
@@ -758,8 +755,8 @@ class Parser {
 
   void check_lhs_for_null_potential(Expression *, Source_Code_Span op_span);
 
-  const Token &peek() const noexcept { return this->lexer_.peek(); }
-  void skip() noexcept { this->lexer_.skip(); }
+  const Token &peek() const { return this->lexer_.peek(); }
+  void skip() { this->lexer_.skip(); }
 
  public:
   // Save lexer and parser state.
@@ -841,12 +838,12 @@ class Parser {
                             bool was_in_async_function,
                             bool was_in_generator_function,
                             bool was_in_loop_statement,
-                            bool was_in_switch_statement) noexcept;
+                            bool was_in_switch_statement);
 
     Function_Guard(const Function_Guard &) = delete;
     Function_Guard &operator=(const Function_Guard &) = delete;
 
-    ~Function_Guard() noexcept;
+    ~Function_Guard();
 
    private:
     Parser *parser_;
@@ -861,13 +858,13 @@ class Parser {
   template <bool Parser::*Member>
   class Bool_Guard {
    public:
-    explicit Bool_Guard(Parser *p, bool old_value) noexcept
+    explicit Bool_Guard(Parser *p, bool old_value)
         : parser_(p), old_value_(old_value) {}
 
     Bool_Guard(const Bool_Guard &) = delete;
     Bool_Guard &operator=(const Bool_Guard &) = delete;
 
-    ~Bool_Guard() noexcept { this->parser_->*Member = this->old_value_; }
+    ~Bool_Guard() { this->parser_->*Member = this->old_value_; }
 
    private:
     Parser *parser_;
@@ -877,12 +874,12 @@ class Parser {
  public:
   class Depth_Guard {
    public:
-    explicit Depth_Guard(Parser *p) noexcept;
+    explicit Depth_Guard(Parser *p);
 
     Depth_Guard(const Depth_Guard &) = delete;
     Depth_Guard &operator=(const Depth_Guard &) = delete;
 
-    ~Depth_Guard() noexcept;
+    ~Depth_Guard();
 
    private:
     Parser *parser_;
@@ -899,11 +896,11 @@ class Parser {
     bool in_switch_statement;
     bool in_class;
 
-    bool operator==(const Parse_Expression_Cache_Key &rhs) const noexcept;
-    bool operator!=(const Parse_Expression_Cache_Key &rhs) const noexcept;
+    bool operator==(const Parse_Expression_Cache_Key &rhs) const;
+    bool operator!=(const Parse_Expression_Cache_Key &rhs) const;
 
     struct Hash {
-      std::size_t operator()(const Parse_Expression_Cache_Key &) const noexcept;
+      std::size_t operator()(const Parse_Expression_Cache_Key &) const;
     };
   };
 

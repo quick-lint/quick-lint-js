@@ -11,8 +11,7 @@
 #include <string>
 
 namespace quick_lint_js {
-Basic_Configuration_Filesystem*
-Basic_Configuration_Filesystem::instance() noexcept {
+Basic_Configuration_Filesystem* Basic_Configuration_Filesystem::instance() {
   static Basic_Configuration_Filesystem fs;
   return &fs;
 }

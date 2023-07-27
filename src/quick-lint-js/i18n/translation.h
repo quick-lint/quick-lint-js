@@ -53,12 +53,12 @@ class Translatable_Message {
                 std::string_view(raw_message,
                                  static_cast<std::size_t>(length)))) {}
 
-  constexpr bool valid() const noexcept {
+  constexpr bool valid() const {
     return this->translation_table_mapping_index_ !=
            Translation_Table::unallocated_mapping_index;
   }
 
-  constexpr std::uint16_t translation_table_mapping_index() const noexcept {
+  constexpr std::uint16_t translation_table_mapping_index() const {
     return this->translation_table_mapping_index_;
   }
 

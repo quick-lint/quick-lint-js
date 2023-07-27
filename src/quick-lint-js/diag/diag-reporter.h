@@ -9,13 +9,13 @@
 namespace quick_lint_js {
 class Diag_Reporter {
  public:
-  Diag_Reporter() noexcept = default;
+  Diag_Reporter() = default;
 
-  Diag_Reporter(const Diag_Reporter &) noexcept = default;
-  Diag_Reporter &operator=(const Diag_Reporter &) noexcept = default;
+  Diag_Reporter(const Diag_Reporter &) = default;
+  Diag_Reporter &operator=(const Diag_Reporter &) = default;
 
-  Diag_Reporter(Diag_Reporter &&) noexcept = default;
-  Diag_Reporter &operator=(Diag_Reporter &&) noexcept = default;
+  Diag_Reporter(Diag_Reporter &&) = default;
+  Diag_Reporter &operator=(Diag_Reporter &&) = default;
 
   virtual ~Diag_Reporter() = default;
 

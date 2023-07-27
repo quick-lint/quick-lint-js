@@ -20,13 +20,13 @@ struct CLI_Source_Position {
   int column_number;
   Offset_Type offset;
 
-  bool operator==(const CLI_Source_Position& other) const noexcept {
+  bool operator==(const CLI_Source_Position& other) const {
     return this->line_number == other.line_number &&
            this->column_number == other.column_number &&
            this->offset == other.offset;
   }
 
-  bool operator!=(const CLI_Source_Position& other) const noexcept {
+  bool operator!=(const CLI_Source_Position& other) const {
     return !(*this == other);
   }
 };
@@ -37,15 +37,14 @@ class CLI_Source_Range {
  public:
   using Offset = CLI_Source_Position::Offset_Type;
 
-  explicit CLI_Source_Range(CLI_Source_Position begin,
-                            CLI_Source_Position end) noexcept
+  explicit CLI_Source_Range(CLI_Source_Position begin, CLI_Source_Position end)
       : begin_(begin), end_(end) {}
 
-  Offset begin_offset() const noexcept { return this->begin_.offset; }
-  CLI_Source_Position begin() const noexcept;
+  Offset begin_offset() const { return this->begin_.offset; }
+  CLI_Source_Position begin() const;
 
-  Offset end_offset() const noexcept { return this->end_.offset; }
-  CLI_Source_Position end() const noexcept;
+  Offset end_offset() const { return this->end_.offset; }
+  CLI_Source_Position end() const;
 
  private:
   CLI_Source_Position begin_;
@@ -54,10 +53,10 @@ class CLI_Source_Range {
 
 class CLI_Locator {
  public:
-  explicit CLI_Locator(Padded_String_View input) noexcept;
+  explicit CLI_Locator(Padded_String_View input);
 
   CLI_Source_Range range(Source_Code_Span) const;
-  CLI_Source_Position position(const Char8*) const noexcept;
+  CLI_Source_Position position(const Char8*) const;
 
  private:
   void cache_offsets_of_lines() const;
@@ -65,11 +64,11 @@ class CLI_Locator {
   CLI_Source_Position::Line_Number_Type find_line_at_offset(
       CLI_Source_Position::Offset_Type offset) const;
 
-  CLI_Source_Position::Offset_Type offset(const Char8*) const noexcept;
+  CLI_Source_Position::Offset_Type offset(const Char8*) const;
 
   CLI_Source_Position position(
       CLI_Source_Position::Line_Number_Type line_number,
-      CLI_Source_Position::Offset_Type offset) const noexcept;
+      CLI_Source_Position::Offset_Type offset) const;
 
   Padded_String_View input_;
   mutable std::vector<CLI_Source_Position::Offset_Type> offset_of_lines_;

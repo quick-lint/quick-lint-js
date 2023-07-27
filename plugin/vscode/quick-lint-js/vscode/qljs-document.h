@@ -81,9 +81,7 @@ class QLJS_Document_Base {
     }
   }
 
-  Padded_String_View document_string() noexcept {
-    return this->document_.string();
-  }
+  Padded_String_View document_string() { return this->document_.string(); }
 
   virtual void after_modification(::Napi::Env, QLJS_Workspace&,
                                   VSCode_Diagnostic_Collection) = 0;

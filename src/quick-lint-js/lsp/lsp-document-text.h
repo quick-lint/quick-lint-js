@@ -34,8 +34,8 @@ class LSP_Document_Text {
   void set_text(String8_View new_text);
   void replace_text(LSP_Range range, String8_View replacement_text);
 
-  Padded_String_View string() noexcept;
-  const LSP_Locator& locator() noexcept;
+  Padded_String_View string();
+  const LSP_Locator& locator();
 
  private:
   Double_Buffered_Padded_String buffers_;

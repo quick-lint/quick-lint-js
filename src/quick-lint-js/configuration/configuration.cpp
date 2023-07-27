@@ -33,7 +33,7 @@ static bool get_bool_or_default(
 
 Configuration::Configuration() { this->reset(); }
 
-const Global_Declared_Variable_Set& Configuration::globals() noexcept {
+const Global_Declared_Variable_Set& Configuration::globals() {
   if (!this->did_add_globals_from_groups_) {
     this->build_globals_from_groups();
   }

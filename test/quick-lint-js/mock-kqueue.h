@@ -11,7 +11,7 @@ namespace quick_lint_js {
 #if QLJS_HAVE_KQUEUE
 class Mock_Kqueue_Directory_Open_Error_Guard {
  public:
-  explicit Mock_Kqueue_Directory_Open_Error_Guard(int error) noexcept
+  explicit Mock_Kqueue_Directory_Open_Error_Guard(int error)
       : old_error_(mock_kqueue_force_directory_open_error) {
     mock_kqueue_force_directory_open_error = error;
   }

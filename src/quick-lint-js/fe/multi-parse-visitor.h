@@ -10,8 +10,7 @@ namespace quick_lint_js {
 template <class Visitor1, class Visitor2>
 class Multi_Parse_Visitor final : public Parse_Visitor_Base {
  public:
-  explicit Multi_Parse_Visitor(Visitor1 *visitor_1,
-                               Visitor2 *visitor_2) noexcept
+  explicit Multi_Parse_Visitor(Visitor1 *visitor_1, Visitor2 *visitor_2)
       : visitor_1_(visitor_1), visitor_2_(visitor_2) {}
 
   void visit_end_of_module() override {

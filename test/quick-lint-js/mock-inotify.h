@@ -11,7 +11,7 @@ namespace quick_lint_js {
 #if QLJS_HAVE_INOTIFY
 class Mock_Inotify_Init_Error_Guard {
  public:
-  explicit Mock_Inotify_Init_Error_Guard(int error) noexcept
+  explicit Mock_Inotify_Init_Error_Guard(int error)
       : old_error_(mock_inotify_force_init_error) {
     mock_inotify_force_init_error = error;
   }
@@ -30,7 +30,7 @@ class Mock_Inotify_Init_Error_Guard {
 
 class Mock_Inotify_Add_Watch_Error_Guard {
  public:
-  explicit Mock_Inotify_Add_Watch_Error_Guard(int error) noexcept
+  explicit Mock_Inotify_Add_Watch_Error_Guard(int error)
       : old_error_(mock_inotify_force_add_watch_error) {
     mock_inotify_force_add_watch_error = error;
   }

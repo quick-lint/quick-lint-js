@@ -112,7 +112,7 @@ bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
 }
 }
 
-Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter) noexcept
+Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter)
     : input_(input.data()),
       diag_reporter_(diag_reporter),
       original_input_(input) {
@@ -650,7 +650,7 @@ bool Lexer::test_for_regexp(const Char8* regexp_begin) {
   return parsed_ok;
 }
 
-const Char8* Lexer::parse_string_literal() noexcept {
+const Char8* Lexer::parse_string_literal() {
   Char8 opening_quote = this->input_[0];
 
   const Char8* c = &this->input_[1];
@@ -755,7 +755,7 @@ const Char8* Lexer::parse_string_literal() noexcept {
   }
 }
 
-const Char8* Lexer::parse_jsx_string_literal() noexcept {
+const Char8* Lexer::parse_jsx_string_literal() {
   Char8 opening_quote = this->input_[0];
   const Char8* c = &this->input_[1];
   for (; *c != opening_quote; ++c) {
@@ -773,7 +773,7 @@ const Char8* Lexer::parse_jsx_string_literal() noexcept {
 }
 
 const Char8* Lexer::parse_smart_quote_string_literal(
-    const Decode_UTF8_Result& opening_quote) noexcept {
+    const Decode_UTF8_Result& opening_quote) {
   QLJS_ASSERT(opening_quote.ok);
   QLJS_ASSERT(opening_quote.code_point == left_single_quote ||
               opening_quote.code_point == right_single_quote ||
@@ -958,7 +958,7 @@ void Lexer::skip_in_jsx_children() {
   this->skip_in_jsx();
 }
 
-const Char8* Lexer::find_equal_greater_in_jsx_children() const noexcept {
+const Char8* Lexer::find_equal_greater_in_jsx_children() const {
   const Char8* c;
   for (c = this->input_;; ++c) {
     switch (*c) {
@@ -1152,8 +1152,7 @@ void Lexer::roll_back_transaction(Lexer_Transaction&& transaction) {
   this->transaction_allocator_.rewind(std::move(transaction.allocator_rewind));
 }
 
-bool Lexer::transaction_has_lex_diagnostics(const Lexer_Transaction&) const
-    noexcept {
+bool Lexer::transaction_has_lex_diagnostics(const Lexer_Transaction&) const {
   Buffering_Diag_Reporter* buffered_diagnostics =
       static_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
   return !buffered_diagnostics->empty();
@@ -1169,7 +1168,7 @@ void Lexer::insert_semicolon() {
   this->last_token_.end = this->input_;
 }
 
-const Char8* Lexer::end_of_previous_token() const noexcept {
+const Char8* Lexer::end_of_previous_token() const {
   bool semicolon_was_inserted =
       this->last_token_.type == Token_Type::semicolon &&
       this->last_token_.begin == this->last_token_.end;
@@ -1178,7 +1177,7 @@ const Char8* Lexer::end_of_previous_token() const noexcept {
   return this->last_last_token_end_;
 }
 
-Padded_String_View Lexer::original_input() const noexcept {
+Padded_String_View Lexer::original_input() const {
   return this->original_input_;
 }
 
@@ -1469,7 +1468,7 @@ void Lexer::parse_hexadecimal_number() {
 
 template <class Func>
 const Char8* Lexer::parse_digits_and_underscores(Func&& is_valid_digit,
-                                                 const Char8* input) noexcept {
+                                                 const Char8* input) {
   bool has_trailing_underscore = false;
   const Char8* garbage_begin = nullptr;
   while (is_valid_digit(*input)) {
@@ -1506,21 +1505,19 @@ const Char8* Lexer::parse_digits_and_underscores(Func&& is_valid_digit,
   return input;
 }
 
-const Char8* Lexer::parse_octal_digits(const Char8* input) noexcept {
+const Char8* Lexer::parse_octal_digits(const Char8* input) {
   while (this->is_octal_digit(*input)) {
     ++input;
   }
   return input;
 }
 
-const Char8* Lexer::parse_decimal_digits_and_underscores(
-    const Char8* input) noexcept {
+const Char8* Lexer::parse_decimal_digits_and_underscores(const Char8* input) {
   return this->parse_digits_and_underscores(
       [](Char8 character) -> bool { return is_digit(character); }, input);
 }
 
-const Char8* Lexer::parse_hex_digits_and_underscores(
-    const Char8* input) noexcept {
+const Char8* Lexer::parse_hex_digits_and_underscores(const Char8* input) {
   return this->parse_digits_and_underscores(
       [](Char8 character) -> bool { return is_hex_digit(character); }, input);
 }
@@ -1528,7 +1525,7 @@ const Char8* Lexer::parse_hex_digits_and_underscores(
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 Lexer::Parsed_Unicode_Escape Lexer::parse_unicode_escape(
-    const Char8* input, Diag_Reporter* reporter) noexcept {
+    const Char8* input, Diag_Reporter* reporter) {
   const Char8* escape_sequence_begin = input;
   auto get_escape_span = [escape_sequence_begin, &input]() {
     return Source_Code_Span(escape_sequence_begin, input);
@@ -2147,12 +2144,12 @@ done:
   this->input_ = c;
 }
 
-bool Lexer::is_eof(const Char8* input) const noexcept {
+bool Lexer::is_eof(const Char8* input) const {
   QLJS_ASSERT(*input == u8'\0');
   return input == this->original_input_.null_terminator();
 }
 
-bool Lexer::is_first_token_on_line() const noexcept {
+bool Lexer::is_first_token_on_line() const {
   return this->last_token_.has_leading_newline ||
          this->last_last_token_end_ == this->original_input_.data();
 }
@@ -2306,7 +2303,7 @@ int Lexer::newline_character_size(const Char8* input) {
   return 0;
 }
 
-bool Lexer::is_newline_character(char32_t code_point) noexcept {
+bool Lexer::is_newline_character(char32_t code_point) {
   return code_point == U'\n' || code_point == U'\r' ||
          code_point == U'\u2028' ||  // Line Separator
          code_point == U'\u2029';    // Paragraph Separator

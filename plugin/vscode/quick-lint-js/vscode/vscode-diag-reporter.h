@@ -130,7 +130,7 @@ class VSCode_Diag_Reporter final : public Diag_Reporter {
  public:
   explicit VSCode_Diag_Reporter(VSCode_Module* vscode, ::Napi::Env env,
                                 const LSP_Locator* locator,
-                                ::Napi::Value document_uri) noexcept
+                                ::Napi::Value document_uri)
       : vscode_(vscode),
         env_(env),
         diagnostics_(::Napi::Array::New(env)),

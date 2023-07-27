@@ -11,7 +11,7 @@
 namespace quick_lint_js {
 template <class T>
 std::enable_if_t<std::is_signed_v<T> && std::is_integral_v<T>, std::optional<T>>
-checked_add(T x, T y) noexcept {
+checked_add(T x, T y) {
   // https://wiki.sei.cmu.edu/confluence/display/c/INT32-C.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
   constexpr T t_max = (std::numeric_limits<T>::max)();
   constexpr T t_min = std::numeric_limits<T>::lowest();

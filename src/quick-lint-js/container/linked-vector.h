@@ -30,7 +30,7 @@ class Linked_Vector {
   static constexpr std::size_t items_per_chunk =
       maximum(1U, (default_chunk_byte_size - sizeof(void*) * 3) / sizeof(T));
 
-  explicit Linked_Vector(Memory_Resource* memory) noexcept : memory_(memory) {}
+  explicit Linked_Vector(Memory_Resource* memory) : memory_(memory) {}
 
   Linked_Vector(Linked_Vector&& other)
       : head_(other.head_), tail_(other.tail_), memory_(other.memory_) {
@@ -84,9 +84,9 @@ class Linked_Vector {
     this->tail_ = nullptr;
   }
 
-  bool empty() const noexcept { return this->head_ == nullptr; }
+  bool empty() const { return this->head_ == nullptr; }
 
-  T& back() noexcept {
+  T& back() {
     QLJS_ASSERT(!this->empty());
     return this->tail_->item(this->tail_->item_count - 1);
   }

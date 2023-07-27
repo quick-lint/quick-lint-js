@@ -50,28 +50,22 @@ class Fixed_Vector {
   // remain defaulted. Best case, this makes Fixed_Vector<T> trivially
   // destructable.
 
-  bool empty() const noexcept { return this->size() == 0; }
-  size_type size() const noexcept { return this->size_; }
-  size_type capacity() const noexcept { return max_size; }
+  bool empty() const { return this->size() == 0; }
+  size_type size() const { return this->size_; }
+  size_type capacity() const { return max_size; }
 
-  QLJS_FORCE_INLINE T *data() noexcept { return this->storage_slots(); }
-  QLJS_FORCE_INLINE const T *data() const noexcept {
-    return this->storage_slots();
-  }
+  QLJS_FORCE_INLINE T *data() { return this->storage_slots(); }
+  QLJS_FORCE_INLINE const T *data() const { return this->storage_slots(); }
 
-  QLJS_FORCE_INLINE const T *begin() const noexcept {
-    return &this->storage_slots()[0];
-  }
-  QLJS_FORCE_INLINE const T *end() const noexcept {
+  QLJS_FORCE_INLINE const T *begin() const { return &this->storage_slots()[0]; }
+  QLJS_FORCE_INLINE const T *end() const {
     return &this->storage_slots()[this->size_];
   }
 
-  QLJS_FORCE_INLINE T *begin() noexcept { return &this->storage_slots()[0]; }
-  QLJS_FORCE_INLINE T *end() noexcept {
-    return &this->storage_slots()[this->size_];
-  }
+  QLJS_FORCE_INLINE T *begin() { return &this->storage_slots()[0]; }
+  QLJS_FORCE_INLINE T *end() { return &this->storage_slots()[this->size_]; }
 
-  T &operator[](size_type index) noexcept {
+  T &operator[](size_type index) {
     QLJS_ASSERT(index < this->size());
     // NOTE[Fixed_Vector-launder]: From my understand of the C++ language,
     // whenever you use placement new (such as in Fixed_Vector::emplace_back),

@@ -30,15 +30,15 @@ void insert_back_transform(Input_It input_begin, Input_It input_end,
 }
 }
 
-bool operator==(const LSP_Position &lhs, const LSP_Position &rhs) noexcept {
+bool operator==(const LSP_Position &lhs, const LSP_Position &rhs) {
   return lhs.line == rhs.line && lhs.character == rhs.character;
 }
 
-bool operator!=(const LSP_Position &lhs, const LSP_Position &rhs) noexcept {
+bool operator!=(const LSP_Position &lhs, const LSP_Position &rhs) {
   return !(lhs == rhs);
 }
 
-LSP_Locator::LSP_Locator(Padded_String_View input) noexcept : input_(input) {
+LSP_Locator::LSP_Locator(Padded_String_View input) : input_(input) {
   this->cache_offsets_of_lines();
 }
 
@@ -48,13 +48,13 @@ LSP_Range LSP_Locator::range(Source_Code_Span span) const {
   return LSP_Range{.start = start, .end = end};
 }
 
-LSP_Position LSP_Locator::position(const Char8 *source) const noexcept {
+LSP_Position LSP_Locator::position(const Char8 *source) const {
   Offset_Type offset = this->offset(source);
   int line_number = this->find_line_at_offset(offset);
   return this->position(line_number, offset);
 }
 
-const Char8 *LSP_Locator::from_position(LSP_Position position) const noexcept {
+const Char8 *LSP_Locator::from_position(LSP_Position position) const {
   int line = position.line;
   int character = position.character;
   if (line < 0 || character < 0) {
@@ -263,13 +263,11 @@ int LSP_Locator::find_line_at_offset(Offset_Type offset) const {
                           this->offset_of_lines_.begin());
 }
 
-LSP_Locator::Offset_Type LSP_Locator::offset(const Char8 *source) const
-    noexcept {
+LSP_Locator::Offset_Type LSP_Locator::offset(const Char8 *source) const {
   return narrow_cast<Offset_Type>(source - this->input_.data());
 }
 
-LSP_Position LSP_Locator::position(int line_number, Offset_Type offset) const
-    noexcept {
+LSP_Position LSP_Locator::position(int line_number, Offset_Type offset) const {
   Offset_Type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
   bool line_is_ascii =

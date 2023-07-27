@@ -9,7 +9,7 @@
 namespace quick_lint_js {
 #if !defined(__EMSCRIPTEN__)
 // On macOS, this function returns the BSD process ID.
-std::uint64_t get_current_process_id() noexcept;
+std::uint64_t get_current_process_id();
 #endif
 }
 

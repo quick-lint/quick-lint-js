@@ -111,13 +111,13 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     //
     // Returns false if this variable can only be used in TypeScript type
     // signatures and module exports.
-    bool is_runtime() const noexcept;
+    bool is_runtime() const;
 
     // Returns true if this variable can be used in TypeScript type signatures
     // or module exports.
     //
     // Returns false if this variable can only be used at run-time.
-    bool is_type() const noexcept;
+    bool is_type() const;
   };
 
   enum class Used_Variable_Kind {
@@ -130,14 +130,14 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   };
 
   struct Used_Variable {
-    explicit Used_Variable(Identifier name, Used_Variable_Kind kind) noexcept
+    explicit Used_Variable(Identifier name, Used_Variable_Kind kind)
         : name(name), kind(kind) {
       QLJS_ASSERT(kind != Used_Variable_Kind::_delete);
     }
 
     // kind must be used_variable_kind::_delete.
     explicit Used_Variable(Identifier name, Used_Variable_Kind kind,
-                           const Char8 *delete_keyword_begin) noexcept
+                           const Char8 *delete_keyword_begin)
         : name(name), delete_keyword_begin(delete_keyword_begin), kind(kind) {
       QLJS_ASSERT(kind == Used_Variable_Kind::_delete);
     }
@@ -146,12 +146,12 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     // export.
     //
     // Returns false if this variable was used in a TypeScript type signature.
-    bool is_runtime() const noexcept;
+    bool is_runtime() const;
 
     // Returns true if this variable was used in a TypeScript type signature.
     //
     // Returns false if this variable was used in a run-time expression.
-    bool is_type() const noexcept;
+    bool is_type() const;
 
     Identifier name;
     const Char8 *delete_keyword_begin;  // used_variable_kind::_delete only
@@ -166,20 +166,20 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
         Identifier name, Variable_Kind, Declared_Variable_Scope,
         Variable_Declaration_Flags flags);
 
-    const Declared_Variable *find(Identifier name) const noexcept;
-    Declared_Variable *find(Identifier name) noexcept;
+    const Declared_Variable *find(Identifier name) const;
+    Declared_Variable *find(Identifier name);
 
     // Like find, but ignores type-only variables (e.g. interfaces).
-    Declared_Variable *find_runtime(Identifier name) noexcept;
+    Declared_Variable *find_runtime(Identifier name);
 
     // Like find, but ignores runtime-only variables (e.g. functions).
-    Declared_Variable *find_type(Identifier name) noexcept;
+    Declared_Variable *find_type(Identifier name);
 
-    void clear() noexcept;
+    void clear();
 
-    bool empty() const noexcept;
-    std::vector<Declared_Variable>::const_iterator begin() const noexcept;
-    std::vector<Declared_Variable>::const_iterator end() const noexcept;
+    bool empty() const;
+    std::vector<Declared_Variable>::const_iterator begin() const;
+    std::vector<Declared_Variable>::const_iterator end() const;
 
    private:
     std::vector<Declared_Variable> variables_;
@@ -235,16 +235,16 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     // and '__filename'.
     //
     // The module scope always exists, except possibly at the end of linting.
-    Scope &module_scope() noexcept;
+    Scope &module_scope();
 
-    Scope &current_scope() noexcept;
-    Scope &parent_scope() noexcept;
+    Scope &current_scope();
+    Scope &parent_scope();
 
     Scope &push();
     void pop();
 
-    bool empty() const noexcept;
-    int size() const noexcept;
+    bool empty() const;
+    int size() const;
 
    private:
     int scope_count_ = 0;
@@ -299,8 +299,8 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
       Variable_Declaration_Flags newly_declared_flags,
       Declared_Variable_Scope newly_declared_declaration_scope) const;
 
-  Scope &current_scope() noexcept { return this->scopes_.current_scope(); }
-  Scope &parent_scope() noexcept { return this->scopes_.parent_scope(); }
+  Scope &current_scope() { return this->scopes_.current_scope(); }
+  Scope &parent_scope() { return this->scopes_.parent_scope(); }
 
   Scopes scopes_;
 

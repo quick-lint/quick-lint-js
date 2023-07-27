@@ -39,7 +39,7 @@ class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
     QLJS_ASSERT(this->kqueue_fd_.valid());
   }
 
-  POSIX_FD_File_Ref kqueue_fd() noexcept { return this->kqueue_fd_.ref(); }
+  POSIX_FD_File_Ref kqueue_fd() { return this->kqueue_fd_.ref(); }
 
   void run() {
     {

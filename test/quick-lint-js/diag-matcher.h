@@ -199,19 +199,19 @@ struct Diag_Matcher_Arg {
   Diagnostic_Arg_Type member_type;
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::source_code_span
-  Source_Code_Span get_span(const void *error_object) const noexcept;
+  Source_Code_Span get_span(const void *error_object) const;
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::char8
-  Char8 get_char8(const void *error_object) const noexcept;
+  Char8 get_char8(const void *error_object) const;
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::enum_kind
-  Enum_Kind get_enum_kind(const void *error_object) const noexcept;
+  Enum_Kind get_enum_kind(const void *error_object) const;
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::string8_view
-  String8_View get_string8_view(const void *error_object) const noexcept;
+  String8_View get_string8_view(const void *error_object) const;
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::statement_kind
-  Statement_Kind get_statement_kind(const void *error_object) const noexcept;
+  Statement_Kind get_statement_kind(const void *error_object) const;
 };
 
 // Create a Diag_Matcher_Arg from a Diag_ struct type and the name of a member

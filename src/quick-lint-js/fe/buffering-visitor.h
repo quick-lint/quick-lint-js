@@ -129,17 +129,16 @@ class Buffering_Visitor final : public Parse_Visitor_Base {
   }
 
   struct Visit {
-    explicit Visit(Visit_Kind kind) noexcept : kind(kind) {}
+    explicit Visit(Visit_Kind kind) : kind(kind) {}
 
-    explicit Visit(Visit_Kind kind, Identifier name) noexcept
-        : kind(kind), name(name) {}
+    explicit Visit(Visit_Kind kind, Identifier name) : kind(kind), name(name) {}
 
     explicit Visit(Visit_Kind kind, Identifier name, Variable_Kind var_kind,
-                   Variable_Declaration_Flags flags) noexcept
+                   Variable_Declaration_Flags flags)
         : kind(kind), name(name), var_decl{var_kind, flags} {}
 
     explicit Visit(Visit_Kind kind, Identifier name,
-                   Source_Code_Span extra_span) noexcept
+                   Source_Code_Span extra_span)
         : kind(kind), name(name), extra_span(extra_span) {}
 
     Visit_Kind kind;

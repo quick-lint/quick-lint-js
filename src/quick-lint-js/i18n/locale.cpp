@@ -24,9 +24,7 @@ struct Locale_Parts {
   static constexpr int codeset_index = 2;
   static constexpr int modifier_index = 3;
 
-  std::string_view& language() noexcept {
-    return this->parts[this->language_index];
-  }
+  std::string_view& language() { return this->parts[this->language_index]; }
 };
 
 Locale_Parts parse_locale(const char* locale_name) {

@@ -57,12 +57,12 @@ struct LSP_Language {
     this->language_id_size = static_cast<unsigned char>(language_id.size());
   }
 
-  std::string_view language_id() const noexcept {
+  std::string_view language_id() const {
     return std::string_view(this->raw_language_id, this->language_id_size);
   }
 
   // Returns nullptr if the language does not exist.
-  static const LSP_Language* find(std::string_view language_id) noexcept {
+  static const LSP_Language* find(std::string_view language_id) {
     static constexpr Linter_Options jsx = {
         .jsx = true,
         .typescript = false,

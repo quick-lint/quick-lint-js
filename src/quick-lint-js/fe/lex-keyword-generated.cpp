@@ -630,7 +630,7 @@ constexpr Tables_Type tables = {
 // clang-format on
 }
 
-Token_Type Lexer::identifier_token_type(String8_View identifier) noexcept {
+Token_Type Lexer::identifier_token_type(String8_View identifier) {
   std::size_t identifier_size = identifier.size();
 
   Keyword_Lexer::Selection_Type selection =

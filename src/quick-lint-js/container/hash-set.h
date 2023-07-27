@@ -28,16 +28,16 @@ class Hash_Set {
     using reference = const Key&;
     using value_type = Key;
 
-    const Key& operator*() const noexcept { return this->it_->first; }
+    const Key& operator*() const { return this->it_->first; }
 
-    const Key* operator->() const noexcept { return &**this; }
+    const Key* operator->() const { return &**this; }
 
-    Iterator& operator++() noexcept {
+    Iterator& operator++() {
       ++this->it_;
       return *this;
     }
 
-    Iterator& operator++(int) noexcept {
+    Iterator& operator++(int) {
       Iterator old = *this;
       ++*this;
       return old;
@@ -67,16 +67,16 @@ class Hash_Set {
     using reference = const Key&;
     using value_type = Key;
 
-    const Key& operator*() const noexcept { return this->it_->first; }
+    const Key& operator*() const { return this->it_->first; }
 
-    const Key* operator->() const noexcept { return &**this; }
+    const Key* operator->() const { return &**this; }
 
-    Const_Iterator& operator++() noexcept {
+    Const_Iterator& operator++() {
       ++this->it_;
       return *this;
     }
 
-    Const_Iterator& operator++(int) noexcept {
+    Const_Iterator& operator++(int) {
       Const_Iterator old = *this;
       ++*this;
       return old;
@@ -101,32 +101,28 @@ class Hash_Set {
   };
 
   template <class K>
-  bool contains(const K& key) const noexcept {
+  bool contains(const K& key) const {
     return this->set_.find(key) != this->set_.end();
   }
 
   template <class K>
-  Const_Iterator find(const K& key) const noexcept {
+  Const_Iterator find(const K& key) const {
     return Iterator(this->set_.find(key));
   }
   template <class K>
-  Iterator find(const K& key) noexcept {
+  Iterator find(const K& key) {
     return Iterator(this->set_.find(key));
   }
 
-  Iterator begin() noexcept { return Iterator(this->set_.begin()); }
-  Const_Iterator begin() const noexcept {
-    return Const_Iterator(this->set_.begin());
-  }
+  Iterator begin() { return Iterator(this->set_.begin()); }
+  Const_Iterator begin() const { return Const_Iterator(this->set_.begin()); }
 
-  Iterator end() noexcept { return Iterator(this->set_.end()); }
-  Const_Iterator end() const noexcept {
-    return Const_Iterator(this->set_.end());
-  }
+  Iterator end() { return Iterator(this->set_.end()); }
+  Const_Iterator end() const { return Const_Iterator(this->set_.end()); }
 
-  bool empty() const noexcept { return this->set_.empty(); }
+  bool empty() const { return this->set_.empty(); }
 
-  size_type size() const noexcept { return this->set_.size(); }
+  size_type size() const { return this->set_.size(); }
 
   // Copies the key on insertion.
   std::pair<Iterator, bool> insert(const Key& key) {

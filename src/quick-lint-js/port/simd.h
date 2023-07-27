@@ -31,7 +31,7 @@ class alignas(::v128_t) Bool_Vector_16_WASM_SIMD128 {
  public:
   static constexpr int size = 16;
 
-  QLJS_FORCE_INLINE explicit Bool_Vector_16_WASM_SIMD128(::v128_t data) noexcept
+  QLJS_FORCE_INLINE explicit Bool_Vector_16_WASM_SIMD128(::v128_t data)
       : data_(data) {}
 
   // data must point to at least 16 elements.
@@ -45,20 +45,20 @@ class alignas(::v128_t) Bool_Vector_16_WASM_SIMD128 {
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_WASM_SIMD128 operator|(
-      Bool_Vector_16_WASM_SIMD128 x, Bool_Vector_16_WASM_SIMD128 y) noexcept {
+      Bool_Vector_16_WASM_SIMD128 x, Bool_Vector_16_WASM_SIMD128 y) {
     return Bool_Vector_16_WASM_SIMD128(::wasm_v128_or(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_WASM_SIMD128 operator&(
-      Bool_Vector_16_WASM_SIMD128 x, Bool_Vector_16_WASM_SIMD128 y) noexcept {
+      Bool_Vector_16_WASM_SIMD128 x, Bool_Vector_16_WASM_SIMD128 y) {
     return Bool_Vector_16_WASM_SIMD128(::wasm_v128_and(x.data_, y.data_));
   }
 
-  QLJS_FORCE_INLINE int find_first_false() const noexcept {
+  QLJS_FORCE_INLINE int find_first_false() const {
     return countr_one(this->mask());
   }
 
-  QLJS_FORCE_INLINE std::uint32_t mask() const noexcept {
+  QLJS_FORCE_INLINE std::uint32_t mask() const {
     return ::wasm_i8x16_bitmask(this->data_);
   }
 
@@ -70,7 +70,7 @@ class alignas(::v128_t) Char_Vector_16_WASM_SIMD128 {
  public:
   static constexpr int size = 16;
 
-  QLJS_FORCE_INLINE explicit Char_Vector_16_WASM_SIMD128(::v128_t data) noexcept
+  QLJS_FORCE_INLINE explicit Char_Vector_16_WASM_SIMD128(::v128_t data)
       : data_(data) {}
 
   // data must point to at least 16 elements.
@@ -89,22 +89,22 @@ class alignas(::v128_t) Char_Vector_16_WASM_SIMD128 {
   }
 
   QLJS_FORCE_INLINE friend Char_Vector_16_WASM_SIMD128 operator|(
-      Char_Vector_16_WASM_SIMD128 x, Char_Vector_16_WASM_SIMD128 y) noexcept {
+      Char_Vector_16_WASM_SIMD128 x, Char_Vector_16_WASM_SIMD128 y) {
     return Char_Vector_16_WASM_SIMD128(::wasm_v128_or(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_WASM_SIMD128 operator==(
-      Char_Vector_16_WASM_SIMD128 x, Char_Vector_16_WASM_SIMD128 y) noexcept {
+      Char_Vector_16_WASM_SIMD128 x, Char_Vector_16_WASM_SIMD128 y) {
     return Bool_Vector_16_WASM_SIMD128(::wasm_i8x16_eq(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_WASM_SIMD128 operator<(
-      Char_Vector_16_WASM_SIMD128 x, Char_Vector_16_WASM_SIMD128 y) noexcept {
+      Char_Vector_16_WASM_SIMD128 x, Char_Vector_16_WASM_SIMD128 y) {
     return Bool_Vector_16_WASM_SIMD128(::wasm_u8x16_lt(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_WASM_SIMD128 operator>(
-      Char_Vector_16_WASM_SIMD128 x, Char_Vector_16_WASM_SIMD128 y) noexcept {
+      Char_Vector_16_WASM_SIMD128 x, Char_Vector_16_WASM_SIMD128 y) {
     return Bool_Vector_16_WASM_SIMD128(::wasm_u8x16_gt(x.data_, y.data_));
   }
 
@@ -118,8 +118,7 @@ class alignas(__m128i) Bool_Vector_16_SSE2 {
  public:
   static constexpr int size = 16;
 
-  QLJS_FORCE_INLINE explicit Bool_Vector_16_SSE2(__m128i data) noexcept
-      : data_(data) {}
+  QLJS_FORCE_INLINE explicit Bool_Vector_16_SSE2(__m128i data) : data_(data) {}
 
   // data must point to at least 16 elements.
   QLJS_FORCE_INLINE static Bool_Vector_16_SSE2 load_slow(const Char8* data) {
@@ -133,16 +132,16 @@ class alignas(__m128i) Bool_Vector_16_SSE2 {
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_SSE2 operator|(
-      Bool_Vector_16_SSE2 x, Bool_Vector_16_SSE2 y) noexcept {
+      Bool_Vector_16_SSE2 x, Bool_Vector_16_SSE2 y) {
     return Bool_Vector_16_SSE2(_mm_or_si128(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_SSE2 operator&(
-      Bool_Vector_16_SSE2 x, Bool_Vector_16_SSE2 y) noexcept {
+      Bool_Vector_16_SSE2 x, Bool_Vector_16_SSE2 y) {
     return Bool_Vector_16_SSE2(_mm_and_si128(x.data_, y.data_));
   }
 
-  QLJS_FORCE_INLINE int find_first_false() const noexcept {
+  QLJS_FORCE_INLINE int find_first_false() const {
     std::uint32_t mask = this->mask();
     if (~mask == 0) {
       // HACK(strager): Coerce GCC into omitting a branch due to an if check in
@@ -152,7 +151,7 @@ class alignas(__m128i) Bool_Vector_16_SSE2 {
     return countr_one(mask);
   }
 
-  QLJS_FORCE_INLINE std::uint32_t mask() const noexcept {
+  QLJS_FORCE_INLINE std::uint32_t mask() const {
     return narrow_cast<std::uint32_t>(_mm_movemask_epi8(this->data_));
   }
 
@@ -164,8 +163,7 @@ class alignas(__m128i) Char_Vector_16_SSE2 {
  public:
   static constexpr int size = 16;
 
-  QLJS_FORCE_INLINE explicit Char_Vector_16_SSE2(__m128i data) noexcept
-      : data_(data) {}
+  QLJS_FORCE_INLINE explicit Char_Vector_16_SSE2(__m128i data) : data_(data) {}
 
   // data must point to at least 16 elements.
   QLJS_FORCE_INLINE static Char_Vector_16_SSE2 load(const Char8* data) {
@@ -184,26 +182,26 @@ class alignas(__m128i) Char_Vector_16_SSE2 {
   }
 
   QLJS_FORCE_INLINE friend Char_Vector_16_SSE2 operator|(
-      Char_Vector_16_SSE2 x, Char_Vector_16_SSE2 y) noexcept {
+      Char_Vector_16_SSE2 x, Char_Vector_16_SSE2 y) {
     return Char_Vector_16_SSE2(_mm_or_si128(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_SSE2 operator==(
-      Char_Vector_16_SSE2 x, Char_Vector_16_SSE2 y) noexcept {
+      Char_Vector_16_SSE2 x, Char_Vector_16_SSE2 y) {
     return Bool_Vector_16_SSE2(_mm_cmpeq_epi8(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_SSE2 operator<(
-      Char_Vector_16_SSE2 x, Char_Vector_16_SSE2 y) noexcept {
+      Char_Vector_16_SSE2 x, Char_Vector_16_SSE2 y) {
     return Bool_Vector_16_SSE2(_mm_cmplt_epi8(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_SSE2 operator>(
-      Char_Vector_16_SSE2 x, Char_Vector_16_SSE2 y) noexcept {
+      Char_Vector_16_SSE2 x, Char_Vector_16_SSE2 y) {
     return Bool_Vector_16_SSE2(_mm_cmpgt_epi8(x.data_, y.data_));
   }
 
-  QLJS_FORCE_INLINE __m128i m128i() const noexcept { return this->data_; }
+  QLJS_FORCE_INLINE __m128i m128i() const { return this->data_; }
 
  private:
   __m128i data_;
@@ -215,30 +213,30 @@ class alignas(::uint8x16_t) Bool_Vector_16_NEON {
  public:
   static constexpr int size = 16;
 
-  QLJS_FORCE_INLINE explicit Bool_Vector_16_NEON(::uint8x16_t data) noexcept
+  QLJS_FORCE_INLINE explicit Bool_Vector_16_NEON(::uint8x16_t data)
       : data_(data) {}
 
   // data must point to at least 16 elements.
   static Bool_Vector_16_NEON load_slow(const Char8* data);
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_NEON operator|(
-      Bool_Vector_16_NEON x, Bool_Vector_16_NEON y) noexcept {
+      Bool_Vector_16_NEON x, Bool_Vector_16_NEON y) {
     return Bool_Vector_16_NEON(::vorrq_u8(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_NEON operator&(
-      Bool_Vector_16_NEON x, Bool_Vector_16_NEON y) noexcept {
+      Bool_Vector_16_NEON x, Bool_Vector_16_NEON y) {
     return Bool_Vector_16_NEON(::vandq_u8(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_NEON operator!(
-      Bool_Vector_16_NEON x) noexcept {
+      Bool_Vector_16_NEON x) {
     return Bool_Vector_16_NEON(::vmvnq_u8(x.data_));
   }
 
-  QLJS_FORCE_INLINE int find_first_false() const noexcept;
+  QLJS_FORCE_INLINE int find_first_false() const;
 
-  QLJS_FORCE_INLINE std::uint32_t mask() const noexcept;
+  QLJS_FORCE_INLINE std::uint32_t mask() const;
 
  private:
   ::uint8x16_t data_;
@@ -248,7 +246,7 @@ class alignas(::uint8x16_t) Char_Vector_16_NEON {
  public:
   static constexpr int size = 16;
 
-  QLJS_FORCE_INLINE explicit Char_Vector_16_NEON(::uint8x16_t data) noexcept
+  QLJS_FORCE_INLINE explicit Char_Vector_16_NEON(::uint8x16_t data)
       : data_(data) {}
 
   // data must point to at least 16 elements.
@@ -268,33 +266,31 @@ class alignas(::uint8x16_t) Char_Vector_16_NEON {
   }
 
   QLJS_FORCE_INLINE friend Char_Vector_16_NEON operator|(
-      Char_Vector_16_NEON x, Char_Vector_16_NEON y) noexcept {
+      Char_Vector_16_NEON x, Char_Vector_16_NEON y) {
     return Char_Vector_16_NEON(::vorrq_u8(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_NEON operator==(
-      Char_Vector_16_NEON x, Char_Vector_16_NEON y) noexcept {
+      Char_Vector_16_NEON x, Char_Vector_16_NEON y) {
     return Bool_Vector_16_NEON(::vceqq_u8(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_NEON operator!=(
-      Char_Vector_16_NEON x, Char_Vector_16_NEON y) noexcept {
+      Char_Vector_16_NEON x, Char_Vector_16_NEON y) {
     return !(x == y);
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_NEON operator<(
-      Char_Vector_16_NEON x, Char_Vector_16_NEON y) noexcept {
+      Char_Vector_16_NEON x, Char_Vector_16_NEON y) {
     return Bool_Vector_16_NEON(::vcltq_u8(x.data_, y.data_));
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_16_NEON operator>(
-      Char_Vector_16_NEON x, Char_Vector_16_NEON y) noexcept {
+      Char_Vector_16_NEON x, Char_Vector_16_NEON y) {
     return Bool_Vector_16_NEON(::vcgtq_u8(x.data_, y.data_));
   }
 
-  QLJS_FORCE_INLINE ::uint8x16_t uint8x16() const noexcept {
-    return this->data_;
-  }
+  QLJS_FORCE_INLINE ::uint8x16_t uint8x16() const { return this->data_; }
 
  private:
   ::uint8x16_t data_;
@@ -309,25 +305,21 @@ class Bool_Vector_1 {
  public:
   static constexpr int size = 1;
 
-  QLJS_FORCE_INLINE explicit Bool_Vector_1(bool data) noexcept : data_(data) {}
+  QLJS_FORCE_INLINE explicit Bool_Vector_1(bool data) : data_(data) {}
 
   QLJS_FORCE_INLINE friend Bool_Vector_1 operator|(Bool_Vector_1 x,
-                                                   Bool_Vector_1 y) noexcept {
+                                                   Bool_Vector_1 y) {
     return Bool_Vector_1(x.data_ || y.data_);
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_1 operator&(Bool_Vector_1 x,
-                                                   Bool_Vector_1 y) noexcept {
+                                                   Bool_Vector_1 y) {
     return Bool_Vector_1(x.data_ && y.data_);
   }
 
-  QLJS_FORCE_INLINE int find_first_false() const noexcept {
-    return this->data_ ? 1 : 0;
-  }
+  QLJS_FORCE_INLINE int find_first_false() const { return this->data_ ? 1 : 0; }
 
-  QLJS_FORCE_INLINE std::uint32_t mask() const noexcept {
-    return this->data_ ? 1 : 0;
-  }
+  QLJS_FORCE_INLINE std::uint32_t mask() const { return this->data_ ? 1 : 0; }
 
  private:
   bool data_;
@@ -337,8 +329,7 @@ class Char_Vector_1 {
  public:
   static constexpr int size = 1;
 
-  QLJS_FORCE_INLINE explicit Char_Vector_1(std::uint8_t data) noexcept
-      : data_(data) {}
+  QLJS_FORCE_INLINE explicit Char_Vector_1(std::uint8_t data) : data_(data) {}
 
   QLJS_FORCE_INLINE static Char_Vector_1 load(const Char8* data) {
     return Char_Vector_1(static_cast<std::uint8_t>(data[0]));
@@ -349,22 +340,22 @@ class Char_Vector_1 {
   }
 
   QLJS_FORCE_INLINE friend Char_Vector_1 operator|(Char_Vector_1 x,
-                                                   Char_Vector_1 y) noexcept {
+                                                   Char_Vector_1 y) {
     return Char_Vector_1(x.data_ | y.data_);
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_1 operator==(Char_Vector_1 x,
-                                                    Char_Vector_1 y) noexcept {
+                                                    Char_Vector_1 y) {
     return Bool_Vector_1(x.data_ == y.data_);
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_1 operator<(Char_Vector_1 x,
-                                                   Char_Vector_1 y) noexcept {
+                                                   Char_Vector_1 y) {
     return Bool_Vector_1(x.data_ < y.data_);
   }
 
   QLJS_FORCE_INLINE friend Bool_Vector_1 operator>(Char_Vector_1 x,
-                                                   Char_Vector_1 y) noexcept {
+                                                   Char_Vector_1 y) {
     return Bool_Vector_1(x.data_ > y.data_);
   }
 

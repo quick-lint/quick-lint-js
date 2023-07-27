@@ -19,8 +19,7 @@
 
 namespace quick_lint_js {
 #if QLJS_HAVE_ARM_NEON_A64
-QLJS_FORCE_INLINE inline int Bool_Vector_16_NEON::find_first_false() const
-    noexcept {
+QLJS_FORCE_INLINE inline int Bool_Vector_16_NEON::find_first_false() const {
   // You might expect a magic pattern to look like the following:
   //
   //   { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x08, [repeat] }
@@ -67,15 +66,13 @@ QLJS_FORCE_INLINE inline int Bool_Vector_16_NEON::find_first_false() const
   return countr_zero(mask) / 2;
 }
 #elif QLJS_HAVE_ARM_NEON
-QLJS_FORCE_INLINE inline int Bool_Vector_16_NEON::find_first_false() const
-    noexcept {
+QLJS_FORCE_INLINE inline int Bool_Vector_16_NEON::find_first_false() const {
   return countr_one(this->mask());
 }
 #endif
 
 #if QLJS_HAVE_ARM_NEON
-QLJS_FORCE_INLINE inline std::uint32_t Bool_Vector_16_NEON::mask() const
-    noexcept {
+QLJS_FORCE_INLINE inline std::uint32_t Bool_Vector_16_NEON::mask() const {
   // Algorithm derived from sse2neon's _mm_movemask_epi8 function:
   // https://github.com/DLTcollab/sse2neon/blob/814935c9ba06f68e9549272dbf5df0db8dab2a00/sse2neon.h#L4752-L4830
   // clang-format off

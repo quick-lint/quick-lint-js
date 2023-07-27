@@ -115,15 +115,14 @@ enum class Expression_Kind {
 // * { ...value }
 struct Object_Property_Value_Pair {
   // property is optional.
-  explicit Object_Property_Value_Pair(Expression *property,
-                                      Expression *value) noexcept
+  explicit Object_Property_Value_Pair(Expression *property, Expression *value)
       : property(property), value(value), init(nullptr) {}
 
   // property is required.
   // init is required.
   explicit Object_Property_Value_Pair(Expression *property, Expression *value,
                                       Expression *init,
-                                      const Char8 *init_equal_begin) noexcept
+                                      const Char8 *init_equal_begin)
       : property(property),
         value(value),
         init(init),
@@ -182,7 +181,7 @@ class Expression_Arena {
   template <class T, std::size_t size>
   Array_Ptr<T> make_array(std::array<T, size> &&);
 
-  Monotonic_Allocator *allocator() noexcept { return &this->allocator_; }
+  Monotonic_Allocator *allocator() { return &this->allocator_; }
 
  private:
   template <class T, class... Args>
@@ -256,37 +255,37 @@ class Expression {
   class Yield_None;
   class Yield_One;
 
-  Expression_Kind kind() const noexcept { return this->kind_; }
+  Expression_Kind kind() const { return this->kind_; }
 
-  Identifier variable_identifier() const noexcept;
-  Token_Type variable_identifier_token_type() const noexcept;
+  Identifier variable_identifier() const;
+  Token_Type variable_identifier_token_type() const;
 
-  Span_Size child_count() const noexcept;
+  Span_Size child_count() const;
 
-  Expression *child_0() const noexcept { return this->child(0); }
-  Expression *child_1() const noexcept { return this->child(1); }
-  Expression *child_2() const noexcept { return this->child(2); }
+  Expression *child_0() const { return this->child(0); }
+  Expression *child_1() const { return this->child(1); }
+  Expression *child_2() const { return this->child(2); }
 
-  Expression *child(Span_Size) const noexcept;
+  Expression *child(Span_Size) const;
 
-  Expression_Arena::Array_Ptr<Expression *> children() const noexcept;
+  Expression_Arena::Array_Ptr<Expression *> children() const;
 
   // Remove wrapping paren expressions, if any.
-  Expression *without_paren() const noexcept;
+  Expression *without_paren() const;
 
-  Span_Size object_entry_count() const noexcept;
+  Span_Size object_entry_count() const;
 
-  Object_Property_Value_Pair object_entry(Span_Size) const noexcept;
+  Object_Property_Value_Pair object_entry(Span_Size) const;
 
-  Source_Code_Span span() const noexcept;
+  Source_Code_Span span() const;
 
-  const Char8 *span_begin() const noexcept;
-  const Char8 *span_end() const noexcept;
+  const Char8 *span_begin() const;
+  const Char8 *span_end() const;
 
-  Function_Attributes attributes() const noexcept;
+  Function_Attributes attributes() const;
 
  protected:
-  explicit Expression(Expression_Kind kind) noexcept : kind_(kind) {}
+  explicit Expression(Expression_Kind kind) : kind_(kind) {}
 
  private:
   Expression_Kind kind_;
@@ -300,7 +299,7 @@ Object_Property_Value_Pair::is_merged_property_and_value_shorthand() {
 }
 
 template <class Derived>
-Derived *expression_cast(Expression *p) noexcept {
+Derived *expression_cast(Expression *p) {
   // TODO(strager): Assert that Derived matches the Expression's run-time
   // type.
   return static_cast<Derived *>(&*p);
@@ -308,7 +307,7 @@ Derived *expression_cast(Expression *p) noexcept {
 
 // Prevent expression_cast<array>((call*)p).
 template <class Derived, class Expression>
-Derived *expression_cast(Expression *) noexcept = delete;
+Derived *expression_cast(Expression *) = delete;
 
 template <class Expression, class... Args>
 Expression *Expression_Arena::make_expression(Args &&... args) {
@@ -343,9 +342,9 @@ inline Expression_Arena::Array_Ptr<T> Expression_Arena::make_array(
 
 class Expression::Expression_With_Prefix_Operator_Base : public Expression {
  public:
-  explicit Expression_With_Prefix_Operator_Base(
-      Expression_Kind kind, Expression *child,
-      Source_Code_Span operator_span) noexcept
+  explicit Expression_With_Prefix_Operator_Base(Expression_Kind kind,
+                                                Expression *child,
+                                                Source_Code_Span operator_span)
       : Expression(kind),
         unary_operator_begin_(operator_span.begin()),
         child_(child) {}
@@ -359,7 +358,7 @@ class Expression::Delete final
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Delete;
 
-  explicit Delete(Expression *child, Source_Code_Span operator_span) noexcept
+  explicit Delete(Expression *child, Source_Code_Span operator_span)
       : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {
     QLJS_ASSERT(operator_span.string_view() == u8"delete"_sv);
@@ -377,8 +376,7 @@ class Expression::Class : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Class;
 
-  explicit Class(Source_Code_Span span) noexcept
-      : Expression(kind), span_(span) {}
+  explicit Class(Source_Code_Span span) : Expression(kind), span_(span) {}
 
   Source_Code_Span span_;
 };
@@ -388,8 +386,7 @@ class Expression::Invalid final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Invalid;
 
-  explicit Invalid(Source_Code_Span span) noexcept
-      : Expression(kind), span_(span) {}
+  explicit Invalid(Source_Code_Span span) : Expression(kind), span_(span) {}
 
   Source_Code_Span span_;
 };
@@ -399,8 +396,7 @@ class Expression::Missing final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Missing;
 
-  explicit Missing(Source_Code_Span span) noexcept
-      : Expression(kind), span_(span) {}
+  explicit Missing(Source_Code_Span span) : Expression(kind), span_(span) {}
 
   Source_Code_Span span_;
 };
@@ -411,7 +407,7 @@ class Expression::New final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::New;
 
   explicit New(Expression_Arena::Array_Ptr<Expression *> children,
-               Source_Code_Span span) noexcept
+               Source_Code_Span span)
       : Expression(kind), span_(span), children_(children) {}
 
   Source_Code_Span span_;
@@ -424,7 +420,7 @@ class Expression::Template final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Template;
 
   explicit Template(Expression_Arena::Array_Ptr<Expression *> children,
-                    Source_Code_Span span) noexcept
+                    Source_Code_Span span)
       : Expression(kind), span_(span), children_(children) {}
 
   Source_Code_Span span_;
@@ -437,7 +433,7 @@ class Expression::Typeof final
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Typeof;
 
-  explicit Typeof(Expression *child, Source_Code_Span operator_span) noexcept
+  explicit Typeof(Expression *child, Source_Code_Span operator_span)
       : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 
@@ -453,7 +449,7 @@ class Expression::Array final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Array;
 
   explicit Array(Expression_Arena::Array_Ptr<Expression *> children,
-                 Source_Code_Span span) noexcept
+                 Source_Code_Span span)
       : Expression(kind), span_(span), children_(children) {
     QLJS_ASSERT(span.string_view().substr(0, 1) == u8"["_sv);
   }
@@ -473,7 +469,7 @@ class Expression::Arrow_Function final : public Expression {
 
   explicit Arrow_Function(Function_Attributes attributes,
                           const Char8 *parameter_list_begin,
-                          const Char8 *span_end) noexcept
+                          const Char8 *span_end)
       : Expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
@@ -484,7 +480,7 @@ class Expression::Arrow_Function final : public Expression {
   explicit Arrow_Function(Function_Attributes attributes,
                           Expression_Arena::Array_Ptr<Expression *> parameters,
                           const Char8 *parameter_list_begin,
-                          const Char8 *span_end) noexcept
+                          const Char8 *span_end)
       : Expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
@@ -507,7 +503,7 @@ class Expression::Angle_Type_Assertion final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Angle_Type_Assertion;
 
   explicit Angle_Type_Assertion(Source_Code_Span bracketed_type_span,
-                                Expression *child) noexcept
+                                Expression *child)
       : Expression(kind),
         bracketed_type_span_(bracketed_type_span),
         child_(child) {}
@@ -523,7 +519,7 @@ class Expression::As_Type_Assertion final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::As_Type_Assertion;
 
   explicit As_Type_Assertion(Expression *child, Source_Code_Span as_span,
-                             const Char8 *span_end) noexcept
+                             const Char8 *span_end)
       : Expression(kind),
         child_(child),
         as_keyword_(as_span.begin()),
@@ -531,7 +527,7 @@ class Expression::As_Type_Assertion final : public Expression {
     QLJS_ASSERT(as_span.string_view() == u8"as"_sv);
   }
 
-  Source_Code_Span as_span() const noexcept {
+  Source_Code_Span as_span() const {
     return Source_Code_Span(this->as_keyword_, this->as_keyword_ + 2);
   }
 
@@ -544,7 +540,7 @@ static_assert(Expression_Arena::is_allocatable<Expression::As_Type_Assertion>);
 class Expression::Assignment final : public Expression {
  public:
   explicit Assignment(Expression_Kind kind, Expression *lhs, Expression *rhs,
-                      Source_Code_Span operator_span) noexcept
+                      Source_Code_Span operator_span)
       : Expression(kind), children_{lhs, rhs}, operator_span_(operator_span) {
     QLJS_ASSERT(kind == Expression_Kind::Assignment ||
                 kind == Expression_Kind::Compound_Assignment ||
@@ -561,11 +557,11 @@ class Expression::Await final
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Await;
 
-  explicit Await(Expression *child, Source_Code_Span operator_span) noexcept
+  explicit Await(Expression *child, Source_Code_Span operator_span)
       : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 
-  Source_Code_Span unary_operator_span() const noexcept {
+  Source_Code_Span unary_operator_span() const {
     return Source_Code_Span(this->unary_operator_begin_,
                             this->unary_operator_begin_ + 5);
   }
@@ -578,7 +574,7 @@ class Expression::Binary_Operator final : public Expression {
 
   explicit Binary_Operator(
       Expression_Arena::Array_Ptr<Expression *> children,
-      Expression_Arena::Array_Ptr<Source_Code_Span> operator_spans) noexcept
+      Expression_Arena::Array_Ptr<Source_Code_Span> operator_spans)
       : Expression(kind),
         children_(children),
         operator_spans_(operator_spans.data()) {
@@ -597,8 +593,7 @@ class Expression::Call final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Call;
 
   explicit Call(Expression_Arena::Array_Ptr<Expression *> children,
-                Source_Code_Span left_paren_span,
-                const Char8 *span_end) noexcept
+                Source_Code_Span left_paren_span, const Char8 *span_end)
       : Expression(kind),
         call_left_paren_begin_(left_paren_span.begin()),
         span_end_(span_end),
@@ -606,7 +601,7 @@ class Expression::Call final : public Expression {
     QLJS_ASSERT(left_paren_span.size() == 1);
   }
 
-  Source_Code_Span left_paren_span() const noexcept {
+  Source_Code_Span left_paren_span() const {
     return Source_Code_Span(this->call_left_paren_begin_,
                             this->call_left_paren_begin_ + 1);
   }
@@ -622,7 +617,7 @@ class Expression::Conditional final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Conditional;
 
   explicit Conditional(Expression *condition, Expression *true_branch,
-                       Expression *false_branch) noexcept
+                       Expression *false_branch)
       : Expression(kind), children_{condition, true_branch, false_branch} {}
 
   std::array<Expression *, 3> children_;
@@ -633,7 +628,7 @@ class Expression::Dot final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Dot;
 
-  explicit Dot(Expression *lhs, Identifier rhs) noexcept
+  explicit Dot(Expression *lhs, Identifier rhs)
       : Expression(kind), variable_identifier_(rhs), child_(lhs) {}
 
   Identifier variable_identifier_;
@@ -645,8 +640,7 @@ class Expression::Function final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Function;
 
-  explicit Function(Function_Attributes attributes,
-                    Source_Code_Span span) noexcept
+  explicit Function(Function_Attributes attributes, Source_Code_Span span)
       : Expression(kind), function_attributes_(attributes), span_(span) {}
 
   Function_Attributes function_attributes_;
@@ -658,8 +652,7 @@ class Expression::Import final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Import;
 
-  explicit Import(Source_Code_Span span) noexcept
-      : Expression(kind), span_(span) {}
+  explicit Import(Source_Code_Span span) : Expression(kind), span_(span) {}
 
   Source_Code_Span span_;
 };
@@ -670,8 +663,7 @@ class Expression::Index final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Index;
 
   explicit Index(Expression *container, Expression *subscript,
-                 Source_Code_Span left_square_span,
-                 const Char8 *subscript_end) noexcept
+                 Source_Code_Span left_square_span, const Char8 *subscript_end)
       : Expression(kind),
         index_subscript_end_(subscript_end),
         left_square_span(left_square_span),
@@ -686,7 +678,7 @@ static_assert(Expression_Arena::is_allocatable<Expression::Index>);
 class Expression::JSX_Base : public Expression {
  public:
   explicit JSX_Base(Expression_Kind kind, Source_Code_Span span,
-                    Expression_Arena::Array_Ptr<Expression *> children) noexcept
+                    Expression_Arena::Array_Ptr<Expression *> children)
       : Expression(kind), span(span), children(children) {}
 
   Source_Code_Span span;
@@ -698,14 +690,13 @@ class Expression::JSX_Element final : public JSX_Base {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::JSX_Element;
 
-  explicit JSX_Element(
-      Source_Code_Span span, const Identifier &tag,
-      Expression_Arena::Array_Ptr<Expression *> children) noexcept
+  explicit JSX_Element(Source_Code_Span span, const Identifier &tag,
+                       Expression_Arena::Array_Ptr<Expression *> children)
       : JSX_Base(kind, span, children), tag(tag) {}
 
-  bool is_intrinsic() const noexcept { return is_intrinsic(this->tag); }
+  bool is_intrinsic() const { return is_intrinsic(this->tag); }
 
-  static bool is_intrinsic(const Identifier &tag) noexcept {
+  static bool is_intrinsic(const Identifier &tag) {
     // TODO(strager): Have the lexer do this work for us.
     String8_View name = tag.normalized_name();
     QLJS_ASSERT(!name.empty());
@@ -724,10 +715,10 @@ class Expression::JSX_Element_With_Members final : public JSX_Base {
 
   explicit JSX_Element_With_Members(
       Source_Code_Span span, Expression_Arena::Array_Ptr<Identifier> members,
-      Expression_Arena::Array_Ptr<Expression *> children) noexcept
+      Expression_Arena::Array_Ptr<Expression *> children)
       : JSX_Base(kind, span, children), members(members) {}
 
-  bool is_intrinsic() const noexcept { return false; }
+  bool is_intrinsic() const { return false; }
 
   Expression_Arena::Array_Ptr<Identifier> members;
 };
@@ -741,10 +732,10 @@ class Expression::JSX_Element_With_Namespace final : public JSX_Base {
 
   explicit JSX_Element_With_Namespace(
       Source_Code_Span span, const Identifier &ns, const Identifier &tag,
-      Expression_Arena::Array_Ptr<Expression *> children) noexcept
+      Expression_Arena::Array_Ptr<Expression *> children)
       : JSX_Base(kind, span, children), ns(ns), tag(tag) {}
 
-  bool is_intrinsic() const noexcept { return true; }
+  bool is_intrinsic() const { return true; }
 
   Identifier ns;   // Namespace (before ':').
   Identifier tag;  // After ':'.
@@ -756,9 +747,8 @@ class Expression::JSX_Fragment final : public JSX_Base {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::JSX_Fragment;
 
-  explicit JSX_Fragment(
-      Source_Code_Span span,
-      Expression_Arena::Array_Ptr<Expression *> children) noexcept
+  explicit JSX_Fragment(Source_Code_Span span,
+                        Expression_Arena::Array_Ptr<Expression *> children)
       : JSX_Base(kind, span, children) {}
 };
 static_assert(Expression_Arena::is_allocatable<Expression::JSX_Fragment>);
@@ -767,8 +757,7 @@ class Expression::Literal final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Literal;
 
-  explicit Literal(Source_Code_Span span) noexcept
-      : Expression(kind), span_(span) {}
+  explicit Literal(Source_Code_Span span) : Expression(kind), span_(span) {}
 
   bool is_null() const { return this->span_.string_view()[0] == u8'n'; }
 
@@ -783,7 +772,7 @@ class Expression::Named_Function final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Named_Function;
 
   explicit Named_Function(Function_Attributes attributes, Identifier name,
-                          Source_Code_Span span) noexcept
+                          Source_Code_Span span)
       : Expression(kind),
         function_attributes_(attributes),
         variable_identifier_(name),
@@ -799,8 +788,7 @@ class Expression::New_Target final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::New_Target;
 
-  explicit New_Target(Source_Code_Span span) noexcept
-      : Expression(kind), span_(span) {}
+  explicit New_Target(Source_Code_Span span) : Expression(kind), span_(span) {}
 
   Source_Code_Span span_;
 };
@@ -810,13 +798,12 @@ class Expression::Non_Null_Assertion final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Non_Null_Assertion;
 
-  explicit Non_Null_Assertion(Expression *child,
-                              Source_Code_Span bang_span) noexcept
+  explicit Non_Null_Assertion(Expression *child, Source_Code_Span bang_span)
       : Expression(kind), bang_end_(bang_span.end()), child_(child) {
     QLJS_ASSERT(same_pointers(this->bang_span(), bang_span));
   }
 
-  Source_Code_Span bang_span() const noexcept {
+  Source_Code_Span bang_span() const {
     return Source_Code_Span(this->bang_end_ - 1, this->bang_end_);
   }
 
@@ -831,7 +818,7 @@ class Expression::Object final : public Expression {
 
   explicit Object(
       Expression_Arena::Array_Ptr<Object_Property_Value_Pair> entries,
-      Source_Code_Span span) noexcept
+      Source_Code_Span span)
       : Expression(kind), span_(span), entries_(entries) {
     QLJS_ASSERT(span.string_view().substr(0, 1) == u8"{"_sv);
   }
@@ -849,12 +836,12 @@ class Expression::Optional final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Optional;
 
-  explicit Optional(Expression *child, Source_Code_Span question_span) noexcept
+  explicit Optional(Expression *child, Source_Code_Span question_span)
       : Expression(kind), child_(child), question_end_(question_span.end()) {
     QLJS_ASSERT(question_span.end() - question_span.begin() == 1);
   }
 
-  Source_Code_Span question_span() const noexcept {
+  Source_Code_Span question_span() const {
     return Source_Code_Span(this->question_end_ - 1, this->question_end_);
   }
 
@@ -867,7 +854,7 @@ class Expression::Paren final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Paren;
 
-  explicit Paren(Source_Code_Span span, Expression *child) noexcept
+  explicit Paren(Source_Code_Span span, Expression *child)
       : Expression(kind), span_(span), child_(child) {}
 
   Source_Code_Span span_;
@@ -879,14 +866,13 @@ class Expression::Paren_Empty final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Paren_Empty;
 
-  explicit Paren_Empty(Source_Code_Span span) noexcept
-      : Expression(kind), span_(span) {}
+  explicit Paren_Empty(Source_Code_Span span) : Expression(kind), span_(span) {}
 
-  Source_Code_Span left_paren_span() const noexcept {
+  Source_Code_Span left_paren_span() const {
     return Source_Code_Span(this->span_.begin(), this->span_.begin() + 1);
   }
 
-  Source_Code_Span right_paren_span() const noexcept {
+  Source_Code_Span right_paren_span() const {
     return Source_Code_Span(this->span_.end() - 1, this->span_.end());
   }
 
@@ -906,7 +892,7 @@ class Expression::Private_Variable final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Private_Variable;
 
-  explicit Private_Variable(Identifier variable_identifier) noexcept
+  explicit Private_Variable(Identifier variable_identifier)
       : Expression(kind), variable_identifier_(variable_identifier) {}
 
   Identifier variable_identifier_;
@@ -918,8 +904,7 @@ class Expression::RW_Unary_Prefix final
  public:
   static constexpr Expression_Kind kind = Expression_Kind::RW_Unary_Prefix;
 
-  explicit RW_Unary_Prefix(Expression *child,
-                           Source_Code_Span operator_span) noexcept
+  explicit RW_Unary_Prefix(Expression *child, Source_Code_Span operator_span)
       : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 };
@@ -929,8 +914,7 @@ class Expression::RW_Unary_Suffix final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::RW_Unary_Suffix;
 
-  explicit RW_Unary_Suffix(Expression *child,
-                           Source_Code_Span operator_span) noexcept
+  explicit RW_Unary_Suffix(Expression *child, Source_Code_Span operator_span)
       : Expression(kind),
         unary_operator_end_(operator_span.end()),
         child_(child) {}
@@ -945,7 +929,7 @@ class Expression::Satisfies final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Satisfies;
 
   explicit Satisfies(Expression *child, Source_Code_Span satisfies_span,
-                     const Char8 *span_end) noexcept
+                     const Char8 *span_end)
       : Expression(kind),
         child_(child),
         satisfies_keyword_(satisfies_span.begin()),
@@ -953,7 +937,7 @@ class Expression::Satisfies final : public Expression {
     QLJS_ASSERT(satisfies_span.string_view() == u8"satisfies"_sv);
   }
 
-  Source_Code_Span satisfies_span() const noexcept {
+  Source_Code_Span satisfies_span() const {
     return Source_Code_Span(this->satisfies_keyword_,
                             this->satisfies_keyword_ + 9);
   }
@@ -969,14 +953,14 @@ class Expression::Spread final
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Spread;
 
-  explicit Spread(Expression *child, Source_Code_Span operator_span) noexcept
+  explicit Spread(Expression *child, Source_Code_Span operator_span)
       : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {
     QLJS_ASSERT(operator_span.end() - operator_span.begin() ==
                 this->spread_operator_length);
   }
 
-  Source_Code_Span spread_operator_span() const noexcept {
+  Source_Code_Span spread_operator_span() const {
     return Source_Code_Span(
         this->unary_operator_begin_,
         this->unary_operator_begin_ + this->spread_operator_length);
@@ -990,8 +974,7 @@ class Expression::Super final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Super;
 
-  explicit Super(Source_Code_Span span) noexcept
-      : Expression(kind), span_(span) {}
+  explicit Super(Source_Code_Span span) : Expression(kind), span_(span) {}
 
   Source_Code_Span span_;
 };
@@ -1001,7 +984,7 @@ class Expression::Tagged_Template_Literal final : public Expression {
  public:
   explicit Tagged_Template_Literal(
       Expression_Arena::Array_Ptr<Expression *> tag_and_template_children,
-      Source_Code_Span template_span) noexcept
+      Source_Code_Span template_span)
       : Expression(Expression_Kind::Tagged_Template_Literal),
         tag_and_template_children_(tag_and_template_children),
         template_span_end_(template_span.end()) {
@@ -1018,7 +1001,7 @@ class Expression::This_Variable final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::This_Variable;
 
-  explicit This_Variable(Source_Code_Span span) noexcept
+  explicit This_Variable(Source_Code_Span span)
       : Expression(kind), span_(span) {}
 
   Source_Code_Span span_;
@@ -1030,12 +1013,12 @@ class Expression::Trailing_Comma final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Trailing_Comma;
 
   explicit Trailing_Comma(Expression_Arena::Array_Ptr<Expression *> children,
-                          Source_Code_Span comma_span) noexcept
+                          Source_Code_Span comma_span)
       : Expression(kind), children_(children), comma_end_(comma_span.end()) {
     QLJS_ASSERT(comma_span.end() == comma_span.begin() + 1);
   }
 
-  Source_Code_Span comma_span() const noexcept {
+  Source_Code_Span comma_span() const {
     return Source_Code_Span(this->comma_end_ - 1, this->comma_end_);
   }
 
@@ -1049,7 +1032,7 @@ class Expression::Type_Annotated final : public Expression {
 
   explicit Type_Annotated(Expression *child, Source_Code_Span colon_span,
                           Buffering_Visitor &&type_visits,
-                          const Char8 *span_end) noexcept
+                          const Char8 *span_end)
       : Expression(kind),
         child_(child),
         colon_(colon_span.begin()),
@@ -1059,7 +1042,7 @@ class Expression::Type_Annotated final : public Expression {
     QLJS_ASSERT(colon_span.size() == 1);
   }
 
-  Source_Code_Span colon_span() const noexcept {
+  Source_Code_Span colon_span() const {
     return Source_Code_Span(this->colon_, this->colon_ + 1);
   }
 
@@ -1082,8 +1065,7 @@ class Expression::Unary_Operator final
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Unary_Operator;
 
-  explicit Unary_Operator(Expression *child,
-                          Source_Code_Span operator_span) noexcept
+  explicit Unary_Operator(Expression *child, Source_Code_Span operator_span)
       : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 
@@ -1098,7 +1080,7 @@ class Expression::Variable final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Variable;
 
-  explicit Variable(Identifier variable_identifier, Token_Type type) noexcept
+  explicit Variable(Identifier variable_identifier, Token_Type type)
       : Expression(kind),
         type_(type),
         variable_identifier_(variable_identifier) {}
@@ -1113,8 +1095,7 @@ class Expression::Yield_Many final
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Yield_Many;
 
-  explicit Yield_Many(Expression *child,
-                      Source_Code_Span yield_operator_span) noexcept
+  explicit Yield_Many(Expression *child, Source_Code_Span yield_operator_span)
       : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          yield_operator_span) {}
 };
@@ -1124,8 +1105,7 @@ class Expression::Yield_None final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Yield_None;
 
-  explicit Yield_None(Source_Code_Span span) noexcept
-      : Expression(kind), span_(span) {}
+  explicit Yield_None(Source_Code_Span span) : Expression(kind), span_(span) {}
 
   Source_Code_Span span_;
 };
@@ -1136,13 +1116,13 @@ class Expression::Yield_One final
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Yield_One;
 
-  explicit Yield_One(Expression *child, Source_Code_Span operator_span) noexcept
+  explicit Yield_One(Expression *child, Source_Code_Span operator_span)
       : Expression::Expression_With_Prefix_Operator_Base(kind, child,
                                                          operator_span) {}
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Yield_One>);
 
-inline Identifier Expression::variable_identifier() const noexcept {
+inline Identifier Expression::variable_identifier() const {
   switch (this->kind_) {
   case Expression_Kind::Dot:
     return static_cast<const Expression::Dot *>(this)->variable_identifier_;
@@ -1163,7 +1143,7 @@ inline Identifier Expression::variable_identifier() const noexcept {
   }
 }
 
-inline Token_Type Expression::variable_identifier_token_type() const noexcept {
+inline Token_Type Expression::variable_identifier_token_type() const {
   switch (this->kind_) {
   case Expression_Kind::Variable:
     return static_cast<const Expression::Variable *>(this)->type_;
@@ -1173,16 +1153,15 @@ inline Token_Type Expression::variable_identifier_token_type() const noexcept {
   }
 }
 
-inline Span_Size Expression::child_count() const noexcept {
+inline Span_Size Expression::child_count() const {
   return this->children().size();
 }
 
-inline Expression *Expression::child(Span_Size index) const noexcept {
+inline Expression *Expression::child(Span_Size index) const {
   return this->children()[index];
 }
 
-inline Expression_Arena::Array_Ptr<Expression *> Expression::children() const
-    noexcept {
+inline Expression_Arena::Array_Ptr<Expression *> Expression::children() const {
   switch (this->kind_) {
   case Expression_Kind::Assignment:
   case Expression_Kind::Compound_Assignment:
@@ -1283,7 +1262,7 @@ inline Expression_Arena::Array_Ptr<Expression *> Expression::children() const
   }
 }
 
-inline Expression *Expression::without_paren() const noexcept {
+inline Expression *Expression::without_paren() const {
   const Expression *ast = this;
   while (ast->kind_ == Expression_Kind::Paren) {
     ast = static_cast<const Paren *>(ast)->child_;
@@ -1292,7 +1271,7 @@ inline Expression *Expression::without_paren() const noexcept {
   return const_cast<Expression *>(ast);
 }
 
-inline Span_Size Expression::object_entry_count() const noexcept {
+inline Span_Size Expression::object_entry_count() const {
   switch (this->kind_) {
   case Expression_Kind::Object:
     return static_cast<const Expression::Object *>(this)->entries_.size();
@@ -1303,7 +1282,7 @@ inline Span_Size Expression::object_entry_count() const noexcept {
 }
 
 inline Object_Property_Value_Pair Expression::object_entry(
-    Span_Size index) const noexcept {
+    Span_Size index) const {
   switch (this->kind_) {
   case Expression_Kind::Object:
     return static_cast<const Expression::Object *>(this)->entries_[index];
@@ -1313,7 +1292,7 @@ inline Object_Property_Value_Pair Expression::object_entry(
   }
 }
 
-inline Source_Code_Span Expression::span() const noexcept {
+inline Source_Code_Span Expression::span() const {
   switch (this->kind_) {
   case Expression_Kind::Assignment:
   case Expression_Kind::Compound_Assignment:
@@ -1466,15 +1445,13 @@ inline Source_Code_Span Expression::span() const noexcept {
   QLJS_UNREACHABLE();
 }
 
-inline const Char8 *Expression::span_begin() const noexcept {
+inline const Char8 *Expression::span_begin() const {
   return this->span().begin();
 }
 
-inline const Char8 *Expression::span_end() const noexcept {
-  return this->span().end();
-}
+inline const Char8 *Expression::span_end() const { return this->span().end(); }
 
-inline Function_Attributes Expression::attributes() const noexcept {
+inline Function_Attributes Expression::attributes() const {
   switch (this->kind_) {
   case Expression_Kind::Arrow_Function:
     return static_cast<const Expression::Arrow_Function *>(this)

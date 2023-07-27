@@ -26,23 +26,23 @@ class Hash_Map {
   explicit Hash_Map(std::initializer_list<value_type> init) : map_(init) {}
 
   template <class K>
-  const_iterator find(const K& key) const noexcept {
+  const_iterator find(const K& key) const {
     return this->map_.find(key);
   }
   template <class K>
-  iterator find(const K& key) noexcept {
+  iterator find(const K& key) {
     return this->map_.find(key);
   }
 
-  iterator begin() noexcept { return this->map_.begin(); }
-  const_iterator begin() const noexcept { return this->map_.begin(); }
+  iterator begin() { return this->map_.begin(); }
+  const_iterator begin() const { return this->map_.begin(); }
 
-  iterator end() noexcept { return this->map_.end(); }
-  const_iterator end() const noexcept { return this->map_.end(); }
+  iterator end() { return this->map_.end(); }
+  const_iterator end() const { return this->map_.end(); }
 
-  bool empty() const noexcept { return this->map_.empty(); }
+  bool empty() const { return this->map_.empty(); }
 
-  size_type size() const noexcept { return this->map_.size(); }
+  size_type size() const { return this->map_.size(); }
 
   // Copies the key if successful.
   template <class... Args>

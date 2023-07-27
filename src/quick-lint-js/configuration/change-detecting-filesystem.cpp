@@ -17,11 +17,11 @@ std::string Watch_IO_Error::to_string() const {
          this->io_error.to_string();
 }
 
-bool operator==(const Watch_IO_Error& lhs, const Watch_IO_Error& rhs) noexcept {
+bool operator==(const Watch_IO_Error& lhs, const Watch_IO_Error& rhs) {
   return lhs.path == rhs.path && lhs.io_error == rhs.io_error;
 }
 
-bool operator!=(const Watch_IO_Error& lhs, const Watch_IO_Error& rhs) noexcept {
+bool operator!=(const Watch_IO_Error& lhs, const Watch_IO_Error& rhs) {
   return !(lhs == rhs);
 }
 }

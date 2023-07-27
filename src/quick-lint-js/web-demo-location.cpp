@@ -8,8 +8,7 @@
 #include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {
-Web_Demo_Locator::Web_Demo_Locator(Padded_String_View input) noexcept
-    : input_(input) {}
+Web_Demo_Locator::Web_Demo_Locator(Padded_String_View input) : input_(input) {}
 
 Web_Demo_Source_Range Web_Demo_Locator::range(Source_Code_Span span) const {
   return Web_Demo_Source_Range{
@@ -18,8 +17,7 @@ Web_Demo_Source_Range Web_Demo_Locator::range(Source_Code_Span span) const {
   };
 }
 
-Web_Demo_Source_Offset Web_Demo_Locator::position(const Char8* c) const
-    noexcept {
+Web_Demo_Source_Offset Web_Demo_Locator::position(const Char8* c) const {
   int byte_offset = narrow_cast<int>(c - this->input_.data());
   return narrow_cast<Web_Demo_Source_Offset>(
       count_lsp_characters_in_utf_8(this->input_, byte_offset));

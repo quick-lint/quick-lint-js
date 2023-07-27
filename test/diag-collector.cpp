@@ -24,22 +24,22 @@ void Diag_Collector::report_impl(Diag_Type type, void *diag) {
 QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
 
-Diag_Type Diag_Collector::Diag::type() const noexcept { return this->type_; }
+Diag_Type Diag_Collector::Diag::type() const { return this->type_; }
 
-const void *Diag_Collector::Diag::data() const noexcept {
+const void *Diag_Collector::Diag::data() const {
   return &this->variant_Diag_Unexpected_Token_;  // Arbitrary member.
 }
 
-#define QLJS_DIAG_TYPE_NAME(name)                                        \
-  template <>                                                            \
-  bool holds_alternative<name>(const Diag_Collector::Diag &e) noexcept { \
-    return e.type_ == Diag_Type::name;                                   \
-  }                                                                      \
-                                                                         \
-  template <>                                                            \
-  const name &get<name>(const Diag_Collector::Diag &e) noexcept {        \
-    QLJS_ASSERT(holds_alternative<name>(e));                             \
-    return e.variant_##name##_;                                          \
+#define QLJS_DIAG_TYPE_NAME(name)                               \
+  template <>                                                   \
+  bool holds_alternative<name>(const Diag_Collector::Diag &e) { \
+    return e.type_ == Diag_Type::name;                          \
+  }                                                             \
+                                                                \
+  template <>                                                   \
+  const name &get<name>(const Diag_Collector::Diag &e) {        \
+    QLJS_ASSERT(holds_alternative<name>(e));                    \
+    return e.variant_##name##_;                                 \
   }
 QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME

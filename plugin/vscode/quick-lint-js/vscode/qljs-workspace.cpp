@@ -111,13 +111,13 @@ struct VSCode_Language {
     this->language_id_size = static_cast<unsigned char>(language_id.size());
   }
 
-  std::string_view language_id() const noexcept {
+  std::string_view language_id() const {
     return std::string_view(this->raw_language_id, this->language_id_size);
   }
 
   // Returns nullptr if the language does not exist.
   static const VSCode_Language* find(std::string_view language_id,
-                                     bool allow_typescript) noexcept {
+                                     bool allow_typescript) {
     static constexpr Linter_Options jsx = {
         .jsx = true,
         .typescript = false,

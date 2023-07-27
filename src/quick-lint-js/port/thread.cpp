@@ -66,7 +66,7 @@ void Condition_Variable::notify_all() {}
 #endif
 
 #if defined(QLJS_THREADS_WINDOWS)
-Thread::Thread() noexcept : thread_handle_(nullptr) {}
+Thread::Thread() : thread_handle_(nullptr) {}
 
 Thread& Thread::operator=(Thread&& other) {
   QLJS_ASSERT(!this->thread_handle_.valid());
@@ -79,7 +79,7 @@ Thread& Thread::operator=(Thread&& other) {
 
 Thread::~Thread() { QLJS_ASSERT(!this->thread_handle_.valid()); }
 
-bool Thread::joinable() const noexcept { return this->thread_handle_.valid(); }
+bool Thread::joinable() const { return this->thread_handle_.valid(); }
 
 void Thread::join() {
   QLJS_ASSERT(this->joinable());
@@ -135,7 +135,7 @@ void Condition_Variable::notify_all() {
 #endif
 
 #if defined(QLJS_THREADS_POSIX)
-Thread::Thread() noexcept = default;
+Thread::Thread() = default;
 
 Thread& Thread::operator=(Thread&& other) {
   QLJS_ASSERT(!this->thread_is_running_);
@@ -150,7 +150,7 @@ Thread& Thread::operator=(Thread&& other) {
 
 Thread::~Thread() { QLJS_ASSERT(!this->thread_is_running_); }
 
-bool Thread::joinable() const noexcept { return this->thread_is_running_; }
+bool Thread::joinable() const { return this->thread_is_running_; }
 
 void Thread::join() {
   QLJS_ASSERT(this->joinable());
@@ -211,7 +211,7 @@ void Condition_Variable::notify_all() {
 }
 #endif
 
-std::uint64_t get_current_thread_id() noexcept {
+std::uint64_t get_current_thread_id() {
 #if QLJS_HAVE_WINDOWS_H
   return ::GetCurrentThreadId();
 #elif QLJS_HAVE_GETTID

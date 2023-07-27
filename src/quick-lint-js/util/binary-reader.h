@@ -28,7 +28,7 @@ class Checked_Binary_Reader {
         data_end_(data + data_size),
         unexpected_end_of_file_(unexpected_end_of_file) {}
 
-  bool eof() const noexcept { return this->data_ == this->data_end_; }
+  bool eof() const { return this->data_ == this->data_end_; }
 
   std::uint8_t u8() { return *this->advance(1); }
 

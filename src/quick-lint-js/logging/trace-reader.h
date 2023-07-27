@@ -99,8 +99,8 @@ struct Parsed_VSCode_Document_Change {
   std::u16string text;
 
   // For testing.
-  bool operator==(const Parsed_VSCode_Document_Change& other) const noexcept;
-  bool operator!=(const Parsed_VSCode_Document_Change& other) const noexcept;
+  bool operator==(const Parsed_VSCode_Document_Change& other) const;
+  bool operator!=(const Parsed_VSCode_Document_Change& other) const;
 };
 
 struct Parsed_VSCode_Document_Changed_Event {
@@ -126,15 +126,13 @@ struct Parsed_Vector_Max_Size_Histogram_Entry {
   std::uint64_t max_size;
   std::uint64_t count;
 
-  friend bool operator==(
-      const Parsed_Vector_Max_Size_Histogram_Entry& lhs,
-      const Parsed_Vector_Max_Size_Histogram_Entry& rhs) noexcept {
+  friend bool operator==(const Parsed_Vector_Max_Size_Histogram_Entry& lhs,
+                         const Parsed_Vector_Max_Size_Histogram_Entry& rhs) {
     return lhs.max_size == rhs.max_size && lhs.count == rhs.count;
   }
 
-  friend bool operator!=(
-      const Parsed_Vector_Max_Size_Histogram_Entry& lhs,
-      const Parsed_Vector_Max_Size_Histogram_Entry& rhs) noexcept {
+  friend bool operator!=(const Parsed_Vector_Max_Size_Histogram_Entry& lhs,
+                         const Parsed_Vector_Max_Size_Histogram_Entry& rhs) {
     return !(lhs == rhs);
   }
 };
