@@ -1,9 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include "quick-lint-js/fe/source-code-span.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/reflection/cxx-parser.h>

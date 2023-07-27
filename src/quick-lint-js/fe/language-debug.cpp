@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include "quick-lint-js/c-api.h"
 #include <ostream>
+#include <quick-lint-js/c-api.h>
 #include <quick-lint-js/fe/language.h>
 
 namespace quick_lint_js {

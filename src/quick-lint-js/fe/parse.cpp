@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include "quick-lint-js/fe/source-code-span.h"
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -15,6 +14,7 @@
 #include <quick-lint-js/fe/jsx.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/parse.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>

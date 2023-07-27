@@ -1,9 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include "quick-lint-js/diag/diagnostic-types-2.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/diag/diagnostic-types-2.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/gtest.h>
