@@ -31,7 +31,7 @@ JSON_RPC_Message_Handler::~JSON_RPC_Message_Handler() = default;
 LSP_JSON_RPC_Message_Parser::LSP_JSON_RPC_Message_Parser(
     JSON_RPC_Message_Handler* handler)
     : handler_(handler),
-      json_parser_(std::make_unique< ::simdjson::ondemand::parser>()) {}
+      json_parser_(std::make_unique<::simdjson::ondemand::parser>()) {}
 
 LSP_JSON_RPC_Message_Parser::~LSP_JSON_RPC_Message_Parser() = default;
 

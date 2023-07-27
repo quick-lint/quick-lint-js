@@ -42,7 +42,7 @@ class Poll_Event_Loop : public Event_Loop_Base<Derived> {
       Platform_File_Ref pipe = this->const_derived().get_readable_pipe();
       QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
-      Fixed_Vector< ::pollfd, 3> pollfds;
+      Fixed_Vector<::pollfd, 3> pollfds;
 
       Fixed_Vector_Size read_pipe_index = pollfds.size();
       pollfds.push_back(
@@ -73,7 +73,7 @@ class Poll_Event_Loop : public Event_Loop_Base<Derived> {
 #endif
 
       QLJS_ASSERT(pollfds.size() > 0);
-      int rc = ::poll(pollfds.data(), narrow_cast< ::nfds_t>(pollfds.size()),
+      int rc = ::poll(pollfds.data(), narrow_cast<::nfds_t>(pollfds.size()),
                       /*timeout=*/-1);
       if (rc == -1) {
         QLJS_UNIMPLEMENTED();

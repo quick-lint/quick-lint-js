@@ -151,7 +151,7 @@ TEST_F(Test_Linting_LSP_Server, initialize) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> responses = this->client->responses();
+  std::vector<::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
   ::boost::json::object response = responses[0];
   EXPECT_EQ(response["id"], 1);
@@ -215,7 +215,7 @@ TEST_F(Test_Linting_LSP_Server, initialize_with_different_request_ids) {
     this->server->flush_error_responses(*this->client);
     this->handler->flush_pending_notifications(*this->client);
 
-    std::vector< ::boost::json::object> responses = this->client->responses();
+    std::vector<::boost::json::object> responses = this->client->responses();
     ASSERT_EQ(responses.size(), 1);
     EXPECT_EQ(responses[0]["id"], test.id);
   }
@@ -243,7 +243,7 @@ TEST_F(Test_Linting_LSP_Server, loads_config_after_client_initialization) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> requests = this->client->requests();
+  std::vector<::boost::json::object> requests = this->client->requests();
   ASSERT_EQ(requests.size(), 1);
   ::boost::json::object request = requests[0];
   EXPECT_EQ(look_up(request, "method"), "workspace/configuration");
@@ -269,7 +269,7 @@ TEST_F(Test_Linting_LSP_Server, stores_config_values_after_config_response) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> requests = this->client->requests();
+  std::vector<::boost::json::object> requests = this->client->requests();
   ASSERT_EQ(requests.size(), 1);
   ::boost::json::object config_request = requests[0];
   ::boost::json::value config_request_id = look_up(config_request, "id");
@@ -322,7 +322,7 @@ TEST_F(Test_Linting_LSP_Server, config_can_be_set_with_initialize_request) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> responses = this->client->responses();
+  std::vector<::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
   EXPECT_EQ(responses[0]["id"], 100);
 
@@ -485,7 +485,7 @@ TEST_F(Test_Linting_LSP_Server, shutdown) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> responses = this->client->responses();
+  std::vector<::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
   ::boost::json::object response = responses[0];
   EXPECT_EQ(response["id"], 10);
@@ -593,7 +593,7 @@ TEST_F(Test_Linting_LSP_Server, opening_document_lints) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> notifications =
+  std::vector<::boost::json::object> notifications =
       this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
   ::boost::json::object response = notifications[0];
@@ -1693,7 +1693,7 @@ TEST_F(Test_Linting_LSP_Server,
 
   EXPECT_TRUE(after_config_was_loaded);
 
-  std::vector< ::boost::json::object> notifications =
+  std::vector<::boost::json::object> notifications =
       this->client->notifications();
   ASSERT_THAT(notifications, ElementsAreArray({::testing::_}));
   ::boost::json::object notification = notifications[0];
@@ -1885,7 +1885,7 @@ TEST_F(Test_Linting_LSP_Server, opening_js_file_with_unreadable_config_lints) {
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
       << "should have linted despite config file being unloadable";
 
-  std::vector< ::boost::json::object> notifications =
+  std::vector<::boost::json::object> notifications =
       this->client->notifications();
   ASSERT_EQ(notifications.size(), 2);
   std::size_t showMessageIndex =
@@ -1949,7 +1949,7 @@ TEST_F(Test_Linting_LSP_Server,
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
       << "should have linted despite config file being unloadable";
 
-  std::vector< ::boost::json::object> notifications =
+  std::vector<::boost::json::object> notifications =
       this->client->notifications();
   ASSERT_EQ(notifications.size(), 2);
   std::size_t showMessageIndex =
@@ -2024,7 +2024,7 @@ TEST_F(Test_Linting_LSP_Server, making_config_file_unreadable_relints) {
       << "should have linted twice: once on open, and once after config file "
          "changed";
 
-  std::vector< ::boost::json::object> notifications =
+  std::vector<::boost::json::object> notifications =
       this->client->notifications();
   ASSERT_EQ(notifications.size(), 2);
   std::size_t showMessageIndex =
@@ -2057,7 +2057,7 @@ TEST_F(Test_Linting_LSP_Server, opening_broken_config_file_shows_diagnostics) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> notifications =
+  std::vector<::boost::json::object> notifications =
       this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
   ::boost::json::object response = notifications[0];
@@ -2122,7 +2122,7 @@ TEST_F(Test_Linting_LSP_Server,
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> notifications =
+  std::vector<::boost::json::object> notifications =
       this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
   ::boost::json::object response = notifications[0];
@@ -2355,7 +2355,7 @@ TEST_F(Test_Linting_LSP_Server, showing_io_errors_shows_only_first) {
   });
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> notifications =
+  std::vector<::boost::json::object> notifications =
       this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
   ::boost::json::object show_message_message = notifications[0];
@@ -2385,7 +2385,7 @@ TEST_F(Test_Linting_LSP_Server, showing_io_errors_shows_only_first_ever) {
   });
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> notifications =
+  std::vector<::boost::json::object> notifications =
       this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
   ::boost::json::object show_message_message = notifications[0];
@@ -2437,7 +2437,7 @@ TEST_F(Test_Linting_LSP_Server, unimplemented_method_in_request_returns_error) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector< ::boost::json::object> responses = this->client->responses();
+  std::vector<::boost::json::object> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
   ::boost::json::object response = responses[0];
   EXPECT_EQ(look_up(response, "id"), 10);
@@ -2650,7 +2650,7 @@ TEST(Test_LSP_JavaScript_Linter,
   server.flush_error_responses(client);
   handler.flush_pending_notifications(client);
 
-  std::vector< ::boost::json::object> notifications = client.notifications();
+  std::vector<::boost::json::object> notifications = client.notifications();
   ASSERT_EQ(notifications.size(), 1);
   ::boost::json::object notification = notifications[0];
   EXPECT_EQ(look_up(notification, "method"), "textDocument/publishDiagnostics");
@@ -2683,7 +2683,7 @@ TEST(Test_LSP_JavaScript_Linter,
   server.flush_error_responses(client);
   handler.flush_pending_notifications(client);
 
-  std::vector< ::boost::json::object> notifications = client.notifications();
+  std::vector<::boost::json::object> notifications = client.notifications();
   ASSERT_EQ(notifications.size(), 1);
   ::boost::json::object notification = notifications[0];
   EXPECT_EQ(look_up(notification, "method"), "textDocument/publishDiagnostics");

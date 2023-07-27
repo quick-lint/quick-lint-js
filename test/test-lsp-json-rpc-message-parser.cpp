@@ -49,7 +49,7 @@ struct Test_JSON_RPC_Message_Handler : public JSON_RPC_Message_Handler {
 };
 
 std::string json_get_string(
-    ::simdjson::simdjson_result< ::simdjson::ondemand::value>&& value) {
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value) {
   std::string_view s = "<not found>";
   EXPECT_EQ(value.get(s), ::simdjson::error_code::SUCCESS);
   return std::string(s);
@@ -285,7 +285,7 @@ TEST(Test_LSP_JSON_RPC_Message_Parser, single_notification_with_reply) {
       this->pending_notifications.push_back(reply);
     }
 
-    std::vector< ::boost::json::value> pending_notifications;
+    std::vector<::boost::json::value> pending_notifications;
   };
   Mock_LSP_Server_Handler handler;
   Spy_LSP_Endpoint_Remote remote;

@@ -161,7 +161,7 @@ class Trace_Flusher {
 
   struct Shared_State {
     std::vector<Trace_Flusher_Backend*> backends;
-    std::vector<std::unique_ptr<Registered_Thread> > registered_threads;
+    std::vector<std::unique_ptr<Registered_Thread>> registered_threads;
     Trace_Flusher_Thread_Index next_thread_index = 1;
     bool stop_flushing_thread = false;
 

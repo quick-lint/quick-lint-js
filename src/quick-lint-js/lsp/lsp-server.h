@@ -120,7 +120,7 @@ struct LSP_Documents {
   };
 
   // Key: URI
-  Hash_Map<String8, std::unique_ptr<Document_Base> > documents;
+  Hash_Map<String8, std::unique_ptr<Document_Base>> documents;
 };
 
 // A Linting_LSP_Server_Handler listens for JavaScript code changes and notifies

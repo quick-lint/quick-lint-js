@@ -211,9 +211,9 @@ class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
   Windows_Handle_File_Ref io_completion_port_;
   ::ULONG_PTR completion_key_;
 
-  Hash_Map<Canonical_Path, std::unique_ptr<Watched_Directory> >
+  Hash_Map<Canonical_Path, std::unique_ptr<Watched_Directory>>
       watched_directories_;
-  std::vector<std::unique_ptr<Watched_Directory> >
+  std::vector<std::unique_ptr<Watched_Directory>>
       cancelling_watched_directories_;
   std::vector<Watch_IO_Error> watch_errors_;
 };

@@ -45,7 +45,7 @@ class Fake_Configuration_Filesystem : public Configuration_Filesystem {
   void clear();
 
  private:
-  Hash_Map<Canonical_Path, Heap_Function<Read_File_Result()> > files_;
+  Hash_Map<Canonical_Path, Heap_Function<Read_File_Result()>> files_;
 };
 }
 

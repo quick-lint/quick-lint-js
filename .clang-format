@@ -3,6 +3,8 @@
 
 BasedOnStyle: Google
 
+Standard: Cpp11  # TODO(strager): c++20
+
 IncludeBlocks: Merge
 IncludeCategories: [
 	# These headers must be included after <Windows.h>:
