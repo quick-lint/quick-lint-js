@@ -785,9 +785,11 @@ kbd.keystroke {
 }
 
 /* Scrollable container */
-.scrollable-container {
-  overflow-x: auto;
-  white-space: nowrap;
+@media screen and (max-width: 670px) {
+  pre, code {
+    overflow-x: scroll;
+    max-height: 400px;
+  }
 }
 
 /*
