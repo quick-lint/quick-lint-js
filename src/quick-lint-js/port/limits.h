@@ -17,11 +17,11 @@ struct Numeric_Limits : public std::numeric_limits<T> {};
 // supporting char8_t.
 template <>
 struct Numeric_Limits<char8_t> {
-  static constexpr char8_t lowest() noexcept {
+  static constexpr char8_t lowest() {
     return static_cast<char8_t>(UChar_Limits::lowest());
   }
 
-  static constexpr char8_t(max)() noexcept {
+  static constexpr char8_t(max)() {
     return static_cast<char8_t>((UChar_Limits::max)());
   }
 

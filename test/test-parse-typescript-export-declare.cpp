@@ -28,12 +28,10 @@ class Test_Parse_TypeScript_Export_Declare : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        export_declare_is_not_allowed_in_javascript) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"export declare class C { }"_sv,  //
-        u8"       ^^^^^^^ Diag_Declare_Class_Not_Allowed_In_JavaScript"_diag,  //
-        javascript_options);
-  }
+  test_parse_and_visit_module(
+      u8"export declare class C { }"_sv,                                     //
+      u8"       ^^^^^^^ Diag_Declare_Class_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_class) {
@@ -71,23 +69,18 @@ TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_abstract_class) {
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        export_declare_import_alias_is_not_allowed) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"export declare import A = B;"_sv,                              //
-        u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"export declare import A = B;"_sv,                              //
+      u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        export_declare_import_is_not_allowed) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"export declare import a from 'mod';"_sv,                       //
-        u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
-
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"export declare import a from 'mod';"_sv,                       //
+      u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,
@@ -108,9 +101,11 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        newline_is_not_allowed_between_declare_and_following_keyword) {
   {
-    Test_Parser p(u8"export declare\nclass C { }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export declare\nclass C { }"_sv,  //
+        u8"       ^^^^^^^ Diag_Newline_Not_Allowed_After_Export_Declare.declare_keyword\n"_diag
+        u8"^^^^^^ .export_keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
@@ -118,14 +113,6 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
                               "visit_variable_declaration",    // C
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Newline_Not_Allowed_After_Export_Declare,   //
-                declare_keyword, u8"export "_sv.size(), u8"declare"_sv,  //
-                export_keyword, 0, u8"export"_sv),
-        }));
   }
 }
 }

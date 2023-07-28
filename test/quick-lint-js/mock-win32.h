@@ -15,8 +15,7 @@ namespace quick_lint_js {
 #if defined(_WIN32)
 class Mock_Win32_Watch_Error_Guard {
  public:
-  explicit Mock_Win32_Watch_Error_Guard(::DWORD* to_mock,
-                                        ::DWORD error) noexcept
+  explicit Mock_Win32_Watch_Error_Guard(::DWORD* to_mock, ::DWORD error)
       : to_mock_(to_mock), old_error_(*this->to_mock_) {
     *this->to_mock_ = error;
   }

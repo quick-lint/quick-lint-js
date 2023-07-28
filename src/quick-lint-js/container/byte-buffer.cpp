@@ -19,7 +19,7 @@
 
 namespace quick_lint_js {
 namespace {
-const std::byte* chunk_begin(const Byte_Buffer_Chunk& c) noexcept {
+const std::byte* chunk_begin(const Byte_Buffer_Chunk& c) {
 #if QLJS_HAVE_WRITEV
   return reinterpret_cast<const std::byte*>(c.iov_base);
 #else
@@ -27,7 +27,7 @@ const std::byte* chunk_begin(const Byte_Buffer_Chunk& c) noexcept {
 #endif
 }
 
-std::byte* chunk_begin(Byte_Buffer_Chunk& c) noexcept {
+std::byte* chunk_begin(Byte_Buffer_Chunk& c) {
 #if QLJS_HAVE_WRITEV
   return reinterpret_cast<std::byte*>(c.iov_base);
 #else
@@ -35,7 +35,7 @@ std::byte* chunk_begin(Byte_Buffer_Chunk& c) noexcept {
 #endif
 }
 
-Byte_Buffer::Size_Type chunk_size(const Byte_Buffer_Chunk& c) noexcept {
+Byte_Buffer::Size_Type chunk_size(const Byte_Buffer_Chunk& c) {
 #if QLJS_HAVE_WRITEV
   return c.iov_len;
 #else
@@ -43,7 +43,7 @@ Byte_Buffer::Size_Type chunk_size(const Byte_Buffer_Chunk& c) noexcept {
 #endif
 }
 
-Byte_Buffer::Size_Type& chunk_size(Byte_Buffer_Chunk& c) noexcept {
+Byte_Buffer::Size_Type& chunk_size(Byte_Buffer_Chunk& c) {
 #if QLJS_HAVE_WRITEV
   return c.iov_len;
 #else
@@ -51,7 +51,7 @@ Byte_Buffer::Size_Type& chunk_size(Byte_Buffer_Chunk& c) noexcept {
 #endif
 }
 
-std::byte* chunk_end(Byte_Buffer_Chunk& c) noexcept {
+std::byte* chunk_end(Byte_Buffer_Chunk& c) {
   return chunk_begin(c) + chunk_size(c);
 }
 
@@ -125,7 +125,7 @@ void Byte_Buffer::clear() {
   this->cursor_ = chunk_begin(this->chunks_.back());
 }
 
-Byte_Buffer::Size_Type Byte_Buffer::size() const noexcept {
+Byte_Buffer::Size_Type Byte_Buffer::size() const {
   Size_Type total_size = 0;
   for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;
        ++chunk_index) {
@@ -136,7 +136,7 @@ Byte_Buffer::Size_Type Byte_Buffer::size() const noexcept {
   return total_size;
 }
 
-bool Byte_Buffer::empty() const noexcept {
+bool Byte_Buffer::empty() const {
   if (this->bytes_used_in_current_chunk() > 0) {
     return false;
   }
@@ -176,7 +176,7 @@ void Byte_Buffer::reserve(Size_Type extra_byte_count) {
   this->add_new_chunk(std::max(default_chunk_size, extra_byte_count));
 }
 
-void Byte_Buffer::update_current_chunk_size() noexcept {
+void Byte_Buffer::update_current_chunk_size() {
   QLJS_ASSERT(!this->chunks_.empty());
   chunk_size(this->chunks_.back()) = this->bytes_used_in_current_chunk();
 }
@@ -189,13 +189,11 @@ void Byte_Buffer::remove_current_chunk_if_empty() {
   }
 }
 
-Byte_Buffer::Size_Type Byte_Buffer::bytes_remaining_in_current_chunk() const
-    noexcept {
+Byte_Buffer::Size_Type Byte_Buffer::bytes_remaining_in_current_chunk() const {
   return narrow_cast<Size_Type>(this->current_chunk_end_ - this->cursor_);
 }
 
-Byte_Buffer::Size_Type Byte_Buffer::bytes_used_in_current_chunk() const
-    noexcept {
+Byte_Buffer::Size_Type Byte_Buffer::bytes_used_in_current_chunk() const {
   return narrow_cast<Size_Type>(this->cursor_ -
                                 chunk_begin(this->chunks_.back()));
 }
@@ -247,11 +245,11 @@ Byte_Buffer_IOVec::~Byte_Buffer_IOVec() {
   }
 }
 
-const Byte_Buffer_Chunk* Byte_Buffer_IOVec::iovec() const noexcept {
+const Byte_Buffer_Chunk* Byte_Buffer_IOVec::iovec() const {
   return this->chunks_.data() + this->first_chunk_index_;
 }
 
-int Byte_Buffer_IOVec::iovec_count() const noexcept {
+int Byte_Buffer_IOVec::iovec_count() const {
   return narrow_cast<int>(this->chunks_.size() - this->first_chunk_index_);
 }
 

@@ -13,11 +13,11 @@
 
 namespace quick_lint_js {
 struct Buffering_Diag_Reporter::Impl {
-  explicit Impl(Memory_Resource *memory) noexcept : memory_(memory) {}
+  explicit Impl(Memory_Resource *memory) : memory_(memory) {}
 
   struct Any_Diag {
     union underlying_diag {
-      explicit underlying_diag() noexcept {}
+      explicit underlying_diag() {}
 
 #define QLJS_DIAG_TYPE_NAME(name)                                    \
   ::quick_lint_js::name name;                                        \
@@ -35,7 +35,7 @@ struct Buffering_Diag_Reporter::Impl {
   Linked_Vector<Any_Diag> diagnostics_{this->memory_};
 };
 
-void Buffering_Diag_Reporter::Impl_Deleter::operator()(Impl *i) noexcept {
+void Buffering_Diag_Reporter::Impl_Deleter::operator()(Impl *i) {
   if (i) {
     delete_object(i->memory_, i);
   }
@@ -76,11 +76,11 @@ void Buffering_Diag_Reporter::move_into(Diag_Reporter *other) {
   this->copy_into(other);
 }
 
-bool Buffering_Diag_Reporter::empty() const noexcept {
+bool Buffering_Diag_Reporter::empty() const {
   return this->impl_->diagnostics_.empty();
 }
 
-void Buffering_Diag_Reporter::clear() noexcept {
+void Buffering_Diag_Reporter::clear() {
   return this->impl_->diagnostics_.clear();
 }
 }

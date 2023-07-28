@@ -13,7 +13,7 @@
 
 namespace quick_lint_js {
 struct Parsed_Diag_Code_List {
-  bool error_missing_predicate() const noexcept;
+  bool error_missing_predicate() const;
 
   std::vector<std::string_view> included_codes;
   std::vector<std::string_view> excluded_codes;
@@ -32,9 +32,9 @@ class Compiled_Diag_Code_List {
   std::vector<std::string> parse_errors(std::string_view cli_option_name) const;
   std::vector<std::string> parse_warnings() const;
 
-  bool is_present(Diag_Type) const noexcept;
+  bool is_present(Diag_Type) const;
 
-  bool is_user_provided() const noexcept;
+  bool is_user_provided() const;
 
  private:
   struct Codes {

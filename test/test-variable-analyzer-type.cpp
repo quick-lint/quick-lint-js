@@ -507,10 +507,10 @@ TEST(Test_Variable_Analyzer_Type,
               -> Diags_Matcher {
             if (runtime_var_kind.has_value()) {
               return ElementsAreArray({
-                  DIAG_TYPE_FIELD(
-                      Diag_Redundant_Delete_Statement_On_Variable,
-                      delete_expression,
-                      Offsets_Matcher(&delete_expression, 0, u8"delete I"_sv)),
+                  DIAG_TYPE_OFFSETS(
+                      &delete_expression,
+                      Diag_Redundant_Delete_Statement_On_Variable,  //
+                      delete_expression, 0, u8"delete I"_sv),
               });
             } else {
               return IsEmpty();

@@ -31,12 +31,10 @@ class Test_Parse_TypeScript_Declare_Function : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_is_not_allowed_in_javascript) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"declare function f();"_sv,                                      //
-        u8"^^^^^^^ Diag_Declare_Function_Not_Allowed_In_JavaScript"_diag,  //
-        javascript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"declare function f();"_sv,                                      //
+      u8"^^^^^^^ Diag_Declare_Function_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Function, basic_declare_function) {
@@ -56,30 +54,25 @@ TEST_F(Test_Parse_TypeScript_Declare_Function, basic_declare_function) {
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_cannot_have_body) {
   {
-    Test_Parser p(u8"declare function f() { }"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare function f() { }"_sv,  //
+        u8"                     ^ Diag_Declare_Function_Cannot_Have_Body.body_start\n"_diag
+        u8"^^^^^^^ .declare_keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_Declare_Function_Cannot_Have_Body,  //
-                        body_start, u8"declare function f() "_sv.size(),
-                        u8"{"_sv,  //
-                        declare_keyword, u8""_sv.size(), u8"declare"_sv),
-                }));
   }
 
   {
-    Test_Parser p(u8"declare function f() { } foo"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    // should not receive a Diag_Missing_Semicolon_After_Statement
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare function f() { } foo"_sv,              //
+        u8"Diag_Declare_Function_Cannot_Have_Body"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
@@ -88,10 +81,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
                               "visit_variable_use",               // foo
                               "visit_end_of_module",              //
                           }));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Declare_Function_Cannot_Have_Body),
-                          }))
-        << "should not receive a Diag_Missing_Semicolon_After_Statement";
   }
 }
 
@@ -111,58 +100,46 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
 
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_cannot_be_async_or_generator) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"declare async function f();"_sv,                            //
-        u8"        ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_statement(
+      u8"declare async function f();"_sv,                            //
+      u8"        ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
+      typescript_options);
+
+  test_parse_and_visit_statement(
+      u8"declare function* f();"_sv,                                         //
+      u8"                ^ Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
+      typescript_options);
+
+  test_parse_and_visit_statement(
+      u8"declare async function* f();"_sv,                 //
+      u8"Diag_Declare_Function_Cannot_Be_Async"_diag,      //
+      u8"Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
+      typescript_options);
 
   {
     Spy_Visitor p = test_parse_and_visit_statement(
-        u8"declare function* f();"_sv,  //
-        u8"                ^ Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
+        u8"declare async function f() { await(myPromise); }"_sv,  //
+        u8"Diag_Declare_Function_Cannot_Be_Async"_diag,           //
+        u8"Diag_Declare_Function_Cannot_Have_Body"_diag,          //
+
         typescript_options);
-  }
-
-  {
-    Test_Parser p(u8"declare async function* f();"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE(Diag_Declare_Function_Cannot_Be_Async),
-                    DIAG_TYPE(Diag_Declare_Function_Cannot_Be_Generator),
-                }));
-  }
-
-  {
-    Test_Parser p(u8"declare async function f() { await(myPromise); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"_sv}))
         << "'await' should be interpreted as an operator, not a function, "
            "because the function's body should be parsed as if it was in an "
            "async function";
-    EXPECT_THAT(p.errors, UnorderedElementsAreArray({
-                              DIAG_TYPE(Diag_Declare_Function_Cannot_Be_Async),
-                              DIAG_TYPE(Diag_Declare_Function_Cannot_Have_Body),
-                          }));
   }
 
   {
-    Test_Parser p(u8"declare function* f() { yield(myValue); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare function* f() { yield(myValue); }"_sv,    //
+        u8"Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
+        u8"Diag_Declare_Function_Cannot_Have_Body"_diag,     //
+
+        typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"_sv}))
         << "'yield' should be interpreted as an operator, not a function, "
            "because the function's body should be parsed as if it was in a "
            "generator function";
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE(Diag_Declare_Function_Cannot_Be_Generator),
-                    DIAG_TYPE(Diag_Declare_Function_Cannot_Have_Body),
-                }));
   }
 }
 

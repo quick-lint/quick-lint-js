@@ -35,11 +35,11 @@
 #endif
 
 namespace quick_lint_js {
-bool POSIX_File_IO_Error::is_file_not_found_error() const noexcept {
+bool POSIX_File_IO_Error::is_file_not_found_error() const {
   return this->error == ENOENT;
 }
 
-bool POSIX_File_IO_Error::is_not_a_directory_error() const noexcept {
+bool POSIX_File_IO_Error::is_not_a_directory_error() const {
   return this->error == ENOTDIR;
 }
 
@@ -47,29 +47,25 @@ std::string POSIX_File_IO_Error::to_string() const {
   return std::strerror(this->error);
 }
 
-bool operator==(POSIX_File_IO_Error lhs, POSIX_File_IO_Error rhs) noexcept {
+bool operator==(POSIX_File_IO_Error lhs, POSIX_File_IO_Error rhs) {
   return lhs.error == rhs.error;
 }
 
-bool operator!=(POSIX_File_IO_Error lhs, POSIX_File_IO_Error rhs) noexcept {
+bool operator!=(POSIX_File_IO_Error lhs, POSIX_File_IO_Error rhs) {
   return !(lhs == rhs);
 }
 
-POSIX_FD_File_Ref::POSIX_FD_File_Ref() noexcept
-    : POSIX_FD_File_Ref(this->invalid_fd) {}
+POSIX_FD_File_Ref::POSIX_FD_File_Ref() : POSIX_FD_File_Ref(this->invalid_fd) {}
 
-POSIX_FD_File_Ref::POSIX_FD_File_Ref(int fd) noexcept : fd_(fd) {
+POSIX_FD_File_Ref::POSIX_FD_File_Ref(int fd) : fd_(fd) {
   QLJS_ASSERT(this->fd_ >= 0 || this->fd_ == this->invalid_fd);
 }
 
-bool POSIX_FD_File_Ref::valid() const noexcept {
-  return this->fd_ != this->invalid_fd;
-}
+bool POSIX_FD_File_Ref::valid() const { return this->fd_ != this->invalid_fd; }
 
-int POSIX_FD_File_Ref::get() const noexcept { return this->fd_; }
+int POSIX_FD_File_Ref::get() const { return this->fd_; }
 
-File_Read_Result POSIX_FD_File_Ref::read(void *buffer,
-                                         int buffer_size) noexcept {
+File_Read_Result POSIX_FD_File_Ref::read(void *buffer, int buffer_size) {
   QLJS_ASSERT(this->valid());
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
@@ -95,7 +91,7 @@ File_Read_Result POSIX_FD_File_Ref::read(void *buffer,
 }
 
 Result<std::size_t, POSIX_File_IO_Error> POSIX_FD_File_Ref::write(
-    const void *buffer, std::size_t buffer_size) noexcept {
+    const void *buffer, std::size_t buffer_size) {
   QLJS_ASSERT(this->valid());
   ::ssize_t written_size = ::write(this->fd_, buffer, buffer_size);
   if (written_size == -1) {
@@ -105,7 +101,7 @@ Result<std::size_t, POSIX_File_IO_Error> POSIX_FD_File_Ref::write(
 }
 
 Result<void, POSIX_File_IO_Error> POSIX_FD_File_Ref::write_full(
-    const void *buffer, std::size_t buffer_size) noexcept {
+    const void *buffer, std::size_t buffer_size) {
   QLJS_ASSERT(this->valid());
   auto write_result = this->write(buffer, buffer_size);
   if (!write_result.ok()) {
@@ -181,22 +177,22 @@ std::string POSIX_FD_File_Ref::get_last_error_message() {
   return std::strerror(errno);
 }
 
-POSIX_FD_File_Ref POSIX_FD_File_Ref::get_stdout() noexcept {
+POSIX_FD_File_Ref POSIX_FD_File_Ref::get_stdout() {
   return POSIX_FD_File_Ref(STDOUT_FILENO);
 }
 
-POSIX_FD_File_Ref POSIX_FD_File_Ref::get_stderr() noexcept {
+POSIX_FD_File_Ref POSIX_FD_File_Ref::get_stderr() {
   return POSIX_FD_File_Ref(STDERR_FILENO);
 }
 
-POSIX_FD_File::POSIX_FD_File() noexcept = default;
+POSIX_FD_File::POSIX_FD_File() = default;
 
-POSIX_FD_File::POSIX_FD_File(int fd) noexcept : POSIX_FD_File_Ref(fd) {}
+POSIX_FD_File::POSIX_FD_File(int fd) : POSIX_FD_File_Ref(fd) {}
 
-POSIX_FD_File::POSIX_FD_File(POSIX_FD_File &&other) noexcept
+POSIX_FD_File::POSIX_FD_File(POSIX_FD_File &&other)
     : POSIX_FD_File_Ref(std::exchange(other.fd_, this->invalid_fd)) {}
 
-POSIX_FD_File &POSIX_FD_File::operator=(POSIX_FD_File &&other) noexcept {
+POSIX_FD_File &POSIX_FD_File::operator=(POSIX_FD_File &&other) {
   if (this != &other) {
     std::swap(this->fd_, other.fd_);
     if (other.valid()) {
@@ -222,7 +218,7 @@ void POSIX_FD_File::close() {
   this->fd_ = invalid_fd;
 }
 
-POSIX_FD_File_Ref POSIX_FD_File::ref() const noexcept { return *this; }
+POSIX_FD_File_Ref POSIX_FD_File::ref() const { return *this; }
 }
 
 #endif

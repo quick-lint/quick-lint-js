@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include "quick-lint-js/fe/source-code-span.h"
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -15,6 +14,7 @@
 #include <quick-lint-js/fe/jsx.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/parse.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
@@ -108,12 +108,11 @@ Parser::Binary_Expression_Builder::Binary_Expression_Builder(
   this->children_.emplace_back(first_child);
 }
 
-Expression* Parser::Binary_Expression_Builder::last_expression() const
-    noexcept {
+Expression* Parser::Binary_Expression_Builder::last_expression() const {
   return this->children_.back();
 }
 
-bool Parser::Binary_Expression_Builder::has_multiple_children() const noexcept {
+bool Parser::Binary_Expression_Builder::has_multiple_children() const {
   return this->children_.size() > 1;
 }
 
@@ -136,14 +135,13 @@ void Parser::Binary_Expression_Builder::reset_after_build(
 }
 
 Expression_Arena::Array_Ptr<Expression*>
-Parser::Binary_Expression_Builder::move_expressions(
-    Expression_Arena& arena) noexcept {
+Parser::Binary_Expression_Builder::move_expressions(Expression_Arena& arena) {
   return arena.make_array(std::move(this->children_));
 }
 
 Expression_Arena::Array_Ptr<Source_Code_Span>
 Parser::Binary_Expression_Builder::move_operator_spans(
-    Expression_Arena& arena) noexcept {
+    Expression_Arena& arena) {
   return arena.make_array(std::move(this->operator_spans_));
 }
 
@@ -452,6 +450,33 @@ void Parser::error_on_invalid_as_const(Expression* ast,
   }
 }
 
+void Parser::warn_on_xor_operator_as_exponentiation(
+    Expression::Binary_Operator* ast) {
+  auto is_xor_operator = [](String8_View s) -> bool { return s == u8"^"_sv; };
+
+  auto is_warnable_literal = [](String8_View s) -> bool {
+    return s == u8"2"_sv || s == u8"10"_sv;
+  };
+
+  Source_Code_Span op_span = ast->operator_spans_[0];
+  if (is_xor_operator(op_span.string_view())) {
+    bool report_diag = false;
+    switch (ast->child(0)->kind()) {
+    case Expression_Kind::Literal:
+      report_diag = is_warnable_literal(ast->child(0)->span().string_view()) &&
+                    (ast->child(1)->kind() == Expression_Kind::Literal);
+      break;
+
+    default:
+      break;
+    }
+    if (report_diag) {
+      this->diag_reporter_->report(
+          Diag_Xor_Used_As_Exponentiation{.xor_operator = op_span});
+    }
+  }
+}
+
 void Parser::error_on_pointless_compare_against_literal(
     Expression::Binary_Operator* ast) {
   auto is_comparison_operator = [](String8_View s) -> bool {
@@ -654,8 +679,8 @@ Parser::try_parse_function_with_leading_star() {
   return attributes;
 }
 
-bool Parser::is_let_token_a_variable_reference(
-    const Token& following_token, bool allow_declarations) noexcept {
+bool Parser::is_let_token_a_variable_reference(const Token& following_token,
+                                               bool allow_declarations) {
   switch (following_token.type) {
   QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL:
   QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
@@ -860,7 +885,7 @@ Parser::Function_Guard::Function_Guard(Parser* p, bool was_in_top_level,
                                        bool was_in_async_function,
                                        bool was_in_generator_function,
                                        bool was_in_loop_statement,
-                                       bool was_in_switch_statement) noexcept
+                                       bool was_in_switch_statement)
     : parser_(p),
       was_in_top_level_(was_in_top_level),
       was_in_async_function_(was_in_async_function),
@@ -868,7 +893,7 @@ Parser::Function_Guard::Function_Guard(Parser* p, bool was_in_top_level,
       was_in_loop_statement_(was_in_loop_statement),
       was_in_switch_statement_(was_in_switch_statement) {}
 
-Parser::Function_Guard::~Function_Guard() noexcept {
+Parser::Function_Guard::~Function_Guard() {
   this->parser_->in_top_level_ = this->was_in_top_level_;
   this->parser_->in_async_function_ = this->was_in_async_function_;
   this->parser_->in_generator_function_ = this->was_in_generator_function_;
@@ -876,7 +901,7 @@ Parser::Function_Guard::~Function_Guard() noexcept {
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
 }
 
-Parser::Depth_Guard::Depth_Guard(Parser* p) noexcept
+Parser::Depth_Guard::Depth_Guard(Parser* p)
     : parser_(p), old_depth_(p->depth_) {
   if (p->depth_ + 1 > p->stack_limit) {
     p->crash_on_depth_limit_exceeded();
@@ -884,7 +909,7 @@ Parser::Depth_Guard::Depth_Guard(Parser* p) noexcept
   p->depth_++;
 }
 
-Parser::Depth_Guard::~Depth_Guard() noexcept {
+Parser::Depth_Guard::~Depth_Guard() {
   QLJS_ASSERT(this->parser_->depth_ == this->old_depth_ + 1);
   this->parser_->depth_ = this->old_depth_;
 }
@@ -937,7 +962,7 @@ Parser::TypeScript_Namespace_Or_Module_Guard::
 }
 
 bool Parser::Parse_Expression_Cache_Key::operator==(
-    const Parser::Parse_Expression_Cache_Key& rhs) const noexcept {
+    const Parser::Parse_Expression_Cache_Key& rhs) const {
   return this->begin == rhs.begin && this->in_top_level == rhs.in_top_level &&
          this->in_async_function == rhs.in_async_function &&
          this->in_generator_function == rhs.in_generator_function &&
@@ -947,12 +972,12 @@ bool Parser::Parse_Expression_Cache_Key::operator==(
 }
 
 bool Parser::Parse_Expression_Cache_Key::operator!=(
-    const Parser::Parse_Expression_Cache_Key& rhs) const noexcept {
+    const Parser::Parse_Expression_Cache_Key& rhs) const {
   return !(*this == rhs);
 }
 
 std::size_t Parser::Parse_Expression_Cache_Key::Hash::operator()(
-    const Parse_Expression_Cache_Key& x) const noexcept {
+    const Parse_Expression_Cache_Key& x) const {
   return std::hash<const Char8*>()(x.begin);
 }
 

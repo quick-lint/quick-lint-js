@@ -33,12 +33,10 @@ TEST_F(Test_Parse_JSX, jsx_is_not_supported_in_vanilla_javascript) {
       u8"<MyComponent attr={value}><Inner>hello</Inner></MyComponent>"_sv,
       options, capture_diags);
   p.parse_and_visit_module();
-  EXPECT_THAT(
-      p.errors,
-      ElementsAreArray({
-          DIAG_TYPE_OFFSETS(p.code, Diag_JSX_Not_Allowed_In_JavaScript,  //
-                            jsx_start, 0, u8"<"_sv),
-      }));
+  assert_diagnostics(p.code, p.errors,
+                     {
+                         u8"^ Diag_JSX_Not_Allowed_In_JavaScript"_diag,
+                     });
   EXPECT_THAT(p.variable_uses,
               ElementsAreArray({u8"MyComponent", u8"value", u8"Inner"}));
 }
@@ -53,12 +51,10 @@ TEST_F(Test_Parse_JSX, jsx_is_not_supported_in_vanilla_typescript) {
         u8"<MyComponent attr={value}><Inner>hello</Inner></MyComponent>"_sv,
         options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_JSX_Not_Allowed_In_TypeScript,  //
-                              jsx_start, 0, u8"<"_sv),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"^ Diag_JSX_Not_Allowed_In_TypeScript"_diag,
+                       });
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"MyComponent", u8"value", u8"Inner"}));
   }
@@ -67,12 +63,10 @@ TEST_F(Test_Parse_JSX, jsx_is_not_supported_in_vanilla_typescript) {
     Test_Parser p(u8"<><Inner>hello</Inner><Inner /></>"_sv, options,
                   capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_JSX_Not_Allowed_In_TypeScript,  //
-                              jsx_start, 0, u8"<"_sv),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"^ Diag_JSX_Not_Allowed_In_TypeScript"_diag,
+                       });
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Inner", u8"Inner"}));
   }
 
@@ -81,157 +75,129 @@ TEST_F(Test_Parse_JSX, jsx_is_not_supported_in_vanilla_typescript) {
 }
 
 TEST_F(Test_Parse_JSX, empty_intrinsic_element) {
-  Test_Parser p(u8"c = <div></div>;"_sv, jsx_options, capture_diags);
-  p.parse_and_visit_module();
+  Spy_Visitor p = test_parse_and_visit_module(u8"c = <div></div>;"_sv, no_diags,
+                                              jsx_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_assignment",  // c
                             "visit_end_of_module",
                         }));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_JSX, empty_user_element) {
-  Test_Parser p(u8"c = <MyComponent></MyComponent>;"_sv, jsx_options,
-                capture_diags);
-  p.parse_and_visit_module();
+  Spy_Visitor p = test_parse_and_visit_module(
+      u8"c = <MyComponent></MyComponent>;"_sv, no_diags, jsx_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_use",         // MyComponent
                             "visit_variable_assignment",  // c
                             "visit_end_of_module",
                         }));
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyComponent"}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_JSX, member_component) {
-  Test_Parser p(
+  Spy_Visitor p = test_parse_and_visit_module(
       u8"c = <module.submodule.MyComponent></module.submodule.MyComponent>;"_sv,
-      jsx_options, capture_diags);
-  p.parse_and_visit_module();
+      no_diags, jsx_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_use",         // module
                             "visit_variable_assignment",  // c
                             "visit_end_of_module",
                         }));
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"module"}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_JSX, element_child_element) {
   {
-    Test_Parser p(u8"c = <outer><INNER></INNER></outer>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <outer><INNER></INNER></outer>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <OUTER><INNER></INNER></OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <OUTER><INNER></INNER></OUTER>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OUTER", u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <NS:OUTER><INNER></INNER></NS:OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <NS:OUTER><INNER></INNER></NS:OUTER>;"_sv, no_diags,
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8"c = <outer.Component><INNER></INNER></outer.Component>;"_sv,
-        jsx_options, capture_diags);
-    p.parse_and_visit_module();
+        no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"outer", u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <><INNER></INNER></>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <><INNER></INNER></>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_JSX, element_child_expression) {
   {
-    Test_Parser p(u8"c = <outer>{INNER}</outer>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <outer>{INNER}</outer>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <OUTER>{INNER}</OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <OUTER>{INNER}</OUTER>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OUTER", u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <NS:OUTER>{INNER}</NS:OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <NS:OUTER>{INNER}</NS:OUTER>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <outer.Component>{INNER}</outer.Component>;"_sv,
-                  jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <outer.Component>{INNER}</outer.Component>;"_sv, no_diags,
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"outer", u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <>{INNER}</>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"c = <>{INNER}</>;"_sv,
+                                                no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"INNER"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_JSX, element_attribute_expression) {
   {
-    Test_Parser p(u8"c = <outer attr={attrValue}></outer>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <outer attr={attrValue}></outer>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"attrValue"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <OUTER attr={attrValue}></OUTER>;"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <OUTER attr={attrValue}></OUTER>;"_sv, no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OUTER", u8"attrValue"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"c = <NS:OUTER attr={attrValue}></NS:OUTER>;"_sv,
-                  jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <NS:OUTER attr={attrValue}></NS:OUTER>;"_sv, no_diags,
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"attrValue"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8"c = <outer.Component attr={attrValue}></outer.Component>;"_sv,
-        jsx_options, capture_diags);
-    p.parse_and_visit_module();
+        no_diags, jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"outer", u8"attrValue"}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -246,18 +212,11 @@ TEST_F(Test_Parse_JSX, attribute_without_name_must_be_spread) {
 }
 
 TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
-  {
-    Test_Parser p(u8"c = <div></span>;"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(p.code, Diag_Mismatched_JSX_Tags,  //
-                                        opening_tag_name, u8"c = <"_sv.size(),
-                                        u8"div"_sv,  //
-                                        closing_tag_name,
-                                        u8"c = <div></"_sv.size(), u8"span"_sv),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></span>;"_sv,  //
+      u8"     ^^^ Diag_Mismatched_JSX_Tags.opening_tag_name\n"_diag
+      u8"           ^^^^ .closing_tag_name"_diag,  //
+      jsx_options);
 
   // opening_tag_name span for normal tag:
   test_parse_and_visit_module(
@@ -375,13 +334,8 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_must_match) {
            u8"<A></A:A>"_sv,
            u8"<A:A></A>"_sv,
        }) {
-    Test_Parser p(concat(u8"c = "_sv, jsx, u8";"_sv), jsx_options,
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Mismatched_JSX_Tags),
-                          }));
+    test_parse_and_visit_module(concat(u8"c = "_sv, jsx, u8";"_sv),
+                                u8"Diag_Mismatched_JSX_Tags"_diag, jsx_options);
   }
 }
 
@@ -438,51 +392,28 @@ TEST_F(Test_Parse_JSX, begin_and_end_tags_match_after_normalization) {
 }
 
 TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
-  {
-    Test_Parser p(u8R"(c = <div></div> <div></div>;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code, Diag_Adjacent_JSX_Without_Parent,  //
-                begin, u8"c = "_sv.size(), u8""_sv,        //
-                begin_of_second_element, u8"c = <div></div> "_sv.size(),
-                u8""_sv,  //
-                end, u8"c = <div></div> <div></div>"_sv.size(), u8""_sv),
-        }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></div> <div></div>;"_sv,  //
+      u8"    ` Diag_Adjacent_JSX_Without_Parent.begin\n"_diag
+      u8"                ` .begin_of_second_element\n"_diag
+      u8"                           ` .end"_diag,  //
+      jsx_options);
 
-  {
-    Test_Parser p(u8R"(c = <div></div> <div></div> <div></div>;)"_sv,
-                  jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_OFFSETS(
-                p.code, Diag_Adjacent_JSX_Without_Parent,  //
-                begin, u8"c = "_sv.size(), u8""_sv,        //
-                begin_of_second_element, u8"c = <div></div> "_sv.size(),
-                u8""_sv,  //
-                end, u8"c = <div></div> <div></div> <div></div>"_sv.size(),
-                u8""_sv),
-        }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div></div> <div></div> <div></div>;"_sv,  //
+      u8"    ` Diag_Adjacent_JSX_Without_Parent.begin\n"_diag
+      u8"                ` .begin_of_second_element\n"_diag
+      u8"                                       ` .end"_diag,  //
+      jsx_options);
 
   // Second element should be visited like normal.
   {
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8R"(c = <FirstComponent></FirstComponent> <SecondComponent>{child}</SecondComponent>;)"_sv,
-        jsx_options, capture_diags);
-    p.parse_and_visit_module();
+        u8"Diag_Adjacent_JSX_Without_Parent"_diag, jsx_options);
     EXPECT_THAT(
         p.variable_uses,
         ElementsAreArray({u8"FirstComponent", u8"SecondComponent", u8"child"}));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Adjacent_JSX_Without_Parent),
-                          }));
   }
 
   // Because the second element is on its own line, ASI should kick in, and the
@@ -490,15 +421,13 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
   // TypeScript all agree that ASI does not kick in. Therefore, we report a
   // syntax error, despite what the specification says.
   {
-    Test_Parser p(
-        u8"c = <FirstComponent></FirstComponent>\n<SecondComponent></SecondComponent>;"_sv,
-        jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <FirstComponent></FirstComponent>\n<SecondComponent></SecondComponent>;"_sv,  //
+        u8"Diag_Adjacent_JSX_Without_Parent"_diag,  //
+
+        jsx_options);
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"FirstComponent", u8"SecondComponent"}));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Adjacent_JSX_Without_Parent),
-                          }));
   }
 
   // The following code looks like adjacent JSX elements, but it's actually a
@@ -508,23 +437,20 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
   // https://github.com/facebook/jsx/issues/120
   {
     //                  binary operators  v v           v (according to spec)
-    Test_Parser p(u8"c = <div></div> <i>/{child}</i>\ndone"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <div></div> <i>/{child}</i>\ndone"_sv,  //
+        u8"Diag_Adjacent_JSX_Without_Parent"_diag,     //
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"child", u8"done"}));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Adjacent_JSX_Without_Parent),
-                          }));
   }
 
   {
-    Test_Parser p(u8"c = <First></First><Second attr='value'></Second>;"_sv,
-                  jsx_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"c = <First></First><Second attr='value'></Second>;"_sv,  //
+        u8"Diag_Adjacent_JSX_Without_Parent"_diag,                  //
+
+        jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"First", u8"Second"}));
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Adjacent_JSX_Without_Parent),
-                          }));
   }
 }
 
@@ -545,129 +471,58 @@ TEST_F(Test_Parse_JSX, correctly_capitalized_attribute) {
 }
 
 TEST_F(Test_Parse_JSX, event_attributes_should_be_camel_case) {
-  {
-    Test_Parser p(u8R"(c = <div onclick={handler} />;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_FIELDS(
-                        Diag_JSX_Event_Attribute_Should_Be_Camel_Case,  //
-                        attribute_name,
-                        Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
-                                        u8"onclick"_sv),  //
-                        expected_attribute_name, u8"onClick"_sv),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onclick={handler} />;"_sv,  //
+      u8"         ^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
+      u8"{.expected_attribute_name=onClick}"_diag,  //
+      jsx_options);
 
   // TODO(strager): Should we also report that the handler's value is missing?
-  {
-    Test_Parser p(u8R"(c = <div onclick />;)"_sv, jsx_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_FIELDS(
-                        Diag_JSX_Event_Attribute_Should_Be_Camel_Case,  //
-                        attribute_name,
-                        Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
-                                        u8"onclick"_sv),  //
-                        expected_attribute_name, u8"onClick"_sv),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onclick />;"_sv,  //
+      u8"         ^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
+      u8"{.expected_attribute_name=onClick}"_diag,  //
+      jsx_options);
 
-  {
-    Test_Parser p(u8R"(c = <div onmouseenter={handler} />;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_FIELDS(
-                        Diag_JSX_Event_Attribute_Should_Be_Camel_Case,  //
-                        attribute_name,
-                        Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
-                                        u8"onmouseenter"_sv),  //
-                        expected_attribute_name, u8"onMouseEnter"_sv),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onmouseenter={handler} />;"_sv,  //
+      u8"         ^^^^^^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
+      u8"{.expected_attribute_name=onMouseEnter}"_diag,  //
+      jsx_options);
 
-  {
-    Test_Parser p(u8R"(c = <div oncustomevent={handler} />;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_FIELDS(
-                        Diag_JSX_Event_Attribute_Should_Be_Camel_Case,  //
-                        attribute_name,
-                        Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
-                                        u8"oncustomevent"_sv),  //
-                        expected_attribute_name, u8"onCustomevent"_sv),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div oncustomevent={handler} />;"_sv,  //
+      u8"         ^^^^^^^^^^^^^ Diag_JSX_Event_Attribute_Should_Be_Camel_Case.attribute_name"_diag
+      u8"{.expected_attribute_name=onCustomevent}"_diag,  //
+      jsx_options);
 }
 
 TEST_F(Test_Parse_JSX, miscapitalized_attribute) {
-  {
-    Test_Parser p(u8R"(c = <td colspan="2" />;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(Diag_JSX_Attribute_Has_Wrong_Capitalization,  //
-                               attribute_name,
-                               Offsets_Matcher(p.code, u8"c = <td "_sv.size(),
-                                               u8"colspan"_sv),  //
-                               expected_attribute_name, u8"colSpan"_sv),
-        }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <td colspan=\"2\" />;"_sv,  //
+      u8"        ^^^^^^^ Diag_JSX_Attribute_Has_Wrong_Capitalization.attribute_name"_diag
+      u8"{.expected_attribute_name=colSpan}"_diag,  //
+      jsx_options);
 
-  {
-    Test_Parser p(u8R"(c = <div onMouseenter={handler} />;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(Diag_JSX_Attribute_Has_Wrong_Capitalization,  //
-                               attribute_name,
-                               Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
-                                               u8"onmouseenter"_sv),  //
-                               expected_attribute_name, u8"onMouseEnter"_sv),
-        }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onMouseenter={handler} />;"_sv,  //
+      u8"         ^^^^^^^^^^^^ Diag_JSX_Attribute_Has_Wrong_Capitalization.attribute_name"_diag
+      u8"{.expected_attribute_name=onMouseEnter}"_diag,  //
+      jsx_options);
 
-  {
-    Test_Parser p(u8R"(c = <div onmouseENTER={handler} />;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(Diag_JSX_Attribute_Has_Wrong_Capitalization,  //
-                               attribute_name,
-                               Offsets_Matcher(p.code, u8"c = <div "_sv.size(),
-                                               u8"onmouseENTER"_sv),  //
-                               expected_attribute_name, u8"onMouseEnter"_sv),
-        }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <div onmouseENTER={handler} />;"_sv,  //
+      u8"         ^^^^^^^^^^^^ Diag_JSX_Attribute_Has_Wrong_Capitalization.attribute_name"_diag
+      u8"{.expected_attribute_name=onMouseEnter}"_diag,  //
+      jsx_options);
 }
 
 TEST_F(Test_Parse_JSX, commonly_misspelled_attribute) {
-  {
-    Test_Parser p(u8R"(c = <span class="item"></span>;)"_sv, jsx_options,
-                  capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(Diag_JSX_Attribute_Renamed_By_React,  //
-                               attribute_name,
-                               Offsets_Matcher(p.code, u8"c = <span "_sv.size(),
-                                               u8"class"_sv),  //
-                               react_attribute_name, u8"className"_sv),
-        }));
-  }
+  test_parse_and_visit_module(
+      u8"c = <span class=\"item\"></span>;"_sv,  //
+      u8"          ^^^^^ Diag_JSX_Attribute_Renamed_By_React.attribute_name"_diag
+      u8"{.react_attribute_name=className}"_diag,  //
+      jsx_options);
 }
 
 TEST_F(Test_Parse_JSX, attribute_checking_ignores_namespaced_attributes) {
@@ -741,21 +596,17 @@ TEST_F(Test_Parse_JSX, attribute_checking_ignores_user_components) {
 }
 
 TEST_F(Test_Parse_JSX, prop_needs_an_expression) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <MyComponent custom={}></MyComponent>;"_sv,  //
-        u8"                        ^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
+  test_parse_and_visit_module(
+      u8"c = <MyComponent custom={}></MyComponent>;"_sv,  //
+      u8"                        ^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
 
-        jsx_options);
-  }
+      jsx_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"c = <MyComponent custom={ }></MyComponent>;"_sv,  //
-        u8"                        ^^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
+  test_parse_and_visit_module(
+      u8"c = <MyComponent custom={ }></MyComponent>;"_sv,  //
+      u8"                        ^^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
 
-        jsx_options);
-  }
+      jsx_options);
 }
 }
 }

@@ -144,7 +144,7 @@ Result<Padded_String, Platform_File_IO_Error> read_file_with_expected_size(
 }
 }
 
-bool Read_File_IO_Error::is_file_not_found_error() const noexcept {
+bool Read_File_IO_Error::is_file_not_found_error() const {
   return this->io_error.is_file_not_found_error();
 }
 
@@ -168,13 +168,11 @@ std::string Write_File_IO_Error::to_string() const {
   std::exit(1);
 }
 
-bool operator==(const Read_File_IO_Error &lhs,
-                const Read_File_IO_Error &rhs) noexcept {
+bool operator==(const Read_File_IO_Error &lhs, const Read_File_IO_Error &rhs) {
   return lhs.path == rhs.path && lhs.io_error == rhs.io_error;
 }
 
-bool operator!=(const Read_File_IO_Error &lhs,
-                const Read_File_IO_Error &rhs) noexcept {
+bool operator!=(const Read_File_IO_Error &lhs, const Read_File_IO_Error &rhs) {
   return !(lhs == rhs);
 }
 
@@ -200,7 +198,7 @@ Result<Padded_String, Platform_File_IO_Error> read_file(
 
 #if defined(QLJS_FILE_POSIX)
 namespace {
-int reasonable_buffer_size(const struct stat &s) noexcept {
+int reasonable_buffer_size(const struct stat &s) {
   using Size_Type = decltype(s.st_blksize);
   Size_Type minimum_buffer_size = 512;
   Size_Type megabyte = 1 << 20;
@@ -374,7 +372,7 @@ void write_file_or_exit(const char *path, String8_View content) {
 }
 
 #if QLJS_HAVE_WINDOWS_H
-bool file_ids_equal(const ::FILE_ID_INFO &a, const ::FILE_ID_INFO &b) noexcept {
+bool file_ids_equal(const ::FILE_ID_INFO &a, const ::FILE_ID_INFO &b) {
   return b.VolumeSerialNumber == a.VolumeSerialNumber &&
          std::memcmp(&b.FileId, &a.FileId, sizeof(b.FileId)) == 0;
 }

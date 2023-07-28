@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/diag-collector.h>
@@ -21,10 +22,10 @@ namespace quick_lint_js {
 //
 //   u8"^^^ Diag_Unexpected_Token"_diag
 //
-// A specification has four parts:
-// * Alignment: Zero or more space characters which position the diagnostic
-//   span.
-// * Diagnostic span: One of the following:
+// A specification has several parts:
+//
+// * (optional) Alignment and diagnostic span: Zero or more space characters
+//   which position the diagnostic span, followed by one of the following:
 //   * One or more '^' characters. Each '^' represents a code character that the
 //     diagnostic covers.
 //   * One '`' character. The '`' represents a diagnostic in between two code
@@ -77,7 +78,7 @@ namespace quick_lint_js {
 // clang-format on
 struct Diagnostic_Assertion {
   struct Member {
-    const char* name = nullptr;
+    String8_View name;
     std::uint8_t offset;
     Diagnostic_Arg_Type type = Diagnostic_Arg_Type::invalid;
 
@@ -88,14 +89,18 @@ struct Diagnostic_Assertion {
     // If type == Diagnostic_Arg_Type::char8:
     Char8 character;
 
+    // If type == Diagnostic_Arg_Type::enum_kind:
+    Enum_Kind enum_kind;
+
     // If type == Diagnostic_Arg_Type::string8_view:
     String8_View string;
+
+    // If type == Diagnostic_Arg_Type::statement_kind:
+    Statement_Kind statement_kind;
   };
 
   Diag_Type type = Diag_Type();
-  std::array<Member, 2> members;
-
-  int member_count() const;
+  Fixed_Vector<Member, 3> members;
 
   // If the specification is malformed, return a list of messages to report to
   // the user.

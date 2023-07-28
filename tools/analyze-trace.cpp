@@ -172,7 +172,7 @@ class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
  private:
-  bool should_analyze() const noexcept {
+  bool should_analyze() const {
     return this->event_index <= this->end_event_index_;
   }
 
@@ -452,7 +452,7 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   // Call this function after calling base::*.
-  bool should_dump() const noexcept {
+  bool should_dump() const {
     return this->begin_event_index_ <= this->event_index &&
            this->event_index <= this->end_event_index_;
   }

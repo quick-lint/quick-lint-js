@@ -251,7 +251,7 @@ Configuration_Loader::get_parent_directory(const char* input_path) {
 }
 
 Loaded_Config_File* Configuration_Loader::get_loaded_config(
-    const Canonical_Path& path) noexcept {
+    const Canonical_Path& path) {
   auto existing_config_it = this->loaded_config_files_.find(path);
   return existing_config_it == this->loaded_config_files_.end()
              ? nullptr

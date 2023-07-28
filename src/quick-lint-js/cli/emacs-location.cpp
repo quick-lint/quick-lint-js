@@ -12,16 +12,11 @@
 #include <quick-lint-js/util/utf-8.h>
 
 namespace quick_lint_js {
-Emacs_Source_Position Emacs_Source_Range::begin() const noexcept {
-  return this->begin_;
-}
+Emacs_Source_Position Emacs_Source_Range::begin() const { return this->begin_; }
 
-Emacs_Source_Position Emacs_Source_Range::end() const noexcept {
-  return this->end_;
-}
+Emacs_Source_Position Emacs_Source_Range::end() const { return this->end_; }
 
-Emacs_Locator::Emacs_Locator(Padded_String_View input) noexcept
-    : input_(input) {}
+Emacs_Locator::Emacs_Locator(Padded_String_View input) : input_(input) {}
 
 Emacs_Source_Range Emacs_Locator::range(Source_Code_Span span) const {
   Emacs_Source_Position begin = this->position(span.begin());
@@ -29,22 +24,21 @@ Emacs_Source_Range Emacs_Locator::range(Source_Code_Span span) const {
   return Emacs_Source_Range(begin, end);
 }
 
-Emacs_Source_Position Emacs_Locator::position(const Char8 *source) const
-    noexcept {
+Emacs_Source_Position Emacs_Locator::position(const Char8 *source) const {
   Emacs_Source_Position::Offset_Type offset = this->offset(source);
   // Emacs point starts at 1
   return this->position(offset + 1);
 }
 
 Emacs_Source_Position::Offset_Type Emacs_Locator::offset(
-    const Char8 *source) const noexcept {
+    const Char8 *source) const {
   std::size_t offset = narrow_cast<std::size_t>(source - this->input_.data());
   return narrow_cast<Emacs_Source_Position::Offset_Type>(
       count_utf_8_characters(this->input_, offset));
 }
 
 Emacs_Source_Position Emacs_Locator::position(
-    Emacs_Source_Position::Offset_Type offset) const noexcept {
+    Emacs_Source_Position::Offset_Type offset) const {
   return Emacs_Source_Position{offset};
 }
 }

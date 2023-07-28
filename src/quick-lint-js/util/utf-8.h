@@ -32,13 +32,11 @@ struct Decode_UTF8_Result {
   bool ok;
 };
 
-Decode_UTF8_Result decode_utf_8(Padded_String_View) noexcept;
-std::size_t count_utf_8_characters(Padded_String_View, std::size_t) noexcept;
+Decode_UTF8_Result decode_utf_8(Padded_String_View);
+std::size_t count_utf_8_characters(Padded_String_View, std::size_t);
 
-const Char8* advance_lsp_characters_in_utf_8(String8_View,
-                                             int character_count) noexcept;
-std::ptrdiff_t count_lsp_characters_in_utf_8(Padded_String_View,
-                                             int offset) noexcept;
+const Char8* advance_lsp_characters_in_utf_8(String8_View, int character_count);
+std::ptrdiff_t count_lsp_characters_in_utf_8(Padded_String_View, int offset);
 }
 
 #endif

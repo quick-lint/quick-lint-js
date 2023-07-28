@@ -20,9 +20,9 @@
 #include <utility>
 
 namespace quick_lint_js {
-String8_View headlinese_enum_kind(Enum_Kind) noexcept;
-Translatable_Message headlinese_statement_kind(Statement_Kind) noexcept;
-Translatable_Message singular_statement_kind(Statement_Kind) noexcept;
+String8_View headlinese_enum_kind(Enum_Kind);
+Translatable_Message headlinese_statement_kind(Statement_Kind);
+Translatable_Message singular_statement_kind(Statement_Kind);
 
 class Diagnostic_Formatter_Base {
  public:
@@ -48,7 +48,7 @@ class Diagnostic_Formatter_Base {
  private:
   std::pair<const void*, Diagnostic_Arg_Type> get_arg(
       const Diagnostic_Message_Args& args, const void* diagnostic,
-      int arg_index) noexcept;
+      int arg_index);
 };
 
 template <class Derived>

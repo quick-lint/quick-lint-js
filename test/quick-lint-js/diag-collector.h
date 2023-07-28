@@ -24,14 +24,14 @@ struct Diag_Collector : public Diag_Reporter {
     QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
 
-    Diag_Type type() const noexcept;
-    const void *data() const noexcept;
+    Diag_Type type() const;
+    const void *data() const;
 
     template <class Diag_Type>
-    friend const Diag_Type &get(const Diag &) noexcept;
+    friend const Diag_Type &get(const Diag &);
 
     template <class Diag_Type>
-    friend bool holds_alternative(const Diag &) noexcept;
+    friend bool holds_alternative(const Diag &);
 
     friend void PrintTo(const Diag &, std::ostream *);
 
@@ -48,10 +48,10 @@ struct Diag_Collector : public Diag_Reporter {
 };
 
 template <class Diag_Type>
-const Diag_Type &get(const Diag_Collector::Diag &) noexcept;
+const Diag_Type &get(const Diag_Collector::Diag &);
 
 template <class Diag_Type>
-bool holds_alternative(const Diag_Collector::Diag &) noexcept;
+bool holds_alternative(const Diag_Collector::Diag &);
 
 void PrintTo(const Diag_Collector::Diag &, std::ostream *);
 

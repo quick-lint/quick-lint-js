@@ -82,7 +82,7 @@ class Configuration_Loader {
   explicit Configuration_Loader(Configuration_Filesystem*);
   ~Configuration_Loader();
 
-  Configuration_Filesystem* fs() noexcept { return this->fs_; }
+  Configuration_Filesystem* fs() { return this->fs_; }
 
   // Returns nullptr if there is no config file.
   Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
@@ -160,7 +160,7 @@ class Configuration_Loader {
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error>
   get_parent_directory(const char* input_path);
 
-  Loaded_Config_File* get_loaded_config(const Canonical_Path& path) noexcept;
+  Loaded_Config_File* get_loaded_config(const Canonical_Path& path);
 
   Configuration_Filesystem* fs_;
 

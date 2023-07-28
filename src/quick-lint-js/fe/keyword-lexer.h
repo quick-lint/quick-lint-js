@@ -31,8 +31,7 @@ struct Keyword_Lexer {
   // Precondition: key[minimum_key_length - 1] can be read.
   // Precondition: key[key_length - 1] can be read.
   // Precondition: key[padding_size - 1] can be read.
-  static Selection_Type select(const char* key,
-                               std::size_t key_length) noexcept {
+  static Selection_Type select(const char* key, std::size_t key_length) {
     // With our keys, the following statements are true:
     //
     // * minimum_key_length is >= 2
@@ -67,8 +66,7 @@ struct Keyword_Lexer {
   }
 
 #if QLJS_HAVE_CHAR8_T
-  static Selection_Type select(const char8_t* key,
-                               std::size_t key_length) noexcept {
+  static Selection_Type select(const char8_t* key, std::size_t key_length) {
     return select(reinterpret_cast<const char*>(key), key_length);
   }
 #endif

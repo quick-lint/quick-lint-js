@@ -95,18 +95,17 @@ void Async_Byte_Queue::add_new_chunk(Size_Type chunk_size) {
   this->writer_chunk_end_ = new_chunk->capacity_end();
 }
 
-void Async_Byte_Queue::update_current_chunk_size(
-    std::lock_guard<Mutex>&) noexcept {
+void Async_Byte_Queue::update_current_chunk_size(std::lock_guard<Mutex>&) {
   this->writer_last_chunk_->data_size = this->bytes_used_in_current_chunk();
 }
 
 Async_Byte_Queue::Size_Type Async_Byte_Queue::bytes_remaining_in_current_chunk()
-    const noexcept {
+    const {
   return narrow_cast<Size_Type>(this->writer_chunk_end_ - this->writer_cursor_);
 }
 
 Async_Byte_Queue::Size_Type Async_Byte_Queue::bytes_used_in_current_chunk()
-    const noexcept {
+    const {
   return narrow_cast<Size_Type>(this->writer_cursor_ -
                                 this->writer_last_chunk_->capacity_begin());
 }
@@ -123,12 +122,11 @@ void Async_Byte_Queue::Chunk::deallocate(Memory_Resource* memory, Chunk* c) {
   memory->deallocate(c, byte_size, alignof(Chunk));
 }
 
-std::size_t Async_Byte_Queue::Chunk::allocation_size(
-    Size_Type capacity) noexcept {
+std::size_t Async_Byte_Queue::Chunk::allocation_size(Size_Type capacity) {
   return sizeof(Chunk) + capacity;
 }
 
-std::size_t Async_Byte_Queue::Chunk::allocation_size() const noexcept {
+std::size_t Async_Byte_Queue::Chunk::allocation_size() const {
   return Chunk::allocation_size(this->capacity);
 }
 }

@@ -22,8 +22,8 @@ struct Global_Declared_Variable {
   // expressions.
   bool is_type_only;
 
-  Variable_Kind kind() const noexcept;
-  Variable_Declaration_Flags flags() const noexcept {
+  Variable_Kind kind() const;
+  Variable_Declaration_Flags flags() const {
     return Variable_Declaration_Flags::none;
   }
 };
@@ -41,17 +41,14 @@ class Global_Declared_Variable_Set {
   void reserve_more_global_variables(std::size_t extra_count,
                                      bool is_shadowable, bool is_writable);
 
-  std::optional<Global_Declared_Variable> find(Identifier name) const noexcept;
-  std::optional<Global_Declared_Variable> find(String8_View name) const
-      noexcept;
+  std::optional<Global_Declared_Variable> find(Identifier name) const;
+  std::optional<Global_Declared_Variable> find(String8_View name) const;
 
   // See variable_analyzer::declared_variable_set::find_runtime.
-  std::optional<Global_Declared_Variable> find_runtime(Identifier name) const
-      noexcept;
+  std::optional<Global_Declared_Variable> find_runtime(Identifier name) const;
 
   // See variable_analyzer::declared_variable_set::find_type.
-  std::optional<Global_Declared_Variable> find_type(Identifier name) const
-      noexcept;
+  std::optional<Global_Declared_Variable> find_type(Identifier name) const;
 
   // For testing only:
   std::vector<String8_View> get_all_variable_names() const;

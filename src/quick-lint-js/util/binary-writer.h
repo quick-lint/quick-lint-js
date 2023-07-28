@@ -12,11 +12,11 @@ namespace quick_lint_js {
 // Binary_Writer does no bounds checking.
 class Binary_Writer {
  public:
-  explicit Binary_Writer(std::uint8_t *out) noexcept : out_(out) {}
+  explicit Binary_Writer(std::uint8_t *out) : out_(out) {}
 
-  void u8(std::uint8_t data) noexcept { *this->out_++ = data; }
+  void u8(std::uint8_t data) { *this->out_++ = data; }
 
-  void u64_le(std::uint64_t data) noexcept {
+  void u64_le(std::uint64_t data) {
     this->out_[0] = static_cast<std::uint8_t>(data >> (8 * 0));
     this->out_[1] = static_cast<std::uint8_t>(data >> (8 * 1));
     this->out_[2] = static_cast<std::uint8_t>(data >> (8 * 2));
@@ -28,7 +28,7 @@ class Binary_Writer {
     this->out_ += 8;
   }
 
-  std::size_t bytes_written_since(std::uint8_t *begin) const noexcept {
+  std::size_t bytes_written_since(std::uint8_t *begin) const {
     return narrow_cast<std::size_t>(this->out_ - begin);
   }
 

@@ -196,14 +196,11 @@ TEST_F(Test_Parse_TypeScript_Var,
                               "visit_exit_block_scope",      // } catch
                           }))
         << "type should be ignored (no visit_variable_type_use)";
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript,  //
-                type_colon, u8"try { } catch (e"_sv.size(), u8":"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                ^ Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript"_diag,
+        });
   }
 }
 }

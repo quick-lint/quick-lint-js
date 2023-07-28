@@ -27,16 +27,16 @@ class Streamable_String8_View {
   friend std::ostream &operator<<(std::ostream &, Streamable_String8_View);
 
  private:
-  explicit Streamable_String8_View(String8_View) noexcept;
+  explicit Streamable_String8_View(String8_View);
 
-  friend Streamable_String8_View out_string8(String8_View) noexcept;
+  friend Streamable_String8_View out_string8(String8_View);
 
   String8_View sv_;
 };
 
-Streamable_String8_View out_string8(String8_View) noexcept;
+Streamable_String8_View out_string8(String8_View);
 #else
-inline String8_View out_string8(String8_View sv) noexcept { return sv; }
+inline String8_View out_string8(String8_View sv) { return sv; }
 #endif
 
 String8 to_string8(const std::string &);
@@ -50,27 +50,25 @@ const Char8 *strchr(const Char8 *haystack, Char8 needle);
 
 // The following functions treat ASCII A-Z as upper, a-z as lower, and all other
 // code units as neither upper nor lower.
-Char8 toupper(Char8) noexcept;
-Char8 tolower(Char8) noexcept;
-bool islower(Char8) noexcept;
-bool isupper(Char8) noexcept;
+Char8 toupper(Char8);
+Char8 tolower(Char8);
+bool islower(Char8);
+bool isupper(Char8);
 
 bool haslower(String8_View);
 bool hasupper(String8_View);
 
 inline constexpr String8_View operator""_sv(const Char8 *string,
-                                            std::size_t length) noexcept {
+                                            std::size_t length) {
   return String8_View(string, length);
 }
 
 #if QLJS_HAVE_CHAR8_T
-inline String8_View operator""_s8v(const char *string,
-                                   std::size_t length) noexcept {
+inline String8_View operator""_s8v(const char *string, std::size_t length) {
   return String8_View(reinterpret_cast<const Char8 *>(string), length);
 }
 #else
-inline String8_View operator""_s8v(const char *string,
-                                   std::size_t length) noexcept {
+inline String8_View operator""_s8v(const char *string, std::size_t length) {
   return String8_View(string, length);
 }
 #endif

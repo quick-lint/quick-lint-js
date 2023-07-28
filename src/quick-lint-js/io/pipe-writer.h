@@ -92,7 +92,7 @@ class Non_Blocking_Pipe_Writer {
   void flush();
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-  std::optional<POSIX_FD_File_Ref> get_event_fd() noexcept;
+  std::optional<POSIX_FD_File_Ref> get_event_fd();
 #endif
 
 #if QLJS_HAVE_KQUEUE

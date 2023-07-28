@@ -358,6 +358,13 @@ void Test_Parser::assert_diagnostics(Span<const Diagnostic_Assertion> diags,
                                     caller);
 }
 
+Spy_Visitor test_parse_and_visit_statement(String8_View input, No_Diags_Tag,
+                                           Parser_Options options,
+                                           Source_Location caller) {
+  return test_parse_and_visit_statement(
+      input, Span<const Diagnostic_Assertion>(), options, caller);
+}
+
 Spy_Visitor test_parse_and_visit_statement(String8_View input,
                                            Diagnostic_Assertion diag0,
                                            Parser_Options options,
@@ -410,6 +417,13 @@ Spy_Visitor test_parse_and_visit_statement(
   return p.spy_visitor();
 }
 
+Spy_Visitor test_parse_and_visit_module(String8_View input, No_Diags_Tag,
+                                        Parser_Options options,
+                                        Source_Location caller) {
+  return test_parse_and_visit_module(input, Span<const Diagnostic_Assertion>(),
+                                     options, caller);
+}
+
 Spy_Visitor test_parse_and_visit_module(String8_View input,
                                         Diagnostic_Assertion diag0,
                                         Parser_Options options,
@@ -448,6 +462,13 @@ Spy_Visitor test_parse_and_visit_module(String8_View input,
   p.parse_and_visit_module();
   p.assert_diagnostics(diags, caller);
   return p.spy_visitor();
+}
+
+Spy_Visitor test_parse_and_visit_expression(String8_View input, No_Diags_Tag,
+                                            Parser_Options options,
+                                            Source_Location caller) {
+  return test_parse_and_visit_expression(
+      input, Span<const Diagnostic_Assertion>(), options, caller);
 }
 
 Spy_Visitor test_parse_and_visit_expression(String8_View input,
@@ -490,6 +511,13 @@ Spy_Visitor test_parse_and_visit_expression(
 }
 
 Spy_Visitor test_parse_and_visit_typescript_type_expression(
+    String8_View input, No_Diags_Tag, Parser_Options options,
+    Source_Location caller) {
+  return test_parse_and_visit_typescript_type_expression(
+      input, Span<const Diagnostic_Assertion>(), options, caller);
+}
+
+Spy_Visitor test_parse_and_visit_typescript_type_expression(
     String8_View input, Diagnostic_Assertion diag0, Parser_Options options,
     Source_Location caller) {
   Diagnostic_Assertion assertions[] = {diag0};
@@ -521,6 +549,13 @@ Spy_Visitor test_parse_and_visit_typescript_type_expression(
   p.parse_and_visit_typescript_type_expression();
   p.assert_diagnostics(diags, caller);
   return p.spy_visitor();
+}
+
+Spy_Visitor test_parse_and_visit_typescript_generic_parameters(
+    String8_View input, No_Diags_Tag, Parser_Options options,
+    Source_Location caller) {
+  return test_parse_and_visit_typescript_generic_parameters(
+      input, Span<const Diagnostic_Assertion>(), options, caller);
 }
 
 Spy_Visitor test_parse_and_visit_typescript_generic_parameters(

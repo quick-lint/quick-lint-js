@@ -3030,7 +3030,7 @@ next_member:
 }
 
 Parser::Enum_Value_Kind Parser::classify_enum_value_expression(
-    const Expression *ast) noexcept {
+    const Expression *ast) {
   auto visit_children = [&]() -> Enum_Value_Kind {
     Enum_Value_Kind kind = Enum_Value_Kind::constant;
     for (Expression *child : ast->children()) {

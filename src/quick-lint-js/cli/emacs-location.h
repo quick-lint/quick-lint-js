@@ -17,11 +17,11 @@ struct Emacs_Source_Position {
 
   Offset_Type offset;
 
-  bool operator==(const Emacs_Source_Position& other) const noexcept {
+  bool operator==(const Emacs_Source_Position& other) const {
     return this->offset == other.offset;
   }
 
-  bool operator!=(const Emacs_Source_Position& other) const noexcept {
+  bool operator!=(const Emacs_Source_Position& other) const {
     return !(*this == other);
   }
 };
@@ -33,14 +33,14 @@ class Emacs_Source_Range {
   using Offset = Emacs_Source_Position::Offset_Type;
 
   explicit Emacs_Source_Range(Emacs_Source_Position begin,
-                              Emacs_Source_Position end) noexcept
+                              Emacs_Source_Position end)
       : begin_(begin), end_(end) {}
 
-  Offset begin_offset() const noexcept { return this->begin_.offset; }
-  Emacs_Source_Position begin() const noexcept;
+  Offset begin_offset() const { return this->begin_.offset; }
+  Emacs_Source_Position begin() const;
 
-  Offset end_offset() const noexcept { return this->end_.offset; }
-  Emacs_Source_Position end() const noexcept;
+  Offset end_offset() const { return this->end_.offset; }
+  Emacs_Source_Position end() const;
 
  private:
   Emacs_Source_Position begin_;
@@ -49,15 +49,15 @@ class Emacs_Source_Range {
 
 class Emacs_Locator {
  public:
-  explicit Emacs_Locator(Padded_String_View input) noexcept;
+  explicit Emacs_Locator(Padded_String_View input);
 
   Emacs_Source_Range range(Source_Code_Span) const;
-  Emacs_Source_Position position(const Char8*) const noexcept;
+  Emacs_Source_Position position(const Char8*) const;
 
  private:
-  Emacs_Source_Position::Offset_Type offset(const Char8*) const noexcept;
+  Emacs_Source_Position::Offset_Type offset(const Char8*) const;
   Emacs_Source_Position position(
-      Emacs_Source_Position::Offset_Type offset) const noexcept;
+      Emacs_Source_Position::Offset_Type offset) const;
   Padded_String_View input_;
 };
 }

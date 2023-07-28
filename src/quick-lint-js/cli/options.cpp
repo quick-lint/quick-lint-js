@@ -256,13 +256,13 @@ bool Options::dump_errors(Output_Stream& out) const {
   return have_errors;
 }
 
-Input_File_Language File_To_Lint::get_language() const noexcept {
+Input_File_Language File_To_Lint::get_language() const {
   return quick_lint_js::get_language(this->path, this->language);
 }
 
 Input_File_Language get_language(
     const char* config_file,
-    const std::optional<Input_File_Language>& language) noexcept {
+    const std::optional<Input_File_Language>& language) {
   static_cast<void>(config_file);  // Unused for now.
   if (language.has_value()) {
     return *language;

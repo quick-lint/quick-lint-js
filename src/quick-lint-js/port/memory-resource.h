@@ -11,7 +11,7 @@ using Memory_Resource = ::boost::container::pmr::memory_resource;
 
 // Like boost::container::pmr::new_delete_resource, but without a dependency on
 // dlmalloc.
-Memory_Resource *new_delete_resource() noexcept;
+Memory_Resource *new_delete_resource();
 }
 
 #endif

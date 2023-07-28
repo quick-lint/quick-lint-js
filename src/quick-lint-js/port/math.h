@@ -16,7 +16,7 @@ namespace quick_lint_js {
 // On some compilers, std::max is not constexpr. Define our own which is
 // constexpr.
 template <class T, class U>
-constexpr auto maximum(T x, U y) noexcept {
+constexpr auto maximum(T x, U y) {
   return x < y ? y : x;
 }
 

@@ -11,13 +11,11 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-Arg_Parser::Arg_Parser(int argc, char** argv) noexcept
-    : argc_(argc), argv_(argv) {
+Arg_Parser::Arg_Parser(int argc, char** argv) : argc_(argc), argv_(argv) {
   this->parse_current_arg();
 }
 
-const char* Arg_Parser::match_option_with_value(
-    std::string_view option_name) noexcept {
+const char* Arg_Parser::match_option_with_value(std::string_view option_name) {
   if (!this->option_.has_value() || !this->option_->arg_value) {
     return nullptr;
   }
@@ -29,7 +27,7 @@ const char* Arg_Parser::match_option_with_value(
   return arg_value;
 }
 
-bool Arg_Parser::match_flag_shorthand(char option_shorthand) noexcept {
+bool Arg_Parser::match_flag_shorthand(char option_shorthand) {
   if (!this->option_.has_value()) {
     return false;
   }
@@ -41,9 +39,8 @@ bool Arg_Parser::match_flag_shorthand(char option_shorthand) noexcept {
   return matches;
 }
 
-bool Arg_Parser::match_flag_option(
-    std::string_view full_option_name,
-    std::string_view partial_option_name) noexcept {
+bool Arg_Parser::match_flag_option(std::string_view full_option_name,
+                                   std::string_view partial_option_name) {
   if (!this->option_.has_value()) {
     return false;
   }
@@ -55,31 +52,31 @@ bool Arg_Parser::match_flag_option(
   return matches;
 }
 
-bool Arg_Parser::match_flag_option(
-    char option_shorthand, std::string_view full_option_name,
-    std::string_view partial_option_name) noexcept {
+bool Arg_Parser::match_flag_option(char option_shorthand,
+                                   std::string_view full_option_name,
+                                   std::string_view partial_option_name) {
   return this->match_flag_option(full_option_name, partial_option_name) ||
          this->match_flag_shorthand(option_shorthand);
 }
 
-const char* Arg_Parser::match_argument() noexcept {
+const char* Arg_Parser::match_argument() {
   if (this->option_.has_value()) {
     return nullptr;
   }
   return this->match_anything();
 }
 
-const char* Arg_Parser::match_anything() noexcept {
+const char* Arg_Parser::match_anything() {
   const char* anything = this->current_arg();
   this->advance(1);
   return anything;
 }
 
-bool Arg_Parser::done() const noexcept {
+bool Arg_Parser::done() const {
   return this->current_arg_index_ >= this->argc_;
 }
 
-void Arg_Parser::parse_current_arg() noexcept {
+void Arg_Parser::parse_current_arg() {
   if (this->done()) {
     return;
   }
@@ -113,12 +110,12 @@ void Arg_Parser::parse_current_arg() noexcept {
   }
 }
 
-void Arg_Parser::advance(int count) noexcept {
+void Arg_Parser::advance(int count) {
   this->current_arg_index_ += count;
   this->parse_current_arg();
 }
 
-const char* Arg_Parser::current_arg() noexcept {
+const char* Arg_Parser::current_arg() {
   QLJS_ASSERT(this->current_arg_index_ < this->argc_);
   return this->argv_[this->current_arg_index_];
 }

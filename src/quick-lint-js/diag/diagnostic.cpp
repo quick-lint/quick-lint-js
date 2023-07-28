@@ -17,7 +17,7 @@
 
 namespace quick_lint_js {
 namespace {
-std::array<char, 5> diag_code_to_string(std::uint16_t diag_code) noexcept {
+std::array<char, 5> diag_code_to_string(std::uint16_t diag_code) {
   QLJS_ASSERT(diag_code <= 9999);
   return std::array<char, 5>{
       'E',
@@ -29,11 +29,11 @@ std::array<char, 5> diag_code_to_string(std::uint16_t diag_code) noexcept {
 }
 }
 
-const Diagnostic_Info& get_diagnostic_info(Diag_Type type) noexcept {
+const Diagnostic_Info& get_diagnostic_info(Diag_Type type) {
   return all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)];
 }
 
-std::array<char, 5> Diagnostic_Info::code_string() const noexcept {
+std::array<char, 5> Diagnostic_Info::code_string() const {
   return diag_code_to_string(this->code);
 }
 
@@ -42,8 +42,7 @@ QLJS_WARNING_PUSH
 // is.
 QLJS_WARNING_IGNORE_GCC("-Wstringop-overflow")
 
-std::optional<Diag_Type> diag_type_from_code_slow(
-    std::string_view code) noexcept {
+std::optional<Diag_Type> diag_type_from_code_slow(std::string_view code) {
   for (int i = 0; i < Diag_Type_Count; ++i) {
     // TODO(strager): Parse the incoming code instead of stringifying each code
     // in the table.

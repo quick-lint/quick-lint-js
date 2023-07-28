@@ -83,7 +83,7 @@ class LSP_JSON_RPC_Message_Parser
   void write_invalid_request_error_response();
 
   JSON_RPC_Message_Handler* handler_;
-  std::unique_ptr< ::simdjson::ondemand::parser> json_parser_;
+  std::unique_ptr<::simdjson::ondemand::parser> json_parser_;
   Outgoing_JSON_RPC_Message_Queue error_responses_;
 
   friend Message_Parser;

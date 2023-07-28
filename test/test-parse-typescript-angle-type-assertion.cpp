@@ -170,41 +170,28 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
 TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
        angle_type_assertion_with_complex_type_is_error_in_typescript_jsx_mode) {
   {
-    Test_Parser p(u8"<Type1 | Type2>(expr);"_sv, typescript_jsx_options,
-                  capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<Type1 | Type2>(expr);"_sv,  //
+        u8"^^^^^^^^^^^^^^^ Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx.bracketed_type\n"_diag
+        u8"                     ` .expected_as"_diag,  //
+        typescript_jsx_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type1
                               "visit_variable_type_use",  // Type2
                               "visit_variable_use",       // expr
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx,  //
-                bracketed_type, 0, u8"<Type1 | Type2>"_sv, expected_as,
-                u8"<Type1 | Type2>(expr)"_sv.size(), u8""_sv),
-        }));
   }
 
   {
-    Test_Parser p(u8"<(Type)>expr;"_sv, typescript_jsx_options, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<(Type)>expr;"_sv,  //
+        u8"^^^^^^^^ Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx.bracketed_type\n"_diag
+        u8"            ` .expected_as"_diag,  //
+        typescript_jsx_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // Type
                               "visit_variable_use",       // expr
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx,  //
-                bracketed_type, 0, u8"<(Type)>"_sv, expected_as,
-                u8"<(Type)>expr"_sv.size(), u8""_sv),
-        }));
   }
 }
 

@@ -11,20 +11,17 @@
 namespace quick_lint_js {
 class Tracking_Memory_Resource : public Memory_Resource {
  public:
-  std::uint64_t alive_bytes() const noexcept {
+  std::uint64_t alive_bytes() const {
     return this->allocated_bytes_ - this->deallocated_bytes_;
   }
 
-  std::uint64_t allocated_bytes() const noexcept {
-    return this->allocated_bytes_;
-  }
+  std::uint64_t allocated_bytes() const { return this->allocated_bytes_; }
 
-  std::uint64_t deallocated_bytes() const noexcept {
-    return this->deallocated_bytes_;
-  }
+  std::uint64_t deallocated_bytes() const { return this->deallocated_bytes_; }
 
  protected:
-  void* do_allocate(std::size_t bytes, std::size_t align) override {
+  void* do_allocate(std::size_t bytes,
+                    std::size_t align) BOOST_NOEXCEPT override {
     void* p = this->underlying_memory_->allocate(bytes, align);
     if (p) {
       this->allocated_bytes_ += bytes;
@@ -32,14 +29,15 @@ class Tracking_Memory_Resource : public Memory_Resource {
     return p;
   }
 
-  void do_deallocate(void* p, std::size_t bytes, std::size_t align) override {
+  void do_deallocate(void* p, std::size_t bytes,
+                     std::size_t align) BOOST_NOEXCEPT override {
     this->underlying_memory_->deallocate(p, bytes, align);
     if (p) {
       this->deallocated_bytes_ += bytes;
     }
   }
 
-  bool do_is_equal(const memory_resource&) const noexcept override {
+  bool do_is_equal(const memory_resource&) const BOOST_NOEXCEPT override {
     QLJS_UNIMPLEMENTED();
     return false;
   }

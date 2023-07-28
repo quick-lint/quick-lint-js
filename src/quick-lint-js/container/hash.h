@@ -26,7 +26,7 @@ struct Hasher;
 template <class T>
 struct Hasher<T, std::enable_if_t<std::is_integral_v<T>>> {
   template <class U>
-  std::size_t operator()(U data) const noexcept {
+  std::size_t operator()(U data) const {
     static_assert(std::is_same_v<T, U>,
                   "implicit integer conversions are not allowed");
     return std::hash<T>()(data);
@@ -35,14 +35,12 @@ struct Hasher<T, std::enable_if_t<std::is_integral_v<T>>> {
 
 template <class T>
 struct Hasher<T*> {
-  std::size_t operator()(T* data) const noexcept {
-    return std::hash<T*>()(data);
-  }
+  std::size_t operator()(T* data) const { return std::hash<T*>()(data); }
 };
 
 template <>
 struct Hasher<std::string_view> {
-  std::size_t operator()(std::string_view s) const noexcept {
+  std::size_t operator()(std::string_view s) const {
     return std::hash<std::string_view>()(s);
   }
 };
@@ -52,7 +50,7 @@ struct Hasher<std::string> : Hasher<std::string_view> {};
 #if QLJS_HAVE_CHAR8_T
 template <>
 struct Hasher<String8_View> {
-  std::size_t operator()(String8_View s) const noexcept {
+  std::size_t operator()(String8_View s) const {
     return std::hash<String8_View>()(s);
   }
 };
@@ -63,7 +61,7 @@ struct Hasher<String8> : Hasher<String8_View> {};
 template <class T1, class T2>
 struct Hasher<std::pair<T1, T2>> {
   template <class U1, class U2>
-  std::size_t operator()(const std::pair<U1, U2>& x) const noexcept {
+  std::size_t operator()(const std::pair<U1, U2>& x) const {
     return mix_hashes(Hasher<U1>()(x.first), Hasher<U2>()(x.second));
   }
 };

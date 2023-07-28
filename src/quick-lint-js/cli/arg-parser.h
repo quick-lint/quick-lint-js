@@ -74,17 +74,17 @@ namespace quick_lint_js {
 
 class Arg_Parser {
  public:
-  explicit Arg_Parser(int argc, char** argv) noexcept;
+  explicit Arg_Parser(int argc, char** argv);
 
   Arg_Parser(const Arg_Parser&) = delete;
   Arg_Parser& operator=(const Arg_Parser&) = delete;
 
-  const char* match_option_with_value(std::string_view option_name) noexcept;
+  const char* match_option_with_value(std::string_view option_name);
 
-  bool match_flag_shorthand(char option_shorthand) noexcept;
+  bool match_flag_shorthand(char option_shorthand);
 
   bool match_flag_option(std::string_view full_option_name,
-                         std::string_view partial_option_name) noexcept;
+                         std::string_view partial_option_name);
 
   // Equivalent to:
   //
@@ -92,20 +92,20 @@ class Arg_Parser {
   // || this->match_flag_shorthand(option_shorthand)
   bool match_flag_option(char option_shorthand,
                          std::string_view full_option_name,
-                         std::string_view partial_option_name) noexcept;
+                         std::string_view partial_option_name);
 
-  const char* match_argument() noexcept;
+  const char* match_argument();
 
-  const char* match_anything() noexcept;
+  const char* match_anything();
 
-  bool done() const noexcept;
+  bool done() const;
 
  private:
-  void parse_current_arg() noexcept;
+  void parse_current_arg();
 
-  void advance(int count) noexcept;
+  void advance(int count);
 
-  const char* current_arg() noexcept;
+  const char* current_arg();
 
   struct Option {
     std::string_view arg_key;

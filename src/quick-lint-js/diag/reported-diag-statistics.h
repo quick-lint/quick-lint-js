@@ -21,9 +21,7 @@ class Reported_Diag_Statistics final : public Diag_Reporter {
 
   T *get_reporter() { return &(this->reporter_); }
 
-  bool found_matching_diag() const noexcept {
-    return this->found_matching_diag_;
-  }
+  bool found_matching_diag() const { return this->found_matching_diag_; }
 
   void report_impl(Diag_Type type, void *diag) override final {
     if (this->predicate_->is_present(type)) {

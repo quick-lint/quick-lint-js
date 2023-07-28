@@ -311,7 +311,7 @@ void Trace_Reader::on_error(Parsed_Trace_Event_Type error) {
 }
 
 bool Parsed_VSCode_Document_Change::operator==(
-    const Parsed_VSCode_Document_Change& other) const noexcept {
+    const Parsed_VSCode_Document_Change& other) const {
   return this->range.start.line == other.range.start.line &&
          this->range.start.character == other.range.start.character &&
          this->range.end.line == other.range.end.line &&
@@ -321,7 +321,7 @@ bool Parsed_VSCode_Document_Change::operator==(
 }
 
 bool Parsed_VSCode_Document_Change::operator!=(
-    const Parsed_VSCode_Document_Change& other) const noexcept {
+    const Parsed_VSCode_Document_Change& other) const {
   return !(*this == other);
 }
 }

@@ -220,23 +220,11 @@ TEST_F(Test_Parse, asi_for_statement_at_newline) {
 }
 
 TEST_F(Test_Parse, asi_between_expression_statements) {
-  {
-    Test_Parser p(u8"false\nfalse"_sv, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
+  test_parse_and_visit_module(u8"false\nfalse"_sv, no_diags);
 
-  {
-    Test_Parser p(u8"true\ntrue"_sv, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
+  test_parse_and_visit_module(u8"true\ntrue"_sv, no_diags);
 
-  {
-    Test_Parser p(u8"true\nvoid x;"_sv, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
+  test_parse_and_visit_module(u8"true\nvoid x;"_sv, no_diags);
 
   {
     Test_Parser p(u8"true\nnew Animal();"_sv);
@@ -277,14 +265,10 @@ TEST_F(Test_Parse, asi_between_expression_statements) {
   }
 
   {
-    Test_Parser p(u8"one\n#two\nthree"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"one\n#two\nthree"_sv,  //
+        u8"Diag_Cannot_Refer_To_Private_Variable_Without_Object"_diag);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"one", u8"three"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_Cannot_Refer_To_Private_Variable_Without_Object),
-        }));
   }
 }
 
@@ -351,15 +335,12 @@ TEST_F(Test_Parse, utter_garbage) {
                               "visit_variable_use",  // kjaslkjd
                               "visit_variable_use",  // kjaslkjd
                           }));
-    EXPECT_THAT(
-        p.errors,
-        UnorderedElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code,
-                              Diag_Expected_Parentheses_Around_If_Condition,  //
-                              condition, u8"if "_sv.size(), u8":"_sv),
-            DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                              token, u8"if "_sv.size(), u8":"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"   ^ Diag_Expected_Parentheses_Around_If_Condition"_diag,  //
+            u8"   ^ Diag_Unexpected_Token"_diag,
+        });
   }
 }
 
@@ -402,13 +383,11 @@ TEST_F(
                                 "visit_end_of_module",
                             }));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, 0, u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
 
     {
@@ -420,13 +399,11 @@ TEST_F(
                                 "visit_end_of_module",
                             }));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                  escape_sequence, u8"("_sv.size(), u8"\\u{??}"_sv),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8" ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+          });
     }
   }
 }
@@ -435,12 +412,9 @@ TEST_F(
     Test_Parse,
     reserved_keywords_with_escape_sequences_are_treated_as_identifiers_in_variable_declarations) {
   {
-    Test_Parser p(u8"const \\u{69}f = 42;"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Keywords_Cannot_Contain_Escape_Sequences),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"const \\u{69}f = 42;"_sv,  //
+        u8"Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",
                           }));
@@ -449,12 +423,9 @@ TEST_F(
   }
 
   {
-    Test_Parser p(u8"let \\u{69}f;"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Keywords_Cannot_Contain_Escape_Sequences),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let \\u{69}f;"_sv,  //
+        u8"Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",
                           }));
@@ -463,12 +434,9 @@ TEST_F(
   }
 
   {
-    Test_Parser p(u8"var \\u{69}f;"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Keywords_Cannot_Contain_Escape_Sequences),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"var \\u{69}f;"_sv,  //
+        u8"Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",
                           }));
@@ -477,12 +445,9 @@ TEST_F(
   }
 
   {
-    Test_Parser p(u8"function g(\\u{69}f) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Keywords_Cannot_Contain_Escape_Sequences),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function g(\\u{69}f) {}"_sv,  //
+        u8"Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // g
                               "visit_enter_function_scope",       //
@@ -496,12 +461,9 @@ TEST_F(
   }
 
   {
-    Test_Parser p(u8"((\\u{69}f) => {})()"_sv, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Keywords_Cannot_Contain_Escape_Sequences),
-                }));
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"((\\u{69}f) => {})()"_sv,  //
+        u8"Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // if
@@ -666,9 +628,10 @@ TEST_F(Test_Parse, unimplemented_token_returns_to_innermost_handler) {
     });
     EXPECT_TRUE(outer_ok);
     EXPECT_TRUE(inner_catch_returned);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Unexpected_Token),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Unexpected_Token"_diag,
+                       });
   }
 }
 
@@ -689,9 +652,10 @@ TEST_F(Test_Parse,
     });
     EXPECT_FALSE(outer_ok);
     EXPECT_TRUE(inner_catch_returned);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Unexpected_Token),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Unexpected_Token"_diag,
+                       });
   }
 }
 
@@ -732,11 +696,11 @@ TEST_F(Test_Parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
     EXPECT_THAT(v.errors, IsEmpty())
         << "Diag_Unexpected_Token should be buffered in the transaction";
     p.commit_transaction(std::move(transaction));
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Unexpected_Token),
-                          }))
-        << "Diag_Unexpected_Token should be reported when committing the "
-           "transaction";
+    // Diag_Unexpected_Token should be reported when committing the transaction.
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Unexpected_Token"_diag,
+                       });
   }
 }
 
@@ -906,9 +870,10 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
     Parser p(&code, &v, javascript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Depth_Limit_Exceeded"_diag,
+                       });
   }
 
   {
@@ -929,9 +894,10 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
                   capture_diags);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_FALSE(ok);
-    EXPECT_THAT(p.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded),
-                          }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Depth_Limit_Exceeded"_diag,
+                       });
   }
 
   for (const String8& jsx : {
@@ -952,9 +918,10 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
     Parser p(&code, &v, jsx_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Depth_Limit_Exceeded"_diag,
+                       });
   }
 
   for (const String8& type : {
@@ -966,9 +933,10 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
     Parser p(&code, &v, typescript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded),
-                          }));
+    assert_diagnostics(&code, v.errors,
+                       {
+                           u8"Diag_Depth_Limit_Exceeded"_diag,
+                       });
   }
 }
 }

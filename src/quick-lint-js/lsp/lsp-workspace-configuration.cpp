@@ -82,7 +82,7 @@ bool LSP_Workspace_Configuration::process_response(
 
 bool LSP_Workspace_Configuration::process_notification(
     ::simdjson::ondemand::object settings) {
-  for (simdjson::simdjson_result< ::simdjson::ondemand::field> setting_field :
+  for (simdjson::simdjson_result<::simdjson::ondemand::field> setting_field :
        settings) {
     std::string_view name;
     if (setting_field.unescaped_key().get(name) != ::simdjson::SUCCESS) {

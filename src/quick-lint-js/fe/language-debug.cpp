@@ -2,9 +2,44 @@
 // See end of file for extended copyright information.
 
 #include <ostream>
+#include <quick-lint-js/c-api.h>
 #include <quick-lint-js/fe/language.h>
 
 namespace quick_lint_js {
+std::ostream& operator<<(std::ostream& out, Statement_Kind kind) {
+#define QLJS_CASE(k)      \
+  case Statement_Kind::k: \
+    out << #k;            \
+    return out;
+  switch (kind) {
+    QLJS_CASE(do_while_loop)
+    QLJS_CASE(for_loop)
+    QLJS_CASE(if_statement)
+    QLJS_CASE(while_loop)
+    QLJS_CASE(with_statement)
+    QLJS_CASE(labelled_statement)
+  }
+#undef QLJS_CASE
+  out << "???";
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, Enum_Kind kind) {
+#define QLJS_CASE(k) \
+  case Enum_Kind::k: \
+    out << #k;       \
+    return out;
+  switch (kind) {
+    QLJS_CASE(declare_const_enum)
+    QLJS_CASE(const_enum)
+    QLJS_CASE(declare_enum)
+    QLJS_CASE(normal)
+  }
+#undef QLJS_CASE
+  out << "???";
+  return out;
+}
+
 std::ostream& operator<<(std::ostream& out, Variable_Kind kind) {
 #define QLJS_CASE(k)     \
   case Variable_Kind::k: \

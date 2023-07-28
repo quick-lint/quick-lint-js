@@ -131,8 +131,7 @@ void Non_Blocking_Pipe_Writer::flush() {
 }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-std::optional<POSIX_FD_File_Ref>
-Non_Blocking_Pipe_Writer::get_event_fd() noexcept {
+std::optional<POSIX_FD_File_Ref> Non_Blocking_Pipe_Writer::get_event_fd() {
   if (this->pending_.empty()) {
     return std::nullopt;
   } else {

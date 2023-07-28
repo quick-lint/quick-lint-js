@@ -80,9 +80,9 @@ class Byte_Buffer {
 
   void clear();
 
-  Size_Type size() const noexcept;
+  Size_Type size() const;
 
-  bool empty() const noexcept;
+  bool empty() const;
 
   void copy_to(void* raw_out) const;
 
@@ -120,11 +120,11 @@ class Byte_Buffer {
  private:
   void reserve(Size_Type extra_byte_count);
   void grow(Size_Type extra_byte_count);
-  void update_current_chunk_size() noexcept;
+  void update_current_chunk_size();
   void remove_current_chunk_if_empty();
 
-  Size_Type bytes_remaining_in_current_chunk() const noexcept;
-  Size_Type bytes_used_in_current_chunk() const noexcept;
+  Size_Type bytes_remaining_in_current_chunk() const;
+  Size_Type bytes_used_in_current_chunk() const;
 
   void add_new_chunk(Size_Type chunk_size);
 
@@ -158,10 +158,10 @@ class Byte_Buffer_IOVec {
 
   ~Byte_Buffer_IOVec();
 
-  const Byte_Buffer_Chunk* iovec() const noexcept;
-  int iovec_count() const noexcept;
+  const Byte_Buffer_Chunk* iovec() const;
+  int iovec_count() const;
 
-  bool empty() const noexcept { return this->iovec_count() == 0; }
+  bool empty() const { return this->iovec_count() == 0; }
 
   // After calling this->append(bb), do not call any other member function on
   // the given byte_buffer (aside from the destructor).

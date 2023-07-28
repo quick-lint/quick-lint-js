@@ -151,37 +151,33 @@ done:
 #endif
 }
 
-std::string_view Canonical_Path::path() const &noexcept { return this->path_; }
+std::string_view Canonical_Path::path() const & { return this->path_; }
 
-std::string &&Canonical_Path::path() && noexcept {
-  return std::move(this->path_);
-}
+std::string &&Canonical_Path::path() && { return std::move(this->path_); }
 
-const char *Canonical_Path::c_str() const noexcept {
-  return this->path_.c_str();
-}
+const char *Canonical_Path::c_str() const { return this->path_.c_str(); }
 
-bool operator==(const Canonical_Path &lhs, const Canonical_Path &rhs) noexcept {
+bool operator==(const Canonical_Path &lhs, const Canonical_Path &rhs) {
   return lhs.path() == rhs.path();
 }
 
-bool operator!=(const Canonical_Path &lhs, const Canonical_Path &rhs) noexcept {
+bool operator!=(const Canonical_Path &lhs, const Canonical_Path &rhs) {
   return !(lhs == rhs);
 }
 
-bool operator==(std::string_view lhs, const Canonical_Path &rhs) noexcept {
+bool operator==(std::string_view lhs, const Canonical_Path &rhs) {
   return lhs == rhs.path();
 }
 
-bool operator!=(std::string_view lhs, const Canonical_Path &rhs) noexcept {
+bool operator!=(std::string_view lhs, const Canonical_Path &rhs) {
   return !(lhs == rhs);
 }
 
-bool operator==(const Canonical_Path &lhs, std::string_view rhs) noexcept {
+bool operator==(const Canonical_Path &lhs, std::string_view rhs) {
   return lhs.path() == rhs;
 }
 
-bool operator!=(const Canonical_Path &lhs, std::string_view rhs) noexcept {
+bool operator!=(const Canonical_Path &lhs, std::string_view rhs) {
   return !(lhs == rhs);
 }
 
@@ -208,27 +204,25 @@ Canonical_Path_Result::Canonical_Path_Result(std::string &&path,
                                              std::size_t existing_path_length)
     : path_(std::move(path)), existing_path_length_(existing_path_length) {}
 
-std::string_view Canonical_Path_Result::path() const &noexcept {
+std::string_view Canonical_Path_Result::path() const & {
   return this->path_.path();
 }
 
-std::string &&Canonical_Path_Result::path() && noexcept {
+std::string &&Canonical_Path_Result::path() && {
   return std::move(this->path_).path();
 }
 
-const char *Canonical_Path_Result::c_str() const noexcept {
-  return this->path_.c_str();
-}
+const char *Canonical_Path_Result::c_str() const { return this->path_.c_str(); }
 
-const Canonical_Path &Canonical_Path_Result::canonical() const &noexcept {
+const Canonical_Path &Canonical_Path_Result::canonical() const & {
   return this->path_;
 }
 
-Canonical_Path &&Canonical_Path_Result::canonical() && noexcept {
+Canonical_Path &&Canonical_Path_Result::canonical() && {
   return std::move(this->path_);
 }
 
-bool Canonical_Path_Result::have_missing_components() const noexcept {
+bool Canonical_Path_Result::have_missing_components() const {
   return this->existing_path_length_ != this->path_.path_.size();
 }
 
@@ -246,14 +240,14 @@ std::string Canonicalize_Path_IO_Error::to_string() const {
 }
 
 bool operator==(const Canonicalize_Path_IO_Error &lhs,
-                const Canonicalize_Path_IO_Error &rhs) noexcept {
+                const Canonicalize_Path_IO_Error &rhs) {
   return lhs.input_path == rhs.input_path &&
          lhs.canonicalizing_path == rhs.canonicalizing_path &&
          lhs.io_error == rhs.io_error;
 }
 
 bool operator!=(const Canonicalize_Path_IO_Error &lhs,
-                const Canonicalize_Path_IO_Error &rhs) noexcept {
+                const Canonicalize_Path_IO_Error &rhs) {
   return !(lhs == rhs);
 }
 

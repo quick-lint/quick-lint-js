@@ -16,12 +16,16 @@ enum class Statement_Kind {
   labelled_statement,
 };
 
+std::ostream& operator<<(std::ostream&, Statement_Kind);
+
 enum class Enum_Kind {
   declare_const_enum,
   const_enum,
   declare_enum,
   normal,
 };
+
+std::ostream& operator<<(std::ostream&, Enum_Kind);
 
 enum class Variable_Kind : unsigned char {
   _arrow_parameter,

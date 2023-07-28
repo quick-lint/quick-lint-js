@@ -93,7 +93,7 @@ void disable_logger(Logger* l) {
       find_unique_existing(locked_loggers->loggers, l));
 }
 
-bool is_logging_enabled() noexcept {
+bool is_logging_enabled() {
   Lock_Ptr<Global_Loggers> locked_loggers = loggers.lock();
   locked_loggers->initialize_if_needed();
   return !locked_loggers->loggers.empty();

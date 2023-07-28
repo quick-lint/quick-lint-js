@@ -41,8 +41,8 @@ QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wattributes")
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
 [[gnu::always_inline]] Decode_UTF8_Result
-    decode_utf_8_inline(Padded_String_View input) noexcept {
-  auto is_continuation_byte = [](std::uint8_t byte) noexcept -> bool {
+    decode_utf_8_inline(Padded_String_View input) {
+  auto is_continuation_byte = [](std::uint8_t byte) -> bool {
     return (byte & 0b1100'0000) == 0b1000'0000;
   };
   const std::uint8_t* c = reinterpret_cast<const std::uint8_t*>(input.data());
@@ -140,12 +140,12 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
 QLJS_WARNING_POP
 }
 
-Decode_UTF8_Result decode_utf_8(Padded_String_View input) noexcept {
+Decode_UTF8_Result decode_utf_8(Padded_String_View input) {
   return decode_utf_8_inline(input);
 }
 
 const Char8* advance_lsp_characters_in_utf_8(String8_View utf_8,
-                                             int character_count) noexcept {
+                                             int character_count) {
   const Char8* c = utf_8.data();
   const Char8* end = c + utf_8.size();
   if (narrow_cast<std::size_t>(character_count) >= utf_8.size()) {
@@ -184,7 +184,7 @@ const Char8* advance_lsp_characters_in_utf_8(String8_View utf_8,
 }
 
 std::ptrdiff_t count_lsp_characters_in_utf_8(Padded_String_View utf_8,
-                                             int offset) noexcept {
+                                             int offset) {
   const Char8* c = utf_8.data();
   const Char8* end = utf_8.null_terminator();
   const Char8* stop = c + offset;
@@ -210,7 +210,7 @@ std::ptrdiff_t count_lsp_characters_in_utf_8(Padded_String_View utf_8,
 }
 
 std::size_t count_utf_8_characters(Padded_String_View utf_8,
-                                   std::size_t offset) noexcept {
+                                   std::size_t offset) {
   const Char8* c = utf_8.data();
   const Char8* end = utf_8.null_terminator();
   const Char8* stop = c + offset;

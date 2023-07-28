@@ -18,19 +18,18 @@ namespace quick_lint_js {
 namespace {
 class U16_CString_Trace_String_Writer {
  public:
-  std::size_t string_size(void* string) const noexcept {
+  std::size_t string_size(void* string) const {
     return this->get(string).size();
   }
 
-  void copy_string(void* string, char16_t* out, std::size_t capacity) const
-      noexcept {
+  void copy_string(void* string, char16_t* out, std::size_t capacity) const {
     std::u16string_view s = this->get(string);
     QLJS_ASSERT(capacity >= s.size());
     std::copy(s.begin(), s.end(), out);
   }
 
  private:
-  static std::u16string_view get(void* string) noexcept {
+  static std::u16string_view get(void* string) {
     return static_cast<const char16_t*>(string);
   }
 };

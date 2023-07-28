@@ -24,13 +24,13 @@ struct Windows_File_IO_Error {
   // Error code returned by Win32's GetLastError().
   DWORD error;
 
-  bool is_file_not_found_error() const noexcept;
-  bool is_not_a_directory_error() const noexcept;
+  bool is_file_not_found_error() const;
+  bool is_not_a_directory_error() const;
 
   std::string to_string() const;
 
-  friend bool operator==(Windows_File_IO_Error, Windows_File_IO_Error) noexcept;
-  friend bool operator!=(Windows_File_IO_Error, Windows_File_IO_Error) noexcept;
+  friend bool operator==(Windows_File_IO_Error, Windows_File_IO_Error);
+  friend bool operator!=(Windows_File_IO_Error, Windows_File_IO_Error);
 };
 #endif
 
@@ -39,13 +39,13 @@ struct POSIX_File_IO_Error {
   // Error code stored in POSIX' errno variable.
   int error;
 
-  bool is_file_not_found_error() const noexcept;
-  bool is_not_a_directory_error() const noexcept;
+  bool is_file_not_found_error() const;
+  bool is_not_a_directory_error() const;
 
   std::string to_string() const;
 
-  friend bool operator==(POSIX_File_IO_Error, POSIX_File_IO_Error) noexcept;
-  friend bool operator!=(POSIX_File_IO_Error, POSIX_File_IO_Error) noexcept;
+  friend bool operator==(POSIX_File_IO_Error, POSIX_File_IO_Error);
+  friend bool operator!=(POSIX_File_IO_Error, POSIX_File_IO_Error);
 };
 #endif
 
@@ -83,15 +83,15 @@ struct File_Read_Result
   /*implicit*/ File_Read_Result(int bytes_read)
       : File_Read_Result(std::optional<int>(bytes_read)) {}
 
-  static File_Read_Result end_of_file() noexcept {
+  static File_Read_Result end_of_file() {
     return File_Read_Result(std::optional<int>());
   }
 
-  bool at_end_of_file() const noexcept {
+  bool at_end_of_file() const {
     return this->ok() && !this->value().has_value();
   }
 
-  int bytes_read() const noexcept {
+  int bytes_read() const {
     QLJS_ASSERT(this->ok());
     QLJS_ASSERT(!this->at_end_of_file());
     return ***this;
@@ -106,18 +106,18 @@ struct File_Read_Result
 // INVALID_HANDLE_VALUE).
 class Windows_Handle_File_Ref {
  public:
-  explicit Windows_Handle_File_Ref() noexcept;
-  explicit Windows_Handle_File_Ref(HANDLE) noexcept;
+  explicit Windows_Handle_File_Ref();
+  explicit Windows_Handle_File_Ref(HANDLE);
 
-  bool valid() const noexcept;
+  bool valid() const;
 
-  HANDLE get() noexcept;
+  HANDLE get();
 
-  File_Read_Result read(void *buffer, int buffer_size) noexcept;
-  Result<std::size_t, Windows_File_IO_Error> write(
-      const void *buffer, std::size_t buffer_size) noexcept;
-  Result<void, Windows_File_IO_Error> write_full(
-      const void *buffer, std::size_t buffer_size) noexcept;
+  File_Read_Result read(void *buffer, int buffer_size);
+  Result<std::size_t, Windows_File_IO_Error> write(const void *buffer,
+                                                   std::size_t buffer_size);
+  Result<void, Windows_File_IO_Error> write_full(const void *buffer,
+                                                 std::size_t buffer_size);
 
   bool is_pipe_non_blocking();
   void set_pipe_non_blocking();
@@ -125,8 +125,8 @@ class Windows_Handle_File_Ref {
 
   static std::string get_last_error_message();
 
-  static Windows_Handle_File_Ref get_stdout() noexcept;
-  static Windows_Handle_File_Ref get_stderr() noexcept;
+  static Windows_Handle_File_Ref get_stdout();
+  static Windows_Handle_File_Ref get_stderr();
 
  protected:
   HANDLE handle_;
@@ -141,20 +141,20 @@ class Windows_Handle_File_Ref {
 // INVALID_HANDLE_VALUE).
 class Windows_Handle_File : private Windows_Handle_File_Ref {
  public:
-  explicit Windows_Handle_File() noexcept;
-  explicit Windows_Handle_File(HANDLE) noexcept;
+  explicit Windows_Handle_File();
+  explicit Windows_Handle_File(HANDLE);
 
   Windows_Handle_File(const Windows_Handle_File &) = delete;
   Windows_Handle_File &operator=(const Windows_Handle_File &) = delete;
 
-  Windows_Handle_File(Windows_Handle_File &&) noexcept;
-  Windows_Handle_File &operator=(Windows_Handle_File &&) noexcept;
+  Windows_Handle_File(Windows_Handle_File &&);
+  Windows_Handle_File &operator=(Windows_Handle_File &&);
 
   ~Windows_Handle_File();
 
   void close();
 
-  Windows_Handle_File_Ref ref() const noexcept;
+  Windows_Handle_File_Ref ref() const;
 
   using Windows_Handle_File_Ref::get;
   using Windows_Handle_File_Ref::get_last_error_message;
@@ -174,18 +174,18 @@ class Windows_Handle_File : private Windows_Handle_File_Ref {
 // POSIX_FD_File_Ref may hold an invalid fd (-1).
 class POSIX_FD_File_Ref {
  public:
-  explicit POSIX_FD_File_Ref() noexcept;
-  explicit POSIX_FD_File_Ref(int fd) noexcept;
+  explicit POSIX_FD_File_Ref();
+  explicit POSIX_FD_File_Ref(int fd);
 
-  bool valid() const noexcept;
+  bool valid() const;
 
-  int get() const noexcept;
+  int get() const;
 
-  File_Read_Result read(void *buffer, int buffer_size) noexcept;
-  Result<std::size_t, POSIX_File_IO_Error> write(
-      const void *buffer, std::size_t buffer_size) noexcept;
-  Result<void, POSIX_File_IO_Error> write_full(
-      const void *buffer, std::size_t buffer_size) noexcept;
+  File_Read_Result read(void *buffer, int buffer_size);
+  Result<std::size_t, POSIX_File_IO_Error> write(const void *buffer,
+                                                 std::size_t buffer_size);
+  Result<void, POSIX_File_IO_Error> write_full(const void *buffer,
+                                               std::size_t buffer_size);
 
   bool is_pipe_non_blocking();
   void set_pipe_non_blocking();
@@ -193,8 +193,8 @@ class POSIX_FD_File_Ref {
 
   static std::string get_last_error_message();
 
-  static POSIX_FD_File_Ref get_stdout() noexcept;
-  static POSIX_FD_File_Ref get_stderr() noexcept;
+  static POSIX_FD_File_Ref get_stdout();
+  static POSIX_FD_File_Ref get_stderr();
 
  protected:
   static constexpr int invalid_fd = -1;
@@ -207,20 +207,20 @@ class POSIX_FD_File_Ref {
 // POSIX_FD_File may hold an invalid fd (-1).
 class POSIX_FD_File : private POSIX_FD_File_Ref {
  public:
-  explicit POSIX_FD_File() noexcept;
-  explicit POSIX_FD_File(int fd) noexcept;
+  explicit POSIX_FD_File();
+  explicit POSIX_FD_File(int fd);
 
   POSIX_FD_File(const POSIX_FD_File &) = delete;
   POSIX_FD_File &operator=(const POSIX_FD_File &) = delete;
 
-  POSIX_FD_File(POSIX_FD_File &&) noexcept;
-  POSIX_FD_File &operator=(POSIX_FD_File &&) noexcept;
+  POSIX_FD_File(POSIX_FD_File &&);
+  POSIX_FD_File &operator=(POSIX_FD_File &&);
 
   ~POSIX_FD_File();
 
   void close();
 
-  POSIX_FD_File_Ref ref() const noexcept;
+  POSIX_FD_File_Ref ref() const;
 
   using POSIX_FD_File_Ref::get;
   using POSIX_FD_File_Ref::get_last_error_message;

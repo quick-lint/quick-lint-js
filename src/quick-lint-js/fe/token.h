@@ -291,8 +291,8 @@ std::ostream& operator<<(std::ostream&, Token_Type);
 using Escape_Sequence_List = Bump_Vector<Source_Code_Span, Monotonic_Allocator>;
 
 struct Token {
-  Identifier identifier_name() const noexcept;
-  Source_Code_Span span() const noexcept;
+  Identifier identifier_name() const;
+  Source_Code_Span span() const;
 
   // Report Diag_Keywords_Cannot_Contain_Escape_Sequences for each escape
   // sequence in the most recently parsed keyword-looking identifier.

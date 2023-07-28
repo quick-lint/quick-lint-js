@@ -11,15 +11,11 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-CLI_Source_Position CLI_Source_Range::begin() const noexcept {
-  return this->begin_;
-}
+CLI_Source_Position CLI_Source_Range::begin() const { return this->begin_; }
 
-CLI_Source_Position CLI_Source_Range::end() const noexcept {
-  return this->end_;
-}
+CLI_Source_Position CLI_Source_Range::end() const { return this->end_; }
 
-CLI_Locator::CLI_Locator(Padded_String_View input) noexcept : input_(input) {}
+CLI_Locator::CLI_Locator(Padded_String_View input) : input_(input) {}
 
 CLI_Source_Range CLI_Locator::range(Source_Code_Span span) const {
   CLI_Source_Position begin = this->position(span.begin());
@@ -27,7 +23,7 @@ CLI_Source_Range CLI_Locator::range(Source_Code_Span span) const {
   return CLI_Source_Range(begin, end);
 }
 
-CLI_Source_Position CLI_Locator::position(const Char8 *source) const noexcept {
+CLI_Source_Position CLI_Locator::position(const Char8 *source) const {
   CLI_Source_Position::Offset_Type offset = this->offset(source);
   CLI_Source_Position::Line_Number_Type line_number =
       this->find_line_at_offset(offset);
@@ -79,15 +75,15 @@ CLI_Source_Position::Line_Number_Type CLI_Locator::find_line_at_offset(
          1;
 }
 
-CLI_Source_Position::Offset_Type CLI_Locator::offset(const Char8 *source) const
-    noexcept {
+CLI_Source_Position::Offset_Type CLI_Locator::offset(
+    const Char8 *source) const {
   return narrow_cast<CLI_Source_Position::Offset_Type>(source -
                                                        this->input_.data());
 }
 
 CLI_Source_Position CLI_Locator::position(
     CLI_Source_Position::Line_Number_Type line_number,
-    CLI_Source_Position::Offset_Type offset) const noexcept {
+    CLI_Source_Position::Offset_Type offset) const {
   CLI_Source_Position::Offset_Type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number - 1)];
   int column_number = narrow_cast<int>(offset - beginning_of_line_offset) + 1;

@@ -12,10 +12,9 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
 #if QLJS_HAVE_CHAR8_T
-Streamable_String8_View::Streamable_String8_View(String8_View sv) noexcept
-    : sv_(sv) {}
+Streamable_String8_View::Streamable_String8_View(String8_View sv) : sv_(sv) {}
 
-Streamable_String8_View out_string8(String8_View sv) noexcept {
+Streamable_String8_View out_string8(String8_View sv) {
   return Streamable_String8_View(sv);
 }
 #endif
@@ -43,7 +42,7 @@ const Char8 *strchr(const Char8 *haystack, Char8 needle) {
       reinterpret_cast<const char *>(haystack), static_cast<char>(needle)));
 }
 
-Char8 toupper(Char8 c) noexcept {
+Char8 toupper(Char8 c) {
   if (islower(c)) {
     return narrow_cast<Char8>(c - (u8'a' - u8'A'));
   } else {
@@ -51,7 +50,7 @@ Char8 toupper(Char8 c) noexcept {
   }
 }
 
-Char8 tolower(Char8 c) noexcept {
+Char8 tolower(Char8 c) {
   if (isupper(c)) {
     return narrow_cast<Char8>(c + (u8'a' - u8'A'));
   } else {
@@ -59,9 +58,9 @@ Char8 tolower(Char8 c) noexcept {
   }
 }
 
-bool islower(Char8 c) noexcept { return u8'a' <= c && c <= u8'z'; }
+bool islower(Char8 c) { return u8'a' <= c && c <= u8'z'; }
 
-bool isupper(Char8 c) noexcept { return u8'A' <= c && c <= u8'Z'; }
+bool isupper(Char8 c) { return u8'A' <= c && c <= u8'Z'; }
 
 bool haslower(String8_View s) {
   for (auto const &c : s) {

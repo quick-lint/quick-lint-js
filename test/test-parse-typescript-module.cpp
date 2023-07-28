@@ -125,14 +125,11 @@ TEST_F(Test_Parse_TypeScript_Module,
         ElementsAreArray({import_type_decl(u8"A"_sv), import_decl(u8"B"_sv)}))
         << "B should be imported as an 'import' not an 'import_type' in case "
            "the user thought that the 'type' keyword only applied to 'A'";
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named,
-                type_keyword, u8"import "_sv.size(), u8"type"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"       ^^^^ Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named"_diag,
+        });
   }
 
   {
@@ -281,24 +278,17 @@ TEST_F(Test_Parse_TypeScript_Module,
 
 TEST_F(Test_Parse_TypeScript_Module, mixed_inline_type_and_type_only_import) {
   {
-    Test_Parser p(u8"import type {type T} from 'mod';"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"import type {type T} from 'mod';"_sv,  //
+        u8"             ^^^^ Diag_TypeScript_Inline_Type_Import_Not_Allowed_In_Type_Only_Import.inline_type_keyword\n"_diag
+        u8"       ^^^^ .type_only_keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({import_type_decl(u8"T"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Inline_Type_Import_Not_Allowed_In_Type_Only_Import,
-                inline_type_keyword, u8"import type {"_sv.size(), u8"type"_sv,
-                type_only_keyword, u8"import "_sv.size(), u8"type"_sv),
-        }));
   }
 }
 
@@ -406,23 +396,16 @@ TEST_F(Test_Parse_TypeScript_Module,
 
 TEST_F(Test_Parse_TypeScript_Module, mixed_inline_type_and_type_only_export) {
   {
-    Test_Parser p(u8"export type {type T};"_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export type {type T};"_sv,  //
+        u8"             ^^^^ Diag_TypeScript_Inline_Type_Export_Not_Allowed_In_Type_Only_Export.inline_type_keyword\n"_diag
+        u8"       ^^^^ .type_only_keyword"_diag,  //
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Inline_Type_Export_Not_Allowed_In_Type_Only_Export,
-                inline_type_keyword, u8"export type {"_sv.size(), u8"type"_sv,
-                type_only_keyword, u8"export "_sv.size(), u8"type"_sv),
-        }));
   }
 }
 
@@ -574,18 +557,15 @@ TEST_F(Test_Parse_TypeScript_Module,
   }
 
   {
-    Test_Parser p(u8"export default abstract\nclass C { abstract m(); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default abstract\nclass C { abstract m(); }"_sv,          //
+        u8"Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class"_diag,  //
+
+        typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"abstract"}))
         << "'abstract' should be treated as a variable name, not a keyword";
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({class_decl(u8"C"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE(Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class),
-        }));
   }
 }
 
@@ -756,35 +736,25 @@ TEST_F(Test_Parse_TypeScript_Module,
                           }));
   }
 
-  {
-    Test_Parser p(u8"namespace ns { declare import fs from 'fs'; }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE(Diag_Import_Cannot_Have_Declare_Keyword),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"namespace ns { declare import fs from 'fs'; }"_sv,  //
+      u8"Diag_Import_Cannot_Have_Declare_Keyword"_diag,      //
+
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Module,
        export_equal_is_not_allowed_in_javascript) {
   {
-    Test_Parser p(u8"export = foo;"_sv, javascript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export = foo;"_sv,  //
+        u8"       ^ Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript.equal\n"_diag
+        u8"^^^^^^ .export_keyword"_diag,  //
+        javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_export_use",  // foo
                               "visit_end_of_module",        //
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript,  //
-                equal, u8"export "_sv.size(), u8"="_sv, export_keyword, 0,
-                u8"export"_sv),
-        }));
   }
 }
 

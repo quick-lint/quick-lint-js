@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/container/concat.h>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -11,7 +12,9 @@
 #include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/gtest.h>
+#include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/reflection/cxx-parser.h>
 #include <quick-lint-js/util/cpp.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <type_traits>
@@ -36,192 +39,319 @@ bool is_diag_type_char(Char8 c) {
          (u8'0' <= c && c <= u8'9') ||  //
          c == u8'_';
 }
+
+std::optional<Enum_Kind> try_parse_enum_kind(String8_View);
+std::optional<Statement_Kind> try_parse_statement_kind(String8_View);
+
+struct Diagnostic_Info_Variable_Debug {
+  String8_View name;
+  Diagnostic_Arg_Type type;
+  std::uint8_t offset;
+};
+
+struct Diagnostic_Info_Debug {
+  Fixed_Vector<Diagnostic_Info_Variable_Debug, 4> variables;
+
+  const Diagnostic_Info_Variable_Debug* find(String8_View name) const {
+    for (const Diagnostic_Info_Variable_Debug& var : this->variables) {
+      if (var.name == name) {
+        return &var;
+      }
+    }
+    return nullptr;
+  }
+
+  const Diagnostic_Info_Variable_Debug* find_first(
+      Diagnostic_Arg_Type type) const {
+    for (const Diagnostic_Info_Variable_Debug& var : this->variables) {
+      if (var.type == type) {
+        return &var;
+      }
+    }
+    return nullptr;
+  }
+};
+
+const Diagnostic_Info_Debug& get_diagnostic_info_debug(Diag_Type);
 }
 
 Result<Diagnostic_Assertion, std::vector<std::string>>
 Diagnostic_Assertion::parse(const Char8* specification) {
-  const Char8* p = specification;
-  std::vector<std::string> errors;
+  struct Diagnostic_Assertion_Lexer {
+    explicit Diagnostic_Assertion_Lexer(const Char8* specification)
+        : p(specification) {}
+
+    Padded_String_Size parse_leading_spaces() {
+      Padded_String_Size leading_space_count = 0;
+      for (; *p == u8' '; ++p) {
+        leading_space_count += 1;
+      }
+      return leading_space_count;
+    }
+
+    std::optional<Padded_String_Size> parse_span_carets() {
+      if (*p == u8'`') {
+        ++p;
+        return 0;
+      } else if (*p == u8'^') {
+        Padded_String_Size caret_count = 0;
+        for (; *p == u8'^'; ++p) {
+          caret_count += 1;
+        }
+        return caret_count;
+      } else {
+        return std::nullopt;
+      }
+    }
+
+    void skip_spaces() { (void)this->parse_leading_spaces(); }
+
+    // Parse '.' followed by an identifier.
+    //
+    // Returns an empty String8_View if there was no '.'.
+    String8_View try_parse_dot_identifier() {
+      if (*p != u8'.') {
+        return String8_View();
+      }
+      ++p;
+      String8_View span = this->parse_identifier();
+      if (span.empty()) {
+        this->errors.push_back("expected member variable name after '.'");
+      }
+      return span;
+    }
+
+    String8_View parse_identifier() {
+      const Char8* begin = p;
+      for (; is_diag_type_char(*p); ++p) {
+      }
+      const Char8* end = p;
+      return make_string_view(begin, end);
+    }
+
+    String8_View parse_to_closing_curly_at_end_of_line() {
+      const Char8* begin = p;
+      for (; *p != u8'\0'; ++p) {
+      }
+      if (p == begin || p[-1] != u8'}') {
+        errors.push_back("expected closing '}'");
+        return String8_View();
+      }
+      const Char8* end = p - 1;
+      QLJS_ASSERT(*p == u8'\0');
+      return make_string_view(begin, end);
+    }
+
+    const Char8* p;
+
+    std::vector<std::string> errors;
+  };
+  Diagnostic_Assertion_Lexer lexer(specification);
 
   Diagnostic_Assertion out_assertion;
 
-  Padded_String_Size leading_space_count = 0;
-  for (; *p == u8' '; ++p) {
-    leading_space_count += 1;
-  }
-  out_assertion.members[0].span_begin_offset = leading_space_count;
+  // Names of diagnostic member variables.
+  //
+  // If an entry is empty, the member's name is inferred.
+  Fixed_Vector<String8_View, 3> diag_members;
 
-  Padded_String_Size caret_count = 0;
-  if (*p == u8'`') {
-    ++p;
-  } else {
-    for (; *p == u8'^'; ++p) {
-      caret_count += 1;
-    }
-  }
-  out_assertion.members[0].span_end_offset = leading_space_count + caret_count;
-
-  for (; *p == u8' '; ++p) {
-  }
-
-  const Char8* diag_type_begin = p;
-  for (; is_diag_type_char(*p); ++p) {
-  }
-  const Char8* diag_type_end = p;
-  String8_View diag_type_span =
-      make_string_view(diag_type_begin, diag_type_end);
-
-  String8_View diag_member_span;
-  if (*p == u8'.') {
-    ++p;
-    const Char8* diag_member_begin = p;
-    for (; is_diag_type_char(*p); ++p) {
-    }
-    const Char8* diag_member_end = p;
-    if (diag_member_begin == diag_member_end) {
-      errors.push_back("expected member variable name after '.'");
-    }
-    diag_member_span = make_string_view(diag_member_begin, diag_member_end);
-  }
-
+  String8_View diag_type_span;
   String8_View extra_member_span;
   String8_View extra_member_value_span;
-  if (*p == u8'{' && !diag_member_span.empty()) {
-    ++p;
-    if (*p != u8'.') {
-      goto done_unexpected;
-    }
-    ++p;
-    const Char8* extra_member_begin = p;
-    for (; is_diag_type_char(*p); ++p) {
-    }
-    const Char8* extra_member_end = p;
-    if (extra_member_begin == extra_member_end) {
-      errors.push_back("expected member variable name after '{.'");
+
+  for (Fixed_Vector_Size i = 0; i < 3; ++i) {
+    Padded_String_Size leading_spaces = lexer.parse_leading_spaces();
+    std::optional<Padded_String_Size> span_carats = lexer.parse_span_carets();
+    if (!span_carats.has_value()) {
+      const Char8* old_p = lexer.p;
+
+      diag_type_span = lexer.parse_identifier();
+
+      String8_View member_variable = lexer.try_parse_dot_identifier();
+      if (member_variable.empty()) {
+        if (i != 0) {
+          lexer.p = old_p;
+          goto done_unexpected;
+        }
+      } else {
+        if (i == 0) {
+          lexer.errors.push_back(
+              "member variable is only allowed if a span (^^^) is provided");
+        } else {
+          lexer.errors.push_back(concat("missing span (^^^) before ."sv,
+                                        to_string_view(member_variable)));
+        }
+      }
+
+      // If just the type was given with no span, then other member spans are
+      // not allowed.
+      break;
     }
 
-    if (*p != u8'=') {
-      goto done_unexpected;
-    }
-    ++p;
+    Member& member = out_assertion.members.emplace_back();
+    member.span_begin_offset = leading_spaces;
+    member.span_end_offset = member.span_begin_offset + *span_carats;
 
-    const Char8* extra_member_value_begin = p;
-    for (; *p != u8'\0'; ++p) {
-    }
-    --p;
-    if (*p != u8'}') {
-      errors.push_back("expected closing '}'");
-      return failed_result(std::move(errors));
-    }
-    const Char8* extra_member_value_end = p;
-    ++p;
-    QLJS_ASSERT(*p == u8'\0');
+    lexer.skip_spaces();
 
-    extra_member_span = make_string_view(extra_member_begin, extra_member_end);
-    extra_member_value_span =
-        make_string_view(extra_member_value_begin, extra_member_value_end);
+    if (i == 0) {
+      diag_type_span = lexer.parse_identifier();
+    }
+    diag_members.push_back(lexer.try_parse_dot_identifier());
+
+    if (*lexer.p != u8'\n') {
+      break;
+    }
+    ++lexer.p;
   }
 
-  if (*p != u8'\0') {
-    if (*p == ' ') {
-      errors.push_back("trailing whitespace is not allowed in _diag");
+  if (*lexer.p == u8'{' && (diag_members.empty() || !diag_members[0].empty())) {
+    ++lexer.p;
+    if (*lexer.p != u8'.') {
+      goto done_unexpected;
+    }
+    ++lexer.p;
+    extra_member_span = lexer.parse_identifier();
+    if (extra_member_span.empty()) {
+      lexer.errors.push_back("expected member variable name after '{.'");
+    }
+
+    if (*lexer.p != u8'=') {
+      extra_member_span = String8_View();
+      goto done_unexpected;
+    }
+    ++lexer.p;
+
+    extra_member_value_span = lexer.parse_to_closing_curly_at_end_of_line();
+  }
+
+  if (*lexer.p != u8'\0') {
+    if (*lexer.p == ' ') {
+      lexer.errors.push_back("trailing whitespace is not allowed in _diag");
     } else {
     done_unexpected:
-      errors.push_back(concat("unexpected '"sv,
-                              to_string_view(String8_View(p, 1)),
-                              "' in _diag"sv));
+      lexer.errors.push_back(concat("unexpected '"sv,
+                                    to_string_view(String8_View(lexer.p, 1)),
+                                    "' in _diag"sv));
     }
   }
 
   auto diag_type_it = diag_type_name_to_diag_type.find(diag_type_span);
   if (diag_type_it == diag_type_name_to_diag_type.end()) {
-    if (errors.empty()) {
-      errors.push_back(concat("invalid diagnostic type: '"sv,
-                              to_string_view(diag_type_span), "'"sv));
+    if (lexer.errors.empty()) {
+      lexer.errors.push_back(concat("invalid diagnostic type: '"sv,
+                                    to_string_view(diag_type_span), "'"sv));
     }
-    return failed_result(std::move(errors));
+    return failed_result(std::move(lexer.errors));
   }
 
   out_assertion.type = diag_type_it->second;
   const Diagnostic_Info_Debug& diag_info =
       get_diagnostic_info_debug(out_assertion.type);
-  bool member_is_required = diag_info.variable_count() > 1;
-  if (member_is_required && diag_member_span.empty()) {
+  bool member_is_required = diag_info.variables.size() > 1;
+  if (member_is_required &&
+      (!diag_members.empty() && diag_members[0].empty())) {
     std::string members;
     for (const Diagnostic_Info_Variable_Debug& var : diag_info.variables) {
-      if (var.name != nullptr &&
-          var.type == Diagnostic_Arg_Type::source_code_span) {
+      if (var.type == Diagnostic_Arg_Type::source_code_span) {
         if (!members.empty()) {
           members += " or "sv;
         }
         members += '.';
-        members += var.name;
+        members += to_string_view(var.name);
       }
     }
-    errors.push_back(concat("member required for "sv,
-                            to_string_view(diag_type_span), "; try "sv,
-                            members));
+    lexer.errors.push_back(concat("member required for "sv,
+                                  to_string_view(diag_type_span), "; try "sv,
+                                  members));
   }
 
-  const Diagnostic_Info_Variable_Debug* member;
-  if (diag_member_span.empty()) {
-    // Default to the first Source_Code_Span member.
-    member = diag_info.find_first(Diagnostic_Arg_Type::source_code_span);
-  } else {
-    member = diag_info.find(to_string_view(diag_member_span));
-  }
-  QLJS_ALWAYS_ASSERT(member != nullptr);
+  for (Fixed_Vector_Size i = 0; i < diag_members.size(); ++i) {
+    const Diagnostic_Info_Variable_Debug* member;
+    bool can_infer_member_variable = i == 0;
+    if (can_infer_member_variable && diag_members[i].empty()) {
+      // Default to the first Source_Code_Span member.
+      member = diag_info.find_first(Diagnostic_Arg_Type::source_code_span);
+    } else {
+      member = diag_info.find(diag_members[i]);
+    }
+    QLJS_ALWAYS_ASSERT(member != nullptr);
 
-  out_assertion.members[0].name = member->name;
-  out_assertion.members[0].offset = member->offset;
-  out_assertion.members[0].type = member->type;
+    Member& out_member = out_assertion.members[i];
+    out_member.name = member->name;
+    out_member.offset = member->offset;
+    out_member.type = member->type;
+  }
 
   if (!extra_member_span.empty()) {
     const Diagnostic_Info_Variable_Debug* extra_member =
-        diag_info.find(to_string_view(extra_member_span));
+        diag_info.find(extra_member_span);
     QLJS_ALWAYS_ASSERT(extra_member != nullptr);
+
+    Member& out_member = out_assertion.members.emplace_back();
     switch (extra_member->type) {
     case Diagnostic_Arg_Type::char8:
       if (extra_member_value_span.size() != 1) {
-        errors.push_back(
+        lexer.errors.push_back(
             concat("member {."sv, to_string_view(extra_member_span),
                    "} is a Char8 but the given value is not one byte"sv));
-        return failed_result(std::move(errors));
+        return failed_result(std::move(lexer.errors));
       }
-      out_assertion.members[1].name = extra_member->name;
-      out_assertion.members[1].offset = extra_member->offset;
-      out_assertion.members[1].type = extra_member->type;
-      out_assertion.members[1].character = extra_member_value_span[0];
+      out_member.name = extra_member->name;
+      out_member.offset = extra_member->offset;
+      out_member.type = extra_member->type;
+      out_member.character = extra_member_value_span[0];
       break;
+
+    case Diagnostic_Arg_Type::enum_kind: {
+      out_member.name = extra_member->name;
+      out_member.offset = extra_member->offset;
+      out_member.type = extra_member->type;
+      std::optional<Enum_Kind> enum_kind =
+          try_parse_enum_kind(extra_member_value_span);
+      if (enum_kind.has_value()) {
+        out_member.enum_kind = *enum_kind;
+      } else {
+        lexer.errors.push_back(concat("invalid Enum_Kind: "sv,
+                                      to_string_view(extra_member_value_span)));
+      }
+      break;
+    }
 
     case Diagnostic_Arg_Type::string8_view:
-      out_assertion.members[1].name = extra_member->name;
-      out_assertion.members[1].offset = extra_member->offset;
-      out_assertion.members[1].type = extra_member->type;
-      out_assertion.members[1].string = extra_member_value_span;
+      out_member.name = extra_member->name;
+      out_member.offset = extra_member->offset;
+      out_member.type = extra_member->type;
+      out_member.string = extra_member_value_span;
       break;
+
+    case Diagnostic_Arg_Type::statement_kind: {
+      out_member.name = extra_member->name;
+      out_member.offset = extra_member->offset;
+      out_member.type = extra_member->type;
+      std::optional<Statement_Kind> statement_kind =
+          try_parse_statement_kind(extra_member_value_span);
+      if (statement_kind.has_value()) {
+        out_member.statement_kind = *statement_kind;
+      } else {
+        lexer.errors.push_back(concat("invalid Statement_Kind: "sv,
+                                      to_string_view(extra_member_value_span)));
+      }
+      break;
+    }
 
     default:
-      errors.push_back(concat("member {."sv, to_string_view(extra_member_span),
-                              "} has unsupported type"sv));
+      lexer.errors.push_back(concat("member {."sv,
+                                    to_string_view(extra_member_span),
+                                    "} has unsupported type"sv));
       break;
     }
   }
 
-  if (!errors.empty()) {
-    return failed_result(std::move(errors));
+  if (!lexer.errors.empty()) {
+    return failed_result(std::move(lexer.errors));
   }
   return out_assertion;
-}
-
-int Diagnostic_Assertion::member_count() const {
-  int count = 0;
-  for (const Diagnostic_Assertion::Member& member : this->members) {
-    if (member.name != nullptr) {
-      count += 1;
-    }
-  }
-  return count;
 }
 
 Diagnostic_Assertion Diagnostic_Assertion::parse_or_exit(
@@ -326,13 +456,10 @@ diagnostics_matcher(Padded_String_View code,
         diag.adjusted_for_escaped_characters(code.string_view());
 
     std::vector<Diag_Matcher_2::Field> fields;
-    int member_count = adjusted_diag.member_count();
-    for (int i = 0; i < member_count; ++i) {
-      const Diagnostic_Assertion::Member& member =
-          adjusted_diag.members[narrow_cast<std::size_t>(i)];
+    for (const Diagnostic_Assertion::Member& member : adjusted_diag.members) {
       Diag_Matcher_2::Field field;
       field.arg = Diag_Matcher_Arg{
-          .member_name = member.name,
+          .member_name = to_string_view(member.name),
           .member_offset = member.offset,
           .member_type = member.type,
       };
@@ -346,8 +473,14 @@ diagnostics_matcher(Padded_String_View code,
       case Diagnostic_Arg_Type::char8:
         field.character = member.character;
         break;
+      case Diagnostic_Arg_Type::enum_kind:
+        field.enum_kind = member.enum_kind;
+        break;
       case Diagnostic_Arg_Type::string8_view:
         field.string = member.string;
+        break;
+      case Diagnostic_Arg_Type::statement_kind:
+        field.statement_kind = member.statement_kind;
         break;
       default:
         QLJS_ASSERT(false);
@@ -373,6 +506,104 @@ diagnostics_matcher(Padded_String_View code,
                     std::initializer_list<Diagnostic_Assertion> assertions) {
   return diagnostics_matcher(code,
                              Span<const Diagnostic_Assertion>(assertions));
+}
+
+namespace {
+std::optional<Enum_Kind> try_parse_enum_kind(String8_View s) {
+#define QLJS_CASE(kind)                                     \
+  if (s == u8"Enum_Kind::"_sv QLJS_CPP_QUOTE_U8_SV(kind)) { \
+    return Enum_Kind::kind;                                 \
+  }
+  QLJS_CASE(declare_const_enum)
+  QLJS_CASE(const_enum)
+  QLJS_CASE(declare_enum)
+  QLJS_CASE(normal)
+  return std::nullopt;
+#undef QLJS_CASE
+}
+
+std::optional<Statement_Kind> try_parse_statement_kind(String8_View s) {
+#define QLJS_CASE(kind)                                          \
+  if (s == u8"Statement_Kind::"_sv QLJS_CPP_QUOTE_U8_SV(kind)) { \
+    return Statement_Kind::kind;                                 \
+  }
+  QLJS_CASE(do_while_loop)
+  QLJS_CASE(for_loop)
+  QLJS_CASE(if_statement)
+  QLJS_CASE(while_loop)
+  QLJS_CASE(with_statement)
+  QLJS_CASE(labelled_statement)
+  return std::nullopt;
+#undef QLJS_CASE
+}
+
+Diagnostic_Arg_Type parse_diagnostic_arg_type(String8_View code) {
+#define QLJS_CASE(type_name, arg_type)             \
+  do {                                             \
+    if (code == QLJS_CPP_QUOTE_U8_SV(type_name)) { \
+      return Diagnostic_Arg_Type::arg_type;        \
+    }                                              \
+  } while (false)
+
+  QLJS_CASE(Char8, char8);
+  QLJS_CASE(Enum_Kind, enum_kind);
+  QLJS_CASE(Source_Code_Span, source_code_span);
+  QLJS_CASE(Statement_Kind, statement_kind);
+  QLJS_CASE(String8_View, string8_view);
+  QLJS_CASE(Variable_Kind, variable_kind);
+
+#undef QLJS_CASE
+
+  QLJS_UNREACHABLE();
+}
+
+const Diagnostic_Info_Debug& get_diagnostic_info_debug(Diag_Type type) {
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wshadow=compatible-local")
+
+  static Padded_String diagnostic_types_code = []() -> Padded_String {
+    Result<Padded_String, Read_File_IO_Error> diagnostic_types_h =
+        read_file(QLJS_DIAGNOSTIC_TYPES_H_FILE_PATH);
+    if (!diagnostic_types_h.ok()) {
+      std::fprintf(
+          stderr,
+          "fatal: failed to read diagnostics file for test reflection: %s\n",
+          diagnostic_types_h.error_to_string().c_str());
+      std::exit(1);
+    }
+    return *std::move(diagnostic_types_h);
+  }();
+
+  static std::vector<Diagnostic_Info_Debug> infos =
+      []() -> std::vector<Diagnostic_Info_Debug> {
+    CLI_Locator locator(&diagnostic_types_code);
+    CXX_Parser parser(&diagnostic_types_code, QLJS_DIAGNOSTIC_TYPES_H_FILE_PATH,
+                      &locator);
+    parser.parse_file();
+
+    std::vector<Diagnostic_Info_Debug> infos;
+    infos.reserve(parser.parsed_types.size());
+    for (CXX_Diagnostic_Type& diag_type : parser.parsed_types) {
+      Diagnostic_Info_Debug& info = infos.emplace_back();
+      Fixed_Vector<std::size_t, 4> variable_offsets = layout_offsets(
+          Span<const CXX_Diagnostic_Variable>(diag_type.variables));
+      for (Fixed_Vector_Size i = 0; i < diag_type.variables.size(); ++i) {
+        CXX_Diagnostic_Variable& var = diag_type.variables[i];
+        info.variables.push_back(Diagnostic_Info_Variable_Debug{
+            .name = var.name,
+            .type = parse_diagnostic_arg_type(var.type),
+            .offset = narrow_cast<std::uint8_t>(variable_offsets[i]),
+        });
+      }
+    }
+
+    return infos;
+  }();
+
+  return infos.at(static_cast<std::size_t>(type));
+
+  QLJS_WARNING_POP
+}
 }
 }
 

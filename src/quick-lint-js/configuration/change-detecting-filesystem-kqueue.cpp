@@ -257,12 +257,12 @@ Change_Detecting_Filesystem_Kqueue::File_ID::from_open_file(
 }
 
 bool Change_Detecting_Filesystem_Kqueue::File_ID::operator==(
-    const Change_Detecting_Filesystem_Kqueue::File_ID& rhs) const noexcept {
+    const Change_Detecting_Filesystem_Kqueue::File_ID& rhs) const {
   return this->device == rhs.device && this->inode == rhs.inode;
 }
 
 bool Change_Detecting_Filesystem_Kqueue::File_ID::operator!=(
-    const Change_Detecting_Filesystem_Kqueue::File_ID& rhs) const noexcept {
+    const Change_Detecting_Filesystem_Kqueue::File_ID& rhs) const {
   return !(*this == rhs);
 }
 

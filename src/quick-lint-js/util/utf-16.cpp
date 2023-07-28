@@ -140,7 +140,7 @@ std::optional<std::string> wstring_to_mbstring(std::wstring_view wstring) {
 }
 #endif
 
-std::size_t count_utf_8_code_units(std::u16string_view utf_16) noexcept {
+std::size_t count_utf_8_code_units(std::u16string_view utf_16) {
   std::size_t count = 0;
   for (char16_t c : utf_16) {
     if (c < 0x0080) {
@@ -158,7 +158,7 @@ std::size_t count_utf_8_code_units(std::u16string_view utf_16) noexcept {
 }
 
 #if defined(_WIN32)
-std::size_t count_utf_8_code_units(std::wstring_view utf_16) noexcept {
+std::size_t count_utf_8_code_units(std::wstring_view utf_16) {
   static_assert(sizeof(char16_t) == sizeof(wchar_t));
   return count_utf_8_code_units(std::u16string_view(
       reinterpret_cast<const char16_t *>(utf_16.data()), utf_16.size()));

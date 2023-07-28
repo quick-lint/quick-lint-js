@@ -32,12 +32,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: benchmark/benchmark-translation.cpp
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "variable assigned before its declaration"
 msgstr ""
 
 #: benchmark/benchmark-translation.cpp
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "variable declared here"
 msgstr ""
 
@@ -97,1774 +97,1778 @@ msgstr ""
 msgid "a labelled statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "abstract fields cannot have default values"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "field marked abstract here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "abstract methods cannot be marked 'async'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "abstract methods cannot be marked as a generator"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "abstract properties are not allowed in interfaces"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "abstract properties are only allowed in abstract classes"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "class is not marked abstract"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "abstract methods cannot contain a body"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing '<>' and '</>' to enclose multiple children"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "children end here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing parentheses around parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript type annotation requires parentheses"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "invalid usage of ? as a prefix or suffix in the a type expression, use '| "
 "void' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment to const global variable"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment to const variable"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "const variable declared here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment to imported variable"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "imported variable declared here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment to const variable before its declaration"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment to undeclared variable"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'await' is only allowed in async functions"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'await' cannot be followed by an arrow function; use 'async' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'async static' is not allowed; write 'static async' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'async export' is not allowed; write 'export async' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare class' fields cannot be initalized"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare class' methods cannot be marked 'async'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare class' methods cannot be marked as a generator"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare class' methods cannot contain a body"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript 'declare abstract class' is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript 'declare class' is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare function' cannot be marked 'async'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare function' cannot be marked as a generator"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare function' cannot have a body"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare function' here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript 'declare function' is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare' should not be written inside a 'declare namespace'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "containing 'declare namespace' starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare namespace' cannot contain statements, only declarations"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare' here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot import a module from inside a 'declare namespace'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare namespace' starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare {1}' cannot have initializer"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare {1}' started here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript 'declare {1}' is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'function async' is not allowed; write 'async function' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "BigInt literal contains decimal point"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "BigInt literal contains exponent"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "C-style for loop is missing its third component"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot assign to loop variable in for of/in loop"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot access private identifier outside class"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assigning to 'async' in a for-of loop requires parentheses"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot declare 'await' inside async function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "classes cannot be named 'let'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "let statement cannot declare variables named 'let'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot declare variable named keyword '{0}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot declare 'yield' inside generator function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot declare and export variable with 'export default'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot export variable named 'let'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot export variable named keyword '{0}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot import 'let'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot import variable named keyword '{0}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing quotes around module name '{0}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot reference private variables without object; use 'this.'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot update variable with '{0}' while declaring it"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "remove '{0}' to update an existing variable"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected 'catch' without 'try'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for {1:headlinese}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "a class statement is not allowed as the body of {1:singular}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "character is not allowed in identifiers"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "commas are not allowed after spread parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "leading commas are not allowed in generic parameter lists"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "commas are not allowed between class methods"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "JSON syntax error"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "\"global-groups\" entries must be strings"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "\"global-groups\" must be a boolean or an array"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "\"globals\" descriptor must be a boolean or an object"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "\"globals\" descriptor \"shadowable\" property must be a boolean"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "\"globals\" descriptor \"writable\" property must be a boolean"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "\"globals\" must be an object"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "depth limit exceeded"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing property name between '.' and '.'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "duplicated case clause in switch statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "this case will run instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'else' has no corresponding 'if'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing comparison; '{1}' does not extend to the right side of '{0}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'{0}' found here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "escaped character is not allowed in identifiers"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "code point out of range"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "code point in Unicode escape sequence must not be greater than U+10FFFF"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "escaping '-' is not allowed in tag names; write '-' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "extra ',' is not allowed between function call arguments"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "extra ',' is not allowed between enum members"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "misleading use of ',' operator in index"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "index starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "misleading use of ',' operator in conditional statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected expression after '('"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'{1}' statement starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected ',' between object literal entries"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected expression before newline"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected expression after 'case'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected expression before semicolon"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected 'from \"name_of_module.mjs\"'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected 'from' before module specifier"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected hexadecimal digits in Unicode escape sequence"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected '{{'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected ')' to close function call"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "function call started here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "do-while loop needs parentheses around condition"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "do-while loop is missing '{1}' around condition"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "if statement needs parentheses around condition"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "if statement is missing '{1}' around condition"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "switch statement needs parentheses around condition"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "switch statement is missing '{1}' around condition"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "while loop needs parentheses around condition"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "while loop is missing '{1}' around condition"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "with statement needs parentheses around expression"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "with statement is missing '{1}' around expression"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected variable name for 'catch'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected variable name for 'import'-'as'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "exporting requires 'default'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "exporting requires '{{' and '}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "forwarding exports are only allowed in export-from"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected 'finally' without 'try'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "a function statement is not allowed as the body of {1:singular}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "generator function '*' belongs after keyword function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "generator function '*' belongs before function name"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "only one comma is allowed between or after generic parameters"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'in' disallowed in C-style for loop initializer"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "indexing requires an expression"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "invalid expression left of assignment"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "invalid hex escape sequence: {0}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "invalid lone literal in object literal"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "invalid function parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'{0}' is not allowed for strings; use {1} instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "'.' operator needs a key name; use + to concatenate strings; use [] to "
 "access with a dynamic key"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "invalid UTF-8 sequence"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "attribute has wrong capitalization; write '{1}' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "misspelled React attribute; write '{1}' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "event attributes must be camelCase: '{1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "React/JSX is not allowed in vanilla JavaScript code"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "React/JSX is not allowed in TypeScript code"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "keywords cannot contain escape sequences"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "label named 'await' not allowed in async function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "legacy octal literal may not be BigInt"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "legacy octal literals may not contain underscores"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "{0} with no bindings"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "a lexical declaration is not allowed as the body of {1:singular}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "functions/methods should not have '=>'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "methods should not use the 'function' keyword"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "mismatched JSX tags; expected '</{1}>'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "opening '<{1}>' tag here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing end of array; expected ']'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "array started here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing arrow operator for arrow function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing parameters for arrow function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for catch clause"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for class"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for do-while loop"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for finally clause"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for 'for' loop"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for 'if' statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for 'switch' statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for try statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for TypeScript interface"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for TypeScript namespace"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for while loop"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing catch or finally clause for try statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "try statement starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing catch variable name between parentheses"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing comma between object literal entries"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing comma between generic parameters"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing ',' between variable declarations"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing ':' in conditional expression"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'?' creates a conditional expression"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing condition for if statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing condition for while statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing condition for switch statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing '...' in JSX attribute spread"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing '=' after variable"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing expression between parentheses"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing header and body for 'for' loop"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "for loop needs an iterable, or condition and update clauses"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "use 'while' instead to loop until a condition is false"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing function parameter list"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing for loop header"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing initializer in const declaration"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected expression; missing key for object entry"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing name for class method"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing name in function statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing name of class"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing name of exported class"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing name of exported function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing name or parentheses for function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing operand for operator"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing ',', ';', or newline between object type entries"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "redundant delete statement on variable"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing 'if' after 'else'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing operator between expression and arrow function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing parentheses around operand of '{0}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'{0}' operator cannot be used before '**' without parentheses"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing parentheses around self-invoked function"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "function starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing parentheses around left-hand side of '**'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'**' operator cannot be used after unary '{1}' without parentheses"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing property name after '.' operator"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing semicolon after abstract method"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing semicolon after 'declare class' method"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing semicolon after statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing semicolon after field"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing semicolon after index signature"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing semicolon after interface method"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing semicolon between condition and update parts of for loop"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing semicolon between init and condition parts of for loop"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "incomplete export; expected 'export default ...' or 'export {{name}' or "
 "'export * from ...' or 'export class' or 'export function' or 'export let'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing type between '{1}' and '{0}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing TypeScript type"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing value for object property"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing variable name"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing 'while (condition)' for do-while statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "do-while statement starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "newline is not allowed between 'async' and arrow function parameter list"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "arrow is here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "newline is not allowed between 'async' and 'function'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'function' is here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "newline is not allowed after 'abstract'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "newline is not allowed after 'export declare'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "newline is not allowed after 'interface'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "newline is not allowed after '{0}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "newline is not allowed after 'type'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "newline is not allowed between field name and '!'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "field declared here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "number literal contains consecutive underscores"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "number literal contains trailing underscore(s)"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "octal literal may not have exponent"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "octal literal may not have decimal"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "use ':' instead of '=' in object literals"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript optional parameter requires parentheses"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript optional parameter with type annotation requires parentheses"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "optional parameter cannot have both '?' and initializer; remove '?'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "initializer starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "optional parameter cannot be followed by a required parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "this required parameter appears after the optional parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "integer cannot be represented and will be rounded to '{1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "private properties are not allowed in object literals"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'readonly static' is not allowed; write 'static readonly' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "redeclaration of global variable"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "redeclaration of variable: {0}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "variable already declared here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "redundant 'await'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "RegExp literal flags cannot contain Unicode escapes"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "return statement returns nothing (undefined)"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot use '...' on 'this' parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "unexpected statement before first switch case, expected 'case' or 'default'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "stray comma in let statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "stray comma in function parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "string module name is only allowed with 'declare module'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "module with string name is only allowed at the top level"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'this' must be the first parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "first parameter starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'this' parameters are not allowed in arrow functions"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'this' parameters are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'this' parameter not allowed when destructuring"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "{0} classes are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript <Type> type assertions are not allowed in JSX mode"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "write the type assertion with 'as' here instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "'as const' is only allowed on literals (array, object, string, boolean) and "
 "enum members"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'as const' located here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript 'as' type assertions are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "use ':' instead of '{0}' to type a function parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment-asserted fields are not allowed in 'declare class'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment-asserted fields are not supported in interfaces"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript assignment-asserted fields are not supported in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment-assertion fields cannot have default values"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "here is the assignment assertion operator"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment-asserted field must have a type annotation"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'{0}' is not allowed on methods"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "catch variable can only be typed as '*', 'any', or 'unknown'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript 'implements' is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot delete variables in TypeScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "enum member needs initializer"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "computed value disables enum autoincrement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "computed enum member name must be a simple string"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript's 'enum' feature is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "enum member name cannot be numeric"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "{1:headlinese} value must be a compile-time constant"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "'export =' is not allowed; write 'export default' or 'module.exports "
 "=' (CommonJS) instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'export' keyword here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'extends' must be before 'implements'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "move the 'extends' clause before 'implements' here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript import aliases are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "write 'const' instead of '{0}' here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "index signature must be a field, not a method"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "index signatures require a value type"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'infer' is only allowed between 'extends' and '?' in conditional types"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "parentheses are required around 'infer {1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "function overload signature must be named '{1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "overloaded function '{0}' declared here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "function overload signature cannot have generator '*'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "generic arrow function needs ',' here in TSX"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected at least one parameter in generic parameter list"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript generics are not allowed in JavaScript code"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript type exports are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'type' cannot be used twice in export"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "remove this 'type'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'type' cannot be used twice in import"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "interfaces cannot contain static blocks"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare class' cannot contain static block"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing name for element in named tuple type"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "this tuple type is a named tuple type because at least one element has a name"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'?' belongs only after the tuple element name, not also after the type"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'?' belongs after the tuple element name, not after the type"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'?' goes here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "'...' belongs only before the tuple element name, not also before the type"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'...' belongs before the tuple element name, not before the type"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'...' goes here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot 'export default' from inside a namespace"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "namespace starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript namespaces are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript non-null assertions are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript optional parameters are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "optional tuple elements cannot come after spread elements"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "prior spread element is here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "parameter properties cannot be destructured"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "property declared using '{0}' here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "parameter properties cannot be a rest parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "parameter properties are not allowed in 'declare class'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare' specified here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript parameter properties are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "parameter properties are only allowed in class constructors"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'private' is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'protected' is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'public' is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript's 'readonly' feature is not allowed in JavaScript code"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "methods cannot be readonly"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'readonly' only works with array types and tuple types"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected '?' to mark tuple element as optional"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "only optional tuple elements can follow this optional tuple element"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript requires whitespace between '>' and '=' here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript 'satisfies' operator is not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript type annotations are not allowed in JavaScript code"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript types are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript type imports cannot import both default and named exports"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript type imports are not allowed in JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "spread tuple elements cannot be optional"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "spread starts here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "const fields within classes are only allowed in TypeScript, not JavaScript"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'out in' is not allowed; write 'in out' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed block comment"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed class; expected '}' by end of file"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed code block; expected '}' by end of file"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed interface; expected '}' by end of file"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed identifier escape sequence"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed object literal; expected '}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "object literal started here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed regexp literal"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed string literal"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed template"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected '@'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected '{0}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected parameter for arrow function, but got an expression instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected parameter for arrow function, but got a literal instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected '\\' in identifier"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected 'case' outside switch statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected characters in number literal"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected control character"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected characters in binary literal"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected characters in octal literal"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected characters in hex literal"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected 'default' outside switch statement"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected literal in parameter list; expected parameter name"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected '?'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected '?' when destructuring"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "C-style for loops have only three semicolon-separated components"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "for-in loop expression cannot have semicolons"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "for-of loop expression cannot have semicolons"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unopened block comment"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "new variable shadows existing variable"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "existing variable declared here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "binary number literal has no digits"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "hex number literal has no digits"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "octal number literal has no digits"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript non-null assertion is not allowed on parameters"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected '#'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "unicode byte order mark (BOM) cannot appear before #! at beginning of script"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected identifier in expression; missing operator before"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected token"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "unexpected token in export; expected 'export default ...' or 'export "
 "{{name}' or 'export * from ...' or 'export class' or 'export function' or "
 "'export let'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected token in variable declaration; expected variable name"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unmatched indexing bracket"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unmatched parenthesis"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unmatched '}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "{0} is not the name of a parameter"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "use of undeclared type: {0}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "use of undeclared variable: {0}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "variable used before declaration: {0}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "function called before declaration in block scope: {0}"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "function declared here"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot use 'declare' keyword with 'import'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript interface fields cannot be initalized"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript interface methods cannot be marked 'async'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript interface methods cannot be marked as a generator"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript interface methods cannot contain a body"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "interface properties cannot be marked public explicitly"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "interface properties are always public and cannot be private"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "TypeScript interface properties are always public and cannot be marked "
 "protected"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript interface properties cannot be 'static'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "break can only be used inside of a loop or switch"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "continue can only be used inside of a loop"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "lower case letters compared with toUpperCase"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "upper case letters compared with toLowerCase"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "using '{0}' against an array literal does not compare items"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "using '{0}' against an arrow function always returns '{1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "using '{0}' against a class literal always returns '{1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'{0} []' is always '{1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "using '{0}' against an object literal always returns '{1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "using '{0}' against a regular expression literal always returns '{1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "function parameter cannot be parenthesized"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "',' should be ';' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "':' should be 'extends' instead"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid ""
 "nullish coalescing operator does nothing when left operand is never null"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected whitespace between '!' and '=='"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'!' here treated as the TypeScript non-null assertion operator"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "JSX prop is missing an expression"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "Keywords in TypeScript does not allow escape characters"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'{0}' access specifier must precede '{1}'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected '...'; expected expression"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "expected variable name after '...'"
 msgstr ""
 
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.h
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "variable assignment to self is no-op"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'^' is the XOR operator; to exponentiate, use '**' instead"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp

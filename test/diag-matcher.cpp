@@ -152,8 +152,7 @@ Source_Code_Span_Matcher::operator testing::Matcher<const Source_Code_Span &>()
       new Span_Impl(this->expected_));
 }
 
-Source_Code_Span Diag_Matcher_Arg::get_span(const void *error_object) const
-    noexcept {
+Source_Code_Span Diag_Matcher_Arg::get_span(const void *error_object) const {
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   switch (this->member_type) {
@@ -172,19 +171,34 @@ Source_Code_Span Diag_Matcher_Arg::get_span(const void *error_object) const
   QLJS_UNREACHABLE();
 }
 
-Char8 Diag_Matcher_Arg::get_char8(const void *error_object) const noexcept {
+Char8 Diag_Matcher_Arg::get_char8(const void *error_object) const {
   QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::char8);
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   return *static_cast<const Char8 *>(member_data);
 }
 
-String8_View Diag_Matcher_Arg::get_string8_view(const void *error_object) const
-    noexcept {
+Enum_Kind Diag_Matcher_Arg::get_enum_kind(const void *error_object) const {
+  QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::enum_kind);
+  const void *member_data =
+      reinterpret_cast<const char *>(error_object) + this->member_offset;
+  return *static_cast<const Enum_Kind *>(member_data);
+}
+
+String8_View Diag_Matcher_Arg::get_string8_view(
+    const void *error_object) const {
   QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::string8_view);
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   return *static_cast<const String8_View *>(member_data);
+}
+
+Statement_Kind Diag_Matcher_Arg::get_statement_kind(
+    const void *error_object) const {
+  QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::statement_kind);
+  const void *member_data =
+      reinterpret_cast<const char *>(error_object) + this->member_offset;
+  return *static_cast<const Statement_Kind *>(member_data);
 }
 
 template <class State, class Field>
@@ -328,6 +342,14 @@ class Diag_Matcher_2::Impl
       return character_matches;
     }
 
+    case Diagnostic_Arg_Type::enum_kind: {
+      Enum_Kind enum_kind = f.arg.get_enum_kind(error.data());
+      bool matches = enum_kind == f.enum_kind;
+      *listener << "whose ." << f.arg.member_name << " (" << enum_kind << ") "
+                << (matches ? "equals" : "doesn't equal") << " " << f.enum_kind;
+      return matches;
+    }
+
     case Diagnostic_Arg_Type::string8_view: {
       String8_View string = f.arg.get_string8_view(error.data());
       bool character_matches = string == f.string;
@@ -335,6 +357,15 @@ class Diag_Matcher_2::Impl
                 << to_string_view(string) << "\") "
                 << (character_matches ? "equals" : "doesn't equal") << " \""
                 << to_string_view(f.string) << "\"";
+      return character_matches;
+    }
+
+    case Diagnostic_Arg_Type::statement_kind: {
+      Statement_Kind statement_kind = f.arg.get_statement_kind(error.data());
+      bool character_matches = statement_kind == f.statement_kind;
+      *listener << "whose ." << f.arg.member_name << " (" << statement_kind
+                << ") " << (character_matches ? "equals" : "doesn't equal")
+                << " " << f.statement_kind;
       return character_matches;
     }
 

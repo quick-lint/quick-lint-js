@@ -97,32 +97,32 @@ class Result_Base {
     return *this;
   }
 
-  bool ok() const noexcept { return this->data_.index() == 0; }
+  bool ok() const { return this->data_.index() == 0; }
 
-  Value_Type& value() & noexcept {
+  Value_Type& value() & {
     QLJS_ASSERT(this->ok());
     return get<0>(this->data_);
   }
 
-  Value_Type&& value() && noexcept {
+  Value_Type&& value() && {
     QLJS_ASSERT(this->ok());
     return get<0>(std::move(this->data_));
   }
 
-  const Value_Type& value() const& noexcept {
+  const Value_Type& value() const& {
     QLJS_ASSERT(this->ok());
     return get<0>(this->data_);
   }
 
   template <class Error>
-  bool has_error() const noexcept {
+  bool has_error() const {
     // TODO(strager): If std::is_same_v<Error, value_type>, then
     // holds_alternative is incorrect.
     return holds_alternative<Error>(this->data_);
   }
 
   template <class Error>
-  const Error& error() const noexcept {
+  const Error& error() const {
     QLJS_ASSERT(!this->ok());
     QLJS_ASSERT(this->has_error<Error>());
     // TODO(strager): If std::is_same_v<Error, value_type>, then get<Error>
@@ -153,32 +153,30 @@ class Result_Base {
 
   // For tests.
   template <class U>
-  friend bool holds_alternative(const Result_Base<T, Errors...>& r) noexcept {
+  friend bool holds_alternative(const Result_Base<T, Errors...>& r) {
     // TODO(strager): Make this work properly if T is void.
     return holds_alternative<U>(r.data_);
   }
 
   // For tests.
   template <class U>
-  friend const U& get(const Result_Base<T, Errors...>& r) noexcept {
+  friend const U& get(const Result_Base<T, Errors...>& r) {
     // TODO(strager): Make this work properly if T is void.
     return get<U>(r.data_);
   }
 
-  Value_Type& operator*() & noexcept { return this->value(); }
-  Value_Type&& operator*() && noexcept { return std::move(*this).value(); }
-  const Value_Type& operator*() const& noexcept { return this->value(); }
+  Value_Type& operator*() & { return this->value(); }
+  Value_Type&& operator*() && { return std::move(*this).value(); }
+  const Value_Type& operator*() const& { return this->value(); }
 
-  Value_Type* operator->() noexcept { return &this->value(); }
-  const Value_Type* operator->() const noexcept { return &this->value(); }
+  Value_Type* operator->() { return &this->value(); }
+  const Value_Type* operator->() const { return &this->value(); }
 
-  friend bool operator==(const Result_Base& lhs,
-                         const Result_Base& rhs) noexcept {
+  friend bool operator==(const Result_Base& lhs, const Result_Base& rhs) {
     return lhs.data_ == rhs.data_;
   }
 
-  friend bool operator!=(const Result_Base& lhs,
-                         const Result_Base& rhs) noexcept {
+  friend bool operator!=(const Result_Base& lhs, const Result_Base& rhs) {
     return !(lhs == rhs);
   }
 
@@ -300,7 +298,7 @@ class Result<T, Error> : public Result_Base<T, Error> {
   using Base::propagate;
   using Base::value;
 
-  const Error& error() const noexcept { return Base::template error<Error>(); }
+  const Error& error() const { return Base::template error<Error>(); }
 
   template <class, class...>
   friend class Result_Base;
@@ -320,7 +318,7 @@ class Result<void, Error> : public Result_Base<void, Error> {
   using Base::operator=;
   using Base::propagate;
 
-  const Error& error() const noexcept { return Base::template error<Error>(); }
+  const Error& error() const { return Base::template error<Error>(); }
 
   template <class, class...>
   friend class Result_Base;

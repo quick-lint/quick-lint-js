@@ -33,12 +33,10 @@ endif ()
 if (TARGET quick-lint-js-generate-diagnostic-metadata)
   add_custom_command(
     OUTPUT
-    "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-debug-generated.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
     COMMAND
       $<TARGET_FILE:quick-lint-js-generate-diagnostic-metadata>
-      --output-debug-info-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-debug-generated.cpp"
       --output-info-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.cpp"
       --output-type-list-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-metadata-generated.h"
       "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/diag/diagnostic-types-2.h"
@@ -114,6 +112,8 @@ quick_lint_js_add_library(
   quick-lint-js/port/windows-error.cpp
   quick-lint-js/port/windows-error.h
   quick-lint-js/port/windows.h
+  quick-lint-js/reflection/cxx-parser.cpp
+  quick-lint-js/reflection/cxx-parser.h
   quick-lint-js/util/integer.cpp
   quick-lint-js/util/integer.h
   quick-lint-js/util/narrow-cast.h
@@ -121,6 +121,7 @@ quick_lint_js_add_library(
   quick-lint-js/util/utf-16.h
 )
 target_include_directories(quick-lint-js-tool-lib PUBLIC .)
+target_link_libraries(quick-lint-js-tool-lib PUBLIC boost)
 
 quick_lint_js_add_library(
   quick-lint-js-lib
@@ -159,6 +160,7 @@ quick_lint_js_add_library(
   quick-lint-js/container/byte-buffer.h
   quick-lint-js/container/c-string-list.h
   quick-lint-js/container/concat.h
+  quick-lint-js/container/fixed-vector.h
   quick-lint-js/container/hash-map.h
   quick-lint-js/container/hash-set.h
   quick-lint-js/container/hash.h
@@ -400,7 +402,6 @@ quick_lint_js_add_library(
   quick-lint-js/container/padded-string-debug.cpp
   quick-lint-js/container/vector-profiler-debug.cpp
   quick-lint-js/diag/diag-debug.cpp
-  quick-lint-js/diag/diagnostic-metadata-debug-generated.cpp
   quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp

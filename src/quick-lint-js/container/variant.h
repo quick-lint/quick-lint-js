@@ -22,42 +22,42 @@ template <class... Ts>
 class Variant;
 
 struct Monostate {
-  friend bool operator==(Monostate, Monostate) noexcept { return true; }
-  friend bool operator!=(Monostate, Monostate) noexcept { return false; }
+  friend bool operator==(Monostate, Monostate) { return true; }
+  friend bool operator!=(Monostate, Monostate) { return false; }
 };
 
 template <class T, class... Ts>
-bool holds_alternative(const Variant<Ts...>& v) noexcept {
+bool holds_alternative(const Variant<Ts...>& v) {
   return v.template holds_alternative<T>();
 }
 
 template <class T, class... Ts>
-T& get(Variant<Ts...>& v) noexcept {
+T& get(Variant<Ts...>& v) {
   return v.template get<T>();
 }
 
 template <class T, class... Ts>
-auto&& get(Variant<Ts...>&& v) noexcept {
+auto&& get(Variant<Ts...>&& v) {
   return std::move(v).template get<T>();
 }
 
 template <class T, class... Ts>
-const T& get(const Variant<Ts...>& v) noexcept {
+const T& get(const Variant<Ts...>& v) {
   return v.template get<T>();
 }
 
 template <std::size_t index, class... Ts>
-auto& get(Variant<Ts...>& v) noexcept {
+auto& get(Variant<Ts...>& v) {
   return v.template get<index>();
 }
 
 template <std::size_t index, class... Ts>
-auto&& get(Variant<Ts...>&& v) noexcept {
+auto&& get(Variant<Ts...>&& v) {
   return std::move(v).template get<index>();
 }
 
 template <std::size_t index, class... Ts>
-const auto& get(const Variant<Ts...>& v) noexcept {
+const auto& get(const Variant<Ts...>& v) {
   return v.template get<index>();
 }
 
@@ -76,29 +76,29 @@ auto visit(Visitor&& f, const Variant<Ts...>& v) {
   return v.visit(std::forward<Visitor>(f));
 }
 
-#define QLJS_VARIANT_MIXIN                                                  \
-  template <class T>                                                        \
-      auto&& get() && noexcept {                                            \
-    return std::move(this->template get<T>());                              \
-  }                                                                         \
-                                                                            \
-  template <class T>                                                        \
-  const T& get() const& noexcept {                                          \
-    return const_cast<Variant*>(this)->template get<T>();                   \
-  }                                                                         \
-                                                                            \
-  template <std::size_t index>                                              \
-      auto&& get() && noexcept {                                            \
-    return std::move(this->template get<index>());                          \
-  }                                                                         \
-                                                                            \
-  template <std::size_t index>                                              \
-  const auto& get() const& noexcept {                                       \
-    return const_cast<Variant*>(this)->template get<index>();               \
-  }                                                                         \
-                                                                            \
-  friend bool operator!=(const Variant& lhs, const Variant& rhs) noexcept { \
-    return !(lhs == rhs);                                                   \
+#define QLJS_VARIANT_MIXIN                                         \
+  template <class T>                                               \
+  auto&& get()&& {                                                 \
+    return std::move(this->template get<T>());                     \
+  }                                                                \
+                                                                   \
+  template <class T>                                               \
+  const T& get() const& {                                          \
+    return const_cast<Variant*>(this)->template get<T>();          \
+  }                                                                \
+                                                                   \
+  template <std::size_t index>                                     \
+  auto&& get()&& {                                                 \
+    return std::move(this->template get<index>());                 \
+  }                                                                \
+                                                                   \
+  template <std::size_t index>                                     \
+  const auto& get() const& {                                       \
+    return const_cast<Variant*>(this)->template get<index>();      \
+  }                                                                \
+                                                                   \
+  friend bool operator!=(const Variant& lhs, const Variant& rhs) { \
+    return !(lhs == rhs);                                          \
   }
 
 #define QLJS_VARIANT_MOVE_ASSIGN_CASE(index)                                   \
@@ -138,22 +138,22 @@ class Variant<T0> {
 
   ~Variant() = default;
 
-  std::size_t index() const noexcept { return 0; }
+  std::size_t index() const { return 0; }
 
   template <class T>
-  bool holds_alternative() const noexcept {
+  bool holds_alternative() const {
     static_assert(std::is_same_v<T, T0>, "unexpected T");
     return true;
   }
 
   template <class T>
-      T& get() & noexcept {
+  T& get() & {
     static_assert(std::is_same_v<T, T0>, "unexpected T");
     return this->data_0_;
   }
 
   template <std::size_t index>
-      T0& get() & noexcept {
+  T0& get() & {
     static_assert(index == 0, "unexpected Index");
     return this->data_0_;
   }
@@ -173,7 +173,7 @@ class Variant<T0> {
     return std::forward<Visitor>(f)(this->data_0_);
   }
 
-  friend bool operator==(const Variant& lhs, const Variant& rhs) noexcept {
+  friend bool operator==(const Variant& lhs, const Variant& rhs) {
     return lhs.data_0_ == rhs.data_0_;
   }
 
@@ -252,10 +252,10 @@ class Variant<T0, T1> {
 
   ~Variant() { this->destruct(); }
 
-  std::size_t index() const noexcept { return this->tag_; }
+  std::size_t index() const { return this->tag_; }
 
   template <class T>
-  bool holds_alternative() const noexcept {
+  bool holds_alternative() const {
     if constexpr (std::is_same_v<T, T0>) {
       return this->tag_ == 0;
     } else if constexpr (std::is_same_v<T, T1>) {
@@ -266,7 +266,7 @@ class Variant<T0, T1> {
   }
 
   template <class T>
-      T& get() & noexcept {
+  T& get() & {
     if constexpr (std::is_same_v<T, T0>) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;
@@ -279,7 +279,7 @@ class Variant<T0, T1> {
   }
 
   template <std::size_t index>
-      auto& get() & noexcept {
+  auto& get() & {
     if constexpr (index == 0) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;
@@ -327,7 +327,7 @@ class Variant<T0, T1> {
     }
   }
 
-  friend bool operator==(const Variant& lhs, const Variant& rhs) noexcept {
+  friend bool operator==(const Variant& lhs, const Variant& rhs) {
     if (lhs.tag_ != rhs.tag_) {
       return false;
     }
@@ -455,10 +455,10 @@ class Variant<T0, T1, T2> {
 
   ~Variant() { this->destruct(); }
 
-  std::size_t index() const noexcept { return this->tag_; }
+  std::size_t index() const { return this->tag_; }
 
   template <class T>
-  bool holds_alternative() const noexcept {
+  bool holds_alternative() const {
     if constexpr (std::is_same_v<T, T0>) {
       return this->tag_ == 0;
     } else if constexpr (std::is_same_v<T, T1>) {
@@ -471,7 +471,7 @@ class Variant<T0, T1, T2> {
   }
 
   template <class T>
-      T& get() & noexcept {
+  T& get() & {
     if constexpr (std::is_same_v<T, T0>) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;
@@ -487,7 +487,7 @@ class Variant<T0, T1, T2> {
   }
 
   template <std::size_t index>
-      auto& get() & noexcept {
+  auto& get() & {
     if constexpr (index == 0) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;
@@ -544,7 +544,7 @@ class Variant<T0, T1, T2> {
     }
   }
 
-  friend bool operator==(const Variant& lhs, const Variant& rhs) noexcept {
+  friend bool operator==(const Variant& lhs, const Variant& rhs) {
     if (lhs.tag_ != rhs.tag_) {
       return false;
     }

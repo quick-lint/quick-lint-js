@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* `2 ^ 8` now reports [E0710][] ("'^' is the XOR operator; to exponentiate, use
+  '**' instead"). (Implemented by [pedrobl85][].)
+
 ## 2.15.0 (2023-07-18)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.15.0/)
@@ -988,6 +995,7 @@ Beta release.
 [david doroz]: https://github.com/DaviddHub
 [mirabellier]: https://github.com/mirabellierr
 [ooblegork]: https://github.com/ooblegork
+[pedrobl1718]: https://github.com/pedrobl85
 [tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr
 
@@ -1103,3 +1111,4 @@ Beta release.
 [E0707]: https://quick-lint-js.com/errors/E0707/
 [E0708]: https://quick-lint-js.com/errors/E0708/
 [E0709]: https://quick-lint-js.com/errors/E0709/
+[E0710]: https://quick-lint-js.com/errors/E0710/

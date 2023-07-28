@@ -197,14 +197,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
     SCOPED_TRACE(code);
     Test_Parser p(code.string_view(), typescript_options, capture_diags);
     p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement,  //
-                static_token, u8"declare class C { "_sv.size(), u8"static"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                  ^^^^^^ Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement"_diag,
+        });
   }
 }
 
@@ -262,23 +259,18 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_methods_cannot_contain_bodies) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { myMethod() {} }"_sv,  //
-        u8"                             ^ Diag_Declare_Class_Methods_Cannot_Contain_Bodies"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { myMethod() {} }"_sv,  //
+      u8"                             ^ Diag_Declare_Class_Methods_Cannot_Contain_Bodies"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_methods_must_be_semicolon_terminated) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { myMethod() myOtherMethod() }"_sv,  //
-        u8"                            ` Diag_Missing_Semicolon_After_Declare_Class_Method"_diag,  //
-
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { myMethod() myOtherMethod() }"_sv,  //
+      u8"                            ` Diag_Missing_Semicolon_After_Declare_Class_Method"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
@@ -289,16 +281,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
     p.parse_and_visit_module();
     // TODO(strager): Should this be a different message? They can just drop the
     // 'abstract' keyword.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, u8"declare class C { "_sv.size(),
-                u8"abstract"_sv, class_keyword, u8"declare "_sv.size(),
-                u8"class"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                  ^^^^^^^^ Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class.abstract_keyword\n"_diag
+            u8"        ^^^^^ .class_keyword"_diag,
+        });
   }
 
   {
@@ -307,16 +295,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
     p.parse_and_visit_module();
     // TODO(strager): Should this be a different message? They can just drop the
     // 'abstract' keyword.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class,  //
-                abstract_keyword, u8"declare class C { "_sv.size(),
-                u8"abstract"_sv, class_keyword, u8"declare "_sv.size(),
-                u8"class"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                  ^^^^^^^^ Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class.abstract_keyword\n"_diag
+            u8"        ^^^^^ .class_keyword"_diag,
+        });
   }
 }
 
@@ -360,38 +344,25 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_cannot_have_field_with_initializer) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { myField = 42; }"_sv,  //
-        u8"                          ^ Diag_Declare_Class_Fields_Cannot_Have_Initializers"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { myField = 42; }"_sv,  //
+      u8"                          ^ Diag_Declare_Class_Fields_Cannot_Have_Initializers"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_cannot_have_assignment_asserted_field) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { myField!: any; }"_sv,  //
-        u8"                         ^ Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { myField!: any; }"_sv,  //
+      u8"                         ^ Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class"_diag,  //
+      typescript_options);
 
-  {
-    Test_Parser p(u8"declare class C { myField!: any = init; }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code,
-                Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class,  //
-                bang, u8"declare class C { myField"_sv.size(), u8"!"_sv),
-        }))
-        << "Diag_Declare_Class_Fields_Cannot_Have_Initializers should not also "
-           "be reported";
-  }
+  // Diag_Declare_Class_Fields_Cannot_Have_Initializers should not also be
+  // reported.
+  test_parse_and_visit_module(
+      u8"declare class C { myField!: any = init; }"_sv,  //
+      u8"                         ^ Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class"_diag,
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
@@ -460,31 +431,23 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,
        declare_class_methods_cannot_be_async_or_generator) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { async myMethod(); }"_sv,  //
-        u8"                  ^^^^^ Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare class C { async myMethod(); }"_sv,  //
+      u8"                  ^^^^^ Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare class C { *myMethod(); }"_sv,  //
-        u8"                  ^ Diag_Declare_Class_Methods_Cannot_Be_Generators"_diag,  //
-        typescript_options);
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { *myMethod(); }"_sv,  //
+      u8"                  ^ Diag_Declare_Class_Methods_Cannot_Be_Generators"_diag,  //
+      typescript_options);
 
-  {
-    Test_Parser p(u8"declare class C { async *myMethod(); }"_sv,
-                  typescript_options, capture_diags);
-    p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE(Diag_Declare_Class_Methods_Cannot_Be_Generators),
-                    DIAG_TYPE(Diag_Declare_Class_Methods_Cannot_Be_Async),
-                }));
-  }
+  test_parse_and_visit_module(
+      u8"declare class C { async *myMethod(); }"_sv,             //
+      u8"Diag_Declare_Class_Methods_Cannot_Be_Generators"_diag,  //
+      u8"Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,       //
+
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Class,

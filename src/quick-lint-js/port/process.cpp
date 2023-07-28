@@ -16,7 +16,7 @@
 
 namespace quick_lint_js {
 #if !defined(__EMSCRIPTEN__)
-std::uint64_t get_current_process_id() noexcept {
+std::uint64_t get_current_process_id() {
 #if QLJS_HAVE_WINDOWS_H
   return ::GetCurrentProcessId();
 #elif QLJS_HAVE_UNISTD_H

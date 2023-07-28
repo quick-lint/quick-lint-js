@@ -16,7 +16,7 @@ Out narrow_cast(In x
                 ,
                 Source_Location caller = Source_Location::current()
 #endif
-                    ) noexcept {
+) {
 #if !(defined(NDEBUG) && NDEBUG)
   if (!in_range<Out>(x)) {
     if constexpr (Source_Location::valid()) {

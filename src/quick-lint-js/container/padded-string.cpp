@@ -85,7 +85,7 @@ void Padded_String::resize_grow_uninitialized(Size_Type new_size) {
   this->size_excluding_padding_bytes_ = new_size;
 }
 
-String8_View Padded_String::string_view() const noexcept {
+String8_View Padded_String::string_view() const {
   return String8_View(this->data(), narrow_cast<std::size_t>(this->size()));
 }
 
@@ -98,47 +98,39 @@ void Padded_String::free_and_set_storage(
   this->size_excluding_padding_bytes_ = new_size_excluding_padding_bytes;
 }
 
-bool operator==(const Padded_String& x, const Padded_String& y) noexcept {
+bool operator==(const Padded_String& x, const Padded_String& y) {
   return x.string_view() == y.string_view();
 }
 
-bool operator!=(const Padded_String& x, const Padded_String& y) noexcept {
+bool operator!=(const Padded_String& x, const Padded_String& y) {
   return !(x == y);
 }
 
-bool operator==(String8_View x, const Padded_String& y) noexcept {
-  return y == x;
-}
+bool operator==(String8_View x, const Padded_String& y) { return y == x; }
 
-bool operator!=(String8_View x, const Padded_String& y) noexcept {
-  return !(x == y);
-}
+bool operator!=(String8_View x, const Padded_String& y) { return !(x == y); }
 
-bool operator==(const Padded_String& x, String8_View y) noexcept {
+bool operator==(const Padded_String& x, String8_View y) {
   return x.string_view() == y;
 }
 
-bool operator!=(const Padded_String& x, String8_View y) noexcept {
-  return !(x == y);
-}
+bool operator!=(const Padded_String& x, String8_View y) { return !(x == y); }
 
-String8_View Padded_String_View::string_view() const noexcept {
+String8_View Padded_String_View::string_view() const {
   return String8_View(this->data(), narrow_cast<std::size_t>(this->size()));
 }
 
-bool operator==(String8_View x, const Padded_String_View& y) noexcept {
-  return y == x;
-}
+bool operator==(String8_View x, const Padded_String_View& y) { return y == x; }
 
-bool operator!=(String8_View x, const Padded_String_View& y) noexcept {
+bool operator!=(String8_View x, const Padded_String_View& y) {
   return !(x == y);
 }
 
-bool operator==(const Padded_String_View& x, String8_View y) noexcept {
+bool operator==(const Padded_String_View& x, String8_View y) {
   return x.string_view() == y;
 }
 
-bool operator!=(const Padded_String_View& x, String8_View y) noexcept {
+bool operator!=(const Padded_String_View& x, String8_View y) {
   return !(x == y);
 }
 }

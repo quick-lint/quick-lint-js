@@ -68,21 +68,17 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module_permits_no_body) {
 
 TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
        declaring_module_is_not_allowed_inside_containing_namespace) {
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"namespace ns { declare module 'my name space' {} }"_sv,  //
-        u8"                              ^^^^^^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level"_diag,  //
+  test_parse_and_visit_module(
+      u8"namespace ns { declare module 'my name space' {} }"_sv,  //
+      u8"                              ^^^^^^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"declare namespace ns { module 'inner ns' { } }"_sv,  //
-        u8"                              ^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level"_diag,  //
+  test_parse_and_visit_module(
+      u8"declare namespace ns { module 'inner ns' { } }"_sv,  //
+      u8"                              ^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level"_diag,  //
 
-        typescript_options);
-  }
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,

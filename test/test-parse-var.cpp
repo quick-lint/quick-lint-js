@@ -78,19 +78,16 @@ TEST_F(Test_Parse_Var, parse_simple_let) {
 }
 
 TEST_F(Test_Parse_Var, parse_simple_var) {
-  Test_Parser p(u8"var x"_sv, capture_diags);
-  p.parse_and_visit_statement();
+  Spy_Visitor p = test_parse_and_visit_statement(u8"var x"_sv, no_diags);
   EXPECT_THAT(p.variable_declarations,
               ElementsAreArray({var_noinit_decl(u8"x"_sv)}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_Var, parse_simple_const) {
-  Test_Parser p(u8"const x = null"_sv, capture_diags);
-  p.parse_and_visit_statement();
+  Spy_Visitor p =
+      test_parse_and_visit_statement(u8"const x = null"_sv, no_diags);
   EXPECT_THAT(p.variable_declarations,
               ElementsAreArray({const_init_decl(u8"x"_sv)}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_Var, parse_const_with_no_initializers) {
@@ -247,8 +244,8 @@ TEST_F(Test_Parse_Var,
 
 TEST_F(Test_Parse_Var, parse_valid_let) {
   {
-    Test_Parser p(u8"let x\nclass C{}"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"let x\nclass C{}"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // x
                               "visit_enter_class_scope",       // {
@@ -257,37 +254,31 @@ TEST_F(Test_Parse_Var, parse_valid_let) {
                               "visit_variable_declaration",    // C
                               "visit_end_of_module",
                           }));
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"let x\nnew Array()"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"let x\nnew Array()"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
                               "visit_variable_use",          // Array
                               "visit_end_of_module",
                           }));
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"let x\ntypeof Array"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"let x\ntypeof Array"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // x
                               "visit_variable_typeof_use",   // Array
                               "visit_end_of_module",
                           }));
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"let x\nclass C{}\nx = new C();"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"let x\nclass C{}\nx = new C();"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // x
                               "visit_enter_class_scope",       // {
@@ -298,8 +289,6 @@ TEST_F(Test_Parse_Var, parse_valid_let) {
                               "visit_variable_assignment",     // x
                               "visit_end_of_module",
                           }));
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -393,11 +382,9 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
     EXPECT_EQ(p.variable_declarations.size(), 0);
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"let x, `hello`;"_sv,  //
-        u8"       ^^^^^^^ Diag_Unexpected_Token_In_Variable_Declaration"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"let x, `hello`;"_sv,  //
+      u8"       ^^^^^^^ Diag_Unexpected_Token_In_Variable_Declaration"_diag);
 
   {
     Test_Parser p(u8"let x, `hello${world}`;"_sv, capture_diags);
@@ -408,13 +395,11 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                               "visit_end_of_module",
                           }));
     // TODO(strager): Improve the span.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Unexpected_Token_In_Variable_Declaration,  //
-                unexpected_token, u8"let x, "_sv.size(), u8"`hello${"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"       ^^^^^^^^ Diag_Unexpected_Token_In_Variable_Declaration"_diag,
+        });
   }
 
   {
@@ -455,14 +440,12 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                               "visit_variable_assignment",  // x
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Let_With_No_Bindings,  //
-                                      where, 0, u8"let"_sv),
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, u8"let"_sv.size(), u8""_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"   ` Diag_Missing_Semicolon_After_Statement"_diag,  //
+            u8"^^^ Diag_Let_With_No_Bindings"_diag,
+        });
   }
 
   {
@@ -581,12 +564,11 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
     EXPECT_EQ(p.variable_declarations.size(), 0);
     // TODO(strager): Report a better message. We should say 'let statement',
     // not 'parameter'.
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Unexpected_Literal_In_Parameter_List,  //
-                        literal, u8"let ["_sv.size(), u8"42"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ^^ Diag_Unexpected_Literal_In_Parameter_List"_diag,
+        });
   }
 
   {
@@ -595,13 +577,11 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
     EXPECT_THAT(p.variable_declarations, IsEmpty());
     // TODO(strager): Report a better message. We should say 'let statement',
     // not 'parameter'.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_This_Parameter_Not_Allowed_When_Destructuring,  //
-                this_keyword, u8"let ["_sv.size(), u8"this"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ^^^^ Diag_This_Parameter_Not_Allowed_When_Destructuring"_diag,
+        });
   }
 
   {
@@ -636,14 +616,11 @@ TEST_F(Test_Parse_Var, parse_let_with_missing_equal) {
                               "visit_end_of_module",
                           }));
 
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Missing_Equal_After_Variable,  //
-                expected_equal,
-                u8"async function f() {return 1;}\nlet x"_sv.size(), u8""_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                                     ` Diag_Missing_Equal_After_Variable"_diag,
+        });
   }
 
   {
@@ -730,14 +707,11 @@ TEST_F(Test_Parse_Var, parse_let_with_missing_equal) {
                               "visit_end_of_module",
                           }));
 
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Missing_Equal_After_Variable,  //
-                expected_equal,
-                u8"async function f() {return 1;}\nlet x"_sv.size(), u8""_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"                                     ` Diag_Missing_Equal_After_Variable"_diag,
+        });
   }
 
   {
@@ -847,14 +821,11 @@ TEST_F(Test_Parse_Var, report_missing_semicolon_for_declarations) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({let_init_decl(u8"x"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"console"}));
-    CLI_Source_Position::Offset_Type end_of_let_statement =
-        u8"let x = 2"_sv.size();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, end_of_let_statement, u8""_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ` Diag_Missing_Semicolon_After_Statement"_diag,
+        });
   }
   {
     Test_Parser p(u8"let x debugger"_sv, capture_diags);
@@ -862,13 +833,11 @@ TEST_F(Test_Parse_Var, report_missing_semicolon_for_declarations) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({let_noinit_decl(u8"x"_sv)}));
-    CLI_Source_Position::Offset_Type end_of_let_statement = u8"let x"_sv.size();
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, end_of_let_statement, u8""_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"     ` Diag_Missing_Semicolon_After_Statement"_diag,
+        });
   }
 }
 
@@ -1036,11 +1005,9 @@ TEST_F(Test_Parse_Var, new_style_variables_cannot_be_named_let) {
     EXPECT_EQ(p.variable_declarations[0].name, u8"let");
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"let {other, let} = stuff;"_sv,  //
-        u8"            ^^^ Diag_Cannot_Declare_Variable_Named_Let_With_Let"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"let {other, let} = stuff;"_sv,  //
+      u8"            ^^^ Diag_Cannot_Declare_Variable_Named_Let_With_Let"_diag);
 
   // import implies strict mode (because modules imply strict mode).
   {
@@ -1210,12 +1177,11 @@ TEST_F(Test_Parse_Var, declare_await_in_async_function) {
                 ElementsAreArray({function_decl(u8"await"_sv)}));
     // TODO(strager): Include a note referencing the origin of the async
     // function.
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Cannot_Declare_Await_In_Async_Function,  //
-                        name, u8"function "_sv.size(), u8"await"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,
+        });
   }
 
   {
@@ -1224,12 +1190,11 @@ TEST_F(Test_Parse_Var, declare_await_in_async_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({var_noinit_decl(u8"await"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Cannot_Declare_Await_In_Async_Function,  //
-                        name, u8"var "_sv.size(), u8"await"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"    ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,
+        });
   }
 
   {
@@ -1238,30 +1203,23 @@ TEST_F(Test_Parse_Var, declare_await_in_async_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({catch_decl(u8"await"_sv)}));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Cannot_Declare_Await_In_Async_Function,  //
-                        name, u8"try {} catch ("_sv.size(), u8"await"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"              ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,
+        });
   }
 
   {
-    Test_Parser p(u8"async function f(await) {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    // TODO(strager): Drop the
+    // Diag_Missing_Operand_For_Operator error.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"async function f(await) {}"_sv,  //
+        u8"                 ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
+        u8"Diag_Missing_Operand_For_Operator"_diag);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({function_decl(u8"f"_sv),  //
                                   func_param_decl(u8"await"_sv)}));
-    EXPECT_THAT(p.errors,
-                UnorderedElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code,
-                        Diag_Cannot_Declare_Await_In_Async_Function,  //
-                        name, u8"async function f("_sv.size(), u8"await"_sv),
-                    // TODO(strager): Drop the
-                    // Diag_Missing_Operand_For_Operator error.
-                    DIAG_TYPE(Diag_Missing_Operand_For_Operator),
-                }));
   }
 }
 
@@ -1501,12 +1459,10 @@ TEST_F(Test_Parse_Var, forced_top_level_await_operator) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Operand_For_Operator,  //
-                              where, 0, u8"await"_sv),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"^^^^^ Diag_Missing_Operand_For_Operator"_diag,
+                       });
   }
 }
 
@@ -1604,13 +1560,11 @@ TEST_F(Test_Parse_Var, declare_yield_in_generator_function) {
                 ElementsAreArray({function_decl(u8"yield"_sv)}));
     // TODO(strager): Include a note referencing the origin of the generator
     // function.
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Cannot_Declare_Yield_In_Generator_Function,  //
-                name, u8"function "_sv.size(), u8"yield"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ^^^^^ Diag_Cannot_Declare_Yield_In_Generator_Function"_diag,
+        });
   }
 
   {
@@ -1619,13 +1573,11 @@ TEST_F(Test_Parse_Var, declare_yield_in_generator_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({var_noinit_decl(u8"yield"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Cannot_Declare_Yield_In_Generator_Function,  //
-                name, u8"var "_sv.size(), u8"yield"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"    ^^^^^ Diag_Cannot_Declare_Yield_In_Generator_Function"_diag,
+        });
   }
 
   {
@@ -1634,13 +1586,11 @@ TEST_F(Test_Parse_Var, declare_yield_in_generator_function) {
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({catch_decl(u8"yield"_sv)}));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Cannot_Declare_Yield_In_Generator_Function,  //
-                name, u8"try {} catch ("_sv.size(), u8"yield"_sv),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"              ^^^^^ Diag_Cannot_Declare_Yield_In_Generator_Function"_diag,
+        });
   }
 
   {
@@ -2020,178 +1970,185 @@ TEST_F(Test_Parse_Var, variables_can_be_named_contextual_keywords) {
 
 TEST_F(Test_Parse_Var,
        lexical_declaration_as_do_while_loop_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(
-        concat(u8"do "_sv, variable_kind, u8" x = y; while (cond);"_sv),
-        capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do const x = y; while (cond);"_sv,  //
+        u8"  ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::do_while_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                               "visit_variable_use",          // cond
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::do_while_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"do"_sv.size(), u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"do "_sv.size(), variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do let x = y; while (cond);"_sv,  //
+        u8"  ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::do_while_loop}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_variable_use",          // cond
+                          }));
   }
 }
 
 TEST_F(Test_Parse_Var, lexical_declaration_as_for_loop_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(concat(u8"for (;cond;) "_sv, variable_kind, u8" x = y;"_sv),
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;cond;) const x = y;"_sv,  //
+        u8"            ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::for_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // cond
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::for_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"for (;cond;)"_sv.size(),
-                                u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"for (;cond;) "_sv.size(),
-                                variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;cond;) let x = y;"_sv,  //
+        u8"            ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::for_loop}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
   }
 }
 
 TEST_F(Test_Parse_Var, lexical_declaration_as_if_statement_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    {
-      Test_Parser p(concat(u8"if (cond) "_sv, variable_kind, u8" x = y;"_sv),
-                    capture_diags);
-      SCOPED_TRACE(p.code);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_variable_use",          // cond
-                                "visit_variable_use",          // y
-                                "visit_variable_declaration",  // x
-                            }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_3_FIELDS(
-                  Diag_Lexical_Declaration_Not_Allowed_In_Body,
-                  kind_of_statement,
-                  Statement_Kind::if_statement,  //
-                  expected_body,
-                  Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
-                  declaring_keyword,
-                  Offsets_Matcher(p.code, u8"if (cond) "_sv.size(),
-                                  variable_kind)),
-          }));
-    }
-
-    {
-      Test_Parser p(
-          concat(u8"if (cond) "_sv, variable_kind, u8" x = y; else {}"_sv),
-          capture_diags);
-      SCOPED_TRACE(p.code);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_variable_use",          // cond
-                                "visit_variable_use",          // y
-                                "visit_variable_declaration",  // x
-                                "visit_enter_block_scope",     // else
-                                "visit_exit_block_scope",      // else
-                            }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_3_FIELDS(
-                  Diag_Lexical_Declaration_Not_Allowed_In_Body,
-                  kind_of_statement,
-                  Statement_Kind::if_statement,  //
-                  expected_body,
-                  Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
-                  declaring_keyword,
-                  Offsets_Matcher(p.code, u8"if (cond) "_sv.size(),
-                                  variable_kind)),
-          }));
-    }
-
-    {
-      Test_Parser p(
-          concat(u8"if (cond) {} else "_sv, variable_kind, u8" x = y;"_sv),
-          capture_diags);
-      SCOPED_TRACE(p.code);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_variable_use",          // cond
-                                "visit_enter_block_scope",     // if
-                                "visit_exit_block_scope",      // if
-                                "visit_variable_use",          // y
-                                "visit_variable_declaration",  // x
-                            }));
-      EXPECT_THAT(
-          p.errors,
-          ElementsAreArray({
-              DIAG_TYPE_3_FIELDS(
-                  Diag_Lexical_Declaration_Not_Allowed_In_Body,
-                  kind_of_statement,
-                  Statement_Kind::if_statement,  //
-                  expected_body,
-                  Offsets_Matcher(p.code, u8"if (cond) {} else"_sv.size(),
-                                  u8""_sv),  //
-                  declaring_keyword,
-                  Offsets_Matcher(p.code, u8"if (cond) {} else "_sv.size(),
-                                  variable_kind)),
-          }));
-    }
-  }
-}
-
-TEST_F(Test_Parse_Var, lexical_declaration_as_while_loop_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(concat(u8"while (cond) "_sv, variable_kind, u8" x = y;"_sv),
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) const x = y;"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // cond
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::while_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"while (cond)"_sv.size(),
-                                u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"while (cond) "_sv.size(),
-                                variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) let x = y;"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) const x = y; else {}"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_enter_block_scope",     // else
+                              "visit_exit_block_scope",      // else
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) let x = y; else {}"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_enter_block_scope",     // else
+                              "visit_exit_block_scope",      // else
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) {} else const x = y;"_sv,  //
+        u8"                 ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"                  ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_enter_block_scope",     // if
+                              "visit_exit_block_scope",      // if
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) {} else let x = y;"_sv,  //
+        u8"                 ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"                  ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_enter_block_scope",     // if
+                              "visit_exit_block_scope",      // if
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
+  }
+}
+
+TEST_F(Test_Parse_Var, lexical_declaration_as_while_loop_body_is_disallowed) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while (cond) const x = y;"_sv,  //
+        u8"            ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::while_loop}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while (cond) let x = y;"_sv,  //
+        u8"            ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::while_loop}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // cond
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                          }));
   }
 }
 
 TEST_F(Test_Parse_Var,
        lexical_declaration_as_with_statement_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(concat(u8"with (obj) "_sv, variable_kind, u8" x = y;"_sv),
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"with (obj) const x = y;"_sv,  //
+        u8"          ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"           ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::with_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // obj
                               "visit_enter_with_scope",      // with
@@ -2199,42 +2156,47 @@ TEST_F(Test_Parse_Var,
                               "visit_variable_declaration",  // x
                               "visit_exit_with_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::with_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"with (obj)"_sv.size(), u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"with (obj) "_sv.size(),
-                                variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"with (obj) let x = y;"_sv,  //
+        u8"          ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"           ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::with_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",          // obj
+                              "visit_enter_with_scope",      // with
+                              "visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_exit_with_scope",
+                          }));
   }
 }
 
 TEST_F(Test_Parse_Var, lexical_declaration_as_label_body_is_disallowed) {
-  for (String8 variable_kind : {u8"const", u8"let"}) {
-    Test_Parser p(concat(u8"l: "_sv, variable_kind, u8" x = y;"_sv),
-                  capture_diags);
-    SCOPED_TRACE(p.code);
-    p.parse_and_visit_statement();
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"l: const x = y;"_sv,  //
+        u8"  ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::labelled_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",
                               "visit_variable_declaration",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body,           //
-                kind_of_statement, Statement_Kind::labelled_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"l:"_sv.size(), u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"l: "_sv.size(), variable_kind)),
-        }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"l: let x = y;"_sv,  //
+        u8"  ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::labelled_statement}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",
+                              "visit_variable_declaration",
+                          }));
   }
 }
 
@@ -2248,34 +2210,24 @@ TEST_F(Test_Parse_Var, var_declaration_as_label_body_is_allowed) {
 }
 
 TEST_F(Test_Parse_Var, spread_must_precede_variable_name) {
-  Test_Parser p(u8"const [a, b, ...] = z;"_sv, capture_diags);
-  p.parse_and_visit_statement();
-  EXPECT_THAT(
-      p.errors,
-      ElementsAreArray({DIAG_TYPE(Diag_Spread_Must_Precede_Variable_Name)}));
+  test_parse_and_visit_statement(
+      u8"const [a, b, ...] = z;"_sv,  //
+      u8"Diag_Spread_Must_Precede_Variable_Name"_diag);
 }
 
 TEST_F(Test_Parse_Var,
        let_as_statement_body_does_not_allow_asi_before_left_square) {
   {
-    Test_Parser p(u8"if (cond) let\n[x] = xs;"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (cond) let\n[x] = xs;"_sv,  //
+        u8"         ` Diag_Lexical_Declaration_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^ .declaring_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // cond
                               "visit_variable_use",          // xs
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Lexical_Declaration_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::if_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
-                declaring_keyword,
-                Offsets_Matcher(p.code, u8"if (cond) "_sv.size(), u8"let"_sv)),
-        }));
   }
 }
 }

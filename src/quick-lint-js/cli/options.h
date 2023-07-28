@@ -39,12 +39,12 @@ struct File_To_Lint {
   bool is_stdin = false;
   std::optional<int> vim_bufnr;
 
-  Input_File_Language get_language() const noexcept;
+  Input_File_Language get_language() const;
 };
 
 Input_File_Language get_language(
     const char *config_file,
-    const std::optional<Input_File_Language> &language) noexcept;
+    const std::optional<Input_File_Language> &language);
 
 struct Options {
   bool help = false;

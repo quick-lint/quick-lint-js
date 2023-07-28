@@ -39,7 +39,7 @@ class Uninstrumented_Vector : private Vector {
   using typename Vector::value_type;
 
   explicit Uninstrumented_Vector(
-      const char *, const typename Vector::allocator_type &allocator) noexcept
+      const char *, const typename Vector::allocator_type &allocator)
       : Vector(allocator) {}
 
   explicit Uninstrumented_Vector(
@@ -102,8 +102,7 @@ class Raw_Bump_Vector {
 
   static_assert(is_winkable_v<T>);
 
-  explicit Raw_Bump_Vector(Bump_Allocator *allocator) noexcept
-      : allocator_(allocator) {}
+  explicit Raw_Bump_Vector(Bump_Allocator *allocator) : allocator_(allocator) {}
 
   Raw_Bump_Vector(const Raw_Bump_Vector &) = delete;
   Raw_Bump_Vector &operator=(const Raw_Bump_Vector &) = delete;
@@ -120,41 +119,41 @@ class Raw_Bump_Vector {
 
   ~Raw_Bump_Vector() { this->clear(); }
 
-  Bump_Allocator *get_allocator() const noexcept { return this->allocator_; }
+  Bump_Allocator *get_allocator() const { return this->allocator_; }
 
-  bool empty() const noexcept { return this->data_ == this->data_end_; }
-  size_type size() const noexcept {
+  bool empty() const { return this->data_ == this->data_end_; }
+  size_type size() const {
     return narrow_cast<size_type>(this->data_end_ - this->data_);
   }
-  size_type capacity() const noexcept {
+  size_type capacity() const {
     return narrow_cast<size_type>(this->capacity_end_ - this->data_);
   }
 
-  QLJS_FORCE_INLINE T *data() noexcept { return this->data_; }
-  QLJS_FORCE_INLINE const T *data() const noexcept { return this->data_; }
+  QLJS_FORCE_INLINE T *data() { return this->data_; }
+  QLJS_FORCE_INLINE const T *data() const { return this->data_; }
 
-  QLJS_FORCE_INLINE const T *begin() const noexcept { return this->data_; }
-  QLJS_FORCE_INLINE const T *end() const noexcept { return this->data_end_; }
+  QLJS_FORCE_INLINE const T *begin() const { return this->data_; }
+  QLJS_FORCE_INLINE const T *end() const { return this->data_end_; }
 
-  T &front() noexcept {
+  T &front() {
     QLJS_ASSERT(!this->empty());
     return this->data_[0];
   }
-  T &back() noexcept {
+  T &back() {
     QLJS_ASSERT(!this->empty());
     return this->data_end_[-1];
   }
 
-  const T &front() const noexcept {
+  const T &front() const {
     QLJS_ASSERT(!this->empty());
     return this->data_[0];
   }
-  const T &back() const noexcept {
+  const T &back() const {
     QLJS_ASSERT(!this->empty());
     return this->data_end_[-1];
   }
 
-  T &operator[](size_type index) noexcept {
+  T &operator[](size_type index) {
     QLJS_ASSERT(index < this->size());
     return this->data_[index];
   }
@@ -281,7 +280,7 @@ class Raw_Bump_Vector {
     }
   }
 
-  explicit operator std::basic_string_view<value_type>() const noexcept {
+  explicit operator std::basic_string_view<value_type>() const {
     return std::basic_string_view<value_type>(
         this->data_, narrow_cast<std::size_t>(this->size()));
   }

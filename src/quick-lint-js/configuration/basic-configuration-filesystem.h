@@ -17,7 +17,7 @@
 namespace quick_lint_js {
 class Basic_Configuration_Filesystem : public Configuration_Filesystem {
  public:
-  static Basic_Configuration_Filesystem* instance() noexcept;
+  static Basic_Configuration_Filesystem* instance();
 
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonicalize_path(
       const std::string&) override;

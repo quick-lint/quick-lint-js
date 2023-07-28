@@ -15,7 +15,7 @@ struct typescript_test_unit {
   String8 name;
 
   // Returns std::nullopt if this file should not be parsed or linted.
-  std::optional<Linter_Options> get_linter_options() const noexcept;
+  std::optional<Linter_Options> get_linter_options() const;
 };
 
 using typescript_test_units = std::vector<typescript_test_unit>;

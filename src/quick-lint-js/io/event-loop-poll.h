@@ -16,6 +16,7 @@
 #include <optional>
 #include <poll.h>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/io/event-loop-base.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/port/char8.h>
@@ -41,40 +42,38 @@ class Poll_Event_Loop : public Event_Loop_Base<Derived> {
       Platform_File_Ref pipe = this->const_derived().get_readable_pipe();
       QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
-      std::array< ::pollfd, 3> pollfds;
-      std::size_t pollfd_count = 0;
+      Fixed_Vector<::pollfd, 3> pollfds;
 
-      std::size_t read_pipe_index = pollfd_count++;
-      pollfds[read_pipe_index] =
-          ::pollfd{.fd = pipe.get(), .events = POLLIN, .revents = 0};
+      Fixed_Vector_Size read_pipe_index = pollfds.size();
+      pollfds.push_back(
+          ::pollfd{.fd = pipe.get(), .events = POLLIN, .revents = 0});
 
-      std::optional<std::size_t> write_pipe_index;
+      std::optional<Fixed_Vector_Size> write_pipe_index;
       if (std::optional<POSIX_FD_File_Ref> fd =
               this->derived().get_pipe_write_fd()) {
-        write_pipe_index = pollfd_count++;
-        pollfds[*write_pipe_index] = ::pollfd{
+        write_pipe_index = pollfds.size();
+        pollfds.push_back(::pollfd{
             .fd = fd->get(),
             .events = POLLOUT,
             .revents = 0,
-        };
+        });
       }
 
 #if QLJS_HAVE_INOTIFY
-      std::optional<std::size_t> inotify_index;
+      std::optional<Fixed_Vector_Size> inotify_index;
       if (std::optional<POSIX_FD_File_Ref> fd =
               this->derived().get_inotify_fd()) {
-        inotify_index = pollfd_count++;
-        pollfds[*inotify_index] = ::pollfd{
+        inotify_index = pollfds.size();
+        pollfds.push_back(::pollfd{
             .fd = fd->get(),
             .events = POLLIN,
             .revents = 0,
-        };
+        });
       }
 #endif
 
-      QLJS_ASSERT(pollfd_count > 0);
-      QLJS_ASSERT(pollfd_count <= pollfds.size());
-      int rc = ::poll(pollfds.data(), narrow_cast< ::nfds_t>(pollfd_count),
+      QLJS_ASSERT(pollfds.size() > 0);
+      int rc = ::poll(pollfds.data(), narrow_cast<::nfds_t>(pollfds.size()),
                       /*timeout=*/-1);
       if (rc == -1) {
         QLJS_UNIMPLEMENTED();

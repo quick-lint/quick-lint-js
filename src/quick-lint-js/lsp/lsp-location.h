@@ -16,8 +16,8 @@ struct LSP_Position {
   int line;
   int character;
 
-  friend bool operator==(const LSP_Position &, const LSP_Position &) noexcept;
-  friend bool operator!=(const LSP_Position &, const LSP_Position &) noexcept;
+  friend bool operator==(const LSP_Position &, const LSP_Position &);
+  friend bool operator!=(const LSP_Position &, const LSP_Position &);
 
   friend std::ostream &operator<<(std::ostream &, const LSP_Position &);
 };
@@ -34,12 +34,12 @@ class LSP_Locator {
  public:
   using Range_Type = LSP_Range;
 
-  explicit LSP_Locator(Padded_String_View input) noexcept;
+  explicit LSP_Locator(Padded_String_View input);
 
   LSP_Range range(Source_Code_Span) const;
-  LSP_Position position(const Char8 *) const noexcept;
+  LSP_Position position(const Char8 *) const;
 
-  const Char8 *from_position(LSP_Position) const noexcept;
+  const Char8 *from_position(LSP_Position) const;
 
   void replace_text(LSP_Range, String8_View replacement_text,
                     Padded_String_View new_input);
@@ -53,9 +53,9 @@ class LSP_Locator {
 
   int find_line_at_offset(Offset_Type offset) const;
 
-  Offset_Type offset(const Char8 *) const noexcept;
+  Offset_Type offset(const Char8 *) const;
 
-  LSP_Position position(int line_number, Offset_Type offset) const noexcept;
+  LSP_Position position(int line_number, Offset_Type offset) const;
 
   Padded_String_View input_;
   std::vector<Offset_Type> offset_of_lines_;

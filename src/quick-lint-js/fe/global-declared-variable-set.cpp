@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-Variable_Kind Global_Declared_Variable::kind() const noexcept {
+Variable_Kind Global_Declared_Variable::kind() const {
   if (this->is_type_only) {
     // TODO(strager): What should we do here? Will this ever be called?
     return Variable_Kind::_let;
@@ -53,12 +53,12 @@ void Global_Declared_Variable_Set::reserve_more_global_variables(
 }
 
 std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find(
-    Identifier name) const noexcept {
+    Identifier name) const {
   return this->find(name.normalized_name());
 }
 
 std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find(
-    String8_View name) const noexcept {
+    String8_View name) const {
   auto it = this->variables_.find(name);
   if (it != this->variables_.end()) {
     return Global_Declared_Variable{
@@ -80,7 +80,7 @@ std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find(
 }
 
 std::optional<Global_Declared_Variable>
-Global_Declared_Variable_Set::find_runtime(Identifier name) const noexcept {
+Global_Declared_Variable_Set::find_runtime(Identifier name) const {
   std::optional<Global_Declared_Variable> var = this->find(name);
   if (var.has_value() && var->is_type_only) {
     return std::nullopt;
@@ -89,7 +89,7 @@ Global_Declared_Variable_Set::find_runtime(Identifier name) const noexcept {
 }
 
 std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find_type(
-    Identifier name) const noexcept {
+    Identifier name) const {
   // TODO(#690): Do not treat all globals as type-visible.
   return this->find(name);
 }

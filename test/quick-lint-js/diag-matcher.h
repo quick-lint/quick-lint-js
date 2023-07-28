@@ -194,18 +194,24 @@ class Source_Code_Span_Matcher {
 
 // Metadata for a member of a diagnostic class.
 struct Diag_Matcher_Arg {
-  const char *member_name;
+  std::string_view member_name;
   std::size_t member_offset;
   Diagnostic_Arg_Type member_type;
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::source_code_span
-  Source_Code_Span get_span(const void *error_object) const noexcept;
+  Source_Code_Span get_span(const void *error_object) const;
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::char8
-  Char8 get_char8(const void *error_object) const noexcept;
+  Char8 get_char8(const void *error_object) const;
+
+  // Precondition: this->member_type == Diagnostic_Arg_Type::enum_kind
+  Enum_Kind get_enum_kind(const void *error_object) const;
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::string8_view
-  String8_View get_string8_view(const void *error_object) const noexcept;
+  String8_View get_string8_view(const void *error_object) const;
+
+  // Precondition: this->member_type == Diagnostic_Arg_Type::statement_kind
+  Statement_Kind get_statement_kind(const void *error_object) const;
 };
 
 // Create a Diag_Matcher_Arg from a Diag_ struct type and the name of a member
@@ -278,8 +284,14 @@ class Diag_Matcher_2 {
     // If this->arg.member_type == Diag_Matcher_Arg::char8:
     Char8 character;
 
+    // If this->arg.member_type == Diag_Matcher_Arg::enum_kind:
+    Enum_Kind enum_kind;
+
     // If this->arg.member_type == Diag_Matcher_Arg::string8_view:
     String8_View string;
+
+    // If this->arg.member_type == Diag_Matcher_Arg::statement_kind:
+    Statement_Kind statement_kind;
   };
 
   explicit Diag_Matcher_2(Padded_String_View input, Diag_Type type,

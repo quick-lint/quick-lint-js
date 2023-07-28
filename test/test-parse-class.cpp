@@ -698,23 +698,17 @@ TEST_F(Test_Parse_Class, class_methods_should_not_use_function_keyword) {
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { async function f() {} }"_sv,  //
-        u8"                ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { async function f() {} }"_sv,  //
+      u8"                ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { function* f() {} }"_sv,  //
-        u8"          ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { function* f() {} }"_sv,  //
+      u8"          ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { static function f() {} }"_sv,  //
-        u8"                 ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { static function f() {} }"_sv,  //
+      u8"                 ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
 }
 
 TEST_F(Test_Parse_Class, class_statement_with_keyword_property) {
@@ -949,17 +943,13 @@ TEST_F(Test_Parse_Class, class_method_without_parameter_list) {
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { [method+name] { body; } }"_sv,  //
-        u8"                       ` Diag_Missing_Function_Parameter_List"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { [method+name] { body; } }"_sv,  //
+      u8"                       ` Diag_Missing_Function_Parameter_List"_diag);
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { 'method name' { body; } }"_sv,  //
-        u8"                       ` Diag_Missing_Function_Parameter_List"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { 'method name' { body; } }"_sv,  //
+      u8"                       ` Diag_Missing_Function_Parameter_List"_diag);
 }
 
 TEST_F(Test_Parse_Class, stray_identifier_before_class_method) {
@@ -1020,19 +1010,20 @@ TEST_F(Test_Parse_Class, stray_left_curly_in_class_is_ignored) {
 }
 
 TEST_F(Test_Parse_Class, stray_keyword_in_class_body) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { if method(arg) { body; } instanceof myField; }"_sv,  //
-        u8"                                   ^^^^^^^^^^ Diag_Unexpected_Token"_diag,  //
-        u8"          ^^ Diag_Unexpected_Token"_diag);
-  }
+  test_parse_and_visit_statement(
+      u8"class C { if method(arg) { body; } instanceof myField; }"_sv,  //
+      u8"                                   ^^^^^^^^^^ Diag_Unexpected_Token"_diag,  //
+      u8"          ^^ Diag_Unexpected_Token"_diag);
 }
 
 TEST_F(Test_Parse_Class,
        class_statement_as_do_while_statement_body_is_disallowed) {
   {
-    Test_Parser p(u8"do class C {} while (cond);"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"do class C {} while (cond);"_sv,  //
+        u8"  ` Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^^^ .class_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::do_while_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  //
@@ -1040,24 +1031,16 @@ TEST_F(Test_Parse_Class,
                               "visit_variable_declaration",    // C
                               "visit_variable_use",            // cond
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::do_while_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"do"_sv.size(), u8""_sv),  //
-                class_keyword,
-                Offsets_Matcher(p.code, u8"do "_sv.size(), u8"class"_sv)),
-        }));
   }
 }
 
 TEST_F(Test_Parse_Class, class_statement_as_if_statement_body_is_disallowed) {
   {
-    Test_Parser p(u8"if (cond) class C {} after"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"if (cond) class C {} after"_sv,  //
+        u8"         ` Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^^^ .class_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",            // cond
                               "visit_enter_class_scope",       // {
@@ -1067,23 +1050,14 @@ TEST_F(Test_Parse_Class, class_statement_as_if_statement_body_is_disallowed) {
                               "visit_variable_use",            // after
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::if_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
-                class_keyword,
-                Offsets_Matcher(p.code, u8"if (cond) "_sv.size(),
-                                u8"class"_sv)),
-        }));
   }
 
   {
-    Test_Parser p(u8"if (cond) class C {} else {}"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"if (cond) class C {} else {}"_sv,  //
+        u8"         ` Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"          ^^^^^ .class_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",            // cond
                               "visit_enter_class_scope",       // {
@@ -1094,23 +1068,14 @@ TEST_F(Test_Parse_Class, class_statement_as_if_statement_body_is_disallowed) {
                               "visit_exit_block_scope",        // else
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::if_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"if (cond)"_sv.size(), u8""_sv),  //
-                class_keyword,
-                Offsets_Matcher(p.code, u8"if (cond) "_sv.size(),
-                                u8"class"_sv)),
-        }));
   }
 
   {
-    Test_Parser p(u8"if (cond) {} else class C {}"_sv, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"if (cond) {} else class C {}"_sv,  //
+        u8"                 ` Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"                  ^^^^^ .class_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::if_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",            // cond
                               "visit_enter_block_scope",       // if
@@ -1121,26 +1086,16 @@ TEST_F(Test_Parse_Class, class_statement_as_if_statement_body_is_disallowed) {
                               "visit_variable_declaration",    // C
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::if_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"if (cond) {} else"_sv.size(),
-                                u8""_sv),  //
-                class_keyword,
-                Offsets_Matcher(p.code, u8"if (cond) {} else "_sv.size(),
-                                u8"class"_sv)),
-        }));
   }
 }
 
 TEST_F(Test_Parse_Class, class_statement_as_for_statement_body_is_disallowed) {
   {
-    Test_Parser p(u8"for (;cond;) class C {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (;cond;) class C {}"_sv,  //
+        u8"            ` Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^^^ .class_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::for_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",            // cond
                               "visit_enter_class_scope",       // {
@@ -1148,27 +1103,17 @@ TEST_F(Test_Parse_Class, class_statement_as_for_statement_body_is_disallowed) {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::for_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"for (;cond;)"_sv.size(),
-                                u8""_sv),  //
-                class_keyword,
-                Offsets_Matcher(p.code, u8"for (;cond;) "_sv.size(),
-                                u8"class"_sv)),
-        }));
   }
 }
 
 TEST_F(Test_Parse_Class,
        class_statement_as_while_statement_body_is_disallowed) {
   {
-    Test_Parser p(u8"while (cond) class C {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"while (cond) class C {}"_sv,  //
+        u8"            ` Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"             ^^^^^ .class_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::while_loop}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",            // cond
                               "visit_enter_class_scope",       // {
@@ -1176,26 +1121,16 @@ TEST_F(Test_Parse_Class,
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::while_loop,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"while (cond)"_sv.size(),
-                                u8""_sv),  //
-                class_keyword,
-                Offsets_Matcher(p.code, u8"while (cond) "_sv.size(),
-                                u8"class"_sv)),
-        }));
   }
 }
 
 TEST_F(Test_Parse_Class, class_statement_as_with_statement_body_is_disallowed) {
   {
-    Test_Parser p(u8"with (obj) class C {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"with (obj) class C {}"_sv,  //
+        u8"          ` Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"           ^^^^^ .class_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::with_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",            // obj
                               "visit_enter_with_scope",        // with
@@ -1205,42 +1140,22 @@ TEST_F(Test_Parse_Class, class_statement_as_with_statement_body_is_disallowed) {
                               "visit_variable_declaration",    // C
                               "visit_exit_with_scope",
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Class_Statement_Not_Allowed_In_Body, kind_of_statement,
-                Statement_Kind::with_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"with (obj)"_sv.size(), u8""_sv),  //
-                class_keyword,
-                Offsets_Matcher(p.code, u8"with (obj) "_sv.size(),
-                                u8"class"_sv)),
-        }));
   }
 }
 
 TEST_F(Test_Parse_Class, class_statement_as_label_body_is_disallowed) {
   {
-    Test_Parser p(u8"l: class C {}"_sv, capture_diags);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"l: class C {}"_sv,  //
+        u8"  ` Diag_Class_Statement_Not_Allowed_In_Body.expected_body\n"_diag
+        u8"   ^^^^^ .class_keyword"_diag
+        u8"{.kind_of_statement=Statement_Kind::labelled_statement}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
                               "visit_enter_class_scope_body",  // C
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
-    EXPECT_THAT(
-        p.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(
-                Diag_Class_Statement_Not_Allowed_In_Body,               //
-                kind_of_statement, Statement_Kind::labelled_statement,  //
-                expected_body,
-                Offsets_Matcher(p.code, u8"l:"_sv.size(), u8""_sv),  //
-                class_keyword,
-                Offsets_Matcher(p.code, u8"l: "_sv.size(), u8"class"_sv)),
-        }));
   }
 }
 
@@ -1268,11 +1183,9 @@ TEST_F(Test_Parse_Class, class_named_await_in_async_function) {
     p.parse_and_visit_statement();
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"async function g() { class await {} }"_sv,  //
-        u8"                           ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag);
-  }
+  test_parse_and_visit_module(
+      u8"async function g() { class await {} }"_sv,  //
+      u8"                           ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag);
 }
 
 TEST_F(Test_Parse_Class, async_static_method_is_disallowed) {

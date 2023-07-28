@@ -214,7 +214,7 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
 #endif
         ;
 
-    Thread_Safe_Configuration_Filesystem<Underlying_FS_Type>* fs() noexcept {
+    Thread_Safe_Configuration_Filesystem<Underlying_FS_Type>* fs() {
       return &this->fs_;
     }
 

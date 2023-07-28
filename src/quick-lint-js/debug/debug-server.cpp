@@ -288,7 +288,7 @@ void Debug_Server::begin_closing_all_connections(::mg_mgr *mgr) {
 }
 
 void Debug_Server::http_server_callback(::mg_connection *c, int ev,
-                                        void *ev_data) noexcept {
+                                        void *ev_data) {
   switch (ev) {
   case ::MG_EV_HTTP_MSG: {
     ::mg_http_message *hm = static_cast<::mg_http_message *>(ev_data);
@@ -339,8 +339,7 @@ void Debug_Server::http_server_callback(::mg_connection *c, int ev,
   }
 }
 
-void Debug_Server::wakeup_pipe_callback(::mg_connection *c, int ev,
-                                        void *) noexcept {
+void Debug_Server::wakeup_pipe_callback(::mg_connection *c, int ev, void *) {
   switch (ev) {
   case ::MG_EV_READ:
     // wake_up_server_thread was called.

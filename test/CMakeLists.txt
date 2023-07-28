@@ -91,6 +91,7 @@ quick_lint_js_add_executable(
   test-configuration-loader.cpp
   test-configuration.cpp
   test-crash.cpp
+  test-cxx-parser.cpp
   test-debug-server.cpp
   test-diag-code-list.cpp
   test-diag-matcher.cpp
@@ -104,6 +105,7 @@ quick_lint_js_add_executable(
   test-file-canonical.cpp
   test-file-path.cpp
   test-file.cpp
+  test-fixed-vector.cpp
   test-function-ref.cpp
   test-heap-function.cpp
   test-instance-tracker.cpp
@@ -166,6 +168,7 @@ quick_lint_js_add_executable(
   test-parse-warning.cpp
   test-parse.cpp
   test-pipe-writer.cpp
+  test-pointer.cpp
   test-result.cpp
   test-simd.cpp
   test-sorted-search.cpp
@@ -236,6 +239,13 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   )
 endif ()
 quick_lint_js_enable_bigobj_if_supported(quick-lint-js-test)
+
+set_source_files_properties(
+  diagnostic-assertion.cpp
+  PROPERTIES
+  COMPILE_DEFINITIONS
+  QLJS_DIAGNOSTIC_TYPES_H_FILE_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/../src/quick-lint-js/diag/diagnostic-types-2.h\"
+)
 
 # HACK(strager): LTO builds are very slow. Our tests don't
 # *need* LTO optimizations. Disable LTO for our tests.

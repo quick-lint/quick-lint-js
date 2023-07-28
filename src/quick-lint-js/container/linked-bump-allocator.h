@@ -13,6 +13,7 @@
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/pointer.h>
+#include <utility>
 
 #if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
 #include <sanitizer/asan_interface.h>
@@ -126,9 +127,7 @@ class Linked_Bump_Allocator : public Memory_Resource {
         narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_));
   }
 
-  [[nodiscard]] Rewind_Guard make_rewind_guard() noexcept {
-    return Rewind_Guard(this);
-  }
+  [[nodiscard]] Rewind_Guard make_rewind_guard() { return Rewind_Guard(this); }
 
   template <class T, class... Args>
   T* new_object(Args&&... args) {
@@ -185,12 +184,11 @@ class Linked_Bump_Allocator : public Memory_Resource {
 
    private:
 #if QLJS_DEBUG_BUMP_ALLOCATOR
-    explicit disable_guard(linked_bump_allocator* alloc) noexcept
-        : alloc_(alloc) {
+    explicit disable_guard(linked_bump_allocator* alloc) : alloc_(alloc) {
       this->alloc_->disabled_count_ += 1;
     }
 #else
-    explicit Disable_Guard(Linked_Bump_Allocator*) noexcept {}
+    explicit Disable_Guard(Linked_Bump_Allocator*) {}
 #endif
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
@@ -200,20 +198,22 @@ class Linked_Bump_Allocator : public Memory_Resource {
     friend class Linked_Bump_Allocator;
   };
 
-  [[nodiscard]] Disable_Guard disable() noexcept { return Disable_Guard(this); }
+  [[nodiscard]] Disable_Guard disable() { return Disable_Guard(this); }
 
  protected:
-  void* do_allocate(std::size_t bytes, std::size_t align) override {
+  void* do_allocate(std::size_t bytes,
+                    std::size_t align) BOOST_NOEXCEPT override {
     QLJS_ASSERT(align <= alignment);
     return this->allocate_bytes(this->align_up(bytes));
   }
 
-  void do_deallocate(void* p, std::size_t bytes, std::size_t align) override {
+  void do_deallocate(void* p, std::size_t bytes,
+                     std::size_t align) BOOST_NOEXCEPT override {
     QLJS_ASSERT(align <= alignment);
     this->deallocate_bytes(p, bytes);
   }
 
-  bool do_is_equal(const memory_resource& other) const noexcept override {
+  bool do_is_equal(const memory_resource& other) const BOOST_NOEXCEPT override {
     return this == static_cast<const Linked_Bump_Allocator*>(&other);
   }
 
@@ -222,16 +222,14 @@ class Linked_Bump_Allocator : public Memory_Resource {
     Chunk_Header* previous;  // Linked list.
     std::size_t size;        // Size of the data portion in bytes.
 
-    char* data() noexcept {
-      return reinterpret_cast<char*>(this) + sizeof(*this);
-    }
-    char* data_end() noexcept { return this->data() + this->size; }
+    char* data() { return reinterpret_cast<char*>(this) + sizeof(*this); }
+    char* data_end() { return this->data() + this->size; }
 
-    static std::size_t allocation_size(std::size_t size) noexcept {
+    static std::size_t allocation_size(std::size_t size) {
       return sizeof(Chunk_Header) + size;
     }
 
-    static std::align_val_t allocation_alignment() noexcept {
+    static std::align_val_t allocation_alignment() {
       return std::align_val_t{maximum(alignment, alignof(Chunk_Header))};
     }
 
@@ -263,7 +261,7 @@ class Linked_Bump_Allocator : public Memory_Resource {
   static inline constexpr std::size_t default_chunk_size =
       4096 - sizeof(Chunk_Header);
 
-  static constexpr std::size_t align_up(std::size_t size) noexcept {
+  static constexpr std::size_t align_up(std::size_t size) {
     return (size + alignment - 1) & ~(alignment - 1);
   }
 
@@ -314,7 +312,7 @@ class Linked_Bump_Allocator : public Memory_Resource {
   }
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
-  bool is_disabled() const noexcept { return this->disabled_count_ > 0; }
+  bool is_disabled() const { return this->disabled_count_ > 0; }
 #endif
 
   Chunk_Header* chunk_ = nullptr;

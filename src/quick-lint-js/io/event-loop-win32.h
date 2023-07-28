@@ -24,7 +24,7 @@
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-Windows_Handle_File create_io_completion_port() noexcept;
+Windows_Handle_File create_io_completion_port();
 
 // An event loop using Win32's I/O completion ports. See Event_Loop_Base for
 // details.
@@ -40,7 +40,7 @@ class Windows_Event_Loop : public Event_Loop_Base<Derived> {
   explicit Windows_Event_Loop()
       : io_completion_port_(create_io_completion_port()) {}
 
-  Windows_Handle_File_Ref io_completion_port() noexcept {
+  Windows_Handle_File_Ref io_completion_port() {
     return this->io_completion_port_.ref();
   }
 
@@ -111,7 +111,7 @@ class Windows_Event_Loop : public Event_Loop_Base<Derived> {
   Thread read_pipe_thread_;
 };
 
-inline Windows_Handle_File create_io_completion_port() noexcept {
+inline Windows_Handle_File create_io_completion_port() {
   Windows_Handle_File iocp(::CreateIoCompletionPort(
       /*FileHandle=*/INVALID_HANDLE_VALUE,
       /*ExistingCompletionPort=*/nullptr, /*CompletionKey=*/0,

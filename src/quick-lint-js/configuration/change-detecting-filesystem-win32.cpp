@@ -29,7 +29,7 @@ namespace quick_lint_js {
 namespace {
 void attach_handle_to_iocp(Windows_Handle_File_Ref handle,
                            Windows_Handle_File_Ref iocp,
-                           ULONG_PTR completionKey) noexcept;
+                           ULONG_PTR completionKey);
 
 template <class Iterator, class Vector>
 void swap_erase(Vector& v, Iterator it_to_remove) {
@@ -322,7 +322,7 @@ Change_Detecting_Filesystem_Win32::Watched_Directory::Watched_Directory(
 
 Change_Detecting_Filesystem_Win32::Watched_Directory*
 Change_Detecting_Filesystem_Win32::Watched_Directory::from_oplock_overlapped(
-    OVERLAPPED* overlapped) noexcept {
+    OVERLAPPED* overlapped) {
   return reinterpret_cast<Watched_Directory*>(
       reinterpret_cast<std::uintptr_t>(overlapped) -
       offsetof(Watched_Directory, oplock_overlapped));
@@ -331,7 +331,7 @@ Change_Detecting_Filesystem_Win32::Watched_Directory::from_oplock_overlapped(
 namespace {
 void attach_handle_to_iocp(Windows_Handle_File_Ref handle,
                            Windows_Handle_File_Ref iocp,
-                           ULONG_PTR completionKey) noexcept {
+                           ULONG_PTR completionKey) {
   HANDLE iocp2 = CreateIoCompletionPort(
       /*FileHandle=*/handle.get(),
       /*ExistingCompletionPort=*/iocp.get(),

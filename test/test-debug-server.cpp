@@ -48,9 +48,7 @@ struct HTTP_Response {
   }
 
   // Returns false if there was a failure when making the request.
-  /*implicit*/ operator bool() const noexcept {
-    return this->status.has_value();
-  }
+  /*implicit*/ operator bool() const { return this->status.has_value(); }
 };
 
 HTTP_Response http_fetch(const char *url);

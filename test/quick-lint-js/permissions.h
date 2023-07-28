@@ -11,7 +11,7 @@
 #endif
 
 namespace quick_lint_js {
-inline bool process_ignores_filesystem_permissions() noexcept {
+inline bool process_ignores_filesystem_permissions() {
 #if QLJS_HAVE_UNISTD_H
   return ::geteuid() == 0;
 #else

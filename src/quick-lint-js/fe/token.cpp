@@ -9,7 +9,7 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-Identifier Token::identifier_name() const noexcept {
+Identifier Token::identifier_name() const {
   switch (this->type) {
   QLJS_CASE_KEYWORD:
   case Token_Type::identifier:
@@ -24,7 +24,7 @@ Identifier Token::identifier_name() const noexcept {
                     /*normalized=*/this->normalized_identifier);
 }
 
-Source_Code_Span Token::span() const noexcept {
+Source_Code_Span Token::span() const {
   return Source_Code_Span(this->begin, this->end);
 }
 
