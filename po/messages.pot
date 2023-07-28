@@ -146,9 +146,7 @@ msgid "TypeScript type annotation requires parentheses"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"invalid usage of ? as a prefix or suffix in the a type expression, use '| "
-"void' instead"
+msgid "invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -648,9 +646,7 @@ msgid "'{0}' is not allowed for strings; use {1} instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"'.' operator needs a key name; use + to concatenate strings; use [] to "
-"access with a dynamic key"
+msgid "'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -970,9 +966,7 @@ msgid "missing semicolon between init and condition parts of for loop"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"incomplete export; expected 'export default ...' or 'export {{name}' or "
-"'export * from ...' or 'export class' or 'export function' or 'export let'"
+msgid "incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1000,8 +994,7 @@ msgid "do-while statement starts here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"newline is not allowed between 'async' and arrow function parameter list"
+msgid "newline is not allowed between 'async' and arrow function parameter list"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1129,8 +1122,7 @@ msgid "cannot use '...' on 'this' parameter"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"unexpected statement before first switch case, expected 'case' or 'default'"
+msgid "unexpected statement before first switch case, expected 'case' or 'default'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1182,9 +1174,7 @@ msgid "write the type assertion with 'as' here instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"'as const' is only allowed on literals (array, object, string, boolean) and "
-"enum members"
+msgid "'as const' is only allowed on literals (array, object, string, boolean) and enum members"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1264,9 +1254,7 @@ msgid "{1:headlinese} value must be a compile-time constant"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"'export =' is not allowed; write 'export default' or 'module.exports "
-"=' (CommonJS) instead"
+msgid "'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1362,8 +1350,7 @@ msgid "missing name for element in named tuple type"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"this tuple type is a named tuple type because at least one element has a name"
+msgid "this tuple type is a named tuple type because at least one element has a name"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1379,8 +1366,7 @@ msgid "'?' goes here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"'...' belongs only before the tuple element name, not also before the type"
+msgid "'...' belongs only before the tuple element name, not also before the type"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1520,8 +1506,7 @@ msgid "spread starts here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"const fields within classes are only allowed in TypeScript, not JavaScript"
+msgid "const fields within classes are only allowed in TypeScript, not JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1681,8 +1666,7 @@ msgid "unexpected '#'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"unicode byte order mark (BOM) cannot appear before #! at beginning of script"
+msgid "unicode byte order mark (BOM) cannot appear before #! at beginning of script"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1694,10 +1678,7 @@ msgid "unexpected token"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"unexpected token in export; expected 'export default ...' or 'export "
-"{{name}' or 'export * from ...' or 'export class' or 'export function' or "
-"'export let'"
+msgid "unexpected token in export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1769,9 +1750,7 @@ msgid "interface properties are always public and cannot be private"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"TypeScript interface properties are always public and cannot be marked "
-"protected"
+msgid "TypeScript interface properties are always public and cannot be marked protected"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1831,8 +1810,7 @@ msgid "':' should be 'extends' instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid ""
-"nullish coalescing operator does nothing when left operand is never null"
+msgid "nullish coalescing operator does nothing when left operand is never null"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
