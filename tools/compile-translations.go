@@ -121,9 +121,6 @@ func main() {
 	if err := WriteTranslationTestHeader(locales, "test/quick-lint-js/test-translation-table-generated.h"); err != nil {
 		log.Fatal(err)
 	}
-	if err := WriteTranslationTestSource(locales, "test/test-translation-table-generated.cpp"); err != nil {
-		log.Fatal(err)
-	}
 }
 
 func writeFileHeader(writer *bufio.Writer) {
@@ -555,6 +552,16 @@ func WriteTranslationTestHeader(locales map[string][]TranslationEntry, path stri
 	localeNames := GetLocaleNames(locales)
 	allUntranslated := GetAllUntranslated(locales)
 
+	// Returns the untranslated string if there is no translation.
+	lookUpTranslation := func(localeName string, untranslated []byte) []byte {
+		for _, entry := range locales[localeName] {
+			if bytes.Equal(entry.Untranslated, untranslated) {
+				return entry.Translated
+			}
+		}
+		return untranslated
+	}
+
 	writeFileHeader(writer)
 
 	fmt.Fprintf(writer,
@@ -585,52 +592,9 @@ struct Translated_String {
   const Char8 *expected_per_locale[%d];
 };
 
-extern const Translated_String test_translation_table[%d];
-}
-
-#endif
-
-`, len(localeNames), len(allUntranslated))
-	WriteCopyrightFooter(writer)
-
-	if err := writer.Flush(); err != nil {
-		log.Fatal(err)
-	}
-	return nil
-}
-
-func WriteTranslationTestSource(locales map[string][]TranslationEntry, path string) error {
-	outputFile, err := os.Create(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer outputFile.Close()
-	writer := bufio.NewWriter(outputFile)
-
-	localeNames := GetLocaleNames(locales)
-	allUntranslated := GetAllUntranslated(locales)
-
-	// Returns the untranslated string if there is no translation.
-	lookUpTranslation := func(localeName string, untranslated []byte) []byte {
-		for _, entry := range locales[localeName] {
-			if bytes.Equal(entry.Untranslated, untranslated) {
-				return entry.Translated
-			}
-		}
-		return untranslated
-	}
-
-	writeFileHeader(writer)
-
-	fmt.Fprintf(writer,
-		`
-#include <quick-lint-js/i18n/translation.h>
-#include <quick-lint-js/test-translation-table-generated.h>
-
-namespace quick_lint_js {
 // clang-format off
-const Translated_String test_translation_table[] = {
-`)
+inline const Translated_String test_translation_table[%d] = {
+`, len(localeNames), len(allUntranslated))
 
 	for _, untranslated := range allUntranslated {
 		fmt.Fprintf(writer, "    {\n        \"")
@@ -648,6 +612,8 @@ const Translated_String test_translation_table[] = {
 		`};
 // clang-format on
 }
+
+#endif
 
 `)
 	WriteCopyrightFooter(writer)
