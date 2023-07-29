@@ -29,13 +29,6 @@ if (QUICK_LINT_JS_USE_BUILD_TOOLS)
     IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-compile-translations${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
   )
 
-  add_executable(quick-lint-js-extract-translatable-strings IMPORTED GLOBAL)
-  set_target_properties(
-    quick-lint-js-extract-translatable-strings
-    PROPERTIES
-    IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-extract-translatable-strings${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
-  )
-
   add_executable(quick-lint-js-generate-diagnostic-metadata IMPORTED GLOBAL)
   set_target_properties(
     quick-lint-js-generate-diagnostic-metadata
@@ -61,21 +54,6 @@ elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
   )
   target_link_libraries(
     quick-lint-js-compile-translations
-    PRIVATE
-    quick-lint-js-tool-lib
-  )
-
-  quick_lint_js_add_executable(
-    quick-lint-js-extract-translatable-strings
-    extract-translatable-strings.cpp
-  )
-  set_target_properties(
-    quick-lint-js-extract-translatable-strings
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ..
-  )
-  target_link_libraries(
-    quick-lint-js-extract-translatable-strings
     PRIVATE
     quick-lint-js-tool-lib
   )
@@ -112,7 +90,6 @@ elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
 
   install(
     TARGETS
-      quick-lint-js-extract-translatable-strings
       quick-lint-js-generate-diagnostic-metadata
       quick-lint-js-generate-lex-keyword
     COMPONENT build-tools

@@ -5,8 +5,12 @@
 #include <cstdlib>
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/hash-map.h>
+#include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/i18n/po-parser.h>
 #include <quick-lint-js/i18n/translation-table-compiler.h>
 #include <quick-lint-js/io/file-path.h>
@@ -14,6 +18,7 @@
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/reflection/cxx-parser.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/utf-8.h>
 #include <string_view>
@@ -28,6 +33,28 @@ namespace {
 Span<PO_Entry> parse_po_file(const char* po_file_path, Monotonic_Allocator*);
 
 String8_View po_path_to_locale_name(const char* po_path);
+
+struct String_Table {
+  struct Entry {
+    // Copies the string.
+    explicit Entry(String8_View string, Monotonic_Allocator* allocator);
+
+    Bump_Vector<const char*, Monotonic_Allocator> origin_file_paths;
+    String8_View string;
+  };
+
+  void add_string(String8_View string, const char* origin_file_path);
+
+  Linked_Vector<Entry> entries{&this->allocator_};
+  Hash_Map<String8_View, Entry*> string_to_entry;
+
+  Monotonic_Allocator allocator_{"String_Table::allocator_"};
+};
+
+void find_strings_in_file(const char* input_path,
+                          String_Table& out_string_table);
+void write_messages_po_template(const String_Table&, const char* path);
+void write_po_string_literal(Output_Stream&, String8_View);
 
 void write_file_header(Output_Stream&);
 void write_translation_table_header(const Compiled_Translation_Table&,
@@ -47,16 +74,28 @@ int main(int argc, char** argv) {
   using namespace quick_lint_js;
 
   std::vector<const char*> po_file_paths;
-  const char* po_template_file_path = nullptr;
+  std::vector<const char*> source_file_paths;
+  const char* output_messages_pot_path = nullptr;
   const char* output_translation_table_cpp_path = nullptr;
   const char* output_translation_table_h_path = nullptr;
   const char* output_translation_table_test_path = nullptr;
   Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
-    QLJS_ARGUMENT(const char* argument) { po_file_paths.push_back(argument); }
+    QLJS_ARGUMENT(const char* argument) {
+      std::fprintf(stderr, "error: unrecognized option: %s\n", argument);
+      std::exit(2);
+    }
 
-    QLJS_OPTION(const char* arg_value, "--po-template"sv) {
-      po_template_file_path = arg_value;
+    QLJS_OPTION(const char* arg_value, "--po"sv) {
+      po_file_paths.push_back(arg_value);
+    }
+
+    QLJS_OPTION(const char* arg_value, "--source"sv) {
+      source_file_paths.push_back(arg_value);
+    }
+
+    QLJS_OPTION(const char* arg_value, "--output-messages-pot"sv) {
+      output_messages_pot_path = arg_value;
     }
 
     QLJS_OPTION(const char* arg_value, "--output-translation-table-cpp"sv) {
@@ -77,6 +116,12 @@ int main(int argc, char** argv) {
     }
   }
 
+  String_Table string_table;
+  for (const char* source_file_path : source_file_paths) {
+    find_strings_in_file(source_file_path, string_table);
+  }
+  write_messages_po_template(string_table, output_messages_pot_path);
+
   Monotonic_Allocator allocator("main");
   Bump_Vector<PO_File, Monotonic_Allocator> po_files("PO files", &allocator);
   for (const char* po_file_path : po_file_paths) {
@@ -86,10 +131,12 @@ int main(int argc, char** argv) {
     });
   }
 
+  // TODO(strager): Reuse String_Table instead of parsing the messages.pot file
+  // we just wrote.
   {
     PO_File& template_file = po_files.push_back(PO_File{
         .locale = u8""_sv,
-        .entries = parse_po_file(po_template_file_path, &allocator),
+        .entries = parse_po_file(output_messages_pot_path, &allocator),
     });
     for (PO_Entry& entry : template_file.entries) {
       // Force the source strings to map to themselves.
@@ -148,6 +195,134 @@ String8_View po_path_to_locale_name(const char* po_path) {
   }
   std::string_view base_name = file_name.substr(0, extension_start);
   return to_string8_view(base_name);
+}
+
+String_Table::Entry::Entry(String8_View string, Monotonic_Allocator* allocator)
+    : origin_file_paths("String_Table::Entry::file_paths", allocator) {
+  Char8* new_string =
+      allocator->allocate_uninitialized_array<Char8>(string.size());
+  Char8* new_string_end = std::copy(string.begin(), string.end(), new_string);
+  this->string = make_string_view(new_string, new_string_end);
+}
+
+void String_Table::add_string(String8_View string,
+                              const char* origin_file_path) {
+  auto existing_it = this->string_to_entry.find(string);
+  Entry* entry;
+  if (existing_it == this->string_to_entry.end()) {
+    entry = &this->entries.emplace_back(string, &this->allocator_);
+    auto [_it, inserted] =
+        this->string_to_entry.try_emplace(entry->string, entry);
+    QLJS_ASSERT(inserted);
+  } else {
+    entry = existing_it->second;
+  }
+
+  if (!contains(entry->origin_file_paths, origin_file_path)) {
+    entry->origin_file_paths.push_back(origin_file_path);
+  }
+}
+
+void find_strings_in_file(const char* input_path,
+                          String_Table& out_string_table) {
+  Result<Padded_String, Read_File_IO_Error> file = read_file(input_path);
+  if (!file.ok()) {
+    std::fprintf(stderr, "fatal: %s\n", file.error_to_string().c_str());
+    std::exit(1);
+  }
+  CLI_Locator locator(&*file);
+
+  Padded_String_View remaining = &*file;
+  for (;;) {
+    static constexpr String8_View marker = u8"QLJS_TRANSLATABLE("_sv;
+    std::size_t marker_index = remaining.string_view().find(marker);
+    if (marker_index == String8_View::npos) {
+      break;
+    }
+    std::size_t string_index = marker_index + marker.size();
+    remaining = remaining.substr(narrow_cast<Padded_String_Size>(string_index));
+
+    CXX_Lexer lexer(remaining, input_path, &locator);
+    if (lexer.peek().type != CXX_Token_Type::string_literal) {
+      lexer.fatal();
+    }
+    out_string_table.add_string(lexer.peek().decoded_string, input_path);
+    remaining =
+        Padded_String_View(lexer.remaining(), remaining.null_terminator());
+  }
+}
+
+void write_messages_po_template(const String_Table& strings,
+                                Output_Stream& out) {
+  out.append_copy(
+      u8R"(# Code generated by tools/update-translator-sources. DO NOT EDIT.
+# source: (various)
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew "strager" Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+)"_sv);
+
+  strings.entries.for_each([&](const String_Table::Entry& entry) {
+    for (const char* origin_file_path : entry.origin_file_paths) {
+      out.append_copy(u8"\n#: "_sv);
+      out.append_copy(to_string8_view(origin_file_path));
+    }
+    out.append_copy(u8"\nmsgid "_sv);
+    write_po_string_literal(out, entry.string);
+    out.append_copy(u8"\nmsgstr \"\"\n"_sv);
+  });
+}
+
+void write_messages_po_template(const String_Table& strings, const char* path) {
+  Result<Platform_File, Write_File_IO_Error> file = open_file_for_writing(path);
+  if (!file.ok()) {
+    std::fprintf(stderr, "error: %s\n", file.error_to_string().c_str());
+    std::exit(1);
+  }
+  File_Output_Stream out(file->ref());
+  write_messages_po_template(strings, out);
+  out.flush();
+}
+
+void write_po_string_literal(Output_Stream& out, String8_View string) {
+  out.append_copy(u8'"');
+  for (Char8 c : string) {
+    if (c == u8'"' || c == u8'\\') {
+      out.append_copy(u8'\\');
+      out.append_copy(c);
+    } else {
+      // TODO(strager): Escape other characters?
+      out.append_copy(c);
+    }
+  }
+  out.append_copy(u8'"');
 }
 
 void write_translation_table_header(const Compiled_Translation_Table& table,
