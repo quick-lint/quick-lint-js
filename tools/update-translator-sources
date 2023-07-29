@@ -25,7 +25,7 @@ main() {
     --output-messages-pot po/messages.pot \
     --output-translation-table-h src/quick-lint-js/i18n/translation-table-generated.h \
     --output-translation-table-cpp src/quick-lint-js/i18n/translation-table-generated.cpp \
-    --output-translation-table-test test/quick-lint-js/test-translation-table-generated.h \
+    --output-translation-table-test src/quick-lint-js/i18n/translation-table-test-generated.h \
     "${po_flags[@]}"
 
   update_translation_files

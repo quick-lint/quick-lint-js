@@ -530,8 +530,8 @@ void write_translation_test_header(
 
   out.append_copy(
       u8R"(
-#ifndef QUICK_LINT_JS_TEST_TRANSLATION_TABLE_GENERATED_H
-#define QUICK_LINT_JS_TEST_TRANSLATION_TABLE_GENERATED_H
+#ifndef QUICK_LINT_JS_I18N_TRANSLATION_TABLE_TEST_GENERATED_H
+#define QUICK_LINT_JS_I18N_TRANSLATION_TABLE_TEST_GENERATED_H
 
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/port/char8.h>

@@ -244,6 +244,7 @@ quick_lint_js_add_library(
   quick-lint-js/i18n/locale.h
   quick-lint-js/i18n/translation-table-generated.cpp
   quick-lint-js/i18n/translation-table-generated.h
+  quick-lint-js/i18n/translation-table-test-generated.h
   quick-lint-js/i18n/translation-table.h
   quick-lint-js/i18n/translation.cpp
   quick-lint-js/i18n/translation.h

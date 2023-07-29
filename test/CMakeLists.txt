@@ -72,7 +72,6 @@ quick_lint_js_add_executable(
   quick-lint-js/spy-lsp-endpoint-remote.h
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
-  quick-lint-js/test-translation-table-generated.h
   quick-lint-js/tracking-memory-resource.h
   quick-lint-js/variable-analyzer-support.h
   spy-visitor.cpp
