@@ -56,7 +56,7 @@
         "keyword-variable-name": html`Keyword variable name`,
         "missing-operator-between-expressions": html`Missing <code class="javascript">||</code> between expressions`,
         "elseif-instead-of-else-if": html`<code class="javascript">elseif</code> instead of <code class="javascript">else if</code>`,
-        "missing-comma-between-arguments": html`Missing <code class="javascript">,</code> between arguments`,
+        "missing-comma-between-object-properties": html`Missing <code class="javascript">,</code> between object properties`,
       };
 
       let scores = {
@@ -67,7 +67,7 @@
         "keyword-variable-name": { Ba: 3, ESL: 3, JSC: 5, SM: 1, TS: 5, V8: 3, qljs: 3, },
         "missing-operator-between-expressions": { Ba: 1, ESL: 3, JSC: 1, SM: 1, TS: 1, V8: 3, qljs: 1, },
         "elseif-instead-of-else-if": { Ba: 1, ESL: 2, JSC: 2, SM: 2, TS: 1, V8: 2, qljs: 3, },
-        "missing-comma-between-arguments": { Ba: 4, ESL: 3, JSC: 1, SM: 1, TS: 4, V8: 3, qljs: 5, },
+        "missing-comma-between-object-properties": { Ba: 4, ESL: 3, JSC: 1, SM: 1, TS: 4, V8: 3, qljs: 5, },
       };
 
       function totalScoreForEngine(engineName) {
@@ -285,6 +285,11 @@
       <p>
         Written by <a href="https://strager.net/">strager</a> on
         <qljs-date datetime="<%= meta.blogDate %>" />
+      </p>
+      <p>
+        Updated on <qljs-date datetime="2023-07-29T02:15:59-07:00" />: Fixed
+        incorrect description of the 'Missing , between object properties'
+        example.
       </p>
 
       <section id="table-of-contents">
@@ -751,12 +756,14 @@ if(input.val() == "Lamborghini") {
           </p>
         </section>
 
-        <section id="missing-comma-between-arguments">
-          <h4>Missing <code class="javascript">,</code> between arguments</h4>
+        <section id="missing-comma-between-object-properties">
+          <h4>
+            Missing <code class="javascript">,</code> between object properties
+          </h4>
           <p>
-            Function calls have a comma (<code class="javascript">,</code
-            >)-separated arguments. The following code forgets a comma between
-            two parameters:
+            Object literals have a comma (<code class="javascript">,</code
+            >)-separated key-value pairs. The following code forgets a comma
+            between two properties:
           </p>
           <div class="code-example">
             <figure>
