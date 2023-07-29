@@ -4,6 +4,7 @@
 #include <array>
 #include <gtest/gtest.h>
 #include <limits>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/integer.h>
 
@@ -65,6 +66,22 @@ TEST(Test_Write_Integer, maximum) {
 TEST(Test_Write_Integer, minimum) {
   if constexpr (std::numeric_limits<int>::min() <= -2147483648LL) {
     EXPECT_EQ(write_integer(int(-2147483648LL)), u8"-2147483648");
+  }
+}
+
+TEST(Test_Write_Integer, fixed_hexadecimal) {
+  Char8 buffer[20] = {};
+  {
+    Char8* end = write_integer_fixed_hexadecimal(0x1234, 4, buffer);
+    EXPECT_EQ(make_string_view(buffer, end), u8"1234"_sv);
+  }
+  {
+    Char8* end = write_integer_fixed_hexadecimal(0xef, 8, buffer);
+    EXPECT_EQ(make_string_view(buffer, end), u8"000000ef"_sv);
+  }
+  {
+    Char8* end = write_integer_fixed_hexadecimal(-0xabc, 8, buffer);
+    EXPECT_EQ(make_string_view(buffer, end), u8"-0000abc"_sv);
   }
 }
 }

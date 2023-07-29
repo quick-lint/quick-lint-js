@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iterator>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
@@ -49,6 +50,29 @@ Char *write_integer_generic(T value, Char *out, Char zero_digit) {
       std::reverse(begin, out);
     }
     return out;
+  }
+}
+
+template <class Char, class Base, class T>
+Char *write_integer_fixed_generic(T value, int width, Char *out) {
+  if constexpr (std::is_signed_v<T>) {
+    std::make_unsigned_t<T> unsigned_value;
+    std::memcpy(&unsigned_value, &value, sizeof(T));
+    if (value < 0) {
+      *out++ = '-';
+      unsigned_value = -unsigned_value;
+      width -= 1;
+    }
+    return write_integer_fixed_generic<Char, Base, std::make_unsigned_t<T>>(
+        unsigned_value, width, out);
+  } else {
+    constexpr T radix = static_cast<T>(Base::radix());
+    for (int i = 0; i < width; ++i) {
+      T digit = narrow_cast<T>(value % radix);
+      value = narrow_cast<T>(value / radix);
+      out[width - i - 1] = Base::make_digit(digit);
+    }
+    return out + width;
   }
 }
 }
@@ -92,6 +116,13 @@ struct Hexadecimal {
     if ('a' <= c && c <= 'f') return c - 'a' + 10;
     if ('A' <= c && c <= 'F') return c - 'A' + 10;
     QLJS_UNREACHABLE();
+  }
+  template <class T>
+  static Char make_digit(T digit) {
+    static constexpr Char digits[] = u8"0123456789abcdef";
+    QLJS_ASSERT(digit >= 0);
+    QLJS_ASSERT(digit < std::size(digits));
+    return digits[digit];
   }
   static constexpr int radix() { return 16; }
 };
@@ -239,6 +270,17 @@ template char *write_integer<unsigned>(unsigned, char *out);
 #endif
 
 template wchar_t *write_integer<unsigned short>(unsigned short, wchar_t *out);
+
+template <class T>
+Char8 *write_integer_fixed_hexadecimal(T value, int width, Char8 *out) {
+  return write_integer_fixed_generic<Char8, Hexadecimal<Char8>, T>(value, width,
+                                                                   out);
+}
+
+template Char8 *write_integer_fixed_hexadecimal<int>(int, int width,
+                                                     Char8 *out);
+template Char8 *write_integer_fixed_hexadecimal<char32_t>(char32_t, int width,
+                                                          Char8 *out);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

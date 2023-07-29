@@ -94,6 +94,15 @@ wchar_t *write_integer(T, wchar_t *out);
 
 extern template wchar_t *write_integer<unsigned short>(unsigned short,
                                                        wchar_t *out);
+
+template <class T>
+Char8 *write_integer_fixed_hexadecimal(T, int width, Char8 *out);
+
+extern template Char8 *write_integer_fixed_hexadecimal<int>(int, int width,
+                                                            Char8 *out);
+extern template Char8 *write_integer_fixed_hexadecimal<char32_t>(char32_t,
+                                                                 int width,
+                                                                 Char8 *out);
 }
 
 #endif
