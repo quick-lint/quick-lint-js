@@ -240,6 +240,43 @@ TEST(Test_Translation_Table_Compiler, untranslated_entries_are_ignored) {
 }
 
 TEST(Test_Translation_Table_Compiler,
+     untranslated_entries_are_after_last_locale) {
+  Monotonic_Allocator allocator("test");
+  PO_Entry de_entries[] = {
+      {u8"hello"_sv, u8"hallo"_sv},
+  };
+  PO_Entry fr_entries[] = {
+      {u8"hello"_sv, u8"bonjour"_sv},
+  };
+  String8_View untranslated_strings[] = {
+      u8"hello"_sv,
+      u8"goodbye"_sv,
+  };
+  PO_File files[] = {
+      {.locale = u8"de_DE"_sv, .entries = Span<PO_Entry>(de_entries)},
+      {.locale = u8"fr_FR"_sv, .entries = Span<PO_Entry>(fr_entries)},
+  };
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(files),
+      Span<const String8_View>(untranslated_strings), &allocator);
+  check_table_integrity(table);
+
+  int de = 0;
+  int fr = de + 1;
+  int untranslated = fr + 1;  // After all locales.
+
+  Translation_Table_Mapping_Entry* hello_entry =
+      table.look_up_mapping_by_untranslated(u8"hello"_sv);
+  EXPECT_EQ(table.read_string(hello_entry->string_offsets[untranslated]),
+            u8"hello"_sv);
+
+  Translation_Table_Mapping_Entry* goodbye_entry =
+      table.look_up_mapping_by_untranslated(u8"goodbye"_sv);
+  EXPECT_EQ(table.read_string(goodbye_entry->string_offsets[untranslated]),
+            u8"goodbye"_sv);
+}
+
+TEST(Test_Translation_Table_Compiler,
      relative_mappings_are_0_for_missing_strings) {
   Monotonic_Allocator allocator("test");
   PO_Entry default_entries[] = {

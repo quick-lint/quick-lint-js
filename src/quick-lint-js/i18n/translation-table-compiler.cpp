@@ -129,7 +129,18 @@ Compiled_Translation_Table compile_translation_table(
     auto file_it = find_unique_if(files, [&](const PO_File& file) -> bool {
       return file.locale == table.locales[locale_index];
     });
-    if (file_it != files.end()) {
+    if (file_it == files.end()) {
+      // The untranslated locale was missing from files. Use
+      // untranslated_strings instead.
+      for (String8_View untranslated_string : untranslated_strings) {
+        std::optional<Span_Size> index =
+            table.find_mapping_table_index_for_untranslated(
+                untranslated_string);
+        table.absolute_mapping_table[index.value()]
+            .string_offsets[locale_index] =
+            string_table.add_string(untranslated_string);
+      }
+    } else {
       for (const PO_Entry& entry : file_it->entries) {
         if (!entry.is_metadata() && entry.has_translation()) {
           std::optional<Span_Size> index =
