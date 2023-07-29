@@ -45,10 +45,10 @@ struct String_Table {
 
   void add_string(String8_View string, const char* origin_file_path);
 
+  Monotonic_Allocator allocator_{"String_Table::allocator_"};
+
   Linked_Vector<Entry> entries{&this->allocator_};
   Hash_Map<String8_View, Entry*> string_to_entry;
-
-  Monotonic_Allocator allocator_{"String_Table::allocator_"};
 };
 
 void find_strings_in_file(const char* input_path,
