@@ -11,13 +11,13 @@ cd "$(dirname "${0}")/.."
 main() {
   check_dependencies
   update_template_file
-  update_translation_files
   ./build/quick-lint-js-compile-translations \
     --output-translation-table-h src/quick-lint-js/i18n/translation-table-generated.h \
     --output-translation-table-cpp src/quick-lint-js/i18n/translation-table-generated.cpp \
     --output-translation-table-test test/quick-lint-js/test-translation-table-generated.h \
     --po-template po/messages.pot \
     po/*.po
+  update_translation_files
 }
 
 check_dependencies() {
