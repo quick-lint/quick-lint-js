@@ -147,9 +147,10 @@ Compiled_Translation_Table compile_translation_table(
         if (!entry.is_metadata() && entry.has_translation()) {
           std::optional<Span_Size> index =
               table.find_mapping_table_index_for_untranslated(entry.msgid);
-          table.absolute_mapping_table[index.value()]
-              .string_offsets[locale_index] =
-              string_table.add_string(entry.msgstr);
+          if (index.has_value()) {
+            table.absolute_mapping_table[*index].string_offsets[locale_index] =
+                string_table.add_string(entry.msgstr);
+          }
         }
       }
     }

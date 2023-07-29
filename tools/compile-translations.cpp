@@ -135,19 +135,17 @@ int main(int argc, char** argv) {
 
   // TODO(strager): Reuse String_Table instead of parsing the messages.pot file
   // we just wrote.
-  {
-    PO_File& template_file = po_files.push_back(PO_File{
-        .locale = u8""_sv,
-        .entries = parse_po_file(output_messages_pot_path, &allocator),
-    });
-    for (PO_Entry& entry : template_file.entries) {
-      // Force the source strings to map to themselves.
-      entry.msgstr = entry.msgid;
-    }
+  PO_File& template_file = po_files.push_back(PO_File{
+      .locale = u8""_sv,
+      .entries = parse_po_file(output_messages_pot_path, &allocator),
+  });
+  for (PO_Entry& entry : template_file.entries) {
+    // Force the source strings to map to themselves.
+    entry.msgstr = entry.msgid;
   }
 
   Span<const String8_View> untranslated_strings =
-      get_all_untranslated(Span<const PO_File>(po_files), &allocator);
+      get_all_untranslated(Span<const PO_File>(&template_file, 1), &allocator);
 
   Compiled_Translation_Table table = compile_translation_table(
       Span<const PO_File>(po_files), untranslated_strings, &allocator);
