@@ -510,7 +510,6 @@ void write_translation_test_header(
       locale_names.push_back(file.locale);
     }
   }
-  locale_names.push_back(u8""_sv);  // Untranslated locale.
   // Sort to make output deterministic.
   sort(locale_names);
 
@@ -556,6 +555,7 @@ inline constexpr const char *test_locale_names[] = {
 
 struct Translated_String {
   Translatable_Message translatable;
+  const Char8 *expected_untranslated;
   const Char8 *expected_per_locale[)"_sv);
   out.append_decimal_integer(locale_names.size());
   out.append_copy(
@@ -570,15 +570,25 @@ inline const Translated_String test_translation_table[)"_sv);
 )"_sv);
 
   for (String8_View untranslated : untranslated_strings) {
-    out.append_copy(u8"    {\n        \""_sv);
+    out.append_copy(u8"    {\n"_sv);
+
+    out.append_copy(u8"        \""_sv);
     dump_string_literal_body(untranslated, out);
-    out.append_copy(u8"\"_translatable,\n        {\n"_sv);
+    out.append_copy(u8"\"_translatable,\n"_sv);
+
+    out.append_copy(u8"        u8\""_sv);
+    dump_string_literal_body(untranslated, out);
+    out.append_copy(u8"\",\n"_sv);
+
+    out.append_copy(u8"        {\n"_sv);
+
     for (String8_View locale_name : locale_names) {
       out.append_copy(u8"            u8\""_sv);
       dump_string_literal_body(look_up_translation(locale_name, untranslated),
                                out);
       out.append_copy(u8"\",\n"_sv);
     }
+
     out.append_copy(u8"        },\n    },\n"_sv);
   }
 

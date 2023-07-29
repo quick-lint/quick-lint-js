@@ -13,7 +13,6 @@
 namespace quick_lint_js {
 // clang-format off
 inline constexpr const char *test_locale_names[] = {
-    "",
     "de",
     "en_US@snarky",
     "fr_FR",
@@ -24,15 +23,16 @@ inline constexpr const char *test_locale_names[] = {
 
 struct Translated_String {
   Translatable_Message translatable;
-  const Char8 *expected_per_locale[6];
+  const Char8 *expected_untranslated;
+  const Char8 *expected_per_locale[5];
 };
 
 // clang-format off
 inline const Translated_String test_translation_table[463] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
+        u8"\"global-groups\" entries must be strings",
         {
-            u8"\"global-groups\" entries must be strings",
             u8"Eintr\u00e4ge in \"global-groups\" m\u00fcssen Strings sein",
             u8"\"global-groups\" contains strings, not whatever you just said",
             u8"les entr\u00e9es de type \"global-groups\" doivent \u00eatre des cha\u00eenes de caract\u00e8res",
@@ -42,8 +42,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "\"global-groups\" must be a boolean or an array"_translatable,
+        u8"\"global-groups\" must be a boolean or an array",
         {
-            u8"\"global-groups\" must be a boolean or an array",
             u8"\"global-groups\" muss entweder ein Boolean oder ein Array sein",
             u8"\"global-groups\" must be a boolean or an array, not whatever you just said",
             u8"\"global-groups\" doit \u00eatre un bool\u00e9en ou un tableau",
@@ -53,8 +53,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "\"globals\" descriptor \"shadowable\" property must be a boolean"_translatable,
+        u8"\"globals\" descriptor \"shadowable\" property must be a boolean",
         {
-            u8"\"globals\" descriptor \"shadowable\" property must be a boolean",
             u8"Die \"shadowable\"-Eigenschaft des \"globals\"-Deskriptor muss ein Boolean sein",
             u8"\"globals\" descriptor \"shadowable\" property must be a boolean, not whatever you just said",
             u8"pour le descripteur \"globals\" la propri\u00e9t\u00e9 \"shadowable\" doit \u00eare un bool\u00e9en",
@@ -64,8 +64,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "\"globals\" descriptor \"writable\" property must be a boolean"_translatable,
+        u8"\"globals\" descriptor \"writable\" property must be a boolean",
         {
-            u8"\"globals\" descriptor \"writable\" property must be a boolean",
             u8"Die \"writable\"-Eigenschaft des \"globals\"-Deskriptor muss ein Boolean sein",
             u8"\"globals\" descriptor \"writable\" property must be a boolean, not whatever you just said",
             u8"pour le descripteur \"globals\" la propri\u00e9t\u00e9 \"writable\" doit \u00eatre un bool\u00e9en",
@@ -75,8 +75,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "\"globals\" descriptor must be a boolean or an object"_translatable,
+        u8"\"globals\" descriptor must be a boolean or an object",
         {
-            u8"\"globals\" descriptor must be a boolean or an object",
             u8"Der \"globals\"-Deskriptor muss entweder ein Boolean oder ein Array sein",
             u8"\"globals\" descriptor must be a boolean or an object, not whatever you just said",
             u8"le descripteur \"globals\" doit \u00eatre un bool\u00e9en ou un objet",
@@ -86,8 +86,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "\"globals\" must be an object"_translatable,
+        u8"\"globals\" must be an object",
         {
-            u8"\"globals\" must be an object",
             u8"\"globles\" muss ein Objekt sein",
             u8"\"globals\" must be an object, not whatever you just said",
             u8"\"globals\" doit \u00eatre un objet",
@@ -97,8 +97,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'!' here treated as the TypeScript non-null assertion operator"_translatable,
+        u8"'!' here treated as the TypeScript non-null assertion operator",
         {
-            u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
@@ -108,8 +108,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'**' operator cannot be used after unary '{1}' without parentheses"_translatable,
+        u8"'**' operator cannot be used after unary '{1}' without parentheses",
         {
-            u8"'**' operator cannot be used after unary '{1}' without parentheses",
             u8"Ohne Klammern kann der Operator '**' nicht nach un\u00e4rem '{1}' verwendet werden",
             u8"'**' and '{1}' don't mix",
             u8"'**' operator cannot be used after unary '{1}' without parentheses",
@@ -119,8 +119,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "',' should be ';' instead"_translatable,
+        u8"',' should be ';' instead",
         {
-            u8"',' should be ';' instead",
             u8"',' should be ';' instead",
             u8"',' should be ';' instead",
             u8"',' should be ';' instead",
@@ -130,8 +130,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'.' is not allowed after generic arguments; write [\"{1}\"] instead"_translatable,
+        u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
         {
-            u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
             u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
             u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
             u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
@@ -141,8 +141,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key"_translatable,
+        u8"'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key",
         {
-            u8"'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key",
             u8"Der '.'-Operator erfordert einen Schl\u00fcsselnamen; + verwenden, um Strings zu verketten; [] verwenden, um auf dynamische Schl\u00fcssel zuzugreifen",
             u8"this isn't PHP",
             u8"l'op\u00e9rateur '.' n\u00e9cessite un nom cl\u00e9 ; utiliser + pour concat\u00e9ner des cha\u00eenes de caract\u00e8res ; utiliser [] pour un acc\u00e8s avec une cl\u00e9 dynamique",
@@ -152,8 +152,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'...' belongs before the tuple element name, not before the type"_translatable,
+        u8"'...' belongs before the tuple element name, not before the type",
         {
-            u8"'...' belongs before the tuple element name, not before the type",
             u8"'...' belongs before the tuple element name, not before the type",
             u8"'...' belongs before the tuple element name, not before the type",
             u8"'...' belongs before the tuple element name, not before the type",
@@ -163,8 +163,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'...' belongs only before the tuple element name, not also before the type"_translatable,
+        u8"'...' belongs only before the tuple element name, not also before the type",
         {
-            u8"'...' belongs only before the tuple element name, not also before the type",
             u8"'...' belongs only before the tuple element name, not also before the type",
             u8"'...' belongs only before the tuple element name, not also before the type",
             u8"'...' belongs only before the tuple element name, not also before the type",
@@ -174,8 +174,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'...' goes here"_translatable,
+        u8"'...' goes here",
         {
-            u8"'...' goes here",
             u8"'...' goes here",
             u8"'...' goes here",
             u8"'...' goes here",
@@ -185,8 +185,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "':' should be 'extends' instead"_translatable,
+        u8"':' should be 'extends' instead",
         {
-            u8"':' should be 'extends' instead",
             u8"':' should be 'extends' instead",
             u8"':' should be 'extends' instead",
             u8"':' should be 'extends' instead",
@@ -196,8 +196,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'=' changes variables; to compare, use '===' instead"_translatable,
+        u8"'=' changes variables; to compare, use '===' instead",
         {
-            u8"'=' changes variables; to compare, use '===' instead",
             u8"'=' ver\u00e4ndert Variable. F\u00fcr Vergleich '===' anstattdessen verwenden",
             u8"this isn't math class!",
             u8"'=' changes variables; to compare, use '===' instead",
@@ -207,8 +207,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"_translatable,
+        u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead",
         {
-            u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead",
             u8"'>' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'>} oder &gt; schreiben.",
             u8"Facebook says '>' is not allowed; write {{'>'} or &gt; instead",
             u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead",
@@ -218,8 +218,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'?' belongs after the tuple element name, not after the type"_translatable,
+        u8"'?' belongs after the tuple element name, not after the type",
         {
-            u8"'?' belongs after the tuple element name, not after the type",
             u8"'?' belongs after the tuple element name, not after the type",
             u8"'?' belongs after the tuple element name, not after the type",
             u8"'?' belongs after the tuple element name, not after the type",
@@ -229,8 +229,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'?' belongs only after the tuple element name, not also after the type"_translatable,
+        u8"'?' belongs only after the tuple element name, not also after the type",
         {
-            u8"'?' belongs only after the tuple element name, not also after the type",
             u8"'?' belongs only after the tuple element name, not also after the type",
             u8"'?' belongs only after the tuple element name, not also after the type",
             u8"'?' belongs only after the tuple element name, not also after the type",
@@ -240,8 +240,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'?' creates a conditional expression"_translatable,
+        u8"'?' creates a conditional expression",
         {
-            u8"'?' creates a conditional expression",
             u8"'?' erzeugt einen Ausdruck mit tern\u00e4rem Operator",
             u8"do you know what a conditional expression even is ? liar \U0001f925 : Kagi it \U0001f50d",
             u8"'?' cr\u00e9\u00e9 une expression conditionnelle",
@@ -251,8 +251,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'?' goes here"_translatable,
+        u8"'?' goes here",
         {
-            u8"'?' goes here",
             u8"'?' goes here",
             u8"'?' goes here",
             u8"'?' goes here",
@@ -262,8 +262,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'^' is the XOR operator; to exponentiate, use '**' instead"_translatable,
+        u8"'^' is the XOR operator; to exponentiate, use '**' instead",
         {
-            u8"'^' is the XOR operator; to exponentiate, use '**' instead",
             u8"'^' is the XOR operator; to exponentiate, use '**' instead",
             u8"'^' is the XOR operator; to exponentiate, use '**' instead",
             u8"'^' is the XOR operator; to exponentiate, use '**' instead",
@@ -273,8 +273,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'as const' is only allowed on literals (array, object, string, boolean) and enum members"_translatable,
+        u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
         {
-            u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
             u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
             u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
             u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members",
@@ -284,8 +284,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'as const' located here"_translatable,
+        u8"'as const' located here",
         {
-            u8"'as const' located here",
             u8"'as const' located here",
             u8"'as const' located here",
             u8"'as const' located here",
@@ -295,8 +295,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'async export' is not allowed; write 'export async' instead"_translatable,
+        u8"'async export' is not allowed; write 'export async' instead",
         {
-            u8"'async export' is not allowed; write 'export async' instead",
             u8"'async export' is not allowed; write 'export async' instead",
             u8"'async export' is not allowed; write 'export async' instead",
             u8"'async export' is not allowed; write 'export async' instead",
@@ -306,8 +306,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'async static' is not allowed; write 'static async' instead"_translatable,
+        u8"'async static' is not allowed; write 'static async' instead",
         {
-            u8"'async static' is not allowed; write 'static async' instead",
             u8"'async static' ist ung\u00fcltig. 'static asysc' anstattdessen verwenden.",
             u8"are you dyslexic or something?",
             u8"'async static' n'est pas autoris\u00e9 ; utiliser plut\u00f4t 'static async'",
@@ -317,8 +317,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'await' cannot be followed by an arrow function; use 'async' instead"_translatable,
+        u8"'await' cannot be followed by an arrow function; use 'async' instead",
         {
-            u8"'await' cannot be followed by an arrow function; use 'async' instead",
             u8"'await' kann nicht von einer Arrow-Funktion gefolgt werden. 'async' anstattdessen verwenden.",
             u8"psst. 'async'.",
             u8"'await' ne peut \u00eatre suivi d'une fonction fl\u00e9ch\u00e9e ; utiliser plut\u00f4t 'async'",
@@ -328,8 +328,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'await' is only allowed in async functions"_translatable,
+        u8"'await' is only allowed in async functions",
         {
-            u8"'await' is only allowed in async functions",
             u8"'await' darf nur in mit 'asysc' markierten Funktionen verwendet werden",
             u8"this is sync country. get yer await outta here.",
             u8"'await' n'est autoris\u00e9 que dans des fonctions async",
@@ -339,8 +339,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare class' cannot contain static block"_translatable,
+        u8"'declare class' cannot contain static block",
         {
-            u8"'declare class' cannot contain static block",
             u8"'declare class' cannot contain static block",
             u8"'declare class' cannot contain static block",
             u8"'declare class' cannot contain static block",
@@ -350,8 +350,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare class' fields cannot be initalized"_translatable,
+        u8"'declare class' fields cannot be initalized",
         {
-            u8"'declare class' fields cannot be initalized",
             u8"'declare class' fields cannot be initalized",
             u8"'declare class' fields cannot be initalized",
             u8"'declare class' fields cannot be initalized",
@@ -361,8 +361,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare class' methods cannot be marked 'async'"_translatable,
+        u8"'declare class' methods cannot be marked 'async'",
         {
-            u8"'declare class' methods cannot be marked 'async'",
             u8"'declare class' methods cannot be marked 'async'",
             u8"'declare class' methods cannot be marked 'async'",
             u8"'declare class' methods cannot be marked 'async'",
@@ -372,8 +372,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare class' methods cannot be marked as a generator"_translatable,
+        u8"'declare class' methods cannot be marked as a generator",
         {
-            u8"'declare class' methods cannot be marked as a generator",
             u8"'declare class' methods cannot be marked as a generator",
             u8"'declare class' methods cannot be marked as a generator",
             u8"'declare class' methods cannot be marked as a generator",
@@ -383,8 +383,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare class' methods cannot contain a body"_translatable,
+        u8"'declare class' methods cannot contain a body",
         {
-            u8"'declare class' methods cannot contain a body",
             u8"'declare class' methods cannot contain a body",
             u8"'declare class' methods cannot contain a body",
             u8"'declare class' methods cannot contain a body",
@@ -394,8 +394,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare function' cannot be marked 'async'"_translatable,
+        u8"'declare function' cannot be marked 'async'",
         {
-            u8"'declare function' cannot be marked 'async'",
             u8"'declare function' cannot be marked 'async'",
             u8"'declare function' cannot be marked 'async'",
             u8"'declare function' cannot be marked 'async'",
@@ -405,8 +405,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare function' cannot be marked as a generator"_translatable,
+        u8"'declare function' cannot be marked as a generator",
         {
-            u8"'declare function' cannot be marked as a generator",
             u8"'declare function' cannot be marked as a generator",
             u8"'declare function' cannot be marked as a generator",
             u8"'declare function' cannot be marked as a generator",
@@ -416,8 +416,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare function' cannot have a body"_translatable,
+        u8"'declare function' cannot have a body",
         {
-            u8"'declare function' cannot have a body",
             u8"'declare function' cannot have a body",
             u8"'declare function' cannot have a body",
             u8"'declare function' cannot have a body",
@@ -427,8 +427,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare function' here"_translatable,
+        u8"'declare function' here",
         {
-            u8"'declare function' here",
             u8"'declare function' here",
             u8"'declare function' here",
             u8"'declare function' here",
@@ -438,8 +438,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare namespace' cannot contain statements, only declarations"_translatable,
+        u8"'declare namespace' cannot contain statements, only declarations",
         {
-            u8"'declare namespace' cannot contain statements, only declarations",
             u8"'declare namespace' cannot contain statements, only declarations",
             u8"'declare namespace' cannot contain statements, only declarations",
             u8"'declare namespace' cannot contain statements, only declarations",
@@ -449,8 +449,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare namespace' starts here"_translatable,
+        u8"'declare namespace' starts here",
         {
-            u8"'declare namespace' starts here",
             u8"'declare namespace' starts here",
             u8"'declare namespace' starts here",
             u8"'declare namespace' starts here",
@@ -460,8 +460,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare {1}' cannot have initializer"_translatable,
+        u8"'declare {1}' cannot have initializer",
         {
-            u8"'declare {1}' cannot have initializer",
             u8"'declare {1}' cannot have initializer",
             u8"'declare {1}' cannot have initializer",
             u8"'declare {1}' cannot have initializer",
@@ -471,8 +471,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare {1}' started here"_translatable,
+        u8"'declare {1}' started here",
         {
-            u8"'declare {1}' started here",
             u8"'declare {1}' started here",
             u8"'declare {1}' started here",
             u8"'declare {1}' started here",
@@ -482,8 +482,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare' here"_translatable,
+        u8"'declare' here",
         {
-            u8"'declare' here",
             u8"'declare' here",
             u8"'declare' here",
             u8"'declare' here",
@@ -493,8 +493,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare' should not be written inside a 'declare namespace'"_translatable,
+        u8"'declare' should not be written inside a 'declare namespace'",
         {
-            u8"'declare' should not be written inside a 'declare namespace'",
             u8"'declare' should not be written inside a 'declare namespace'",
             u8"'declare' should not be written inside a 'declare namespace'",
             u8"'declare' should not be written inside a 'declare namespace'",
@@ -504,8 +504,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'declare' specified here"_translatable,
+        u8"'declare' specified here",
         {
-            u8"'declare' specified here",
             u8"'declare' specified here",
             u8"'declare' specified here",
             u8"'declare' specified here",
@@ -515,8 +515,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'do-while' loop"_translatable,
+        u8"'do-while' loop",
         {
-            u8"'do-while' loop",
             u8"do-while-Schleife",
             u8"do-whiley do",
             u8"'do-while' loop",
@@ -526,8 +526,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'else' has no corresponding 'if'"_translatable,
+        u8"'else' has no corresponding 'if'",
         {
-            u8"'else' has no corresponding 'if'",
             u8"'else' ohne zugeh\u00f6riges 'if'",
             u8"you're violating the laws of causality",
             u8"'else' n'a pas de 'if' correspondant",
@@ -537,8 +537,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"_translatable,
+        u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
         {
-            u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
             u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
             u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
             u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
@@ -548,8 +548,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'export' keyword here"_translatable,
+        u8"'export' keyword here",
         {
-            u8"'export' keyword here",
             u8"'export' keyword here",
             u8"'export' keyword here",
             u8"'export' keyword here",
@@ -559,8 +559,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'extends' must be before 'implements'"_translatable,
+        u8"'extends' must be before 'implements'",
         {
-            u8"'extends' must be before 'implements'",
             u8"'extends' must be before 'implements'",
             u8"'extends' must be before 'implements'",
             u8"'extends' must be before 'implements'",
@@ -570,8 +570,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'for' loop"_translatable,
+        u8"'for' loop",
         {
-            u8"'for' loop",
             u8"for-Schleife",
             u8"'for' loop \U0001f503",
             u8"'for' loop",
@@ -581,8 +581,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'function async' is not allowed; write 'async function' instead"_translatable,
+        u8"'function async' is not allowed; write 'async function' instead",
         {
-            u8"'function async' is not allowed; write 'async function' instead",
             u8"'function async' is not allowed; write 'async function' instead",
             u8"'function async' is not allowed; write 'async function' instead",
             u8"'function async' is not allowed; write 'async function' instead",
@@ -592,8 +592,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'function' is here"_translatable,
+        u8"'function' is here",
         {
-            u8"'function' is here",
             u8"'function' is here",
             u8"'function' is here",
             u8"'function' is here",
@@ -603,8 +603,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'if' statement"_translatable,
+        u8"'if' statement",
         {
-            u8"'if' statement",
             u8"if-Anweisung",
             u8"when (not if) statement",
             u8"'if' statement",
@@ -614,8 +614,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'in' disallowed in C-style for loop initializer"_translatable,
+        u8"'in' disallowed in C-style for loop initializer",
         {
-            u8"'in' disallowed in C-style for loop initializer",
             u8"Ung\u00fcltiges 'in' innerhalb Initialisierung der C-\u00e4hnlichen for-Schleife",
             u8"is this a for-in loop or what?",
             u8"'in' d\u00e9sactiv\u00e9 dans l'initialisation des boucles for de style C",
@@ -625,8 +625,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'infer' is only allowed between 'extends' and '?' in conditional types"_translatable,
+        u8"'infer' is only allowed between 'extends' and '?' in conditional types",
         {
-            u8"'infer' is only allowed between 'extends' and '?' in conditional types",
             u8"'infer' is only allowed between 'extends' and '?' in conditional types",
             u8"'infer' is only allowed between 'extends' and '?' in conditional types",
             u8"'infer' is only allowed between 'extends' and '?' in conditional types",
@@ -636,8 +636,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'out in' is not allowed; write 'in out' instead"_translatable,
+        u8"'out in' is not allowed; write 'in out' instead",
         {
-            u8"'out in' is not allowed; write 'in out' instead",
             u8"'out in' is not allowed; write 'in out' instead",
             u8"'out in' is not allowed; write 'in out' instead",
             u8"'out in' is not allowed; write 'in out' instead",
@@ -647,8 +647,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'private' is not allowed in JavaScript"_translatable,
+        u8"'private' is not allowed in JavaScript",
         {
-            u8"'private' is not allowed in JavaScript",
             u8"'private' is not allowed in JavaScript",
             u8"'private' is not allowed in JavaScript",
             u8"'private' is not allowed in JavaScript",
@@ -658,8 +658,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'protected' is not allowed in JavaScript"_translatable,
+        u8"'protected' is not allowed in JavaScript",
         {
-            u8"'protected' is not allowed in JavaScript",
             u8"'protected' is not allowed in JavaScript",
             u8"'protected' is not allowed in JavaScript",
             u8"'protected' is not allowed in JavaScript",
@@ -669,8 +669,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'public' is not allowed in JavaScript"_translatable,
+        u8"'public' is not allowed in JavaScript",
         {
-            u8"'public' is not allowed in JavaScript",
             u8"'public' is not allowed in JavaScript",
             u8"'public' is not allowed in JavaScript",
             u8"'public' is not allowed in JavaScript",
@@ -680,8 +680,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'readonly static' is not allowed; write 'static readonly' instead"_translatable,
+        u8"'readonly static' is not allowed; write 'static readonly' instead",
         {
-            u8"'readonly static' is not allowed; write 'static readonly' instead",
             u8"'readonly static' is not allowed; write 'static readonly' instead",
             u8"'readonly static' is not allowed; write 'static readonly' instead",
             u8"'readonly static' is not allowed; write 'static readonly' instead",
@@ -691,8 +691,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'readonly' only works with array types and tuple types"_translatable,
+        u8"'readonly' only works with array types and tuple types",
         {
-            u8"'readonly' only works with array types and tuple types",
             u8"'readonly' only works with array types and tuple types",
             u8"'readonly' only works with array types and tuple types",
             u8"'readonly' only works with array types and tuple types",
@@ -702,8 +702,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'this' must be the first parameter"_translatable,
+        u8"'this' must be the first parameter",
         {
-            u8"'this' must be the first parameter",
             u8"'this' must be the first parameter",
             u8"'this' must be the first parameter",
             u8"'this' must be the first parameter",
@@ -713,8 +713,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'this' parameter not allowed when destructuring"_translatable,
+        u8"'this' parameter not allowed when destructuring",
         {
-            u8"'this' parameter not allowed when destructuring",
             u8"'this' parameter not allowed when destructuring",
             u8"'this' parameter not allowed when destructuring",
             u8"'this' parameter not allowed when destructuring",
@@ -724,8 +724,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'this' parameters are not allowed in JavaScript"_translatable,
+        u8"'this' parameters are not allowed in JavaScript",
         {
-            u8"'this' parameters are not allowed in JavaScript",
             u8"'this' parameters are not allowed in JavaScript",
             u8"'this' parameters are not allowed in JavaScript",
             u8"'this' parameters are not allowed in JavaScript",
@@ -735,8 +735,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'this' parameters are not allowed in arrow functions"_translatable,
+        u8"'this' parameters are not allowed in arrow functions",
         {
-            u8"'this' parameters are not allowed in arrow functions",
             u8"'this' parameters are not allowed in arrow functions",
             u8"'this' parameters are not allowed in arrow functions",
             u8"'this' parameters are not allowed in arrow functions",
@@ -746,8 +746,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'type' cannot be used twice in export"_translatable,
+        u8"'type' cannot be used twice in export",
         {
-            u8"'type' cannot be used twice in export",
             u8"'type' cannot be used twice in export",
             u8"'type' cannot be used twice in export",
             u8"'type' cannot be used twice in export",
@@ -757,8 +757,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'type' cannot be used twice in import"_translatable,
+        u8"'type' cannot be used twice in import",
         {
-            u8"'type' cannot be used twice in import",
             u8"'type' cannot be used twice in import",
             u8"'type' cannot be used twice in import",
             u8"'type' cannot be used twice in import",
@@ -768,8 +768,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'while' loop"_translatable,
+        u8"'while' loop",
         {
-            u8"'while' loop",
             u8"while-Schleife",
             u8"whenever loop",
             u8"'while' loop",
@@ -779,8 +779,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'with' statement"_translatable,
+        u8"'with' statement",
         {
-            u8"'with' statement",
             u8"with-Anweisung",
             u8"what-the-heck-is-wrong-with statement",
             u8"'with' statement",
@@ -790,8 +790,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'{0} []' is always '{1}'"_translatable,
+        u8"'{0} []' is always '{1}'",
         {
-            u8"'{0} []' is always '{1}'",
             u8"'{0} []' is always '{1}'",
             u8"'{0} []' is always '{1}'",
             u8"'{0} []' is always '{1}'",
@@ -801,8 +801,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'{0}' access specifier must precede '{1}'"_translatable,
+        u8"'{0}' access specifier must precede '{1}'",
         {
-            u8"'{0}' access specifier must precede '{1}'",
             u8"'{0}' access specifier must precede '{1}'",
             u8"'{0}' access specifier must precede '{1}'",
             u8"'{0}' access specifier must precede '{1}'",
@@ -812,8 +812,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'{0}' found here"_translatable,
+        u8"'{0}' found here",
         {
-            u8"'{0}' found here",
             u8"'{0}' ist hier",
             u8"here's the '{0}'",
             u8"'{0}' found here",
@@ -823,8 +823,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'{0}' is not allowed for strings; use {1} instead"_translatable,
+        u8"'{0}' is not allowed for strings; use {1} instead",
         {
-            u8"'{0}' is not allowed for strings; use {1} instead",
             u8"'{0}' ist f\u00fcr Strings nicht erlaubt. '{1}' anstattdessen verwenden.",
             u8"smart quotes \U0001f9e0 require the SmartyPantsJS DLC",
             u8"'{0}' is not allowed for strings; use {1} instead",
@@ -834,8 +834,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'{0}' is not allowed on methods"_translatable,
+        u8"'{0}' is not allowed on methods",
         {
-            u8"'{0}' is not allowed on methods",
             u8"'{0}' is not allowed on methods",
             u8"'{0}' is not allowed on methods",
             u8"'{0}' is not allowed on methods",
@@ -845,8 +845,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'{0}' operator cannot be used before '**' without parentheses"_translatable,
+        u8"'{0}' operator cannot be used before '**' without parentheses",
         {
-            u8"'{0}' operator cannot be used before '**' without parentheses",
             u8"Der Operator '{0}' kann nicht vor '**' ohne Klammern benutzt werden",
             u8"'{0}' and '**' don't mix",
             u8"'{0}' operator cannot be used before '**' without parentheses",
@@ -856,8 +856,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'{1}' statement starts here"_translatable,
+        u8"'{1}' statement starts here",
         {
-            u8"'{1}' statement starts here",
             u8"'{1}' statement starts here",
             u8"'{1}' statement starts here",
             u8"'{1}' statement starts here",
@@ -867,8 +867,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "'}' is not allowed directly in JSX text; write {{'}'} instead"_translatable,
+        u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
         {
-            u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
             u8"'}' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'}'} schreiben",
             u8"Facebook says '}' is not allowed; write {{'}'} instead",
             u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
@@ -878,8 +878,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "BigInt literal contains decimal point"_translatable,
+        u8"BigInt literal contains decimal point",
         {
-            u8"BigInt literal contains decimal point",
             u8"BigInt-Literal mit Dezimalpunkt",
             u8"it's Big*Int*, not Big*Decimal*",
             u8"le lit\u00e9ral BigInt contient un s\u00e9parateur de d\u00e9cimales",
@@ -889,8 +889,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "BigInt literal contains exponent"_translatable,
+        u8"BigInt literal contains exponent",
         {
-            u8"BigInt literal contains exponent",
             u8"BigInt-Literal mit Exponenten",
             u8"BigExponInt is an ES2069 feature",
             u8"le lit\u00e9ral BigInt contient un exposant",
@@ -900,8 +900,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "C-style for loop is missing its third component"_translatable,
+        u8"C-style for loop is missing its third component",
         {
-            u8"C-style for loop is missing its third component",
             u8"C-\u00e4hnliche for-Schleife fehlt drittes Argument",
             u8"you forgot ;i++",
             u8"troisi\u00e8me argument manquant pour la boucle de style C",
@@ -911,8 +911,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "C-style for loops have only three semicolon-separated components"_translatable,
+        u8"C-style for loops have only three semicolon-separated components",
         {
-            u8"C-style for loops have only three semicolon-separated components",
             u8"C-\u00e4hnliche for-Schleifen haben nur drei durch Semikolon getrennte Komponenten",
             u8"you went overboard with the semicolons",
             u8"les boucles for de style C ne poss\u00e8dent que trois composantes s\u00e9par\u00e9es par des points-virgules",
@@ -922,8 +922,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "JSON syntax error"_translatable,
+        u8"JSON syntax error",
         {
-            u8"JSON syntax error",
             u8"Syntaxfehler in JSON",
             u8"yeah, JSON sucks; try quick-lint-json",
             u8"erreur de syntaxe JSON",
@@ -933,8 +933,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "JSX prop is missing an expression"_translatable,
+        u8"JSX prop is missing an expression",
         {
-            u8"JSX prop is missing an expression",
             u8"JSX prop is missing an expression",
             u8"JSX prop is missing an expression",
             u8"JSX prop is missing an expression",
@@ -944,8 +944,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "Keywords in TypeScript does not allow escape characters"_translatable,
+        u8"Keywords in TypeScript does not allow escape characters",
         {
-            u8"Keywords in TypeScript does not allow escape characters",
             u8"Keywords in TypeScript does not allow escape characters",
             u8"Keywords in TypeScript does not allow escape characters",
             u8"Keywords in TypeScript does not allow escape characters",
@@ -955,8 +955,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "React/JSX is not allowed in TypeScript code"_translatable,
+        u8"React/JSX is not allowed in TypeScript code",
         {
-            u8"React/JSX is not allowed in TypeScript code",
             u8"React/JSX is not allowed in TypeScript code",
             u8"React/JSX is not allowed in TypeScript code",
             u8"React/JSX is not allowed in TypeScript code",
@@ -966,8 +966,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "React/JSX is not allowed in vanilla JavaScript code"_translatable,
+        u8"React/JSX is not allowed in vanilla JavaScript code",
         {
-            u8"React/JSX is not allowed in vanilla JavaScript code",
             u8"React/JSX is not allowed in vanilla JavaScript code",
             u8"React/JSX is not allowed in vanilla JavaScript code",
             u8"React/JSX is not allowed in vanilla JavaScript code",
@@ -977,8 +977,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "RegExp literal flags cannot contain Unicode escapes"_translatable,
+        u8"RegExp literal flags cannot contain Unicode escapes",
         {
-            u8"RegExp literal flags cannot contain Unicode escapes",
             u8"RegExp-Literale d\u00fcrfen keine Unicode Escapes enthalten",
             u8"keep your RegExp flags simple, please",
             u8"un litt\u00e9ral RegExp ne peut contenir des \u00e9chappements Unicode",
@@ -988,8 +988,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript 'as' type assertions are not allowed in JavaScript"_translatable,
+        u8"TypeScript 'as' type assertions are not allowed in JavaScript",
         {
-            u8"TypeScript 'as' type assertions are not allowed in JavaScript",
             u8"TypeScript 'as' type assertions are not allowed in JavaScript",
             u8"TypeScript 'as' type assertions are not allowed in JavaScript",
             u8"TypeScript 'as' type assertions are not allowed in JavaScript",
@@ -999,8 +999,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript 'declare abstract class' is not allowed in JavaScript"_translatable,
+        u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
         {
-            u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
             u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
             u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
             u8"TypeScript 'declare abstract class' is not allowed in JavaScript",
@@ -1010,8 +1010,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript 'declare class' is not allowed in JavaScript"_translatable,
+        u8"TypeScript 'declare class' is not allowed in JavaScript",
         {
-            u8"TypeScript 'declare class' is not allowed in JavaScript",
             u8"TypeScript 'declare class' is not allowed in JavaScript",
             u8"TypeScript 'declare class' is not allowed in JavaScript",
             u8"TypeScript 'declare class' is not allowed in JavaScript",
@@ -1021,8 +1021,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript 'declare function' is not allowed in JavaScript"_translatable,
+        u8"TypeScript 'declare function' is not allowed in JavaScript",
         {
-            u8"TypeScript 'declare function' is not allowed in JavaScript",
             u8"TypeScript 'declare function' is not allowed in JavaScript",
             u8"TypeScript 'declare function' is not allowed in JavaScript",
             u8"TypeScript 'declare function' is not allowed in JavaScript",
@@ -1032,8 +1032,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript 'declare {1}' is not allowed in JavaScript"_translatable,
+        u8"TypeScript 'declare {1}' is not allowed in JavaScript",
         {
-            u8"TypeScript 'declare {1}' is not allowed in JavaScript",
             u8"TypeScript 'declare {1}' is not allowed in JavaScript",
             u8"TypeScript 'declare {1}' is not allowed in JavaScript",
             u8"TypeScript 'declare {1}' is not allowed in JavaScript",
@@ -1043,8 +1043,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript 'implements' is not allowed in JavaScript"_translatable,
+        u8"TypeScript 'implements' is not allowed in JavaScript",
         {
-            u8"TypeScript 'implements' is not allowed in JavaScript",
             u8"TypeScript 'implements' is not allowed in JavaScript",
             u8"TypeScript 'implements' is not allowed in JavaScript",
             u8"TypeScript 'implements' is not allowed in JavaScript",
@@ -1054,8 +1054,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript 'satisfies' operator is not allowed in JavaScript"_translatable,
+        u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
         {
-            u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
             u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
             u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
             u8"TypeScript 'satisfies' operator is not allowed in JavaScript",
@@ -1065,8 +1065,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript <Type> type assertions are not allowed in JSX mode"_translatable,
+        u8"TypeScript <Type> type assertions are not allowed in JSX mode",
         {
-            u8"TypeScript <Type> type assertions are not allowed in JSX mode",
             u8"TypeScript <Type> type assertions are not allowed in JSX mode",
             u8"TypeScript <Type> type assertions are not allowed in JSX mode",
             u8"TypeScript <Type> type assertions are not allowed in JSX mode",
@@ -1076,8 +1076,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript assignment-asserted fields are not supported in JavaScript"_translatable,
+        u8"TypeScript assignment-asserted fields are not supported in JavaScript",
         {
-            u8"TypeScript assignment-asserted fields are not supported in JavaScript",
             u8"TypeScript assignment-asserted fields are not supported in JavaScript",
             u8"TypeScript assignment-asserted fields are not supported in JavaScript",
             u8"TypeScript assignment-asserted fields are not supported in JavaScript",
@@ -1087,8 +1087,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript generics are not allowed in JavaScript code"_translatable,
+        u8"TypeScript generics are not allowed in JavaScript code",
         {
-            u8"TypeScript generics are not allowed in JavaScript code",
             u8"TypeScript generics are not allowed in JavaScript code",
             u8"TypeScript generics are not allowed in JavaScript code",
             u8"TypeScript generics are not allowed in JavaScript code",
@@ -1098,8 +1098,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript import aliases are not allowed in JavaScript"_translatable,
+        u8"TypeScript import aliases are not allowed in JavaScript",
         {
-            u8"TypeScript import aliases are not allowed in JavaScript",
             u8"TypeScript import aliases are not allowed in JavaScript",
             u8"TypeScript import aliases are not allowed in JavaScript",
             u8"TypeScript import aliases are not allowed in JavaScript",
@@ -1109,8 +1109,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript interface fields cannot be initalized"_translatable,
+        u8"TypeScript interface fields cannot be initalized",
         {
-            u8"TypeScript interface fields cannot be initalized",
             u8"TypeScript interface fields cannot be initalized",
             u8"why are you trying to initialize this field? it's an interface!",
             u8"TypeScript interface fields cannot be initalized",
@@ -1120,8 +1120,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript interface methods cannot be marked 'async'"_translatable,
+        u8"TypeScript interface methods cannot be marked 'async'",
         {
-            u8"TypeScript interface methods cannot be marked 'async'",
             u8"TypeScript interface methods cannot be marked 'async'",
             u8"interfaces are allergic to async methods",
             u8"TypeScript interface methods cannot be marked 'async'",
@@ -1131,8 +1131,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript interface methods cannot be marked as a generator"_translatable,
+        u8"TypeScript interface methods cannot be marked as a generator",
         {
-            u8"TypeScript interface methods cannot be marked as a generator",
             u8"TypeScript interface methods cannot be marked as a generator",
             u8"interfaces are allergic to generator methods",
             u8"TypeScript interface methods cannot be marked as a generator",
@@ -1142,8 +1142,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript interface methods cannot contain a body"_translatable,
+        u8"TypeScript interface methods cannot contain a body",
         {
-            u8"TypeScript interface methods cannot contain a body",
             u8"TypeScript interface methods cannot contain a body",
             u8"you probably want a class, not an interface",
             u8"TypeScript interface methods cannot contain a body",
@@ -1153,8 +1153,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript interface properties are always public and cannot be marked protected"_translatable,
+        u8"TypeScript interface properties are always public and cannot be marked protected",
         {
-            u8"TypeScript interface properties are always public and cannot be marked protected",
             u8"TypeScript interface properties are always public and cannot be marked protected",
             u8"TypeScript interface properties are always public and cannot be marked protected",
             u8"TypeScript interface properties are always public and cannot be marked protected",
@@ -1164,8 +1164,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript interface properties cannot be 'static'"_translatable,
+        u8"TypeScript interface properties cannot be 'static'",
         {
-            u8"TypeScript interface properties cannot be 'static'",
             u8"TypeScript interface properties cannot be 'static'",
             u8"static makes no sense in interfaces",
             u8"TypeScript interface properties cannot be 'static'",
@@ -1175,8 +1175,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript namespaces are not allowed in JavaScript"_translatable,
+        u8"TypeScript namespaces are not allowed in JavaScript",
         {
-            u8"TypeScript namespaces are not allowed in JavaScript",
             u8"TypeScript namespaces are not allowed in JavaScript",
             u8"TypeScript namespaces are not allowed in JavaScript",
             u8"TypeScript namespaces are not allowed in JavaScript",
@@ -1186,8 +1186,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript non-null assertion is not allowed on parameters"_translatable,
+        u8"TypeScript non-null assertion is not allowed on parameters",
         {
-            u8"TypeScript non-null assertion is not allowed on parameters",
             u8"TypeScript non-null assertion is not allowed on parameters",
             u8"TypeScript non-null assertion is not allowed on parameters",
             u8"TypeScript non-null assertion is not allowed on parameters",
@@ -1197,8 +1197,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript non-null assertions are not allowed in JavaScript"_translatable,
+        u8"TypeScript non-null assertions are not allowed in JavaScript",
         {
-            u8"TypeScript non-null assertions are not allowed in JavaScript",
             u8"TypeScript non-null assertions are not allowed in JavaScript",
             u8"TypeScript non-null assertions are not allowed in JavaScript",
             u8"TypeScript non-null assertions are not allowed in JavaScript",
@@ -1208,8 +1208,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript optional parameter requires parentheses"_translatable,
+        u8"TypeScript optional parameter requires parentheses",
         {
-            u8"TypeScript optional parameter requires parentheses",
             u8"TypeScript optional parameter requires parentheses",
             u8"TypeScript optional parameter requires parentheses",
             u8"TypeScript optional parameter requires parentheses",
@@ -1219,8 +1219,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript optional parameter with type annotation requires parentheses"_translatable,
+        u8"TypeScript optional parameter with type annotation requires parentheses",
         {
-            u8"TypeScript optional parameter with type annotation requires parentheses",
             u8"TypeScript optional parameter with type annotation requires parentheses",
             u8"TypeScript optional parameter with type annotation requires parentheses",
             u8"TypeScript optional parameter with type annotation requires parentheses",
@@ -1230,8 +1230,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript optional parameters are not allowed in JavaScript"_translatable,
+        u8"TypeScript optional parameters are not allowed in JavaScript",
         {
-            u8"TypeScript optional parameters are not allowed in JavaScript",
             u8"TypeScript optional parameters are not allowed in JavaScript",
             u8"TypeScript optional parameters are not allowed in JavaScript",
             u8"TypeScript optional parameters are not allowed in JavaScript",
@@ -1241,8 +1241,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript optional properties are not allowed in JavaScript code"_translatable,
+        u8"TypeScript optional properties are not allowed in JavaScript code",
         {
-            u8"TypeScript optional properties are not allowed in JavaScript code",
             u8"TypeScript optional properties are not allowed in JavaScript code",
             u8"TypeScript optional properties are not allowed in JavaScript code",
             u8"TypeScript optional properties are not allowed in JavaScript code",
@@ -1252,8 +1252,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript parameter properties are not allowed in JavaScript"_translatable,
+        u8"TypeScript parameter properties are not allowed in JavaScript",
         {
-            u8"TypeScript parameter properties are not allowed in JavaScript",
             u8"TypeScript parameter properties are not allowed in JavaScript",
             u8"TypeScript parameter properties are not allowed in JavaScript",
             u8"TypeScript parameter properties are not allowed in JavaScript",
@@ -1263,8 +1263,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript requires whitespace between '>' and '=' here"_translatable,
+        u8"TypeScript requires whitespace between '>' and '=' here",
         {
-            u8"TypeScript requires whitespace between '>' and '=' here",
             u8"TypeScript requires whitespace between '>' and '=' here",
             u8"TypeScript requires whitespace between '>' and '=' here",
             u8"TypeScript requires whitespace between '>' and '=' here",
@@ -1274,8 +1274,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript type annotation requires parentheses"_translatable,
+        u8"TypeScript type annotation requires parentheses",
         {
-            u8"TypeScript type annotation requires parentheses",
             u8"TypeScript type annotation requires parentheses",
             u8"TypeScript type annotation requires parentheses",
             u8"TypeScript type annotation requires parentheses",
@@ -1285,8 +1285,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript type annotations are not allowed in JavaScript code"_translatable,
+        u8"TypeScript type annotations are not allowed in JavaScript code",
         {
-            u8"TypeScript type annotations are not allowed in JavaScript code",
             u8"TypeScript type annotations are not allowed in JavaScript code",
             u8"TypeScript type annotations are not allowed in JavaScript code",
             u8"TypeScript type annotations are not allowed in JavaScript code",
@@ -1296,8 +1296,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript type exports are not allowed in JavaScript"_translatable,
+        u8"TypeScript type exports are not allowed in JavaScript",
         {
-            u8"TypeScript type exports are not allowed in JavaScript",
             u8"TypeScript type exports are not allowed in JavaScript",
             u8"TypeScript type exports are not allowed in JavaScript",
             u8"TypeScript type exports are not allowed in JavaScript",
@@ -1307,8 +1307,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript type imports are not allowed in JavaScript"_translatable,
+        u8"TypeScript type imports are not allowed in JavaScript",
         {
-            u8"TypeScript type imports are not allowed in JavaScript",
             u8"TypeScript type imports are not allowed in JavaScript",
             u8"TypeScript type imports are not allowed in JavaScript",
             u8"TypeScript type imports are not allowed in JavaScript",
@@ -1318,8 +1318,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript type imports cannot import both default and named exports"_translatable,
+        u8"TypeScript type imports cannot import both default and named exports",
         {
-            u8"TypeScript type imports cannot import both default and named exports",
             u8"TypeScript type imports cannot import both default and named exports",
             u8"TypeScript type imports cannot import both default and named exports",
             u8"TypeScript type imports cannot import both default and named exports",
@@ -1329,8 +1329,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript types are not allowed in JavaScript"_translatable,
+        u8"TypeScript types are not allowed in JavaScript",
         {
-            u8"TypeScript types are not allowed in JavaScript",
             u8"TypeScript types are not allowed in JavaScript",
             u8"TypeScript types are not allowed in JavaScript",
             u8"TypeScript types are not allowed in JavaScript",
@@ -1340,8 +1340,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript's 'enum' feature is not allowed in JavaScript"_translatable,
+        u8"TypeScript's 'enum' feature is not allowed in JavaScript",
         {
-            u8"TypeScript's 'enum' feature is not allowed in JavaScript",
             u8"TypeScript's 'enum' feature is not allowed in JavaScript",
             u8"TypeScript's 'enum' feature is not allowed in JavaScript",
             u8"TypeScript's 'enum' feature is not allowed in JavaScript",
@@ -1351,8 +1351,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript's 'interface' feature is not allowed in JavaScript code"_translatable,
+        u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
         {
-            u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
             u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
             u8"this isn't TypeScript",
             u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
@@ -1362,8 +1362,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "TypeScript's 'readonly' feature is not allowed in JavaScript code"_translatable,
+        u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
         {
-            u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
             u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
             u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
             u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
@@ -1373,8 +1373,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "a 'do-while' loop"_translatable,
+        u8"a 'do-while' loop",
         {
-            u8"a 'do-while' loop",
             u8"eine do-While-Schleife",
             u8"a do-whiley do",
             u8"a 'do-while' loop",
@@ -1384,8 +1384,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "a 'for' loop"_translatable,
+        u8"a 'for' loop",
         {
-            u8"a 'for' loop",
             u8"eine for-Schleife",
             u8"a 'for' loop \U0001f503",
             u8"a 'for' loop",
@@ -1395,8 +1395,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "a 'while' loop"_translatable,
+        u8"a 'while' loop",
         {
-            u8"a 'while' loop",
             u8"eine while-Schleife",
             u8"a whenever loop",
             u8"a 'while' loop",
@@ -1406,8 +1406,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "a 'with' statement"_translatable,
+        u8"a 'with' statement",
         {
-            u8"a 'with' statement",
             u8"eine with-Anweisung",
             u8"a what-the-heck-is-wrong-with statement",
             u8"a 'with' statement",
@@ -1417,8 +1417,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "a class statement is not allowed as the body of {1:singular}"_translatable,
+        u8"a class statement is not allowed as the body of {1:singular}",
         {
-            u8"a class statement is not allowed as the body of {1:singular}",
             u8"Ein Klassen-Statement darf nicht der K\u00f6rper von {1:singular} sein",
             u8"you can't put a class here!",
             u8"une d\u00e9claration de classe n'est pas autoris\u00e9e dans le corps de {1:singular}",
@@ -1428,8 +1428,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "a function statement is not allowed as the body of {1:singular}"_translatable,
+        u8"a function statement is not allowed as the body of {1:singular}",
         {
-            u8"a function statement is not allowed as the body of {1:singular}",
             u8"Ein Funktionsstatement ist ung\u00fcltig als K\u00f6rper von {1:singular}",
             u8"{1:singular} isn't the right place for a function",
             u8"une instruction de fonction ne peut faire partie du corps de {1:singular}",
@@ -1439,8 +1439,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "a labelled statement"_translatable,
+        u8"a labelled statement",
         {
-            u8"a labelled statement",
             u8"a labelled statement",
             u8"a labelled statement",
             u8"a labelled statement",
@@ -1450,8 +1450,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "a lexical declaration is not allowed as the body of {1:singular}"_translatable,
+        u8"a lexical declaration is not allowed as the body of {1:singular}",
         {
-            u8"a lexical declaration is not allowed as the body of {1:singular}",
             u8"Eine lexikalische Deklaration ist nicht als K\u00f6rper von {1:singular} erlaubt",
             u8"how do you propose we use this variable?",
             u8"une d\u00e9claration lexicale ne peut constituer le corps de {1:singular}",
@@ -1461,8 +1461,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "a {{0} b }} c"_translatable,
+        u8"a {{0} b }} c",
         {
-            u8"a {{0} b }} c",
             u8"a {{0} b }} c",
             u8"a {{0} b }} c",
             u8"a {{0} b }} c",
@@ -1472,8 +1472,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "abstract fields cannot have default values"_translatable,
+        u8"abstract fields cannot have default values",
         {
-            u8"abstract fields cannot have default values",
             u8"abstract fields cannot have default values",
             u8"abstract fields cannot have default values",
             u8"abstract fields cannot have default values",
@@ -1483,8 +1483,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "abstract methods cannot be marked 'async'"_translatable,
+        u8"abstract methods cannot be marked 'async'",
         {
-            u8"abstract methods cannot be marked 'async'",
             u8"abstract methods cannot be marked 'async'",
             u8"abstract methods cannot be marked 'async'",
             u8"abstract methods cannot be marked 'async'",
@@ -1494,8 +1494,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "abstract methods cannot be marked as a generator"_translatable,
+        u8"abstract methods cannot be marked as a generator",
         {
-            u8"abstract methods cannot be marked as a generator",
             u8"abstract methods cannot be marked as a generator",
             u8"abstract methods cannot be marked as a generator",
             u8"abstract methods cannot be marked as a generator",
@@ -1505,8 +1505,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "abstract methods cannot contain a body"_translatable,
+        u8"abstract methods cannot contain a body",
         {
-            u8"abstract methods cannot contain a body",
             u8"abstract methods cannot contain a body",
             u8"abstract methods cannot contain a body",
             u8"abstract methods cannot contain a body",
@@ -1516,8 +1516,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "abstract properties are not allowed in interfaces"_translatable,
+        u8"abstract properties are not allowed in interfaces",
         {
-            u8"abstract properties are not allowed in interfaces",
             u8"abstract properties are not allowed in interfaces",
             u8"abstract properties are not allowed in interfaces",
             u8"abstract properties are not allowed in interfaces",
@@ -1527,8 +1527,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "abstract properties are only allowed in abstract classes"_translatable,
+        u8"abstract properties are only allowed in abstract classes",
         {
-            u8"abstract properties are only allowed in abstract classes",
             u8"abstract properties are only allowed in abstract classes",
             u8"abstract properties are only allowed in abstract classes",
             u8"abstract properties are only allowed in abstract classes",
@@ -1538,8 +1538,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "an 'if' statement"_translatable,
+        u8"an 'if' statement",
         {
-            u8"an 'if' statement",
             u8"eine if-Anweisung",
             u8"a when (not if) statement",
             u8"an 'if' statement",
@@ -1549,8 +1549,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "another invalid string, do not use outside benchmark"_translatable,
+        u8"another invalid string, do not use outside benchmark",
         {
-            u8"another invalid string, do not use outside benchmark",
             u8"another invalid string, do not use outside benchmark",
             u8"another invalid string, do not use outside benchmark",
             u8"another invalid string, do not use outside benchmark",
@@ -1560,8 +1560,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "array started here"_translatable,
+        u8"array started here",
         {
-            u8"array started here",
             u8"Array beginnt hier",
             u8"you opened Pandora's Box here",
             u8"tableau d\u00e9but\u00e9 ici",
@@ -1571,8 +1571,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "arrow is here"_translatable,
+        u8"arrow is here",
         {
-            u8"arrow is here",
             u8"Arrow ist hier",
             u8"move this up",
             u8"la fl\u00e8che est ici",
@@ -1582,8 +1582,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assigning to 'async' in a for-of loop requires parentheses"_translatable,
+        u8"assigning to 'async' in a for-of loop requires parentheses",
         {
-            u8"assigning to 'async' in a for-of loop requires parentheses",
             u8"Zuweisung an 'async' in einer for-of-Schleife erfordert Verwendung von Klammern",
             u8"just stop using variables called 'async'. There. Problem solved",
             u8"une affectation de type 'async' dans une boucle for-of n\u00e9cessite l'usage de parenth\u00e8ses",
@@ -1593,8 +1593,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assignment to const global variable"_translatable,
+        u8"assignment to const global variable",
         {
-            u8"assignment to const global variable",
             u8"Zuweisung an globale konstante Variable",
             u8"the global's CONSTant, you dweeb",
             u8"affectation \u00e0 une variable globale constante",
@@ -1604,8 +1604,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assignment to const variable"_translatable,
+        u8"assignment to const variable",
         {
-            u8"assignment to const variable",
             u8"Zuweisung an konstante Variable",
             u8"what part of CONSTant do you not understand?",
             u8"affectation \u00e0 une variable constante",
@@ -1615,8 +1615,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assignment to const variable before its declaration"_translatable,
+        u8"assignment to const variable before its declaration",
         {
-            u8"assignment to const variable before its declaration",
             u8"Zuweisung an konstante Variable vor Deklaration",
             u8"why are you assignin' before you be makin'? \U0001f90f",
             u8"affectation \u00e0 une variable constante avant sa d\u00e9claration",
@@ -1626,8 +1626,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assignment to imported variable"_translatable,
+        u8"assignment to imported variable",
         {
-            u8"assignment to imported variable",
             u8"Zuweisung an importierte Variable",
             u8"you said 'import', not 'extort'",
             u8"assignment to imported variable",
@@ -1637,8 +1637,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assignment to undeclared variable"_translatable,
+        u8"assignment to undeclared variable",
         {
-            u8"assignment to undeclared variable",
             u8"Zuweisung an nicht deklarierte Variable",
             u8"you're putting that where exactly?",
             u8"affectation \u00e0 une variable non d\u00e9clar\u00e9e",
@@ -1648,8 +1648,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assignment-asserted field must have a type annotation"_translatable,
+        u8"assignment-asserted field must have a type annotation",
         {
-            u8"assignment-asserted field must have a type annotation",
             u8"assignment-asserted field must have a type annotation",
             u8"assignment-asserted field must have a type annotation",
             u8"assignment-asserted field must have a type annotation",
@@ -1659,8 +1659,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assignment-asserted fields are not allowed in 'declare class'"_translatable,
+        u8"assignment-asserted fields are not allowed in 'declare class'",
         {
-            u8"assignment-asserted fields are not allowed in 'declare class'",
             u8"assignment-asserted fields are not allowed in 'declare class'",
             u8"assignment-asserted fields are not allowed in 'declare class'",
             u8"assignment-asserted fields are not allowed in 'declare class'",
@@ -1670,8 +1670,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assignment-asserted fields are not supported in interfaces"_translatable,
+        u8"assignment-asserted fields are not supported in interfaces",
         {
-            u8"assignment-asserted fields are not supported in interfaces",
             u8"assignment-asserted fields are not supported in interfaces",
             u8"assignment-asserted fields are not supported in interfaces",
             u8"assignment-asserted fields are not supported in interfaces",
@@ -1681,8 +1681,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "assignment-assertion fields cannot have default values"_translatable,
+        u8"assignment-assertion fields cannot have default values",
         {
-            u8"assignment-assertion fields cannot have default values",
             u8"assignment-assertion fields cannot have default values",
             u8"assignment-assertion fields cannot have default values",
             u8"assignment-assertion fields cannot have default values",
@@ -1692,8 +1692,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "attribute has wrong capitalization; write '{1}' instead"_translatable,
+        u8"attribute has wrong capitalization; write '{1}' instead",
         {
-            u8"attribute has wrong capitalization; write '{1}' instead",
             u8"Attribut mit falscher Gro\u00df- und Kleinschreibung; '{1}' anstattdessen schreiben",
             u8"did you leave CAPSLOCK on? it's '{1}'",
             u8"attribute has wrong capitalization; write '{1}' instead",
@@ -1703,8 +1703,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "binary number literal has no digits"_translatable,
+        u8"binary number literal has no digits",
         {
-            u8"binary number literal has no digits",
             u8"Bin\u00e4res Zahlenliteral ohne Ziffern",
             u8"binary number lost its genitals",
             u8"le litt\u00e9ral num\u00e9rique binaire n'a pas de chiffres",
@@ -1714,8 +1714,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "break can only be used inside of a loop or switch"_translatable,
+        u8"break can only be used inside of a loop or switch",
         {
-            u8"break can only be used inside of a loop or switch",
             u8"'break' ist nur innerhalb von Schleifen und dem switch-Statement g\u00fcltig",
             u8"I'm going to break the loop, but I'm not in a loop",
             u8"break ne peut pas \u00eatre utilis\u00e9 \u00e0 l'int\u00e9rieur d'une boucle ou d'une instruction switch",
@@ -1725,8 +1725,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot 'export default' from inside a namespace"_translatable,
+        u8"cannot 'export default' from inside a namespace",
         {
-            u8"cannot 'export default' from inside a namespace",
             u8"cannot 'export default' from inside a namespace",
             u8"cannot 'export default' from inside a namespace",
             u8"cannot 'export default' from inside a namespace",
@@ -1736,8 +1736,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot access private identifier outside class"_translatable,
+        u8"cannot access private identifier outside class",
         {
-            u8"cannot access private identifier outside class",
             u8"Zugriff auf privaten Bezeichner au\u00dferhalb der Klasse",
             u8"stop peeking at my privates!",
             u8"impossible d'acc\u00e9der \u00e0 un identifiant priv\u00e9 en dehors d'une classe",
@@ -1747,8 +1747,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot assign to loop variable in for of/in loop"_translatable,
+        u8"cannot assign to loop variable in for of/in loop",
         {
-            u8"cannot assign to loop variable in for of/in loop",
             u8"Ung\u00fcltige Zuweisung an Iterationsvariable der for-in/of-Schleife",
             u8"what in tarnation is this assignment?",
             u8"impossible d'affecter la variable de boucle dans une boucle for of/in",
@@ -1758,8 +1758,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot declare 'await' inside async function"_translatable,
+        u8"cannot declare 'await' inside async function",
         {
-            u8"cannot declare 'await' inside async function",
             u8"Kann 'await' nicht innerhalb einer async-Funktion deklarieren",
             u8"you really think calling a variable 'await' in an async function is a good idea?",
             u8"impossible de d\u00e9clarer 'await' \u00e0 l'int\u00e9rieur d'une fonction async",
@@ -1769,8 +1769,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot declare 'yield' inside generator function"_translatable,
+        u8"cannot declare 'yield' inside generator function",
         {
-            u8"cannot declare 'yield' inside generator function",
             u8"Kann 'yield' nicht innerhalb einer Generatorfunktion deklarieren",
             u8"'yield' is a terrible variable name'",
             u8"impossible de d\u00e9clarer 'yield' \u00e0 l'int\u00e9rieur d'une fonction g\u00e9n\u00e9ratrice",
@@ -1780,8 +1780,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot declare and export variable with 'export default'"_translatable,
+        u8"cannot declare and export variable with 'export default'",
         {
-            u8"cannot declare and export variable with 'export default'",
             u8"Kann keine Variable namens 'let' deklarieren und exportieren",
             u8"variables don't belong here",
             u8"impossible de d\u00e9clarer et d'exporter une variable avec 'export default'",
@@ -1791,8 +1791,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot declare variable named keyword '{0}'"_translatable,
+        u8"cannot declare variable named keyword '{0}'",
         {
-            u8"cannot declare variable named keyword '{0}'",
             u8"Kann keine Variable namens 'let' exportieren",
             u8"'{0}' is a keyword, silly",
             u8"impossible de d\u00e9clarer une variable nomm\u00e9e comme le mot-cl\u00e9 '{0}'",
@@ -1802,8 +1802,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot delete variables in TypeScript"_translatable,
+        u8"cannot delete variables in TypeScript",
         {
-            u8"cannot delete variables in TypeScript",
             u8"cannot delete variables in TypeScript",
             u8"cannot delete variables in TypeScript",
             u8"cannot delete variables in TypeScript",
@@ -1813,8 +1813,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot export variable named 'let'"_translatable,
+        u8"cannot export variable named 'let'",
         {
-            u8"cannot export variable named 'let'",
             u8"Kann keine Variable namens 'let' exportieren",
             u8"you should be ashamed of 'var let'",
             u8"impossible d'exporter une variable nomm\u00e9e 'let'",
@@ -1824,8 +1824,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot export variable named keyword '{0}'"_translatable,
+        u8"cannot export variable named keyword '{0}'",
         {
-            u8"cannot export variable named keyword '{0}'",
             u8"Ung\u00fcltiger Export einer Variablen mit dem Namen des Schl\u00fcsselwortes '{0}'",
             u8"exporting '{0}'? really?",
             u8"impossible d'exporter une variable nomm\u00e9e comme le mot-cl\u00e9 '{0}'",
@@ -1835,8 +1835,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot import 'let'"_translatable,
+        u8"cannot import 'let'",
         {
-            u8"cannot import 'let'",
             u8"'let' kann nicht importiert werden",
             u8"it's not even your fault. blame TC39",
             u8"impossible d'importer 'let'",
@@ -1846,8 +1846,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot import a module from inside a 'declare namespace'"_translatable,
+        u8"cannot import a module from inside a 'declare namespace'",
         {
-            u8"cannot import a module from inside a 'declare namespace'",
             u8"cannot import a module from inside a 'declare namespace'",
             u8"cannot import a module from inside a 'declare namespace'",
             u8"cannot import a module from inside a 'declare namespace'",
@@ -1857,8 +1857,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot import variable named keyword '{0}'"_translatable,
+        u8"cannot import variable named keyword '{0}'",
         {
-            u8"cannot import variable named keyword '{0}'",
             u8"Kann keine Variable namens 'let' exportieren",
             u8"whoever wrote this module should feel back for exporting a keyword",
             u8"impossible d'importer une variable nomm\u00e9e comme un mot-cl\u00e9 '{0}'",
@@ -1868,8 +1868,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot reference private variables without object; use 'this.'"_translatable,
+        u8"cannot reference private variables without object; use 'this.'",
         {
-            u8"cannot reference private variables without object; use 'this.'",
             u8"Private Felder des Objekts k\u00f6nnen nicht ohne 'this.' referenziert werden",
             u8"you're missing 'self.'; or 'this.'; I forget",
             u8"impossible de r\u00e9f\u00e9rencer des variables priv\u00e9es sans objet ; utiliser 'this.'",
@@ -1879,8 +1879,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot update variable with '{0}' while declaring it"_translatable,
+        u8"cannot update variable with '{0}' while declaring it",
         {
-            u8"cannot update variable with '{0}' while declaring it",
             u8"An Variable '{0}' kann nicht w\u00e4hrend der Deklaration zugewiesen werden",
             u8"'{0}' makes no sense; try '='?",
             u8"impossible d'actualiser la variable avec '{0}' pendant sa d\u00e9claration",
@@ -1890,8 +1890,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot use '...' on 'this' parameter"_translatable,
+        u8"cannot use '...' on 'this' parameter",
         {
-            u8"cannot use '...' on 'this' parameter",
             u8"cannot use '...' on 'this' parameter",
             u8"cannot use '...' on 'this' parameter",
             u8"cannot use '...' on 'this' parameter",
@@ -1901,8 +1901,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "cannot use 'declare' keyword with 'import'"_translatable,
+        u8"cannot use 'declare' keyword with 'import'",
         {
-            u8"cannot use 'declare' keyword with 'import'",
             u8"cannot use 'declare' keyword with 'import'",
             u8"cannot use 'declare' keyword with 'import'",
             u8"cannot use 'declare' keyword with 'import'",
@@ -1912,8 +1912,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "catch variable can only be typed as '*', 'any', or 'unknown'"_translatable,
+        u8"catch variable can only be typed as '*', 'any', or 'unknown'",
         {
-            u8"catch variable can only be typed as '*', 'any', or 'unknown'",
             u8"catch variable can only be typed as '*', 'any', or 'unknown'",
             u8"catch variable can only be typed as '*', 'any', or 'unknown'",
             u8"catch variable can only be typed as '*', 'any', or 'unknown'",
@@ -1923,8 +1923,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "character is not allowed in identifiers"_translatable,
+        u8"character is not allowed in identifiers",
         {
-            u8"character is not allowed in identifiers",
             u8"Ung\u00fcltiges Zeichen in Bezeichner",
             u8"hold up! \u270b no '{0}' allowed",
             u8"caract\u00e8re non autoris\u00e9 dans les identifiants",
@@ -1934,8 +1934,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "children end here"_translatable,
+        u8"children end here",
         {
-            u8"children end here",
             u8"Children enden hier",
             u8"\U0001f6b8\U0001f6ab\u26d4",
             u8"children end here",
@@ -1945,8 +1945,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "class is not marked abstract"_translatable,
+        u8"class is not marked abstract",
         {
-            u8"class is not marked abstract",
             u8"class is not marked abstract",
             u8"class is not marked abstract",
             u8"class is not marked abstract",
@@ -1956,8 +1956,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "classes cannot be named 'let'"_translatable,
+        u8"classes cannot be named 'let'",
         {
-            u8"classes cannot be named 'let'",
             u8"Klassen d\u00fcrfen nicht mit 'let' benannt werden",
             u8"why would you call a class 'let'?",
             u8"une classe ne peut \u00eatre nomm\u00e9e 'let'",
@@ -1967,8 +1967,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "code point in Unicode escape sequence must not be greater than U+10FFFF"_translatable,
+        u8"code point in Unicode escape sequence must not be greater than U+10FFFF",
         {
-            u8"code point in Unicode escape sequence must not be greater than U+10FFFF",
             u8"Codepunkt innerhalb der Unicode-Escapesequenz darf nicht gr\u00f6\u00dfer als U+10FFFF sein",
             u8"U+10FFFF is the limit. what are you trying to accomplish?",
             u8"un point de code dans une s\u00e9quence d'\u00e9chappement Unicode ne peut d\u00e9passer la valeur U+10FFFF",
@@ -1978,8 +1978,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "code point out of range"_translatable,
+        u8"code point out of range",
         {
-            u8"code point out of range",
             u8"Codepunkt au\u00dferhalb des zul\u00e4ssigen Bereichs",
             u8"it won't fit \U0001f930",
             u8"point de code hors limite",
@@ -1989,8 +1989,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "commas are not allowed after spread parameter"_translatable,
+        u8"commas are not allowed after spread parameter",
         {
-            u8"commas are not allowed after spread parameter",
             u8"Ung\u00fcltiges Komma nach Spread-Parameter",
             u8"a comma makes sense, but TC39 says no \u26d4",
             u8"les virgules ne sont pas autoris\u00e9es apr\u00e8s un param\u00e8tre d'expansion",
@@ -2000,8 +2000,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "commas are not allowed between class methods"_translatable,
+        u8"commas are not allowed between class methods",
         {
-            u8"commas are not allowed between class methods",
             u8"Kommata sind nicht erlaubt zwischen Methoden einer Klasse",
             u8"get this comma out of my sight",
             u8"les virgules ne sont pas autoris\u00e9es entre les m\u00e9thodes de classe",
@@ -2011,8 +2011,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "computed enum member name must be a simple string"_translatable,
+        u8"computed enum member name must be a simple string",
         {
-            u8"computed enum member name must be a simple string",
             u8"computed enum member name must be a simple string",
             u8"computed enum member name must be a simple string",
             u8"computed enum member name must be a simple string",
@@ -2022,8 +2022,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "computed value disables enum autoincrement"_translatable,
+        u8"computed value disables enum autoincrement",
         {
-            u8"computed value disables enum autoincrement",
             u8"computed value disables enum autoincrement",
             u8"computed value disables enum autoincrement",
             u8"computed value disables enum autoincrement",
@@ -2033,8 +2033,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "const fields within classes are only allowed in TypeScript, not JavaScript"_translatable,
+        u8"const fields within classes are only allowed in TypeScript, not JavaScript",
         {
-            u8"const fields within classes are only allowed in TypeScript, not JavaScript",
             u8"Innerhalb Klassen sind const-Felder nur in TypeScript g\u00fcltig, nicht jedoch in JavaScript",
             u8"this field is a bit CONSTipated \U0001f922 ",
             u8"les champs const dans des classes ne sont autoris\u00e9s qu'avec TypeScript, et pas JavaScript",
@@ -2044,8 +2044,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "const variable declared here"_translatable,
+        u8"const variable declared here",
         {
-            u8"const variable declared here",
             u8"Konstante Variable wurde hier deklariert",
             u8"see? C O N S T!",
             u8"variable constante d\u00e9clar\u00e9e ici",
@@ -2055,8 +2055,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "containing 'declare namespace' starts here"_translatable,
+        u8"containing 'declare namespace' starts here",
         {
-            u8"containing 'declare namespace' starts here",
             u8"containing 'declare namespace' starts here",
             u8"containing 'declare namespace' starts here",
             u8"containing 'declare namespace' starts here",
@@ -2066,8 +2066,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "continue can only be used inside of a loop"_translatable,
+        u8"continue can only be used inside of a loop",
         {
-            u8"continue can only be used inside of a loop",
             u8"continue ist nur innerhalb von Schleifen g\u00fcltig",
             u8"Just stop.",
             u8"continue ne peut \u00eatre utilis\u00e9 qu'\u00e0 l'int\u00e9rieur d'une boucle",
@@ -2077,8 +2077,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "depth limit exceeded"_translatable,
+        u8"depth limit exceeded",
         {
-            u8"depth limit exceeded",
             u8"Maximale Verschachtelungstiefe \u00fcberschritten",
             u8"ow! my cervix! \U0001f930",
             u8"limite de profondeur d\u00e9pass\u00e9e",
@@ -2088,8 +2088,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "do-while loop is missing '{1}' around condition"_translatable,
+        u8"do-while loop is missing '{1}' around condition",
         {
-            u8"do-while loop is missing '{1}' around condition",
             u8"'{1}' fehlt um Bedingung der do-while-Schleife",
             u8"okay mister \"I'm very smart because I use do-while loops\"",
             u8"une boucle do-while n\u00e9cesite '{1}' autour de la condition",
@@ -2099,8 +2099,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "do-while loop needs parentheses around condition"_translatable,
+        u8"do-while loop needs parentheses around condition",
         {
-            u8"do-while loop needs parentheses around condition",
             u8"Klammern um Bedingung der do-while-Schleife fehlen",
             u8"just write a regular loop",
             u8"une boucle do-while n\u00e9cessite des parenth\u00e8ses autour de la condition",
@@ -2110,8 +2110,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "do-while statement starts here"_translatable,
+        u8"do-while statement starts here",
         {
-            u8"do-while statement starts here",
             u8"do-while-Schleife beginnt hier",
             u8"lonely 'do' is here",
             u8"instruction do-while d\u00e9but\u00e9e ici",
@@ -2121,8 +2121,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "duplicated case clause in switch statement"_translatable,
+        u8"duplicated case clause in switch statement",
         {
-            u8"duplicated case clause in switch statement",
             u8"duplicated case clause in switch statement",
             u8"duplicated case clause in switch statement",
             u8"duplicated case clause in switch statement",
@@ -2132,8 +2132,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "enum member name cannot be numeric"_translatable,
+        u8"enum member name cannot be numeric",
         {
-            u8"enum member name cannot be numeric",
             u8"enum member name cannot be numeric",
             u8"enum member name cannot be numeric",
             u8"enum member name cannot be numeric",
@@ -2143,8 +2143,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "enum member needs initializer"_translatable,
+        u8"enum member needs initializer",
         {
-            u8"enum member needs initializer",
             u8"enum member needs initializer",
             u8"enum member needs initializer",
             u8"enum member needs initializer",
@@ -2154,8 +2154,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "escaped character is not allowed in identifiers"_translatable,
+        u8"escaped character is not allowed in identifiers",
         {
-            u8"escaped character is not allowed in identifiers",
             u8"Escape-Zeichen darf nicht nicht in Bezeichnern verwendet werden",
             u8"fugitive \U0001f9b9\u200d\u2642\ufe0f is not allowed in identifiers",
             u8"caract\u00e8re \u00e9chapp\u00e9 non permis dans les identifiants",
@@ -2165,8 +2165,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "escaping '-' is not allowed in tag names; write '-' instead"_translatable,
+        u8"escaping '-' is not allowed in tag names; write '-' instead",
         {
-            u8"escaping '-' is not allowed in tag names; write '-' instead",
             u8"Escape von '-' ist in Tagnamen nicht erlaubt. '-' anstattdessen schreiben",
             u8"stop being so fancy; just write '-'",
             u8"escaping '-' is not allowed in tag names; write '-' instead",
@@ -2176,8 +2176,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "event attributes must be camelCase: '{1}'"_translatable,
+        u8"event attributes must be camelCase: '{1}'",
         {
-            u8"event attributes must be camelCase: '{1}'",
             u8"Event-Attribute m\u00fcssen im camelCase geschrieben werden: '{1}'",
             u8"event attributes must be \U0001f42aCase: '{1}'",
             u8"event attributes must be camelCase: '{1}'",
@@ -2187,8 +2187,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "existing variable declared here"_translatable,
+        u8"existing variable declared here",
         {
-            u8"existing variable declared here",
             u8"Bereits existierende Variable wurde hier deklariert",
             u8"to this variable here",
             u8"existing variable declared here",
@@ -2198,8 +2198,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected ')' to close function call"_translatable,
+        u8"expected ')' to close function call",
         {
-            u8"expected ')' to close function call",
             u8"')' f\u00fcr Funktionsaufruf fehlt",
             u8"where's my ')' at?",
             u8"')' attendu pour clore un appel de fonction",
@@ -2209,8 +2209,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected ',' between object literal entries"_translatable,
+        u8"expected ',' between object literal entries",
         {
-            u8"expected ',' between object literal entries",
             u8"Komma fehlt zwischen Feldern des Objekt-Literals",
             u8"you dropped this: ,",
             u8"',' attendu entre les entr\u00e9es litt\u00e9rales d'un objet",
@@ -2220,8 +2220,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected '?' to mark tuple element as optional"_translatable,
+        u8"expected '?' to mark tuple element as optional",
         {
-            u8"expected '?' to mark tuple element as optional",
             u8"expected '?' to mark tuple element as optional",
             u8"expected '?' to mark tuple element as optional",
             u8"expected '?' to mark tuple element as optional",
@@ -2231,8 +2231,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected 'as' between '{1}' and '{2}'"_translatable,
+        u8"expected 'as' between '{1}' and '{2}'",
         {
-            u8"expected 'as' between '{1}' and '{2}'",
             u8"'as' zwischen '{1}' und '{2}' erwartet",
             u8"you forgot 'as' between '{1}' and '{2}'",
             u8"'as' attendu entre '{1}' and '{2}'",
@@ -2242,8 +2242,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected 'from \"name_of_module.mjs\"'"_translatable,
+        u8"expected 'from \"name_of_module.mjs\"'",
         {
-            u8"expected 'from \"name_of_module.mjs\"'",
             u8"'from \"name_of_module.mjs\"' erwartet",
             u8"where are we importing from?",
             u8"'from \"name_of_module.mjs\"' attendu",
@@ -2253,8 +2253,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected 'from' before module specifier"_translatable,
+        u8"expected 'from' before module specifier",
         {
-            u8"expected 'from' before module specifier",
             u8"'from' vor Modulspezifikation erwartet",
             u8"be polite and say 'from'",
             u8"'from' attendu avant un sp\u00e9cificateur de module",
@@ -2264,8 +2264,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected '{{'"_translatable,
+        u8"expected '{{'",
         {
-            u8"expected '{{'",
             u8"'{{' erwartet",
             u8"I was hoping for a '{{'",
             u8"'{{' attendu",
@@ -2275,8 +2275,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected at least one parameter in generic parameter list"_translatable,
+        u8"expected at least one parameter in generic parameter list",
         {
-            u8"expected at least one parameter in generic parameter list",
             u8"expected at least one parameter in generic parameter list",
             u8"expected at least one parameter in generic parameter list",
             u8"expected at least one parameter in generic parameter list",
@@ -2286,8 +2286,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected expression after '('"_translatable,
+        u8"expected expression after '('",
         {
-            u8"expected expression after '('",
             u8"expected expression after '('",
             u8"expected expression after '('",
             u8"expected expression after '('",
@@ -2297,8 +2297,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected expression after 'case'"_translatable,
+        u8"expected expression after 'case'",
         {
-            u8"expected expression after 'case'",
             u8"Ausdruck nach 'case' erwartet",
             u8"this 'case' is awful lonely",
             u8"instruction attendue apr\u00e8s 'case'",
@@ -2308,8 +2308,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected expression before newline"_translatable,
+        u8"expected expression before newline",
         {
-            u8"expected expression before newline",
             u8"Ausdruck vor Zeilenumbruch erwartet",
             u8"premature newline",
             u8"instruction attendue avant le saut de ligne",
@@ -2319,8 +2319,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected expression before semicolon"_translatable,
+        u8"expected expression before semicolon",
         {
-            u8"expected expression before semicolon",
             u8"Ausdruck vor Semikolon erwartet",
             u8"I need something before that semicolon",
             u8"instruction attendue avant un point-virgule",
@@ -2330,8 +2330,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected hexadecimal digits in Unicode escape sequence"_translatable,
+        u8"expected hexadecimal digits in Unicode escape sequence",
         {
-            u8"expected hexadecimal digits in Unicode escape sequence",
             u8"Hexadezimale Ziffern in Unicode-Escapesequenz erwartet",
             u8"what are you trying to do? This is a Unicode escape sequence, not a Wendy's \U0001f354",
             u8"nombres hexadecimaux attendus dans une s\u00e9quence d'\u00e9chappement Unicode",
@@ -2341,8 +2341,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected parameter for arrow function, but got a literal instead"_translatable,
+        u8"expected parameter for arrow function, but got a literal instead",
         {
-            u8"expected parameter for arrow function, but got a literal instead",
             u8"Unerwartetes Literal anstelle des Parameters der Arrow-Funktion",
             u8"you stupid bastard, you can't have a literal as an arrow function parameter",
             u8"param\u00e8tre attendu au lieu d'un litt\u00e9ral pour la fonction fl\u00e9ch\u00e9e",
@@ -2352,8 +2352,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected parameter for arrow function, but got an expression instead"_translatable,
+        u8"expected parameter for arrow function, but got an expression instead",
         {
-            u8"expected parameter for arrow function, but got an expression instead",
             u8"Unerwarter Ausdruck anstelle des Parameters der Arrow-Funktion",
             u8"express your feelings, not your arrow function parameters",
             u8"param\u00e8tre attendu au lieu d'une expression pour la fonction fl\u00e9ch\u00e9e",
@@ -2363,8 +2363,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected variable name after '...'"_translatable,
+        u8"expected variable name after '...'",
         {
-            u8"expected variable name after '...'",
             u8"expected variable name after '...'",
             u8"expected variable name after '...'",
             u8"expected variable name after '...'",
@@ -2374,8 +2374,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected variable name for 'catch'"_translatable,
+        u8"expected variable name for 'catch'",
         {
-            u8"expected variable name for 'catch'",
             u8"Variablenname f\u00fcr 'catch' fehlt",
             u8"name your variable, please",
             u8"nom de variable requis pour 'catch'",
@@ -2385,8 +2385,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected variable name for 'import'-'as'"_translatable,
+        u8"expected variable name for 'import'-'as'",
         {
-            u8"expected variable name for 'import'-'as'",
             u8"Variablenname f\u00fcr 'import'-'as' fehlt",
             u8"you said 'as', so give me a variable name",
             u8"nom de variable requis pour 'import'-'as'",
@@ -2396,8 +2396,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected {1:headlinese}"_translatable,
+        u8"expected {1:headlinese}",
         {
-            u8"expected {1:headlinese}",
             u8"{1:headlinese} erwartet",
             u8"expected {1:headlinese}",
             u8"expected {1:headlinese}",
@@ -2407,8 +2407,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "expected {1:singular}"_translatable,
+        u8"expected {1:singular}",
         {
-            u8"expected {1:singular}",
             u8"{1:singular} erwartet",
             u8"expected {1:singular}",
             u8"expected {1:singular}",
@@ -2418,8 +2418,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "exporting requires 'default'"_translatable,
+        u8"exporting requires 'default'",
         {
-            u8"exporting requires 'default'",
             u8"Exportieren erfordert 'default'",
             u8"exporting with no name? c'mon",
             u8"l'exportation n\u00e9cessite 'default'",
@@ -2429,8 +2429,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "exporting requires '{{' and '}'"_translatable,
+        u8"exporting requires '{{' and '}'",
         {
-            u8"exporting requires '{{' and '}'",
             u8"Exportieren erfordert '{{' und '}'",
             u8"can I get a side of curly fries please? \U0001f35f",
             u8"l'exportation n\u00e9cessite '{{' and '}'",
@@ -2440,8 +2440,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "extra ',' is not allowed between enum members"_translatable,
+        u8"extra ',' is not allowed between enum members",
         {
-            u8"extra ',' is not allowed between enum members",
             u8"extra ',' is not allowed between enum members",
             u8"extra ',' is not allowed between enum members",
             u8"extra ',' is not allowed between enum members",
@@ -2451,8 +2451,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "extra ',' is not allowed between function call arguments"_translatable,
+        u8"extra ',' is not allowed between function call arguments",
         {
-            u8"extra ',' is not allowed between function call arguments",
             u8"Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind ung\u00fcltig",
             u8"that's way too many commas \U0001f6ae",
             u8"',' suppl\u00e9mentaire non autoris\u00e9 entre les arguments d'appel d'une fonction",
@@ -2462,8 +2462,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "field declared here"_translatable,
+        u8"field declared here",
         {
-            u8"field declared here",
             u8"field declared here",
             u8"field declared here",
             u8"field declared here",
@@ -2473,8 +2473,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "field marked abstract here"_translatable,
+        u8"field marked abstract here",
         {
-            u8"field marked abstract here",
             u8"field marked abstract here",
             u8"field marked abstract here",
             u8"field marked abstract here",
@@ -2484,8 +2484,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "first parameter starts here"_translatable,
+        u8"first parameter starts here",
         {
-            u8"first parameter starts here",
             u8"first parameter starts here",
             u8"first parameter starts here",
             u8"first parameter starts here",
@@ -2495,8 +2495,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "for loop needs an iterable, or condition and update clauses"_translatable,
+        u8"for loop needs an iterable, or condition and update clauses",
         {
-            u8"for loop needs an iterable, or condition and update clauses",
             u8"for-Schleife erfordert entweder ein Iterable oder eine Bedingung und Updateanweisung",
             u8"finish writing your for loop",
             u8"une boucle for n\u00e9cessite un it\u00e9rable ou des clauses de condition et de mise \u00e0 jour",
@@ -2506,8 +2506,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "for-in loop expression cannot have semicolons"_translatable,
+        u8"for-in loop expression cannot have semicolons",
         {
-            u8"for-in loop expression cannot have semicolons",
             u8"Ausdruck der for-in-Schleife darf keine Semikolon beinhalten",
             u8"you are forin a rude awakening if you think that's allowed",
             u8"une instruction de boucle for-in ne peut contenir de points-virgules",
@@ -2517,8 +2517,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "for-of loop expression cannot have semicolons"_translatable,
+        u8"for-of loop expression cannot have semicolons",
         {
-            u8"for-of loop expression cannot have semicolons",
             u8"Ausdruck der for-in-Schleife darf keine Semikolon beinhalten",
             u8"forof syntax inforof loop",
             u8"une instruction de boucle for-of ne peut contenir de points-virgules",
@@ -2528,8 +2528,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "forwarding exports are only allowed in export-from"_translatable,
+        u8"forwarding exports are only allowed in export-from",
         {
-            u8"forwarding exports are only allowed in export-from",
             u8"Forwarding-Exporte sind nur in export-from zul\u00e4ssig",
             u8"forwarding exports are only allowed in export-from",
             u8"les exports transf\u00e9r\u00e9s ne sont autoris\u00e9s qu'avec export-from",
@@ -2539,8 +2539,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "free {1} and {0} {1} {2}"_translatable,
+        u8"free {1} and {0} {1} {2}",
         {
-            u8"free {1} and {0} {1} {2}",
             u8"freies {1} und {0} {1} {2}",
             u8"free {1} and {0} {1} {2}",
             u8"free {1} and {0} {1} {2}",
@@ -2550,8 +2550,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "function call started here"_translatable,
+        u8"function call started here",
         {
-            u8"function call started here",
             u8"Funktionsaufruf beginnt hier",
             u8"lookie here \U0001f447",
             u8"appel de fonction d\u00e9but\u00e9 ici",
@@ -2561,8 +2561,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "function called before declaration in block scope: {0}"_translatable,
+        u8"function called before declaration in block scope: {0}",
         {
-            u8"function called before declaration in block scope: {0}",
             u8"Funktion '{0}' wird im Block-Scope vor ihrer Deklaration aufgerufen",
             u8"this code freaks Safari out",
             u8"fonction appel\u00e9e avant sa d\u00e9claration dans la port\u00e9e de bloc : {0}",
@@ -2572,8 +2572,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "function declared here"_translatable,
+        u8"function declared here",
         {
-            u8"function declared here",
             u8"Funktion wird hier deklariert",
             u8"Safari hates this",
             u8"fonction d\u00e9clar\u00e9e ici",
@@ -2583,8 +2583,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "function overload signature cannot have generator '*'"_translatable,
+        u8"function overload signature cannot have generator '*'",
         {
-            u8"function overload signature cannot have generator '*'",
             u8"function overload signature cannot have generator '*'",
             u8"function overload signature cannot have generator '*'",
             u8"function overload signature cannot have generator '*'",
@@ -2594,8 +2594,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "function overload signature must be named '{1}'"_translatable,
+        u8"function overload signature must be named '{1}'",
         {
-            u8"function overload signature must be named '{1}'",
             u8"function overload signature must be named '{1}'",
             u8"function overload signature must be named '{1}'",
             u8"function overload signature must be named '{1}'",
@@ -2605,8 +2605,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "function parameter cannot be parenthesized"_translatable,
+        u8"function parameter cannot be parenthesized",
         {
-            u8"function parameter cannot be parenthesized",
             u8"function parameter cannot be parenthesized",
             u8"function parameter cannot be parenthesized",
             u8"function parameter cannot be parenthesized",
@@ -2616,8 +2616,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "function starts here"_translatable,
+        u8"function starts here",
         {
-            u8"function starts here",
             u8"Funktionsaufruf beginnt hier",
             u8"IIFE started here",
             u8"function starts here",
@@ -2627,8 +2627,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "functions/methods should not have '=>'"_translatable,
+        u8"functions/methods should not have '=>'",
         {
-            u8"functions/methods should not have '=>'",
             u8"Funktionen/Methoden sollten kein '=>' haben",
             u8"no arrows allowed",
             u8"les fonctions/m\u00e9thodes ne peuvent contenir '=>'",
@@ -2638,8 +2638,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "generator function '*' belongs after keyword function"_translatable,
+        u8"generator function '*' belongs after keyword function",
         {
-            u8"generator function '*' belongs after keyword function",
             u8"'*'-Zeichen f\u00fcr Generatorfunktionen wird nach dem function-Schl\u00fcsselwort erwartet",
             u8"slide this '*' to the right",
             u8"une fonction g\u00e9n\u00e9ratrice '*' figure apr\u00e8s la fonction mot-cl\u00e9",
@@ -2649,8 +2649,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "generator function '*' belongs before function name"_translatable,
+        u8"generator function '*' belongs before function name",
         {
-            u8"generator function '*' belongs before function name",
             u8"'*'-Zeichen f\u00fcr Generatorfunktionen wird vor Funktionsnamen erwartet",
             u8"slide this '*' to the left",
             u8"une fonction g\u00e9n\u00e9ratrice '*' figure avant le nom de la fonction",
@@ -2660,8 +2660,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "generic arrow function needs ',' here in TSX"_translatable,
+        u8"generic arrow function needs ',' here in TSX",
         {
-            u8"generic arrow function needs ',' here in TSX",
             u8"generic arrow function needs ',' here in TSX",
             u8"generic arrow function needs ',' here in TSX",
             u8"generic arrow function needs ',' here in TSX",
@@ -2671,8 +2671,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "here"_translatable,
+        u8"here",
         {
-            u8"here",
             u8"hier",
             u8"there \U0001f448",
             u8"here",
@@ -2682,8 +2682,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "here is the assignment assertion operator"_translatable,
+        u8"here is the assignment assertion operator",
         {
-            u8"here is the assignment assertion operator",
             u8"here is the assignment assertion operator",
             u8"here is the assignment assertion operator",
             u8"here is the assignment assertion operator",
@@ -2693,8 +2693,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "hex number literal has no digits"_translatable,
+        u8"hex number literal has no digits",
         {
-            u8"hex number literal has no digits",
             u8"Hexadezimales Zahlenliteral ohne Ziffern",
             u8"hex number literal has no digits",
             u8"le litt\u00e9ral num\u00e9rique hex n'a pas de chiffres",
@@ -2704,8 +2704,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "if statement is missing '{1}' around condition"_translatable,
+        u8"if statement is missing '{1}' around condition",
         {
-            u8"if statement is missing '{1}' around condition",
             u8"'{1}' fehlt um Bedingung der if-Anweisung",
             u8"you dropped this: '{1}'",
             u8"une instruction if n\u00e9cessite '{1}' autour de la condition",
@@ -2715,8 +2715,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "if statement needs parentheses around condition"_translatable,
+        u8"if statement needs parentheses around condition",
         {
-            u8"if statement needs parentheses around condition",
             u8"Klammern fehlen um Bedingung der if-Anweisung",
             u8"sorry. I wish I was programming in Go right now too",
             u8"une instruction if n\u00e9cessite des parenth\u00e8ses autour de la condition",
@@ -2726,8 +2726,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "imported variable declared here"_translatable,
+        u8"imported variable declared here",
         {
-            u8"imported variable declared here",
             u8"Importierte Variable wurde hier deklariert",
             u8"right here, buddy",
             u8"imported variable declared here",
@@ -2737,8 +2737,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"_translatable,
+        u8"incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'",
         {
-            u8"incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'",
             u8"Unvollst\u00e4ndiger Export. M\u00f6glichkeiten sind: 'export default ...' oder 'export {{name}' oder 'export * from ...' oder 'export class' oder 'export function' oder 'export let'",
             u8"export WHAT!?",
             u8"export incompl ; 'export default ...' ou 'export {{name}' ou 'export * from ...' ou 'export class' ou 'export function' ou 'export let' attendu",
@@ -2748,8 +2748,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "index signature must be a field, not a method"_translatable,
+        u8"index signature must be a field, not a method",
         {
-            u8"index signature must be a field, not a method",
             u8"index signature must be a field, not a method",
             u8"index signature must be a field, not a method",
             u8"index signature must be a field, not a method",
@@ -2759,8 +2759,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "index signatures require a value type"_translatable,
+        u8"index signatures require a value type",
         {
-            u8"index signatures require a value type",
             u8"index signatures require a value type",
             u8"index signatures require a value type",
             u8"index signatures require a value type",
@@ -2770,8 +2770,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "index starts here"_translatable,
+        u8"index starts here",
         {
-            u8"index starts here",
             u8"index starts here",
             u8"index starts here",
             u8"index starts here",
@@ -2781,8 +2781,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "indexing requires an expression"_translatable,
+        u8"indexing requires an expression",
         {
-            u8"indexing requires an expression",
             u8"Indizierung erfordert einen Ausdruck",
             u8"put something in the box \U0001f4e6",
             u8"l'indexation n\u00e9cessite une expression",
@@ -2792,8 +2792,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "initializer starts here"_translatable,
+        u8"initializer starts here",
         {
-            u8"initializer starts here",
             u8"initializer starts here",
             u8"initializer starts here",
             u8"initializer starts here",
@@ -2803,8 +2803,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "integer cannot be represented and will be rounded to '{1}'"_translatable,
+        u8"integer cannot be represented and will be rounded to '{1}'",
         {
-            u8"integer cannot be represented and will be rounded to '{1}'",
             u8"integer cannot be represented and will be rounded to '{1}'",
             u8"this number's too thicc for JavaScript; '{1}' would be used instead",
             u8"integer cannot be represented and will be rounded to '{1}'",
@@ -2814,8 +2814,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "interface properties are always public and cannot be private"_translatable,
+        u8"interface properties are always public and cannot be private",
         {
-            u8"interface properties are always public and cannot be private",
             u8"interface properties are always public and cannot be private",
             u8"interface properties are always public and cannot be private",
             u8"interface properties are always public and cannot be private",
@@ -2825,8 +2825,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "interface properties cannot be marked public explicitly"_translatable,
+        u8"interface properties cannot be marked public explicitly",
         {
-            u8"interface properties cannot be marked public explicitly",
             u8"interface properties cannot be marked public explicitly",
             u8"interface properties cannot be marked public explicitly",
             u8"interface properties cannot be marked public explicitly",
@@ -2836,8 +2836,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "interfaces cannot contain static blocks"_translatable,
+        u8"interfaces cannot contain static blocks",
         {
-            u8"interfaces cannot contain static blocks",
             u8"interfaces cannot contain static blocks",
             u8"interfaces cannot contain static blocks",
             u8"interfaces cannot contain static blocks",
@@ -2847,8 +2847,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "invalid UTF-8 sequence"_translatable,
+        u8"invalid UTF-8 sequence",
         {
-            u8"invalid UTF-8 sequence",
             u8"Ung\u00fcltige UTF-8 Sequenz",
             u8"quick-lint-js only works with nonbinary files",
             u8"s\u00e9quence UTF-8 invalide",
@@ -2858,8 +2858,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "invalid expression left of assignment"_translatable,
+        u8"invalid expression left of assignment",
         {
-            u8"invalid expression left of assignment",
             u8"Ung\u00fcltiger Ausdruck linkerseits der Zuweisung",
             u8"what the heck are you trying to assign to?",
             u8"expression invalide \u00e0 gauche de l'assignation",
@@ -2869,8 +2869,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "invalid function parameter"_translatable,
+        u8"invalid function parameter",
         {
-            u8"invalid function parameter",
             u8"Ung\u00fcltiger Funktionsparameter",
             u8"that's not what a parameter looks like",
             u8"param\u00e8tre de fonction invalide",
@@ -2880,8 +2880,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "invalid hex escape sequence: {0}"_translatable,
+        u8"invalid hex escape sequence: {0}",
         {
-            u8"invalid hex escape sequence: {0}",
             u8"Ung\u00fcltige Hex-Escapesequenz: {0}",
             u8"this ain't hex",
             u8"s\u00e9quence d'\u00e9chappement hex invalide: {0}",
@@ -2891,8 +2891,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "invalid lone literal in object literal"_translatable,
+        u8"invalid lone literal in object literal",
         {
-            u8"invalid lone literal in object literal",
             u8"Vereinzeltes Literal in Objekt-Literal",
             u8"what's this literal supposed to mean in an object?",
             u8"litt\u00e9ral isol\u00e9 invalide dans un litt\u00e9ral objet",
@@ -2902,8 +2902,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead"_translatable,
+        u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
         {
-            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
             u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
             u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
             u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
@@ -2913,8 +2913,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "keywords cannot contain escape sequences"_translatable,
+        u8"keywords cannot contain escape sequences",
         {
-            u8"keywords cannot contain escape sequences",
             u8"Schl\u00fcsselworte d\u00fcrfen keine Escapesequenzen beinhalten",
             u8"that sequence should escape from this keyword cuz it's not allowed here",
             u8"les mots-cl\u00e9s ne peuvent pas contenir de s\u00e9quence d'\u00e9chappement",
@@ -2924,8 +2924,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "label named 'await' not allowed in async function"_translatable,
+        u8"label named 'await' not allowed in async function",
         {
-            u8"label named 'await' not allowed in async function",
             u8"Labels namens 'await' sind innerhalb async-Functionen verboten",
             u8"'goto await;' isn't a thing",
             u8"\u00e9tiquette nomm\u00e9e 'await' non autoris\u00e9e dans les fonctions async",
@@ -2935,8 +2935,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "labelled statement"_translatable,
+        u8"labelled statement",
         {
-            u8"labelled statement",
             u8"labelled statement",
             u8"labelled statement",
             u8"labelled statement",
@@ -2946,8 +2946,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "leading commas are not allowed in generic parameter lists"_translatable,
+        u8"leading commas are not allowed in generic parameter lists",
         {
-            u8"leading commas are not allowed in generic parameter lists",
             u8"leading commas are not allowed in generic parameter lists",
             u8"leading commas are not allowed in generic parameter lists",
             u8"leading commas are not allowed in generic parameter lists",
@@ -2957,8 +2957,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "legacy octal literal may not be BigInt"_translatable,
+        u8"legacy octal literal may not be BigInt",
         {
-            u8"legacy octal literal may not be BigInt",
             u8"Veraltete Oktalliterale sind in BigInts nicht erlaubt",
             u8"0Ops",
             u8"un litt\u00e9ral octal classique ne peut pas \u00eatre de type BigInt",
@@ -2968,8 +2968,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "legacy octal literals may not contain underscores"_translatable,
+        u8"legacy octal literals may not contain underscores",
         {
-            u8"legacy octal literals may not contain underscores",
             u8"Veraltete Oktalliterale d\u00fcrfen keine Unterstriche enthalten",
             u8"legacy_octal_literals_may_not_contain_underscores",
             u8"un litt\u00e9ral octal classique ne peut pas contenir de tiret de soulignement",
@@ -2979,8 +2979,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "let statement cannot declare variables named 'let'"_translatable,
+        u8"let statement cannot declare variables named 'let'",
         {
-            u8"let statement cannot declare variables named 'let'",
             u8"let darf keine Variablen namens 'let' deklarieren",
             u8"st-stop st-stuttering",
             u8"une instruction let ne peut d\u00e9clarer de variables nomm\u00e9es 'let'",
@@ -2990,8 +2990,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "lower case letters compared with toUpperCase"_translatable,
+        u8"lower case letters compared with toUpperCase",
         {
-            u8"lower case letters compared with toUpperCase",
             u8"Kleinbuchstaben werden mit toUpperCase verglichen",
             u8"You sure you're getting what toUpperCase does?",
             u8"lower case letters compared with toUpperCase",
@@ -3001,8 +3001,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "methods cannot be readonly"_translatable,
+        u8"methods cannot be readonly",
         {
-            u8"methods cannot be readonly",
             u8"methods cannot be readonly",
             u8"methods cannot be readonly",
             u8"methods cannot be readonly",
@@ -3012,8 +3012,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "methods should not use the 'function' keyword"_translatable,
+        u8"methods should not use the 'function' keyword",
         {
-            u8"methods should not use the 'function' keyword",
             u8"Methoden sollten nicht mehr das 'function'-Schl\u00fcsselwort verwenden",
             u8"'function' is boomer",
             u8"les m\u00e9thodes ne doivent pas utiliser le mot-cl\u00e9 'function'",
@@ -3023,8 +3023,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "misleading use of ',' operator in conditional statement"_translatable,
+        u8"misleading use of ',' operator in conditional statement",
         {
-            u8"misleading use of ',' operator in conditional statement",
             u8"misleading use of ',' operator in conditional statement",
             u8"misleading use of ',' operator in conditional statement",
             u8"misleading use of ',' operator in conditional statement",
@@ -3034,8 +3034,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "misleading use of ',' operator in index"_translatable,
+        u8"misleading use of ',' operator in index",
         {
-            u8"misleading use of ',' operator in index",
             u8"misleading use of ',' operator in index",
             u8"misleading use of ',' operator in index",
             u8"misleading use of ',' operator in index",
@@ -3045,8 +3045,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "mismatched JSX tags; expected '</{1}>'"_translatable,
+        u8"mismatched JSX tags; expected '</{1}>'",
         {
-            u8"mismatched JSX tags; expected '</{1}>'",
             u8"Unpassender JSX-Tag; '</{1}>' wurde anstattdessen erwartet",
             u8"can't you count? I wanted a '</{1}>'! \U0001f910",
             u8"mismatched JSX tags; expected '</{1}>'",
@@ -3056,8 +3056,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing ',' between variable declarations"_translatable,
+        u8"missing ',' between variable declarations",
         {
-            u8"missing ',' between variable declarations",
             u8"Komma fehlt zwischen Variablendeklarationen",
             u8",",
             u8"',' manquant entre les d\u00e9clarations de variable",
@@ -3067,8 +3067,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing ',', ';', or newline between object type entries"_translatable,
+        u8"missing ',', ';', or newline between object type entries",
         {
-            u8"missing ',', ';', or newline between object type entries",
             u8"missing ',', ';', or newline between object type entries",
             u8"missing ',', ';', or newline between object type entries",
             u8"missing ',', ';', or newline between object type entries",
@@ -3078,8 +3078,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing '...' in JSX attribute spread"_translatable,
+        u8"missing '...' in JSX attribute spread",
         {
-            u8"missing '...' in JSX attribute spread",
             u8"'...' fehlt in JSX-Attribut-Spread",
             u8"the solution is \u2026",
             u8"missing '...' in JSX attribute spread",
@@ -3089,8 +3089,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing ':' in conditional expression"_translatable,
+        u8"missing ':' in conditional expression",
         {
-            u8"missing ':' in conditional expression",
             u8"':' des tern\u00e4ren Operators fehlt",
             u8"how did the grammar Nazi die? colon cancer.",
             u8"':' manquant dans l'expression conditionnelle",
@@ -3100,8 +3100,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing '<>' and '</>' to enclose multiple children"_translatable,
+        u8"missing '<>' and '</>' to enclose multiple children",
         {
-            u8"missing '<>' and '</>' to enclose multiple children",
             u8"'<>' und '</>' fehlt, um mehrere Children einzuschlie\u00dfen",
             u8"give 'em a big ol' hug \U0001fac2 with '<>' and '</>'",
             u8"missing '<>' and '</>' to enclose multiple children",
@@ -3111,8 +3111,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing '=' after variable"_translatable,
+        u8"missing '=' after variable",
         {
-            u8"missing '=' after variable",
             u8"'=' fehlt nach Variablenname",
             u8"= should be used like: 'let you = dumb'",
             u8"'=' manquant apr\u00e8s une variable",
@@ -3122,8 +3122,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing 'if' after 'else'"_translatable,
+        u8"missing 'if' after 'else'",
         {
-            u8"missing 'if' after 'else'",
             u8"missing 'if' after 'else'",
             u8"it's 'else if', silly",
             u8"missing 'if' after 'else'",
@@ -3133,8 +3133,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing 'while (condition)' for do-while statement"_translatable,
+        u8"missing 'while (condition)' for do-while statement",
         {
-            u8"missing 'while (condition)' for do-while statement",
             u8"'while (condition)' der do-while-Schleife fehlt",
             u8"you left your 'do' hanging",
             u8"'while (condition)' manquant pour une instruction for do-while",
@@ -3144,8 +3144,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing TypeScript type"_translatable,
+        u8"missing TypeScript type",
         {
-            u8"missing TypeScript type",
             u8"missing TypeScript type",
             u8"missing TypeScript type",
             u8"missing TypeScript type",
@@ -3155,8 +3155,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing arrow operator for arrow function"_translatable,
+        u8"missing arrow operator for arrow function",
         {
-            u8"missing arrow operator for arrow function",
             u8"Arrow-Operator der Arrow-Funktion fehlt",
             u8"\u27a1",
             u8"op\u00e9rateur de fl\u00e8che manquant pour la fonction fl\u00e9ch\u00e9e",
@@ -3166,8 +3166,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for 'for' loop"_translatable,
+        u8"missing body for 'for' loop",
         {
-            u8"missing body for 'for' loop",
             u8"K\u00f6rper der for-Schleife fehlt",
             u8"missing body 4 4 loop",
             u8"corps manquant pour la boucle 'for'",
@@ -3177,8 +3177,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for 'if' statement"_translatable,
+        u8"missing body for 'if' statement",
         {
-            u8"missing body for 'if' statement",
             u8"K\u00f6rper der if-Anweisung fehlt",
             u8"then what?",
             u8"corps manquant pour l'instruction 'if'",
@@ -3188,8 +3188,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for 'switch' statement"_translatable,
+        u8"missing body for 'switch' statement",
         {
-            u8"missing body for 'switch' statement",
             u8"K\u00f6rper des switch-Statements fehlt",
             u8"no switch cases? not even one?",
             u8"corps manquant pour l'instruction 'switch'",
@@ -3199,8 +3199,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for TypeScript interface"_translatable,
+        u8"missing body for TypeScript interface",
         {
-            u8"missing body for TypeScript interface",
             u8"missing body for TypeScript interface",
             u8"missing body for TypeScript interface",
             u8"missing body for TypeScript interface",
@@ -3210,8 +3210,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for TypeScript namespace"_translatable,
+        u8"missing body for TypeScript namespace",
         {
-            u8"missing body for TypeScript namespace",
             u8"missing body for TypeScript namespace",
             u8"missing body for TypeScript namespace",
             u8"missing body for TypeScript namespace",
@@ -3221,8 +3221,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for catch clause"_translatable,
+        u8"missing body for catch clause",
         {
-            u8"missing body for catch clause",
             u8"K\u00f6rper des 'catch'-Blocks fehlt",
             u8"did you dispose of the body?",
             u8"corps manquant pour la clause catch",
@@ -3232,8 +3232,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for class"_translatable,
+        u8"missing body for class",
         {
-            u8"missing body for class",
             u8"Klassenk\u00f6rper fehlt",
             u8"this class has been decapitated! \U0001f9df\u200d\u2640\ufe0f",
             u8"corps manquant pour la classe",
@@ -3243,8 +3243,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for do-while loop"_translatable,
+        u8"missing body for do-while loop",
         {
-            u8"missing body for do-while loop",
             u8"K\u00f6rper der do-while-Schleife fehlt",
             u8"I should decapitate you for using a do-while loop",
             u8"corps manquant pour la boucle do-while",
@@ -3254,8 +3254,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for finally clause"_translatable,
+        u8"missing body for finally clause",
         {
-            u8"missing body for finally clause",
             u8"K\u00f6rper des 'finally'-Blocks fehlt",
             u8"what do you wanna do at the end?",
             u8"corps manquant pour la clause finally",
@@ -3265,8 +3265,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for function"_translatable,
+        u8"missing body for function",
         {
-            u8"missing body for function",
             u8"K\u00f6rper der Funktion fehlt",
             u8"what's this function supposed to do?",
             u8"corps manquant pour la fonction",
@@ -3276,8 +3276,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for try statement"_translatable,
+        u8"missing body for try statement",
         {
-            u8"missing body for try statement",
             u8"K\u00f6rper des try-Statements fehlt",
             u8"you're trying too hard",
             u8"corps manquant pour l'instruction try",
@@ -3287,8 +3287,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for while loop"_translatable,
+        u8"missing body for while loop",
         {
-            u8"missing body for while loop",
             u8"K\u00f6rper der while-Schleife fehlt",
             u8"why don't you write some code?",
             u8"corps manquant pour la boucle while",
@@ -3298,8 +3298,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing body for {1:headlinese}"_translatable,
+        u8"missing body for {1:headlinese}",
         {
-            u8"missing body for {1:headlinese}",
             u8"K\u00f6rper f\u00fcr {1:headlinese} fehlt",
             u8"what's the point of {1:singular} with no body?",
             u8"corps manquant pour {1:headlinese}",
@@ -3309,8 +3309,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing catch or finally clause for try statement"_translatable,
+        u8"missing catch or finally clause for try statement",
         {
-            u8"missing catch or finally clause for try statement",
             u8"catch- oder finally-Klausel des try-Statements fehlt",
             u8"finally, you've got to try to catch it <mit> or you're gonna have a bad time",
             u8"clause catch ou finally manquante pour l'instruction try",
@@ -3320,8 +3320,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing catch variable name between parentheses"_translatable,
+        u8"missing catch variable name between parentheses",
         {
-            u8"missing catch variable name between parentheses",
             u8"catch-Variablenname fehlt zwischen Klammern",
             u8"who's on second? \u26be",
             u8"nom de variable de capture manquante entre les parenth\u00e8ses",
@@ -3331,8 +3331,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing comma between generic parameters"_translatable,
+        u8"missing comma between generic parameters",
         {
-            u8"missing comma between generic parameters",
             u8"missing comma between generic parameters",
             u8"missing comma between generic parameters",
             u8"missing comma between generic parameters",
@@ -3342,8 +3342,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing comma between object literal entries"_translatable,
+        u8"missing comma between object literal entries",
         {
-            u8"missing comma between object literal entries",
             u8"Komma fehlt zwischen Feldern des Objekt-Literals",
             u8"separate these fellas with a comma",
             u8"virgule manquante entre les entr\u00e9es du litt\u00e9ral objet",
@@ -3353,8 +3353,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing comparison; '{1}' does not extend to the right side of '{0}'"_translatable,
+        u8"missing comparison; '{1}' does not extend to the right side of '{0}'",
         {
-            u8"missing comparison; '{1}' does not extend to the right side of '{0}'",
             u8"Vergleich fehlt. '{1}' wird nicht auf der rechten Seite von '{0}' angewandt",
             u8"'{1}' and '{0}' don't tango",
             u8"missing comparison; '{1}' does not extend to the right side of '{0}'",
@@ -3364,8 +3364,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing condition for if statement"_translatable,
+        u8"missing condition for if statement",
         {
-            u8"missing condition for if statement",
             u8"Bedingung der if-Anweisung fehlt",
             u8"if WHAT?!",
             u8"condition manquante pour l'instruction if",
@@ -3375,8 +3375,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing condition for switch statement"_translatable,
+        u8"missing condition for switch statement",
         {
-            u8"missing condition for switch statement",
             u8"Bedingung des switch-Statements fehlt",
             u8"switch WHAT?!",
             u8"condition manquante pour l'instruction switch",
@@ -3386,8 +3386,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing condition for while statement"_translatable,
+        u8"missing condition for while statement",
         {
-            u8"missing condition for while statement",
             u8"Bedingung der while-Schleife fehlt",
             u8"while WHAT?!",
             u8"condition manquante pour l'instruction while",
@@ -3397,8 +3397,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing end of array; expected ']'"_translatable,
+        u8"missing end of array; expected ']'",
         {
-            u8"missing end of array; expected ']'",
             u8"Ende des Arrays fehlt. ']' erwartet",
             u8"you forgot to close Pandora's Box",
             u8"fin de tableau manquante ; ']' attendu",
@@ -3408,8 +3408,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing expression between parentheses"_translatable,
+        u8"missing expression between parentheses",
         {
-            u8"missing expression between parentheses",
             u8"Ausdruck fehlt zwischen Klammern",
             u8"(\U0001f636)",
             u8"expression manquante entre parenth\u00e8ses",
@@ -3419,8 +3419,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing for loop header"_translatable,
+        u8"missing for loop header",
         {
-            u8"missing for loop header",
             u8"Kopf der Schleife fehlt",
             u8"for WHAT?!",
             u8"en-t\u00eate de boucle for manquante",
@@ -3430,8 +3430,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing function parameter list"_translatable,
+        u8"missing function parameter list",
         {
-            u8"missing function parameter list",
             u8"Parameterliste der Funktion fehlt",
             u8"how are you gonna call this function without a parameter list?",
             u8"liste de param\u00e8tres de fonction manquante",
@@ -3441,8 +3441,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing header and body for 'for' loop"_translatable,
+        u8"missing header and body for 'for' loop",
         {
-            u8"missing header and body for 'for' loop",
             u8"Kopf und K\u00f6rper der for-Schleife fehlen",
             u8"for WHAT?!",
             u8"en-t\u00eate et corps manquants pour la boucle 'for'",
@@ -3452,8 +3452,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing initializer in const declaration"_translatable,
+        u8"missing initializer in const declaration",
         {
-            u8"missing initializer in const declaration",
             u8"Initialisierung der const-Deklaration fehlt",
             u8"think about it this way. If you cannot reassign it, then const '{0}' would always be undefined.",
             u8"initialisateur manquant dans la d\u00e9claration const",
@@ -3463,8 +3463,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing name for class method"_translatable,
+        u8"missing name for class method",
         {
-            u8"missing name for class method",
             u8"missing name for class method",
             u8"missing name for class method",
             u8"missing name for class method",
@@ -3474,8 +3474,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing name for element in named tuple type"_translatable,
+        u8"missing name for element in named tuple type",
         {
-            u8"missing name for element in named tuple type",
             u8"missing name for element in named tuple type",
             u8"missing name for element in named tuple type",
             u8"missing name for element in named tuple type",
@@ -3485,8 +3485,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing name in function statement"_translatable,
+        u8"missing name in function statement",
         {
-            u8"missing name in function statement",
             u8"Name fehlt innerhalb function-Statement",
             u8"what's this function called?",
             u8"nom manquant pour l'instruction de fonction",
@@ -3496,8 +3496,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing name of class"_translatable,
+        u8"missing name of class",
         {
-            u8"missing name of class",
             u8"Klassenname fehlt",
             u8"what's this class called?",
             u8"nom de classe manquant",
@@ -3507,8 +3507,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing name of exported class"_translatable,
+        u8"missing name of exported class",
         {
-            u8"missing name of exported class",
             u8"Name der exportierten Klasse fehlt",
             u8"what's this class called? and why is it exported?",
             u8"nom de classe export\u00e9e manquant",
@@ -3518,8 +3518,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing name of exported function"_translatable,
+        u8"missing name of exported function",
         {
-            u8"missing name of exported function",
             u8"Name der exportierten Funktion fehlt",
             u8"what's this function called? and why is it exported?",
             u8"nom de fonction export\u00e9e manquant",
@@ -3529,8 +3529,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing name or parentheses for function"_translatable,
+        u8"missing name or parentheses for function",
         {
-            u8"missing name or parentheses for function",
             u8"Name oder Klammern fehlen f\u00fcr die Funktion",
             u8"IIFEs are uglier. try again.",
             u8"nom ou parenth\u00e8ses manquants pour la fonction",
@@ -3540,8 +3540,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing operand for operator"_translatable,
+        u8"missing operand for operator",
         {
-            u8"missing operand for operator",
             u8"Operand des Operators fehlt",
             u8"who taught you math? a gym teacher? \U0001f469\u200d\U0001f3eb",
             u8"op\u00e9rande manquante pour l'op\u00e9rateur",
@@ -3551,8 +3551,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing operator between expression and arrow function"_translatable,
+        u8"missing operator between expression and arrow function",
         {
-            u8"missing operator between expression and arrow function",
             u8"Operator fehlt zwischen Ausdruck und Arrow-Funktion",
             u8"did you forget something here?",
             u8"op\u00e9rateur manquant entre l'expression et la fonction fl\u00e9ch\u00e9e",
@@ -3562,8 +3562,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing parameters for arrow function"_translatable,
+        u8"missing parameters for arrow function",
         {
-            u8"missing parameters for arrow function",
             u8"Parameter fehlen f\u00fcr Arrow-Funktion",
             u8"you forgot the parameters",
             u8"param\u00e8tres manquants pour la fonction fl\u00e9ch\u00e9e",
@@ -3573,8 +3573,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing parentheses around left-hand side of '**'"_translatable,
+        u8"missing parentheses around left-hand side of '**'",
         {
-            u8"missing parentheses around left-hand side of '**'",
             u8"Klammern um linke Seite von '**' fehlen",
             u8"JavaScript is stupid, so you need parentheses",
             u8"missing parentheses around left-hand side of '**'",
@@ -3584,8 +3584,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing parentheses around operand of '{0}'"_translatable,
+        u8"missing parentheses around operand of '{0}'",
         {
-            u8"missing parentheses around operand of '{0}'",
             u8"Klammern fehlen um den Operanden von '{0}'",
             u8"JavaScript is stupid, so you need parentheses",
             u8"missing parentheses around operand of '{0}'",
@@ -3595,8 +3595,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing parentheses around parameter"_translatable,
+        u8"missing parentheses around parameter",
         {
-            u8"missing parentheses around parameter",
             u8"missing parentheses around parameter",
             u8"missing parentheses around parameter",
             u8"missing parentheses around parameter",
@@ -3606,8 +3606,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing parentheses around self-invoked function"_translatable,
+        u8"missing parentheses around self-invoked function",
         {
-            u8"missing parentheses around self-invoked function",
             u8"Klammern um selbstaufgerufene Funktion fehlen",
             u8"IIFEs are uglier. try again.",
             u8"missing parentheses around self-invoked function",
@@ -3617,8 +3617,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing property name after '.' operator"_translatable,
+        u8"missing property name after '.' operator",
         {
-            u8"missing property name after '.' operator",
             u8"Eigenschaftsname fehlt nach dem '.'-Operator",
             u8"dot WHAT?!",
             u8"nom de propri\u00e9t\u00e9 manquant apr\u00e8s l'op\u00e9rateur '.'",
@@ -3628,8 +3628,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing property name between '.' and '.'"_translatable,
+        u8"missing property name between '.' and '.'",
         {
-            u8"missing property name between '.' and '.'",
             u8"Eigenschaftsname fehlt zwischen '.' und '.'",
             u8"._.",
             u8"nom de propri\u00e9t\u00e9 manquante entre '.' et '.'",
@@ -3639,8 +3639,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing quotes around module name '{0}'"_translatable,
+        u8"missing quotes around module name '{0}'",
         {
-            u8"missing quotes around module name '{0}'",
             u8"missing quotes around module name '{0}'",
             u8"missing quotes around module name '{0}'",
             u8"missing quotes around module name '{0}'",
@@ -3650,8 +3650,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing semicolon after 'declare class' method"_translatable,
+        u8"missing semicolon after 'declare class' method",
         {
-            u8"missing semicolon after 'declare class' method",
             u8"missing semicolon after 'declare class' method",
             u8"missing semicolon after 'declare class' method",
             u8"missing semicolon after 'declare class' method",
@@ -3661,8 +3661,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing semicolon after abstract method"_translatable,
+        u8"missing semicolon after abstract method",
         {
-            u8"missing semicolon after abstract method",
             u8"missing semicolon after abstract method",
             u8"missing semicolon after abstract method",
             u8"missing semicolon after abstract method",
@@ -3672,8 +3672,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing semicolon after field"_translatable,
+        u8"missing semicolon after field",
         {
-            u8"missing semicolon after field",
             u8"missing semicolon after field",
             u8"missing semicolon after field",
             u8"missing semicolon after field",
@@ -3683,8 +3683,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing semicolon after index signature"_translatable,
+        u8"missing semicolon after index signature",
         {
-            u8"missing semicolon after index signature",
             u8"missing semicolon after index signature",
             u8"missing semicolon after index signature",
             u8"missing semicolon after index signature",
@@ -3694,8 +3694,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing semicolon after interface method"_translatable,
+        u8"missing semicolon after interface method",
         {
-            u8"missing semicolon after interface method",
             u8"missing semicolon after interface method",
             u8"missing semicolon after interface method",
             u8"missing semicolon after interface method",
@@ -3705,8 +3705,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing semicolon after statement"_translatable,
+        u8"missing semicolon after statement",
         {
-            u8"missing semicolon after statement",
             u8"Semikolon fehlt nach Anweisung",
             u8"I know you hate semicolons, but you need one here",
             u8"point-virgule manquant apr\u00e8s l'instruction",
@@ -3716,8 +3716,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing semicolon between condition and update parts of for loop"_translatable,
+        u8"missing semicolon between condition and update parts of for loop",
         {
-            u8"missing semicolon between condition and update parts of for loop",
             u8"Semikolon fehlt zwischen Bedingung und Update-Anweisung der for-Schleife",
             u8"automatic semicolon insertion doesn't work here, buddy",
             u8"point-virgule manquant entre la condition et l'actualisation de la boucle for",
@@ -3727,8 +3727,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing semicolon between init and condition parts of for loop"_translatable,
+        u8"missing semicolon between init and condition parts of for loop",
         {
-            u8"missing semicolon between init and condition parts of for loop",
             u8"Semikolon fehlt zwischen Initialisierung und Bedingung der for-Schleife",
             u8"automatic semicolon insertion doesn't work here, buddy",
             u8"point-virgule manquant entre l'initialisation et la condition de la boucle for",
@@ -3738,8 +3738,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing type between '{1}' and '{0}'"_translatable,
+        u8"missing type between '{1}' and '{0}'",
         {
-            u8"missing type between '{1}' and '{0}'",
             u8"missing type between '{1}' and '{0}'",
             u8"missing type between '{1}' and '{0}'",
             u8"missing type between '{1}' and '{0}'",
@@ -3749,8 +3749,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing value for object property"_translatable,
+        u8"missing value for object property",
         {
-            u8"missing value for object property",
             u8"Wert der Objekteigenschaft fehlt",
             u8"follow this up with a value or something",
             u8"valeur manquante pour la propri\u00e9t\u00e9 d'objet",
@@ -3760,8 +3760,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "missing variable name"_translatable,
+        u8"missing variable name",
         {
-            u8"missing variable name",
             u8"Variablenname fehlt",
             u8"you forgot the variable name",
             u8"nom de variable manquant",
@@ -3771,8 +3771,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "misspelled React attribute; write '{1}' instead"_translatable,
+        u8"misspelled React attribute; write '{1}' instead",
         {
-            u8"misspelled React attribute; write '{1}' instead",
             u8"React-Attribut ist falsch geschrieben; '{1}' anstattdessen schreiben",
             u8"it's spelled '{1}', silly",
             u8"misspelled React attribute; write '{1}' instead",
@@ -3782,8 +3782,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "module with string name is only allowed at the top level"_translatable,
+        u8"module with string name is only allowed at the top level",
         {
-            u8"module with string name is only allowed at the top level",
             u8"module with string name is only allowed at the top level",
             u8"module with string name is only allowed at the top level",
             u8"module with string name is only allowed at the top level",
@@ -3793,8 +3793,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "move the 'extends' clause before 'implements' here"_translatable,
+        u8"move the 'extends' clause before 'implements' here",
         {
-            u8"move the 'extends' clause before 'implements' here",
             u8"move the 'extends' clause before 'implements' here",
             u8"move the 'extends' clause before 'implements' here",
             u8"move the 'extends' clause before 'implements' here",
@@ -3804,8 +3804,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "namespace starts here"_translatable,
+        u8"namespace starts here",
         {
-            u8"namespace starts here",
             u8"namespace starts here",
             u8"namespace starts here",
             u8"namespace starts here",
@@ -3815,8 +3815,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "new variable shadows existing variable"_translatable,
+        u8"new variable shadows existing variable",
         {
-            u8"new variable shadows existing variable",
             u8"Neue Variable macht bereits existierende unsichtbar",
             u8"I think you meant to assign...",
             u8"new variable shadows existing variable",
@@ -3826,8 +3826,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "newline is not allowed after 'abstract'"_translatable,
+        u8"newline is not allowed after 'abstract'",
         {
-            u8"newline is not allowed after 'abstract'",
             u8"newline is not allowed after 'abstract'",
             u8"newline is not allowed after 'abstract'",
             u8"newline is not allowed after 'abstract'",
@@ -3837,8 +3837,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "newline is not allowed after 'export declare'"_translatable,
+        u8"newline is not allowed after 'export declare'",
         {
-            u8"newline is not allowed after 'export declare'",
             u8"newline is not allowed after 'export declare'",
             u8"newline is not allowed after 'export declare'",
             u8"newline is not allowed after 'export declare'",
@@ -3848,8 +3848,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "newline is not allowed after 'interface'"_translatable,
+        u8"newline is not allowed after 'interface'",
         {
-            u8"newline is not allowed after 'interface'",
             u8"newline is not allowed after 'interface'",
             u8"newline is not allowed after 'interface'",
             u8"newline is not allowed after 'interface'",
@@ -3859,8 +3859,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "newline is not allowed after 'type'"_translatable,
+        u8"newline is not allowed after 'type'",
         {
-            u8"newline is not allowed after 'type'",
             u8"newline is not allowed after 'type'",
             u8"newline is not allowed after 'type'",
             u8"newline is not allowed after 'type'",
@@ -3870,8 +3870,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "newline is not allowed after '{0}'"_translatable,
+        u8"newline is not allowed after '{0}'",
         {
-            u8"newline is not allowed after '{0}'",
             u8"newline is not allowed after '{0}'",
             u8"newline is not allowed after '{0}'",
             u8"newline is not allowed after '{0}'",
@@ -3881,8 +3881,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "newline is not allowed between 'async' and 'function'"_translatable,
+        u8"newline is not allowed between 'async' and 'function'",
         {
-            u8"newline is not allowed between 'async' and 'function'",
             u8"newline is not allowed between 'async' and 'function'",
             u8"newline is not allowed between 'async' and 'function'",
             u8"newline is not allowed between 'async' and 'function'",
@@ -3892,8 +3892,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "newline is not allowed between 'async' and arrow function parameter list"_translatable,
+        u8"newline is not allowed between 'async' and arrow function parameter list",
         {
-            u8"newline is not allowed between 'async' and arrow function parameter list",
             u8"Zeilenumbruch ist zwischen 'async' und Arrow-Funktion verboten",
             u8"put this on a single line, please",
             u8"un saut de ligne n'est pas autoris\u00e9 entre 'async' et la liste de param\u00e8tres d'une fonction fl\u00e9ch\u00e9e",
@@ -3903,8 +3903,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "newline is not allowed between field name and '!'"_translatable,
+        u8"newline is not allowed between field name and '!'",
         {
-            u8"newline is not allowed between field name and '!'",
             u8"newline is not allowed between field name and '!'",
             u8"newline is not allowed between field name and '!'",
             u8"newline is not allowed between field name and '!'",
@@ -3914,8 +3914,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "nullish coalescing operator does nothing when left operand is never null"_translatable,
+        u8"nullish coalescing operator does nothing when left operand is never null",
         {
-            u8"nullish coalescing operator does nothing when left operand is never null",
             u8"nullish coalescing operator does nothing when left operand is never null",
             u8"nullish coalescing operator does nothing when left operand is never null",
             u8"nullish coalescing operator does nothing when left operand is never null",
@@ -3925,8 +3925,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "number literal contains consecutive underscores"_translatable,
+        u8"number literal contains consecutive underscores",
         {
-            u8"number literal contains consecutive underscores",
             u8"Zahlenliteral darf keine aufeinanderfolgenden Unterstriche enthalten",
             u8"too__many__underscores",
             u8"le litt\u00e9ral num\u00e9rique contient plusieurs tirets de soulignement cons\u00e9cutifs",
@@ -3936,8 +3936,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "number literal contains trailing underscore(s)"_translatable,
+        u8"number literal contains trailing underscore(s)",
         {
-            u8"number literal contains trailing underscore(s)",
             u8"Zahlenliteral endet mit Unterstrich(en)",
             u8"too_many_underscores_____",
             u8"le litt\u00e9ral num\u00e9rique est suivi d'un tiret de soulignement",
@@ -3947,8 +3947,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "object literal started here"_translatable,
+        u8"object literal started here",
         {
-            u8"object literal started here",
             u8"Objektliteral beginnt hier",
             u8"runaway object literal started here",
             u8"litt\u00e9ral objet d\u00e9but\u00e9 ici",
@@ -3958,8 +3958,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "octal literal may not have decimal"_translatable,
+        u8"octal literal may not have decimal",
         {
-            u8"octal literal may not have decimal",
             u8"Oktalliterale mit Dezimalpunkt sind nicht erlaubt",
             u8"but you said '0o'...",
             u8"un litt\u00e9ral octal ne peut avoir de partie d\u00e9cimale",
@@ -3969,8 +3969,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "octal literal may not have exponent"_translatable,
+        u8"octal literal may not have exponent",
         {
-            u8"octal literal may not have exponent",
             u8"Oktalliterale mit Exponenten sind nicht erlaubt",
             u8"scientists don't use octal",
             u8"un litt\u00e9ral octal ne peut avoir d'exposant",
@@ -3980,8 +3980,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "octal number literal has no digits"_translatable,
+        u8"octal number literal has no digits",
         {
-            u8"octal number literal has no digits",
             u8"Oktales Zahlenliteral ohne Ziffern",
             u8"<octupus-with-no-legs> has no digits",
             u8"le litt\u00e9ral num\u00e9rique octal n'a pas de chiffres",
@@ -3991,8 +3991,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "only one comma is allowed between or after generic parameters"_translatable,
+        u8"only one comma is allowed between or after generic parameters",
         {
-            u8"only one comma is allowed between or after generic parameters",
             u8"only one comma is allowed between or after generic parameters",
             u8"only one comma is allowed between or after generic parameters",
             u8"only one comma is allowed between or after generic parameters",
@@ -4002,8 +4002,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "only optional tuple elements can follow this optional tuple element"_translatable,
+        u8"only optional tuple elements can follow this optional tuple element",
         {
-            u8"only optional tuple elements can follow this optional tuple element",
             u8"only optional tuple elements can follow this optional tuple element",
             u8"only optional tuple elements can follow this optional tuple element",
             u8"only optional tuple elements can follow this optional tuple element",
@@ -4013,8 +4013,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "opening '<{1}>' tag here"_translatable,
+        u8"opening '<{1}>' tag here",
         {
-            u8"opening '<{1}>' tag here",
             u8"\u00d6ffnender '<{1}>' Tag ist hier",
             u8"\U0001f631 '<{1}>'",
             u8"opening '<{1}>' tag here",
@@ -4024,8 +4024,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "optional parameter cannot be followed by a required parameter"_translatable,
+        u8"optional parameter cannot be followed by a required parameter",
         {
-            u8"optional parameter cannot be followed by a required parameter",
             u8"optional parameter cannot be followed by a required parameter",
             u8"optional parameter cannot be followed by a required parameter",
             u8"optional parameter cannot be followed by a required parameter",
@@ -4035,8 +4035,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "optional parameter cannot have both '?' and initializer; remove '?'"_translatable,
+        u8"optional parameter cannot have both '?' and initializer; remove '?'",
         {
-            u8"optional parameter cannot have both '?' and initializer; remove '?'",
             u8"optional parameter cannot have both '?' and initializer; remove '?'",
             u8"optional parameter cannot have both '?' and initializer; remove '?'",
             u8"optional parameter cannot have both '?' and initializer; remove '?'",
@@ -4046,8 +4046,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "optional tuple elements cannot come after spread elements"_translatable,
+        u8"optional tuple elements cannot come after spread elements",
         {
-            u8"optional tuple elements cannot come after spread elements",
             u8"optional tuple elements cannot come after spread elements",
             u8"optional tuple elements cannot come after spread elements",
             u8"optional tuple elements cannot come after spread elements",
@@ -4057,8 +4057,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "overloaded function '{0}' declared here"_translatable,
+        u8"overloaded function '{0}' declared here",
         {
-            u8"overloaded function '{0}' declared here",
             u8"overloaded function '{0}' declared here",
             u8"overloaded function '{0}' declared here",
             u8"overloaded function '{0}' declared here",
@@ -4068,8 +4068,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "parameter properties are not allowed in 'declare class'"_translatable,
+        u8"parameter properties are not allowed in 'declare class'",
         {
-            u8"parameter properties are not allowed in 'declare class'",
             u8"parameter properties are not allowed in 'declare class'",
             u8"parameter properties are not allowed in 'declare class'",
             u8"parameter properties are not allowed in 'declare class'",
@@ -4079,8 +4079,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "parameter properties are only allowed in class constructors"_translatable,
+        u8"parameter properties are only allowed in class constructors",
         {
-            u8"parameter properties are only allowed in class constructors",
             u8"parameter properties are only allowed in class constructors",
             u8"parameter properties are only allowed in class constructors",
             u8"parameter properties are only allowed in class constructors",
@@ -4090,8 +4090,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "parameter properties cannot be a rest parameter"_translatable,
+        u8"parameter properties cannot be a rest parameter",
         {
-            u8"parameter properties cannot be a rest parameter",
             u8"parameter properties cannot be a rest parameter",
             u8"parameter properties cannot be a rest parameter",
             u8"parameter properties cannot be a rest parameter",
@@ -4101,8 +4101,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "parameter properties cannot be destructured"_translatable,
+        u8"parameter properties cannot be destructured",
         {
-            u8"parameter properties cannot be destructured",
             u8"parameter properties cannot be destructured",
             u8"parameter properties cannot be destructured",
             u8"parameter properties cannot be destructured",
@@ -4112,8 +4112,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "parentheses are required around 'infer {1}'"_translatable,
+        u8"parentheses are required around 'infer {1}'",
         {
-            u8"parentheses are required around 'infer {1}'",
             u8"parentheses are required around 'infer {1}'",
             u8"parentheses are required around 'infer {1}'",
             u8"parentheses are required around 'infer {1}'",
@@ -4123,8 +4123,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "prior spread element is here"_translatable,
+        u8"prior spread element is here",
         {
-            u8"prior spread element is here",
             u8"prior spread element is here",
             u8"prior spread element is here",
             u8"prior spread element is here",
@@ -4134,8 +4134,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "private properties are not allowed in object literals"_translatable,
+        u8"private properties are not allowed in object literals",
         {
-            u8"private properties are not allowed in object literals",
             u8"Innerhalb von Objektliteralen sind private Eigenschaften verboten",
             u8"objects can't have privates \U0001f92b",
             u8"les propri\u00e9t\u00e9s priv\u00e9es ne sont pas autoris\u00e9es dans les litt\u00e9raux objet",
@@ -4145,8 +4145,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "property declared using '{0}' here"_translatable,
+        u8"property declared using '{0}' here",
         {
-            u8"property declared using '{0}' here",
             u8"property declared using '{0}' here",
             u8"property declared using '{0}' here",
             u8"property declared using '{0}' here",
@@ -4156,8 +4156,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "redeclaration of global variable"_translatable,
+        u8"redeclaration of global variable",
         {
-            u8"redeclaration of global variable",
             u8"Globale Variable wird erneut deklariert",
             u8"you already have this global",
             u8"red\u00e9claration de variable globale",
@@ -4167,8 +4167,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "redeclaration of variable: {0}"_translatable,
+        u8"redeclaration of variable: {0}",
         {
-            u8"redeclaration of variable: {0}",
             u8"Variable '{0}' wird erneut deklariert",
             u8"you couldn't get enough of {0}, so you had to make two, huh?",
             u8"red\u00e9claration de variable: {0}",
@@ -4178,8 +4178,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "redundant 'await'"_translatable,
+        u8"redundant 'await'",
         {
-            u8"redundant 'await'",
             u8"redundant 'await'",
             u8"redundant 'await'",
             u8"redundant 'await'",
@@ -4189,8 +4189,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "redundant delete statement on variable"_translatable,
+        u8"redundant delete statement on variable",
         {
-            u8"redundant delete statement on variable",
             u8"Unn\u00f6tiges delete-Statement f\u00fcr Variable",
             u8"you really hate variables, huh? too bad; this doesn't work",
             u8"instruction delete redondante pour la variable",
@@ -4200,8 +4200,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "remove '{0}' to update an existing variable"_translatable,
+        u8"remove '{0}' to update an existing variable",
         {
-            u8"remove '{0}' to update an existing variable",
             u8"Entferne '{0}' um die vorhandene Variable zu updaten",
             u8"or yeet '{0}'",
             u8"supprimer '{0}' pour actualiser une variable existante",
@@ -4211,8 +4211,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "remove this 'type'"_translatable,
+        u8"remove this 'type'",
         {
-            u8"remove this 'type'",
             u8"remove this 'type'",
             u8"remove this 'type'",
             u8"remove this 'type'",
@@ -4222,8 +4222,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "return statement returns nothing (undefined)"_translatable,
+        u8"return statement returns nothing (undefined)",
         {
-            u8"return statement returns nothing (undefined)",
             u8"Return-Statement gibt nichts (undefined) zur\u00fcck",
             u8"you forgot to return something",
             u8"l'instruction de retour ne retourne rien (undefined)",
@@ -4233,8 +4233,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "see here"_translatable,
+        u8"see here",
         {
-            u8"see here",
             u8"siehe hier",
             u8"see here",
             u8"see here",
@@ -4244,8 +4244,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "something happened"_translatable,
+        u8"something happened",
         {
-            u8"something happened",
             u8"etwas geschah",
             u8"I wish you never happened",
             u8"something happened",
@@ -4255,8 +4255,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "spread starts here"_translatable,
+        u8"spread starts here",
         {
-            u8"spread starts here",
             u8"spread starts here",
             u8"spread starts here",
             u8"spread starts here",
@@ -4266,8 +4266,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "spread tuple elements cannot be optional"_translatable,
+        u8"spread tuple elements cannot be optional",
         {
-            u8"spread tuple elements cannot be optional",
             u8"spread tuple elements cannot be optional",
             u8"spread tuple elements cannot be optional",
             u8"spread tuple elements cannot be optional",
@@ -4277,8 +4277,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "stray comma in function parameter"_translatable,
+        u8"stray comma in function parameter",
         {
-            u8"stray comma in function parameter",
             u8"Vereinzeltes Komme in Funktionsparameter",
             u8"take that stray comma out back and have it meet its maker \U0001f52b",
             u8"virgule isol\u00e9e dans un param\u00e8tre de fonction",
@@ -4288,8 +4288,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "stray comma in let statement"_translatable,
+        u8"stray comma in let statement",
         {
-            u8"stray comma in let statement",
             u8"Vereinzeltes Komma in let-Statement",
             u8"throw that comma in the bin \U0001f6ae",
             u8"virgule isol\u00e9e dans une instruction let",
@@ -4299,8 +4299,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "string module name is only allowed with 'declare module'"_translatable,
+        u8"string module name is only allowed with 'declare module'",
         {
-            u8"string module name is only allowed with 'declare module'",
             u8"string module name is only allowed with 'declare module'",
             u8"string module name is only allowed with 'declare module'",
             u8"string module name is only allowed with 'declare module'",
@@ -4310,8 +4310,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "switch statement is missing '{1}' around condition"_translatable,
+        u8"switch statement is missing '{1}' around condition",
         {
-            u8"switch statement is missing '{1}' around condition",
             u8"'{1}' fehlt um Bedingung der switch-Anweisung",
             u8"give the condition a hug",
             u8"une instruction switch n\u00e9cessite '{1}' autour de la condition",
@@ -4321,8 +4321,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "switch statement needs parentheses around condition"_translatable,
+        u8"switch statement needs parentheses around condition",
         {
-            u8"switch statement needs parentheses around condition",
             u8"Klammern fehlen um Bedingung der switch-Anweisung",
             u8"give the condition a hug",
             u8"une instruction switch n\u00e9cessite des parenth\u00e8ses autour de la condition",
@@ -4332,8 +4332,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "this case will run instead"_translatable,
+        u8"this case will run instead",
         {
-            u8"this case will run instead",
             u8"this case will run instead",
             u8"this case will run instead",
             u8"this case will run instead",
@@ -4343,8 +4343,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "this required parameter appears after the optional parameter"_translatable,
+        u8"this required parameter appears after the optional parameter",
         {
-            u8"this required parameter appears after the optional parameter",
             u8"this required parameter appears after the optional parameter",
             u8"this required parameter appears after the optional parameter",
             u8"this required parameter appears after the optional parameter",
@@ -4354,8 +4354,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "this tuple type is a named tuple type because at least one element has a name"_translatable,
+        u8"this tuple type is a named tuple type because at least one element has a name",
         {
-            u8"this tuple type is a named tuple type because at least one element has a name",
             u8"this tuple type is a named tuple type because at least one element has a name",
             u8"this tuple type is a named tuple type because at least one element has a name",
             u8"this tuple type is a named tuple type because at least one element has a name",
@@ -4365,8 +4365,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "this {0} looks fishy"_translatable,
+        u8"this {0} looks fishy",
         {
-            u8"this {0} looks fishy",
             u8"dieses {0} sieht merkw\u00fcrdig aus",
             u8"this {0} looks fishy",
             u8"this {0} looks fishy",
@@ -4376,8 +4376,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "try statement starts here"_translatable,
+        u8"try statement starts here",
         {
-            u8"try statement starts here",
             u8"try-Statement beginnt hier",
             u8"at least you tried",
             u8"l'instruction try d\u00e9bute ici",
@@ -4387,8 +4387,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unclosed block comment"_translatable,
+        u8"unclosed block comment",
         {
-            u8"unclosed block comment",
             u8"Blockkommentar ohne Ende",
             u8"you accidentally commented out your whole program",
             u8"commentaire de bloc non ferm\u00e9",
@@ -4398,8 +4398,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unclosed class; expected '}' by end of file"_translatable,
+        u8"unclosed class; expected '}' by end of file",
         {
-            u8"unclosed class; expected '}' by end of file",
             u8"Klasse ohne Ende. '}' bis sp\u00e4testens zum Ende der Datei erwartet",
             u8"forgetting to close your class is unclassy",
             u8"unclosed class; expected '}' by end of file",
@@ -4409,8 +4409,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unclosed code block; expected '}' by end of file"_translatable,
+        u8"unclosed code block; expected '}' by end of file",
         {
-            u8"unclosed code block; expected '}' by end of file",
             u8"Code-Block ohne Ende. '}' bis sp\u00e4testens zum Ende der Datei erwartet",
             u8"c'mon, you forgot '}'",
             u8"bloc de code non ferm\u00e9 ; '}' attendu avant la fin du fichier",
@@ -4420,8 +4420,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unclosed identifier escape sequence"_translatable,
+        u8"unclosed identifier escape sequence",
         {
-            u8"unclosed identifier escape sequence",
             u8"Unbeendete Bezeichner-Escapesequenz",
             u8"runaway \\u!",
             u8"s\u00e9quence d'\u00e9chappement d'identifiant non ferm\u00e9e",
@@ -4431,8 +4431,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unclosed interface; expected '}' by end of file"_translatable,
+        u8"unclosed interface; expected '}' by end of file",
         {
-            u8"unclosed interface; expected '}' by end of file",
             u8"unclosed interface; expected '}' by end of file",
             u8"c'mon, you forgot '}'",
             u8"unclosed interface; expected '}' by end of file",
@@ -4442,8 +4442,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unclosed object literal; expected '}'"_translatable,
+        u8"unclosed object literal; expected '}'",
         {
-            u8"unclosed object literal; expected '}'",
             u8"Unbeendetes Objekt-Literal. '}' erwartet",
             u8"you objectively didn't close your object literal",
             u8"litt\u00e9ral objet non ferm\u00e9 ; '}' attendu",
@@ -4453,8 +4453,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unclosed regexp literal"_translatable,
+        u8"unclosed regexp literal",
         {
-            u8"unclosed regexp literal",
             u8"Unbeendetes RegExp-Literal",
             u8"/unclosed regexp literal",
             u8"litt\u00e9ral regexp non ferm\u00e9",
@@ -4464,8 +4464,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unclosed string literal"_translatable,
+        u8"unclosed string literal",
         {
-            u8"unclosed string literal",
             u8"Zeichenkette ohne Ende",
             u8"\"unclosed string literal",
             u8"litt\u00e9ral string non ferm\u00e9",
@@ -4475,8 +4475,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unclosed template"_translatable,
+        u8"unclosed template",
         {
-            u8"unclosed template",
             u8"Template ohne Ende",
             u8"`unclosed template",
             u8"template non ferm\u00e9",
@@ -4486,8 +4486,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected '#'"_translatable,
+        u8"unexpected '#'",
         {
-            u8"unexpected '#'",
             u8"Unerwartete '#'",
             u8"#unexpected",
             u8"'#' inattendu",
@@ -4497,8 +4497,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected '...'; expected expression"_translatable,
+        u8"unexpected '...'; expected expression",
         {
-            u8"unexpected '...'; expected expression",
             u8"unexpected '...'; expected expression",
             u8"unexpected '...'; expected expression",
             u8"unexpected '...'; expected expression",
@@ -4508,8 +4508,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected ':' in expression; did you mean 'as'?"_translatable,
+        u8"unexpected ':' in expression; did you mean 'as'?",
         {
-            u8"unexpected ':' in expression; did you mean 'as'?",
             u8"unexpected ':' in expression; did you mean 'as'?",
             u8"unexpected ':' in expression; did you mean 'as'?",
             u8"unexpected ':' in expression; did you mean 'as'?",
@@ -4519,8 +4519,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected '?'"_translatable,
+        u8"unexpected '?'",
         {
-            u8"unexpected '?'",
             u8"unexpected '?'",
             u8"unexpected '?'",
             u8"unexpected '?'",
@@ -4530,8 +4530,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected '?' when destructuring"_translatable,
+        u8"unexpected '?' when destructuring",
         {
-            u8"unexpected '?' when destructuring",
             u8"unexpected '?' when destructuring",
             u8"unexpected '?' when destructuring",
             u8"unexpected '?' when destructuring",
@@ -4541,8 +4541,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected '@'"_translatable,
+        u8"unexpected '@'",
         {
-            u8"unexpected '@'",
             u8"Unerwartetes '@'",
             u8"unexp@cted",
             u8"'@' inattendu",
@@ -4552,8 +4552,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected '\\' in identifier"_translatable,
+        u8"unexpected '\\' in identifier",
         {
-            u8"unexpected '\\' in identifier",
             u8"Unerwartetes '\\' in Bezeichner",
             u8"unex\\pected",
             u8"'\\' inattendu dans un identifiant",
@@ -4563,8 +4563,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected 'case' outside switch statement"_translatable,
+        u8"unexpected 'case' outside switch statement",
         {
-            u8"unexpected 'case' outside switch statement",
             u8"Unerwartetes 'case' au\u00dferhalb des switch-Statements",
             u8"your 'case' fell out of your switch statement",
             u8"'case' inattendu en dehors d'une instruction switch",
@@ -4574,8 +4574,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected 'catch' without 'try'"_translatable,
+        u8"unexpected 'catch' without 'try'",
         {
-            u8"unexpected 'catch' without 'try'",
             u8"Unerwartetes 'catch' ohne zugeh\u00f6riges 'try'",
             u8"you'll never catch anything without trying",
             u8"instruction 'catch' inattendue en l'absence de 'try'",
@@ -4585,8 +4585,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected 'default' outside switch statement"_translatable,
+        u8"unexpected 'default' outside switch statement",
         {
-            u8"unexpected 'default' outside switch statement",
             u8"Unerwartetes 'default' au\u00dferhalb des switch-Statements",
             u8"your 'default' fell out of your switch statement",
             u8"'default' inattendu en dehors d'une instruction switch",
@@ -4596,8 +4596,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected 'finally' without 'try'"_translatable,
+        u8"unexpected 'finally' without 'try'",
         {
-            u8"unexpected 'finally' without 'try'",
             u8"'finally' ohne zugeh\u00f6riges 'try'",
             u8"you're not even gonna 'try'?",
             u8"'finally' inappropri\u00e9 sans 'try'",
@@ -4607,8 +4607,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected '{0}'"_translatable,
+        u8"unexpected '{0}'",
         {
-            u8"unexpected '{0}'",
             u8"Unerwartetes '{0}'",
             u8"what the heck is '{0}'?",
             u8"'{0}' inattendu",
@@ -4618,8 +4618,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected characters in binary literal"_translatable,
+        u8"unexpected characters in binary literal",
         {
-            u8"unexpected characters in binary literal",
             u8"Unerwartete Zeichen in bin\u00e4rem Zahlenliteral",
             u8"this number does not identify as binary",
             u8"caract\u00e8res inattendus dans un litt\u00e9ral binaire",
@@ -4629,8 +4629,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected characters in hex literal"_translatable,
+        u8"unexpected characters in hex literal",
         {
-            u8"unexpected characters in hex literal",
             u8"Unerwartete Zeichen in hexadezimalem Zahlenliteral",
             u8"unexpected characters in hex literal",
             u8"caract\u00e8res inattendus dans un litt\u00e9ral hex",
@@ -4640,8 +4640,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected characters in number literal"_translatable,
+        u8"unexpected characters in number literal",
         {
-            u8"unexpected characters in number literal",
             u8"Unerwartete Zeichen in Zahlenliteral",
             u8"does not compute \U0001f916",
             u8"caract\u00e8res inattendus dans un litt\u00e9ral num\u00e9rique",
@@ -4651,8 +4651,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected characters in octal literal"_translatable,
+        u8"unexpected characters in octal literal",
         {
-            u8"unexpected characters in octal literal",
             u8"Unerwartete Zeichen in oktalem Zahlenliteral",
             u8"Cthulhu \U0001f419 is not happy",
             u8"caract\u00e8res inattendus dans un litt\u00e9ral octal",
@@ -4662,8 +4662,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected control character"_translatable,
+        u8"unexpected control character",
         {
-            u8"unexpected control character",
             u8"Unerwartetes Steuerzeichen",
             u8"you lost control of your code",
             u8"caract\u00e8re de contr\u00f4le inattendu",
@@ -4673,8 +4673,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected expression; missing key for object entry"_translatable,
+        u8"unexpected expression; missing key for object entry",
         {
-            u8"unexpected expression; missing key for object entry",
             u8"Ausdruck vor Zeilenumbruch erwartet",
             u8"you forgot the key \U0001f5dd",
             u8"expression inattendue ; cl\u00e9 manquante pour l'entr\u00e9e d'objet",
@@ -4684,8 +4684,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected identifier in expression; missing operator before"_translatable,
+        u8"unexpected identifier in expression; missing operator before",
         {
-            u8"unexpected identifier in expression; missing operator before",
             u8"Unerwarteter Bezeichner in Ausdruck. Operator fehlt davor.",
             u8"you're need to take me out to dinner before you show me this",
             u8"identifiant inattendu dans une expression ; op\u00e9rateur initial manquant",
@@ -4695,8 +4695,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected literal in parameter list; expected parameter name"_translatable,
+        u8"unexpected literal in parameter list; expected parameter name",
         {
-            u8"unexpected literal in parameter list; expected parameter name",
             u8"Unerwartetes Literal in Parameterliste. Parametername erwartet",
             u8"you literally forgot to name your parameter",
             u8"litt\u00e9ral inattendu dans une liste de param\u00e8tres ; nom de param\u00e8tre attendu",
@@ -4706,8 +4706,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected statement before first switch case, expected 'case' or 'default'"_translatable,
+        u8"unexpected statement before first switch case, expected 'case' or 'default'",
         {
-            u8"unexpected statement before first switch case, expected 'case' or 'default'",
             u8"Unerwartetes Statment vor dem ersten Switch-Case. Entweder 'case' oder 'default' erwartet.",
             u8"you got too excited and forgot 'case'",
             u8"unexpected statement before first switch case, expected 'case' or 'default'",
@@ -4717,8 +4717,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected token"_translatable,
+        u8"unexpected token",
         {
-            u8"unexpected token",
             u8"Unerwartetes Token",
             u8"I don't know what to do with this",
             u8"symbole manquant",
@@ -4728,8 +4728,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected token in export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"_translatable,
+        u8"unexpected token in export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'",
         {
-            u8"unexpected token in export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'",
             u8"Unerwartetes Token in Export. M\u00f6glichkeiten sind: 'export default ...' oder 'export {{name}' oder 'export * from ...' oder 'export class' oder 'export function' oder 'export let'",
             u8"I don't know what you're trying to export",
             u8"symbole inattendu dans export ; 'export default ...' ou 'export {{name}' ou 'export * from ...' ou 'export class' ou 'export function' ou 'export let' attendu",
@@ -4739,8 +4739,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected token in variable declaration; expected variable name"_translatable,
+        u8"unexpected token in variable declaration; expected variable name",
         {
-            u8"unexpected token in variable declaration; expected variable name",
             u8"Unerwartetes Token innerhalb der Variablendeklaration. Variablenname anstattdessen erwartet",
             u8"just name your variable like a normal person",
             u8"symbole inattendu dans une d\u00e9claration de variable ; nom de variable attendu",
@@ -4750,8 +4750,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unexpected whitespace between '!' and '=='"_translatable,
+        u8"unexpected whitespace between '!' and '=='",
         {
-            u8"unexpected whitespace between '!' and '=='",
             u8"unexpected whitespace between '!' and '=='",
             u8"unexpected whitespace between '!' and '=='",
             u8"unexpected whitespace between '!' and '=='",
@@ -4761,8 +4761,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unicode byte order mark (BOM) cannot appear before #! at beginning of script"_translatable,
+        u8"unicode byte order mark (BOM) cannot appear before #! at beginning of script",
         {
-            u8"unicode byte order mark (BOM) cannot appear before #! at beginning of script",
             u8"Die Unicode Bytereihenfolge-Markierung (BOM) darf nicht vor #! zu Beginn eines Skripts erscheinen",
             u8"your editor BOMd \U0001f4a3 your s#!t \U0001f4a9",
             u8"un indicateur d'ordre des octets (BOM) ne peut figurer avant #! au d\u00e9but d'un script",
@@ -4772,8 +4772,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unmatched '}'"_translatable,
+        u8"unmatched '}'",
         {
-            u8"unmatched '}'",
             u8"Zugeh\u00f6rige geschweifte Klammer fehlt",
             u8"what are you trying to close here?",
             u8"'}' non appari\u00e9",
@@ -4783,8 +4783,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unmatched indexing bracket"_translatable,
+        u8"unmatched indexing bracket",
         {
-            u8"unmatched indexing bracket",
             u8"Zugeh\u00f6rige Indizierungsklammer fehlt",
             u8"unmatched indexing[bracket",
             u8"crochet d'indexation non appari\u00e9",
@@ -4794,8 +4794,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unmatched parenthesis"_translatable,
+        u8"unmatched parenthesis",
         {
-            u8"unmatched parenthesis",
             u8"Zugeh\u00f6rige Klammer fehlt",
             u8"I have some extra: ) ) ) ) ) ) ) ) ) ) )",
             u8"parenth\u00e8se non appari\u00e9e",
@@ -4805,8 +4805,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "unopened block comment"_translatable,
+        u8"unopened block comment",
         {
-            u8"unopened block comment",
             u8"Blockkommentar ohne Beginn",
             u8"/*",
             u8"commentaire de bloc non ouvert",
@@ -4816,8 +4816,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "upper case letters compared with toLowerCase"_translatable,
+        u8"upper case letters compared with toLowerCase",
         {
-            u8"upper case letters compared with toLowerCase",
             u8"Gro\u00dfbuchstaben werden mit toLowerCase verglichen",
             u8"You sure you're getting what toLowerCase does?",
             u8"upper case letters compared with toLowerCase",
@@ -4827,8 +4827,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "use ':' instead of '=' in object literals"_translatable,
+        u8"use ':' instead of '=' in object literals",
         {
-            u8"use ':' instead of '=' in object literals",
             u8"use ':' instead of '=' in object literals",
             u8"use ':' instead of '=' in object literals",
             u8"use ':' instead of '=' in object literals",
@@ -4838,8 +4838,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "use ':' instead of '{0}' to type a function parameter"_translatable,
+        u8"use ':' instead of '{0}' to type a function parameter",
         {
-            u8"use ':' instead of '{0}' to type a function parameter",
             u8"use ':' instead of '{0}' to type a function parameter",
             u8"use ':' instead of '{0}' to type a function parameter",
             u8"use ':' instead of '{0}' to type a function parameter",
@@ -4849,8 +4849,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "use 'while' instead to loop until a condition is false"_translatable,
+        u8"use 'while' instead to loop until a condition is false",
         {
-            u8"use 'while' instead to loop until a condition is false",
             u8"'while' benutzen, um zu iterieren, bis die Bedingung false wird",
             u8"or use 'while', you silly Gopher",
             u8"utiliser plut\u00f4t 'while' pour boucler jusqu'\u00e0 ce qu'une condition soit fausse",
@@ -4860,8 +4860,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "use of undeclared type: {0}"_translatable,
+        u8"use of undeclared type: {0}",
         {
-            u8"use of undeclared type: {0}",
             u8"use of undeclared type: {0}",
             u8"I don't know what this type is",
             u8"use of undeclared type: {0}",
@@ -4871,8 +4871,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "use of undeclared variable: {0}"_translatable,
+        u8"use of undeclared variable: {0}",
         {
-            u8"use of undeclared variable: {0}",
             u8"Variable {0} wird verwendet, ist jedoch nicht deklariert",
             u8"did you fail spelling class?",
             u8"utilisation d'une variable non d\u00e9clar\u00e9e : {0}",
@@ -4882,8 +4882,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "using '{0}' against a class literal always returns '{1}'"_translatable,
+        u8"using '{0}' against a class literal always returns '{1}'",
         {
-            u8"using '{0}' against a class literal always returns '{1}'",
             u8"using '{0}' against a class literal always returns '{1}'",
             u8"using '{0}' against a class literal always returns '{1}'",
             u8"using '{0}' against a class literal always returns '{1}'",
@@ -4893,8 +4893,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "using '{0}' against a regular expression literal always returns '{1}'"_translatable,
+        u8"using '{0}' against a regular expression literal always returns '{1}'",
         {
-            u8"using '{0}' against a regular expression literal always returns '{1}'",
             u8"using '{0}' against a regular expression literal always returns '{1}'",
             u8"using '{0}' against a regular expression literal always returns '{1}'",
             u8"using '{0}' against a regular expression literal always returns '{1}'",
@@ -4904,8 +4904,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "using '{0}' against an array literal does not compare items"_translatable,
+        u8"using '{0}' against an array literal does not compare items",
         {
-            u8"using '{0}' against an array literal does not compare items",
             u8"using '{0}' against an array literal does not compare items",
             u8"using '{0}' against an array literal does not compare items",
             u8"using '{0}' against an array literal does not compare items",
@@ -4915,8 +4915,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "using '{0}' against an arrow function always returns '{1}'"_translatable,
+        u8"using '{0}' against an arrow function always returns '{1}'",
         {
-            u8"using '{0}' against an arrow function always returns '{1}'",
             u8"using '{0}' against an arrow function always returns '{1}'",
             u8"using '{0}' against an arrow function always returns '{1}'",
             u8"using '{0}' against an arrow function always returns '{1}'",
@@ -4926,8 +4926,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "using '{0}' against an object literal always returns '{1}'"_translatable,
+        u8"using '{0}' against an object literal always returns '{1}'",
         {
-            u8"using '{0}' against an object literal always returns '{1}'",
             u8"using '{0}' against an object literal always returns '{1}'",
             u8"using '{0}' against an object literal always returns '{1}'",
             u8"using '{0}' against an object literal always returns '{1}'",
@@ -4937,8 +4937,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "variable already declared here"_translatable,
+        u8"variable already declared here",
         {
-            u8"variable already declared here",
             u8"Variable wurde zuvor hier deklariert",
             u8"here's your first attempt",
             u8"variable d\u00e9j\u00e0 d\u00e9clar\u00e9e ici",
@@ -4948,8 +4948,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "variable assigned before its declaration"_translatable,
+        u8"variable assigned before its declaration",
         {
-            u8"variable assigned before its declaration",
             u8"Zuweisung an Variable vor Deklaration",
             u8"why are you assignin' before you be makin'? \U0001f90f",
             u8"variable affect\u00e9e avant sa d\u00e9claration",
@@ -4959,8 +4959,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "variable assignment to self is no-op"_translatable,
+        u8"variable assignment to self is no-op",
         {
-            u8"variable assignment to self is no-op",
             u8"variable assignment to self is no-op",
             u8"variable assignment to self is no-op",
             u8"variable assignment to self is no-op",
@@ -4970,8 +4970,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "variable declared here"_translatable,
+        u8"variable declared here",
         {
-            u8"variable declared here",
             u8"Variablendeklaration ist hier",
             u8"\U0001f446 it's right here, doofus",
             u8"variable d\u00e9clar\u00e9e ici",
@@ -4981,8 +4981,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "variable used before declaration: {0}"_translatable,
+        u8"variable used before declaration: {0}",
         {
-            u8"variable used before declaration: {0}",
             u8"Variable '{0}' wird ihrer Deklaration verwendet",
             u8"why are you usin' before you be makin'? \U0001f90f",
             u8"variable utilis\u00e9e avant sa d\u00e9claration : {0}",
@@ -4992,8 +4992,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "what is this '{1}' nonsense?"_translatable,
+        u8"what is this '{1}' nonsense?",
         {
-            u8"what is this '{1}' nonsense?",
             u8"Was soll dieser '{1}' Humbug?",
             u8"what is this '{1}' nonsense?",
             u8"what is this '{1}' nonsense?",
@@ -5003,8 +5003,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "while loop is missing '{1}' around condition"_translatable,
+        u8"while loop is missing '{1}' around condition",
         {
-            u8"while loop is missing '{1}' around condition",
             u8"'{1}' fehlt um Bedingung der while-Schleife",
             u8"surround the condition so it can't run away",
             u8"une boucle while n\u00e9cessite '{1}' autour de la condition",
@@ -5014,8 +5014,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "while loop needs parentheses around condition"_translatable,
+        u8"while loop needs parentheses around condition",
         {
-            u8"while loop needs parentheses around condition",
             u8"Klammern fehlen um Bedingung der while-Schleife",
             u8"surround the condition so it can't run away",
             u8"une boucle while n\u00e9cessite des parenth\u00e8ses autour de la condition",
@@ -5025,8 +5025,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "with statement is missing '{1}' around expression"_translatable,
+        u8"with statement is missing '{1}' around expression",
         {
-            u8"with statement is missing '{1}' around expression",
             u8"'{1}' fehlt um Ausdruck der with-Anweisung",
             u8"with statement needs you to stop programming right now",
             u8"une instruction with n\u00e9cessite '{1}' autour de l'expression",
@@ -5036,8 +5036,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "with statement needs parentheses around expression"_translatable,
+        u8"with statement needs parentheses around expression",
         {
-            u8"with statement needs parentheses around expression",
             u8"Klammern fehlen um Ausdruck der with-Anweisung",
             u8"with statement needs you to stop programming right now",
             u8"une instruction with n\u00e9cessite des parenth\u00e8ses autour de l'expression",
@@ -5047,8 +5047,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "write 'const' instead of '{0}' here"_translatable,
+        u8"write 'const' instead of '{0}' here",
         {
-            u8"write 'const' instead of '{0}' here",
             u8"write 'const' instead of '{0}' here",
             u8"write 'const' instead of '{0}' here",
             u8"write 'const' instead of '{0}' here",
@@ -5058,8 +5058,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "write the type assertion with 'as' here instead"_translatable,
+        u8"write the type assertion with 'as' here instead",
         {
-            u8"write the type assertion with 'as' here instead",
             u8"write the type assertion with 'as' here instead",
             u8"write the type assertion with 'as' here instead",
             u8"write the type assertion with 'as' here instead",
@@ -5069,8 +5069,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "{0} classes are not allowed in JavaScript"_translatable,
+        u8"{0} classes are not allowed in JavaScript",
         {
-            u8"{0} classes are not allowed in JavaScript",
             u8"{0} classes are not allowed in JavaScript",
             u8"{0} classes are not allowed in JavaScript",
             u8"{0} classes are not allowed in JavaScript",
@@ -5080,8 +5080,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "{0} is not the name of a parameter"_translatable,
+        u8"{0} is not the name of a parameter",
         {
-            u8"{0} is not the name of a parameter",
             u8"{0} is not the name of a parameter",
             u8"{0} is not the name of a parameter",
             u8"{0} is not the name of a parameter",
@@ -5091,8 +5091,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "{0} with no bindings"_translatable,
+        u8"{0} with no bindings",
         {
-            u8"{0} with no bindings",
             u8"{0} ohne Binding",
             u8"naked {0} \U0001f60a",
             u8"{0} sans liaisons",
@@ -5102,8 +5102,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "{1:headlinese} value must be a compile-time constant"_translatable,
+        u8"{1:headlinese} value must be a compile-time constant",
         {
-            u8"{1:headlinese} value must be a compile-time constant",
             u8"{1:headlinese} value must be a compile-time constant",
             u8"{1:headlinese} value must be a compile-time constant",
             u8"{1:headlinese} value must be a compile-time constant",
@@ -5113,8 +5113,8 @@ inline const Translated_String test_translation_table[463] = {
     },
     {
         "~~~ invalid string, do not use outside benchmark ~~~"_translatable,
+        u8"~~~ invalid string, do not use outside benchmark ~~~",
         {
-            u8"~~~ invalid string, do not use outside benchmark ~~~",
             u8"~~~ invalid string, do not use outside benchmark ~~~",
             u8"~~~ invalid string, do not use outside benchmark ~~~",
             u8"~~~ invalid string, do not use outside benchmark ~~~",
