@@ -126,10 +126,8 @@ Compiled_Translation_Table compile_translation_table(
   }
   for (Span_Size locale_index = 0; locale_index < table.locales.size();
        ++locale_index) {
-    auto file_it = find_unique_if(files, [&](const PO_File& file) -> bool {
-      return file.locale == table.locales[locale_index];
-    });
-    if (file_it == files.end()) {
+    bool is_untranslated_locale = locale_index == table.locales.size() - 1;
+    if (is_untranslated_locale) {
       // The untranslated locale was missing from files. Use
       // untranslated_strings instead.
       for (String8_View untranslated_string : untranslated_strings) {
@@ -141,6 +139,10 @@ Compiled_Translation_Table compile_translation_table(
             string_table.add_string(untranslated_string);
       }
     } else {
+      auto file_it =
+          find_unique_existing_if(files, [&](const PO_File& file) -> bool {
+            return file.locale == table.locales[locale_index];
+          });
       for (const PO_Entry& entry : file_it->entries) {
         if (!entry.is_metadata() && entry.has_translation()) {
           std::optional<Span_Size> index =
