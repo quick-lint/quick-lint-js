@@ -61,7 +61,9 @@ void write_translation_table_header(const Compiled_Translation_Table&,
                                     const char* path);
 void write_translation_table_source(const Compiled_Translation_Table&,
                                     const char* path);
-void write_translation_test_header(Span<const PO_File>, const char* path);
+void write_translation_test_header(
+    Span<const PO_File>, Span<const String8_View> untranslated_strings,
+    const char* path);
 void write_copyright_footer(Output_Stream&);
 
 void dump_string_table(String8_View strings, String8_View line_prefix,
@@ -144,13 +146,15 @@ int main(int argc, char** argv) {
     }
   }
 
+  Span<const String8_View> untranslated_strings =
+      get_all_untranslated(Span<const PO_File>(po_files), &allocator);
+
   Compiled_Translation_Table table = compile_translation_table(
-      Span<const PO_File>(po_files),
-      get_all_untranslated(Span<const PO_File>(po_files), &allocator),
-      &allocator);
+      Span<const PO_File>(po_files), untranslated_strings, &allocator);
   write_translation_table_header(table, output_translation_table_h_path);
   write_translation_table_source(table, output_translation_table_cpp_path);
   write_translation_test_header(Span<const PO_File>(po_files),
+                                untranslated_strings,
                                 output_translation_table_test_path);
 
   return 0;
@@ -496,8 +500,9 @@ void write_translation_table_source(const Compiled_Translation_Table& table,
   out.flush();
 }
 
-void write_translation_test_header(Span<const PO_File> po_files,
-                                   Output_Stream& out) {
+void write_translation_test_header(
+    Span<const PO_File> po_files, Span<const String8_View> untranslated_strings,
+    Output_Stream& out) {
   Monotonic_Allocator allocator("write_translation_test_header");
 
   Bump_Vector<String8_View, Monotonic_Allocator> locale_names(
@@ -510,9 +515,6 @@ void write_translation_test_header(Span<const PO_File> po_files,
   locale_names.push_back(u8""_sv);  // Untranslated locale.
   // Sort to make output deterministic.
   sort(locale_names);
-
-  Span<String8_View> all_untranslated =
-      get_all_untranslated(po_files, &allocator);
 
   // Returns the untranslated string if there is no translation.
   auto look_up_translation = [&](String8_View locale_name,
@@ -564,12 +566,12 @@ struct Translated_String {
 
 // clang-format off
 inline const Translated_String test_translation_table[)"_sv);
-  out.append_decimal_integer(all_untranslated.size());
+  out.append_decimal_integer(untranslated_strings.size());
   out.append_copy(
       u8R"(] = {
 )"_sv);
 
-  for (String8_View untranslated : all_untranslated) {
+  for (String8_View untranslated : untranslated_strings) {
     out.append_copy(u8"    {\n        \""_sv);
     dump_string_literal_body(untranslated, out);
     out.append_copy(u8"\"_translatable,\n        {\n"_sv);
@@ -593,15 +595,16 @@ inline const Translated_String test_translation_table[)"_sv);
   write_copyright_footer(out);
 }
 
-void write_translation_test_header(Span<const PO_File> po_files,
-                                   const char* path) {
+void write_translation_test_header(
+    Span<const PO_File> po_files, Span<const String8_View> untranslated_strings,
+    const char* path) {
   Result<Platform_File, Write_File_IO_Error> file = open_file_for_writing(path);
   if (!file.ok()) {
     std::fprintf(stderr, "error: %s\n", file.error_to_string().c_str());
     std::exit(1);
   }
   File_Output_Stream out(file->ref());
-  write_translation_test_header(po_files, out);
+  write_translation_test_header(po_files, untranslated_strings, out);
   out.flush();
 }
 
