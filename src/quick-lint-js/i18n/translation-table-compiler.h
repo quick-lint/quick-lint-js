@@ -64,8 +64,8 @@
 // Mapping_Entry::string_offsets[i] corresponds to the i-th locale listed in
 // locale_table.
 //
-// Mapping_Entry::string_offsets[locale_count] refers to the original
-// (untranslated) string.
+// NOTE[untranslated-locale-slot]: Mapping_Entry::string_offsets[locale_count]
+// refers to the original (untranslated) string.
 //
 // Entry 0 of the mapping table is unused.
 //

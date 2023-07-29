@@ -72,6 +72,8 @@ void locale_name_combinations(const char* locale_name, Func&& callback);
 }
 
 std::optional<int> find_locale(const char* locales, const char* locale_name) {
+  // NOTE[locale-list-null-terminator]: The code generator guarantees that there
+  // is an empty string at the end of the list (i.e. two null bytes at the end).
   C_String_List_View locales_list(locales);
   std::optional<int> found_entry = std::nullopt;
   locale_name_combinations(locale_name,

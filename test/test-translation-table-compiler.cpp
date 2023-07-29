@@ -24,7 +24,7 @@ TEST(Test_Translation_Table_Compiler, no_locales_or_translation_strings) {
       Span<const PO_File>(), Span<const String8_View>(), &allocator);
 
   check_table_integrity(table);
-  EXPECT_THAT(table.locales, ElementsAreArray({u8""_sv}));
+  EXPECT_THAT(table.locales, ::testing::IsEmpty());
 }
 
 TEST(Test_Translation_Table_Compiler, locales_with_no_translation_strings) {
@@ -37,8 +37,7 @@ TEST(Test_Translation_Table_Compiler, locales_with_no_translation_strings) {
       Span<const PO_File>(files), Span<const String8_View>(), &allocator);
 
   check_table_integrity(table);
-  EXPECT_THAT(table.locales,
-              ElementsAreArray({u8"de_DE"_sv, u8"en_US"_sv, u8""_sv}));
+  EXPECT_THAT(table.locales, ElementsAreArray({u8"de_DE"_sv, u8"en_US"_sv}));
   EXPECT_EQ(table.locale_table, u8"de_DE\u0000en_US\u0000\u0000"_sv);
 }
 
@@ -365,6 +364,11 @@ void check_table_integrity(const Compiled_Translation_Table& table) {
         << "const original table entry " << i
         << " should not have empty Untranslated";
   }
+
+  // +1 is for the untranslated string's slot. See
+  // NOTE[untranslated-locale-slot].
+  Span_Size string_slot_count = table.locales.size() + 1;
+
   if (!table.absolute_mapping_table.empty()) {
     const Translation_Table_Mapping_Entry& null_mapping =
         table.absolute_mapping_table[0];
@@ -378,8 +382,10 @@ void check_table_integrity(const Compiled_Translation_Table& table) {
   for (Span_Size i = 0; i < table.absolute_mapping_table.size(); ++i) {
     const Translation_Table_Mapping_Entry& mapping_entry =
         table.absolute_mapping_table[i];
-    EXPECT_EQ(mapping_entry.string_offsets.size(), table.locales.size())
-        << "mapping table entry " << i << " should have one string per locale";
+    EXPECT_EQ(mapping_entry.string_offsets.size(), string_slot_count)
+        << "mapping table entry " << i
+        << " should have one string per locale, plus an entry for the "
+           "untranslated string (see NOTE[untranslated-locale-slot])";
 
     for (Span_Size j = 0; j < mapping_entry.string_offsets.size(); ++j) {
       String8_View string_data =
@@ -394,13 +400,13 @@ void check_table_integrity(const Compiled_Translation_Table& table) {
   EXPECT_EQ(table.absolute_mapping_table.size(),
             table.relative_mapping_table.size());
   Span<std::uint32_t> last_present_string_offsets =
-      allocator.allocate_span<std::uint32_t>(table.locales.size());
+      allocator.allocate_span<std::uint32_t>(string_slot_count);
   for (Span_Size i = 1; i < table.absolute_mapping_table.size(); ++i) {
     const Translation_Table_Mapping_Entry& absolute_entry =
         table.absolute_mapping_table[i];
     const Translation_Table_Mapping_Entry& relative_entry =
         table.relative_mapping_table[i];
-    for (Span_Size j = 0; j < table.locales.size(); ++j) {
+    for (Span_Size j = 0; j < string_slot_count; ++j) {
       std::uint32_t string_offset = absolute_entry.string_offsets[j];
       std::uint32_t expected_relative_offset =
           string_offset == 0 ? 0

@@ -353,7 +353,7 @@ using namespace std::literals::string_view_literals;
 )"_sv);
   out.append_copy(
       u8"constexpr std::uint32_t translation_table_locale_count = "_sv);
-  out.append_decimal_integer(table.locales.size() - 1);
+  out.append_decimal_integer(table.locales.size());
   out.append_copy(u8";\n"_sv);
   out.append_copy(
       u8"constexpr std::uint16_t translation_table_mapping_table_size = "_sv);

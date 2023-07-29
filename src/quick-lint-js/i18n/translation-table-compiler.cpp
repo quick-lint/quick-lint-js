@@ -86,14 +86,6 @@ Compiled_Translation_Table compile_translation_table(
     // Sort to make output deterministic.
     sort(locale_names);
 
-    // Add an untranslated ("") locale last. This has two effects:
-    // * When writing LocaleTable, we'll add an empty locale at the end,
-    //   terminating the list. This terminator is how find_locales (C++)
-    //   knows the bounds of the locale table.
-    // * Untranslated strings are placed in
-    //   hash_entry::string_offsets[locale_count].
-    locale_names.push_back(u8""_sv);
-
     table.locales = locale_names.get_and_release();
   }
 
@@ -101,6 +93,9 @@ Compiled_Translation_Table compile_translation_table(
   for (String8_View locale_name : table.locales) {
     locale_table.add_string(locale_name);
   }
+  // Write an extra null terminator so find_locale knows the bounds of the
+  // locale table. See NOTE[locale-list-null-terminator].
+  locale_table.add_string(u8""_sv);
   table.locale_table = locale_table.freeze();
 
   table.const_lookup_table =
@@ -109,6 +104,10 @@ Compiled_Translation_Table compile_translation_table(
   for (Span_Size i = 0; i < keys.size(); ++i) {
     table.const_lookup_table[i].untranslated = keys[i];
   }
+
+  // +1 is for the untranslated string's slot. See
+  // NOTE[untranslated-locale-slot].
+  Span_Size string_slot_count = table.locales.size() + 1;
 
   String_Table string_table(allocator);
   string_table.add_string(u8""_sv);
@@ -120,9 +119,9 @@ Compiled_Translation_Table compile_translation_table(
     Translation_Table_Mapping_Entry& mapping_entry =
         table.absolute_mapping_table[i];
     mapping_entry.string_offsets =
-        allocator->allocate_span<std::uint32_t>(table.locales.size());
+        allocator->allocate_span<std::uint32_t>(string_slot_count);
   }
-  for (Span_Size locale_index = 0; locale_index < table.locales.size() - 1;
+  for (Span_Size locale_index = 0; locale_index < table.locales.size();
        ++locale_index) {
     auto file_it =
         find_unique_existing_if(files, [&](const PO_File& file) -> bool {
@@ -139,7 +138,8 @@ Compiled_Translation_Table compile_translation_table(
       }
     }
   }
-  Span_Size untranslated_locale_index = table.locales.size() - 1;
+  // Generate the untranslated slot. See NOTE[untranslated-locale-slot].
+  Span_Size untranslated_locale_index = table.locales.size();
   for (String8_View untranslated_string : untranslated_strings) {
     std::optional<Span_Size> index =
         table.find_mapping_table_index_for_untranslated(untranslated_string);
@@ -152,18 +152,18 @@ Compiled_Translation_Table compile_translation_table(
       allocator->allocate_span<Translation_Table_Mapping_Entry>(
           mapping_table_size);
   table.relative_mapping_table[0].string_offsets =
-      allocator->allocate_span<std::uint32_t>(table.locales.size());
+      allocator->allocate_span<std::uint32_t>(string_slot_count);
   Span<std::uint32_t> last_present_string_offsets =
-      allocator->allocate_span<std::uint32_t>(table.locales.size());
+      allocator->allocate_span<std::uint32_t>(string_slot_count);
   for (Span_Size i = 1; i < mapping_table_size; ++i) {
     Translation_Table_Mapping_Entry* relative_entry =
         &table.relative_mapping_table[i];
     relative_entry->string_offsets =
-        allocator->allocate_span<std::uint32_t>(table.locales.size());
+        allocator->allocate_span<std::uint32_t>(string_slot_count);
 
     Translation_Table_Mapping_Entry* absolute_entry =
         &table.absolute_mapping_table[i];
-    for (Span_Size locale_index = 0; locale_index < table.locales.size();
+    for (Span_Size locale_index = 0; locale_index < string_slot_count;
          ++locale_index) {
       std::uint32_t string_offset =
           absolute_entry->string_offsets[locale_index];

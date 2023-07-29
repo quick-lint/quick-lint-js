@@ -85,6 +85,7 @@ void initialize_translations_from_locale(const char* locale_name) {
 }
 
 void Translator::use_messages_from_source_code() {
+  // See NOTE[untranslated-locale-slot].
   this->locale_index_ = translation_table_locale_count;
 }
 
