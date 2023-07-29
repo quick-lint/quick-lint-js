@@ -163,16 +163,15 @@ Compiled_Translation_Table compile_translation_table(
 
     Translation_Table_Mapping_Entry* absolute_entry =
         &table.absolute_mapping_table[i];
-    for (Span_Size locale_index = 0; locale_index < string_slot_count;
-         ++locale_index) {
-      std::uint32_t string_offset =
-          absolute_entry->string_offsets[locale_index];
+    for (Span_Size slot_index = 0; slot_index < string_slot_count;
+         ++slot_index) {
+      std::uint32_t string_offset = absolute_entry->string_offsets[slot_index];
       if (string_offset != 0) {
         std::uint32_t previous_string_offset =
-            last_present_string_offsets[locale_index];
-        relative_entry->string_offsets[locale_index] =
+            last_present_string_offsets[slot_index];
+        relative_entry->string_offsets[slot_index] =
             string_offset - previous_string_offset;
-        last_present_string_offsets[locale_index] = string_offset;
+        last_present_string_offsets[slot_index] = string_offset;
       }
     }
   }
