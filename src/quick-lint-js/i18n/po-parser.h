@@ -4,18 +4,31 @@
 #ifndef QUICK_LINT_JS_I18N_PO_PARSER_H
 #define QUICK_LINT_JS_I18N_PO_PARSER_H
 
+#include <iosfwd>
+#include <quick-lint-js/container/linked-vector.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/span.h>
 
 namespace quick_lint_js {
+class CLI_Locator;
+
 // An entry in a .po file storing a translation.
 struct PO_Entry {
   // The untranslated string; a key.
   String8_View msgid;
   // The translated string.
   String8_View msgstr;
+  bool is_fuzzy = false;
 
   bool is_metadata() const { return this->msgid.empty(); }
+
+  friend bool operator==(const PO_Entry& lhs, const PO_Entry& rhs);
+  friend bool operator!=(const PO_Entry& lhs, const PO_Entry& rhs);
+
+  friend std::ostream& operator<<(std::ostream&, const PO_Entry&);
 };
 
 // A parsed .po translation strings file.
@@ -27,6 +40,11 @@ struct PO_File {
   String8_View locale;
   Span<PO_Entry> entries;
 };
+
+// Parses a .po translation strings file.
+Span<PO_Entry> parse_po_file(Padded_String_View code, const char* file_path,
+                             CLI_Locator* locator,
+                             Monotonic_Allocator* allocator);
 }
 
 #endif

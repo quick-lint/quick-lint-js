@@ -93,6 +93,7 @@ quick_lint_js_add_library(
   quick-lint-js/container/string-view.h
   quick-lint-js/fe/keyword-lexer.h
   quick-lint-js/fe/keyword-list.h
+  quick-lint-js/i18n/po-parser.cpp
   quick-lint-js/i18n/po-parser.h
   quick-lint-js/i18n/translation-table-compiler.cpp
   quick-lint-js/i18n/translation-table-compiler.h
@@ -407,6 +408,7 @@ quick_lint_js_add_library(
   quick-lint-js/diag/diag-debug.cpp
   quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
+  quick-lint-js/i18n/po-parser-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp
   quick-lint-js/port/char8-debug.cpp
 )

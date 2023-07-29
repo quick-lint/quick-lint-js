@@ -168,6 +168,7 @@ quick_lint_js_add_executable(
   test-parse-warning.cpp
   test-parse.cpp
   test-pipe-writer.cpp
+  test-po-parser.cpp
   test-pointer.cpp
   test-result.cpp
   test-simd.cpp

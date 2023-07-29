@@ -323,6 +323,11 @@ class Instrumented_Vector {
   // NOTE(strager): This is a non-standard function.
   explicit operator Span<value_type>() { return Span<value_type>(this->data_); }
 
+  // NOTE(strager): This is a non-standard function.
+  explicit operator Span<const value_type>() const noexcept {
+    return Span<const value_type>(this->data_);
+  }
+
  private:
   QLJS_FORCE_INLINE void add_instrumentation_entry(
       Vector_Instrumentation::Event event) {

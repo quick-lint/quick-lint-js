@@ -81,6 +81,7 @@ class Uninstrumented_Vector : private Vector {
   // NOTE(strager): These are non-standard functions.
   using Vector::append;
   using Vector::get_and_release;
+  using Vector::operator Span<const value_type>;
   using Vector::operator Span<value_type>;
   using Vector::operator+=;
   using Vector::release;
@@ -308,6 +309,10 @@ class Raw_Bump_Vector {
 
   explicit operator Span<value_type>() {
     return Span<value_type>(this->data_, this->size());
+  }
+
+  explicit operator Span<const value_type>() const {
+    return Span<const value_type>(this->data_, this->size());
   }
 
  private:
