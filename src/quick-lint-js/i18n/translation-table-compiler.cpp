@@ -175,14 +175,6 @@ Compiled_Translation_Table compile_translation_table(
   return table;
 }
 
-Compiled_Translation_Table compile_translation_table(
-    Span<const PO_File> files, Monotonic_Allocator* allocator) {
-  Span<String8_View> untranslated_strings =
-      get_all_untranslated(files, allocator);
-  return compile_translation_table(
-      files, Span<const String8_View>(untranslated_strings), allocator);
-}
-
 Span<String8_View> get_all_untranslated(Span<const PO_File> files,
                                         Monotonic_Allocator* allocator) {
   Bump_Vector<String8_View, Monotonic_Allocator> all_untranslated(

@@ -49,7 +49,7 @@ class Span {
   // Convert from Span<int> to Span<const int>, for example.
   template <class U,
             class = std::enable_if_t<std::is_convertible_v<U (*)[], T (*)[]>>>
-  explicit Span(const Span<U> &data) : Span(data.data(), data.size()) {}
+  /*implicit*/ Span(const Span<U> &data) : Span(data.data(), data.size()) {}
 
   explicit Span(T *data, size_type size) : data_(data), size_(size) {}
 

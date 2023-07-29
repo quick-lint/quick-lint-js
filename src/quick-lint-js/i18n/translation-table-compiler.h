@@ -117,9 +117,6 @@ struct Compiled_Translation_Table {
 Compiled_Translation_Table compile_translation_table(
     Span<const PO_File> files, Span<const String8_View> untranslated_strings,
     Monotonic_Allocator*);
-// TODO(strager): Remove this overload.
-Compiled_Translation_Table compile_translation_table(Span<const PO_File> files,
-                                                     Monotonic_Allocator*);
 
 // Return value is sorted with no duplicates.
 //

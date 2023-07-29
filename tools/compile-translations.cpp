@@ -144,8 +144,10 @@ int main(int argc, char** argv) {
     }
   }
 
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(po_files), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(po_files),
+      get_all_untranslated(Span<const PO_File>(po_files), &allocator),
+      &allocator);
   write_translation_table_header(table, output_translation_table_h_path);
   write_translation_table_source(table, output_translation_table_cpp_path);
   write_translation_test_header(Span<const PO_File>(po_files),

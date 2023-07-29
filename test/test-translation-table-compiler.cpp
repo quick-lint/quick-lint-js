@@ -20,8 +20,8 @@ void check_table_integrity(const Compiled_Translation_Table&);
 
 TEST(Test_Translation_Table_Compiler, no_locales_or_translation_strings) {
   Monotonic_Allocator allocator("test");
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(), Span<const String8_View>(), &allocator);
 
   check_table_integrity(table);
   EXPECT_THAT(table.locales, ElementsAreArray({u8""_sv}));
@@ -33,8 +33,8 @@ TEST(Test_Translation_Table_Compiler, locales_with_no_translation_strings) {
       {.locale = u8"en_US"_sv, .entries = Span<PO_Entry>()},
       {.locale = u8"de_DE"_sv, .entries = Span<PO_Entry>()},
   };
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(files), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(files), Span<const String8_View>(), &allocator);
 
   check_table_integrity(table);
   EXPECT_THAT(table.locales,
@@ -51,11 +51,18 @@ TEST(Test_Translation_Table_Compiler,
       {u8"yes"_sv, u8"oui"_sv},
       {u8"no"_sv, u8"non"_sv},
   };
+  String8_View untranslated_strings[] = {
+      u8"hello"_sv,
+      u8"goodbye"_sv,
+      u8"yes"_sv,
+      u8"no"_sv,
+  };
   PO_File files[] = {
       {.locale = u8"fr_FR"_sv, .entries = Span<PO_Entry>(fr_entries)},
   };
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(files), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(files),
+      Span<const String8_View>(untranslated_strings), &allocator);
   check_table_integrity(table);
 
   Translation_Table_Mapping_Entry* hello_entry =
@@ -85,12 +92,16 @@ TEST(Test_Translation_Table_Compiler,
   PO_Entry de_entries[] = {
       {u8"hello"_sv, u8"hallo"_sv},
   };
+  String8_View untranslated_strings[] = {
+      u8"hello"_sv,
+  };
   PO_File files[] = {
       {.locale = u8"fr_FR"_sv, .entries = Span<PO_Entry>(fr_entries)},
       {.locale = u8"de_DE"_sv, .entries = Span<PO_Entry>(de_entries)},
   };
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(files), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(files),
+      Span<const String8_View>(untranslated_strings), &allocator);
   check_table_integrity(table);
 
   Translation_Table_Mapping_Entry* hello_entry =
@@ -103,16 +114,22 @@ TEST(Test_Translation_Table_Compiler, translation_table_excludes_metadata) {
   Monotonic_Allocator allocator("test");
   PO_Entry fr_entries[] = {
       {u8""_sv, u8"metadata goes here"_sv},
+      {u8"hello"_sv, u8"bonjour"_sv},
   };
   PO_Entry de_entries[] = {
       {u8""_sv, u8"(meta data)"_sv},
+      {u8"hello"_sv, u8"hallo"_sv},
+  };
+  String8_View untranslated_strings[] = {
+      u8"hello"_sv,
   };
   PO_File files[] = {
       {.locale = u8"fr_FR"_sv, .entries = Span<PO_Entry>(fr_entries)},
       {.locale = u8"de_DE"_sv, .entries = Span<PO_Entry>(de_entries)},
   };
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(files), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(files),
+      Span<const String8_View>(untranslated_strings), &allocator);
   check_table_integrity(table);
 
   for (Span_Size mapping_index = 0;
@@ -142,12 +159,16 @@ TEST(Test_Translation_Table_Compiler, mapping_entries_are_relative) {
   PO_Entry de_entries[] = {
       {u8"hello"_sv, u8"hallo"_sv},
   };
+  String8_View untranslated_strings[] = {
+      u8"hello"_sv,
+  };
   PO_File files[] = {
       {.locale = u8"fr_FR"_sv, .entries = Span<PO_Entry>(fr_entries)},
       {.locale = u8"de_DE"_sv, .entries = Span<PO_Entry>(de_entries)},
   };
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(files), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(files),
+      Span<const String8_View>(untranslated_strings), &allocator);
   check_table_integrity(table);
 
   Translation_Table_Mapping_Entry* hello_entry =
@@ -162,21 +183,28 @@ TEST(Test_Translation_Table_Compiler, fuzzy_translations_are_ignored) {
       {.msgid = u8"hello"_sv, .msgstr = u8"bonjour"_sv, .is_fuzzy = false},
       {.msgid = u8"goodbye"_sv, .msgstr = u8"au revoir"_sv, .is_fuzzy = true},
   };
+  String8_View untranslated_strings[] = {
+      u8"hello"_sv,
+      u8"goodbye"_sv,
+  };
   PO_File files[] = {
       {.locale = u8"fr_FR"_sv, .entries = Span<PO_Entry>(fr_entries)},
   };
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(files), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(files),
+      Span<const String8_View>(untranslated_strings), &allocator);
   check_table_integrity(table);
+
+  int fr = 0;
 
   Translation_Table_Mapping_Entry* goodbye_entry =
       table.look_up_mapping_by_untranslated(u8"goodbye"_sv);
-  EXPECT_EQ(goodbye_entry->string_offsets[0], 0)
+  EXPECT_EQ(goodbye_entry->string_offsets[fr], 0)
       << "fuzzy entry should not be translated";
 
   Translation_Table_Mapping_Entry* hello_entry =
       table.look_up_mapping_by_untranslated(u8"hello"_sv);
-  EXPECT_EQ(table.read_string(hello_entry->string_offsets[0]), u8"bonjour"_sv)
+  EXPECT_EQ(table.read_string(hello_entry->string_offsets[fr]), u8"bonjour"_sv)
       << "non-fuzzy entry should still be translated";
 }
 
@@ -186,21 +214,28 @@ TEST(Test_Translation_Table_Compiler, untranslated_entries_are_ignored) {
       {u8"hello"_sv, u8"bonjour"_sv},
       {u8"goodbye"_sv, u8""_sv},
   };
+  String8_View untranslated_strings[] = {
+      u8"hello"_sv,
+      u8"goodbye"_sv,
+  };
   PO_File files[] = {
       {.locale = u8"fr_FR"_sv, .entries = Span<PO_Entry>(fr_entries)},
   };
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(files), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(files),
+      Span<const String8_View>(untranslated_strings), &allocator);
   check_table_integrity(table);
+
+  int fr = 0;
 
   Translation_Table_Mapping_Entry* goodbye_entry =
       table.look_up_mapping_by_untranslated(u8"goodbye"_sv);
-  EXPECT_EQ(goodbye_entry->string_offsets[0], 0)
+  EXPECT_EQ(goodbye_entry->string_offsets[fr], 0)
       << "untranslated entry should not be translated";
 
   Translation_Table_Mapping_Entry* hello_entry =
       table.look_up_mapping_by_untranslated(u8"hello"_sv);
-  EXPECT_EQ(table.read_string(hello_entry->string_offsets[0]), u8"bonjour"_sv)
+  EXPECT_EQ(table.read_string(hello_entry->string_offsets[fr]), u8"bonjour"_sv)
       << "translated entry should still be translated";
 }
 
@@ -218,12 +253,19 @@ TEST(Test_Translation_Table_Compiler,
       {u8"b"_sv, u8"[b]"_sv},
       {u8"d"_sv, u8"[d]"_sv},
   };
+  String8_View untranslated_strings[] = {
+      u8"a"_sv,
+      u8"b"_sv,
+      u8"c"_sv,
+      u8"d"_sv,
+  };
   PO_File files[] = {
       {.locale = u8""_sv, .entries = Span<PO_Entry>(default_entries)},
       {.locale = u8"fr_FR"_sv, .entries = Span<PO_Entry>(fr_entries)},
   };
-  Compiled_Translation_Table table =
-      compile_translation_table(Span<const PO_File>(files), &allocator);
+  Compiled_Translation_Table table = compile_translation_table(
+      Span<const PO_File>(files),
+      Span<const String8_View>(untranslated_strings), &allocator);
   check_table_integrity(table);
 
   // clang-format off
