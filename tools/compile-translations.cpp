@@ -497,7 +497,18 @@ void write_translation_table_source(const Compiled_Translation_Table& table,
 void write_translation_test_header(Span<const PO_File> po_files,
                                    Output_Stream& out) {
   Monotonic_Allocator allocator("write_translation_test_header");
-  Span<String8_View> locale_names = get_locale_names(po_files, &allocator);
+
+  Bump_Vector<String8_View, Monotonic_Allocator> locale_names(
+      "compile_translation_table locale_names", &allocator);
+  for (const PO_File& file : po_files) {
+    if (!file.locale.empty()) {  // TODO(strager): Remove this 'if'.
+      locale_names.push_back(file.locale);
+    }
+  }
+  locale_names.push_back(u8""_sv);  // Untranslated locale.
+  // Sort to make output deterministic.
+  sort(locale_names);
+
   Span<String8_View> all_untranslated =
       get_all_untranslated(po_files, &allocator);
 

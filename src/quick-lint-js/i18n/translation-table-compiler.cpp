@@ -75,17 +75,29 @@ Compiled_Translation_Table compile_translation_table(
     Monotonic_Allocator* allocator) {
   Compiled_Translation_Table table;
 
-  table.locales = get_locale_names(files, allocator);
   Span<const String8_View> keys = untranslated_strings;
 
-  // Put the untranslated ("") locale last. This has two effects:
-  // * When writing LocaleTable, we'll add an empty locale at the end,
-  //   terminating the list. This terminator is how find_locales (C++)
-  //   knows the bounds of the locale table.
-  // * Untranslated strings are placed in
-  //   hash_entry::string_offsets[locale_count].
-  std::rotate(table.locales.begin(), table.locales.begin() + 1,
-              table.locales.end());
+  {
+    Bump_Vector<String8_View, Monotonic_Allocator> locale_names(
+        "compile_translation_table locale_names", allocator);
+    for (const PO_File& file : files) {
+      if (!file.locale.empty()) {  // TODO(strager): Remove this 'if'.
+        locale_names.push_back(file.locale);
+      }
+    }
+    // Sort to make output deterministic.
+    sort(locale_names);
+
+    // Add the untranslated ("") locale last. This has two effects:
+    // * When writing LocaleTable, we'll add an empty locale at the end,
+    //   terminating the list. This terminator is how find_locales (C++)
+    //   knows the bounds of the locale table.
+    // * Untranslated strings are placed in
+    //   hash_entry::string_offsets[locale_count].
+    locale_names.push_back(u8""_sv);
+
+    table.locales = locale_names.get_and_release();
+  }
 
   String_Table locale_table(allocator);
   for (String8_View locale_name : table.locales) {
@@ -161,21 +173,6 @@ Compiled_Translation_Table compile_translation_table(
 
   table.string_table = string_table.freeze();
   return table;
-}
-
-Span<String8_View> get_locale_names(Span<const PO_File> files,
-                                    Monotonic_Allocator* allocator) {
-  Bump_Vector<String8_View, Monotonic_Allocator> locale_names(
-      "get_locale_names locale_names", allocator);
-  locale_names.push_back(u8""_sv);
-  for (const PO_File& file : files) {
-    if (!file.locale.empty()) {
-      locale_names.push_back(file.locale);
-    }
-  }
-  // Sort to make output deterministic.
-  sort(locale_names);
-  return locale_names.get_and_release();
 }
 
 Compiled_Translation_Table compile_translation_table(
