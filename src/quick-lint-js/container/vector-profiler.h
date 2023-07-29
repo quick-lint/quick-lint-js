@@ -14,6 +14,7 @@
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/synchronized.h>
@@ -281,6 +282,9 @@ class Instrumented_Vector {
   void release() { this->data_.release(); }
 
   // NOTE(strager): This is a non-standard function.
+  Span<value_type> get_and_release() { return this->data_.get_and_release(); }
+
+  // NOTE(strager): This is a non-standard function.
   void append(const value_type *begin, const value_type *end) {
     this->data_.append(begin, end);
     this->add_instrumentation_entry(Vector_Instrumentation::Event::append);
@@ -315,6 +319,9 @@ class Instrumented_Vector {
   std::basic_string_view<value_type> release_to_string_view() {
     return this->data_.release_to_string_view();
   }
+
+  // NOTE(strager): This is a non-standard function.
+  explicit operator Span<value_type>() { return Span<value_type>(this->data_); }
 
  private:
   QLJS_FORCE_INLINE void add_instrumentation_entry(

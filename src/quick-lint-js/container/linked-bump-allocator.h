@@ -11,6 +11,7 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/math.h>
 #include <quick-lint-js/port/memory-resource.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/pointer.h>
 #include <utility>
@@ -145,6 +146,28 @@ class Linked_Bump_Allocator : public Memory_Resource {
                   "alignment is insufficient for T");
     std::size_t byte_size = this->align_up(size * sizeof(T));
     return reinterpret_cast<T*>(this->allocate_bytes(byte_size));
+  }
+
+  template <class T>
+  [[nodiscard]] Span<T> allocate_uninitialized_span(std::size_t size) {
+    T* items = this->allocate_uninitialized_array<T>(size);
+    return Span<T>(items, narrow_cast<Span_Size>(size));
+  }
+
+  template <class T>
+  [[nodiscard]] Span<T> allocate_span(Span_Size size) {
+    return this->allocate_span<T>(narrow_cast<std::size_t>(size));
+  }
+
+  template <class T>
+  [[nodiscard]] Span<T> allocate_span(std::size_t size) {
+    Span<T> items = this->allocate_uninitialized_span<T>(size);
+    for (T& item : items) {
+      // FIXME(strager): I think we technically need to std::launder after
+      // placement new.
+      new (&item) T();
+    }
+    return items;
   }
 
   template <class T>

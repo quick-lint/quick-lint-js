@@ -93,6 +93,9 @@ quick_lint_js_add_library(
   quick-lint-js/container/string-view.h
   quick-lint-js/fe/keyword-lexer.h
   quick-lint-js/fe/keyword-list.h
+  quick-lint-js/i18n/po-parser.h
+  quick-lint-js/i18n/translation-table-compiler.cpp
+  quick-lint-js/i18n/translation-table-compiler.h
   quick-lint-js/io/file-handle-posix.cpp
   quick-lint-js/io/file-handle-win32.cpp
   quick-lint-js/io/file-handle.h
