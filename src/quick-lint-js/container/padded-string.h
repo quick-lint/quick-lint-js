@@ -100,6 +100,8 @@ class Padded_String_View {
 
   const Char8 *data() const { return this->data_; }
 
+  bool empty() const { return this->length_ == 0; }
+
   Size_Type size() const { return this->length_; }
   Size_Type padded_size() const {
     return this->size() + Padded_String::padding_size;

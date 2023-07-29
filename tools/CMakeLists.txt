@@ -22,6 +22,13 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
 endif ()
 
 if (QUICK_LINT_JS_USE_BUILD_TOOLS)
+  add_executable(quick-lint-js-compile-translations IMPORTED GLOBAL)
+  set_target_properties(
+    quick-lint-js-compile-translations
+    PROPERTIES
+    IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-compile-translations${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
+  )
+
   add_executable(quick-lint-js-extract-translatable-strings IMPORTED GLOBAL)
   set_target_properties(
     quick-lint-js-extract-translatable-strings
@@ -43,6 +50,21 @@ if (QUICK_LINT_JS_USE_BUILD_TOOLS)
     IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-generate-lex-keyword${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
   )
 elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
+  quick_lint_js_add_executable(
+    quick-lint-js-compile-translations
+    compile-translations.cpp
+  )
+  set_target_properties(
+    quick-lint-js-compile-translations
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ..
+  )
+  target_link_libraries(
+    quick-lint-js-compile-translations
+    PRIVATE
+    quick-lint-js-tool-lib
+  )
+
   quick_lint_js_add_executable(
     quick-lint-js-extract-translatable-strings
     extract-translatable-strings.cpp

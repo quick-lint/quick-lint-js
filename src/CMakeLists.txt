@@ -100,6 +100,8 @@ quick_lint_js_add_library(
   quick-lint-js/io/file-handle-posix.cpp
   quick-lint-js/io/file-handle-win32.cpp
   quick-lint-js/io/file-handle.h
+  quick-lint-js/io/file-path.cpp
+  quick-lint-js/io/file-path.h
   quick-lint-js/io/file.cpp
   quick-lint-js/io/file.h
   quick-lint-js/io/output-stream.cpp
@@ -123,9 +125,14 @@ quick_lint_js_add_library(
   quick-lint-js/util/narrow-cast.h
   quick-lint-js/util/utf-16.cpp
   quick-lint-js/util/utf-16.h
+  quick-lint-js/util/utf-8.cpp
+  quick-lint-js/util/utf-8.h
 )
 target_include_directories(quick-lint-js-tool-lib PUBLIC .)
 target_link_libraries(quick-lint-js-tool-lib PUBLIC boost)
+if (WIN32)
+  target_link_libraries(quick-lint-js-tool-lib PUBLIC pathcch)
+endif ()
 
 quick_lint_js_add_library(
   quick-lint-js-lib
@@ -247,8 +254,6 @@ quick_lint_js_add_library(
   quick-lint-js/io/event-loop.h
   quick-lint-js/io/file-canonical.cpp
   quick-lint-js/io/file-canonical.h
-  quick-lint-js/io/file-path.cpp
-  quick-lint-js/io/file-path.h
   quick-lint-js/io/pipe-writer.cpp
   quick-lint-js/io/pipe-writer.h
   quick-lint-js/io/pipe.cpp
@@ -319,8 +324,6 @@ quick_lint_js_add_library(
   quick-lint-js/util/synchronized.h
   quick-lint-js/util/try-catch-stack.h
   quick-lint-js/util/type-traits.h
-  quick-lint-js/util/utf-8.cpp
-  quick-lint-js/util/utf-8.h
   quick-lint-js/version.h
   quick-lint-js/web-demo-location.cpp
   quick-lint-js/web-demo-location.h

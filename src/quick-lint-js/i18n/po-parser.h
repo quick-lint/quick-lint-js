@@ -24,6 +24,9 @@ struct PO_Entry {
   bool is_fuzzy = false;
 
   bool is_metadata() const { return this->msgid.empty(); }
+  bool has_translation() const {
+    return !this->is_fuzzy && !this->msgstr.empty();
+  }
 
   friend bool operator==(const PO_Entry& lhs, const PO_Entry& rhs);
   friend bool operator!=(const PO_Entry& lhs, const PO_Entry& rhs);

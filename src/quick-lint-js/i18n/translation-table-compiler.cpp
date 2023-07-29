@@ -118,7 +118,7 @@ Compiled_Translation_Table compile_translation_table(
     });
     if (file_it != files.end()) {
       for (const PO_Entry& entry : file_it->entries) {
-        if (!entry.is_metadata() && !entry.is_fuzzy && !entry.msgstr.empty()) {
+        if (!entry.is_metadata() && entry.has_translation()) {
           std::optional<Span_Size> index =
               table.find_mapping_table_index_for_untranslated(entry.msgid);
           table.absolute_mapping_table[index.value()]
