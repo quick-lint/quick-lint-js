@@ -1818,12 +1818,9 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
     }
   }
 
-  String8_View normalized_view(normalized);
-  normalized.release();
-
   return Parsed_Identifier{
       .after = input,
-      .normalized = normalized_view,
+      .normalized = normalized.release_to_string_view(),
       .escape_sequences = escape_sequences,
   };
 }

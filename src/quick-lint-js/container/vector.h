@@ -79,9 +79,10 @@ class Uninstrumented_Vector : private Vector {
 
   // NOTE(strager): These are non-standard functions.
   using Vector::append;
-  using Vector::operator std::basic_string_view<value_type>;
   using Vector::operator+=;
   using Vector::release;
+  using Vector::release_to_string_view;
+  using Vector::to_string_view;
 };
 
 using Bump_Vector_Size = std::ptrdiff_t;
@@ -280,9 +281,16 @@ class Raw_Bump_Vector {
     }
   }
 
-  explicit operator std::basic_string_view<value_type>() const {
+  std::basic_string_view<value_type> to_string_view() const {
     return std::basic_string_view<value_type>(
         this->data_, narrow_cast<std::size_t>(this->size()));
+  }
+
+  // Like this->to_string_view() followed by this->release().
+  std::basic_string_view<value_type> release_to_string_view() {
+    std::basic_string_view<value_type> result = this->to_string_view();
+    this->release();
+    return result;
   }
 
  private:

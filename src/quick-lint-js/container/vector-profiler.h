@@ -307,8 +307,13 @@ class Instrumented_Vector {
   }
 
   // NOTE(strager): This is a non-standard function.
-  explicit operator std::basic_string_view<value_type>() const {
-    return std::basic_string_view<value_type>(this->data_);
+  std::basic_string_view<value_type> to_string_view() const {
+    return this->data_.to_string_view();
+  }
+
+  // NOTE(strager): This is a non-standard function.
+  std::basic_string_view<value_type> release_to_string_view() {
+    return this->data_.release_to_string_view();
   }
 
  private:

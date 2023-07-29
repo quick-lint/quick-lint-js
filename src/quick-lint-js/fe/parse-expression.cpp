@@ -3690,8 +3690,8 @@ next:
         }
 
         const Char8* closing_tag_end = this->lexer_.end_of_previous_token();
-        String8_View opening_tag_name_pretty_view(opening_tag_name_pretty);
-        opening_tag_name_pretty.release();
+        String8_View opening_tag_name_pretty_view(
+            opening_tag_name_pretty.release_to_string_view());
         this->diag_reporter_->report(Diag_Mismatched_JSX_Tags{
             .opening_tag_name =
                 tag_namespace
