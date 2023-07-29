@@ -71,11 +71,12 @@ String8_View Compiled_Translation_Table::read_string(
 }
 
 Compiled_Translation_Table compile_translation_table(
-    Span<const PO_File> files, Monotonic_Allocator* allocator) {
+    Span<const PO_File> files, Span<const String8_View> untranslated_strings,
+    Monotonic_Allocator* allocator) {
   Compiled_Translation_Table table;
 
-  Span<String8_View> keys = get_all_untranslated(files, allocator);
   table.locales = get_locale_names(files, allocator);
+  Span<const String8_View> keys = untranslated_strings;
 
   // Put the untranslated ("") locale last. This has two effects:
   // * When writing LocaleTable, we'll add an empty locale at the end,
@@ -175,6 +176,14 @@ Span<String8_View> get_locale_names(Span<const PO_File> files,
   // Sort to make output deterministic.
   sort(locale_names);
   return locale_names.get_and_release();
+}
+
+Compiled_Translation_Table compile_translation_table(
+    Span<const PO_File> files, Monotonic_Allocator* allocator) {
+  Span<String8_View> untranslated_strings =
+      get_all_untranslated(files, allocator);
+  return compile_translation_table(
+      files, Span<const String8_View>(untranslated_strings), allocator);
 }
 
 Span<String8_View> get_all_untranslated(Span<const PO_File> files,

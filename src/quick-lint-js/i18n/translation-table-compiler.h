@@ -114,6 +114,10 @@ struct Compiled_Translation_Table {
   String8_View read_string(std::uint32_t string_offset);
 };
 
+Compiled_Translation_Table compile_translation_table(
+    Span<const PO_File> files, Span<const String8_View> untranslated_strings,
+    Monotonic_Allocator*);
+// TODO(strager): Remove this overload.
 Compiled_Translation_Table compile_translation_table(Span<const PO_File> files,
                                                      Monotonic_Allocator*);
 
