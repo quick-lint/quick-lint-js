@@ -81,14 +81,12 @@ Compiled_Translation_Table compile_translation_table(
     Bump_Vector<String8_View, Monotonic_Allocator> locale_names(
         "compile_translation_table locale_names", allocator);
     for (const PO_File& file : files) {
-      if (!file.locale.empty()) {  // TODO(strager): Remove this 'if'.
-        locale_names.push_back(file.locale);
-      }
+      locale_names.push_back(file.locale);
     }
     // Sort to make output deterministic.
     sort(locale_names);
 
-    // Add the untranslated ("") locale last. This has two effects:
+    // Add an untranslated ("") locale last. This has two effects:
     // * When writing LocaleTable, we'll add an empty locale at the end,
     //   terminating the list. This terminator is how find_locales (C++)
     //   knows the bounds of the locale table.
@@ -128,8 +126,6 @@ Compiled_Translation_Table compile_translation_table(
        ++locale_index) {
     bool is_untranslated_locale = locale_index == table.locales.size() - 1;
     if (is_untranslated_locale) {
-      // The untranslated locale was missing from files. Use
-      // untranslated_strings instead.
       for (String8_View untranslated_string : untranslated_strings) {
         std::optional<Span_Size> index =
             table.find_mapping_table_index_for_untranslated(
