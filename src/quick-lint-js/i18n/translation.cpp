@@ -116,8 +116,7 @@ bool Translator::use_messages_from_locales(
 
 const Char8* Translator::translate(const Translatable_Message& message) {
   // If the following assertion fails, it's likely that
-  // translation-table-generated.h is out of date. Run
-  // tools/update-translator-sources to rebuild that file.
+  // translation-table-generated.h is out of date.
   QLJS_ASSERT(message.valid());
 
   std::uint16_t mapping_index = message.translation_table_mapping_index();

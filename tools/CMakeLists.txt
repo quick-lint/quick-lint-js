@@ -90,6 +90,7 @@ elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
 
   install(
     TARGETS
+      quick-lint-js-compile-translations
       quick-lint-js-generate-diagnostic-metadata
       quick-lint-js-generate-lex-keyword
     COMPONENT build-tools
@@ -104,6 +105,7 @@ if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
     quick-lint-js-build-tools
     COMMENT "Building all quick-lint-js build-time tools"
     DEPENDS
+    quick-lint-js-compile-translations
     quick-lint-js-generate-diagnostic-metadata
     quick-lint-js-generate-lex-keyword
   )

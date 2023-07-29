@@ -142,8 +142,7 @@ void write_info_cpp(Span<const CXX_Diagnostic_Type> types, Output_Stream& out) {
 namespace quick_lint_js {
 // clang-format off
 // If you see an error with the following lines, translation-table-generated.h
-// is probably out of date. Run tools/update-translator-sources to rebuild this
-// file.
+// is probably out of date.
 const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
 )");
   bool is_first = true;

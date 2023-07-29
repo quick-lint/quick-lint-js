@@ -266,100 +266,8 @@ diagnostic-types-2.h:107:16: note: Diag_Assignment_Before_Variable_Declaration u
         </blockquote>
 
         <p>
-          Build quick-lint-js again. You should now get a build error like one
-          of the following:
-        </p>
-
-        <figure class="build-error">
-          <figcaption>Build errors with Clang</figcaption>
-          <pre style="white-space: pre-wrap">
-src/quick-lint-js/diag/diagnostic.cpp:128:5: error: constexpr variable 'all_diagnostic_infos' must be initialized by a constant expression
-    all_diagnostic_infos[] = {
-    ^                        ~
-src/quick-lint-js/i18n/translation-table-generated.h:444:3: note: subexpression not valid in a constant expression
-  QLJS_CONSTEXPR_ASSERT(false);
-  ^
-src/quick-lint-js/assert.h:92:7: note: expanded from macro 'QLJS_CONSTEXPR_ASSERT'
-      asm("");                     \
-      ^
-<i>[snip]</i>
-src/quick-lint-js/diag/diagnostic.cpp:130:3: note: expanded from macro 'QLJS_DIAG_TYPE'
-  info_for_diagnostic&lt;name&gt;::get(),
-  ^
-1 error generated.</pre
-          >
-        </figure>
-
-        <figure class="build-error">
-          <figcaption>Build errors with GCC</figcaption>
-          <pre style="white-space: pre-wrap">
-In file included from src/quick-lint-js/diag/diagnostic.cpp:7:
-<i>[snip]</i>
-src/quick-lint-js/assert.h:92:7: error: inline assembly is not a constant expression
-   92 |       asm("");                     \
-      |       ^~~
-<i>[snip]</i>
-src/quick-lint-js/diag/diagnostic.cpp: At global scope:
-src/quick-lint-js/diag/diagnostic.cpp:131:9:   in ‘constexpr’ expansion of ‘quick_lint_js::{anonymous}::info_for_diagnostic&shy;&lt;quick_lint_js::Diag_Comparison_With_Empty_String&gt;::get()’
-src/quick-lint-js/diag/diagnostic.cpp:133:1: error: ‘constexpr’ call flows off the end of the function
-  133 | };
-      | ^</pre
-          >
-        </figure>
-
-        <p>
-          Don't panic! These errors are expected. The problem is that our new
-          diagnostic's message is not in the translation table. This is easy to
-          fix: From a command line, run the
-          <code>update-translator-sources</code> script in the quick-lint-js
-          repository:
-        </p>
-
-        <blockquote>
-          <pre><code class="shell-session"><kbd>./tools/update-translator-sources</kbd>
-updating: po/messages.pot
-... done.
-updating: po/de.po
-... done.
-updating: po/en_US@snarky.po
-... done.
-updating: po/fr_FR.po
-... done.
-updating: po/pt_BR.po
-... done.
-updating: po/sv_SE.po
-... done.</code></pre>
-        </blockquote>
-
-        <p>
-          The <code>update-translator-sources</code> script modified a few
-          files:
-        </p>
-        <blockquote>
-          <pre><code class="shell-session"><kbd>git status</kbd>
-git status
-On branch dev3
-Changes not staged for commit:
-  (use "git add &lt;file&gt;..." to update what will be committed)
-  (use "git restore &lt;file&gt;..." to discard changes in working directory)
-        modified:   po/de.po
-        modified:   po/en_US@snarky.po
-        modified:   po/fr_FR.po
-        modified:   po/messages.pot
-        modified:   po/pt_BR.po
-        modified:   po/sv_SE.po
-        modified:   src/quick-lint-js/diag/diagnostic-metadata-generated.h
-        modified:   src/quick-lint-js/diag/diagnostic-types-2.h
-        modified:   src/quick-lint-js/i18n/translation-table-generated.cpp
-        modified:   src/quick-lint-js/i18n/translation-table-generated.h
-        modified:   test/test-translation-table-generated.cpp
-
-no changes added to commit (use "git add" and/or "git commit -a")</code></pre>
-        </blockquote>
-
-        <p>
-          Now let's build again and run the tests. We should get no failures,
-          which means we didn't break anything:
+          Now let's build quick-lint-js again and run the tests. We should get
+          no failures, which means we didn't break anything:
         </p>
         <blockquote>
           <pre><code class="shell-session"><kbd>ninja -C build quick-lint-js-test</kbd>
@@ -370,6 +278,27 @@ ninja: Entering directory `build'
 Running main() from gmock_main.cc
 [==========] 1980 tests from 151 test suites ran. (772 ms total)
 [  PASSED  ] 1980 tests.</code></pre>
+        </blockquote>
+
+        <p>
+          The build scripts modified a few files for us. Make sure you include
+          these files in your commit:
+        </p>
+        <blockquote>
+          <pre><code class="shell-session"><kbd>git status</kbd>
+git status
+On branch dev3
+Changes not staged for commit:
+  (use "git add &lt;file&gt;..." to update what will be committed)
+  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+        modified:   po/messages.pot
+        modified:   src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+        modified:   src/quick-lint-js/diag/diagnostic-types-2.h
+        modified:   src/quick-lint-js/i18n/translation-table-generated.cpp
+        modified:   src/quick-lint-js/i18n/translation-table-generated.h
+        modified:   src/quick-lint-js/i18n/translation-table-test-generated.h
+
+no changes added to commit (use "git add" and/or "git commit -a")</code></pre>
         </blockquote>
 
         <p>

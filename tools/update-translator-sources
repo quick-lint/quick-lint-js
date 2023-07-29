@@ -10,34 +10,11 @@ cd "$(dirname "${0}")/.."
 
 main() {
   check_dependencies
-
-  local po_flags=()
-  for po_file in po/*.po; do
-    po_flags+=(--po "${po_file}")
-  done
-  ./build/quick-lint-js-compile-translations \
-    --source benchmark/benchmark-translation.cpp \
-    --source src/quick-lint-js/diag/diagnostic-formatter.cpp \
-    --source src/quick-lint-js/diag/diagnostic-metadata-generated.cpp \
-    --source src/quick-lint-js/diag/diagnostic-metadata-generated.h \
-    --source test/test-diagnostic-formatter.cpp \
-    --source test/test-vim-qflist-json-diag-reporter.cpp \
-    --output-messages-pot po/messages.pot \
-    --output-translation-table-h src/quick-lint-js/i18n/translation-table-generated.h \
-    --output-translation-table-cpp src/quick-lint-js/i18n/translation-table-generated.cpp \
-    --output-translation-table-test src/quick-lint-js/i18n/translation-table-test-generated.h \
-    "${po_flags[@]}"
-
   update_translation_files
 }
 
 check_dependencies() {
   xgettext_version="$(xgettext -V 2>/dev/null)" || printf 'warning: xgettext is required\n'
-
-  if ! [ -x ./build/quick-lint-js-compile-translations ]; then
-      printf "error: missing build/quick-lint-js-compile-translations (compile it with 'ninja -C build quick-lint-js-compile-translations')\n" 2>&1
-      exit 1
-  fi
 }
 
 update_translation_files() {

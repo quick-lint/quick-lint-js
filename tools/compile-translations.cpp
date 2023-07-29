@@ -392,7 +392,7 @@ using namespace std::literals::string_view_literals;
   }
 
   // If you see an error with the following line, translation-table-generated.h
-  // is out of date. Run tools/update-translator-sources to rebuild this file.
+  // is out of date.
   QLJS_CONSTEXPR_ASSERT(false);
 
   return 0;

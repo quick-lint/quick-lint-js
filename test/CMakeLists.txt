@@ -217,6 +217,7 @@ target_link_libraries(
   gmock_main
   gtest
   quick-lint-js-boost-json
+  quick-lint-js-i18n
   quick-lint-js-lib
   quick-lint-js-lib-debug
   quick-lint-js-test-lib
