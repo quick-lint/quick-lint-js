@@ -11,7 +11,7 @@ Semantic Versioning.
 ### Added
 
 * `2 ^ 8` now reports [E0710][] ("'^' is the XOR operator; to exponentiate, use
-  '**' instead"). (Implemented by [pedrobl85][].)
+  '**' instead"). (Implemented by [pedrobl1718][].)
 
 ## 2.15.0 (2023-07-18)
 
