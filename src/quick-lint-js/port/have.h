@@ -285,26 +285,6 @@
 #endif
 #endif
 
-#if !defined(QLJS_HAVE_SETRLIMIT)
-#if defined(QLJS_HAVE_UNISTD_H) &&                             \
-    ((defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-     ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
-      defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L))
-#define QLJS_HAVE_SETRLIMIT 1
-#else
-#define QLJS_HAVE_SETRLIMIT 0
-#endif
-#endif
-
-#if !defined(QLJS_HAVE_UNAME)
-#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
-    _POSIX_VERSION >= 198808L
-#define QLJS_HAVE_UNAME 1
-#else
-#define QLJS_HAVE_UNAME 0
-#endif
-#endif
-
 #if !defined(QLJS_HAVE_WRITEV)
 #if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
     _POSIX_VERSION >= 200112L
@@ -560,16 +540,6 @@
 #endif
 #if !defined(QLJS_HAVE_POSIX_SPAWN)
 #define QLJS_HAVE_POSIX_SPAWN 0
-#endif
-
-// Whether GCC's labels as values and computed goto statement extensions are
-// supported.
-#if !defined(QLJS_HAVE_GNU_COMPUTED_GOTO)
-#if defined(__GNUC__)
-#define QLJS_HAVE_GNU_COMPUTED_GOTO 1
-#else
-#define QLJS_HAVE_GNU_COMPUTED_GOTO 0
-#endif
 #endif
 
 #endif
