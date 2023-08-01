@@ -233,6 +233,11 @@ main > hgroup:first-child > h2:first-child {
   padding-top: 0;
 }
 
+/* Style subtitles. */
+hgroup p {
+  font-style: italic;
+}
+
 nav.breadcrumbs ol {
   display: flex;
   margin-left: 0;
