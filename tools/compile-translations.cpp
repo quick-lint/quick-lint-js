@@ -343,7 +343,6 @@ void write_translation_table_header(const Compiled_Translation_Table& table,
 #include <iterator>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/sorted-search.h>
-#include <quick-lint-js/i18n/translation-table.h>
 #include <quick-lint-js/port/consteval.h>
 #include <string_view>
 
