@@ -25,12 +25,6 @@
       let env = {};
       let markdownParser = new MarkdownIt("commonmark");
       let tokens = markdownParser.parse(authorsMarkdown, env);
-      tokens = retagHeadings(tokens, {
-        h1: "h2",
-        h2: "h3",
-        h3: "h4",
-        h4: "h5",
-      });
       let html = markdownParser.renderer.render(tokens, markdownParser.options, env);
       //%>
     </script>

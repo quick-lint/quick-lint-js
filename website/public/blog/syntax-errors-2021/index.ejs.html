@@ -144,12 +144,12 @@
         font-size: 1rem;
       }
 
-      h3,
+      h2,
       #code-examples section {
         border-top: 1px solid #777;
         padding-top: 0.5em;
       }
-      #code-examples section > h4 {
+      #code-examples section > h3 {
         margin-top: 0.5em;
       }
 
@@ -280,7 +280,7 @@
 
     <main>
       <hgroup>
-        <h2>JavaScript syntax errors compared (2021)</h2>
+        <h1>JavaScript syntax errors compared (2021)</h1>
         <p>A JavaScript error beauty contest</p>
       </hgroup>
 
@@ -304,7 +304,7 @@
       </section>
 
       <section id="introduction">
-        <h3>Introduction</h3>
+        <h2>Introduction</h2>
         <p>
           Making mistakes is inevitable. Even JavaScript pros write syntax
           errors. The words <em>unexpected token</em> are familiar to junior and
@@ -322,7 +322,7 @@
       </section>
 
       <section id="engines">
-        <h3>Contestants</h3>
+        <h2>Contestants</h2>
         <p>
           To automate the bug-finding process, let's use two kinds of JavaScript
           tools: tools you have to use (JS engines and transpilers) and static
@@ -355,7 +355,7 @@
       </section>
 
       <section id="code-examples">
-        <h3>Code samples</h3>
+        <h2>Code samples</h2>
         <p>
           There are so many syntax errors to choose from! Instead of inventing
           code for demonstration, let's take JavaScript snippets from real
@@ -394,10 +394,10 @@
         </ol>
 
         <section id="semi-instead-of-comma">
-          <h4>
+          <h3>
             <code class="javascript">;</code> instead of
             <code class="javascript">,</code>
-          </h4>
+          </h3>
           <p>
             Object literal properties are separated by commas (<code
               class="javascript"
@@ -447,7 +447,7 @@
         </section>
 
         <section id="invalid-object-literal-key">
-          <h4>Invalid object literal key</h4>
+          <h3>Invalid object literal key</h3>
           <p>
             Object literal property names must be simple identifiers or quoted
             strings. The following code example tries to create a nested object
@@ -509,7 +509,7 @@
         </section>
 
         <section id="newline-after-return">
-          <h4>Newline after <code class="javascript">return</code></h4>
+          <h3>Newline after <code class="javascript">return</code></h3>
           <p>
             If <code class="javascript">return</code> is immediately followed by
             a newline character, <code class="javascript">undefined</code> is
@@ -562,7 +562,7 @@
         </section>
 
         <section id="missing-parens-around-parameter">
-          <h4>Missing <code class="javascript">( )</code> around parameter</h4>
+          <h3>Missing <code class="javascript">( )</code> around parameter</h3>
           <p>
             If an arrow function has a single parameter, and that parameter is
             an object destructuring, parentheses are required around the
@@ -615,7 +615,7 @@
         </section>
 
         <section id="keyword-variable-name">
-          <h4>Keyword variable name</h4>
+          <h3>Keyword variable name</h3>
           <p>
             With a few exceptions for legacy reasons, function parameters cannot
             be named a keyword. The following code tries to name a function
@@ -660,9 +660,9 @@
         </section>
 
         <section id="missing-operator-between-expressions">
-          <h4>
+          <h3>
             Missing <code class="javascript">||</code> between expressions
-          </h4>
+          </h3>
           <p>
             Expressions can't be next to each other without an operator in
             between. The following code is missing the logical or operator
@@ -706,10 +706,10 @@
         </section>
 
         <section id="elseif-instead-of-else-if">
-          <h4>
+          <h3>
             <code class="javascript">elseif</code> instead of
             <code class="javascript">else if</code>
-          </h4>
+          </h3>
           <p>
             <code class="javascript">elseif</code> is a keyword in some
             languages, but not in JavaScript. The correct code is
@@ -759,9 +759,9 @@ if(input.val() == "Lamborghini") {
         </section>
 
         <section id="missing-comma-between-object-properties">
-          <h4>
+          <h3>
             Missing <code class="javascript">,</code> between object properties
-          </h4>
+          </h3>
           <p>
             Object literals have a comma (<code class="javascript">,</code
             >)-separated key-value pairs. The following code forgets a comma
@@ -814,7 +814,7 @@ if(input.val() == "Lamborghini") {
       </section>
 
       <section id="summary">
-        <h3>Summary</h3>
+        <h2>Summary</h2>
         <table>
           <caption>
             Tool scores (1-5) for code samples

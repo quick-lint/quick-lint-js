@@ -11,7 +11,12 @@ function main(projectDirectory) {
   let jasmine = new Jasmine();
   jasmine.loadConfig({
     spec_dir: path.relative("", projectDirectory),
-    spec_files: ["!node_modules/**", "**/test-*.js", "**/test-*.mjs"],
+    spec_files: [
+      "!node_modules/**",
+      "!**/node_modules/**",
+      "**/test-*.js",
+      "**/test-*.mjs",
+    ],
     stopSpecOnExpectationFailure: true,
     random: false,
   });

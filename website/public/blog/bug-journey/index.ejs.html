@@ -119,7 +119,7 @@
 
     <main>
       <hgroup>
-        <h2>Sometimes, it <em>is</em> a compiler bug</h2>
+        <h1>Sometimes, it <em>is</em> a compiler bug</h1>
         <p>My journey in finding and fixing a bug in a C++ toolchain.</p>
       </hgroup>
 
@@ -141,7 +141,7 @@
       </section>
 
       <section id="introduction">
-        <h3>Introduction</h3>
+        <h2>Introduction</h2>
         <p>
           I was watching a programming Twitch stream when I noticed the coder
           make a mistake. I quickly pointed them to the
@@ -201,7 +201,7 @@
       </section>
 
       <section id="reproducing">
-        <h3>Reproducing the bug</h3>
+        <h2>Reproducing the bug</h2>
         <p>
           The first step I took is to make the bug happen on my computer. I
           started by doing exactly what the streamer did: introduce a mistake in
@@ -271,7 +271,7 @@
       </section>
 
       <section id="isolating">
-        <h3>Isolating the bug</h3>
+        <h2>Isolating the bug</h2>
         <p>
           To investigate further, I needed to build the extension from source.
           When I tried, the bug didn't happen. Hmm.
@@ -432,7 +432,7 @@ init test: 42 -&gt; 42</code></pre>
       </section>
 
       <section id="root-cause">
-        <h3>Finding the root cause</h3>
+        <h2>Finding the root cause</h2>
         <p>
           I now know that the first call to
           <code class="cxx function">napi_create_double</code> creates a broken
@@ -569,7 +569,7 @@ End of assembler dump.</code></pre>
       </section>
 
       <section id="fixing">
-        <h3>Fixing the bug</h3>
+        <h2>Fixing the bug</h2>
         <p>
           My current hypothesis: The implib code should have saved
           <code class="x86">xmm1</code>, but it didn't.
@@ -814,7 +814,7 @@ installing fr.gmo as <mark>/ucrt64/share/locale/fr/LC_MESSAGES/bfd.mo</mark></co
       </section>
 
       <section id="cleanup">
-        <h3>Finishing up</h3>
+        <h2>Finishing up</h2>
         <p>
           Now that I had a proven fix in dlltool, there's a problem: How can I
           make quick-lint-js' CI builds use the patched dlltool? I want to avoid
@@ -861,7 +861,7 @@ installing fr.gmo as <mark>/ucrt64/share/locale/fr/LC_MESSAGES/bfd.mo</mark></co
       </section>
 
       <section id="conclusion">
-        <h3>Conclusion</h3>
+        <h2>Conclusion</h2>
         <p>
           I've hit compiler bugs before, but this bug was the hardest I've
           squashed. Investigating and fixing it took a few days and spanned

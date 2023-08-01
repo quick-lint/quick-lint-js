@@ -227,12 +227,38 @@ hr {
   margin-left: 2rem;
   margin-right: 2rem;
 }
-
-main > h2:first-child,
-main > hgroup:first-child > h2:first-child {
+h1 + h2 {
+  /* Don't add a border between two headings. */
   border-top: 0;
-  margin-top: 0;
   padding-top: 0;
+}
+
+h1 {
+  /* TODO(strager): Tweak this for better aesthetics. */
+  margin-bottom: 1.25rem;
+}
+h1 {
+  font-size: 1.5rem;
+}
+h2 {
+  font-size: 1.17rem;
+  margin-bottom: 1.17rem;
+  margin-top: 1.17rem;
+}
+h3 {
+  font-size: 1rem;
+  margin-bottom: 1.33rem;
+  margin-top: 1.33rem;
+}
+h4 {
+  font-size: 1rem;
+  margin-bottom: 1.67rem;
+  margin-top: 1.67rem;
+}
+
+main > h1:first-child,
+main > hgroup:first-child > h1:first-child {
+  margin-top: 0;
 }
 
 /* Style subtitles. */
@@ -481,8 +507,11 @@ summary + h4 {
   display: grid;
   grid-template-areas: "linux macos windows";
 }
-.os-column-table h3 {
+.os-column-table h2 {
   margin-top: 0;
+  /* Disable default top border for <h2>. */
+  border-top: 0;
+  padding-top: 0;
 }
 .os-column-table {
   margin-bottom: 1em;

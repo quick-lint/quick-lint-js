@@ -15,7 +15,7 @@
     <header><%- await include("../../../common-nav.ejs.html") %></header>
 
     <main>
-      <h2><qljs-icon name="nix" size="29" /> <%= meta.title %></h2>
+      <h1><qljs-icon name="nix" size="29" /> <%= meta.title %></h1>
 
       <p>
         Building quick-lint-js from source using Nix is for advanced users only.
@@ -34,7 +34,7 @@
         and build it.
       </p>
 
-      <h4>0. Prepare environment</h4>
+      <h3>0. Prepare environment</h3>
 
       <p>
         The derivations in <code>dist/</code> contain the necessary dependencies
@@ -54,7 +54,7 @@
         shell with the build tools available at any time.
       </p>
 
-      <h4>1. Configure</h4>
+      <h3>1. Configure</h3>
 
       <p>After running above command, we configure the build environment:</p>
       <blockquote>
@@ -66,7 +66,7 @@
         changes the current directory to it.
       </p>
 
-      <h4>2. Build</h4>
+      <h3>2. Build</h3>
 
       <p>
         To build quick-lint-js, make sure you are in the
@@ -77,7 +77,7 @@
         <pre><code class="shell-session"><kbd>ninjaBuildPhase</kbd></code></pre>
       </blockquote>
 
-      <h4>3. Run</h4>
+      <h3>3. Run</h3>
 
       <p>
         After building, the binary is available as <code>quick-lint-js</code> in

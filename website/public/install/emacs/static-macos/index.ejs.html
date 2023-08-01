@@ -8,15 +8,15 @@
     (macOS)`}) %>
 
     <main>
-      <h2>
+      <h1>
         <qljs-icon name="emacs" size="29" /><qljs-icon name="macos" size="29" />
         Install for Emacs on macOS
-      </h2>
+      </h1>
 
-      <h3>Install prerequisites</h3>
+      <h2>Install prerequisites</h2>
       <%- await include("../common-prerequisites.ejs.html") %>
 
-      <h3>Install quick-lint-js</h3>
+      <h2>Install quick-lint-js</h2>
       <%- await include("../../common-static.ejs.html", {os: "macos"}) %> <%-
       await include("../common-manual.ejs.html", {os: "posix"}) %> <%- await
       include("../common-configure.ejs.html") %>

@@ -12,23 +12,23 @@ describe("release documentation releasesMarkdownToHTML", () => {
 
   it("## heading is <h3>", () => {
     let html = releasesMarkdownToHTML("## heading3\nbodygoeshere");
+    expect(html).toContain("<h2>");
+    expect(html).not.toContain("<h1>");
+    expect(html).not.toContain("<h3>");
+  });
+
+  it("### heading is <h3>", () => {
+    let html = releasesMarkdownToHTML("### heading4\nbodygoeshere");
     expect(html).toContain("<h3>");
     expect(html).not.toContain("<h2>");
     expect(html).not.toContain("<h4>");
   });
 
-  it("### heading is <h4>", () => {
-    let html = releasesMarkdownToHTML("### heading4\nbodygoeshere");
+  it("#### heading is <h4>", () => {
+    let html = releasesMarkdownToHTML("#### heading5\nbodygoeshere");
     expect(html).toContain("<h4>");
     expect(html).not.toContain("<h3>");
     expect(html).not.toContain("<h5>");
-  });
-
-  it("#### heading is <h5>", () => {
-    let html = releasesMarkdownToHTML("#### heading5\nbodygoeshere");
-    expect(html).toContain("<h5>");
-    expect(html).not.toContain("<h4>");
-    expect(html).not.toContain("<h6>");
   });
 });
 

@@ -11,7 +11,6 @@ export function releasesMarkdownToHTML(releasesMarkdown) {
   let env = {};
   let tokens = markdownParser.parse(releasesMarkdown, env);
   tokens = removeTitle(tokens);
-  tokens = demoteHeadings(tokens);
   tokens = linkifyVersions(tokens);
 
   let html = markdownParser.renderer.render(
@@ -57,15 +56,6 @@ function removeTitle(markdownTokens) {
   return filteredTokens;
 }
 
-function demoteHeadings(markdownTokens) {
-  let demotions = {
-    h2: "h3",
-    h3: "h4",
-    h4: "h5",
-  };
-  return retagHeadings(markdownTokens, demotions);
-}
-
 // @returns Array<[number, number]>
 function getVersionHeadingSpans(markdownTokens, headingTag) {
   let spans = [];
@@ -85,7 +75,7 @@ function getVersionHeadingSpans(markdownTokens, headingTag) {
 
 function linkifyVersions(markdownTokens) {
   markdownTokens = [...markdownTokens];
-  let versionHeadingSpanIndexes = getVersionHeadingSpans(markdownTokens, "h3");
+  let versionHeadingSpanIndexes = getVersionHeadingSpans(markdownTokens, "h2");
   versionHeadingSpanIndexes.reverse();
   for (let [headingBeginIndex, headingEndIndex] of versionHeadingSpanIndexes) {
     let textTokens = markdownTokens.slice(

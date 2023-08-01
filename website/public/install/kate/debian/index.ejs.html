@@ -8,22 +8,22 @@
     "Debian/Ubuntu"}) %>
 
     <main>
-      <h2>
+      <h1>
         <qljs-icon name="kate" size="29" /><qljs-icon
           name="debian"
           size="29"
         /><qljs-icon name="ubuntu" size="29" />
         Install for Kate on Debian/Ubuntu
-      </h2>
+      </h1>
       <p>
         Supported operating systems:
         <qljs-content-icon name="linux" size="19" />
       </p>
 
-      <h3>Install prerequisites</h3>
+      <h2>Install prerequisites</h2>
       <%- await include("../common-prerequisites.ejs.html") %>
 
-      <h3>Install quick-lint-js</h3>
+      <h2>Install quick-lint-js</h2>
       <%- await include("../../common-debian.ejs.html", {vim: false}) %> <%-
       await include("../common-configure.ejs.html") %>
     </main>
