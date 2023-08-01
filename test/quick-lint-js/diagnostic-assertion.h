@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_DIAGNOSTIC_ASSERTION_H
 
 #include <cstddef>
+#include <gmock/gmock.h>
 #include <memory>
 #include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/padded-string.h>
