@@ -61,11 +61,13 @@ header {
   margin-top: 1rem;
 }
 
-h1 {
+#title {
+  font-size: 2rem;
+  font-weight: bold;
   margin-top: 0;
   margin-bottom: 0;
 }
-h1 a:link {
+#title a:link {
   text-decoration: none;
 }
 
@@ -175,7 +177,7 @@ header {
   grid-template-columns: calc(var(--mascot-width) + 0.5rem) auto auto;
   grid-template-rows: auto minmax(var(--tag-line-height), auto) auto;
 }
-header > h1 {
+header > #title {
   grid-area: title;
 }
 header > .mascot {
