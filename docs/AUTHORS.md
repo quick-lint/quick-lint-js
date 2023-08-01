@@ -61,6 +61,7 @@ authored portions of quick-lint-js:
 * Matheus Phranco; matheusphranco@gmail.com; signed CLA-v1.md
 * Matheus Sousa; msamuel@aluno.puc-rio.br; signed CLA-v1.md
 * Max 👨🏽‍💻 Coplan; mchcopl@gmail.com; signed CLA-v1.md
+* Menotdan; mrcobalt124@gmail.com; signed CLA-v1.md
 * Ming Ng; signed CLA-v1.md
 * Mothi Ghimire; mothi.ghimire@gmail.com; signed CLA-v1.md
 * Nico Sonack; nsonack@outlook.com; signed CLA-v1.md
