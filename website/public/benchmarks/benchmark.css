@@ -319,6 +319,9 @@ body.javascript .javascript-only {
 .benchmark-table tbody td {
   text-align: right;
 }
+.benchmark-table tbody th {
+  font-weight: normal;
+}
 
 .benchmark-table thead th {
   white-space: nowrap;

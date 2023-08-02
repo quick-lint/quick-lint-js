@@ -610,7 +610,6 @@ kbd.keystroke {
   background-color: rgb(240, 219, 79);
   border-radius: 0.5rem;
   display: inline-block;
-  font-weight: bold;
   letter-spacing: 0.75px;
   padding: 0.75rem 1.25rem 0.5em 1.25rem;
   text-decoration: none;
@@ -772,7 +771,6 @@ kbd.keystroke {
 }
 #supported-editors a {
   background-color: rgb(240, 219, 79);
-  font-weight: bold;
   border-radius: 0.5rem;
   margin: 0 0.5rem 0 0.5rem;
   padding-bottom: 0.5rem;
@@ -817,7 +815,7 @@ kbd.keystroke {
 
 @media only screen and (max-width: 37em) {
   #supported-editors {
-    font-size: x-small;
+    font-size: small;
   }
 }
 
