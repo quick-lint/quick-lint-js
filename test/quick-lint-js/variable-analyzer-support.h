@@ -4,7 +4,12 @@
 #ifndef QUICK_LINT_JS_VARIABLE_ANALYZER_SUPPORT_H
 #define QUICK_LINT_JS_VARIABLE_ANALYZER_SUPPORT_H
 
+#include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/fe/variable-analyzer.h>
+#include <quick-lint-js/port/source-location.h>
+
+// TODO(strager): Remove this #include.
+#include <quick-lint-js/parse-support.h>
 
 namespace quick_lint_js {
 class Global_Declared_Variable_Set;
@@ -22,6 +27,34 @@ constexpr Variable_Analyzer_Options typescript_var_options =
         .allow_deleting_typescript_variable = false,
         .eval_can_declare_variables = false,
     };
+
+struct Test_Parse_And_Analyze_Options {
+  Parser_Options parse_options;
+  Variable_Analyzer_Options analyze_options;
+};
+
+extern const Test_Parse_And_Analyze_Options javascript_analyze_options;
+extern const Test_Parse_And_Analyze_Options typescript_analyze_options;
+
+// Create a Parser with a Variable_Analyzer and call
+// Parser::parse_and_visit_module. Assert that exactly the given diagnostics
+// were emitted. See NOTE[_diag-syntax] for examples.
+void test_parse_and_analyze(
+    String8_View input, No_Diags_Tag, const Test_Parse_And_Analyze_Options&,
+    const Global_Declared_Variable_Set&,
+    Source_Location caller = Source_Location::current());
+void test_parse_and_analyze(
+    String8_View input, Diagnostic_Assertion,
+    const Test_Parse_And_Analyze_Options&, const Global_Declared_Variable_Set&,
+    Source_Location caller = Source_Location::current());
+void test_parse_and_analyze(
+    String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+    const Test_Parse_And_Analyze_Options&, const Global_Declared_Variable_Set&,
+    Source_Location caller = Source_Location::current());
+void test_parse_and_analyze(
+    String8_View input, Span<const Diagnostic_Assertion>,
+    const Test_Parse_And_Analyze_Options&, const Global_Declared_Variable_Set&,
+    Source_Location caller = Source_Location::current());
 }
 
 #endif
