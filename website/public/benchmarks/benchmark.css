@@ -332,7 +332,7 @@ body.javascript .javascript-only {
 }
 @media (prefers-color-scheme: dark) {
   .benchmark-table tbody tr {
-    background-color: hsla(var(--hue), 70%, 30%);
+    background-color: hsla(var(--hue), 70%, 20%);
   }
 }
 
