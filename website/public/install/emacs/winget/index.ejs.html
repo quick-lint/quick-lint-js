@@ -16,13 +16,13 @@
         Install for Emacs with winget
       </h1>
 
-      <h2>Install prerequisites</h2>
+      <h2>1. Install prerequisites</h2>
       <%- await include("../common-prerequisites.ejs.html") %>
 
-      <h2>Install quick-lint-js</h2>
+      <h2>2. Install quick-lint-js</h2>
       <%- await include("../../common-winget.ejs.html") %> <%- await
-      include("../common-manual.ejs.html", {os: "windows"}) %> <%- await
-      include("../common-configure.ejs.html") %>
+      include("../common-manual.ejs.html", {os: "windows", step: 3}) %> <%-
+      await include("../common-configure.ejs.html", {step: 4}) %>
     </main>
 
     <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>
