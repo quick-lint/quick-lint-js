@@ -145,42 +145,17 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
      function_or_class_cannot_appear_after_non_empty_namespace_with_same_name) {
-  const Char8 class_declaration[] = u8"x";
-  const Char8 namespace_declaration[] = u8"x";
-
   test_parse_and_analyze(
       u8"namespace x { ; }  function x() {}"_sv,
       u8"                            ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
       u8"          ^ .original_declaration"_diag,
       typescript_analyze_options, default_globals);
 
-  {
-    // namespace x { ; }
-    // class x {}      // ERROR
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-    l.visit_enter_namespace_scope();
-    l.visit_exit_namespace_scope();
-    l.visit_variable_declaration(
-        identifier_of(namespace_declaration), Variable_Kind::_namespace,
-        Variable_Declaration_Flags::non_empty_namespace);
-
-    l.visit_enter_class_scope();
-    l.visit_enter_class_scope_body(identifier_of(class_declaration));
-    l.visit_exit_class_scope();
-    l.visit_variable_declaration(identifier_of(class_declaration),
-                                 Variable_Kind::_class,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_SPANS(
-                        Diag_Redeclaration_Of_Variable,             //
-                        redeclaration, span_of(class_declaration),  //
-                        original_declaration, span_of(namespace_declaration)),
-                }));
-  }
+  test_parse_and_analyze(
+      u8"namespace x { ; }  class x {}"_sv,
+      u8"                         ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"          ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,

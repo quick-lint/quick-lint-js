@@ -78,32 +78,18 @@ TEST(Test_Variable_Analyzer_Type, type_use_with_no_declaration_is_an_error) {
 
 TEST(Test_Variable_Analyzer_Type,
      type_use_after_declaration_in_block_scope_is_an_error) {
-  const Char8 declaration[] = u8"I";
-  const Char8 use[] = u8"I";
-
-  for (Variable_Kind kind : {Variable_Kind::_class, Variable_Kind::_enum,
-                             Variable_Kind::_interface}) {
-    SCOPED_TRACE(kind);
-
-    // {
-    //   interface I {}
-    // }
-    // ({}) as I;
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_block_scope();
-    l.visit_variable_declaration(identifier_of(declaration), kind,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_block_scope();
-    l.visit_variable_type_use(identifier_of(use));
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name, span_of(use)),
-        }));
-  }
+  test_parse_and_analyze(
+      u8"{ class C {}  }  ({}) as C;"_sv,
+      u8"                         ^ Diag_Use_Of_Undeclared_Type.name"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"{ enum E {}  }  ({}) as E;"_sv,
+      u8"                        ^ Diag_Use_Of_Undeclared_Type.name"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"{ interface I {}  }  ({}) as I;"_sv,
+      u8"                             ^ Diag_Use_Of_Undeclared_Type.name"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_before_declaration_is_okay) {

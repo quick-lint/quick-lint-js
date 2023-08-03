@@ -498,27 +498,11 @@ TEST(Test_Variable_Analyzer, assign_to_immutable_imported_variable) {
 }
 
 TEST(Test_Variable_Analyzer, assign_to_immutable_variable_before_declaration) {
-  const Char8 assignment[] = u8"x";
-  const Char8 declaration[] = u8"x";
-
-  // x = 42;          // ERROR
-  // const x = null;  // x is immutable
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_assignment(identifier_of(assignment));
-  l.visit_variable_declaration(
-      identifier_of(declaration), Variable_Kind::_const,
-      Variable_Declaration_Flags::initialized_with_equals);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(
-      v.errors,
-      ElementsAreArray({
-          DIAG_TYPE_2_SPANS(
-              Diag_Assignment_To_Const_Variable_Before_Its_Declaration,  //
-              assignment, span_of(assignment),                           //
-              declaration, span_of(declaration)),
-      }));
+  test_parse_and_analyze(
+      u8"x = 42; const x = null;"_sv,
+      u8"^ Diag_Assignment_To_Const_Variable_Before_Its_Declaration.assignment\n"_diag
+      u8"              ^ .declaration"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer,
@@ -1155,35 +1139,21 @@ TEST(Test_Variable_Analyzer,
 
 TEST(Test_Variable_Analyzer,
      let_style_variable_in_same_scope_as_parameter_redeclares) {
-  const Char8 parameter_declaration[] = u8"x";
-  const Char8 local_declaration[] = u8"x";
-
-  for (Variable_Kind local_declaration_kind :
-       {Variable_Kind::_class, Variable_Kind::_const, Variable_Kind::_let}) {
-    // ((x) => {
-    //   let x; // ERROR
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 Variable_Kind::_arrow_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(local_declaration),
-                                 local_declaration_kind,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_2_SPANS(
-                        Diag_Redeclaration_Of_Variable,             //
-                        redeclaration, span_of(local_declaration),  //
-                        original_declaration, span_of(parameter_declaration)),
-                }));
-  }
+  test_parse_and_analyze(
+      u8"((x) => { let x; });"_sv,
+      u8"              ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"  ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"((x) => { const x = null; });"_sv,
+      u8"                ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"  ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"((x) => { class x {} });"_sv,
+      u8"                ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"  ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer, let_variable_in_inner_scope_as_parameter_shadows) {
@@ -1227,152 +1197,49 @@ TEST(Test_Variable_Analyzer,
 }
 
 TEST(Test_Variable_Analyzer, catch_variable_conflicts_with_non_var_variables) {
-  const Char8 catch_declaration[] = u8"e";
-  const Char8 local_declaration[] = u8"e";
-
-  for (Variable_Kind local_declaration_kind :
-       {Variable_Kind::_class, Variable_Kind::_const, Variable_Kind::_function,
-        Variable_Kind::_let}) {
-    // try {
-    // } catch (e) {
-    //   let e;       // ERROR
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_block_scope();
-    l.visit_variable_declaration(identifier_of(catch_declaration),
-                                 Variable_Kind::_catch,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_declaration(identifier_of(local_declaration),
-                                 local_declaration_kind,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_block_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_SPANS(Diag_Redeclaration_Of_Variable,             //
-                              redeclaration, span_of(local_declaration),  //
-                              original_declaration, span_of(catch_declaration)),
-        }));
-  }
+  test_parse_and_analyze(
+      u8"try { } catch (e) { class e {} }"_sv,
+      u8"                          ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"               ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"try { } catch (e) { const e = null; }"_sv,
+      u8"                          ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"               ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"try { } catch (e) { function e() {} }"_sv,
+      u8"                             ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"               ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"try { } catch (e) { let e; }"_sv,
+      u8"                        ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"               ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer,
      parameter_default_value_cannot_refer_to_local_variables) {
-  const Char8 parameter_declaration[] = u8"p";
-  const Char8 parameter_default_value[] = u8"l";
-  const Char8 local_declaration[] = u8"l";
+  test_parse_and_analyze(u8"((p = l) => { var l; });"_sv,
+                         u8"      ^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+                         javascript_analyze_options, default_globals);
 
-  {
-    // ((p = l) => {  // ERROR
-    //   var l;
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_variable_use(identifier_of(parameter_default_value));
-    l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 Variable_Kind::_arrow_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(local_declaration),
-                                 Variable_Kind::_var,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
-                                   span_of(parameter_default_value)),
-                }));
-  }
-
-  {
-    // ((p = (() => l)) => {  // ERROR
-    //   var l;
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-
-    // (() => l)
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_use(identifier_of(parameter_default_value));
-    l.visit_exit_function_scope();
-
-    l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 Variable_Kind::_arrow_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(local_declaration),
-                                 Variable_Kind::_var,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
-                                   span_of(parameter_default_value)),
-                }));
-  }
+  test_parse_and_analyze(
+      u8"((p = (() => l)) => { var l; });"_sv,
+      u8"             ^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer, parameter_default_value_uses_undeclared_variable) {
-  const Char8 parameter_declaration[] = u8"p";
-  const Char8 parameter_default_value[] = u8"x";
+  test_parse_and_analyze(u8"((p = x) => { });"_sv,
+                         u8"      ^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+                         javascript_analyze_options, default_globals);
 
-  {
-    // ((p = x) => {  // ERROR
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_variable_use(identifier_of(parameter_default_value));
-    l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 Variable_Kind::_arrow_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope_body();
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
-                                   span_of(parameter_default_value)),
-                }));
-  }
-
-  {
-    // ((p = (() => x)) => {  // ERROR
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-
-    // (() => x)
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_use(identifier_of(parameter_default_value));
-    l.visit_exit_function_scope();
-
-    l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 Variable_Kind::_arrow_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope_body();
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
-                                   span_of(parameter_default_value)),
-                }));
-  }
+  test_parse_and_analyze(
+      u8"((p = (() => x)) => { });"_sv,
+      u8"             ^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer, parameter_shadows_named_function_name) {
@@ -1424,27 +1291,10 @@ TEST(Test_Variable_Analyzer,
 }
 
 TEST(Test_Variable_Analyzer, class_extends_cannot_use_declared_class_name) {
-  {
-    // class C extends C {} // ERROR
-    const Char8 class_declaration[] = u8"C";
-    const Char8 class_use[] = u8"C";
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_class_scope();
-    l.visit_variable_use(identifier_of(class_use));
-    l.visit_enter_class_scope_body(identifier_of(class_declaration));
-    l.visit_exit_class_scope();
-    l.visit_variable_declaration(identifier_of(class_declaration),
-                                 Variable_Kind::_class,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(Diag_Variable_Used_Before_Declaration, use,
-                                   span_of(class_use)),
-                }));
-  }
+  test_parse_and_analyze(
+      u8"class C extends C {}"_sv,
+      u8"                ^ Diag_Variable_Used_Before_Declaration.use"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(
@@ -1534,32 +1384,10 @@ TEST(Test_Variable_Analyzer_Class, generic_class_parameters_are_usable_inside) {
 
 TEST(Test_Variable_Analyzer_Class,
      generic_class_parameters_are_not_usable_outside) {
-  const Char8 class_declaration[] = u8"C";
-  const Char8 parameter_declaration[] = u8"T";
-  const Char8 parameter_use[] = u8"T";
-
-  {
-    // class C<T> { }
-    // (null: T); // ERROR
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_class_scope();
-    l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 Variable_Kind::_generic_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_class_scope_body(identifier_of(class_declaration));
-    l.visit_exit_class_scope();
-    l.visit_variable_declaration(identifier_of(class_declaration),
-                                 Variable_Kind::_class,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_type_use(identifier_of(parameter_use));
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name,
-                                             span_of(parameter_use)),
-                          }));
-  }
+  test_parse_and_analyze(
+      u8"class C<T> { }  (null as T);"_sv,
+      u8"                         ^ Diag_Use_Of_Undeclared_Type.name"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type_Alias, type_alias_can_use_outside_types) {

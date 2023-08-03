@@ -52,34 +52,14 @@ TEST(Test_Variable_Analyzer_Namespace,
 
 TEST(Test_Variable_Analyzer_Namespace,
      variables_declared_inside_namespace_are_not_accessible_outside) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 namespace_member_declaration[] = u8"C";
-  const Char8 namespace_member_use[] = u8"C";
-
-  for (Variable_Kind var_kind : {Variable_Kind::_class, Variable_Kind::_var}) {
-    SCOPED_TRACE(var_kind);
-    // namespace NS {
-    //   export class C {}
-    // }
-    // C;  // ERROR
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_namespace_scope();
-    l.visit_variable_declaration(identifier_of(namespace_member_declaration),
-                                 var_kind, Variable_Declaration_Flags::none);
-    l.visit_exit_namespace_scope();
-    l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 Variable_Kind::_namespace,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_use(identifier_of(namespace_member_use));
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
-                                   span_of(namespace_member_use)),
-                }));
-  }
+  test_parse_and_analyze(
+      u8"namespace NS { export class C {}  }  C;"_sv,
+      u8"                                     ^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"namespace NS { export var v; }  v;"_sv,
+      u8"                                ^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Namespace,
