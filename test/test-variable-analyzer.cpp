@@ -397,9 +397,6 @@ TEST(Test_Variable_Analyzer,
 }
 
 TEST(Test_Variable_Analyzer, assign_to_immutable_const_variable) {
-  const Char8 declaration[] = u8"x";
-  const Char8 assignment[] = u8"x";
-
   test_parse_and_analyze(
       u8"(() => { const x = null; x = 42; });"_sv,
       u8"                         ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
@@ -407,81 +404,28 @@ TEST(Test_Variable_Analyzer, assign_to_immutable_const_variable) {
       u8"{.var_kind=Variable_Kind::_const}"_diag,
       javascript_analyze_options, default_globals);
 
-  {
-    // const x = null;  // x is immutable
-    // {
-    //   x = 42;        // ERROR
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(
-        identifier_of(declaration), Variable_Kind::_const,
-        Variable_Declaration_Flags::initialized_with_equals);
-    l.visit_enter_block_scope();
-    l.visit_variable_assignment(identifier_of(assignment));
-    l.visit_exit_block_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(Diag_Assignment_To_Const_Variable,       //
-                               assignment, Span_Matcher(assignment),    //
-                               declaration, Span_Matcher(declaration),  //
-                               var_kind, Variable_Kind::_const),
-        }));
-  }
+  test_parse_and_analyze(
+      u8"const x = null; { x = 42; }"_sv,
+      u8"                  ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"      ^ .declaration"_diag
+      u8"{.var_kind=Variable_Kind::_const}"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer, assign_to_immutable_imported_variable) {
-  const Char8 declaration[] = u8"x";
-  const Char8 assignment[] = u8"x";
+  test_parse_and_analyze(
+      u8"import {x} from 'module'; { x = 42; }"_sv,
+      u8"                            ^ Diag_Assignment_To_Imported_Variable.assignment\n"_diag
+      u8"        ^ .declaration"_diag
+      u8"{.var_kind=Variable_Kind::_import}"_diag,
+      javascript_analyze_options, default_globals);
 
-  {
-    // import {x} from "module";   // x is immutable
-    // {
-    //   x = 42;  // ERROR
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_import,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_block_scope();
-    l.visit_variable_assignment(identifier_of(assignment));
-    l.visit_exit_block_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(Diag_Assignment_To_Imported_Variable,    //
-                               assignment, Span_Matcher(assignment),    //
-                               declaration, Span_Matcher(declaration),  //
-                               var_kind, Variable_Kind::_import),
-        }));
-  }
-
-  {
-    // x = 42;  // ERROR
-    // import {x} from "module";   // x is immutable
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_assignment(identifier_of(assignment));
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_import,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(Diag_Assignment_To_Imported_Variable,    //
-                               assignment, Span_Matcher(assignment),    //
-                               declaration, Span_Matcher(declaration),  //
-                               var_kind, Variable_Kind::_import),
-        }));
-  }
+  test_parse_and_analyze(
+      u8"x = 42; import {x} from 'module';"_sv,
+      u8"                ^ Diag_Assignment_To_Imported_Variable.declaration\n"_diag
+      u8"^ .assignment"_diag
+      u8"{.var_kind=Variable_Kind::_import}"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer, assign_to_immutable_variable_before_declaration) {
@@ -494,166 +438,50 @@ TEST(Test_Variable_Analyzer, assign_to_immutable_variable_before_declaration) {
 
 TEST(Test_Variable_Analyzer,
      assign_to_shadowing_immutable_variable_before_declaration) {
-  const Char8 outer_declaration[] = u8"x";
-  const Char8 assignment[] = u8"x";
-  const Char8 inner_declaration[] = u8"x";
-
-  // let x;             // x is shadowed.
-  // {
-  //   x = 42;          // ERROR
-  //   const x = null;  // x is immutable
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_declaration(identifier_of(outer_declaration),
-                               Variable_Kind::_let,
-                               Variable_Declaration_Flags::none);
-  l.visit_enter_block_scope();
-  l.visit_variable_assignment(identifier_of(assignment));
-  l.visit_variable_declaration(
-      identifier_of(inner_declaration), Variable_Kind::_const,
-      Variable_Declaration_Flags::initialized_with_equals);
-  l.visit_exit_block_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(
-      v.errors,
-      ElementsAreArray({
-          DIAG_TYPE_2_SPANS(
-              Diag_Assignment_To_Const_Variable_Before_Its_Declaration,  //
-              assignment, span_of(assignment),                           //
-              declaration, span_of(inner_declaration)),
-      }));
+  test_parse_and_analyze(
+      u8"let x; { x = 42; const x = null; }"_sv,
+      u8"                       ^ Diag_Assignment_To_Const_Variable_Before_Its_Declaration.declaration\n"_diag
+      u8"         ^ .assignment"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer,
      assign_to_immutable_variable_declared_in_parent_scope) {
-  const Char8 assignment[] = u8"x";
-  const Char8 declaration[] = u8"x";
-
-  // const x = null;  // x is immutable
-  // (() => {
-  //   x = 42;        // ERROR
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_declaration(
-      identifier_of(declaration), Variable_Kind::_const,
-      Variable_Declaration_Flags::initialized_with_equals);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_variable_assignment(identifier_of(assignment));
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_3_FIELDS(Diag_Assignment_To_Const_Variable,       //
-                                     assignment, Span_Matcher(assignment),    //
-                                     declaration, Span_Matcher(declaration),  //
-                                     var_kind, Variable_Kind::_const),
-              }));
+  test_parse_and_analyze(
+      u8"const x = null; (() => { x = 42; });"_sv,
+      u8"                         ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"      ^ .declaration"_diag
+      u8"{.var_kind=Variable_Kind::_const}"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer,
      assign_to_immutable_variable_declared_later_in_parent_scope) {
-  const Char8 assignment[] = u8"x";
-  const Char8 declaration[] = u8"x";
-
-  // (() => {
-  //   x = 42;        // ERROR
-  // });
-  // const x = null;  // x is immutable
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_variable_assignment(identifier_of(assignment));
-  l.visit_exit_function_scope();
-  l.visit_variable_declaration(
-      identifier_of(declaration), Variable_Kind::_const,
-      Variable_Declaration_Flags::initialized_with_equals);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_3_FIELDS(Diag_Assignment_To_Const_Variable,       //
-                                     assignment, Span_Matcher(assignment),    //
-                                     declaration, Span_Matcher(declaration),  //
-                                     var_kind, Variable_Kind::_const),
-              }));
+  test_parse_and_analyze(
+      u8"(() => { x = 42; }); const x = null;"_sv,
+      u8"                           ^ Diag_Assignment_To_Const_Variable.declaration\n"_diag
+      u8"         ^ .assignment"_diag
+      u8"{.var_kind=Variable_Kind::_const}"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer,
      assignment_to_shadowed_const_variable_before_declaration_in_parent_scope) {
-  const Char8 assignment[] = u8"x";
-  const Char8 outer_declaration[] = u8"x";
-  const Char8 inner_declaration[] = u8"x";
-
-  // let x;
-  // {
-  //   {
-  //     x = 42;        // ERROR
-  //   }
-  //   const x = null;  // x is immutable
-  // }
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_declaration(identifier_of(outer_declaration),
-                               Variable_Kind::_let,
-                               Variable_Declaration_Flags::none);
-  l.visit_enter_block_scope();
-  l.visit_enter_block_scope();
-  l.visit_variable_assignment(identifier_of(assignment));
-  l.visit_exit_block_scope();
-  l.visit_variable_declaration(
-      identifier_of(inner_declaration), Variable_Kind::_const,
-      Variable_Declaration_Flags::initialized_with_equals);
-  l.visit_exit_block_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(
-      v.errors,
-      ElementsAreArray({
-          DIAG_TYPE_2_SPANS(
-              Diag_Assignment_To_Const_Variable_Before_Its_Declaration,  //
-              assignment, span_of(assignment),                           //
-              declaration, span_of(inner_declaration)),
-      }));
+  test_parse_and_analyze(
+      u8"let x; { { x = 42; } const x = null; }"_sv,
+      u8"                           ^ Diag_Assignment_To_Const_Variable_Before_Its_Declaration.declaration\n"_diag
+      u8"           ^ .assignment"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer,
      assignment_to_const_variable_declared_in_grandparent_scope) {
-  const Char8 declaration[] = u8"x";
-  const Char8 assignment[] = u8"x";
-
-  // const x = null;
-  // (() => {
-  //   (() => {
-  //     x = 42;  // ERROR
-  //   });
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_declaration(
-      identifier_of(declaration), Variable_Kind::_const,
-      Variable_Declaration_Flags::initialized_with_equals);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_variable_assignment(identifier_of(assignment));
-  l.visit_exit_function_scope();
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_3_FIELDS(Diag_Assignment_To_Const_Variable,       //
-                                     assignment, Span_Matcher(assignment),    //
-                                     declaration, Span_Matcher(declaration),  //
-                                     var_kind, Variable_Kind::_const),
-              }));
+  test_parse_and_analyze(
+      u8"const x = null; (() => { (() => { x = 42; }); });"_sv,
+      u8"                                  ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"      ^ .declaration"_diag
+      u8"{.var_kind=Variable_Kind::_const}"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer, assign_to_undeclared_variable) {
