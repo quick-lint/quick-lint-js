@@ -70,23 +70,16 @@ TEST(Test_Variable_Analyzer_Arguments,
 }
 
 TEST(Test_Variable_Analyzer_Arguments, let_shadows_magic_arguments) {
-  for (Variable_Kind kind : {Variable_Kind::_const, Variable_Kind::_let}) {
-    const Char8 arguments_declaration[] = u8"arguments";
-
-    // (function() {
-    //   let arguments;
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(arguments_declaration), kind,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"(function() {"_sv
+      u8"  const arguments = null;"_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(function() {"_sv
+      u8"  let arguments;"_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
 
   test_parse_and_analyze(
       u8"(function() { arguments; const arguments = null; });"_sv,

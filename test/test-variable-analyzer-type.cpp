@@ -24,50 +24,32 @@ TEST(Test_Variable_Analyzer_Type,
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_after_declaration_is_okay) {
-  const Char8 declaration[] = u8"I";
-  const Char8 use[] = u8"I";
-
-  for (Variable_Kind kind :
-       {Variable_Kind::_class, Variable_Kind::_interface}) {
-    SCOPED_TRACE(kind);
-
-    // interface I {}
-    // ({}) as I;
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(declaration), kind,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_type_use(identifier_of(use));
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(u8"interface I {}  ({}) as I;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"class I {}  ({}) as I;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type,
      type_use_in_block_scope_after_declaration_is_okay) {
-  const Char8 declaration[] = u8"I";
-  const Char8 use[] = u8"I";
-
-  for (Variable_Kind kind : {Variable_Kind::_class, Variable_Kind::_enum,
-                             Variable_Kind::_interface}) {
-    SCOPED_TRACE(kind);
-
-    // interface I {}
-    // {
-    //   ({}) as I;
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(declaration), kind,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_block_scope();
-    l.visit_variable_type_use(identifier_of(use));
-    l.visit_exit_block_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"class I {} "_sv
+      u8"{"_sv
+      u8"  ({}) as I;"_sv
+      u8"} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"enum I {} "_sv
+      u8"{"_sv
+      u8"  ({}) as I;"_sv
+      u8"} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"interface I {} "_sv
+      u8"{"_sv
+      u8"  ({}) as I;"_sv
+      u8"} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_with_no_declaration_is_an_error) {
@@ -93,44 +75,32 @@ TEST(Test_Variable_Analyzer_Type,
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_before_declaration_is_okay) {
-  const Char8 declaration[] = u8"I";
-  const Char8 use[] = u8"I";
+  test_parse_and_analyze(u8"({}) as I; class I {} "_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(() => {"_sv
+      u8"  ({}) as I;"_sv
+      u8"});"_sv
+      u8"class I {} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
-  for (Variable_Kind kind : {Variable_Kind::_class, Variable_Kind::_enum,
-                             Variable_Kind::_interface}) {
-    SCOPED_TRACE(kind);
+  test_parse_and_analyze(u8"({}) as I; enum I {} "_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(() => {"_sv
+      u8"  ({}) as I;"_sv
+      u8"});"_sv
+      u8"enum I {} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
-    {
-      // ({}) as I;
-      // interface I {}
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_variable_type_use(identifier_of(use));
-      l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   Variable_Declaration_Flags::none);
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors, IsEmpty());
-    }
-
-    {
-      // (() => {
-      //   ({}) as I;
-      // });
-      // interface I {}
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_enter_function_scope();
-      l.visit_enter_function_scope_body();
-      l.visit_variable_type_use(identifier_of(use));
-      l.visit_exit_function_scope();
-      l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   Variable_Declaration_Flags::none);
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors, IsEmpty());
-    }
-  }
+  test_parse_and_analyze(u8"({}) as I; interface I {} "_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(() => {"_sv
+      u8"  ({}) as I;"_sv
+      u8"});"_sv
+      u8"interface I {} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_of_import_is_okay) {
@@ -637,47 +607,12 @@ TEST(Test_Variable_Analyzer_Type, mixing_non_type_and_type_only_is_okay) {
 
 TEST(Test_Variable_Analyzer_Type,
      interfaces_merge_with_interfaces_and_classes) {
-  const Char8 interface_declaration[] = u8"C";
-  const Char8 other_declaration[] = u8"C";
-
-  for (Variable_Kind other_declaration_kind : {
-           Variable_Kind::_class,
-           Variable_Kind::_interface,
-       }) {
-    SCOPED_TRACE(other_declaration_kind);
-
-    {
-      // interface C {}
-      // class C {}
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_variable_declaration(identifier_of(interface_declaration),
-                                   Variable_Kind::_interface,
-                                   Variable_Declaration_Flags::none);
-      l.visit_variable_declaration(identifier_of(other_declaration),
-                                   other_declaration_kind,
-                                   Variable_Declaration_Flags::none);
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors, IsEmpty());
-    }
-
-    {
-      // class C {}
-      // interface C {}
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_variable_declaration(identifier_of(other_declaration),
-                                   other_declaration_kind,
-                                   Variable_Declaration_Flags::none);
-      l.visit_variable_declaration(identifier_of(interface_declaration),
-                                   Variable_Kind::_interface,
-                                   Variable_Declaration_Flags::none);
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors, IsEmpty());
-    }
-  }
+  test_parse_and_analyze(u8"interface C {}  class C {} "_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"interface C {}  interface C {} "_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"class C {}  interface C {} "_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 }
 
 // When we import, we don't know whether the imported declaration is type-only

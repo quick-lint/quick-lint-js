@@ -33,49 +33,20 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
      variable_and_namespace_do_not_conflict) {
-  const Char8 namespace_declaration[] = u8"n";
-  const Char8 var_declaration[] = u8"n";
+  test_parse_and_analyze(u8"namespace n {}  const n = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"const n = null; namespace n {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 
-  for (Variable_Kind var_kind :
-       {Variable_Kind::_const, Variable_Kind::_let, Variable_Kind::_var}) {
-    SCOPED_TRACE(var_kind);
+  test_parse_and_analyze(u8"namespace n {}  let n;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"let n; namespace n {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 
-    {
-      // namespace n {}
-      // var n;
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-      l.visit_enter_namespace_scope();
-      l.visit_exit_namespace_scope();
-      l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                   Variable_Kind::_namespace,
-                                   Variable_Declaration_Flags::none);
-      l.visit_variable_declaration(
-          identifier_of(var_declaration), var_kind,
-          Variable_Declaration_Flags::initialized_with_equals);
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors, IsEmpty());
-    }
-
-    {
-      // var n;
-      // namespace n {}
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-      l.visit_variable_declaration(
-          identifier_of(var_declaration), var_kind,
-          Variable_Declaration_Flags::initialized_with_equals);
-      l.visit_enter_namespace_scope();
-      l.visit_exit_namespace_scope();
-      l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                   Variable_Kind::_namespace,
-                                   Variable_Declaration_Flags::none);
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors, IsEmpty());
-    }
-  }
+  test_parse_and_analyze(u8"namespace n {}  var n;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"var n; namespace n {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
@@ -89,45 +60,20 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
      type_alias_and_local_variable_do_not_conflict) {
-  const Char8 type_declaration[] = u8"x";
-  const Char8 var_declaration[] = u8"x";
+  test_parse_and_analyze(u8"type x = null; const x = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"const x = null; type x = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 
-  for (Variable_Kind var_kind :
-       {Variable_Kind::_const, Variable_Kind::_let, Variable_Kind::_var}) {
-    SCOPED_TRACE(var_kind);
+  test_parse_and_analyze(u8"type x = null; let x;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"let x; type x = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 
-    {
-      // type x = null;
-      // var x;
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-      l.visit_variable_declaration(identifier_of(type_declaration),
-                                   Variable_Kind::_type_alias,
-                                   Variable_Declaration_Flags::none);
-      l.visit_variable_declaration(
-          identifier_of(var_declaration), var_kind,
-          Variable_Declaration_Flags::initialized_with_equals);
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors, IsEmpty());
-    }
-
-    {
-      // var x;
-      // type x = null;
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-      l.visit_variable_declaration(
-          identifier_of(var_declaration), var_kind,
-          Variable_Declaration_Flags::initialized_with_equals);
-      l.visit_variable_declaration(identifier_of(type_declaration),
-                                   Variable_Kind::_type_alias,
-                                   Variable_Declaration_Flags::none);
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors, IsEmpty());
-    }
-  }
+  test_parse_and_analyze(u8"type x = null; var x;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"var x; type x = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,

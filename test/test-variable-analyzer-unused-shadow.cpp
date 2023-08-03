@@ -143,36 +143,24 @@ TEST(Test_Variable_Analyzer_Unused_Shadow,
 
 TEST(Test_Variable_Analyzer_Unused_Shadow,
      shadowing_class_or_function_or_import_is_not_a_warning) {
-  const Char8 outer_declaration[] = u8"C";
-  const Char8 inner_declaration[] = u8"C";
-
-  for (Variable_Kind outer_kind :
-       {Variable_Kind::_class, Variable_Kind::_function,
-        Variable_Kind::_import}) {
-    SCOPED_TRACE(outer_kind);
-
-    // class C {}
-    // // or
-    // function C() {}
-    // // or
-    // import {C} from "module";
-    //
-    // {
-    //   let C = 6;  // no warning
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_block_scope();
-    l.visit_variable_declaration(
-        identifier_of(inner_declaration), Variable_Kind::_let,
-        Variable_Declaration_Flags::initialized_with_equals);
-    l.visit_exit_block_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"class C {}\n"_sv
+      u8"{"_sv
+      u8"  let C = 6;"_sv  // no warning
+      u8"} "_sv,
+      no_diags, javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"function C() {}\n"_sv
+      u8"{"_sv
+      u8"  let C = 6;"_sv  // no warning
+      u8"} "_sv,
+      no_diags, javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"import {C} from 'module';\n"_sv
+      u8"{"_sv
+      u8"  let C = 6;"_sv  // no warning
+      u8"} "_sv,
+      no_diags, javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Unused_Shadow,
