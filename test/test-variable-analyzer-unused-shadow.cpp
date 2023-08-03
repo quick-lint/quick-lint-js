@@ -3,6 +3,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
@@ -12,91 +13,38 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/variable-analyzer-support.h>
 
-using ::testing::ElementsAreArray;
-using ::testing::IsEmpty;
-
 namespace quick_lint_js {
 namespace {
 TEST(Test_Variable_Analyzer_Unused_Shadow,
      shadowing_initialized_var_without_use_in_block_scope_is_warning) {
-  const Char8 outer_declaration[] = u8"x";
-  const Char8 inner_declaration[] = u8"x";
-
   struct Test_Case {
-    Variable_Kind outer_declaration_kind;
-    Variable_Kind inner_declaration_kind;
+    String8_View outer;
+    String8_View inner;
   };
   for (Test_Case tc : {
-           Test_Case{Variable_Kind::_const, Variable_Kind::_const},
-           Test_Case{Variable_Kind::_const, Variable_Kind::_let},
-           Test_Case{Variable_Kind::_let, Variable_Kind::_const},
-           Test_Case{Variable_Kind::_let, Variable_Kind::_let},
-           Test_Case{Variable_Kind::_var, Variable_Kind::_const},
-           Test_Case{Variable_Kind::_var, Variable_Kind::_let},
+           Test_Case{u8"const            "_sv, u8"const              "_sv},
+           Test_Case{u8"const            "_sv, u8"let                "_sv},
+           Test_Case{u8"let              "_sv, u8"const              "_sv},
+           Test_Case{u8"let              "_sv, u8"let                "_sv},
+           Test_Case{u8"var              "_sv, u8"const              "_sv},
+           Test_Case{u8"var              "_sv, u8"let                "_sv},
        }) {
-    SCOPED_TRACE(tc.outer_declaration_kind);
-    SCOPED_TRACE(tc.inner_declaration_kind);
-
-    {
-      // // const/let/etc.
-      // let x = 5;
-      // {
-      //   // const/let/etc.
-      //   let x = 6;  // WARNING
-      // }
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_variable_declaration(
-          identifier_of(outer_declaration), tc.outer_declaration_kind,
-          Variable_Declaration_Flags::initialized_with_equals);
-      l.visit_enter_block_scope();
-      l.visit_variable_declaration(
-          identifier_of(inner_declaration), tc.inner_declaration_kind,
-          Variable_Declaration_Flags::initialized_with_equals);
-      l.visit_exit_block_scope();
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors,
-                  ElementsAreArray({
-                      DIAG_TYPE_2_SPANS(
-                          Diag_Unused_Variable_Shadows,                       //
-                          shadowing_declaration, span_of(inner_declaration),  //
-                          shadowed_declaration, span_of(outer_declaration)),
-                  }));
-    }
+    // clang-format off
+    test_parse_and_analyze(
+        concat(tc.outer, u8" x = 5; { "_sv, tc.inner, u8" x = 6; }"_sv),
+        u8"                                               ^ Diag_Unused_Variable_Shadows.shadowing_declaration\n"_diag
+        u8"                  ^ .shadowed_declaration"_diag,
+        javascript_analyze_options, default_globals);
 
     // TODO(strager): See NOTE[unused-var-shadows-nested-block].
     if ((false)) {
-      // // const/let/etc.
-      // let x = 5;
-      // {
-      //   {
-      //     // const/let/etc.
-      //     let x = 6;  // WARNING
-      //   }
-      // }
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_variable_declaration(
-          identifier_of(outer_declaration), tc.outer_declaration_kind,
-          Variable_Declaration_Flags::initialized_with_equals);
-      l.visit_enter_block_scope();
-      l.visit_enter_block_scope();
-      l.visit_variable_declaration(
-          identifier_of(inner_declaration), tc.inner_declaration_kind,
-          Variable_Declaration_Flags::initialized_with_equals);
-      l.visit_exit_block_scope();
-      l.visit_exit_block_scope();
-      l.visit_end_of_module();
-
-      EXPECT_THAT(v.errors,
-                  ElementsAreArray({
-                      DIAG_TYPE_2_SPANS(
-                          Diag_Unused_Variable_Shadows,                       //
-                          shadowing_declaration, span_of(inner_declaration),  //
-                          shadowed_declaration, span_of(outer_declaration)),
-                  }));
+      test_parse_and_analyze(
+          concat(tc.outer, u8" x = 5; { { "_sv, tc.inner, u8" x = 6; } }"_sv),
+          u8"                                                 ^ Diag_Unused_Variable_Shadows.shadowing_declaration\n"_diag
+          u8"                  ^ .shadowed_declaration"_diag,
+          javascript_analyze_options, default_globals);
     }
+    // clang-format on
   }
 }
 
