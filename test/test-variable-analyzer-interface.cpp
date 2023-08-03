@@ -20,10 +20,6 @@ namespace quick_lint_js {
 namespace {
 TEST(Test_Variable_Analyzer_Interface,
      interface_body_can_reference_types_outside) {
-  const Char8 interface_declaration[] = u8"I";
-  const Char8 type_use[] = u8"C";
-  const Char8 method_name[] = u8"method";
-
   test_parse_and_analyze(
       u8"import {C} from 'other-module';"_sv
       u8"interface I {"_sv
@@ -31,28 +27,10 @@ TEST(Test_Variable_Analyzer_Interface,
       u8"} "_sv,
       no_diags, typescript_analyze_options, default_globals);
 
-  {
-    // interface I {
-    //   method(): C;  // ERROR
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_interface_scope();
-    l.visit_property_declaration(identifier_of(method_name));
-    l.visit_enter_function_scope();
-    l.visit_variable_type_use(identifier_of(type_use));
-    l.visit_exit_function_scope();
-    l.visit_exit_interface_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name,
-                                             span_of(type_use)),
-                          }));
-  }
+  test_parse_and_analyze(
+      u8"interface I { method(): C; }"_sv,
+      u8"                        ^ Diag_Use_Of_Undeclared_Type.name"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Interface,

@@ -28,18 +28,10 @@ TEST(Test_Variable_Analyzer_Arguments,
 
 TEST(Test_Variable_Analyzer_Arguments,
      arguments_magic_variable_is_unusable_in_global_scope) {
-  const Char8 arguments_use[] = u8"arguments";
-
-  // arguments;
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_use(identifier_of(arguments_use));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, ElementsAreArray({
-                            DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable,
-                                           name, span_of(arguments_use)),
-                        }));
+  test_parse_and_analyze(
+      u8"arguments;"_sv,
+      u8"^^^^^^^^^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Arguments,

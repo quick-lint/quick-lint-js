@@ -122,64 +122,17 @@ TEST(Test_Variable_Analyzer_Enum, function_shadows_enum_in_outer_scope) {
 }
 
 TEST(Test_Variable_Analyzer_Enum, var_conflicts_with_enum_in_outer_scope) {
-  const Char8 enum_declaration[] = u8"e";
-  const Char8 var_declaration[] = u8"e";
+  test_parse_and_analyze(
+      u8"enum e {}  { var e; }"_sv,
+      u8"                 ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"     ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
 
-  {
-    // enum e {}
-    // {
-    //   var e;   // ERROR
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(enum_declaration),
-                                 Variable_Kind::_enum,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_enum_scope();
-    l.visit_exit_enum_scope();
-    l.visit_enter_block_scope();
-    l.visit_variable_declaration(identifier_of(var_declaration),
-                                 Variable_Kind::_var,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_block_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_SPANS(Diag_Redeclaration_Of_Variable,           //
-                              redeclaration, span_of(var_declaration),  //
-                              original_declaration, span_of(enum_declaration)),
-        }));
-  }
-
-  {
-    // {
-    //   var e;
-    // }
-    // enum e {}  // ERROR
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_block_scope();
-    l.visit_variable_declaration(identifier_of(var_declaration),
-                                 Variable_Kind::_var,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_block_scope();
-    l.visit_variable_declaration(identifier_of(enum_declaration),
-                                 Variable_Kind::_enum,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_enum_scope();
-    l.visit_exit_enum_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_SPANS(Diag_Redeclaration_Of_Variable,            //
-                              redeclaration, span_of(enum_declaration),  //
-                              original_declaration, span_of(var_declaration)),
-        }));
-  }
+  test_parse_and_analyze(
+      u8"{ var e; }  enum e {}"_sv,
+      u8"                 ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"      ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Enum, enum_shadows_most_variables_in_outer_scope) {

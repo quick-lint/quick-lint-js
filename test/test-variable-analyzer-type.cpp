@@ -71,19 +71,9 @@ TEST(Test_Variable_Analyzer_Type,
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_with_no_declaration_is_an_error) {
-  const Char8 use[] = u8"C";
-
-  // ({}) as C;  // ERROR
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_type_use(identifier_of(use));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(
-      v.errors,
-      ElementsAreArray({
-          DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name, span_of(use)),
-      }));
+  test_parse_and_analyze(u8"({}) as C;"_sv,
+                         u8"        ^ Diag_Use_Of_Undeclared_Type.name"_diag,
+                         typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type,
@@ -171,31 +161,11 @@ TEST(Test_Variable_Analyzer_Type, type_use_of_import_is_okay) {
 
 TEST(Test_Variable_Analyzer_Type,
      generic_parameter_use_before_declaration_is_an_error) {
-  const Char8 other_declaration[] = u8"T";
-  const Char8 use[] = u8"U";
-  const Char8 declaration[] = u8"U";
-
-  // (function<
-  //   T extends U,  // ERROR
-  //   U,
-  // >() { });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-  l.visit_variable_declaration(identifier_of(other_declaration),
-                               Variable_Kind::_generic_parameter,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_type_use(identifier_of(use));
-  l.visit_variable_declaration(identifier_of(declaration),
-                               Variable_Kind::_generic_parameter,
-                               Variable_Declaration_Flags::none);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_2_SPANS(Diag_Variable_Used_Before_Declaration,  //
-                                    use, span_of(use),                      //
-                                    declaration, span_of(declaration)),
-              }));
+  test_parse_and_analyze(
+      u8"(function< T extends U, U, >() { });"_sv,
+      u8"                     ^ Diag_Variable_Used_Before_Declaration.use\n"_diag
+      u8"                        ^ .declaration"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type, interface_can_be_exported) {
@@ -741,35 +711,11 @@ TEST(Test_Variable_Analyzer_Type, mixing_interface_and_import_is_not_an_error) {
 }
 
 TEST(Test_Variable_Analyzer_Type, interfaces_conflict_with_generic_parameters) {
-  const Char8 generic_parameter_declaration[] = u8"I";
-  const Char8 interface_declaration[] = u8"I";
-
-  // function f<I>() {
-  //   interface I {}   // ERROR
-  // }
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_variable_declaration(identifier_of(generic_parameter_declaration),
-                               Variable_Kind::_generic_parameter,
-                               Variable_Declaration_Flags::none);
-  l.visit_enter_function_scope_body();
-  l.visit_variable_declaration(identifier_of(interface_declaration),
-                               Variable_Kind::_interface,
-                               Variable_Declaration_Flags::none);
-  l.visit_enter_interface_scope();
-  l.visit_exit_interface_scope();
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_2_SPANS(Diag_Redeclaration_Of_Variable,  //
-                                    redeclaration,
-                                    span_of(interface_declaration),  //
-                                    original_declaration,
-                                    span_of(generic_parameter_declaration)),
-              }));
+  test_parse_and_analyze(
+      u8"function f<I>() { interface I {}  }"_sv,
+      u8"                            ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"           ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type, type_predicate_finds_function_parameter) {
@@ -781,103 +727,27 @@ TEST(Test_Variable_Analyzer_Type, type_predicate_finds_function_parameter) {
 
 TEST(Test_Variable_Analyzer_Type,
      type_predicate_does_not_find_outer_function_parameter) {
-  const Char8 outer_parameter_declaration[] = u8"outer";
-  const Char8 inner_parameter_declaration[] = u8"inner";
-  const Char8 parameter_use[] = u8"outer";
-
-  // ((outer) => {
-  //   ((inner): outer is any => {  // ERROR
-  //   });
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_variable_declaration(identifier_of(outer_parameter_declaration),
-                               Variable_Kind::_arrow_parameter,
-                               Variable_Declaration_Flags::none);
-  l.visit_enter_function_scope_body();
-  l.visit_enter_function_scope();
-  l.visit_variable_declaration(identifier_of(inner_parameter_declaration),
-                               Variable_Kind::_arrow_parameter,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_type_predicate_use(identifier_of(parameter_use));
-  l.visit_enter_function_scope_body();
-  l.visit_exit_function_scope();
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(
-      v.errors,
-      ElementsAreArray({
-          DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Parameter_In_Type_Predicate,  //
-                         name, span_of(parameter_use)),
-      }));
+  test_parse_and_analyze(
+      u8"((outer) => { ((inner): outer is any => { }); });"_sv,
+      u8"                        ^^^^^ Diag_Use_Of_Undeclared_Parameter_In_Type_Predicate.name"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type,
      type_predicate_does_not_find_generic_parameter) {
-  const Char8 generic_parameter_declaration[] = u8"T";
-  const Char8 parameter_declaration[] = u8"p";
-  const Char8 parameter_use[] = u8"T";
-
-  // (<T>(p): T is any => {
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_variable_declaration(identifier_of(generic_parameter_declaration),
-                               Variable_Kind::_generic_parameter,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_declaration(identifier_of(parameter_declaration),
-                               Variable_Kind::_arrow_parameter,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_type_predicate_use(identifier_of(parameter_use));
-  l.visit_enter_function_scope_body();
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(
-      v.errors,
-      ElementsAreArray({
-          DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Parameter_In_Type_Predicate,  //
-                         name, span_of(parameter_use)),
-      }));
+  test_parse_and_analyze(
+      u8"(<T>(p): T is any => { });"_sv,
+      u8"         ^ Diag_Use_Of_Undeclared_Parameter_In_Type_Predicate.name"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type,
      variables_referenced_in_conditional_type_scope_are_looked_up) {
-  const Char8 derived_use[] = u8"Derived";
-  const Char8 base_use[] = u8"Base";
-  const Char8 true_type_use[] = u8"TrueType";
-  const Char8 false_type_use[] = u8"FalseType";
-
-  // type Derived = null;
-  // type Base = null;
-  // null as (Derived extends Base ? TrueType : FalseType)
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-  l.visit_variable_declaration(identifier_of(derived_use),
-                               Variable_Kind::_type_alias,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_declaration(identifier_of(base_use),
-                               Variable_Kind::_type_alias,
-                               Variable_Declaration_Flags::none);
-
-  l.visit_variable_type_use(identifier_of(derived_use));
-  l.visit_variable_type_use(identifier_of(base_use));
-  l.visit_enter_conditional_type_scope();
-  l.visit_variable_type_use(identifier_of(true_type_use));
-  l.visit_exit_conditional_type_scope();
-  l.visit_variable_type_use(identifier_of(false_type_use));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors,
-              ::testing::UnorderedElementsAreArray({
-                  DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type,  //
-                                 name, span_of(true_type_use)),
-                  DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type,  //
-                                 name, span_of(false_type_use)),
-              }));
+  test_parse_and_analyze(
+      u8"type Derived = null; type Base = null; null as (Derived extends Base ? TrueType : FalseType)"_sv,
+      u8"                                                                                  ^^^^^^^^^ Diag_Use_Of_Undeclared_Type.name"_diag,
+      u8"                                                                       ^^^^^^^^ Diag_Use_Of_Undeclared_Type.name"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type,
