@@ -19,20 +19,11 @@ namespace quick_lint_js {
 namespace {
 TEST(Test_Variable_Analyzer_Arguments,
      arguments_magic_variable_is_usable_within_functions) {
-  const Char8 arguments_use[] = u8"arguments";
-
-  // (function() {
-  //   arguments;
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_variable_use(identifier_of(arguments_use));
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"(function() {"_sv
+      u8"  arguments;"_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Arguments,
@@ -53,93 +44,37 @@ TEST(Test_Variable_Analyzer_Arguments,
 
 TEST(Test_Variable_Analyzer_Arguments,
      parameter_named_arguments_does_not_conflict) {
-  const Char8 parameter_declaration[] = u8"arguments";
-  const Char8 parameter_use[] = u8"arguments";
-
-  // (function(arguments) {
-  //   arguments;
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_variable_declaration(identifier_of(parameter_declaration),
-                               Variable_Kind::_function_parameter,
-                               Variable_Declaration_Flags::none);
-  l.visit_enter_function_scope_body();
-  l.visit_variable_use(identifier_of(parameter_use));
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"(function(arguments) {"_sv
+      u8"  arguments;"_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Arguments,
      parameter_default_values_can_reference_arguments) {
-  const Char8 parameter_declaration[] = u8"p";
-  const Char8 parameter_default_value[] = u8"arguments";
-
-  {
-    // (function(p = arguments) {
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_variable_use(identifier_of(parameter_default_value));
-    l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 Variable_Kind::_function_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope_body();
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"(function(p = arguments) {"_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
 
   // 'arguments' refers to magic-arguments, not a local variable. If 'arguments'
   // referred to a local variable, this test would fail with a
   // use-before-declaration error.
-  {
-    const Char8 local_declaration[] = u8"arguments";
-
-    // (function(p = arguments) {
-    //   let arguments;
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_variable_use(identifier_of(parameter_default_value));
-    l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 Variable_Kind::_function_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(local_declaration),
-                                 Variable_Kind::_let,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"(function(p = arguments) {"_sv
+      u8"  let arguments;"_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Arguments,
      var_does_not_conflict_with_magic_arguments) {
-  const Char8 arguments_declaration[] = u8"arguments";
-
-  // (function() {
-  //   var arguments;
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_variable_declaration(identifier_of(arguments_declaration),
-                               Variable_Kind::_var,
-                               Variable_Declaration_Flags::none);
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"(function() {"_sv
+      u8"  var arguments;"_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Arguments, let_shadows_magic_arguments) {
@@ -190,49 +125,21 @@ TEST(Test_Variable_Analyzer_Arguments, let_shadows_magic_arguments) {
 }
 
 TEST(Test_Variable_Analyzer_Arguments, function_shadows_magic_arguments) {
-  const Char8 arguments_declaration[] = u8"arguments";
-
-  // (function() {
-  //   function arguments() {}
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_variable_declaration(identifier_of(arguments_declaration),
-                               Variable_Kind::_function,
-                               Variable_Declaration_Flags::none);
-  l.visit_enter_function_scope();
-  l.visit_exit_function_scope();
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"(function() {"_sv
+      u8"  function arguments() {} "_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Arguments, catch_variable_shadows_magic_arguments) {
-  const Char8 arguments_declaration[] = u8"arguments";
-
-  // (function() {
-  //   try {
-  //   } catch (arguments) {
-  //   }
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_enter_block_scope();
-  l.visit_exit_block_scope();
-  l.visit_enter_block_scope();
-  l.visit_variable_declaration(identifier_of(arguments_declaration),
-                               Variable_Kind::_catch,
-                               Variable_Declaration_Flags::none);
-  l.visit_exit_block_scope();
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"(function() {"_sv
+      u8"  try {"_sv
+      u8"  } catch (arguments) {"_sv
+      u8"  } "_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
 }
 
 // TODO(#204): 'arguments' should not be declared in arrow functions.

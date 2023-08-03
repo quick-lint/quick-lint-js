@@ -18,39 +18,16 @@ using ::testing::IsEmpty;
 namespace quick_lint_js {
 namespace {
 TEST(Test_Variable_Analyzer_Namespace, empty_namespace) {
-  const Char8 namespace_declaration[] = u8"NS";
-
-  // namespace NS { }
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_namespace_scope();
-  l.visit_exit_namespace_scope();
-  l.visit_variable_declaration(identifier_of(namespace_declaration),
-                               Variable_Kind::_namespace,
-                               Variable_Declaration_Flags::none);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(u8"namespace NS { } "_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Namespace,
      namespace_name_is_visible_outside_namespace) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 namespace_use[] = u8"NS";
-
-  // namespace NS { }
-  // NS;
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_namespace_scope();
-  l.visit_exit_namespace_scope();
-  l.visit_variable_declaration(identifier_of(namespace_declaration),
-                               Variable_Kind::_namespace,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_use(identifier_of(namespace_use));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"namespace NS { } "_sv
+      u8"NS;"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 // TODO(strager): Is this correct? TypeScript's compiler (as of v4.8.2)
@@ -58,43 +35,19 @@ TEST(Test_Variable_Analyzer_Namespace,
 // about referencing the namespace itself.
 TEST(Test_Variable_Analyzer_Namespace,
      namespace_name_is_usable_before_namespace) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 namespace_use[] = u8"NS";
-
-  // NS;
-  // namespace NS { }
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_use(identifier_of(namespace_use));
-  l.visit_enter_namespace_scope();
-  l.visit_exit_namespace_scope();
-  l.visit_variable_declaration(identifier_of(namespace_declaration),
-                               Variable_Kind::_namespace,
-                               Variable_Declaration_Flags::none);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"NS;"_sv
+      u8"namespace NS { } "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Namespace,
      namespace_name_is_visible_inside_namespace) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 namespace_use[] = u8"NS";
-
-  // namespace NS {
-  //   NS;
-  // }
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_namespace_scope();
-  l.visit_variable_use(identifier_of(namespace_use));
-  l.visit_exit_namespace_scope();
-  l.visit_variable_declaration(identifier_of(namespace_declaration),
-                               Variable_Kind::_namespace,
-                               Variable_Declaration_Flags::none);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"namespace NS {"_sv
+      u8"  NS;"_sv
+      u8"} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Namespace,

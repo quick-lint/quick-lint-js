@@ -21,33 +21,15 @@ namespace {
 TEST(Test_Variable_Analyzer_Interface,
      interface_body_can_reference_types_outside) {
   const Char8 interface_declaration[] = u8"I";
-  const Char8 type_declaration[] = u8"C";
   const Char8 type_use[] = u8"C";
   const Char8 method_name[] = u8"method";
 
-  {
-    // import {C} from "other-module";
-    // interface I {
-    //   method(): C;
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(type_declaration),
-                                 Variable_Kind::_import,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_interface_scope();
-    l.visit_property_declaration(identifier_of(method_name));
-    l.visit_enter_function_scope();
-    l.visit_variable_type_use(identifier_of(type_use));
-    l.visit_exit_function_scope();
-    l.visit_exit_interface_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"import {C} from 'other-module';"_sv
+      u8"interface I {"_sv
+      u8"  method(): C;"_sv
+      u8"} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
   {
     // interface I {
@@ -75,69 +57,26 @@ TEST(Test_Variable_Analyzer_Interface,
 
 TEST(Test_Variable_Analyzer_Interface,
      generic_interface_parameters_are_usable_inside) {
-  const Char8 interface_declaration[] = u8"I";
-  const Char8 parameter_declaration[] = u8"T";
-  const Char8 parameter_use[] = u8"T";
-  const Char8 method_name[] = u8"method";
-
-  {
-    // interface I<T> {
-    //   method(): T;
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_interface_scope();
-    l.visit_variable_declaration(identifier_of(parameter_declaration),
-                                 Variable_Kind::_generic_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_property_declaration(identifier_of(method_name));
-    l.visit_enter_function_scope();
-    l.visit_variable_type_use(identifier_of(parameter_use));
-    l.visit_exit_function_scope();
-    l.visit_exit_interface_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"interface I<T> {"_sv
+      u8"  method(): T;"_sv
+      u8"} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Interface,
      interface_index_signature_can_use_outside_types) {
-  const Char8 type_declaration[] = u8"C";
   const Char8 interface_declaration[] = u8"I";
   const Char8 index_declaration[] = u8"index";
   const Char8 type_use_1[] = u8"C";
   const Char8 type_use_2[] = u8"C";
 
-  {
-    // import {C} from "other-module";
-    // interface I {
-    //   [index: C]: C;
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(type_declaration),
-                                 Variable_Kind::_import,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_interface_scope();
-    l.visit_enter_index_signature_scope();
-    l.visit_variable_type_use(identifier_of(type_use_1));
-    l.visit_variable_declaration(identifier_of(index_declaration),
-                                 Variable_Kind::_index_signature_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_type_use(identifier_of(type_use_2));
-    l.visit_exit_index_signature_scope();
-    l.visit_exit_interface_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"import {C} from 'other-module';"_sv
+      u8"interface I {"_sv
+      u8"  [index: C]: C;"_sv
+      u8"} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
   {
     // interface I {
@@ -170,31 +109,11 @@ TEST(Test_Variable_Analyzer_Interface,
 
 TEST(Test_Variable_Analyzer_Interface,
      interface_index_signature_variable_is_usable_inside) {
-  const Char8 interface_declaration[] = u8"I";
-  const Char8 index_declaration[] = u8"index";
-  const Char8 index_use[] = u8"index";
-
-  {
-    // interface I {
-    //   [index: number]: typeof index;
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_interface_scope();
-    l.visit_enter_index_signature_scope();
-    l.visit_variable_declaration(identifier_of(index_declaration),
-                                 Variable_Kind::_index_signature_parameter,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_use(identifier_of(index_use));
-    l.visit_exit_index_signature_scope();
-    l.visit_exit_interface_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"interface I {"_sv
+      u8"  [index: number]: typeof index;"_sv
+      u8"} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Interface,

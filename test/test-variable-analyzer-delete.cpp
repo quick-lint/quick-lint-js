@@ -300,32 +300,14 @@ TEST(Test_Variable_Analyzer_Delete_JavaScript,
   Source_Code_Span deleted_variable_span(code.data() + 7, code.data() + 23);
   ASSERT_EQ(deleted_variable_span.string_view(), u8"myGlobalVariable"_sv);
 
-  {
-    // delete myGlobalVariable;
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_end_of_module();
+  test_parse_and_analyze(u8"delete myGlobalVariable;"_sv, no_diags,
+                         javascript_analyze_options, default_globals);
 
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
-    // (() => {
-    //   delete myGlobalVariable;
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"(() => {"_sv
+      u8"  delete myGlobalVariable;"_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Delete_TypeScript,

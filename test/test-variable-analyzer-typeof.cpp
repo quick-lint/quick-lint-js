@@ -19,71 +19,34 @@ namespace quick_lint_js {
 namespace {
 TEST(Test_Variable_Analyzer_Typeof,
      using_undeclared_variable_in_typeof_is_not_an_error) {
-  const Char8 use[] = u8"v";
-
-  // typeof v;
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_typeof_use(identifier_of(use));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(u8"typeof v;"_sv, no_diags, typescript_analyze_options,
+                         default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Typeof, typeof_declares_variable_automagically) {
-  const Char8 typeof_use[] = u8"v";
-  const Char8 other_use[] = u8"v";
-
-  // typeof v;
-  // v;
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_typeof_use(identifier_of(typeof_use));
-  l.visit_variable_use(identifier_of(other_use));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"typeof v;"_sv
+      u8"v;"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Typeof,
      typeof_declares_variable_automagically_in_parent_function) {
-  const Char8 use_before[] = u8"v";
-  const Char8 typeof_use[] = u8"v";
-  const Char8 use_after[] = u8"v";
-
-  // v;
-  // (() => {
-  //   typeof v;
-  // });
-  // v;
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_use(identifier_of(use_before));
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_variable_typeof_use(identifier_of(typeof_use));
-  l.visit_exit_function_scope();
-  l.visit_variable_use(identifier_of(use_after));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"v;"_sv
+      u8"(() => {"_sv
+      u8"  typeof v;"_sv
+      u8"});"_sv
+      u8"v;"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Typeof,
      typeof_refers_to_already_declared_variable) {
-  const Char8 declaration[] = u8"v";
-  const Char8 use[] = u8"v";
-
-  // let v;
-  // typeof v;
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_declaration(identifier_of(declaration), Variable_Kind::_let,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_typeof_use(identifier_of(use));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"let v;"_sv
+      u8"typeof v;"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Typeof,

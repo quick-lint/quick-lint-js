@@ -19,15 +19,8 @@ namespace quick_lint_js {
 namespace {
 TEST(Test_Variable_Analyzer_Type,
      type_use_does_not_warn_on_predefined_global_classes) {
-  const Char8 use[] = u8"Array";
-
-  // ([]) as Array;
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_type_use(identifier_of(use));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(u8"([]) as Array;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_after_declaration_is_okay) {
@@ -165,36 +158,15 @@ TEST(Test_Variable_Analyzer_Type, type_use_before_declaration_is_okay) {
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_of_import_is_okay) {
-  const Char8 declaration[] = u8"I";
-  const Char8 use[] = u8"I";
+  test_parse_and_analyze(
+      u8"({}) as I;"_sv
+      u8"import {I} from 'module';"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
-  {
-    // ({}) as I;
-    // import {I} from "module";
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_type_use(identifier_of(use));
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_import,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
-    // import {I} from "module";
-    // ({}) as I;
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_import,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_type_use(identifier_of(use));
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"import {I} from 'module';"_sv
+      u8"({}) as I;"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type,
@@ -227,98 +199,38 @@ TEST(Test_Variable_Analyzer_Type,
 }
 
 TEST(Test_Variable_Analyzer_Type, interface_can_be_exported) {
-  const Char8 declaration[] = u8"I";
-  const Char8 use[] = u8"I";
+  test_parse_and_analyze(
+      u8"interface I {} "_sv
+      u8"export {I};"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
-  {
-    // interface I {}
-    // export {I};
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_export_use(identifier_of(use));
-    l.visit_end_of_module();
+  test_parse_and_analyze(
+      u8"export {I};"_sv
+      u8"interface I {} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"interface I {} "_sv
+      u8"(() => {"_sv
+      u8"  export {I};"_sv
+      u8"});"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
-  {
-    // export {I};
-    // interface I {}
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_export_use(identifier_of(use));
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
+  test_parse_and_analyze(
+      u8"(() => {"_sv
+      u8"  export {I};"_sv
+      u8"});"_sv
+      u8"interface I {} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
-    // interface I {}
-    // (() => {
-    //   export {I};
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_export_use(identifier_of(use));
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
-    // (() => {
-    //   export {I};
-    // });
-    // interface I {}
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_export_use(identifier_of(use));
-    l.visit_exit_function_scope();
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
-    // interface I {}
-    // (() => {
-    //   (() => {
-    //     export {I};
-    //   });
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_export_use(identifier_of(use));
-    l.visit_exit_function_scope();
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"interface I {} "_sv
+      u8"(() => {"_sv
+      u8"  (() => {"_sv
+      u8"    export {I};"_sv
+      u8"  });"_sv
+      u8"});"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_does_not_see_non_type_variables) {
@@ -817,40 +729,15 @@ TEST(Test_Variable_Analyzer_Type,
 // the conservative approach and assume that the user wrote correct code (thus
 // we report no diagnostic).
 TEST(Test_Variable_Analyzer_Type, mixing_interface_and_import_is_not_an_error) {
-  const Char8 interface_declaration[] = u8"C";
-  const Char8 imported_declaration[] = u8"C";
+  test_parse_and_analyze(
+      u8"import {C} from 'module';"_sv
+      u8"interface C {} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 
-  {
-    // import {C} from "module";
-    // interface C {}
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(imported_declaration),
-                                 Variable_Kind::_import,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
-    // interface C {}
-    // import {C} from "module";
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_declaration(identifier_of(interface_declaration),
-                                 Variable_Kind::_interface,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_declaration(identifier_of(imported_declaration),
-                                 Variable_Kind::_import,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"interface C {} "_sv
+      u8"import {C} from 'module';"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type, interfaces_conflict_with_generic_parameters) {
@@ -886,23 +773,10 @@ TEST(Test_Variable_Analyzer_Type, interfaces_conflict_with_generic_parameters) {
 }
 
 TEST(Test_Variable_Analyzer_Type, type_predicate_finds_function_parameter) {
-  const Char8 parameter_declaration[] = u8"p";
-  const Char8 parameter_use[] = u8"p";
-
-  // ((p): p is any => {
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_variable_declaration(identifier_of(parameter_declaration),
-                               Variable_Kind::_arrow_parameter,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_type_predicate_use(identifier_of(parameter_use));
-  l.visit_enter_function_scope_body();
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"((p): p is any => {"_sv
+      u8"});"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type,
@@ -1008,21 +882,8 @@ TEST(Test_Variable_Analyzer_Type,
 
 TEST(Test_Variable_Analyzer_Type,
      infer_variables_in_conditional_type_scope_are_declared) {
-  const Char8 t_declaration[] = u8"T";
-  const Char8 t_use[] = u8"T";
-
-  // null as (any extends infer T ? T : false)
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-  l.visit_enter_conditional_type_scope();
-  l.visit_variable_declaration(identifier_of(t_declaration),
-                               Variable_Kind::_infer_type,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_type_use(identifier_of(t_use));
-  l.visit_exit_conditional_type_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(u8"null as (any extends infer T ? T : false)"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
 }
 }
 }
