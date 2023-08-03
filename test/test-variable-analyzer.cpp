@@ -400,31 +400,12 @@ TEST(Test_Variable_Analyzer, assign_to_immutable_const_variable) {
   const Char8 declaration[] = u8"x";
   const Char8 assignment[] = u8"x";
 
-  {
-    // (() => {
-    //   const x = null;  // x is immutable
-    //   x = 42;          // ERROR
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(
-        identifier_of(declaration), Variable_Kind::_const,
-        Variable_Declaration_Flags::initialized_with_equals);
-    l.visit_variable_assignment(identifier_of(assignment));
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_3_FIELDS(Diag_Assignment_To_Const_Variable,       //
-                               assignment, Span_Matcher(assignment),    //
-                               declaration, Span_Matcher(declaration),  //
-                               var_kind, Variable_Kind::_const),
-        }));
-  }
+  test_parse_and_analyze(
+      u8"(() => { const x = null; x = 42; });"_sv,
+      u8"                         ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"               ^ .declaration"_diag
+      u8"{.var_kind=Variable_Kind::_const}"_diag,
+      javascript_analyze_options, default_globals);
 
   {
     // const x = null;  // x is immutable

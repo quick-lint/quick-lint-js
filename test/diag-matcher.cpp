@@ -201,6 +201,14 @@ Statement_Kind Diag_Matcher_Arg::get_statement_kind(
   return *static_cast<const Statement_Kind *>(member_data);
 }
 
+Variable_Kind Diag_Matcher_Arg::get_variable_kind(
+    const void *error_object) const {
+  QLJS_ASSERT(this->member_type == Diagnostic_Arg_Type::variable_kind);
+  const void *member_data =
+      reinterpret_cast<const char *>(error_object) + this->member_offset;
+  return *static_cast<const Variable_Kind *>(member_data);
+}
+
 template <class State, class Field>
 class Diag_Fields_Matcher_Impl_Base
     : public testing::MatcherInterface<const Diag_Collector::Diag &> {
@@ -366,6 +374,15 @@ class Diag_Matcher_2::Impl
       *listener << "whose ." << f.arg.member_name << " (" << statement_kind
                 << ") " << (character_matches ? "equals" : "doesn't equal")
                 << " " << f.statement_kind;
+      return character_matches;
+    }
+
+    case Diagnostic_Arg_Type::variable_kind: {
+      Variable_Kind variable_kind = f.arg.get_variable_kind(error.data());
+      bool character_matches = variable_kind == f.variable_kind;
+      *listener << "whose ." << f.arg.member_name << " (" << variable_kind
+                << ") " << (character_matches ? "equals" : "doesn't equal")
+                << " " << f.variable_kind;
       return character_matches;
     }
 

@@ -212,6 +212,9 @@ struct Diag_Matcher_Arg {
 
   // Precondition: this->member_type == Diagnostic_Arg_Type::statement_kind
   Statement_Kind get_statement_kind(const void *error_object) const;
+
+  // Precondition: this->member_type == Diagnostic_Arg_Type::variable_kind
+  Variable_Kind get_variable_kind(const void *error_object) const;
 };
 
 // Create a Diag_Matcher_Arg from a Diag_ struct type and the name of a member
@@ -292,6 +295,9 @@ class Diag_Matcher_2 {
 
     // If this->arg.member_type == Diag_Matcher_Arg::statement_kind:
     Statement_Kind statement_kind;
+
+    // If this->arg.member_type == Diag_Matcher_Arg::variable_kind:
+    Variable_Kind variable_kind;
   };
 
   explicit Diag_Matcher_2(Padded_String_View input, Diag_Type type,

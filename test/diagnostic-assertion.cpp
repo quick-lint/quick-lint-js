@@ -42,6 +42,7 @@ bool is_diag_type_char(Char8 c) {
 
 std::optional<Enum_Kind> try_parse_enum_kind(String8_View);
 std::optional<Statement_Kind> try_parse_statement_kind(String8_View);
+std::optional<Variable_Kind> try_parse_variable_kind(String8_View);
 
 struct Diagnostic_Info_Variable_Debug {
   String8_View name;
@@ -340,6 +341,21 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       break;
     }
 
+    case Diagnostic_Arg_Type::variable_kind: {
+      out_member.name = extra_member->name;
+      out_member.offset = extra_member->offset;
+      out_member.type = extra_member->type;
+      std::optional<Variable_Kind> variable_kind =
+          try_parse_variable_kind(extra_member_value_span);
+      if (variable_kind.has_value()) {
+        out_member.variable_kind = *variable_kind;
+      } else {
+        lexer.errors.push_back(concat("invalid Variable_Kind: "sv,
+                                      to_string_view(extra_member_value_span)));
+      }
+      break;
+    }
+
     default:
       lexer.errors.push_back(concat("member {."sv,
                                     to_string_view(extra_member_span),
@@ -482,6 +498,9 @@ diagnostics_matcher(Padded_String_View code,
       case Diagnostic_Arg_Type::statement_kind:
         field.statement_kind = member.statement_kind;
         break;
+      case Diagnostic_Arg_Type::variable_kind:
+        field.variable_kind = member.variable_kind;
+        break;
       default:
         QLJS_ASSERT(false);
         break;
@@ -533,6 +552,34 @@ std::optional<Statement_Kind> try_parse_statement_kind(String8_View s) {
   QLJS_CASE(while_loop)
   QLJS_CASE(with_statement)
   QLJS_CASE(labelled_statement)
+  return std::nullopt;
+#undef QLJS_CASE
+}
+
+std::optional<Variable_Kind> try_parse_variable_kind(String8_View s) {
+#define QLJS_CASE(kind)                                         \
+  if (s == u8"Variable_Kind::"_sv QLJS_CPP_QUOTE_U8_SV(kind)) { \
+    return Variable_Kind::kind;                                 \
+  }
+  QLJS_CASE(_arrow_parameter)
+  QLJS_CASE(_catch)
+  QLJS_CASE(_class)
+  QLJS_CASE(_const)
+  QLJS_CASE(_enum)
+  QLJS_CASE(_function)
+  QLJS_CASE(_function_parameter)
+  QLJS_CASE(_function_type_parameter)
+  QLJS_CASE(_generic_parameter)
+  QLJS_CASE(_import)
+  QLJS_CASE(_import_alias)
+  QLJS_CASE(_import_type)
+  QLJS_CASE(_index_signature_parameter)
+  QLJS_CASE(_infer_type)
+  QLJS_CASE(_interface)
+  QLJS_CASE(_let)
+  QLJS_CASE(_namespace)
+  QLJS_CASE(_type_alias)
+  QLJS_CASE(_var)
   return std::nullopt;
 #undef QLJS_CASE
 }

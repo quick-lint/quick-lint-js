@@ -98,6 +98,9 @@ struct Diagnostic_Assertion {
 
     // If type == Diagnostic_Arg_Type::statement_kind:
     Statement_Kind statement_kind;
+
+    // If type == Diagnostic_Arg_Type::variable_kind:
+    Variable_Kind variable_kind;
   };
 
   Diag_Type type = Diag_Type();
