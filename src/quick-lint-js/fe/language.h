@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_FE_LANGUAGE_H
 
 #include <iosfwd>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 enum class Statement_Kind {
@@ -49,6 +50,10 @@ enum class Variable_Kind : unsigned char {
   _var,
 };
 
+// For debugging.
+String8_View to_string(Variable_Kind);
+std::ostream& operator<<(std::ostream&, Variable_Kind);
+
 enum Variable_Declaration_Flags : unsigned char {
   none = 0,
 
@@ -78,8 +83,6 @@ enum Variable_Declaration_Flags : unsigned char {
   // parser::is_current_typescript_namespace_non_empty_.
   non_empty_namespace = 1 << 1,
 };
-
-std::ostream& operator<<(std::ostream&, Variable_Kind);
 
 enum class Function_Attributes {
   async,

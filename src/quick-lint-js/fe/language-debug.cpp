@@ -4,6 +4,7 @@
 #include <ostream>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/fe/language.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 std::ostream& operator<<(std::ostream& out, Statement_Kind kind) {
@@ -41,33 +42,7 @@ std::ostream& operator<<(std::ostream& out, Enum_Kind kind) {
 }
 
 std::ostream& operator<<(std::ostream& out, Variable_Kind kind) {
-#define QLJS_CASE(k)     \
-  case Variable_Kind::k: \
-    out << #k;           \
-    return out;
-  switch (kind) {
-    QLJS_CASE(_arrow_parameter)
-    QLJS_CASE(_catch)
-    QLJS_CASE(_class)
-    QLJS_CASE(_const)
-    QLJS_CASE(_enum)
-    QLJS_CASE(_function)
-    QLJS_CASE(_function_parameter)
-    QLJS_CASE(_function_type_parameter)
-    QLJS_CASE(_generic_parameter)
-    QLJS_CASE(_import)
-    QLJS_CASE(_import_alias)
-    QLJS_CASE(_import_type)
-    QLJS_CASE(_index_signature_parameter)
-    QLJS_CASE(_infer_type)
-    QLJS_CASE(_interface)
-    QLJS_CASE(_let)
-    QLJS_CASE(_namespace)
-    QLJS_CASE(_type_alias)
-    QLJS_CASE(_var)
-  }
-#undef QLJS_CASE
-  out << "???";
+  out << out_string8(to_string(kind));
   return out;
 }
 
