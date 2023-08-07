@@ -79,39 +79,6 @@ Offsets_Matcher::~Offsets_Matcher() = default;
       new Span_Impl(this->code_, this->begin_offset_, this->end_offset_));
 }
 
-class Span_Matcher::Span_Impl
-    : public testing::MatcherInterface<const Source_Code_Span &> {
- public:
-  explicit Span_Impl(const Char8 *expected) : expected_(expected) {}
-
-  void DescribeTo(std::ostream *out) const override {
-    *out << "begins at " << static_cast<const void *>(this->expected_);
-  }
-
-  void DescribeNegationTo(std::ostream *out) const override {
-    *out << "doesn't begin at " << static_cast<const void *>(this->expected_);
-  }
-
-  bool MatchAndExplain(const Source_Code_Span &span,
-                       testing::MatchResultListener *listener) const override {
-    bool result = span.begin() == this->expected_;
-    *listener << "whose span (at " << static_cast<const void *>(span.begin())
-              << ") " << (result ? "begins" : "doesn't begin") << " at "
-              << static_cast<const void *>(this->expected_);
-    return result;
-  }
-
- private:
-  const Char8 *expected_;
-};
-
-Span_Matcher::Span_Matcher(const Char8 *expected) : expected_(expected) {}
-
-Span_Matcher::operator testing::Matcher<const Source_Code_Span &>() const {
-  return testing::Matcher<const Source_Code_Span &>(
-      new Span_Impl(this->expected_));
-}
-
 class Source_Code_Span_Matcher::Span_Impl
     : public testing::MatcherInterface<const Source_Code_Span &> {
  public:

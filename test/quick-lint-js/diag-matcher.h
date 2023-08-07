@@ -132,21 +132,6 @@ class Offsets_Matcher {
   CLI_Source_Position::Offset_Type end_offset_;
 };
 
-// Like source_code_span_matcher, but only check the begin pointer.
-//
-// TODO(strager): Delete in favor of source_code_span_matcher.
-class Span_Matcher {
- public:
-  explicit Span_Matcher(const Char8 *expected);
-
-  /*implicit*/ operator testing::Matcher<const Source_Code_Span &>() const;
-
- private:
-  class Span_Impl;
-
-  const Char8 *expected_;
-};
-
 class Source_Code_Span_Matcher {
  public:
   explicit Source_Code_Span_Matcher(Source_Code_Span expected);
