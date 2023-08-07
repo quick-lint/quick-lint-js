@@ -36,6 +36,23 @@ TEST(Test_Fixed_Vector, push_items_until_full) {
   EXPECT_THAT(v, ElementsAreArray({100, 200, 300, 400}));
 }
 
+TEST(Test_Fixed_Vector, pop_items_from_full_to_empty) {
+  Fixed_Vector<int, 4> v;
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+  v.push_back(400);
+
+  v.pop_back();
+  EXPECT_THAT(v, ElementsAreArray({100, 200, 300}));
+  v.pop_back();
+  EXPECT_THAT(v, ElementsAreArray({100, 200}));
+  v.pop_back();
+  EXPECT_THAT(v, ElementsAreArray({100}));
+  v.pop_back();
+  EXPECT_THAT(v, IsEmpty());
+}
+
 TEST(Test_Fixed_Vector, copy_construct) {
   Fixed_Vector<int, 4> v;
   v.push_back(100);
@@ -102,6 +119,23 @@ TEST(Test_Fixed_Vector, item_type_destructor_is_called_during_destruction) {
     v.emplace_back();
     EXPECT_EQ(destruct_count, 0);
   }
+  EXPECT_EQ(destruct_count, 2);
+}
+
+TEST(Test_Fixed_Vector, item_type_destructor_is_called_by_pop_back) {
+  static int destruct_count;
+  destruct_count = 0;
+  struct Destructor_Spy {
+    ~Destructor_Spy() { destruct_count += 1; }
+  };
+
+  Fixed_Vector<Destructor_Spy, 4> v;
+  v.emplace_back();
+  v.emplace_back();
+  EXPECT_EQ(destruct_count, 0);
+  v.pop_back();
+  EXPECT_EQ(destruct_count, 1);
+  v.pop_back();
   EXPECT_EQ(destruct_count, 2);
 }
 

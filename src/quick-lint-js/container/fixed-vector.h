@@ -94,6 +94,11 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
   size_type size() const { return this->size_; }
   size_type capacity() const { return max_size; }
 
+  // Returns true if a new item cannot be pushed into this Fixed_Vector .
+  bool full() const { return this->size() == this->capacity(); }
+
+  // FIXME(strager): Do we need to return a std::launder-ed pointer? See
+  // NOTE[Fixed_Vector-launder].
   QLJS_FORCE_INLINE T *data() { return this->storage_slots(); }
   QLJS_FORCE_INLINE const T *data() const { return this->storage_slots(); }
 
@@ -114,6 +119,11 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
     return *std::launder(&this->storage_slots()[index]);
   }
 
+  T &back() {
+    QLJS_ASSERT(!this->empty());
+    return (*this)[this->size() - 1];
+  }
+
   T &push_back(const T &value) { return this->emplace_back(value); }
   T &push_back(T &&value) { return this->emplace_back(std::move(value)); }
 
@@ -124,6 +134,13 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
                     T(std::forward<Args>(args)...);
     this->size_ += 1;
     return result;
+  }
+
+  void pop_back() {
+    QLJS_ASSERT(!this->empty());
+    T *item = &this->storage_slots()[this->size_ - 1];
+    item->~T();
+    this->size_ -= 1;
   }
 
   void clear() {
