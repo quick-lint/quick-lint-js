@@ -10,10 +10,6 @@
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/warning.h>
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_CLANG("-Wgnu-anonymous-struct")
-QLJS_WARNING_IGNORE_GCC("-Wpedantic")
-
 namespace quick_lint_js {
 using Fixed_Vector_Size = Span_Size;
 
@@ -23,7 +19,7 @@ using Fixed_Vector_Size = Span_Size;
 //
 // Like boost::container::static_vector<T, max_size>.
 template <class T, Fixed_Vector_Size max_size>
-union Fixed_Vector {
+class Fixed_Vector {
  private:
   using Storage_Type = char[sizeof(T) * max_size];
 
@@ -43,7 +39,7 @@ union Fixed_Vector {
   explicit Fixed_Vector() {
     this->size_ = 0;
 
-    // Begin the lifetime of this->items_ as Storage_Type. This should not
+    // Begin the lifetime of this->items_.items as Storage_Type. This should not
     // generate any machine code. See NOTE[Fixed_Vector-union-init].
     new (this->storage()) Storage_Type;
   }
@@ -116,10 +112,10 @@ union Fixed_Vector {
   }
 
   QLJS_FORCE_INLINE Storage_Type *storage() {
-    return reinterpret_cast<Storage_Type *>(&this->items_);
+    return reinterpret_cast<Storage_Type *>(&this->items_.items);
   }
   QLJS_FORCE_INLINE const Storage_Type *storage() const {
-    return reinterpret_cast<const Storage_Type *>(&this->items_);
+    return reinterpret_cast<const Storage_Type *>(&this->items_.items);
   }
 
   // NOTE[Fixed_Vector-union]:
@@ -195,7 +191,7 @@ union Fixed_Vector {
   // (We can't make 'U' anonymous because it must have a constructor.)
   //
   // To work around this problem, instead of making a struct containing a union,
-  // we make a union containing a struct:
+  // we could make a union containing a struct:
   //
   //     // Example D:
   //     template <class T, Fixed_Vector_Size max_size>
@@ -220,14 +216,19 @@ union Fixed_Vector {
   //         items_ = ([0] = 100, [1] = 200, [2] = 300, [3] = 400)
   //       }
   //     }
-  struct {
-    Fixed_Vector_Size size_;
-    T items_[static_cast<std::size_t>(max_size)];
+  //
+  // However, this struct-in-union approach makes it impossible to factor common
+  // code into a base class of Fixed_Vector. Therefore, we opt for the inferior
+  // union-in-struct approach of example C.
+  Fixed_Vector_Size size_;
+  union Items_Storage {
+    explicit Items_Storage() {}
+
+    T items[static_cast<std::size_t>(max_size)];
   };
+  Items_Storage items_;
 };
 }
-
-QLJS_WARNING_POP
 
 #endif
 

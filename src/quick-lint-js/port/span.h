@@ -14,7 +14,7 @@ namespace quick_lint_js {
 using Span_Size = std::ptrdiff_t;
 
 template <class T, Span_Size max_size>
-union Fixed_Vector;
+class Fixed_Vector;
 
 // Like std::span.
 template <class T>
