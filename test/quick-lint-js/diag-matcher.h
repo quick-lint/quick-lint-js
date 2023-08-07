@@ -132,18 +132,6 @@ class Offsets_Matcher {
   CLI_Source_Position::Offset_Type end_offset_;
 };
 
-class Source_Code_Span_Matcher {
- public:
-  explicit Source_Code_Span_Matcher(Source_Code_Span expected);
-
-  /*implicit*/ operator testing::Matcher<const Source_Code_Span &>() const;
-
- private:
-  class Span_Impl;
-
-  Source_Code_Span expected_;
-};
-
 // Metadata for a member of a diagnostic class.
 struct Diag_Matcher_Arg {
   std::string_view member_name;
