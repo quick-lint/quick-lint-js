@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_CONTAINER_FIXED_VECTOR_H
 #define QUICK_LINT_JS_CONTAINER_FIXED_VECTOR_H
 
+#include <memory>
 #include <new>
 #include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/port/attribute.h>
@@ -171,6 +172,35 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
     }
 #endif
     this->size_ -= 1;
+  }
+
+  void resize(Fixed_Vector_Size new_size) {
+    QLJS_ASSERT(new_size <= max_size);
+    if (new_size > this->size_) {
+      T *first_slot_to_initialize = &this->storage_slots()[this->size_];
+      std::size_t slots_to_initialize =
+          narrow_cast<std::size_t>(new_size - this->size_);
+#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+      if constexpr (asan_poison) {
+        ASAN_UNPOISON_MEMORY_REGION(first_slot_to_initialize,
+                                    sizeof(T) * slots_to_initialize);
+      }
+#endif
+      std::uninitialized_value_construct_n(first_slot_to_initialize,
+                                           slots_to_initialize);
+    } else if (new_size < this->size_) {
+      T *first_slot_to_destroy = &this->storage_slots()[new_size];
+      std::size_t slots_to_destroy =
+          narrow_cast<std::size_t>(this->size_ - new_size);
+      std::destroy_n(first_slot_to_destroy, slots_to_destroy);
+#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+      if constexpr (asan_poison) {
+        ASAN_POISON_MEMORY_REGION(first_slot_to_destroy,
+                                  sizeof(T) * slots_to_destroy);
+      }
+#endif
+    }
+    this->size_ = new_size;
   }
 
   void clear() {

@@ -140,6 +140,59 @@ TEST(Test_Fixed_Vector, item_type_destructor_is_called_by_pop_back) {
   EXPECT_EQ(destruct_count, 2);
 }
 
+TEST(Test_Fixed_Vector, resize_grow_calls_default_constructor) {
+  static int default_construct_count;
+  default_construct_count = 0;
+  struct Test_Spy {
+    explicit Test_Spy() : value(1234) { default_construct_count += 1; }
+    explicit Test_Spy(int v) : value(v) {}
+
+    int value;
+  };
+
+  Fixed_Vector<Test_Spy, 4> v;
+  v.emplace_back(100);
+  v.resize(3);
+  EXPECT_EQ(v[1].value, 1234);
+  EXPECT_EQ(v[2].value, 1234);
+  EXPECT_EQ(default_construct_count, 2)
+      << "second and third elements should be default-constructed";
+}
+
+TEST(Test_Fixed_Vector, resize_grow_zero_initializes) {
+  Fixed_Vector<int, 4> v;
+  v.emplace_back(100);
+  v.pop_back();
+  // v should internally have {100, (undefined), (undefined), (undefined)}.
+  v.resize(3);
+  EXPECT_EQ(v[0], 0) << "v[0] should be modified by resize";
+}
+
+TEST(Test_Fixed_Vector, resize_shrink_removes_last_items) {
+  Fixed_Vector<int, 4> v;
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+  v.resize(1);
+  EXPECT_THAT(v, ElementsAreArray({100}));
+}
+
+TEST(Test_Fixed_Vector, resize_shrink_calls_destructor) {
+  static int destruct_count;
+  destruct_count = 0;
+  struct Destructor_Spy {
+    ~Destructor_Spy() { destruct_count += 1; }
+  };
+
+  Fixed_Vector<Destructor_Spy, 4> v;
+  v.emplace_back();
+  v.emplace_back();
+  v.emplace_back();
+  v.resize(1);
+  EXPECT_EQ(destruct_count, 2)
+      << "second and third elements should be destructed";
+}
+
 TEST(
     Test_Fixed_Vector,
     fixed_vector_is_trivially_destructible_if_item_type_is_trivially_destructible) {
@@ -181,6 +234,15 @@ TEST(Test_Fixed_Vector,
     item_200 = "monde";  // Should crash.
   };
   EXPECT_DEATH(check_pop_back(), "use-after-poison");
+
+  auto check_resize = [] {
+    Fixed_Vector<Type, 4> v;
+    v.push_back("hello");
+    Type& item_200 = v.push_back("world");
+    v.resize(1);
+    item_200 = "monde";  // Should crash.
+  };
+  EXPECT_DEATH(check_resize(), "use-after-poison");
 }
 #endif
 #endif
