@@ -88,6 +88,32 @@ TEST(Test_Fixed_Vector, default_construct_with_non_default_constructible_item) {
   };
   Fixed_Vector<Non_Default_Constructible, 4> v;
 }
+
+TEST(Test_Fixed_Vector, item_type_destructor_is_called_during_destruction) {
+  static int destruct_count;
+  destruct_count = 0;
+  struct Destructor_Spy {
+    ~Destructor_Spy() { destruct_count += 1; }
+  };
+
+  {
+    Fixed_Vector<Destructor_Spy, 4> v;
+    v.emplace_back();
+    v.emplace_back();
+    EXPECT_EQ(destruct_count, 0);
+  }
+  EXPECT_EQ(destruct_count, 2);
+}
+
+TEST(
+    Test_Fixed_Vector,
+    fixed_vector_is_trivially_destructible_if_item_type_is_trivially_destructible) {
+  struct Item {};
+  static_assert(std::is_trivially_destructible_v<Item>);
+
+  using Vector_Of_Items = Fixed_Vector<Item, 4>;
+  EXPECT_TRUE(std::is_trivially_destructible_v<Vector_Of_Items>);
+}
 }
 }
 

@@ -13,14 +13,48 @@
 namespace quick_lint_js {
 using Fixed_Vector_Size = Span_Size;
 
+// Helper class which defines destructors iff Fixed_Vector's items are not
+// trivially destructible.
+template <class T, Fixed_Vector_Size max_size,
+          bool is_trivially_destructible = std::is_trivially_destructible_v<T>>
+struct Fixed_Vector_Base;
+
+template <class T, Fixed_Vector_Size max_size>
+struct Fixed_Vector_Base<T, max_size, true> {
+  ~Fixed_Vector_Base() = default;  // Trivial.
+
+  union Items_Storage {
+    Items_Storage() {}
+    ~Items_Storage() = default;  // Trivial.
+
+    T items[static_cast<std::size_t>(max_size)];
+  };
+};
+
+template <class T, Fixed_Vector_Size max_size>
+struct Fixed_Vector_Base<T, max_size, false> {
+  ~Fixed_Vector_Base() {
+    static_cast<Fixed_Vector<T, max_size> &>(*this).clear();
+  }
+
+  union Items_Storage {
+    Items_Storage() {}
+    ~Items_Storage() {}
+
+    T items[static_cast<std::size_t>(max_size)];
+  };
+};
+
 // Like std::vector<T>, but with a maximum size.
 //
 // Like std::array<T, max_size>, but with a run-time number of items.
 //
 // Like boost::container::static_vector<T, max_size>.
 template <class T, Fixed_Vector_Size max_size>
-class Fixed_Vector {
+class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
  private:
+  using Base = Fixed_Vector_Base<T, max_size>;
+
   using Storage_Type = char[sizeof(T) * max_size];
 
  public:
@@ -33,8 +67,6 @@ class Fixed_Vector {
   using const_pointer = const T *;
   using iterator = T *;
   using const_iterator = const T *;
-
-  static_assert(is_winkable_v<T>);
 
   explicit Fixed_Vector() {
     this->size_ = 0;
@@ -56,9 +88,7 @@ class Fixed_Vector {
 
   // TODO(strager): Move constructor and assignment operator.
 
-  // NOTE[Fixed_Vector-destructor]: Because T is winkable, the destructor can
-  // remain defaulted. Best case, this makes Fixed_Vector<T> trivially
-  // destructable.
+  // NOTE(strager): ~Fixed_Vector is defined by Fixed_Vector_Base.
 
   bool empty() const { return this->size() == 0; }
   size_type size() const { return this->size_; }
@@ -221,12 +251,9 @@ class Fixed_Vector {
   // code into a base class of Fixed_Vector. Therefore, we opt for the inferior
   // union-in-struct approach of example C.
   Fixed_Vector_Size size_;
-  union Items_Storage {
-    explicit Items_Storage() {}
+  typename Base::Items_Storage items_;
 
-    T items[static_cast<std::size_t>(max_size)];
-  };
-  Items_Storage items_;
+  friend Base;
 };
 }
 
