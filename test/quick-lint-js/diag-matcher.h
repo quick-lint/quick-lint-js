@@ -26,13 +26,6 @@
       ::testing::Field(#member_1, &diag_type::member_1, matcher_1),  \
       ::testing::Field(#member_2, &diag_type::member_2, matcher_2)))
 
-#define DIAG_TYPE_3_FIELDS(diag_type, member_1, matcher_1, member_2, \
-                           matcher_2, member_3, matcher_3)           \
-  ::testing::VariantWith<diag_type>(::testing::AllOf(                \
-      ::testing::Field(#member_1, &diag_type::member_1, matcher_1),  \
-      ::testing::Field(#member_2, &diag_type::member_2, matcher_2),  \
-      ::testing::Field(#member_3, &diag_type::member_3, matcher_3)))
-
 // Equivalent to ::testing::VariantWith<type>(::testing::_), but compiles much
 // more quickly.
 #define DIAG_TYPE(type) \
@@ -69,32 +62,6 @@
                                     DIAG_MATCHER_ARG(type, member_1),     \
                                     start_1,                              \
                                     end_or_text_1,                        \
-                                })
-
-// Equivalent to the following, but compiles much more quickly:
-//
-//   DIAG_TYPE_FIELD(type,
-//                    member_0, Offsets_Matcher(code, start_0, end_or_text_0),
-//                    member_1, Offsets_Matcher(code, start_1, end_or_text_1),
-//                    member_2, Offsets_Matcher(code, start_2, end_or_text_2))
-#define DIAG_TYPE_3_OFFSETS(code, type, member_0, start_0, end_or_text_0, \
-                            member_1, start_1, end_or_text_1, member_2,   \
-                            start_2, end_or_text_2)                       \
-  ::quick_lint_js::Diag_Matcher(code, ::quick_lint_js::Diag_Type::type,   \
-                                ::quick_lint_js::Diag_Matcher::Field{     \
-                                    DIAG_MATCHER_ARG(type, member_0),     \
-                                    start_0,                              \
-                                    end_or_text_0,                        \
-                                },                                        \
-                                ::quick_lint_js::Diag_Matcher::Field{     \
-                                    DIAG_MATCHER_ARG(type, member_1),     \
-                                    start_1,                              \
-                                    end_or_text_1,                        \
-                                },                                        \
-                                ::quick_lint_js::Diag_Matcher::Field{     \
-                                    DIAG_MATCHER_ARG(type, member_2),     \
-                                    start_2,                              \
-                                    end_or_text_2,                        \
                                 })
 
 // Equivalent to the following, but compiles much more quickly:
