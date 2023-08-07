@@ -6,6 +6,7 @@
 #include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/port/warning.h>
 
+QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 QLJS_WARNING_IGNORE_CLANG("-Wunused-member-function")
 
 using ::testing::ElementsAreArray;
@@ -148,6 +149,41 @@ TEST(
   using Vector_Of_Items = Fixed_Vector<Item, 4>;
   EXPECT_TRUE(std::is_trivially_destructible_v<Vector_Of_Items>);
 }
+
+#if defined(__has_feature)
+#if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST && \
+    __has_feature(address_sanitizer)
+TEST(Test_Fixed_Vector,
+     accessing_item_after_removed_is_undefined_behavior_SLOW) {
+  // These programs should fail with tools like Address Sanitizer, but will
+  // appear to work fine without Address Sanitizer.
+
+  // HACK(strager): Fixed_Vector only poisons if the element is not trivially
+  // destructible. (See NOTE[Fixed_Vector-poison].) Test with an appropriate
+  // type.
+  // TODO(strager): Figure out how to make Fixed_Vector poison always. I think
+  // this is only feasible if we make Fixed_Vector's destructor non-trivial.
+  using Type = std::string;
+
+  auto check_clear = [] {
+    Fixed_Vector<Type, 4> v;
+    Type& item = v.push_back("hello");
+    v.clear();
+    item = "hi";  // Should crash.
+  };
+  EXPECT_DEATH(check_clear(), "use-after-poison");
+
+  auto check_pop_back = [] {
+    Fixed_Vector<Type, 4> v;
+    v.push_back("hello");
+    Type& item_200 = v.push_back("world");
+    v.pop_back();
+    item_200 = "monde";  // Should crash.
+  };
+  EXPECT_DEATH(check_pop_back(), "use-after-poison");
+}
+#endif
+#endif
 }
 }
 

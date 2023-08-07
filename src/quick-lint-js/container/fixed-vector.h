@@ -7,13 +7,18 @@
 #include <new>
 #include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/port/attribute.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/warning.h>
+
+#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+#include <sanitizer/asan_interface.h>
+#endif
 
 namespace quick_lint_js {
 using Fixed_Vector_Size = Span_Size;
 
-// Helper class which defines destructors iff Fixed_Vector's items are not
+// Helper class which defines the following iff Fixed_Vector's items are not
 // trivially destructible.
 template <class T, Fixed_Vector_Size max_size,
           bool is_trivially_destructible = std::is_trivially_destructible_v<T>>
@@ -34,7 +39,7 @@ struct Fixed_Vector_Base<T, max_size, true> {
 template <class T, Fixed_Vector_Size max_size>
 struct Fixed_Vector_Base<T, max_size, false> {
   ~Fixed_Vector_Base() {
-    static_cast<Fixed_Vector<T, max_size> &>(*this).clear();
+    static_cast<Fixed_Vector<T, max_size> &>(*this).destruct();
   }
 
   union Items_Storage {
@@ -53,6 +58,15 @@ struct Fixed_Vector_Base<T, max_size, false> {
 template <class T, Fixed_Vector_Size max_size>
 class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
  private:
+#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+  // NOTE[Fixed_Vector-poison]: We can only poison if we can define a
+  // destructor. If T is trivially destructible, then Fixed_Vector_Base<T,
+  // max_size> is trivially destructible, thus Fixed_Vector_Base has a default
+  // (trivial) destructor, thus the destructor cannot unpoison, thus bad things
+  // happen when the Fixed_Vector's memory is reused by another object.
+  static constexpr bool asan_poison = !std::is_trivially_destructible_v<T>;
+#endif
+
   using Base = Fixed_Vector_Base<T, max_size>;
 
   using Storage_Type = char[sizeof(T) * max_size];
@@ -74,6 +88,11 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
     // Begin the lifetime of this->items_.items as Storage_Type. This should not
     // generate any machine code. See NOTE[Fixed_Vector-union-init].
     new (this->storage()) Storage_Type;
+#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+    if constexpr (asan_poison) {
+      ASAN_POISON_MEMORY_REGION(this->storage(), sizeof(Storage_Type));
+    }
+#endif
   }
 
   Fixed_Vector(const Fixed_Vector &other) : Fixed_Vector() { *this = other; }
@@ -88,7 +107,8 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
 
   // TODO(strager): Move constructor and assignment operator.
 
-  // NOTE(strager): ~Fixed_Vector is defined by Fixed_Vector_Base.
+  // NOTE(strager): ~Fixed_Vector is defined by Fixed_Vector_Base. It calls
+  // this->destruct().
 
   bool empty() const { return this->size() == 0; }
   size_type size() const { return this->size_; }
@@ -130,8 +150,13 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
   template <class... Args>
   T &emplace_back(Args &&... args) {
     QLJS_ASSERT(this->size() < max_size);
-    T &result = *new (&this->storage_slots()[this->size_])
-                    T(std::forward<Args>(args)...);
+    T *slot = &this->storage_slots()[this->size_];
+#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+    if constexpr (asan_poison) {
+      ASAN_UNPOISON_MEMORY_REGION(slot, sizeof(T));
+    }
+#endif
+    T &result = *new (slot) T(std::forward<Args>(args)...);
     this->size_ += 1;
     return result;
   }
@@ -140,6 +165,11 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
     QLJS_ASSERT(!this->empty());
     T *item = &this->storage_slots()[this->size_ - 1];
     item->~T();
+#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+    if constexpr (asan_poison) {
+      ASAN_POISON_MEMORY_REGION(item, sizeof(T));
+    }
+#endif
     this->size_ -= 1;
   }
 
@@ -147,10 +177,25 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
     for (const T &item : *this) {
       item.~T();
     }
+#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+    if constexpr (asan_poison) {
+      ASAN_POISON_MEMORY_REGION(this->storage(), sizeof(Storage_Type));
+    }
+#endif
     this->size_ = 0;
   }
 
  private:
+  // This is the class's destructor if T is not trivially destructible.
+  void destruct() {
+    this->clear();
+#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+    if constexpr (asan_poison) {
+      ASAN_UNPOISON_MEMORY_REGION(this->storage(), sizeof(Storage_Type));
+    }
+#endif
+  }
+
   QLJS_FORCE_INLINE T *storage_slots() {
     return reinterpret_cast<T *>(this->storage());
   }
