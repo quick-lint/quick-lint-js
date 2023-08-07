@@ -16,6 +16,7 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/file-matcher.h>
@@ -2358,7 +2359,8 @@ bool Change_Detecting_Configuration_Loader::detect_changes() {
   this->fs_.handle_poll_event(pollfds[0]);
   return poll_rc != 0;
 #elif QLJS_HAVE_KQUEUE
-  std::array<struct ::kevent, 20> events;
+  Fixed_Vector<struct ::kevent, 20> events;
+  events.resize(events.capacity());
   struct timespec timeout = {.tv_sec = 0, .tv_nsec = 0};
   int kqueue_rc = ::kevent(
       /*fd=*/this->kqueue_fd_.get(),
@@ -2371,8 +2373,8 @@ bool Change_Detecting_Configuration_Loader::detect_changes() {
     ADD_FAILURE() << "kqueue failed: " << std::strerror(errno);
     return {};
   }
-  for (int i = 0; i < kqueue_rc; ++i) {
-    struct ::kevent& event = events[narrow_cast<std::size_t>(i)];
+  events.resize(narrow_cast<Fixed_Vector_Size>(kqueue_rc));
+  for (struct ::kevent& event : events) {
     EXPECT_FALSE(event.flags & EV_ERROR)
         << std::strerror(narrow_cast<int>(event.data));
     EXPECT_EQ(event.udata, reinterpret_cast<void*>(event_udata_fs_changed));

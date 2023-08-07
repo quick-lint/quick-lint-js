@@ -10,7 +10,6 @@
 // No LSP on the web.
 #elif QLJS_HAVE_KQUEUE
 
-#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -72,7 +71,8 @@ class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
     }
 
     for (;;) {
-      std::array<struct ::kevent, 10> events;
+      Fixed_Vector<struct ::kevent, 10> events;
+      events.resize(events.capacity());
       int rc = ::kevent(this->kqueue_fd_.get(),
                         /*changelist=*/nullptr, /*nchanges=*/0,
                         /*eventlist=*/events.data(),
@@ -85,10 +85,10 @@ class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
         QLJS_UNIMPLEMENTED();
       }
       QLJS_ASSERT(rc > 0);
+      events.resize(narrow_cast<Fixed_Vector_Size>(rc));
 
       bool fs_changed = false;
-      for (int i = 0; i < rc; ++i) {
-        struct ::kevent& event = events[narrow_cast<std::size_t>(i)];
+      for (struct ::kevent& event : events) {
         switch (reinterpret_cast<std::uintptr_t>(event.udata)) {
         case event_udata_readable_pipe: {
           QLJS_ASSERT(event.filter == EVFILT_READ);
