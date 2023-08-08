@@ -160,116 +160,121 @@ TEST(Test_Variable_Analyzer_Type, interface_can_be_exported) {
 }
 
 TEST(Test_Variable_Analyzer_Type, type_use_does_not_see_non_type_variables) {
-  const Char8 declaration[] = u8"I";
-  const Char8 use[] = u8"I";
+  // TODO(strager): Report a more helpful message indicating that 'I' is a
+  // function or variable, not a type.
+  test_parse_and_analyze(
+      u8"((I) => { ({}) as I; });"_sv,
+      u8"                  ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"const I = null; ({}) as I;"_sv,
+      u8"                        ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"function I() {}  ({}) as I;"_sv,
+      u8"                         ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(function(I) { ({}) as I; });"_sv,
+      u8"                       ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"interface _ { [I: string]: I; }"_sv,
+      u8"                           ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"let I; ({}) as I;"_sv,
+                         u8"               ^ Diag_Use_Of_Undeclared_Type"_diag,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"var I; ({}) as I;"_sv,
+                         u8"               ^ Diag_Use_Of_Undeclared_Type"_diag,
+                         typescript_analyze_options, default_globals);
 
-  for (Variable_Kind kind : {
-           Variable_Kind::_arrow_parameter,
-           Variable_Kind::_catch,
-           Variable_Kind::_const,
-           Variable_Kind::_function,
-           Variable_Kind::_function_parameter,
-           Variable_Kind::_index_signature_parameter,
-           Variable_Kind::_let,
-           Variable_Kind::_var,
-       }) {
-    SCOPED_TRACE(kind);
+  test_parse_and_analyze(
+      u8"((I) => { { ({}) as I; } });"_sv,
+      u8"                    ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"try {} catch (I) { ({}) as I; }"_sv,
+      u8"                           ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"const I = null; { ({}) as I; }"_sv,
+      u8"                          ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"function I() {}  { ({}) as I; }"_sv,
+      u8"                           ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(function(I) { { ({}) as I; } });"_sv,
+      u8"                         ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"let I; { ({}) as I; }"_sv,
+      u8"                 ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"var I; { ({}) as I; }"_sv,
+      u8"                 ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
 
-    {
-      // let I;
-      // ({}) as I;
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   Variable_Declaration_Flags::none);
-      l.visit_variable_type_use(identifier_of(use));
-      l.visit_end_of_module();
+  test_parse_and_analyze(
+      u8"((I) => { (() => { ({}) as I; }); });"_sv,
+      u8"                           ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"try {} catch (I) { (() => { ({}) as I; }); }"_sv,
+      u8"                                    ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"const I = null; (() => { ({}) as I; });"_sv,
+      u8"                                 ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"function I() {}  (() => { ({}) as I; });"_sv,
+      u8"                                  ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(function(I) { (() => { ({}) as I; }); });"_sv,
+      u8"                                ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"let I; (() => { ({}) as I; });"_sv,
+      u8"                        ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"var I; (() => { ({}) as I; });"_sv,
+      u8"                        ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
 
-      // TODO(strager): Report a more helpful message indicating that 'I' is a
-      // function or variable, not a type.
-      EXPECT_THAT(
-          v.errors,
-          ElementsAreArray({
-              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name, span_of(use)),
-          }));
-    }
-
-    {
-      // let I;
-      // {
-      //   ({}) as I;
-      // }
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   Variable_Declaration_Flags::none);
-      l.visit_enter_block_scope();
-      l.visit_variable_type_use(identifier_of(use));
-      l.visit_exit_block_scope();
-      l.visit_end_of_module();
-
-      // TODO(strager): Report a more helpful message indicating that 'I' is a
-      // function or variable, not a type.
-      EXPECT_THAT(
-          v.errors,
-          ElementsAreArray({
-              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name, span_of(use)),
-          }));
-    }
-
-    {
-      // let I;
-      // (() => {
-      //   ({}) as I;
-      // });
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   Variable_Declaration_Flags::none);
-      l.visit_enter_function_scope();
-      l.visit_enter_function_scope_body();
-      l.visit_variable_type_use(identifier_of(use));
-      l.visit_exit_function_scope();
-      l.visit_end_of_module();
-
-      // TODO(strager): Report a more helpful message indicating that 'I' is a
-      // function or variable, not a type.
-      EXPECT_THAT(
-          v.errors,
-          ElementsAreArray({
-              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name, span_of(use)),
-          }));
-    }
-
-    {
-      // let I;
-      // (() => {
-      //   (() => {
-      //     ({}) as I;
-      //   });
-      // });
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-      l.visit_variable_declaration(identifier_of(declaration), kind,
-                                   Variable_Declaration_Flags::none);
-      l.visit_enter_function_scope();
-      l.visit_enter_function_scope_body();
-      l.visit_enter_function_scope();
-      l.visit_enter_function_scope_body();
-      l.visit_variable_type_use(identifier_of(use));
-      l.visit_exit_function_scope();
-      l.visit_exit_function_scope();
-      l.visit_end_of_module();
-
-      // TODO(strager): Report a more helpful message indicating that 'I' is a
-      // function or variable, not a type.
-      EXPECT_THAT(
-          v.errors,
-          ElementsAreArray({
-              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Type, name, span_of(use)),
-          }));
-    }
-  }
+  test_parse_and_analyze(
+      u8"((I) => { (() => { (() => { ({}) as I; }); }); });"_sv,
+      u8"                                    ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"try {} catch (I) { (() => { (() => { ({}) as I; }); }); }"_sv,
+      u8"                                             ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"const I = null; (() => { (() => { ({}) as I; }); });"_sv,
+      u8"                                          ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"function I() {}  (() => { (() => { ({}) as I; }); });"_sv,
+      u8"                                           ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(function(I) { (() => { (() => { ({}) as I; }); }); });"_sv,
+      u8"                                         ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"let I; (() => { (() => { ({}) as I; }); });"_sv,
+      u8"                                 ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"var I; (() => { (() => { ({}) as I; }); });"_sv,
+      u8"                                 ^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type,
