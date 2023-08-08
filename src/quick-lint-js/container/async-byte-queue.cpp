@@ -22,7 +22,8 @@ Async_Byte_Queue::Async_Byte_Queue(Memory_Resource* memory) : memory_(memory) {}
 Async_Byte_Queue::~Async_Byte_Queue() {
   Chunk* c = this->reader_chunk_;
   while (c) {
-    Chunk::deallocate(this->memory_, std::exchange(c, c->next));
+    Chunk::destroy_header_and_deallocate(this->memory_,
+                                         std::exchange(c, c->next));
   }
 }
 
@@ -85,14 +86,15 @@ void Async_Byte_Queue::grow(Size_Type extra_byte_count) {
 }
 
 void Async_Byte_Queue::add_new_chunk(Size_Type chunk_size) {
-  Chunk* new_chunk = Chunk::allocate(this->memory_, chunk_size);
+  Chunk* new_chunk =
+      Chunk::allocate_and_construct_header(this->memory_, chunk_size);
   {
     std::lock_guard<Mutex> lock(this->mutex_);
     this->writer_last_chunk_->next = new_chunk;
   }
   this->writer_last_chunk_ = new_chunk;
-  this->writer_cursor_ = new_chunk->capacity_begin();
-  this->writer_chunk_end_ = new_chunk->capacity_end();
+  this->writer_cursor_ = new_chunk->flexible_capacity_begin();
+  this->writer_chunk_end_ = new_chunk->flexible_capacity_end();
 }
 
 void Async_Byte_Queue::update_current_chunk_size(std::lock_guard<Mutex>&) {
@@ -106,28 +108,9 @@ Async_Byte_Queue::Size_Type Async_Byte_Queue::bytes_remaining_in_current_chunk()
 
 Async_Byte_Queue::Size_Type Async_Byte_Queue::bytes_used_in_current_chunk()
     const {
-  return narrow_cast<Size_Type>(this->writer_cursor_ -
-                                this->writer_last_chunk_->capacity_begin());
-}
-
-Async_Byte_Queue::Chunk* Async_Byte_Queue::Chunk::allocate(
-    Memory_Resource* memory, Size_Type data_size) {
-  void* c = memory->allocate(Chunk::allocation_size(data_size), alignof(Chunk));
-  return new (c) Chunk(data_size);
-}
-
-void Async_Byte_Queue::Chunk::deallocate(Memory_Resource* memory, Chunk* c) {
-  std::size_t byte_size = c->allocation_size();
-  c->~Chunk();
-  memory->deallocate(c, byte_size, alignof(Chunk));
-}
-
-std::size_t Async_Byte_Queue::Chunk::allocation_size(Size_Type capacity) {
-  return sizeof(Chunk) + capacity;
-}
-
-std::size_t Async_Byte_Queue::Chunk::allocation_size() const {
-  return Chunk::allocation_size(this->capacity);
+  return narrow_cast<Size_Type>(
+      this->writer_cursor_ -
+      this->writer_last_chunk_->flexible_capacity_begin());
 }
 }
 

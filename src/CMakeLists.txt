@@ -157,6 +157,7 @@ quick_lint_js_add_library(
   quick-lint-js/cli/arg-parser.h
   quick-lint-js/cli/cli-location.cpp
   quick-lint-js/cli/cli-location.h
+  quick-lint-js/container/flexible-array.h
   quick-lint-js/container/padded-string.cpp
   quick-lint-js/container/padded-string.h
   quick-lint-js/container/string-view.h
@@ -181,6 +182,8 @@ quick_lint_js_add_library(
   quick-lint-js/port/in-range.h
   quick-lint-js/port/limits.h
   quick-lint-js/port/math.h
+  quick-lint-js/port/memory-resource.cpp
+  quick-lint-js/port/memory-resource.h
   quick-lint-js/port/source-location.h
   quick-lint-js/port/type-traits.h
   quick-lint-js/port/warning.h
@@ -371,8 +374,6 @@ quick_lint_js_add_library(
   quick-lint-js/port/crash.h
   quick-lint-js/port/function-ref.h
   quick-lint-js/port/max-align.h
-  quick-lint-js/port/memory-resource.cpp
-  quick-lint-js/port/memory-resource.h
   quick-lint-js/port/process.cpp
   quick-lint-js/port/process.h
   quick-lint-js/port/simd.h

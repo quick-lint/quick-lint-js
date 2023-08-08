@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/flexible-array.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/max-align.h>
 #include <quick-lint-js/port/memory-resource.h>
@@ -71,7 +72,10 @@ class Async_Byte_Queue {
                       Finalize_Func&& finalize_callback);
 
  private:
-  struct alignas(alignof(Max_Align_T)) Chunk {
+  struct Chunk_Header;
+  using Chunk = Flexible_Array<std::byte, Chunk_Header>;
+
+  struct alignas(alignof(Max_Align_T)) Chunk_Header {
     // data[begin_index] until data[committed_index] contains committed but
     // untaken bytes.
     //
@@ -95,26 +99,6 @@ class Async_Byte_Queue {
 
     // next is protected by mutex_.
     Chunk* next = nullptr;
-
-    // Number of malloc-allocated bytes in the data array.
-    Size_Type capacity;
-
-    std::byte* capacity_begin() {
-      return reinterpret_cast<std::byte*>(this) + sizeof(*this);
-    }
-    std::byte* capacity_end() {
-      return this->capacity_begin() + this->capacity;
-    }
-
-    static Chunk* allocate(Memory_Resource*, Size_Type data_size);
-    static void deallocate(Memory_Resource*, Chunk*);
-
-   private:
-    explicit Chunk(Size_Type capacity) : capacity(capacity) {}
-    ~Chunk() = default;
-
-    static std::size_t allocation_size(Size_Type capacity);
-    std::size_t allocation_size() const;
   };
 
   // Writer thread only:
@@ -131,10 +115,12 @@ class Async_Byte_Queue {
 
   // Exclusive to the writer:
   Chunk* writer_first_chunk_ =
-      Chunk::allocate(this->memory_, default_chunk_size);
+      Chunk::allocate_and_construct_header(this->memory_, default_chunk_size);
   Chunk* writer_last_chunk_ = this->writer_first_chunk_;
-  std::byte* writer_cursor_ = this->writer_last_chunk_->capacity_begin();
-  std::byte* writer_chunk_end_ = this->writer_last_chunk_->capacity_end();
+  std::byte* writer_cursor_ =
+      this->writer_last_chunk_->flexible_capacity_begin();
+  std::byte* writer_chunk_end_ =
+      this->writer_last_chunk_->flexible_capacity_end();
 
   // Exclusive to the reader:
   Chunk* reader_chunk_ = this->writer_first_chunk_;
@@ -164,7 +150,7 @@ void Async_Byte_Queue::take_committed(Chunk_Func&& chunk_callback,
     while (c->next) {
       Size_Type old_data_size = c->data_size;
       call_chunk_callback(Span<const std::byte>(
-          &c->capacity_begin()[c->begin_index],
+          &c->flexible_capacity_begin()[c->begin_index],
           narrow_cast<Span_Size>(c->data_size - c->begin_index)));
 
       // These shouldn't be changed by the callback or by the writer thread.
@@ -176,7 +162,7 @@ void Async_Byte_Queue::take_committed(Chunk_Func&& chunk_callback,
 
     Size_Type old_committed_index = c->committed_index;
     call_chunk_callback(Span<const std::byte>(
-        &c->capacity_begin()[c->begin_index],
+        &c->flexible_capacity_begin()[c->begin_index],
         narrow_cast<Span_Size>(old_committed_index - c->begin_index)));
     c->begin_index = old_committed_index;
     // NOTE(strager): Because call_chunk_callback unlocks the mutex,
@@ -195,7 +181,8 @@ void Async_Byte_Queue::take_committed(Chunk_Func&& chunk_callback,
   // last_chunk, so we know we can't data race with the writer in the
   // following loop.
   for (Chunk* c = first_chunk; c != last_chunk;) {
-    Chunk::deallocate(this->memory_, std::exchange(c, c->next));
+    Chunk::destroy_header_and_deallocate(this->memory_,
+                                         std::exchange(c, c->next));
   }
 }
 }

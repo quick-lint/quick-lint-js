@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <new>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/flexible-array.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/math.h>
 #include <quick-lint-js/port/memory-resource.h>
@@ -39,6 +40,7 @@ template <std::size_t alignment>
 class Linked_Bump_Allocator : public Memory_Resource {
  private:
   struct Chunk_Header;
+  using Chunk = Flexible_Array<char, Chunk_Header>;
 
  public:
   explicit Linked_Bump_Allocator(const char* debug_owner) {
@@ -51,10 +53,10 @@ class Linked_Bump_Allocator : public Memory_Resource {
   ~Linked_Bump_Allocator() override { this->release(); }
 
   void release() {
-    Chunk_Header* c = this->chunk_;
+    Chunk* c = this->chunk_;
     while (c) {
-      Chunk_Header* previous = c->previous;
-      Chunk_Header::delete_chunk(c);
+      Chunk* previous = c->previous;
+      Chunk::destroy_header_and_deallocate(new_delete_resource(), c);
       c = previous;
     }
     this->chunk_ = nullptr;
@@ -64,7 +66,7 @@ class Linked_Bump_Allocator : public Memory_Resource {
 
   struct Rewind_State {
     // Private to linked_bump_allocator. Do not use.
-    Chunk_Header* chunk_;
+    Chunk* chunk_;
     char* next_allocation_;
     char* chunk_end_;
   };
@@ -107,17 +109,17 @@ class Linked_Bump_Allocator : public Memory_Resource {
       //
       // TODO(strager): Should we use the *oldest* chunk or the *newest* chunk?
       // Here we pick the *oldest* chunk.
-      Chunk_Header* c = this->chunk_;
+      Chunk* c = this->chunk_;
       QLJS_ASSERT(c);
       while (c->previous != r.chunk_) {
-        Chunk_Header* previous = c->previous;
-        Chunk_Header::delete_chunk(c);
+        Chunk* previous = c->previous;
+        Chunk::destroy_header_and_deallocate(new_delete_resource(), c);
         c = previous;
         QLJS_ASSERT(c);
       }
       this->chunk_ = c;
-      this->next_allocation_ = c->data();
-      this->chunk_end_ = c->data_end();
+      this->next_allocation_ = c->flexible_capacity_begin();
+      this->chunk_end_ = c->flexible_capacity_end();
     } else {
       this->chunk_ = r.chunk_;
       this->next_allocation_ = r.next_allocation_;
@@ -242,47 +244,12 @@ class Linked_Bump_Allocator : public Memory_Resource {
 
  private:
   struct alignas(maximum(alignment, alignof(void*))) Chunk_Header {
-    Chunk_Header* previous;  // Linked list.
-    std::size_t size;        // Size of the data portion in bytes.
+    explicit Chunk_Header(Chunk* previous) : previous(previous) {}
 
-    char* data() { return reinterpret_cast<char*>(this) + sizeof(*this); }
-    char* data_end() { return this->data() + this->size; }
-
-    static std::size_t allocation_size(std::size_t size) {
-      return sizeof(Chunk_Header) + size;
-    }
-
-    static std::align_val_t allocation_alignment() {
-      return std::align_val_t{maximum(alignment, alignof(Chunk_Header))};
-    }
-
-    static Chunk_Header* new_chunk(std::size_t size, Chunk_Header* previous) {
-#if QLJS_HAVE_SIZED_ALIGNED_NEW
-      void* chunk =
-          ::operator new(allocation_size(size), allocation_alignment());
-#else
-      void* chunk = ::operator new(allocation_size(size));
-      QLJS_ASSERT(is_aligned(chunk, alignment));
-#endif
-      return new (chunk) Chunk_Header{
-          .previous = previous,
-          .size = size,
-      };
-    }
-
-    static void delete_chunk(Chunk_Header* c) {
-      [[maybe_unused]] std::size_t size = c->size;
-      c->~Chunk_Header();
-#if QLJS_HAVE_SIZED_ALIGNED_DELETE
-      ::operator delete(c, allocation_size(size), allocation_alignment());
-#else
-      ::operator delete(c);
-#endif
-    }
+    Chunk* previous;  // Linked list.
   };
 
-  static inline constexpr std::size_t default_chunk_size =
-      4096 - sizeof(Chunk_Header);
+  static inline constexpr std::size_t default_chunk_size = 4096 - sizeof(Chunk);
 
   static constexpr std::size_t align_up(std::size_t size) {
     return (size + alignment - 1) & ~(alignment - 1);
@@ -323,9 +290,10 @@ class Linked_Bump_Allocator : public Memory_Resource {
   }
 
   void append_chunk(std::size_t size) {
-    this->chunk_ = Chunk_Header::new_chunk(size, this->chunk_);
-    this->next_allocation_ = this->chunk_->data();
-    this->chunk_end_ = this->chunk_->data_end();
+    this->chunk_ = Chunk::allocate_and_construct_header(new_delete_resource(),
+                                                        size, this->chunk_);
+    this->next_allocation_ = this->chunk_->flexible_capacity_begin();
+    this->chunk_end_ = this->chunk_->flexible_capacity_end();
   }
 
   void assert_not_disabled() const {
@@ -338,7 +306,7 @@ class Linked_Bump_Allocator : public Memory_Resource {
   bool is_disabled() const { return this->disabled_count_ > 0; }
 #endif
 
-  Chunk_Header* chunk_ = nullptr;
+  Chunk* chunk_ = nullptr;
   char* next_allocation_ = nullptr;
   char* chunk_end_ = nullptr;
 
