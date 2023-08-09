@@ -465,9 +465,9 @@ void Variable_Analyzer::visit_variable_use(Identifier name,
   Declared_Variable *var =
       use_kind == Used_Variable_Kind::type
           ? current_scope.declared_variables.find_type(name)
-          : use_kind == Used_Variable_Kind::_export
-                ? current_scope.declared_variables.find(name)
-                : current_scope.declared_variables.find_runtime(name);
+      : use_kind == Used_Variable_Kind::_export
+          ? current_scope.declared_variables.find(name)
+          : current_scope.declared_variables.find_runtime(name);
   if (var) {
     var->is_used = true;
   } else {
@@ -585,8 +585,8 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
     bool consume_arguments) {
   // Found_Variable_Type is either Declared_Variable* or
   // std::optional<Global_Declared_Variable>.
-  using Found_Variable_Type = typename std::decay_t<decltype(
-      Parent_Scope::declared_variables)>::Found_Variable_Type;
+  using Found_Variable_Type = typename std::decay_t<
+      decltype(Parent_Scope::declared_variables)>::Found_Variable_Type;
 
   constexpr bool parent_scope_is_global_scope =
       std::is_same_v<Parent_Scope, Global_Scope>;

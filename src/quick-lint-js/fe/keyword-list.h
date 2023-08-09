@@ -70,7 +70,7 @@
   QLJS_KEYWORD(public)      \
   QLJS_KEYWORD(readonly)    \
   QLJS_KEYWORD(require)     \
-  QLJS_KEYWORD(return )     \
+  QLJS_KEYWORD(return)      \
   QLJS_KEYWORD(satisfies)   \
   QLJS_KEYWORD(set)         \
   QLJS_KEYWORD(static)      \

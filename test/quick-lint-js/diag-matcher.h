@@ -159,12 +159,12 @@ struct Diag_Matcher_Arg {
 
 // Create a Diag_Matcher_Arg from a Diag_ struct type and the name of a member
 // of that struct.
-#define DIAG_MATCHER_ARG(type, member)                           \
-  (::quick_lint_js::Diag_Matcher_Arg{                            \
-      #member,                                                   \
-      offsetof(type, member),                                    \
-      ::quick_lint_js::get_diagnostic_message_arg_type<decltype( \
-          type::member)>(),                                      \
+#define DIAG_MATCHER_ARG(type, member)                  \
+  (::quick_lint_js::Diag_Matcher_Arg{                   \
+      #member,                                          \
+      offsetof(type, member),                           \
+      ::quick_lint_js::get_diagnostic_message_arg_type< \
+          decltype(type::member)>(),                    \
   })
 
 // A mix of ::testing::VariantWith, ::testing::Field, and Offsets_Matcher. These

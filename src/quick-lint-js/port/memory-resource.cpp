@@ -13,7 +13,7 @@ class New_Delete_Resource_Impl : public Memory_Resource {
   void* do_allocate(std::size_t bytes,
                     std::size_t alignment) BOOST_NOEXCEPT override {
 #if QLJS_HAVE_SIZED_ALIGNED_NEW
-    return ::operator new (bytes, std::align_val_t{alignment});
+    return ::operator new(bytes, std::align_val_t{alignment});
 #else
     QLJS_ASSERT(alignment <= __STDCPP_DEFAULT_NEW_ALIGNMENT__);
     return ::operator new(bytes);
@@ -23,7 +23,7 @@ class New_Delete_Resource_Impl : public Memory_Resource {
   void do_deallocate(void* p, std::size_t bytes,
                      std::size_t alignment) BOOST_NOEXCEPT override {
 #if QLJS_HAVE_SIZED_ALIGNED_DELETE
-    ::operator delete (p, bytes, std::align_val_t{alignment});
+    ::operator delete(p, bytes, std::align_val_t{alignment});
 #else
     QLJS_ASSERT(alignment <= __STDCPP_DEFAULT_NEW_ALIGNMENT__);
     static_cast<void>(bytes);

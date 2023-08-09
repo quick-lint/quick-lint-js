@@ -45,24 +45,24 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
                                        const ::pollfd poll_event,
 #endif
                                        String8_View data) {
-  {cd.get_readable_pipe()};
-  {d.append(data)};
+                                { cd.get_readable_pipe() };
+                                { d.append(data) };
 
 #if QLJS_HAVE_POLL && !QLJS_HAVE_KQUEUE
-  {d.get_pipe_write_fd()};
-  {d.on_pipe_write_event(poll_event)};
+                                { d.get_pipe_write_fd() };
+                                { d.on_pipe_write_event(poll_event) };
 #endif
 
 #if QLJS_HAVE_INOTIFY
-  {d.get_inotify_fd()};
-  {d.on_fs_changed_event(poll_event)};
+                                { d.get_inotify_fd() };
+                                { d.on_fs_changed_event(poll_event) };
 #endif
 
 #if QLJS_HAVE_KQUEUE
-  {d.on_fs_changed_kevent(kqueue_event)};
-  {d.on_fs_changed_kevents()};
+                                { d.on_fs_changed_kevent(kqueue_event) };
+                                { d.on_fs_changed_kevents() };
 #endif
-};
+                              };
 #endif
 
 // An event_loop implements I/O concurrency on a single thread.

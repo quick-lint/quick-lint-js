@@ -26,7 +26,7 @@ struct Look_Up_Impl;
 template <class Key, class... OtherKeys>
 struct Look_Up_Impl<Key, OtherKeys...> {
   static ::boost::json::value look_up(const ::boost::json::value &root,
-                                      Key &&key, OtherKeys &&... other_keys) {
+                                      Key &&key, OtherKeys &&...other_keys) {
     if constexpr (std::is_integral_v<Key>) {
       return Look_Up_Impl<OtherKeys...>::look_up(
           root.as_array().at(narrow_cast<std::size_t>(key)),
@@ -46,8 +46,7 @@ struct Look_Up_Impl<> {
 };
 
 template <class... Keys>
-::boost::json::value look_up(const ::boost::json::value &root,
-                             Keys &&... keys) {
+::boost::json::value look_up(const ::boost::json::value &root, Keys &&...keys) {
   return Look_Up_Impl<Keys...>::look_up(root, std::forward<Keys>(keys)...);
 }
 

@@ -149,7 +149,7 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
   T &push_back(T &&value) { return this->emplace_back(std::move(value)); }
 
   template <class... Args>
-  T &emplace_back(Args &&... args) {
+  T &emplace_back(Args &&...args) {
     QLJS_ASSERT(this->size() < max_size);
     T *slot = &this->storage_slots()[this->size_];
 #if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H

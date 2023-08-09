@@ -826,7 +826,7 @@ class Parser {
 
  private:
   template <class New_Expression, class... Args>
-  Expression *make_expression(Args &&... args) {
+  Expression *make_expression(Args &&...args) {
     return this->expressions_.make_expression<New_Expression>(
         std::forward<Args>(args)...);
   }

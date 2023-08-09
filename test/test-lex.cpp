@@ -1017,6 +1017,11 @@ world`)"_sv,
       u8"`unterminated\\"_sv,  //
       u8"^^^^^^^^^^^^^^^ Diag_Unclosed_Template"_diag,
       {Token_Type::complete_template});
+
+  this->check_tokens_with_errors(
+      u8"`${}`"_sv,  //
+      u8"  ^^ Diag_Expected_Expression_In_Template_Literal"_diag,
+      {Token_Type::complete_template});
 }
 
 TEST_F(Test_Lex, templates_buffer_unicode_escape_errors) {

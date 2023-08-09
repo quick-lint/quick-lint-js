@@ -205,7 +205,7 @@ class Raw_Bump_Vector {
   T &push_back(T &&value) { return this->emplace_back(std::move(value)); }
 
   template <class... Args>
-  T &emplace_back(Args &&... args) {
+  T &emplace_back(Args &&...args) {
     if (this->capacity_end_ == this->data_end_) {
       this->reserve_grow_by_at_least(1);
     }

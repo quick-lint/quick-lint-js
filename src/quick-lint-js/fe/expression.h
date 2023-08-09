@@ -170,7 +170,7 @@ class Expression_Arena {
       is_winkable_v<std::remove_reference_t<T>>;
 
   template <class Expression, class... Args>
-  Expression *make_expression(Args &&... args);
+  Expression *make_expression(Args &&...args);
 
   template <class T>
   Array_Ptr<T> make_array(Bump_Vector<T, Monotonic_Allocator> &&);
@@ -185,7 +185,7 @@ class Expression_Arena {
 
  private:
   template <class T, class... Args>
-  T *allocate(Args &&... args) {
+  T *allocate(Args &&...args) {
     static_assert(is_allocatable<T>);
     return this->allocator_.new_object<T>(std::forward<Args>(args)...);
   }
@@ -310,7 +310,7 @@ template <class Derived, class Expression>
 Derived *expression_cast(Expression *) = delete;
 
 template <class Expression, class... Args>
-Expression *Expression_Arena::make_expression(Args &&... args) {
+Expression *Expression_Arena::make_expression(Args &&...args) {
   Expression *result(this->allocate<Expression>(std::forward<Args>(args)...));
   static_assert(is_allocatable<Expression>);
   return result;
