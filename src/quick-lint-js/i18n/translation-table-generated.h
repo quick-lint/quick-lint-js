@@ -19,8 +19,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 464;
-constexpr std::size_t translation_table_string_table_size = 77307;
+constexpr std::uint16_t translation_table_mapping_table_size = 465;
+constexpr std::size_t translation_table_string_table_size = 77365;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -335,6 +335,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing condition for while statement"sv,
           "missing end of array; expected ']'"sv,
           "missing expression between parentheses"sv,
+          "missing expression in placeholder within template literal"sv,
           "missing for loop header"sv,
           "missing function parameter list"sv,
           "missing header and body for 'for' loop"sv,

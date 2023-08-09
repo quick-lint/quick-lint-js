@@ -1,10 +1,13 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/diag/diagnostic-types-2.h"
+#include "quick-lint-js/fe/source-code-span.h"
 #include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 #include <iterator>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/cli-location.h>
@@ -895,15 +898,23 @@ Lexer::Parsed_Template_Body Lexer::parse_template_body(
       break;
     }
 
-    case '$':
+    case '$': {
+      const Char8* template_string_start = c;
       if (c[1] == '{') {
         c += 2;
+        if (c[0] == '}') {
+          this->diag_reporter_->report(
+              Diag_Expected_Expression_In_Template_Literal{
+                  .template_literal =
+                      Source_Code_Span(template_string_start, c),
+              });
+        }
         return Parsed_Template_Body{Token_Type::incomplete_template, c,
                                     escape_sequence_diagnostics};
       }
       ++c;
       break;
-
+    }
     default:
       ++c;
       break;
@@ -1331,14 +1342,14 @@ void Lexer::parse_modern_octal_number() {
 
 void Lexer::check_integer_precision_loss(String8_View number_literal) {
   // Any integer which is 15 or fewer digits is guaranteed to be able to be
-  // represented accurately without precision loss. This is because Numbers have
-  // 53 bits of precision, which is equal to 53 log10(2) ≈ 15.955 decimal digits
-  // of precision.
+  // represented accurately without precision loss. This is because Numbers
+  // have 53 bits of precision, which is equal to 53 log10(2) ≈ 15.955 decimal
+  // digits of precision.
   const size_t GUARANTEED_ACC_LENGTH = 15;
   // There is no integer which can be represented accurately that is greater
   // than 309 digits long. This is because the largest representable Number is
-  // equal to 2^1023 × (1 + (1 − 2^−52)) ≈ 1.7976931348623157 × 10^308, which is
-  // 309 digits long.
+  // equal to 2^1023 × (1 + (1 − 2^−52)) ≈ 1.7976931348623157 × 10^308, which
+  // is 309 digits long.
   const size_t MAX_ACC_LENGTH = 309;
   if (number_literal.size() <= GUARANTEED_ACC_LENGTH) {
     return;
@@ -2215,7 +2226,7 @@ bool Lexer::is_identifier_byte(Char8 byte) {
   switch (static_cast<std::uint8_t>(byte)) {
   QLJS_CASE_DECIMAL_DIGIT:
   QLJS_CASE_IDENTIFIER_START:
-  // clang-format off
+    // clang-format off
   /* 0xc0 */ /* 0xc1 */ case 0xc2: case 0xc3: case 0xc4: case 0xc5: case 0xc6: case 0xc7:
   case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf:
   case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7:

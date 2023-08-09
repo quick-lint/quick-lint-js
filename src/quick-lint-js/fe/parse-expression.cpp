@@ -484,11 +484,10 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
     Expression* ast =
         type == Token_Type::kw_delete
             ? this->make_expression<Expression::Delete>(child, operator_span)
-            : type == Token_Type::kw_typeof
-                  ? this->make_expression<Expression::Typeof>(child,
-                                                              operator_span)
-                  : this->make_expression<Expression::Unary_Operator>(
-                        child, operator_span);
+        : type == Token_Type::kw_typeof
+            ? this->make_expression<Expression::Typeof>(child, operator_span)
+            : this->make_expression<Expression::Unary_Operator>(child,
+                                                                operator_span);
     return ast;
   }
 
@@ -3696,10 +3695,11 @@ next:
             .opening_tag_name =
                 tag_namespace
                     ? Source_Code_Span(tag_namespace->span().begin(), tag_end)
-                    : !tag_members.empty()
-                          ? Source_Code_Span(tag_members.front().span().begin(),
-                                             tag_end)
-                          : tag ? tag->span() : Source_Code_Span::unit(tag_end),
+                : !tag_members.empty()
+                    ? Source_Code_Span(tag_members.front().span().begin(),
+                                       tag_end)
+                : tag ? tag->span()
+                      : Source_Code_Span::unit(tag_end),
             .closing_tag_name =
                 closing_tag_begin <= closing_tag_end
                     ? Source_Code_Span(closing_tag_begin, closing_tag_end)

@@ -2937,6 +2937,13 @@ struct Diag_Xor_Used_As_Exponentiation {
                   ARG(xor_operator))]]  //
   Source_Code_Span xor_operator;
 };
+
+struct Diag_Expected_Expression_In_Template_Literal {
+  [[qljs::diag("E0711", Diagnostic_Severity::error)]]  //
+  [[qljs::message("missing expression in placeholder within template literal",
+                  ARG(template_literal))]]  //
+  Source_Code_Span template_literal;
+};
 }
 
 QLJS_WARNING_POP

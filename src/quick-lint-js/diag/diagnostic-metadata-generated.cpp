@@ -5723,6 +5723,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_Expected_Expression_In_Template_Literal
+    {
+      .code = 711,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("missing expression in placeholder within template literal"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Expected_Expression_In_Template_Literal, template_literal), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 

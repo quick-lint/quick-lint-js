@@ -319,7 +319,8 @@ const Translation_Table translation_data = {
         {38, 14, 46, 41, 38, 39},            //
         {35, 13, 45, 40, 37, 38},            //
         {36, 34, 39, 35, 40, 35},            //
-        {33, 7, 40, 40, 33, 39},             //
+        {0, 0, 0, 0, 0, 39},                 //
+        {33, 7, 40, 40, 33, 58},             //
         {24, 11, 33, 22, 23, 24},            //
         {34, 63, 43, 41, 33, 32},            //
         {41, 11, 49, 43, 0, 39},             //
@@ -2059,6 +2060,7 @@ const Translation_Table translation_data = {
         u8"missing condition for while statement\0"
         u8"missing end of array; expected ']'\0"
         u8"missing expression between parentheses\0"
+        u8"missing expression in placeholder within template literal\0"
         u8"missing for loop header\0"
         u8"missing function parameter list\0"
         u8"missing header and body for 'for' loop\0"
