@@ -6,7 +6,7 @@ editor][VisualStudioCode].
 ## Building
 
 To build this extension, [configure quick-lint-js with
-CMake](../../docs/BUILDING.md) with `-DQUICK_LINT_JS_ENABLE_VSCODE=YES
+CMake][build-quick-lint-js] with `-DQUICK_LINT_JS_ENABLE_VSCODE=YES
 -DCMAKE_POSITION_INDEPENDENT_CODE=YES`, then run the following commands:
 
     $ # Build the quick-lint-js Node.js addon:
@@ -31,3 +31,4 @@ test suite. Packaging is not necessary.
     $ yarn test
 
 [VisualStudioCode]: https://code.visualstudio.com/
+[build-quick-lint-js]: https://quick-lint-js.com/contribute/build-from-source/
