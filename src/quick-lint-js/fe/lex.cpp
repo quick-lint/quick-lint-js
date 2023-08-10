@@ -5,7 +5,6 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
 #include <iterator>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/cli-location.h>
