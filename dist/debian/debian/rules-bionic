@@ -3,6 +3,12 @@
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+# HACK(strager): Work around an internal compiler error in GCC 8.3:
+#
+# > lto1: internal compiler error: in add_symbol_to_partition_1,
+# > at lto/lto-partition.c:155
+export DEB_LDFLAGS_MAINT_APPEND = -flto-partition=none
+
 %:
 	dh $@ --parallel
 
