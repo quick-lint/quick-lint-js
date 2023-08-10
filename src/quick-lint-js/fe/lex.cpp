@@ -898,25 +898,15 @@ Lexer::Parsed_Template_Body Lexer::parse_template_body(
       break;
     }
 
-    case '$': {
-      c++;
-      if (*c == '{') {
-        const Char8* placeholder_begin = c;
-        c++;
-        if (*c == '}') {
-          c++;
-          this->diag_reporter_->report(
-              Diag_Expected_Expression_In_Template_Literal{
-                  .template_literal = Source_Code_Span(placeholder_begin, c),
-              });
-          break;
-        }
+    case '$':
+      if (c[1] == '{') {
+        c += 2;
         return Parsed_Template_Body{Token_Type::incomplete_template, c,
                                     escape_sequence_diagnostics};
       }
       ++c;
       break;
-    }
+
     default:
       ++c;
       break;
