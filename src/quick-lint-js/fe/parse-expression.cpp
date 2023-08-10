@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include "quick-lint-js/diag/diagnostic-types-2.h"
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
