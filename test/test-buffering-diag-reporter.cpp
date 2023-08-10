@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/container/linked-bump-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
@@ -13,13 +12,11 @@
 #include <quick-lint-js/identifier-support.h>
 #include <type_traits>
 
-using ::testing::ElementsAre;
-
 namespace quick_lint_js {
 namespace {
 TEST(Test_Buffering_Diag_Reporter, buffers_all_visits) {
-  Padded_String let_code(u8"let"_sv);
-  Padded_String expression_code(u8"2+2==5"_sv);
+  static Padded_String let_code(u8"let"_sv);
+  static Padded_String expression_code(u8"2+2==5"_sv);
 
   Linked_Bump_Allocator<alignof(void*)> memory("test");
   Buffering_Diag_Reporter diag_reporter(&memory);
@@ -29,16 +26,36 @@ TEST(Test_Buffering_Diag_Reporter, buffers_all_visits) {
       .token = u8'(',
   });
 
-  Diag_Collector collector;
-  diag_reporter.move_into(&collector);
-  EXPECT_THAT(
-      collector.errors,
-      ElementsAre(DIAG_TYPE_FIELD(Diag_Let_With_No_Bindings, where,
-                                  Source_Code_Span_Matcher(span_of(let_code))),
-                  DIAG_TYPE_2_FIELDS(
-                      Diag_Expected_Parenthesis_Around_If_Condition, where,
-                      Source_Code_Span_Matcher(span_of(expression_code)),  //
-                      token, u8'(')));
+  struct Test_Diag_Reporter : public Diag_Reporter {
+    void report_impl(Diag_Type type, void* diag) override {
+      this->report_count += 1;
+      switch (this->report_count) {
+      case 1: {
+        ASSERT_EQ(type, Diag_Type::Diag_Let_With_No_Bindings);
+        const auto* d = static_cast<const Diag_Let_With_No_Bindings*>(diag);
+        EXPECT_TRUE(same_pointers(d->where, span_of(let_code)));
+        break;
+      }
+      case 2: {
+        ASSERT_EQ(type,
+                  Diag_Type::Diag_Expected_Parenthesis_Around_If_Condition);
+        const auto* d =
+            static_cast<const Diag_Expected_Parenthesis_Around_If_Condition*>(
+                diag);
+        EXPECT_TRUE(same_pointers(d->where, span_of(expression_code)));
+        EXPECT_EQ(d->token, u8'(');
+        break;
+      }
+      default:
+        ADD_FAILURE() << "expected at most two calls to report_impl";
+        break;
+      }
+    }
+    int report_count = 0;
+  };
+  Test_Diag_Reporter test;
+  diag_reporter.move_into(&test);
+  EXPECT_EQ(test.report_count, 2);
 }
 
 TEST(Test_Buffering_Diag_Reporter, not_destructing_does_not_leak) {

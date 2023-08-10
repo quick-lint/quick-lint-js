@@ -35,20 +35,6 @@ export let qljsProcessPromise = makeQLJSProcessAsync();
 markdownParser.renderer.rules = {
   ...markdownParser.renderer.rules,
 
-  heading_open(tokens, tokenIndex, options, env, self) {
-    let token = tokens[tokenIndex];
-    if (token.tag === "h1") {
-      return `<h2>`;
-    }
-  },
-
-  heading_close(tokens, tokenIndex, options, env, self) {
-    let token = tokens[tokenIndex];
-    if (token.tag === "h1") {
-      return "</h2>";
-    }
-  },
-
   fence(tokens, tokenIndex, options, env, self) {
     let token = tokens[tokenIndex];
     if (token.info === "config-for-examples") {

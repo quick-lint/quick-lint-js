@@ -53,6 +53,10 @@ class CXX_Lexer {
 
   void skip() { this->parse_token(); }
 
+  [[noreturn]] void fatal();
+
+  const Char8* remaining() { return this->input_; }
+
  private:
   void parse_token();
 
@@ -69,8 +73,6 @@ class CXX_Lexer {
   void skip_preprocessor_directive();
   void skip_to_end_of_line();
   void skip_newline();
-
-  [[noreturn]] void fatal();
 
   CXX_Token token_;
   const Char8* input_;

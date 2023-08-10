@@ -53,6 +53,14 @@ class Output_Stream {
     });
   }
 
+  template <class T>
+  void append_fixed_hexadecimal_integer(T value, int width) {
+    this->append(width, [&](Char8* out) -> int {
+      write_integer_fixed_hexadecimal<T>(value, width, out);
+      return width;
+    });
+  }
+
   [[gnu::noinline]] void append_copy(String8_View data);
   void append_copy(Char8 data);
 

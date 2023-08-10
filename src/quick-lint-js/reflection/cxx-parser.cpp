@@ -155,9 +155,7 @@ String8_View CXX_Lexer::lex_string_literal() {
         continue;
       }
 
-      String8_View decoded_view(decoded);
-      decoded.release();
-      return decoded_view;
+      return decoded.release_to_string_view();
     }
 
     case u8'\\':

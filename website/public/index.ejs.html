@@ -30,6 +30,9 @@
       .feature-comparison tbody th {
         border-top-width: 1px;
       }
+      .feature-comparison th {
+        font-weight: normal;
+      }
 
       .feature-comparison td.quick-lint-js,
       .feature-comparison th.quick-lint-js {
@@ -80,6 +83,21 @@
       }
       .feature-comparison td.has-link > a:hover {
         background-color: rgba(0, 0, 0, 0.05);
+      }
+      .feature-comparison td.has-link > a {
+        /* We want <br> in the markup to improve copy-paste. However, we don't
+           want the <br> to take up space because we already use display:flex to
+           place things on separate lines.
+
+           <br> doesn't take up any space in Firefox 115.0.3, but does take up
+           space in Safari 16.3 and Chromium 111.0.5563.110.
+
+           If we hide the <br>, copy-paste breaks.
+
+           Work around this issue by using &#x0a; and white-space:pre-line
+           instead of <br>. This seems to make copy-paste nice while making the
+           page look nice visually in all browsers. */
+        white-space: pre-line;
       }
       @media (prefers-color-scheme: dark) {
         .feature-comparison td.has-link > a:hover {
@@ -536,7 +554,7 @@ const language = "JavaScript";
               <td class="good quick-lint-js has-link">
                 <a href="benchmarks/"
                   ><span aria-labelledby="feature-speed-qljs-quick">🚀</span
-                  ><br /><span id="feature-speed-qljs-quick">quick</span></a
+                  >&#x0a;<span id="feature-speed-qljs-quick">quick</span></a
                 >
               </td>
               <td class="meh">

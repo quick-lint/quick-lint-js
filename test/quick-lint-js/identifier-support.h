@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_IDENTIFIER_SUPPORT_H
 #define QUICK_LINT_JS_IDENTIFIER_SUPPORT_H
 
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>

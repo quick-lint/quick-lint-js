@@ -46,8 +46,8 @@ if (TARGET quick-lint-js-generate-diagnostic-metadata)
     COMMENT "Generating metadata of diagnostics for diagnostic-metadata-generated.h"
   )
 endif ()
-# NOTE(strager): We must create a target just for these generated files.
-# Otherwise, Ninja's build gets order-only dependencies from
+# NOTE[generated-target]: We must create a target just for these generated
+# files. Otherwise, Ninja's build gets order-only dependencies from
 # diagnostic-metadata-generated.h to libquick-lint-js-debug.a, forming a
 # dependency cycle (because libquick-lint-js-debug.a depends on
 # diagnostic-types.h which depends on diagnostic-metadata-generated.h).
@@ -61,6 +61,11 @@ add_library(
   quick-lint-js/diag/diagnostic-metadata-generated.h
 )
 target_include_directories(quick-lint-js-diagnostic-metadata PUBLIC .)
+target_link_libraries(
+  quick-lint-js-diagnostic-metadata
+  PUBLIC
+  quick-lint-js-i18n
+)
 quick_lint_js_target_add_cxx_flag_if_supported(
   quick-lint-js-diagnostic-metadata
   /constexpr:steps9999999
@@ -79,6 +84,70 @@ if (TARGET quick-lint-js-generate-lex-keyword)
   )
 endif ()
 
+# C++ files which contain QLJS_TRANSLATABLE directives.
+set(
+  QLJS_TRANSLATION_SOURCES
+  ../benchmark/benchmark-translation.cpp
+  quick-lint-js/diag/diagnostic-formatter.cpp
+  quick-lint-js/diag/diagnostic-metadata-generated.cpp
+  quick-lint-js/diag/diagnostic-metadata-generated.h
+  ../test/test-diagnostic-formatter.cpp
+  ../test/test-vim-qflist-json-diag-reporter.cpp
+)
+
+# GNU gettext .po files which contain translation information.
+set(
+  QLJS_TRANSLATION_FILES
+  ../po/de.po
+  ../po/en_US@snarky.po
+  ../po/fr_FR.po
+  ../po/pt_BR.po
+  ../po/sv_SE.po
+)
+
+if (TARGET quick-lint-js-compile-translations)
+  set(COMMAND $<TARGET_FILE:quick-lint-js-compile-translations>)
+  set(DEPENDS quick-lint-js-compile-translations)
+  set(OUTPUTS)
+  set(WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/..")
+
+  macro (add_flag LIST FLAG PATH)
+    # Make the output of compile-translations deterministic by using relative
+    # paths.
+    file(RELATIVE_PATH _PATH "${WORKING_DIRECTORY}" "${CMAKE_CURRENT_SOURCE_DIR}/${PATH}")
+    list(APPEND COMMAND "${FLAG}" "${_PATH}")
+    list(APPEND "${LIST}" "${CMAKE_CURRENT_SOURCE_DIR}/${PATH}")
+  endmacro ()
+
+  foreach (SOURCE IN LISTS QLJS_TRANSLATION_SOURCES)
+    add_flag(DEPENDS --source "${SOURCE}")
+  endforeach ()
+  foreach (TRANSLATION_FILE IN LISTS QLJS_TRANSLATION_FILES)
+    add_flag(DEPENDS --po "${TRANSLATION_FILE}")
+  endforeach ()
+  add_flag(OUTPUTS --output-messages-pot ../po/messages.pot)
+  add_flag(OUTPUTS --output-translation-table-cpp quick-lint-js/i18n/translation-table-generated.cpp)
+  add_flag(OUTPUTS --output-translation-table-h quick-lint-js/i18n/translation-table-generated.h)
+  add_flag(OUTPUTS --output-translation-table-test quick-lint-js/i18n/translation-table-test-generated.h)
+
+  add_custom_command(
+    OUTPUT ${OUTPUTS}
+    COMMAND ${COMMAND}
+    DEPENDS ${DEPENDS}
+    COMMENT "Scanning sources for translatable strings and generating translation tables"
+    WORKING_DIRECTORY "${WORKING_DIRECTORY}"
+  )
+endif ()
+# See NOTE[generated-target].
+add_library(
+  quick-lint-js-i18n
+  STATIC
+  quick-lint-js/i18n/translation-table-generated.cpp
+  quick-lint-js/i18n/translation-table-generated.h
+  quick-lint-js/i18n/translation-table-test-generated.h
+)
+target_include_directories(quick-lint-js-i18n PUBLIC .)
+
 # These files are needed by some helper tools in addition to the core.
 quick_lint_js_add_library(
   quick-lint-js-tool-lib
@@ -93,9 +162,15 @@ quick_lint_js_add_library(
   quick-lint-js/container/string-view.h
   quick-lint-js/fe/keyword-lexer.h
   quick-lint-js/fe/keyword-list.h
+  quick-lint-js/i18n/po-parser.cpp
+  quick-lint-js/i18n/po-parser.h
+  quick-lint-js/i18n/translation-table-compiler.cpp
+  quick-lint-js/i18n/translation-table-compiler.h
   quick-lint-js/io/file-handle-posix.cpp
   quick-lint-js/io/file-handle-win32.cpp
   quick-lint-js/io/file-handle.h
+  quick-lint-js/io/file-path.cpp
+  quick-lint-js/io/file-path.h
   quick-lint-js/io/file.cpp
   quick-lint-js/io/file.h
   quick-lint-js/io/output-stream.cpp
@@ -119,9 +194,14 @@ quick_lint_js_add_library(
   quick-lint-js/util/narrow-cast.h
   quick-lint-js/util/utf-16.cpp
   quick-lint-js/util/utf-16.h
+  quick-lint-js/util/utf-8.cpp
+  quick-lint-js/util/utf-8.h
 )
 target_include_directories(quick-lint-js-tool-lib PUBLIC .)
 target_link_libraries(quick-lint-js-tool-lib PUBLIC boost)
+if (WIN32)
+  target_link_libraries(quick-lint-js-tool-lib PUBLIC pathcch)
+endif ()
 
 quick_lint_js_add_library(
   quick-lint-js-lib
@@ -204,6 +284,7 @@ quick_lint_js_add_library(
   quick-lint-js/fe/jsx.cpp
   quick-lint-js/fe/jsx.h
   quick-lint-js/fe/keyword-lexer.cpp
+  quick-lint-js/fe/language.cpp
   quick-lint-js/fe/language.h
   quick-lint-js/fe/lex-keyword-generated.cpp
   quick-lint-js/fe/lex-unicode-generated.cpp
@@ -231,8 +312,6 @@ quick_lint_js_add_library(
   quick-lint-js/feature.h
   quick-lint-js/i18n/locale.cpp
   quick-lint-js/i18n/locale.h
-  quick-lint-js/i18n/translation-table-generated.cpp
-  quick-lint-js/i18n/translation-table-generated.h
   quick-lint-js/i18n/translation-table.h
   quick-lint-js/i18n/translation.cpp
   quick-lint-js/i18n/translation.h
@@ -243,8 +322,6 @@ quick_lint_js_add_library(
   quick-lint-js/io/event-loop.h
   quick-lint-js/io/file-canonical.cpp
   quick-lint-js/io/file-canonical.h
-  quick-lint-js/io/file-path.cpp
-  quick-lint-js/io/file-path.h
   quick-lint-js/io/pipe-writer.cpp
   quick-lint-js/io/pipe-writer.h
   quick-lint-js/io/pipe.cpp
@@ -315,8 +392,6 @@ quick_lint_js_add_library(
   quick-lint-js/util/synchronized.h
   quick-lint-js/util/try-catch-stack.h
   quick-lint-js/util/type-traits.h
-  quick-lint-js/util/utf-8.cpp
-  quick-lint-js/util/utf-8.h
   quick-lint-js/version.h
   quick-lint-js/web-demo-location.cpp
   quick-lint-js/web-demo-location.h
@@ -332,6 +407,7 @@ target_link_libraries(
   PUBLIC
   boost
   quick-lint-js-diagnostic-metadata
+  quick-lint-js-i18n
   quick-lint-js-tool-lib
   simdjson
   PRIVATE
@@ -404,6 +480,7 @@ quick_lint_js_add_library(
   quick-lint-js/diag/diag-debug.cpp
   quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
+  quick-lint-js/i18n/po-parser-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp
   quick-lint-js/port/char8-debug.cpp
 )

@@ -15,15 +15,12 @@
     include("../blog-head.ejs.html") %>
     <link href="../../main.css" rel="stylesheet" />
     <style>
-      h3 {
+      h2 {
         border-top: 1px solid #ccc;
         padding-top: 1rem;
       }
-      h4 {
-        font-style: italic;
-      }
-
-      .subtitle {
+      h3 {
+        font-size: 1rem;
         font-style: italic;
       }
 
@@ -267,10 +264,12 @@
     <header><%- await include("../../common-nav.ejs.html") %></header>
 
     <main>
-      <h2>Is coding in Rust as bad as in C++?</h2>
-      <p class="subtitle">
-        A practical comparison of build and test speed between C++ and Rust.
-      </p>
+      <hgroup>
+        <h1>Is coding in Rust as bad as in C++?</h1>
+        <p>
+          A practical comparison of build and test speed between C++ and Rust.
+        </p>
+      </hgroup>
 
       <p>
         Written by <a href="https://strager.net/">strager</a> on
@@ -424,9 +423,9 @@
 
       <p>Let's get started!</p>
 
-      <h3 id="porting-cpp-to-rust">Making the C++ and Rust test subjects</h3>
+      <h2 id="porting-cpp-to-rust">Making the C++ and Rust test subjects</h2>
 
-      <h4>Finding a project</h4>
+      <h3>Finding a project</h3>
 
       <p>
         If I'm going to spend a month rewriting code, what code should I port? I
@@ -467,7 +466,7 @@
         </figure>
       </p>
 
-      <h4>Trimming the C++ code</h4>
+      <h3>Trimming the C++ code</h3>
 
       <p>
         The C++ portion of quick-lint-js contains over 100k
@@ -550,7 +549,7 @@
         </tbody>
       </table>
 
-      <h4>The rewrite</h4>
+      <h3>The rewrite</h3>
 
       <p>
         How am I going to rewrite thousands of lines of messy C++ code? One file
@@ -664,7 +663,7 @@
         </tbody>
       </table>
 
-      <h3 id="optimizing-rust-build">Optimizing the Rust build</h3>
+      <h2 id="optimizing-rust-build">Optimizing the Rust build</h2>
 
       <p>
         I care a lot about build times. Therefore, I had already optimized build
@@ -700,7 +699,7 @@
         </li>
       </ul>
 
-      <h4 id="optimizing-rust-with-faster-linker">Faster linker</h4>
+      <h3 id="optimizing-rust-with-faster-linker">Faster linker</h3>
 
       <p>
         My first step is to profile the build. Let's first profile using the
@@ -780,7 +779,7 @@
         (Mold, lld, zld) shine for big projects.
       </p>
 
-      <h4 id="optimizing-rust-with-cranelift">Cranelift backend</h4>
+      <h3 id="optimizing-rust-with-cranelift">Cranelift backend</h3>
 
       <p>
         Let's look at the
@@ -908,7 +907,7 @@
         </p>
       </aside>
 
-      <h4 id="optimizing-rust-with-flags">Compiler and linker flags</h4>
+      <h3 id="optimizing-rust-with-flags">Compiler and linker flags</h3>
 
       <p>
         Compilers have a bunch of knobs to speed up builds (or slow them down).
@@ -949,9 +948,9 @@
         This means the linker needs to do less work, reducing link times.
       </p>
 
-      <h4 id="optimizing-rust-with-different-layouts">
+      <h3 id="optimizing-rust-with-different-layouts">
         Workspace and test layouts
-      </h4>
+      </h3>
 
       <p>
         Rust and Cargo have some flexibility in how you place your files on
@@ -1245,9 +1244,9 @@
         <i>workspace; many test exes</i> configuration from here onward.
       </p>
 
-      <h4 id="optimizing-rust-with-lighter-dependencies">
+      <h3 id="optimizing-rust-with-lighter-dependencies">
         Minimize dependency features
-      </h4>
+      </h3>
 
       <p>
         Many crates support optional features. Sometimes, optional features are
@@ -1296,7 +1295,7 @@ cpp_vs_rust v0.1.0
         doesn't actually do anything meaningful? Oh well. On to the next tweak.
       </p>
 
-      <h4 id="optimizing-rust-with-cargo-nextest">cargo-nextest</h4>
+      <h3 id="optimizing-rust-with-cargo-nextest">cargo-nextest</h3>
 
       <p>
         <a href="https://nexte.st/">cargo-nextest</a> is a tool which claims to
@@ -1345,9 +1344,9 @@ cpp_vs_rust v0.1.0
         not.
       </p>
 
-      <h4 id="optimizing-rust-with-custom-toolchain">
+      <h3 id="optimizing-rust-with-custom-toolchain">
         Custom-built toolchain with PGO
-      </h4>
+      </h3>
 
       <p>
         For C++ builds, I found that building the compiler myself with
@@ -1399,7 +1398,7 @@ cpp_vs_rust v0.1.0
         in the Rust repo. 🤷‍♀️
       </p>
 
-      <h3 id="optimmizing-cpp-build">Optimizing the C++ build</h3>
+      <h2 id="optimmizing-cpp-build">Optimizing the C++ build</h2>
 
       <p>
         When working on the original C++ project, quick-lint-js, I already
@@ -1436,7 +1435,7 @@ cpp_vs_rust v0.1.0
         the Xcode Clang for my C++ vs Rust comparison.
       </p>
 
-      <h4>C++20 modules</h4>
+      <h3>C++20 modules</h3>
 
       <p>
         My C++ code uses <code>#include</code>. But what about
@@ -1460,7 +1459,7 @@ cpp_vs_rust v0.1.0
         against classic C++ <code>#include</code>s.
       </p>
 
-      <h3 id="build-time-comparison">C++ vs Rust build times</h3>
+      <h2 id="build-time-comparison">C++ vs Rust build times</h2>
 
       <p>
         I ported the C++ project to Rust and optimized the Rust build times as
@@ -1498,7 +1497,7 @@ cpp_vs_rust v0.1.0
         came out on top.
       </p>
 
-      <h4>Scaling beyond 17k SLOC</h4>
+      <h3>Scaling beyond 17k SLOC</h3>
 
       <p>
         I benchmarked a 17k SLOC project. But that was a <em>small</em> project.
@@ -1589,7 +1588,7 @@ cpp_vs_rust v0.1.0
         should get its own executable which should compile independently.
       </p>
 
-      <h3>Conclusion</h3>
+      <h2>Conclusion</h2>
 
       <p>
         Are compilation times a problem with Rust? <strong>Yes.</strong> There
@@ -1634,16 +1633,16 @@ cpp_vs_rust v0.1.0
         <a href="https://ziglang.org/">Zig</a> first.)
       </p>
 
-      <h3 id="appendix">Appendix</h3>
+      <h2 id="appendix">Appendix</h2>
 
-      <h4>Source code</h4>
+      <h3>Source code</h3>
 
       <a href="https://github.com/quick-lint/cpp-vs-rust">Source code</a> for
       the trimmed C++ project, the Rust port (including different project
       layouts), code generation scripts, and benchmarking scripts.
       GPL-3.0-or-later.
 
-      <h4>Linux machine</h4>
+      <h3>Linux machine</h3>
 
       <dl>
         <dt>name</dt>
@@ -1691,7 +1690,7 @@ cpp_vs_rust v0.1.0
         <dd>version 2.38</dd>
       </dl>
 
-      <h4>macOS machine</h4>
+      <h3>macOS machine</h3>
 
       <dl>
         <dt>name</dt>
@@ -1722,7 +1721,7 @@ cpp_vs_rust v0.1.0
         <dd>commit d50a975a5fe6576ba0fd&shy;2863897c6d016eaeac41</dd>
       </dl>
 
-      <h4>Benchmarks</h4>
+      <h3>Benchmarks</h3>
 
       <dl>
         <dt>build+test w/ deps</dt>

@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_FE_DEBUG_PARSE_VISITOR_H
 #define QUICK_LINT_JS_FE_DEBUG_PARSE_VISITOR_H
 
+#include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse-visitor.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
@@ -174,11 +175,13 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
     this->output_->flush();
   }
 
-  void visit_variable_declaration(Identifier name, Variable_Kind,
+  void visit_variable_declaration(Identifier name, Variable_Kind kind,
                                   Variable_Declaration_Flags) override {
     this->output_->append_copy(u8"variable declaration: "_sv);
     this->output_->append_copy(name.normalized_name());
-    this->output_->append_copy(u8'\n');
+    this->output_->append_copy(u8" ("_sv);
+    this->output_->append_copy(to_string(kind));
+    this->output_->append_copy(u8")\n"_sv);
     this->output_->flush();
   }
 

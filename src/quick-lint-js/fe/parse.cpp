@@ -198,9 +198,8 @@ void Parser::check_jsx_attribute(const Identifier& attribute_name) {
     fixed_name[2] = toupper(fixed_name[2]);
     this->diag_reporter_->report(Diag_JSX_Event_Attribute_Should_Be_Camel_Case{
         .attribute_name = attribute_name.span(),
-        .expected_attribute_name = String8_View(fixed_name),
+        .expected_attribute_name = fixed_name.release_to_string_view(),
     });
-    fixed_name.release();
   }
 
   if (name_has_upper) {

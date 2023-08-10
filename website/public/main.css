@@ -61,11 +61,13 @@ header {
   margin-top: 1rem;
 }
 
-h1 {
+#title {
+  font-size: 2rem;
+  font-weight: bold;
   margin-top: 0;
   margin-bottom: 0;
 }
-h1 a:link {
+#title a:link {
   text-decoration: none;
 }
 
@@ -175,7 +177,7 @@ header {
   grid-template-columns: calc(var(--mascot-width) + 0.5rem) auto auto;
   grid-template-rows: auto minmax(var(--tag-line-height), auto) auto;
 }
-header > h1 {
+header > #title {
   grid-area: title;
 }
 header > .mascot {
@@ -225,11 +227,43 @@ hr {
   margin-left: 2rem;
   margin-right: 2rem;
 }
-
-main > h2:first-child {
+h1 + h2 {
+  /* Don't add a border between two headings. */
   border-top: 0;
-  margin-top: 0;
   padding-top: 0;
+}
+
+h1 {
+  /* TODO(strager): Tweak this for better aesthetics. */
+  margin-bottom: 1.25rem;
+}
+h1 {
+  font-size: 1.5rem;
+}
+h2 {
+  font-size: 1.17rem;
+  margin-bottom: 1.17rem;
+  margin-top: 1.17rem;
+}
+h3 {
+  font-size: 1rem;
+  margin-bottom: 1.33rem;
+  margin-top: 1.33rem;
+}
+h4 {
+  font-size: 1rem;
+  margin-bottom: 1.67rem;
+  margin-top: 1.67rem;
+}
+
+main > h1:first-child,
+main > hgroup:first-child > h1:first-child {
+  margin-top: 0;
+}
+
+/* Style subtitles. */
+hgroup p {
+  font-style: italic;
 }
 
 nav.breadcrumbs ol {
@@ -473,8 +507,11 @@ summary + h4 {
   display: grid;
   grid-template-areas: "linux macos windows";
 }
-.os-column-table h3 {
+.os-column-table h2 {
   margin-top: 0;
+  /* Disable default top border for <h2>. */
+  border-top: 0;
+  padding-top: 0;
 }
 .os-column-table {
   margin-bottom: 1em;
@@ -573,7 +610,6 @@ kbd.keystroke {
   background-color: rgb(240, 219, 79);
   border-radius: 0.5rem;
   display: inline-block;
-  font-weight: bold;
   letter-spacing: 0.75px;
   padding: 0.75rem 1.25rem 0.5em 1.25rem;
   text-decoration: none;
@@ -735,7 +771,6 @@ kbd.keystroke {
 }
 #supported-editors a {
   background-color: rgb(240, 219, 79);
-  font-weight: bold;
   border-radius: 0.5rem;
   margin: 0 0.5rem 0 0.5rem;
   padding-bottom: 0.5rem;
@@ -780,7 +815,7 @@ kbd.keystroke {
 
 @media only screen and (max-width: 37em) {
   #supported-editors {
-    font-size: x-small;
+    font-size: small;
   }
 }
 

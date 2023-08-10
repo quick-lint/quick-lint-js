@@ -18,39 +18,16 @@ using ::testing::IsEmpty;
 namespace quick_lint_js {
 namespace {
 TEST(Test_Variable_Analyzer_Namespace, empty_namespace) {
-  const Char8 namespace_declaration[] = u8"NS";
-
-  // namespace NS { }
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_namespace_scope();
-  l.visit_exit_namespace_scope();
-  l.visit_variable_declaration(identifier_of(namespace_declaration),
-                               Variable_Kind::_namespace,
-                               Variable_Declaration_Flags::none);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(u8"namespace NS { } "_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Namespace,
      namespace_name_is_visible_outside_namespace) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 namespace_use[] = u8"NS";
-
-  // namespace NS { }
-  // NS;
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_namespace_scope();
-  l.visit_exit_namespace_scope();
-  l.visit_variable_declaration(identifier_of(namespace_declaration),
-                               Variable_Kind::_namespace,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_use(identifier_of(namespace_use));
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"namespace NS { } "_sv
+      u8"NS;"_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 // TODO(strager): Is this correct? TypeScript's compiler (as of v4.8.2)
@@ -58,149 +35,65 @@ TEST(Test_Variable_Analyzer_Namespace,
 // about referencing the namespace itself.
 TEST(Test_Variable_Analyzer_Namespace,
      namespace_name_is_usable_before_namespace) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 namespace_use[] = u8"NS";
-
-  // NS;
-  // namespace NS { }
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_use(identifier_of(namespace_use));
-  l.visit_enter_namespace_scope();
-  l.visit_exit_namespace_scope();
-  l.visit_variable_declaration(identifier_of(namespace_declaration),
-                               Variable_Kind::_namespace,
-                               Variable_Declaration_Flags::none);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"NS;"_sv
+      u8"namespace NS { } "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Namespace,
      namespace_name_is_visible_inside_namespace) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 namespace_use[] = u8"NS";
-
-  // namespace NS {
-  //   NS;
-  // }
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_namespace_scope();
-  l.visit_variable_use(identifier_of(namespace_use));
-  l.visit_exit_namespace_scope();
-  l.visit_variable_declaration(identifier_of(namespace_declaration),
-                               Variable_Kind::_namespace,
-                               Variable_Declaration_Flags::none);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
+  test_parse_and_analyze(
+      u8"namespace NS {"_sv
+      u8"  NS;"_sv
+      u8"} "_sv,
+      no_diags, typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Namespace,
      variables_declared_inside_namespace_are_not_accessible_outside) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 namespace_member_declaration[] = u8"C";
-  const Char8 namespace_member_use[] = u8"C";
-
-  for (Variable_Kind var_kind : {Variable_Kind::_class, Variable_Kind::_var}) {
-    SCOPED_TRACE(var_kind);
-    // namespace NS {
-    //   export class C {}
-    // }
-    // C;  // ERROR
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_namespace_scope();
-    l.visit_variable_declaration(identifier_of(namespace_member_declaration),
-                                 var_kind, Variable_Declaration_Flags::none);
-    l.visit_exit_namespace_scope();
-    l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 Variable_Kind::_namespace,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_use(identifier_of(namespace_member_use));
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
-                                   span_of(namespace_member_use)),
-                }));
-  }
+  test_parse_and_analyze(
+      u8"namespace NS { export class C {}  }  C;"_sv,
+      u8"                                     ^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"namespace NS { export var v; }  v;"_sv,
+      u8"                                ^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Namespace,
      uses_in_namespace_might_refer_to_symbols_in_other_files) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 variable_use[] = u8"myVar";
-  const Char8 assignment[] = u8"myVarWithAssignment";
-  const Char8 typeof_use[] = u8"myVarWithTypeof";
-  const Char8 type_use[] = u8"MyType";
-
-  static const Padded_String delete_expression(u8"delete myVarWithDelete"_sv);
-  static const Source_Code_Span delete_keyword_span(
-      delete_expression.data(),
-      delete_expression.data() + u8"delete"_sv.size());
-  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
-  static const Source_Code_Span deleted_variable_span(
-      delete_expression.data() + u8"delete "_sv.size(),
-      delete_expression.cend());
-  ASSERT_EQ(deleted_variable_span.string_view(), u8"myVarWithDelete"_sv);
-
-  {
-    // namespace NS {
-    //   myVar;                    // visit_variable_use
-    //   myVarWithAssignment = 0;  // visit_variable_assignment
-    //   delete myVarWithDelete;   // visit_variable_delete_use
-    //   typeof myVarWithTypeof;   // visit_variable_typeof_use
-    //   null as MyType;           // visit_variable_type_use
-    // }
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_namespace_scope();
-    l.visit_variable_use(identifier_of(variable_use));
-    l.visit_variable_assignment(identifier_of(assignment));
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_variable_typeof_use(identifier_of(typeof_use));
-    l.visit_variable_type_use(identifier_of(type_use));
-    l.visit_exit_namespace_scope();
-    l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 Variable_Kind::_namespace,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(
+      u8"namespace NS {"_sv
+      u8"  myVar;"_sv                    // visit_variable_use
+      u8"  myVarWithAssignment = 0;"_sv  // visit_variable_assignment
+      u8"  delete myVarWithDelete;"_sv   // visit_variable_delete_use
+      u8"  typeof myVarWithTypeof;"_sv   // visit_variable_typeof_use
+      u8"  null as MyType;"_sv           // visit_variable_type_use
+      u8"} "_sv,
+      no_diags,
+      Test_Parse_And_Analyze_Options{
+          .parse_options = typescript_options,
+          .analyze_options =
+              Variable_Analyzer_Options{
+                  // FIXME(strager): Should
+                  // Diag_TypeScript_Delete_Cannot_Delete_Variables
+                  // be reported here in typescript mode? We suppress it for
+                  // now:
+                  .allow_deleting_typescript_variable = true,
+                  .eval_can_declare_variables = false,
+              },
+      },
+      default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Namespace,
      eval_in_namespace_cannot_declare_variables_outside_namespace) {
-  const Char8 namespace_declaration[] = u8"NS";
-  const Char8 eval_use[] = u8"eval";
-  const Char8 variable_use[] = u8"myVar";
-
-  {
-    // namespace NS {
-    //   eval("let myVar");
-    // }
-    // myVar;  // ERROR
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_namespace_scope();
-    l.visit_variable_use(identifier_of(eval_use));
-    l.visit_exit_namespace_scope();
-    l.visit_variable_declaration(identifier_of(namespace_declaration),
-                                 Variable_Kind::_namespace,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_use(identifier_of(variable_use));
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable,
-                                             name, span_of(variable_use)),
-                          }));
-  }
+  test_parse_and_analyze(
+      u8"namespace NS { eval('let myVar'); }  myVar;"_sv,
+      u8"                                     ^^^^^ Diag_Use_Of_Undeclared_Variable.name"_diag,
+      typescript_analyze_options, default_globals);
 }
 }
 }

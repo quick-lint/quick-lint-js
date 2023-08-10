@@ -8,9 +8,9 @@
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/token.h>
+#include <quick-lint-js/i18n/translation-table-test-generated.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/test-translation-table-generated.h>
 #include <string>
 #include <vector>
 
@@ -100,23 +100,29 @@ TEST_F(Test_Translation, english_snarky_translates) {
   EXPECT_THAT(reporter.messages(), ElementsAreArray({u8"#unexpected"}));
 }
 
-TEST_F(Test_Translation, full_translation_table) {
+TEST_F(Test_Translation, full_translation_table_translated) {
   for (std::size_t locale_index = 0;
        locale_index < std::size(test_locale_names); ++locale_index) {
     const char *locale_name = test_locale_names[locale_index];
     SCOPED_TRACE(locale_name);
     Translator messages;
-    if (*locale_name == '\0') {
-      messages.use_messages_from_source_code();
-    } else {
-      EXPECT_TRUE(messages.use_messages_from_locale(locale_name));
-    }
+    EXPECT_TRUE(messages.use_messages_from_locale(locale_name));
 
     for (const Translated_String &test_case : test_translation_table) {
       ASSERT_TRUE(test_case.translatable.valid());
       EXPECT_EQ(messages.translate(test_case.translatable),
                 String8_View(test_case.expected_per_locale[locale_index]));
     }
+  }
+}
+
+TEST_F(Test_Translation, full_translation_table_untranslated) {
+  Translator messages;
+  messages.use_messages_from_source_code();
+  for (const Translated_String &test_case : test_translation_table) {
+    ASSERT_TRUE(test_case.translatable.valid());
+    EXPECT_EQ(messages.translate(test_case.translatable),
+              String8_View(test_case.expected_untranslated));
   }
 }
 }

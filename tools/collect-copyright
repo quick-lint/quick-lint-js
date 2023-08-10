@@ -115,11 +115,13 @@ archive_to_project = {
     #
     "libnode-hook.a": QLJSSubproject(),
     "libquick-lint-js-diagnostic-metadata.a": QLJSSubproject(),
+    "libquick-lint-js-i18n.a": QLJSSubproject(),
     "libquick-lint-js-lib-debug.a": QLJSSubproject(),
     "libquick-lint-js-lib.a": QLJSSubproject(),
     "libquick-lint-js-tool-lib.a": QLJSSubproject(),
     "node-hook.lib": QLJSSubproject(),
     "quick-lint-js-diagnostic-metadata.lib": QLJSSubproject(),
+    "quick-lint-js-i18n.lib": QLJSSubproject(),
     "quick-lint-js-lib-debug.lib": QLJSSubproject(),
     "quick-lint-js-lib.lib": QLJSSubproject(),
     "quick-lint-js-tool-lib.lib": QLJSSubproject(),

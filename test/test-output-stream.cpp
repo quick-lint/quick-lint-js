@@ -134,6 +134,17 @@ TEST(Test_Memory_Output_Stream, append_with_callback_more_than_buffer_size) {
   EXPECT_EQ(s.get_flushed_string8(), message_0);
 }
 
+TEST(Test_Memory_Output_Stream, append_fixed_hexadecimal_integer) {
+  static constexpr int buffer_size = 16;
+  {
+    Memory_Output_Stream s(/*buffer_size=*/buffer_size);
+    s.append_fixed_hexadecimal_integer(0x1234, 4);
+    s.append_fixed_hexadecimal_integer(0x0bcd, 4);
+    s.flush();
+    EXPECT_EQ(s.get_flushed_string8(), u8"12340bcd"_sv);
+  }
+}
+
 #if defined(__EMSCRIPTEN__)
 // No filesystem on web.
 #else

@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "test": "backstop test --config=backstop.config.cjs",
+    "approve": "backstop approve --config=backstop.config.cjs"
+  },
+  "engines": {
+    "node": ">=14.14.0"
+  },
+  "dependencies": {
+    "backstopjs": "^6.2.2"
+  }
+}

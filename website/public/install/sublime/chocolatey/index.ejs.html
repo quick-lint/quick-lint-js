@@ -8,20 +8,20 @@
     "Chocolatey"}) %>
 
     <main>
-      <h2>
+      <h1>
         <qljs-icon name="sublime-text" size="29" /><qljs-icon
           name="chocolatey"
           size="29"
         />
         Install for Sublime Text with Chocolatey
-      </h2>
+      </h1>
 
-      <h3>Install prerequisites</h3>
+      <h2>1. Install prerequisites</h2>
       <%- await include("../common-prerequisites.ejs.html") %>
 
-      <h3>Install quick-lint-js</h3>
+      <h2>2. Install quick-lint-js</h2>
       <%- await include("../../common-chocolatey.ejs.html") %> <%- await
-      include("../common-configure.ejs.html") %>
+      include("../common-configure.ejs.html", {step: 3}) %>
     </main>
 
     <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>

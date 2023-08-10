@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_DIAGNOSTIC_ASSERTION_H
 
 #include <cstddef>
+#include <gmock/gmock.h>
 #include <memory>
 #include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/padded-string.h>
@@ -97,6 +98,9 @@ struct Diagnostic_Assertion {
 
     // If type == Diagnostic_Arg_Type::statement_kind:
     Statement_Kind statement_kind;
+
+    // If type == Diagnostic_Arg_Type::variable_kind:
+    Variable_Kind variable_kind;
   };
 
   Diag_Type type = Diag_Type();

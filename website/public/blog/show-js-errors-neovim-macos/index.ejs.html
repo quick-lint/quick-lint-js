@@ -40,17 +40,12 @@
         margin-top: 0.75em;
       }
 
-      /* Visually connect <h4> with the following paragraph. */
-      h4 {
+      /* Visually connect <h3> with the following paragraph. */
+      h3 {
         margin-bottom: 0.5em;
       }
-      h4 + p {
+      h3 + p {
         margin-top: 0.5em;
-      }
-
-      /* Visually separate each section. */
-      section + section {
-        border-top: 1px solid #ccc;
       }
     </style>
   </head>
@@ -58,7 +53,7 @@
     <header><%- await include("../../common-nav.ejs.html") %></header>
 
     <main>
-      <h2>Show JavaScript errors in Neovim on macOS</h2>
+      <h1>Show JavaScript errors in Neovim on macOS</h1>
 
       <p>
         Written by <a href="https://strager.net/">strager</a> on
@@ -93,10 +88,10 @@
       </section>
 
       <section id="install-homebrew">
-        <h3>
+        <h2>
           1. Install Homebrew
           <qljs-icon name="homebrew" size="19" />
-        </h3>
+        </h2>
         <p>
           We are going to use the
           <a href="https://brew.sh/">Homebrew package manager</a> to install
@@ -111,10 +106,10 @@
       </section>
 
       <section id="install-neovim">
-        <h3>
+        <h2>
           2. Install Neovim
           <qljs-icon name="neovim" size="19" />
-        </h3>
+        </h2>
         <p>
           Use Homebrew to install Neovim by running the following command in a
           terminal:
@@ -140,7 +135,7 @@
       </section>
 
       <section id="install-nvim-lspconfig">
-        <h3>3. Install nvim-lspconfig</h3>
+        <h2>3. Install nvim-lspconfig</h2>
         <p>
           Next, we need to install the
           <a href="https://github.com/neovim/nvim-lspconfig"
@@ -167,10 +162,10 @@
       </section>
 
       <section id="install-quick-lint-js">
-        <h3>
+        <h2>
           4. Install quick-lint-js
           <qljs-icon name="quick-lint-js" size="19" />
-        </h3>
+        </h2>
         <p>
           We're almost done! We now need to install
           <a href="https://quick-lint-js.com/">quick-lint-js</a>, which is the
@@ -215,7 +210,7 @@
       </section>
 
       <section id="configure">
-        <h3>5. Customize &amp; configure 🔧</h3>
+        <h2>5. Customize &amp; configure 🔧</h2>
         <ul>
           <li>
             <a href="#configure-errors-while-typing"
@@ -234,7 +229,7 @@
           </li>
         </ul>
 
-        <h4 id="configure-errors-while-typing">Detect errors while you type</h4>
+        <h3 id="configure-errors-while-typing">Detect errors while you type</h3>
         <p>
           By default, nvim-lspconfig only shows you errors while in normal mode.
           To show errors while you type in insert mode, add the following to
@@ -258,9 +253,9 @@
           <figcaption>Show errors while you type</figcaption>
         </figure>
 
-        <h4 id="configure-hide-gutter">
+        <h3 id="configure-hide-gutter">
           Hide <code>W</code>/<code>E</code> sign in left gutter
-        </h4>
+        </h3>
         <p>
           By default, Neovim shows a symbol in the gutter to indicate an error.
           If there is no error, the gutter is hidden. If you want the gutter to
@@ -293,9 +288,9 @@
           <figcaption>Hide diagnostic signs in gutter</figcaption>
         </figure>
 
-        <h4 id="configure-hide-message">
+        <h3 id="configure-hide-message">
           Hide &ldquo;■ error message&rdquo; virtual text
-        </h4>
+        </h3>
         <p>
           By default, Neovim shows virtual text to the right of lines containing
           errors. If there is no error, the virtual text is hidden. If you want
@@ -330,13 +325,13 @@
       </section>
 
       <section id="troubleshooting">
-        <h3>6. Troubleshooting 🐞</h3>
+        <h2>6. Troubleshooting 🐞</h2>
 
-        <h4>
+        <h3>
           &ldquo;Spawning language server with cmd: `quick-lint-js` failed. The
           language server is either not installed, missing from PATH, or not
           executable.&rdquo;
-        </h4>
+        </h3>
         <p>
           nvim-lspconfig gives this error if quick-lint-js was installed but
           isn't in <code>$PATH</code>.
@@ -365,11 +360,11 @@
           </dd>
         </dl>
 
-        <h4>
+        <h3>
           &ldquo;E5113: Error while calling lua chunk:
           &hellip;/.config/nvim/init.lua: module 'lspconfig/quick_lint_js' not
           found&rdquo;
-        </h4>
+        </h3>
         <p>
           Neovim gives this error if it can't find quick-lint-js' nvim-lspconfig
           configuration.
@@ -399,7 +394,7 @@
         </dl>
       </section>
 
-      <section>
+      <section style="border-top: 1px solid #ccc">
         <p>
           If you have any corrections or need any help, please email me at
           <a href="mailto:strager.nds@gmail.com">strager.nds@gmail.com</a>.

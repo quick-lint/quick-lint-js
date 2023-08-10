@@ -2,11 +2,77 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/diag-collector.h>
+#include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
+#include <quick-lint-js/parse-support.h>
+#include <quick-lint-js/port/constinit.h>
+#include <quick-lint-js/port/source-location.h>
 #include <quick-lint-js/variable-analyzer-support.h>
 
 namespace quick_lint_js {
 Global_Declared_Variable_Set default_globals = Configuration().globals();
+
+QLJS_CONSTINIT const Test_Parse_And_Analyze_Options
+    javascript_analyze_options = {
+        .parse_options = javascript_options,
+        .analyze_options = javascript_var_options,
+};
+
+QLJS_CONSTINIT const Test_Parse_And_Analyze_Options
+    typescript_analyze_options = {
+        .parse_options = typescript_options,
+        .analyze_options = typescript_var_options,
+};
+
+void test_parse_and_analyze(String8_View input, No_Diags_Tag,
+                            const Test_Parse_And_Analyze_Options& options,
+                            const Global_Declared_Variable_Set& globals,
+                            Source_Location caller) {
+  test_parse_and_analyze(input, Span<const Diagnostic_Assertion>(), options,
+                         globals, caller);
+}
+
+void test_parse_and_analyze(String8_View input, Diagnostic_Assertion diag0,
+                            const Test_Parse_And_Analyze_Options& options,
+                            const Global_Declared_Variable_Set& globals,
+                            Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0};
+  test_parse_and_analyze(input, Span<const Diagnostic_Assertion>(assertions),
+                         options, globals, caller);
+}
+
+void test_parse_and_analyze(String8_View input, Diagnostic_Assertion diag0,
+                            Diagnostic_Assertion diag1,
+                            const Test_Parse_And_Analyze_Options& options,
+                            const Global_Declared_Variable_Set& globals,
+                            Source_Location caller) {
+  Diagnostic_Assertion assertions[] = {diag0, diag1};
+  test_parse_and_analyze(input, Span<const Diagnostic_Assertion>(assertions),
+                         options, globals, caller);
+}
+
+void test_parse_and_analyze(String8_View input,
+                            Span<const Diagnostic_Assertion> diags,
+                            const Test_Parse_And_Analyze_Options& options,
+                            const Global_Declared_Variable_Set& globals,
+                            Source_Location caller) {
+  Padded_String code(input);
+
+  // Our variable analyzer tests should have valid code as input. We don't want
+  // to accidentally test parse errors when we're testing the variable analyzer.
+  Failing_Diag_Reporter parse_diag_reporter;
+  Parser p(&code, &parse_diag_reporter, options.parse_options);
+
+  Diag_Collector diag_collector;
+  Variable_Analyzer var_analyzer(&diag_collector, &globals,
+                                 options.analyze_options);
+
+  p.parse_and_visit_module(var_analyzer);
+
+  assert_diagnostics(&code, diag_collector.errors, diags, caller);
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

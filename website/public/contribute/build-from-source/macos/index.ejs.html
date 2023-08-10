@@ -15,7 +15,7 @@
     <header><%- await include("../../../common-nav.ejs.html") %></header>
 
     <main>
-      <h2><qljs-icon name="macos" size="29" /> <%= meta.title %></h2>
+      <h1><qljs-icon name="macos" size="29" /> <%= meta.title %></h1>
 
       <p>
         On macOS, you can build quick-lint-js using one of the following build
@@ -38,9 +38,9 @@
       </ul>
 
       <section id="ninja-homebrew">
-        <h3>Building with Homebrew CMake, Ninja, and Clang/LLVM</h3>
+        <h2>Building with Homebrew CMake, Ninja, and Clang/LLVM</h2>
 
-        <h4>0. Install Homebrew packages</h4>
+        <h3>0. Install Homebrew packages</h3>
 
         <p>
           Install LLVM, CMake, and Ninja using
@@ -51,7 +51,7 @@
           <pre><code class="shell-session"><kbd>brew install cmake llvm ninja</kbd></code></pre>
         </blockquote>
 
-        <h4>1. Configure with CMake</h4>
+        <h3>1. Configure with CMake</h3>
 
         <p>
           Run the following command to use Homebrew’s version of LLVM and create
@@ -67,7 +67,7 @@
   cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug -S . -B build</kbd></code></pre>
         </blockquote>
 
-        <h4>2. Build</h4>
+        <h3>2. Build</h3>
 
         <p>
           Run the following command to build the quick-lint-js executable,
@@ -87,7 +87,7 @@
           <pre><code class="shell-session"><kbd>ninja -C build quick-lint-js-test</kbd></code></pre>
         </blockquote>
 
-        <h4>3. Run</h4>
+        <h3>3. Run</h3>
 
         <p>Run the following command to run quick-lint-js’ test suite:</p>
         <blockquote>

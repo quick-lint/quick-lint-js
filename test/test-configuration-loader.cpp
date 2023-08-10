@@ -16,6 +16,7 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/file-matcher.h>
@@ -1518,11 +1519,9 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(
-      (loaded_config
-           .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>()),
-      IS_POSIX_READ_FILE_IO_ERROR(canonicalize_path(config_file)->c_str(),
-                                  EACCES));
+  EXPECT_THAT(loaded_config,
+              IS_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0600), 0)
       << "failed to make " << config_file
@@ -1563,11 +1562,9 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(
-      (loaded_config
-           .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>()),
-      IS_POSIX_READ_FILE_IO_ERROR(canonicalize_path(config_file)->c_str(),
-                                  EACCES));
+  EXPECT_THAT(loaded_config,
+              IS_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0600), 0)
       << "failed to make " << config_file
@@ -1603,11 +1600,9 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(
-      (loaded_config
-           .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>()),
-      IS_POSIX_READ_FILE_IO_ERROR(canonicalize_path(config_file)->c_str(),
-                                  EACCES));
+  EXPECT_THAT(loaded_config,
+              IS_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
@@ -1632,11 +1627,9 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(
-      (loaded_config
-           .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>()),
-      IS_POSIX_READ_FILE_IO_ERROR(canonicalize_path(config_file)->c_str(),
-                                  EACCES));
+  EXPECT_THAT(loaded_config,
+              IS_POSIX_READ_FILE_IO_ERROR(
+                  canonicalize_path(config_file)->c_str(), EACCES));
 
   std::vector<Configuration_Change> changes =
       loader.detect_changes_and_refresh();
@@ -1839,11 +1832,8 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(
-      (loaded_config
-           .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>()),
-      IS_POSIX_CANONICALIZE_PATH_IO_ERROR(js_file, js_file_canonical_path,
-                                          EACCES))
+  EXPECT_THAT(loaded_config, IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                                 js_file, js_file_canonical_path, EACCES))
       << loaded_config.error_to_string();
 
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
@@ -1880,11 +1870,9 @@ TEST_F(
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(
-      (loaded_config
-           .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>()),
-      IS_POSIX_CANONICALIZE_PATH_IO_ERROR(config_file,
-                                          config_file_canonical_path, EACCES))
+  EXPECT_THAT(loaded_config,
+              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                  config_file, config_file_canonical_path, EACCES))
       << loaded_config.error_to_string();
 
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
@@ -1995,11 +1983,8 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(
-      (loaded_config
-           .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>()),
-      IS_POSIX_CANONICALIZE_PATH_IO_ERROR(js_file, js_file_canonical_path,
-                                          EACCES))
+  EXPECT_THAT(loaded_config, IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                                 js_file, js_file_canonical_path, EACCES))
       << loaded_config.error_to_string();
 
   std::vector<Configuration_Change> changes =
@@ -2028,11 +2013,9 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(
-      (loaded_config
-           .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>()),
-      IS_POSIX_CANONICALIZE_PATH_IO_ERROR(config_file,
-                                          config_file_canonical_path, EACCES))
+  EXPECT_THAT(loaded_config,
+              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
+                  config_file, config_file_canonical_path, EACCES))
       << loaded_config.error_to_string();
 
   std::vector<Configuration_Change> changes =
@@ -2376,7 +2359,8 @@ bool Change_Detecting_Configuration_Loader::detect_changes() {
   this->fs_.handle_poll_event(pollfds[0]);
   return poll_rc != 0;
 #elif QLJS_HAVE_KQUEUE
-  std::array<struct ::kevent, 20> events;
+  Fixed_Vector<struct ::kevent, 20> events;
+  events.resize(events.capacity());
   struct timespec timeout = {.tv_sec = 0, .tv_nsec = 0};
   int kqueue_rc = ::kevent(
       /*fd=*/this->kqueue_fd_.get(),
@@ -2389,8 +2373,8 @@ bool Change_Detecting_Configuration_Loader::detect_changes() {
     ADD_FAILURE() << "kqueue failed: " << std::strerror(errno);
     return {};
   }
-  for (int i = 0; i < kqueue_rc; ++i) {
-    struct ::kevent& event = events[narrow_cast<std::size_t>(i)];
+  events.resize(narrow_cast<Fixed_Vector_Size>(kqueue_rc));
+  for (struct ::kevent& event : events) {
     EXPECT_FALSE(event.flags & EV_ERROR)
         << std::strerror(narrow_cast<int>(event.data));
     EXPECT_EQ(event.udata, reinterpret_cast<void*>(event_udata_fs_changed));

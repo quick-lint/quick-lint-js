@@ -72,7 +72,6 @@ quick_lint_js_add_executable(
   quick-lint-js/spy-lsp-endpoint-remote.h
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
-  quick-lint-js/test-translation-table-generated.h
   quick-lint-js/tracking-memory-resource.h
   quick-lint-js/variable-analyzer-support.h
   spy-visitor.cpp
@@ -168,6 +167,7 @@ quick_lint_js_add_executable(
   test-parse-warning.cpp
   test-parse.cpp
   test-pipe-writer.cpp
+  test-po-parser.cpp
   test-pointer.cpp
   test-result.cpp
   test-simd.cpp
@@ -180,7 +180,7 @@ quick_lint_js_add_executable(
   test-trace-reader.cpp
   test-trace-writer.cpp
   test-tracking-memory-resource.cpp
-  test-translation-table-generated.cpp
+  test-translation-table-compiler.cpp
   test-translation.cpp
   test-try-catch-stack.cpp
   test-typescript-test.cpp
@@ -217,6 +217,7 @@ target_link_libraries(
   gmock_main
   gtest
   quick-lint-js-boost-json
+  quick-lint-js-i18n
   quick-lint-js-lib
   quick-lint-js-lib-debug
   quick-lint-js-test-lib

@@ -12,250 +12,50 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/variable-analyzer-support.h>
 
-using ::testing::ElementsAreArray;
-using ::testing::IsEmpty;
-
 namespace quick_lint_js {
 namespace {
 TEST(Test_Variable_Analyzer_Delete_JavaScript,
      deleting_local_variable_is_a_warning) {
-  const Char8 declaration[] = u8"v";
-  Padded_String delete_expression(u8"delete v"_sv);
-  Source_Code_Span delete_keyword_span(delete_expression.data(),
-                                       delete_expression.data() + 6);
-  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
-  Source_Code_Span deleted_variable_span(delete_expression.data() + 7,
-                                         delete_expression.data() + 8);
-  ASSERT_EQ(deleted_variable_span.string_view(), u8"v"_sv);
-
-  {
-    // (() => {
-    //   let v;
-    //   delete v;
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_let,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(&delete_expression,
-                              Diag_Redundant_Delete_Statement_On_Variable,  //
-                              delete_expression, 0, u8"delete x"_sv),
-        }));
-  }
-
-  {
-    // (() => {
-    //   let v;
-    //   {
-    //     delete v;
-    //   }
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_let,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_block_scope();
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_exit_block_scope();
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(&delete_expression,
-                              Diag_Redundant_Delete_Statement_On_Variable,  //
-                              delete_expression, 0, u8"delete x"_sv),
-        }));
-  }
-
-  {
-    // (() => {
-    //   let v;
-    //   (() => {
-    //     delete v;
-    //   });
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_let,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_exit_function_scope();
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(&delete_expression,
-                              Diag_Redundant_Delete_Statement_On_Variable,  //
-                              delete_expression, 0, u8"delete x"_sv),
-        }));
-  }
-
-  {
-    // (() => {
-    //   (() => {
-    //     delete v;
-    //   });
-    //   let v;
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_exit_function_scope();
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_let,
-                                 Variable_Declaration_Flags::none);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(&delete_expression,
-                              Diag_Redundant_Delete_Statement_On_Variable,  //
-                              delete_expression, 0, u8"delete x"_sv),
-        }));
-  }
-
-  {
-    // (() => {
-    //   let v;
-    //   (() => {
-    //     (() => {
-    //       delete v;
-    //     });
-    //   });
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(declaration),
-                                 Variable_Kind::_let,
-                                 Variable_Declaration_Flags::none);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_exit_function_scope();
-    l.visit_exit_function_scope();
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(&delete_expression,
-                              Diag_Redundant_Delete_Statement_On_Variable,  //
-                              delete_expression, 0, u8"delete x"_sv),
-        }));
-  }
+  test_parse_and_analyze(
+      u8"(() => { let v; delete v; });"_sv,
+      u8"                ^^^^^^^^ Diag_Redundant_Delete_Statement_On_Variable"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(() => { let v; { delete v; } });"_sv,
+      u8"                  ^^^^^^^^ Diag_Redundant_Delete_Statement_On_Variable"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(() => { let v; (() => { delete v; }); });"_sv,
+      u8"                         ^^^^^^^^ Diag_Redundant_Delete_Statement_On_Variable"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(() => { (() => { delete v; }); let v; });"_sv,
+      u8"                  ^^^^^^^^ Diag_Redundant_Delete_Statement_On_Variable"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(() => { let v; (() => { (() => { delete v; }); }); });"_sv,
+      u8"                                  ^^^^^^^^ Diag_Redundant_Delete_Statement_On_Variable"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Delete_JavaScript,
      deleting_local_variable_declared_later_is_a_warning) {
-  const Char8 declaration[] = u8"v";
-  Padded_String delete_expression(u8"delete v"_sv);
-  Source_Code_Span delete_keyword_span(delete_expression.data(),
-                                       delete_expression.data() + 6);
-  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
-  Source_Code_Span deleted_variable_span(delete_expression.data() + 7,
-                                         delete_expression.data() + 8);
-  ASSERT_EQ(deleted_variable_span.string_view(), u8"v"_sv);
-
-  // (() => {
-  //   delete v;
-  //   let v;
-  // });
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                              delete_keyword_span);
-  l.visit_variable_declaration(identifier_of(declaration), Variable_Kind::_let,
-                               Variable_Declaration_Flags::none);
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
-
-  EXPECT_THAT(
-      v.errors,
-      ElementsAreArray({
-          DIAG_TYPE_OFFSETS(&delete_expression,
-                            Diag_Redundant_Delete_Statement_On_Variable,  //
-                            delete_expression, 0, u8"delete x"_sv),
-      }));
+  test_parse_and_analyze(
+      u8"(() => { delete v; let v; });"_sv,
+      u8"         ^^^^^^^^ Diag_Redundant_Delete_Statement_On_Variable"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Delete_JavaScript,
      deleting_declared_module_variable_is_a_warning) {
-  const Char8 declaration[] = u8"v";
-  Padded_String delete_expression(u8"delete v"_sv);
-  Source_Code_Span delete_keyword_span(delete_expression.data(),
-                                       delete_expression.data() + 6);
-  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
-  Source_Code_Span deleted_variable_span(delete_expression.data() + 7,
-                                         delete_expression.data() + 8);
-  ASSERT_EQ(deleted_variable_span.string_view(), u8"v"_sv);
-
-  // let v;
-  // delete v;
-  Diag_Collector v;
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  l.visit_variable_declaration(identifier_of(declaration), Variable_Kind::_let,
-                               Variable_Declaration_Flags::none);
-  l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                              delete_keyword_span);
-  l.visit_end_of_module();
-
-  EXPECT_THAT(
-      v.errors,
-      ElementsAreArray({
-          DIAG_TYPE_OFFSETS(&delete_expression,
-                            Diag_Redundant_Delete_Statement_On_Variable,  //
-                            delete_expression, 0, u8"delete x"_sv),
-      }));
+  test_parse_and_analyze(
+      u8"let v; delete v;"_sv,
+      u8"       ^^^^^^^^ Diag_Redundant_Delete_Statement_On_Variable"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Delete_JavaScript,
      deleting_declared_global_variable_is_ok) {
-  Padded_String code(u8"delete myGlobalVariable"_sv);
-  Source_Code_Span delete_keyword_span(code.data(), code.data() + 6);
-  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
-  Source_Code_Span deleted_variable_span(code.data() + 7, code.data() + 23);
-  ASSERT_EQ(deleted_variable_span.string_view(), u8"myGlobalVariable"_sv);
-
   Global_Declared_Variable_Set globals;
   globals.add_global_variable(Global_Declared_Variable{
       .name = u8"myGlobalVariable"_sv,
@@ -264,157 +64,51 @@ TEST(Test_Variable_Analyzer_Delete_JavaScript,
       .is_type_only = false,
   });
 
-  {
-    // delete myGlobalVariable;
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &globals, javascript_var_options);
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
-    // (() => {
-    //   delete myGlobalVariable;
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(u8"delete myGlobalVariable;"_sv, no_diags,
+                         javascript_analyze_options, globals);
+  test_parse_and_analyze(u8"(() => { delete myGlobalVariable; });"_sv, no_diags,
+                         javascript_analyze_options, globals);
 }
 
 TEST(Test_Variable_Analyzer_Delete_JavaScript,
      deleting_undeclared_global_variable_is_ok) {
-  Padded_String code(u8"delete myGlobalVariable"_sv);
-  Source_Code_Span delete_keyword_span(code.data(), code.data() + 6);
-  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
-  Source_Code_Span deleted_variable_span(code.data() + 7, code.data() + 23);
-  ASSERT_EQ(deleted_variable_span.string_view(), u8"myGlobalVariable"_sv);
+  Global_Declared_Variable_Set globals;
+  ASSERT_FALSE(globals.find(u8"myGlobalVariable"_sv).has_value());
 
-  {
-    // delete myGlobalVariable;
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
-
-  {
-    // (() => {
-    //   delete myGlobalVariable;
-    // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_enter_function_scope();
-    l.visit_enter_function_scope_body();
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_exit_function_scope();
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  test_parse_and_analyze(u8"delete myGlobalVariable;"_sv, no_diags,
+                         javascript_analyze_options, globals);
+  test_parse_and_analyze(
+      u8"(() => {"_sv
+      u8"  delete myGlobalVariable;"_sv
+      u8"});"_sv,
+      no_diags, javascript_analyze_options, globals);
 }
 
 TEST(Test_Variable_Analyzer_Delete_TypeScript,
      deleting_local_variable_is_an_error) {
-  const Char8 my_var_declaration[] = u8"myVar";
-  Padded_String delete_expression(u8"delete myVar"_sv);
-  Source_Code_Span delete_keyword_span(
-      delete_expression.data(),
-      delete_expression.data() + u8"delete"_sv.size());
-  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
-  Source_Code_Span deleted_variable_span(
-      delete_expression.data() + u8"delete "_sv.size(),
-      delete_expression.cend());
-  ASSERT_EQ(deleted_variable_span.string_view(), u8"myVar"_sv);
-
-  {
-    // let myVar;
-    // delete myVar;  // ERROR
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-    l.visit_variable_declaration(identifier_of(my_var_declaration),
-                                 Variable_Kind::_let,
-                                 Variable_Declaration_Flags::none);
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        &delete_expression,
-                        Diag_TypeScript_Delete_Cannot_Delete_Variables,  //
-                        delete_expression, 0, u8"delete myVar"_sv),
-                }));
-  }
-
-  {
-    // delete myVar;  // ERROR
-    // let myVar;
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_variable_declaration(identifier_of(my_var_declaration),
-                                 Variable_Kind::_let,
-                                 Variable_Declaration_Flags::none);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        &delete_expression,
-                        Diag_TypeScript_Delete_Cannot_Delete_Variables,  //
-                        delete_expression, 0, u8"delete myVar"_sv),
-                }));
-  }
+  test_parse_and_analyze(
+      u8"let myVar; delete myVar;"_sv,
+      u8"           ^^^^^^^^^^^^ Diag_TypeScript_Delete_Cannot_Delete_Variables"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"delete myVar; let myVar;"_sv,
+      u8"^^^^^^^^^^^^ Diag_TypeScript_Delete_Cannot_Delete_Variables"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Delete_TypeScript,
      deleting_global_variable_is_an_error) {
-  Padded_String delete_expression(u8"delete myGlobalVariable"_sv);
-  Source_Code_Span delete_keyword_span(
-      delete_expression.data(),
-      delete_expression.data() + u8"delete"_sv.size());
-  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
-  Source_Code_Span deleted_variable_span(
-      delete_expression.data() + u8"delete "_sv.size(),
-      delete_expression.cend());
-  ASSERT_EQ(deleted_variable_span.string_view(), u8"myGlobalVariable"_sv);
-
   {
-    // delete myGlobalVariable;  // ERROR
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_end_of_module();
+    Global_Declared_Variable_Set globals;
+    ASSERT_FALSE(globals.find(u8"myGlobalVariable"_sv).has_value());
 
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        &delete_expression,
-                        Diag_TypeScript_Delete_Cannot_Delete_Variables,  //
-                        delete_expression, 0, u8"delete myGlobalVariable"_sv),
-                }));
+    test_parse_and_analyze(
+        u8"delete myGlobalVariable;"_sv,
+        u8"^^^^^^^^^^^^^^^^^^^^^^^ Diag_TypeScript_Delete_Cannot_Delete_Variables"_diag,
+        typescript_analyze_options, globals);
   }
 
   {
-    // delete myGlobalVariable;  // ERROR
     Global_Declared_Variable_Set globals;
     globals.add_global_variable(Global_Declared_Variable{
         .name = u8"myGlobalVariable"_sv,
@@ -422,19 +116,11 @@ TEST(Test_Variable_Analyzer_Delete_TypeScript,
         .is_shadowable = true,
         .is_type_only = false,
     });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &globals, typescript_var_options);
-    l.visit_variable_delete_use(Identifier(deleted_variable_span),
-                                delete_keyword_span);
-    l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        &delete_expression,
-                        Diag_TypeScript_Delete_Cannot_Delete_Variables,  //
-                        delete_expression, 0, u8"delete myGlobalVariable"_sv),
-                }));
+    test_parse_and_analyze(
+        u8"delete myGlobalVariable;"_sv,
+        u8"^^^^^^^^^^^^^^^^^^^^^^^ Diag_TypeScript_Delete_Cannot_Delete_Variables"_diag,
+        typescript_analyze_options, globals);
   }
 }
 }

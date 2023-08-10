@@ -9,6 +9,7 @@
 #include <new>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/allocator.h>
+#include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/port/math.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <type_traits>
@@ -52,22 +53,17 @@ class Linked_Vector {
   template <class... Args>
   T& emplace_back(Args&&... args) {
     Chunk* c = this->tail_;
-    if (!c || c->item_count == c->capacity) {
+    if (!c || c->items.full()) {
       c = this->append_new_chunk_slow();
     }
-    T* item = c->data() + c->item_count;
-    item = new (item) T(std::forward<Args>(args)...);
-    c->item_count += 1;
-    return *item;
+    return c->items.emplace_back(std::forward<Args>(args)...);
   }
 
   void pop_back() {
     QLJS_ASSERT(!this->empty());
     Chunk* c = this->tail_;
-    T& item = c->item(c->item_count - 1);
-    item.~T();
-    c->item_count -= 1;
-    if (c->item_count == 0) {
+    c->items.pop_back();
+    if (c->items.empty()) {
       this->remove_tail_chunk_slow();
     }
   }
@@ -76,7 +72,6 @@ class Linked_Vector {
     Chunk* c = this->head_;
     while (c) {
       Chunk* next = c->next;
-      std::destroy_n(c->data(), c->item_count);
       delete_object(this->memory_, c);
       c = next;
     }
@@ -88,16 +83,14 @@ class Linked_Vector {
 
   T& back() {
     QLJS_ASSERT(!this->empty());
-    return this->tail_->item(this->tail_->item_count - 1);
+    return this->tail_->items.back();
   }
 
   template <class Func>
   void for_each(Func&& func) const {
     Chunk* c = this->head_;
     while (c) {
-      std::size_t items_in_chunk = c->item_count;
-      for (std::size_t i = 0; i < items_in_chunk; ++i) {
-        const T& item = c->item(i);
+      for (const T& item : c->items) {
         func(item);
       }
       c = c->next;
@@ -108,13 +101,8 @@ class Linked_Vector {
   struct Chunk {
     Chunk* prev = nullptr;
     Chunk* next = nullptr;
-    std::size_t item_count = 0;
-    static constexpr std::size_t capacity = items_per_chunk;
-    std::byte item_storage[capacity * sizeof(T)];
 
-    T* data() { return reinterpret_cast<T*>(this->item_storage); }
-
-    T& item(std::size_t index) { return *std::launder(this->data() + index); }
+    Fixed_Vector<T, static_cast<Fixed_Vector_Size>(items_per_chunk)> items;
   };
 
   [[gnu::noinline]] Chunk* append_new_chunk_slow() {
@@ -132,7 +120,7 @@ class Linked_Vector {
   [[gnu::noinline]] void remove_tail_chunk_slow() {
     Chunk* old_tail = this->tail_;
     QLJS_ASSERT(old_tail);
-    QLJS_ASSERT(old_tail->item_count == 0);
+    QLJS_ASSERT(old_tail->items.empty());
 
     Chunk* new_tail = old_tail->prev;
     QLJS_ASSERT((new_tail == nullptr) == (this->head_ == this->tail_));

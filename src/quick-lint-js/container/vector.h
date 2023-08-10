@@ -12,6 +12,7 @@
 #include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <type_traits>
@@ -79,9 +80,13 @@ class Uninstrumented_Vector : private Vector {
 
   // NOTE(strager): These are non-standard functions.
   using Vector::append;
-  using Vector::operator std::basic_string_view<value_type>;
+  using Vector::get_and_release;
+  using Vector::operator Span<const value_type>;
+  using Vector::operator Span<value_type>;
   using Vector::operator+=;
   using Vector::release;
+  using Vector::release_to_string_view;
+  using Vector::to_string_view;
 };
 
 using Bump_Vector_Size = std::ptrdiff_t;
@@ -134,6 +139,9 @@ class Raw_Bump_Vector {
 
   QLJS_FORCE_INLINE const T *begin() const { return this->data_; }
   QLJS_FORCE_INLINE const T *end() const { return this->data_end_; }
+
+  QLJS_FORCE_INLINE T *begin() { return this->data_; }
+  QLJS_FORCE_INLINE T *end() { return this->data_end_; }
 
   T &front() {
     QLJS_ASSERT(!this->empty());
@@ -247,6 +255,13 @@ class Raw_Bump_Vector {
     this->capacity_end_ = nullptr;
   }
 
+  // See release().
+  Span<value_type> get_and_release() {
+    Span<value_type> span(*this);
+    this->release();
+    return span;
+  }
+
   void clear() {
     if (this->data_) {
       std::destroy(this->data_, this->data_end_);
@@ -280,9 +295,24 @@ class Raw_Bump_Vector {
     }
   }
 
-  explicit operator std::basic_string_view<value_type>() const {
+  std::basic_string_view<value_type> to_string_view() const {
     return std::basic_string_view<value_type>(
         this->data_, narrow_cast<std::size_t>(this->size()));
+  }
+
+  // Like this->to_string_view() followed by this->release().
+  std::basic_string_view<value_type> release_to_string_view() {
+    std::basic_string_view<value_type> result = this->to_string_view();
+    this->release();
+    return result;
+  }
+
+  explicit operator Span<value_type>() {
+    return Span<value_type>(this->data_, this->size());
+  }
+
+  explicit operator Span<const value_type>() const {
+    return Span<const value_type>(this->data_, this->size());
   }
 
  private:

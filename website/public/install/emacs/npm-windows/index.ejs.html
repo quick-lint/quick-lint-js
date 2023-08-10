@@ -9,10 +9,10 @@
     (Windows)`}) %>
 
     <main>
-      <h2>
+      <h1>
         <qljs-icon name="emacs" size="29" /><qljs-icon name="npm" size="29" />
         Install for Emacs with npm
-      </h2>
+      </h1>
       <p>
         Supported operating systems:
         <qljs-content-icon name="windows" size="19" />
@@ -32,15 +32,15 @@
         making it easy to install the LSP server for use by the Emacs plugin.
       </p>
 
-      <h3>Install prerequisites</h3>
+      <h2>1. Install prerequisites</h2>
       <%- await include("../../common-npm-prerequisites.ejs.html") %> <%- await
       include("../common-prerequisites.ejs.html") %>
 
-      <h3>Install quick-lint-js</h3>
+      <h2>2. Install quick-lint-js</h2>
 
       <%- await include("../common-npm.ejs.html", {os: "windows"}) %> <%- await
-      include("../common-manual.ejs.html", {os: "windows"}) %> <%- await
-      include("../common-configure.ejs.html") %>
+      include("../common-manual.ejs.html", {os: "windows", step: 3}) %> <%-
+      await include("../common-configure.ejs.html", {step: 4}) %>
     </main>
 
     <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>
