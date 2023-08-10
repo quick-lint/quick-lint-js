@@ -1712,40 +1712,20 @@ TEST_F(Test_Parse_Expression, optional_tagged_template_literal) {
 }
 
 TEST_F(Test_Parse_Expression, Diag_Expected_Expression_In_Template_Literal) {
-  {
-    Test_Parser p(u8"`${}`"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    assert_diagnostics(
-        p.code, p.errors,
-        {
-            u8"Diag_Expected_Expression_In_Template_Literal"_diag,
-        });
-  }
-  {
-    Test_Parser p(u8"`${ }`"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    assert_diagnostics(
-        p.code, p.errors,
-        {
-            u8"Diag_Expected_Expression_In_Template_Literal"_diag,
-        });
-  }
-
-  {
-    Test_Parser p(u8"`a${}b${c}`"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    assert_diagnostics(
-        p.code, p.errors,
-        {
-            u8"Diag_Expected_Expression_In_Template_Literal"_diag,
-        });
-  }
-
-  {
-    Test_Parser p(u8R"(`\${}`)"_sv, capture_diags);
-    p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
+  test_parse_and_visit_expression(
+      u8"`${}`"_sv,  //
+      u8"   ` Diag_Expected_Expression_In_Template_Literal"_diag);
+  test_parse_and_visit_expression(
+      u8"`${ }`"_sv,  //
+      u8"   ^ Diag_Expected_Expression_In_Template_Literal"_diag);
+  test_parse_and_visit_expression(
+      u8"`${  }`"_sv,  //
+      u8"   ^^ Diag_Expected_Expression_In_Template_Literal"_diag);
+  test_parse_and_visit_expression(
+      u8"`a${}b${c}`"_sv,  //
+      u8"    ` Diag_Expected_Expression_In_Template_Literal"_diag);
+  test_parse_and_visit_expression(u8R"(`\${}`)"_sv,  //
+                                  no_diags);
 }
 
 TEST_F(Test_Parse_Expression, untagged_template_with_invalid_escape) {
