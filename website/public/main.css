@@ -821,8 +821,8 @@ kbd.keystroke {
 
 /* Scrollable container */
 @media screen and (max-width: 670px) {
-  pre, code {
-    overflow-x: scroll;
+  pre {
+    overflow-x: auto;
     max-height: 400px;
   }
 }
