@@ -33,7 +33,7 @@ set(CMAKE_REQUIRED_LIBRARIES "${OLD_CMAKE_REQUIRED_LIBRARIES}")
 
 quick_lint_js_add_library(
   quick-lint-js-test-lib
-  filesystem-test.cpp
+  quick-lint-js/filesystem-test.cpp
   quick-lint-js/filesystem-test.h
 )
 target_include_directories(quick-lint-js-test-lib PUBLIC .)
@@ -48,33 +48,34 @@ target_link_libraries(
 
 quick_lint_js_add_executable(
   quick-lint-js-test
-  diag-collector.cpp
-  diag-matcher.cpp
-  diagnostic-assertion.cpp
-  failing-diag-reporter.cpp
-  fake-configuration-filesystem.cpp
-  parse-json.cpp
-  parse-support.cpp
   quick-lint-js/array.h
   quick-lint-js/characters.h
+  quick-lint-js/diag-collector.cpp
   quick-lint-js/diag-collector.h
+  quick-lint-js/diag-matcher.cpp
   quick-lint-js/diag-matcher.h
+  quick-lint-js/diagnostic-assertion.cpp
   quick-lint-js/diagnostic-assertion.h
   quick-lint-js/dirty-set.h
+  quick-lint-js/failing-diag-reporter.cpp
   quick-lint-js/failing-diag-reporter.h
+  quick-lint-js/fake-configuration-filesystem.cpp
   quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/mock-inotify.h
   quick-lint-js/mock-kqueue.h
   quick-lint-js/mock-win32.h
+  quick-lint-js/parse-json.cpp
   quick-lint-js/parse-json.h
+  quick-lint-js/parse-support.cpp
   quick-lint-js/parse-support.h
   quick-lint-js/spy-lsp-endpoint-remote.h
   quick-lint-js/spy-lsp-message-parser.h
+  quick-lint-js/spy-visitor.cpp
   quick-lint-js/spy-visitor.h
   quick-lint-js/tracking-memory-resource.h
+  quick-lint-js/variable-analyzer-support.cpp
   quick-lint-js/variable-analyzer-support.h
-  spy-visitor.cpp
   test-array.cpp
   test-assert.cpp
   test-async-byte-queue.cpp
@@ -205,7 +206,6 @@ quick_lint_js_add_executable(
   test-vim-qflist-json-diag-reporter.cpp
   test-web-demo-location.cpp
   test-write-integer.cpp
-  variable-analyzer-support.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(
@@ -242,7 +242,7 @@ endif ()
 quick_lint_js_enable_bigobj_if_supported(quick-lint-js-test)
 
 set_source_files_properties(
-  diagnostic-assertion.cpp
+  quick-lint-js/diagnostic-assertion.cpp
   PROPERTIES
   COMPILE_DEFINITIONS
   QLJS_DIAGNOSTIC_TYPES_H_FILE_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/../src/quick-lint-js/diag/diagnostic-types-2.h\"
