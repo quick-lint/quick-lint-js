@@ -28,7 +28,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[463] = {
+inline const Translated_String test_translation_table[464] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -3415,6 +3415,17 @@ inline const Translated_String test_translation_table[463] = {
             u8"expression manquante entre parenth\u00e8ses",
             u8"falta a express\u00e3o entre os par\u00eanteses",
             u8"saknar uttryck mellan paranteser",
+        },
+    },
+    {
+        "missing expression in placeholder within template literal"_translatable,
+        u8"missing expression in placeholder within template literal",
+        {
+            u8"missing expression in placeholder within template literal",
+            u8"missing expression in placeholder within template literal",
+            u8"missing expression in placeholder within template literal",
+            u8"missing expression in placeholder within template literal",
+            u8"missing expression in placeholder within template literal",
         },
     },
     {

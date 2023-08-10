@@ -1849,6 +1849,10 @@ msgstr ""
 msgid "'^' is the XOR operator; to exponentiate, use '**' instead"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "missing expression in placeholder within template literal"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

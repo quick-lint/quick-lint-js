@@ -3,7 +3,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -3964,7 +3963,13 @@ Expression* Parser::parse_untagged_template(Parse_Visitor_Base& v) {
     this->peek().report_errors_for_escape_sequences_in_template(
         this->diag_reporter_);
     this->skip();
-    children.emplace_back(this->parse_expression(v));
+    if (this->peek().type == Token_Type::right_curly) {
+      this->diag_reporter_->report(Diag_Expected_Expression_In_Template_Literal{
+          .placeholder = Source_Code_Span(this->lexer_.end_of_previous_token(),
+                                          this->peek().begin)});
+    } else {
+      children.emplace_back(this->parse_expression(v));
+    }
     switch (this->peek().type) {
     case Token_Type::right_curly:
       this->lexer_.skip_in_template(template_begin);

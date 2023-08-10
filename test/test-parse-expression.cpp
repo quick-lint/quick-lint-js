@@ -1711,6 +1711,23 @@ TEST_F(Test_Parse_Expression, optional_tagged_template_literal) {
   }
 }
 
+TEST_F(Test_Parse_Expression, Diag_Expected_Expression_In_Template_Literal) {
+  test_parse_and_visit_expression(
+      u8"`${}`"_sv,  //
+      u8"   ` Diag_Expected_Expression_In_Template_Literal"_diag);
+  test_parse_and_visit_expression(
+      u8"`${ }`"_sv,  //
+      u8"   ^ Diag_Expected_Expression_In_Template_Literal"_diag);
+  test_parse_and_visit_expression(
+      u8"`${  }`"_sv,  //
+      u8"   ^^ Diag_Expected_Expression_In_Template_Literal"_diag);
+  test_parse_and_visit_expression(
+      u8"`a${}b${c}`"_sv,  //
+      u8"    ` Diag_Expected_Expression_In_Template_Literal"_diag);
+  test_parse_and_visit_expression(u8R"(`\${}`)"_sv,  //
+                                  no_diags);
+}
+
 TEST_F(Test_Parse_Expression, untagged_template_with_invalid_escape) {
   {
     Test_Parser p(u8R"(`invalid\uescape`)"_sv, capture_diags);
