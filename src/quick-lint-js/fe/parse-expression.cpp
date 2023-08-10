@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/diag/diagnostic-types-2.h"
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -3964,6 +3965,12 @@ Expression* Parser::parse_untagged_template(Parse_Visitor_Base& v) {
     this->peek().report_errors_for_escape_sequences_in_template(
         this->diag_reporter_);
     this->skip();
+
+    if (this->peek().type == Token_Type::right_curly) {
+      this->diag_reporter_->report(Diag_Expected_Expression_In_Template_Literal{
+          .placeholder = this->peek().span()});
+    }
+
     children.emplace_back(this->parse_expression(v));
     switch (this->peek().type) {
     case Token_Type::right_curly:
