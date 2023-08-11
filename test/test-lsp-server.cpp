@@ -277,28 +277,27 @@ TEST_F(Test_Linting_LSP_Server, stores_config_values_after_config_response) {
   TJSON_Value config_request_id = config_request[u8"id"_sv];
   EXPECT_EQ(config_request[u8"method"_sv], u8"workspace/configuration"_sv);
 
-  ::boost::json::array config_response_params;
-  TJSON_Value items = config_request[u8"params"_sv][u8"items"_sv];
-  for (TJSON_Value item : items.get_array_or_empty()) {
-    std::string section(
-        to_string_view(item[u8"section"_sv].try_get_string().value()));
-    if (section == "quick-lint-js.tracing-directory") {
-      config_response_params.push_back("/test/tracing/dir");
-    } else {
-      config_response_params.push_back(nullptr);
+  Byte_Buffer response;
+  response.append_copy(u8R"({ "jsonrpc": "2.0", "id": )"_sv);
+  response.append_copy(config_request_id.to_string());
+  response.append_copy(u8R"(, "result": [ )"_sv);
+  {
+    bool need_comma = false;
+    TJSON_Value items = config_request[u8"params"_sv][u8"items"_sv];
+    for (TJSON_Value item : items.get_array_or_empty()) {
+      String8_View section = item[u8"section"_sv].try_get_string().value();
+      if (need_comma) {
+        response.append_copy(u8", "_sv);
+      }
+      if (section == u8"quick-lint-js.tracing-directory"_sv) {
+        response.append_copy(u8"\"/test/tracing/dir\""_sv);
+      } else {
+        response.append_copy(u8"null"_sv);
+      }
     }
+    response.append_copy(u8" ] }"_sv);
   }
-
-  this->server->append(
-      make_message(concat(u8R"({
-        "jsonrpc": "2.0",
-        "id": )"_sv,
-                          config_request_id.to_string(),
-                          u8R"(,
-        "result": )"_sv,
-                          json_to_string8(config_response_params),
-                          u8R"(
-      })"_sv)));
+  this->server->append(make_message(response.to_string8()));
 
   Linting_LSP_Server_Config& config = this->handler->server_config();
   EXPECT_EQ(config.tracing_directory, "/test/tracing/dir");

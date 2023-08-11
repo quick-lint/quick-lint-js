@@ -86,6 +86,9 @@ class Byte_Buffer {
 
   void copy_to(void* raw_out) const;
 
+  // For testing.
+  String8 to_string8() const;
+
   // After calling this->to_iovec(), do not call any other member function on
   // this byte_buffer (aside from the destructor).
   Byte_Buffer_IOVec to_iovec() &&;

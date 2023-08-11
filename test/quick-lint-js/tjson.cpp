@@ -14,15 +14,6 @@
 #include <utility>
 
 namespace quick_lint_js {
-namespace {
-String8 byte_buffer_to_string8(const Byte_Buffer& b) {
-  String8 s;
-  s.resize(b.size());
-  b.copy_to(s.data());
-  return s;
-}
-}
-
 struct TJSON_Value::Impl {
   explicit Impl(TJSON::Impl* tjson_impl,
                 ::simdjson::simdjson_result<::simdjson::dom::element> value)
@@ -56,7 +47,7 @@ TJSON::TJSON(String8_View json) {
       << "parsing JSON failed: " << out_string8(json);
 }
 
-TJSON::TJSON(const Byte_Buffer& json) : TJSON(byte_buffer_to_string8(json)) {}
+TJSON::TJSON(const Byte_Buffer& json) : TJSON(json.to_string8()) {}
 
 TJSON::TJSON(TJSON&& other) : impl_(std::exchange(other.impl_, nullptr)) {}
 

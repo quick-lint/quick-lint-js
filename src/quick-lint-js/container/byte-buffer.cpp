@@ -158,6 +158,13 @@ void Byte_Buffer::copy_to(void* raw_out) const {
       });
 }
 
+String8 Byte_Buffer::to_string8() const {
+  String8 s;
+  s.resize(this->size());
+  this->copy_to(s.data());
+  return s;
+}
+
 Byte_Buffer_IOVec Byte_Buffer::to_iovec() && {
   this->update_current_chunk_size();
   this->remove_current_chunk_if_empty();
