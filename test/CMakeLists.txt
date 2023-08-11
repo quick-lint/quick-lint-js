@@ -73,6 +73,8 @@ quick_lint_js_add_executable(
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.cpp
   quick-lint-js/spy-visitor.h
+  quick-lint-js/tjson.cpp
+  quick-lint-js/tjson.h
   quick-lint-js/tracking-memory-resource.h
   quick-lint-js/variable-analyzer-support.cpp
   quick-lint-js/variable-analyzer-support.h
@@ -177,6 +179,7 @@ quick_lint_js_add_executable(
   test-temporary-directory.cpp
   test-text-diag-reporter.cpp
   test-thread.cpp
+  test-tjson.cpp
   test-trace-flusher.cpp
   test-trace-reader.cpp
   test-trace-writer.cpp
