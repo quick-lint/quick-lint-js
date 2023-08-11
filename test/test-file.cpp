@@ -245,8 +245,8 @@ TEST_F(Test_File, read_file_reads_from_pty_master) {
   std::fflush(stdout);
   std::fflush(stderr);
 
-  int tty_fd;
-  ::pid_t pid = ::forkpty(&tty_fd, /*name=*/nullptr, /*termp=*/nullptr,
+  int raw_tty_fd;
+  ::pid_t pid = ::forkpty(&raw_tty_fd, /*name=*/nullptr, /*termp=*/nullptr,
                           /*winp=*/nullptr);
   ASSERT_NE(pid, -1) << std::strerror(errno);
   if (pid == 0) {
@@ -261,7 +261,8 @@ TEST_F(Test_File, read_file_reads_from_pty_master) {
     std::exit(0);
   } else {
     // Parent.
-    auto output = read_file(POSIX_FD_File_Ref(tty_fd));
+    POSIX_FD_File tty_fd(raw_tty_fd);
+    auto output = read_file(tty_fd.ref());
     if (!output.ok()) {
       ADD_FAILURE() << output.error_to_string();
       return;
