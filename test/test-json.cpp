@@ -1,14 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/json/parse.hpp>
-#include <boost/json/value.hpp>
 #include <gtest/gtest.h>
-#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <simdjson.h>
 
 namespace quick_lint_js {
 namespace {
@@ -61,7 +59,7 @@ TEST(Test_JSON, escapes_form_feeds) {
   EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\fworld)");
 }
 
-TEST(Test_JSON, ascii_characters_are_parsable_by_boost_json) {
+TEST(Test_JSON, ascii_characters_are_parsable_by_simdjson_ondemand) {
   for (int c = 0; c < 128; ++c) {
     String8 string = String8(u8"hello") + narrow_cast<Char8>(c) + u8"world";
     SCOPED_TRACE(out_string8(string));
@@ -73,11 +71,14 @@ TEST(Test_JSON, ascii_characters_are_parsable_by_boost_json) {
     json.flush();
     SCOPED_TRACE(out_string8(json.get_flushed_string8()));
 
-    ::boost::json::error_code error;
-    ::boost::json::value parsed = ::boost::json::parse(
-        to_boost_string_view(json.get_flushed_string8()), error);
-    EXPECT_FALSE(error);
-    EXPECT_EQ(parsed, to_boost_string_view(string));
+    ::simdjson::padded_string json_padded(
+        to_string_view(json.get_flushed_string8()));
+    ::simdjson::ondemand::parser parser;
+    ::simdjson::simdjson_result<::simdjson::ondemand::document> document =
+        parser.iterate(json_padded);
+    std::string_view parsed_string;
+    ASSERT_EQ(document.get_string().get(parsed_string), ::simdjson::SUCCESS);
+    EXPECT_EQ(parsed_string, to_string_view(string));
   }
 }
 }
