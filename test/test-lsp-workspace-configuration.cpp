@@ -5,13 +5,12 @@
 // No LSP on the web.
 #else
 
-#include <boost/json/value.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/lsp/lsp-workspace-configuration.h>
 #include <quick-lint-js/parse-json.h>
+#include <quick-lint-js/tjson.h>
 #include <simdjson.h>
 #include <string>
 #include <string_view>
@@ -52,12 +51,12 @@ TEST(Test_LSP_Workspace_Configuration, empty_config_request) {
   Byte_Buffer request_json;
   config.build_request(77, request_json);
 
-  ::boost::json::value request = parse_boost_json(request_json);
-  EXPECT_EQ(look_up(request, "jsonrpc"), "2.0");
-  EXPECT_EQ(look_up(request, "id"), 77);
-  EXPECT_EQ(look_up(request, "method"), "workspace/configuration");
-  ::boost::json::array items = look_up(request, "params", "items").as_array();
-  EXPECT_THAT(items, IsEmpty());
+  TJSON request(request_json);
+  EXPECT_EQ(request[u8"jsonrpc"_sv], u8"2.0"_sv);
+  EXPECT_EQ(request[u8"id"_sv], 77);
+  EXPECT_EQ(request[u8"method"_sv], u8"workspace/configuration"_sv);
+  TJSON_Value items = request[u8"params"_sv][u8"items"_sv];
+  EXPECT_THAT(items.try_get_array().value(), IsEmpty());
 }
 
 TEST(Test_LSP_Workspace_Configuration, config_request_with_three_items) {
@@ -69,13 +68,12 @@ TEST(Test_LSP_Workspace_Configuration, config_request_with_three_items) {
   Byte_Buffer request_json;
   config.build_request(77, request_json);
 
-  ::boost::json::value request = parse_boost_json(request_json);
-  ::boost::json::array request_items =
-      look_up(request, "params", "items").as_array();
+  TJSON request(request_json);
+  TJSON_Value request_items = request[u8"params"_sv][u8"items"_sv];
   ASSERT_EQ(request_items.size(), 3);
-  EXPECT_EQ(look_up(request_items[0], "section"), "first");
-  EXPECT_EQ(look_up(request_items[1], "section"), "second");
-  EXPECT_EQ(look_up(request_items[2], "section"), "third");
+  EXPECT_EQ(request_items[0][u8"section"_sv], u8"first"_sv);
+  EXPECT_EQ(request_items[1][u8"section"_sv], u8"second"_sv);
+  EXPECT_EQ(request_items[2][u8"section"_sv], u8"third"_sv);
 }
 
 TEST(Test_LSP_Workspace_Configuration, empty_config_response) {
