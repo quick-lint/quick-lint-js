@@ -277,15 +277,10 @@ TEST(Test_LSP_JSON_RPC_Message_Parser, single_notification_with_reply) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
       EXPECT_EQ(method, "testmethod");
 
-      ::boost::json::value reply = {
-          {"jsonrpc", "2.0"},
-          {"method", "testreply"},
-          {"params", "testparams"},
-      };
-      this->pending_notifications.push_back(reply);
+      this->notification_count += 1;
     }
 
-    std::vector<::boost::json::value> pending_notifications;
+    int notification_count = 0;
   };
   Mock_LSP_Server_Handler handler;
   Spy_LSP_Endpoint_Remote remote;
@@ -300,9 +295,7 @@ TEST(Test_LSP_JSON_RPC_Message_Parser, single_notification_with_reply) {
   server.flush_error_responses(remote);
 
   EXPECT_THAT(remote.messages, IsEmpty());
-  ASSERT_EQ(handler.pending_notifications.size(), 1);
-  EXPECT_EQ(look_up(handler.pending_notifications[0], "method"), "testreply");
-  EXPECT_EQ(look_up(handler.pending_notifications[0], "params"), "testparams");
+  EXPECT_EQ(handler.notification_count, 1);
 }
 
 TEST(Test_LSP_JSON_RPC_Message_Parser, batched_notification_is_not_supported) {
