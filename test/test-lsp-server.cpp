@@ -5,12 +5,9 @@
 // No LSP on the web.
 #else
 
-#include <boost/json.hpp>
-#include <boost/json/value.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
-#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/byte-buffer.h>
@@ -358,15 +355,15 @@ TEST_F(Test_Linting_LSP_Server,
   Linting_LSP_Server_Handler handler(&fs, &linter);
   LSP_JSON_RPC_Message_Parser server(&handler);
 
-  server.append(
-      make_message(concat(u8R"({
+  server.append(make_message(
+      concat(u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
             "quick-lint-js.tracing-directory": )"_sv,
-                          json_to_string8(::boost::json::string(temp_dir)),
-                          u8R"(
+             to_json_escaped_string_with_quotes(to_string8_view(temp_dir)),
+             u8R"(
           }
         }
       })"_sv)));
@@ -377,15 +374,15 @@ TEST_F(Test_Linting_LSP_Server,
       << "enabling tracing in " << temp_dir
       << " should create a trace subdirectory";
 
-  server.append(
-      make_message(concat(u8R"({
+  server.append(make_message(
+      concat(u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
             "quick-lint-js.tracing-directory": )"_sv,
-                          json_to_string8(::boost::json::string(temp_dir)),
-                          u8R"(
+             to_json_escaped_string_with_quotes(to_string8_view(temp_dir)),
+             u8R"(
           }
         }
       })"_sv)));
@@ -406,27 +403,27 @@ TEST_F(Test_Linting_LSP_Server,
   std::string original_tracing_dir = this->make_temporary_directory();
   std::string new_tracing_dir = this->make_temporary_directory();
 
-  server.append(make_message(
-      concat(u8R"({
+  server.append(make_message(concat(
+      u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
             "quick-lint-js.tracing-directory": )"_sv,
-             json_to_string8(::boost::json::string(original_tracing_dir)),
-             u8R"(
+      to_json_escaped_string_with_quotes(to_string8_view(original_tracing_dir)),
+      u8R"(
           }
         }
       })"_sv)));
-  server.append(make_message(
-      concat(u8R"({
+  server.append(make_message(concat(
+      u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
             "quick-lint-js.tracing-directory": )"_sv,
-             json_to_string8(::boost::json::string(new_tracing_dir)),
-             u8R"(
+      to_json_escaped_string_with_quotes(to_string8_view(new_tracing_dir)),
+      u8R"(
           }
         }
       })"_sv)));
@@ -449,15 +446,15 @@ TEST_F(Test_Linting_LSP_Server,
   Linting_LSP_Server_Handler handler(&fs, &linter);
   LSP_JSON_RPC_Message_Parser server(&handler);
 
-  server.append(
-      make_message(concat(u8R"({
+  server.append(make_message(
+      concat(u8R"({
         "jsonrpc": "2.0",
         "method": "workspace/didChangeConfiguration",
         "params": {
           "settings": {
             "quick-lint-js.tracing-directory": )"_sv,
-                          json_to_string8(::boost::json::string(temp_dir)),
-                          u8R"(
+             to_json_escaped_string_with_quotes(to_string8_view(temp_dir)),
+             u8R"(
           }
         }
       })"_sv)));
