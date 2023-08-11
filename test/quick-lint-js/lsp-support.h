@@ -10,6 +10,7 @@
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/tjson.h>
 #include <string>
 #include <string_view>
 
@@ -20,27 +21,23 @@ inline String8 make_message(String8_View content) {
                 u8"\r\n\r\n"_sv, content);
 }
 
-inline void expect_error(::boost::json::object& response, int error_code,
+inline void expect_error(const TJSON_Value& response, int error_code,
                          std::string_view error_message) {
-  EXPECT_FALSE(response.contains("method"));
-  EXPECT_EQ(look_up(response, "jsonrpc"), "2.0");
-  EXPECT_FALSE(look_up(response).as_object().contains("result"));
-  EXPECT_EQ(look_up(response, "error", "code"), error_code);
+  EXPECT_FALSE(response[u8"method"_sv].exists());
+  EXPECT_EQ(response[u8"jsonrpc"_sv], u8"2.0"_sv);
+  EXPECT_FALSE(response[u8"result"_sv].exists());
+  EXPECT_EQ(response[u8"error"_sv][u8"code"_sv], error_code);
   // HACK(strager): std::string casts are necessary for older Google Test (e.g.
   // version 1.10.0).
-  EXPECT_THAT(std::string(boost::json::string_view(
-                  look_up(response, "error", "message").as_string())),
-              ::testing::HasSubstr(std::string(error_message)));
+  EXPECT_THAT(
+      std::string(to_string_view(
+          response[u8"error"_sv][u8"message"_sv].try_get_string().value())),
+      ::testing::HasSubstr(std::string(error_message)));
 }
 
-inline void expect_error(::boost::json::value& response, int error_code,
-                         std::string_view error_message) {
-  expect_error(response.as_object(), error_code, error_message);
-}
-
-inline void expect_parse_error(::boost::json::value& message) {
+inline void expect_parse_error(const TJSON_Value& message) {
   expect_error(message, -32700, "Parse error");
-  EXPECT_EQ(look_up(message, "id"), ::boost::json::value());
+  EXPECT_EQ(message[u8"id"_sv], nullptr);
 }
 }
 

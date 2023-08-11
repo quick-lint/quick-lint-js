@@ -10,67 +10,69 @@
 #include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/parse-json.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/tjson.h>
 #include <vector>
 
 namespace quick_lint_js {
 class Spy_LSP_Endpoint_Remote final : public LSP_Endpoint_Remote {
  public:
   void send_message(Byte_Buffer&& message) override {
-    // TODO(strager): SCOPED_TRACE(message);
-    ::boost::json::value parsed_message = parse_boost_json(message);
-    if (auto object = parsed_message.if_object()) {
-      EXPECT_EQ((*object)["jsonrpc"], "2.0");
-    } else if (auto array = parsed_message.if_array()) {
+    String8 message_json;
+    SCOPED_TRACE(out_string8(message_json));
+    message_json.resize(message.size());
+    message.copy_to(message_json.data());
+    TJSON parsed_message(message_json);
+    if (parsed_message.root().is_object()) {
+      EXPECT_EQ(parsed_message[u8"jsonrpc"_sv], u8"2.0"_sv);
+    } else if (parsed_message.root().is_array()) {
       ADD_FAILURE() << "JSON-RPC batch messages are poorly supported by LSP "
                        "clients, but quick-lint-js gave the client a batch "
                        "message. Send multiple messages instead.";
-      for (::boost::json::value& sub_message : *array) {
-        EXPECT_EQ(look_up(sub_message, "jsonrpc"), "2.0");
+      for (TJSON_Value sub_message :
+           parsed_message.root().get_array_or_empty()) {
+        EXPECT_EQ(sub_message[u8"jsonrpc"_sv], u8"2.0"_sv);
       }
     }
 
-    this->messages.push_back(parsed_message);
+    this->messages.push_back(std::move(parsed_message));
   }
 
-  std::vector<::boost::json::object> requests() const {
+  std::vector<TJSON_Value> requests() const {
     return this->collect_message_objects(is_request);
   }
 
-  std::vector<::boost::json::object> responses() const {
+  std::vector<TJSON_Value> responses() const {
     return this->collect_message_objects(is_response);
   }
 
-  std::vector<::boost::json::object> notifications() const {
+  std::vector<TJSON_Value> notifications() const {
     return this->collect_message_objects(is_notification);
   }
 
   template <class Predicate>
-  std::vector<::boost::json::object> collect_message_objects(
-      Predicate&& include) const {
-    std::vector<::boost::json::object> result;
-    for (const ::boost::json::value& message_value : this->messages) {
-      if (const ::boost::json::object* message = message_value.if_object()) {
-        if (include(*message)) {
-          result.push_back(*message);
-        }
+  std::vector<TJSON_Value> collect_message_objects(Predicate&& include) const {
+    std::vector<TJSON_Value> result;
+    for (const TJSON& message : this->messages) {
+      if (include(message)) {
+        result.push_back(message.root());
       }
     }
     return result;
   }
 
-  static bool is_request(const ::boost::json::object& message) {
-    return message.contains("id") && message.contains("method");
+  static bool is_request(const TJSON& message) {
+    return message[u8"id"_sv].exists() && message[u8"method"_sv].exists();
   }
 
-  static bool is_response(const ::boost::json::object& message) {
-    return message.contains("id") && !message.contains("method");
+  static bool is_response(const TJSON& message) {
+    return message[u8"id"_sv].exists() && !message[u8"method"_sv].exists();
   }
 
-  static bool is_notification(const ::boost::json::object& message) {
-    return !message.contains("id") && message.contains("method");
+  static bool is_notification(const TJSON& message) {
+    return !message[u8"id"_sv].exists() && message[u8"method"_sv].exists();
   }
 
-  std::vector<::boost::json::value> messages;
+  std::vector<TJSON> messages;
   bool allow_batch_messages = false;
 };
 }

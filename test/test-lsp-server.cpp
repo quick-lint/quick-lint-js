@@ -151,21 +151,22 @@ TEST_F(Test_Linting_LSP_Server, initialize) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> responses = this->client->responses();
+  std::vector<TJSON_Value> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
-  ::boost::json::object response = responses[0];
-  EXPECT_EQ(response["id"], 1);
-  EXPECT_FALSE(response.contains("error"));
+  TJSON_Value response = responses[0];
+  EXPECT_EQ(response[u8"id"_sv], 1);
+  EXPECT_FALSE(response[u8"error"_sv].exists());
   // LSP InitializeResult:
-  EXPECT_THAT(
-      look_up(response, "result", "capabilities", "textDocumentSync", "change"),
-      2);
-  EXPECT_EQ(look_up(response, "result", "capabilities", "textDocumentSync",
-                    "openClose"),
+  EXPECT_THAT(response[u8"result"_sv][u8"capabilities"_sv]
+                      [u8"textDocumentSync"_sv][u8"change"_sv],
+              2);
+  EXPECT_EQ(response[u8"result"_sv][u8"capabilities"_sv]
+                    [u8"textDocumentSync"_sv][u8"openClose"_sv],
             true);
-  EXPECT_EQ(look_up(response, "result", "serverInfo", "name"), "quick-lint-js");
-  EXPECT_EQ(look_up(response, "result", "serverInfo", "version"),
-            QUICK_LINT_JS_VERSION_STRING);
+  EXPECT_EQ(response[u8"result"_sv][u8"serverInfo"_sv][u8"name"_sv],
+            u8"quick-lint-js"_sv);
+  EXPECT_EQ(response[u8"result"_sv][u8"serverInfo"_sv][u8"version"_sv],
+            QUICK_LINT_JS_VERSION_STRING_U8_SV);
 
   EXPECT_THAT(this->client->requests(), IsEmpty())
       << "VS Code and other clients do not support server-to-client requests "
@@ -179,21 +180,21 @@ TEST_F(Test_Linting_LSP_Server, initialize) {
 TEST_F(Test_Linting_LSP_Server, initialize_with_different_request_ids) {
   struct Test_Case {
     String8_View id_json;
-    ::boost::json::value id;
+    ::testing::Matcher<TJSON_Value> id_matcher;
   };
 
   // TODO(strager): Support numbers with fractional parts, such as 12.34.
   for (const Test_Case& test : {
-           Test_Case{u8"null"_sv, ::boost::json::value()},
-           Test_Case{u8"1"_sv, ::boost::json::value(1)},
+           Test_Case{u8"null"_sv, ::testing::Eq(nullptr)},
+           Test_Case{u8"1"_sv, ::testing::Eq(1)},
            Test_Case{u8"9007199254740991"_sv,
-                     ::boost::json::value(std::int64_t{9007199254740991LL})},
-           Test_Case{u8"-12345"_sv, ::boost::json::value(-12345)},
-           Test_Case{u8R"("A")"_sv, ::boost::json::value("A")},
+                     ::testing::Eq(std::int64_t{9007199254740991LL})},
+           Test_Case{u8"-12345"_sv, ::testing::Eq(-12345)},
+           Test_Case{u8R"("A")"_sv, ::testing::Eq(u8"A"_sv)},
            Test_Case{u8R"("id value goes \"here\"")"_sv,
-                     ::boost::json::value("id value goes \"here\"")},
+                     ::testing::Eq(u8"id value goes \"here\""_sv)},
            Test_Case{u8R"("id value goes \"here\"")"_sv,
-                     ::boost::json::value("id value goes \"here\"")},
+                     ::testing::Eq(u8"id value goes \"here\""_sv)},
        }) {
     SCOPED_TRACE(out_string8(test.id_json));
 
@@ -215,9 +216,9 @@ TEST_F(Test_Linting_LSP_Server, initialize_with_different_request_ids) {
     this->server->flush_error_responses(*this->client);
     this->handler->flush_pending_notifications(*this->client);
 
-    std::vector<::boost::json::object> responses = this->client->responses();
+    std::vector<TJSON_Value> responses = this->client->responses();
     ASSERT_EQ(responses.size(), 1);
-    EXPECT_EQ(responses[0]["id"], test.id);
+    EXPECT_THAT(responses[0][u8"id"_sv], test.id_matcher);
   }
 }
 
@@ -243,15 +244,16 @@ TEST_F(Test_Linting_LSP_Server, loads_config_after_client_initialization) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> requests = this->client->requests();
+  std::vector<TJSON_Value> requests = this->client->requests();
   ASSERT_EQ(requests.size(), 1);
-  ::boost::json::object request = requests[0];
-  EXPECT_EQ(look_up(request, "method"), "workspace/configuration");
+  TJSON_Value request = requests[0];
+  EXPECT_EQ(request[u8"method"_sv], u8"workspace/configuration"_sv);
 
   std::vector<std::string> requested_sections;
-  ::boost::json::array items = look_up(request, "params", "items").as_array();
-  for (const ::boost::json::value& item : items) {
-    std::string section(to_string_view(look_up(item, "section").get_string()));
+  TJSON_Value items = request[u8"params"_sv][u8"items"_sv];
+  for (TJSON_Value item : items.get_array_or_empty()) {
+    std::string section(
+        to_string_view(item[u8"section"_sv].try_get_string().value()));
     requested_sections.push_back(std::move(section));
   }
   EXPECT_THAT(requested_sections,
@@ -269,17 +271,17 @@ TEST_F(Test_Linting_LSP_Server, stores_config_values_after_config_response) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> requests = this->client->requests();
+  std::vector<TJSON_Value> requests = this->client->requests();
   ASSERT_EQ(requests.size(), 1);
-  ::boost::json::object config_request = requests[0];
-  ::boost::json::value config_request_id = look_up(config_request, "id");
-  EXPECT_EQ(look_up(config_request, "method"), "workspace/configuration");
+  TJSON_Value config_request = requests[0];
+  TJSON_Value config_request_id = config_request[u8"id"_sv];
+  EXPECT_EQ(config_request[u8"method"_sv], u8"workspace/configuration"_sv);
 
   ::boost::json::array config_response_params;
-  ::boost::json::array items =
-      look_up(config_request, "params", "items").as_array();
-  for (const ::boost::json::value& item : items) {
-    std::string section(to_string_view(look_up(item, "section").get_string()));
+  TJSON_Value items = config_request[u8"params"_sv][u8"items"_sv];
+  for (TJSON_Value item : items.get_array_or_empty()) {
+    std::string section(
+        to_string_view(item[u8"section"_sv].try_get_string().value()));
     if (section == "quick-lint-js.tracing-directory") {
       config_response_params.push_back("/test/tracing/dir");
     } else {
@@ -291,7 +293,7 @@ TEST_F(Test_Linting_LSP_Server, stores_config_values_after_config_response) {
       make_message(concat(u8R"({
         "jsonrpc": "2.0",
         "id": )"_sv,
-                          json_to_string8(config_request_id),
+                          config_request_id.to_string(),
                           u8R"(,
         "result": )"_sv,
                           json_to_string8(config_response_params),
@@ -322,9 +324,9 @@ TEST_F(Test_Linting_LSP_Server, config_can_be_set_with_initialize_request) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> responses = this->client->responses();
+  std::vector<TJSON_Value> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
-  EXPECT_EQ(responses[0]["id"], 100);
+  EXPECT_EQ(responses[0][u8"id"_sv], 100);
 
   Linting_LSP_Server_Config& config = this->handler->server_config();
   EXPECT_EQ(config.tracing_directory, "/initial-tracing-directory");
@@ -485,12 +487,12 @@ TEST_F(Test_Linting_LSP_Server, shutdown) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> responses = this->client->responses();
+  std::vector<TJSON_Value> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
-  ::boost::json::object response = responses[0];
-  EXPECT_EQ(response["id"], 10);
-  EXPECT_FALSE(response.contains("error"));
-  EXPECT_EQ(response["result"], ::boost::json::value());
+  TJSON_Value response = responses[0];
+  EXPECT_EQ(response[u8"id"_sv], 10);
+  EXPECT_FALSE(response[u8"error"_sv].exists());
+  EXPECT_EQ(response[u8"result"_sv], nullptr);
 }
 
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
@@ -593,25 +595,23 @@ TEST_F(Test_Linting_LSP_Server, opening_document_lints) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> notifications =
-      this->client->notifications();
+  std::vector<TJSON_Value> notifications = this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
-  ::boost::json::object response = notifications[0];
-  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(response.contains("error"));
+  TJSON_Value response = notifications[0];
+  EXPECT_EQ(response[u8"method"_sv], u8"textDocument/publishDiagnostics"_sv);
+  EXPECT_FALSE(response[u8"error"_sv].exists());
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(look_up(response, "params", "uri"), "file:///test.js");
-  EXPECT_EQ(look_up(response, "params", "version"), 10);
-  ::boost::json::array diagnostics =
-      look_up(response, "params", "diagnostics").as_array();
+  EXPECT_EQ(response[u8"params"_sv][u8"uri"_sv], u8"file:///test.js"_sv);
+  EXPECT_EQ(response[u8"params"_sv][u8"version"_sv], 10);
+  TJSON_Value diagnostics = response[u8"params"_sv][u8"diagnostics"_sv];
   EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 8);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 9);
-  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"),
-            "variable used before declaration: x");
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"character"_sv], 8);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"character"_sv], 9);
+  EXPECT_EQ(diagnostics[0][u8"severity"_sv], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0][u8"message"_sv],
+            u8"variable used before declaration: x"_sv);
 
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"let x = x;"}));
 }
@@ -1354,12 +1354,11 @@ TEST_F(Test_Linting_LSP_Server, editing_config_relints_many_open_js_files) {
                   {u8"/* a.js */", u8"/* b.js */", u8"/* c.js */"}));
 
   std::vector<String8> linted_uris;
-  for (const ::boost::json::object& notification :
-       this->client->notifications()) {
-    EXPECT_EQ(look_up(notification, "method"),
-              "textDocument/publishDiagnostics");
-    String8 uri(to_string8_view(
-        to_string_view(look_up(notification, "params", "uri").get_string())));
+  for (const TJSON_Value& notification : this->client->notifications()) {
+    EXPECT_EQ(notification[u8"method"_sv],
+              u8"textDocument/publishDiagnostics"_sv);
+    String8 uri(
+        notification[u8"params"_sv][u8"uri"_sv].try_get_string().value());
     if (uri == this->fs.file_uri_prefix_8() + u8"quick-lint-js.config") {
       // Ignore.
       continue;
@@ -1481,12 +1480,11 @@ TEST_F(Test_Linting_LSP_Server, editing_config_relints_only_affected_js_files) {
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"/* dir-a/test.js */"}));
 
   std::vector<std::string> linted_uris;
-  for (const ::boost::json::object& notification :
-       this->client->notifications()) {
-    EXPECT_EQ(look_up(notification, "method"),
-              "textDocument/publishDiagnostics");
-    std::string uri(
-        to_string_view(look_up(notification, "params", "uri").get_string()));
+  for (const TJSON_Value& notification : this->client->notifications()) {
+    EXPECT_EQ(notification[u8"method"_sv],
+              u8"textDocument/publishDiagnostics"_sv);
+    std::string uri(to_string_view(
+        notification[u8"params"_sv][u8"uri"_sv].try_get_string().value()));
     if (uri == to_string(this->fs.file_uri_prefix_8() +
                          u8"dir-a/quick-lint-js.config") ||
         uri == to_string(this->fs.file_uri_prefix_8() +
@@ -1693,11 +1691,11 @@ TEST_F(Test_Linting_LSP_Server,
 
   EXPECT_TRUE(after_config_was_loaded);
 
-  std::vector<::boost::json::object> notifications =
-      this->client->notifications();
+  std::vector<TJSON_Value> notifications = this->client->notifications();
   ASSERT_THAT(notifications, ElementsAreArray({::testing::_}));
-  ::boost::json::object notification = notifications[0];
-  EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
+  TJSON_Value notification = notifications[0];
+  EXPECT_EQ(notification[u8"method"_sv],
+            u8"textDocument/publishDiagnostics"_sv);
 }
 
 TEST_F(
@@ -1885,17 +1883,16 @@ TEST_F(Test_Linting_LSP_Server, opening_js_file_with_unreadable_config_lints) {
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
       << "should have linted despite config file being unloadable";
 
-  std::vector<::boost::json::object> notifications =
-      this->client->notifications();
+  std::vector<TJSON_Value> notifications = this->client->notifications();
   ASSERT_EQ(notifications.size(), 2);
   std::size_t showMessageIndex =
-      look_up(notifications[0], "method") == "window/showMessage" ? 0 : 1;
-  ::boost::json::object showMessageMessage = notifications[showMessageIndex];
-  EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
-  EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
+      notifications[0][u8"method"_sv] == u8"window/showMessage"_sv ? 0 : 1;
+  TJSON_Value showMessageMessage = notifications[showMessageIndex];
+  EXPECT_EQ(showMessageMessage[u8"method"_sv], u8"window/showMessage"_sv);
+  EXPECT_EQ(showMessageMessage[u8"params"_sv][u8"type"_sv],
             lsp_warning_message_type);
-  EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
-            to_boost_string_view(this->config_file_load_error_message(
+  EXPECT_EQ(showMessageMessage[u8"params"_sv][u8"message"_sv],
+            to_string8_view(this->config_file_load_error_message(
                 "test.js", "quick-lint-js.config")));
 }
 
@@ -1949,17 +1946,16 @@ TEST_F(Test_Linting_LSP_Server,
   EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
       << "should have linted despite config file being unloadable";
 
-  std::vector<::boost::json::object> notifications =
-      this->client->notifications();
+  std::vector<TJSON_Value> notifications = this->client->notifications();
   ASSERT_EQ(notifications.size(), 2);
   std::size_t showMessageIndex =
-      look_up(notifications[0], "method") == "window/showMessage" ? 0 : 1;
-  ::boost::json::object showMessageMessage = notifications[showMessageIndex];
-  EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
-  EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
+      notifications[0][u8"method"_sv] == u8"window/showMessage"_sv ? 0 : 1;
+  TJSON_Value showMessageMessage = notifications[showMessageIndex];
+  EXPECT_EQ(showMessageMessage[u8"method"_sv], u8"window/showMessage"_sv);
+  EXPECT_EQ(showMessageMessage[u8"params"_sv][u8"type"_sv],
             lsp_warning_message_type);
-  EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
-            to_boost_string_view(concat(
+  EXPECT_EQ(showMessageMessage[u8"params"_sv][u8"message"_sv],
+            to_string8_view(concat(
                 "Problems found in the config file for "sv,
                 this->fs.rooted("test.js").path(), " ("sv,
                 this->fs.rooted("quick-lint-js.config").path(), ")."sv)));
@@ -2024,17 +2020,16 @@ TEST_F(Test_Linting_LSP_Server, making_config_file_unreadable_relints) {
       << "should have linted twice: once on open, and once after config file "
          "changed";
 
-  std::vector<::boost::json::object> notifications =
-      this->client->notifications();
+  std::vector<TJSON_Value> notifications = this->client->notifications();
   ASSERT_EQ(notifications.size(), 2);
   std::size_t showMessageIndex =
-      look_up(notifications[0], "method") == "window/showMessage" ? 0 : 1;
-  ::boost::json::object showMessageMessage = notifications[showMessageIndex];
-  EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
-  EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
+      notifications[0][u8"method"_sv] == u8"window/showMessage"_sv ? 0 : 1;
+  TJSON_Value showMessageMessage = notifications[showMessageIndex];
+  EXPECT_EQ(showMessageMessage[u8"method"_sv], u8"window/showMessage"_sv);
+  EXPECT_EQ(showMessageMessage[u8"params"_sv][u8"type"_sv],
             lsp_warning_message_type);
-  EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
-            to_boost_string_view(this->config_file_load_error_message(
+  EXPECT_EQ(showMessageMessage[u8"params"_sv][u8"message"_sv],
+            to_string8_view(this->config_file_load_error_message(
                 "test.js", "quick-lint-js.config")));
 }
 
@@ -2057,28 +2052,25 @@ TEST_F(Test_Linting_LSP_Server, opening_broken_config_file_shows_diagnostics) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> notifications =
-      this->client->notifications();
+  std::vector<TJSON_Value> notifications = this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
-  ::boost::json::object response = notifications[0];
-  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(response.contains("error"));
+  TJSON_Value response = notifications[0];
+  EXPECT_EQ(response[u8"method"_sv], u8"textDocument/publishDiagnostics"_sv);
+  EXPECT_FALSE(response[u8"error"_sv].exists());
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(look_up(response, "params", "uri"),
-            to_boost_string_view(this->fs.file_uri_prefix_8() +
-                                 u8"quick-lint-js.config"));
-  EXPECT_EQ(look_up(response, "params", "version"), 1);
-  ::boost::json::array diagnostics =
-      look_up(response, "params", "diagnostics").as_array();
+  EXPECT_EQ(response[u8"params"_sv][u8"uri"_sv],
+            concat(this->fs.file_uri_prefix_8(), u8"quick-lint-js.config"_sv));
+  EXPECT_EQ(response[u8"params"_sv][u8"version"_sv], 1);
+  TJSON_Value diagnostics = response[u8"params"_sv][u8"diagnostics"_sv];
   EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"), "JSON syntax error");
-  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0164");
-  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/E0164/");
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"character"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"severity"_sv], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0][u8"message"_sv], u8"JSON syntax error"_sv);
+  EXPECT_EQ(diagnostics[0][u8"code"_sv], u8"E0164"_sv);
+  EXPECT_EQ(diagnostics[0][u8"codeDescription"_sv][u8"href"_sv],
+            u8"https://quick-lint-js.com/errors/E0164/"_sv);
 }
 
 TEST_F(Test_Linting_LSP_Server,
@@ -2122,28 +2114,25 @@ TEST_F(Test_Linting_LSP_Server,
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> notifications =
-      this->client->notifications();
+  std::vector<TJSON_Value> notifications = this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
-  ::boost::json::object response = notifications[0];
-  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(response.contains("error"));
+  TJSON_Value response = notifications[0];
+  EXPECT_EQ(response[u8"method"_sv], u8"textDocument/publishDiagnostics"_sv);
+  EXPECT_FALSE(response[u8"error"_sv].exists());
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(look_up(response, "params", "uri"),
-            to_boost_string_view(this->fs.file_uri_prefix_8() +
-                                 u8"quick-lint-js.config"));
-  EXPECT_EQ(look_up(response, "params", "version"), 2);
-  ::boost::json::array diagnostics =
-      look_up(response, "params", "diagnostics").as_array();
+  EXPECT_EQ(response[u8"params"_sv][u8"uri"_sv],
+            concat(this->fs.file_uri_prefix_8(), u8"quick-lint-js.config"_sv));
+  EXPECT_EQ(response[u8"params"_sv][u8"version"_sv], 2);
+  TJSON_Value diagnostics = response[u8"params"_sv][u8"diagnostics"_sv];
   EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"), "JSON syntax error");
-  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0164");
-  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/E0164/");
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"character"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"severity"_sv], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0][u8"message"_sv], u8"JSON syntax error"_sv);
+  EXPECT_EQ(diagnostics[0][u8"code"_sv], u8"E0164"_sv);
+  EXPECT_EQ(diagnostics[0][u8"codeDescription"_sv][u8"href"_sv],
+            u8"https://quick-lint-js.com/errors/E0164/"_sv);
 }
 
 TEST_F(Test_Linting_LSP_Server,
@@ -2355,15 +2344,16 @@ TEST_F(Test_Linting_LSP_Server, showing_io_errors_shows_only_first) {
   });
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> notifications =
-      this->client->notifications();
+  std::vector<TJSON_Value> notifications = this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
-  ::boost::json::object show_message_message = notifications[0];
-  EXPECT_EQ(look_up(show_message_message, "method"), "window/showMessage");
-  EXPECT_EQ(look_up(show_message_message, "params", "type"),
+  TJSON_Value show_message_message = notifications[0];
+  EXPECT_EQ(show_message_message[u8"method"_sv], u8"window/showMessage"_sv);
+  EXPECT_EQ(show_message_message[u8"params"_sv][u8"type"_sv],
             lsp_warning_message_type);
-  std::string message(to_string_view(
-      look_up(show_message_message, "params", "message").as_string()));
+  std::string message(
+      to_string_view(show_message_message[u8"params"_sv][u8"message"_sv]
+                         .try_get_string()
+                         .value()));
   EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
@@ -2385,12 +2375,13 @@ TEST_F(Test_Linting_LSP_Server, showing_io_errors_shows_only_first_ever) {
   });
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> notifications =
-      this->client->notifications();
+  std::vector<TJSON_Value> notifications = this->client->notifications();
   ASSERT_EQ(notifications.size(), 1);
-  ::boost::json::object show_message_message = notifications[0];
-  std::string message(to_string_view(
-      look_up(show_message_message, "params", "message").as_string()));
+  TJSON_Value show_message_message = notifications[0];
+  std::string message(
+      to_string_view(show_message_message[u8"params"_sv][u8"message"_sv]
+                         .try_get_string()
+                         .value()));
   EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
@@ -2409,7 +2400,7 @@ TEST_F(Test_Linting_LSP_Server, invalid_json_in_request) {
     this->server->flush_error_responses(*this->client);
 
     ASSERT_EQ(this->client->messages.size(), 1);
-    ::boost::json::value response = this->client->messages[0];
+    TJSON_Value response = this->client->messages[0].root();
     expect_parse_error(response);
   }
 }
@@ -2437,10 +2428,10 @@ TEST_F(Test_Linting_LSP_Server, unimplemented_method_in_request_returns_error) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  std::vector<::boost::json::object> responses = this->client->responses();
+  std::vector<TJSON_Value> responses = this->client->responses();
   ASSERT_EQ(responses.size(), 1);
-  ::boost::json::object response = responses[0];
-  EXPECT_EQ(look_up(response, "id"), 10);
+  TJSON_Value response = responses[0];
+  EXPECT_EQ(response[u8"id"_sv], 10);
   expect_error(response, -32601, "Method not found");
 }
 
@@ -2460,9 +2451,9 @@ TEST_F(Test_Linting_LSP_Server, invalid_request_returns_error) {
     this->server->flush_error_responses(*this->client);
 
     ASSERT_EQ(this->client->messages.size(), 1);
-    ::boost::json::value response = this->client->messages[0];
+    TJSON_Value response = this->client->messages[0].root();
     expect_error(response, -32600, "Invalid Request");
-    EXPECT_EQ(look_up(response, "id"), ::boost::json::value());
+    EXPECT_EQ(response[u8"id"_sv], nullptr);
   }
 }
 
@@ -2528,27 +2519,27 @@ TEST(Test_LSP_JavaScript_Linter, linting_gives_diagnostics) {
 
   Spy_LSP_Endpoint_Remote endpoint;
   notifications.send(endpoint);
-  ::boost::json::object notification = endpoint.notifications().at(0);
+  TJSON_Value notification = endpoint.notifications().at(0);
 
-  EXPECT_EQ(look_up(notification, "method"), "textDocument/publishDiagnostics");
-  EXPECT_FALSE(notification.contains("error"));
+  EXPECT_EQ(notification[u8"method"_sv],
+            u8"textDocument/publishDiagnostics"_sv);
+  EXPECT_FALSE(notification[u8"error"_sv].exists());
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(look_up(notification, "params", "uri"), "file:///test.js");
-  EXPECT_EQ(look_up(notification, "params", "version"), 10);
-  ::boost::json::value diagnostics =
-      look_up(notification, "params", "diagnostics");
-  EXPECT_EQ(diagnostics.as_array().size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 8);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 9);
-  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"),
-            "variable used before declaration: x");
-  EXPECT_EQ(look_up(diagnostics, 0, "source"), "quick-lint-js");
-  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0058");
-  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/E0058/");
+  EXPECT_EQ(notification[u8"params"_sv][u8"uri"_sv], u8"file:///test.js"_sv);
+  EXPECT_EQ(notification[u8"params"_sv][u8"version"_sv], 10);
+  TJSON_Value diagnostics = notification[u8"params"_sv][u8"diagnostics"_sv];
+  EXPECT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"character"_sv], 8);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"character"_sv], 9);
+  EXPECT_EQ(diagnostics[0][u8"severity"_sv], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0][u8"message"_sv],
+            u8"variable used before declaration: x"_sv);
+  EXPECT_EQ(diagnostics[0][u8"source"_sv], u8"quick-lint-js"_sv);
+  EXPECT_EQ(diagnostics[0][u8"code"_sv], u8"E0058"_sv);
+  EXPECT_EQ(diagnostics[0][u8"codeDescription"_sv][u8"href"_sv],
+            u8"https://quick-lint-js.com/errors/E0058/"_sv);
 }
 
 TEST(Test_LSP_JavaScript_Linter, linting_does_not_desync) {
@@ -2581,11 +2572,10 @@ TEST(Test_LSP_JavaScript_Linter, linting_does_not_desync) {
 
   {
     ASSERT_EQ(remote.messages.size(), 1);
-    ::boost::json::object response = remote.messages[0].as_object();
-    EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+    TJSON_Value response = remote.messages[0].root();
+    EXPECT_EQ(response[u8"method"_sv], u8"textDocument/publishDiagnostics"_sv);
     // LSP PublishDiagnosticsParams:
-    ::boost::json::array diagnostics =
-        look_up(response, "params", "diagnostics").as_array();
+    TJSON_Value diagnostics = response[u8"params"_sv][u8"diagnostics"_sv];
     EXPECT_EQ(diagnostics.size(), 1) << "'x' should be undeclared";
   }
 
@@ -2618,11 +2608,10 @@ TEST(Test_LSP_JavaScript_Linter, linting_does_not_desync) {
 
   {
     ASSERT_EQ(remote.messages.size(), 1);
-    ::boost::json::object response = remote.messages[0].as_object();
-    EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+    TJSON_Value response = remote.messages[0].root();
+    EXPECT_EQ(response[u8"method"_sv], u8"textDocument/publishDiagnostics"_sv);
     // LSP PublishDiagnosticsParams:
-    ::boost::json::array diagnostics =
-        look_up(response, "params", "diagnostics").as_array();
+    TJSON_Value diagnostics = response[u8"params"_sv][u8"diagnostics"_sv];
     EXPECT_EQ(diagnostics.size(), 0) << "'x' should be declared";
   }
 }
@@ -2650,12 +2639,14 @@ TEST(Test_LSP_JavaScript_Linter,
   server.flush_error_responses(client);
   handler.flush_pending_notifications(client);
 
-  std::vector<::boost::json::object> notifications = client.notifications();
+  std::vector<TJSON_Value> notifications = client.notifications();
   ASSERT_EQ(notifications.size(), 1);
-  ::boost::json::object notification = notifications[0];
-  EXPECT_EQ(look_up(notification, "method"), "textDocument/publishDiagnostics");
-  EXPECT_FALSE(notification.contains("error"));
-  EXPECT_EQ(look_up(notification, "params", "diagnostics", 0, "code"), "E0213")
+  TJSON_Value notification = notifications[0];
+  EXPECT_EQ(notification[u8"method"_sv],
+            u8"textDocument/publishDiagnostics"_sv);
+  EXPECT_FALSE(notification[u8"error"_sv].exists());
+  EXPECT_EQ(notification[u8"params"_sv][u8"diagnostics"_sv][0][u8"code"_sv],
+            u8"E0213"_sv)
       << "should report diagnostic: TypeScript's 'interface' feature is not "
          "allowed in JavaScript code";
 }
@@ -2683,13 +2674,15 @@ TEST(Test_LSP_JavaScript_Linter,
   server.flush_error_responses(client);
   handler.flush_pending_notifications(client);
 
-  std::vector<::boost::json::object> notifications = client.notifications();
+  std::vector<TJSON_Value> notifications = client.notifications();
   ASSERT_EQ(notifications.size(), 1);
-  ::boost::json::object notification = notifications[0];
-  EXPECT_EQ(look_up(notification, "method"), "textDocument/publishDiagnostics");
-  EXPECT_FALSE(notification.contains("error"));
-  EXPECT_THAT(look_up(notification, "params", "diagnostics").as_array(),
-              IsEmpty())
+  TJSON_Value notification = notifications[0];
+  EXPECT_EQ(notification[u8"method"_sv],
+            u8"textDocument/publishDiagnostics"_sv);
+  EXPECT_FALSE(notification[u8"error"_sv].exists());
+  EXPECT_THAT(
+      notification[u8"params"_sv][u8"diagnostics"_sv].try_get_array().value(),
+      IsEmpty())
       << "should report no diagnostics";
 }
 }

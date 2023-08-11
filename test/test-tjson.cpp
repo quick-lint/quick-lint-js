@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/tjson.h>
@@ -101,6 +102,32 @@ TEST(Test_TJSON, array_lookup) {
   EXPECT_NE(o[5], false);
 }
 
+TEST(Test_TJSON, type_checks) {
+  TJSON o(
+      u8R"({
+        "int": 42,
+        "string": "hello",
+        "bool": false,
+        "nil": null,
+        "array": [],
+        "object": {}
+      })"_sv);
+
+  EXPECT_TRUE(o[u8"object"_sv].is_object());
+  EXPECT_FALSE(o[u8"int"_sv].is_object());
+  EXPECT_FALSE(o[u8"string"_sv].is_object());
+  EXPECT_FALSE(o[u8"bool"_sv].is_object());
+  EXPECT_FALSE(o[u8"nil"_sv].is_object());
+  EXPECT_FALSE(o[u8"array"_sv].is_object());
+
+  EXPECT_TRUE(o[u8"array"_sv].is_array());
+  EXPECT_FALSE(o[u8"int"_sv].is_array());
+  EXPECT_FALSE(o[u8"string"_sv].is_array());
+  EXPECT_FALSE(o[u8"bool"_sv].is_array());
+  EXPECT_FALSE(o[u8"nil"_sv].is_array());
+  EXPECT_FALSE(o[u8"object"_sv].is_array());
+}
+
 TEST(Test_TJSON, array_size) {
   {
     TJSON o(u8"[]"_sv);
@@ -135,6 +162,40 @@ TEST(Test_TJSON, object_size) {
     EXPECT_EQ(o.size(), 1);
     EXPECT_EQ(o[u8"k"_sv].size(), 0);
   }
+}
+
+TEST(Test_TJSON, try_get_array_of_array) {
+  TJSON o(u8R"([ 42, 0, "hello", false, true, null ])"_sv);
+
+  std::optional<Span<const TJSON_Value>> array = o.root().try_get_array();
+  ASSERT_TRUE(array.has_value());
+
+  ASSERT_EQ(array->size(), 6);
+  EXPECT_EQ((*array)[0], 42);
+  EXPECT_EQ((*array)[1], 0);
+  EXPECT_EQ((*array)[2], u8"hello"_sv);
+  EXPECT_EQ((*array)[3], false);
+  EXPECT_EQ((*array)[4], true);
+  EXPECT_EQ((*array)[5], nullptr);
+
+  EXPECT_THAT(*array,
+              ::testing::ElementsAre(42, 0, u8"hello"_sv, false, true, nullptr))
+      << "gmock matchers should work";
+}
+
+TEST(Test_TJSON, try_get_array_of_non_array) {
+  TJSON o(u8R"([ 42, "hello", {} ])"_sv);
+  EXPECT_FALSE(o[0].try_get_array().has_value());
+  EXPECT_FALSE(o[1].try_get_array().has_value());
+  EXPECT_FALSE(o[2].try_get_array().has_value());
+  EXPECT_FALSE(o[99].try_get_array().has_value());
+}
+
+TEST(Test_TJSON, try_get_string) {
+  TJSON o(u8R"([ 42, "hello" ])"_sv);
+  EXPECT_FALSE(o[0].try_get_string().has_value());
+  ASSERT_TRUE(o[1].try_get_string().has_value());
+  EXPECT_EQ(o[1].try_get_string().value(), u8"hello"_sv);
 }
 
 TEST(Test_TJSON, nested_object_lookup) {

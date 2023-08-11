@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <quick-lint-js/tjson.h>
 #if defined(__EMSCRIPTEN__)
 // No LSP on the web.
 #else
@@ -27,16 +28,16 @@ class Test_LSP_Diag_Reporter : public ::testing::Test {
     return LSP_Diag_Reporter(Translator(), this->buffer_, input);
   }
 
-  ::boost::json::value parse_json() {
+  TJSON parse_json() {
     String8 json;
     json.resize(this->buffer_.size());
     this->buffer_.copy_to(json.data());
     SCOPED_TRACE(out_string8(json));
 
-    ::boost::json::value root = parse_boost_json(json);
+    TJSON document(json);
 
     this->buffer_.clear();
-    return root;
+    return document;
   }
 
   Byte_Buffer buffer_;
@@ -51,19 +52,19 @@ TEST_F(Test_LSP_Diag_Reporter, big_int_literal_contains_decimal_point) {
   reporter.report(Diag_Big_Int_Literal_Contains_Decimal_Point{number_span});
   reporter.finish();
 
-  ::boost::json::value diagnostics = this->parse_json();
-  ASSERT_EQ(diagnostics.as_array().size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 6);
-  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"),
-            "BigInt literal contains decimal point");
-  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0005");
-  EXPECT_EQ(look_up(diagnostics, 0, "source"), "quick-lint-js");
-  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/E0005/");
+  TJSON diagnostics = this->parse_json();
+  ASSERT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"character"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"character"_sv], 6);
+  EXPECT_EQ(diagnostics[0][u8"severity"_sv], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0][u8"message"_sv],
+            u8"BigInt literal contains decimal point"_sv);
+  EXPECT_EQ(diagnostics[0][u8"code"_sv], u8"E0005"_sv);
+  EXPECT_EQ(diagnostics[0][u8"source"_sv], u8"quick-lint-js"_sv);
+  EXPECT_EQ(diagnostics[0][u8"codeDescription"_sv][u8"href"_sv],
+            u8"https://quick-lint-js.com/errors/E0005/"_sv);
 }
 
 TEST_F(Test_LSP_Diag_Reporter, assignment_before_variable_declaration) {
@@ -78,19 +79,19 @@ TEST_F(Test_LSP_Diag_Reporter, assignment_before_variable_declaration) {
       .assignment = assignment_span, .declaration = declaration_span});
   reporter.finish();
 
-  ::boost::json::value diagnostics = this->parse_json();
-  ASSERT_EQ(diagnostics.as_array().size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"),
-            "variable assigned before its declaration");
-  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0001");
-  EXPECT_EQ(look_up(diagnostics, 0, "source"), "quick-lint-js");
-  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/E0001/");
+  TJSON diagnostics = this->parse_json();
+  ASSERT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"character"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"character"_sv], 1);
+  EXPECT_EQ(diagnostics[0][u8"severity"_sv], lsp_error_severity);
+  EXPECT_EQ(diagnostics[0][u8"message"_sv],
+            u8"variable assigned before its declaration"_sv);
+  EXPECT_EQ(diagnostics[0][u8"code"_sv], u8"E0001"_sv);
+  EXPECT_EQ(diagnostics[0][u8"source"_sv], u8"quick-lint-js"_sv);
+  EXPECT_EQ(diagnostics[0][u8"codeDescription"_sv][u8"href"_sv],
+            u8"https://quick-lint-js.com/errors/E0001/"_sv);
   // TODO(#200): Show the declaration as relatedInformation.
 }
 
@@ -104,18 +105,18 @@ TEST_F(Test_LSP_Diag_Reporter, assignment_to_undeclared_variable) {
       Diag_Assignment_To_Undeclared_Variable{.assignment = assignment_span});
   reporter.finish();
 
-  ::boost::json::value diagnostics = this->parse_json();
-  ASSERT_EQ(diagnostics.as_array().size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_warning_severity);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"),
-            "assignment to undeclared variable");
-  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0059");
-  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/E0059/");
+  TJSON diagnostics = this->parse_json();
+  ASSERT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"start"_sv][u8"character"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"line"_sv], 0);
+  EXPECT_EQ(diagnostics[0][u8"range"_sv][u8"end"_sv][u8"character"_sv], 1);
+  EXPECT_EQ(diagnostics[0][u8"severity"_sv], lsp_warning_severity);
+  EXPECT_EQ(diagnostics[0][u8"message"_sv],
+            u8"assignment to undeclared variable"_sv);
+  EXPECT_EQ(diagnostics[0][u8"code"_sv], u8"E0059"_sv);
+  EXPECT_EQ(diagnostics[0][u8"codeDescription"_sv][u8"href"_sv],
+            u8"https://quick-lint-js.com/errors/E0059/"_sv);
 }
 
 TEST_F(Test_LSP_Diag_Reporter, multiple_errors) {
@@ -130,8 +131,8 @@ TEST_F(Test_LSP_Diag_Reporter, multiple_errors) {
   reporter.report(Diag_Assignment_To_Const_Global_Variable{c_span});
   reporter.finish();
 
-  ::boost::json::value diagnostics = this->parse_json();
-  EXPECT_EQ(diagnostics.as_array().size(), 3);
+  TJSON diagnostics = this->parse_json();
+  EXPECT_EQ(diagnostics.size(), 3);
 }
 
 TEST_F(Test_LSP_Diag_Reporter, messages_use_translator) {
@@ -146,10 +147,10 @@ TEST_F(Test_LSP_Diag_Reporter, messages_use_translator) {
   });
   reporter.finish();
 
-  ::boost::json::value diagnostics = this->parse_json();
-  ASSERT_EQ(diagnostics.as_array().size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"),
-            "BigExponInt is an ES2069 feature");
+  TJSON diagnostics = this->parse_json();
+  ASSERT_EQ(diagnostics.size(), 1);
+  EXPECT_EQ(diagnostics[0][u8"message"_sv],
+            u8"BigExponInt is an ES2069 feature"_sv);
 }
 }
 }

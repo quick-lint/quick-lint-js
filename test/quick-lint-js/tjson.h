@@ -6,8 +6,10 @@
 
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <optional>
 #include <ostream>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/span.h>
 
 namespace quick_lint_js {
 class TJSON_Value;
@@ -20,6 +22,8 @@ class TJSON_Value;
 // * ergonomic API
 // * error-forgiving API
 // * mediocre performance and memory usage
+//
+// TJSON instances own the memory of TJSON_Value objects.
 class TJSON {
  public:
   static constexpr std::size_t invalid_size = static_cast<std::size_t>(-1);
@@ -39,18 +43,20 @@ class TJSON {
   // If this is not an object, returns an erroring TJSON_Value.
   //
   // This TJSON must outlive the returned TJSON_Value.
-  TJSON_Value operator[](String8_View object_key);
+  TJSON_Value operator[](String8_View object_key) const;
 
   // Look up an item in an array.
   //
   // If this is not an array, returns an erroring TJSON_Value.
   //
   // This TJSON must outlive the returned TJSON_Value.
-  TJSON_Value operator[](std::size_t index);
+  TJSON_Value operator[](std::size_t index) const;
 
   // The number of key-value pairs in an object, or the number of items in an
   // array, or invalid_size.
   std::size_t size() const;
+
+  TJSON_Value root() const;
 
  private:
   struct Impl;
@@ -60,6 +66,7 @@ class TJSON {
   friend TJSON_Value;
 };
 
+// TJSON_Value instances are non-owning. A TJSON instance owns the memory.
 class TJSON_Value {
  public:
   String8_View to_string() const;
@@ -67,12 +74,21 @@ class TJSON_Value {
   // Look up a key in an object.
   //
   // If this is not an object, returns an erroring TJSON_Value.
-  TJSON_Value operator[](String8_View object_key);
+  TJSON_Value operator[](String8_View object_key) const;
 
   // Look up an item in an array.
   //
   // If this is not an array, returns an erroring TJSON_Value.
-  TJSON_Value operator[](std::size_t index);
+  TJSON_Value operator[](std::size_t index) const;
+
+  // If this is not an array, return nullopt.
+  std::optional<Span<const TJSON_Value>> try_get_array() const;
+
+  // If this is not an array, return an empty span.
+  Span<const TJSON_Value> get_array_or_empty() const;
+
+  // If this is not a string, return nullopt.
+  std::optional<String8_View> try_get_string() const;
 
   // The number of key-value pairs in an object, or the number of items in an
   // array, or TJSON::invalid_size.
@@ -80,8 +96,17 @@ class TJSON_Value {
 
   bool exists() const;
 
+  bool is_array() const;
+  bool is_object() const;
+
   friend bool operator==(TJSON_Value, int);
   friend bool operator!=(TJSON_Value, int);
+
+  friend bool operator==(TJSON_Value, long);
+  friend bool operator!=(TJSON_Value, long);
+
+  friend bool operator==(TJSON_Value, long long);
+  friend bool operator!=(TJSON_Value, long long);
 
   friend bool operator==(TJSON_Value, bool);
   friend bool operator!=(TJSON_Value, bool);

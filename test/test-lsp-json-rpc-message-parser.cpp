@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <quick-lint-js/tjson.h>
 #if defined(__EMSCRIPTEN__)
 // No LSP on the web.
 #else
@@ -55,9 +56,9 @@ std::string json_get_string(
   return std::string(s);
 }
 
-void expect_batch_not_supported_error(::boost::json::value& message) {
+void expect_batch_not_supported_error(const TJSON_Value& message) {
   expect_error(message, -32700, "Parse error: batch messages not supported");
-  EXPECT_EQ(look_up(message, "id"), ::boost::json::value());
+  EXPECT_EQ(message[u8"id"_sv], nullptr);
 }
 
 TEST(Test_LSP_JSON_RPC_Message_Parser, single_request) {
@@ -111,9 +112,9 @@ TEST(Test_LSP_JSON_RPC_Message_Parser, batched_request_is_not_supported) {
   server.flush_error_responses(remote);
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_TRUE(remote.messages[0].is_object())
+  EXPECT_TRUE(remote.messages[0].root().is_object())
       << "server should not respond with a batch response (array)";
-  expect_batch_not_supported_error(remote.messages[0]);
+  expect_batch_not_supported_error(remote.messages[0].root());
 }
 
 TEST(Test_LSP_JSON_RPC_Message_Parser, successful_response) {
@@ -237,9 +238,9 @@ TEST(Test_LSP_JSON_RPC_Message_Parser, batched_responses_are_not_supported) {
       ])"_sv));
   server.flush_error_responses(remote);
 
-  EXPECT_TRUE(remote.messages[0].is_object())
+  EXPECT_TRUE(remote.messages[0].root().is_object())
       << "server should not respond with a batch response (array)";
-  expect_batch_not_supported_error(remote.messages[0]);
+  expect_batch_not_supported_error(remote.messages[0].root());
 }
 
 TEST(Test_LSP_JSON_RPC_Message_Parser, single_notification_with_no_reply) {
@@ -312,9 +313,9 @@ TEST(Test_LSP_JSON_RPC_Message_Parser, batched_notification_is_not_supported) {
   server.flush_error_responses(remote);
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_TRUE(remote.messages[0].is_object())
+  EXPECT_TRUE(remote.messages[0].root().is_object())
       << "server should not respond with a batch response (array)";
-  expect_batch_not_supported_error(remote.messages[0]);
+  expect_batch_not_supported_error(remote.messages[0].root());
 }
 
 // https://www.jsonrpc.org/specification#error_object
@@ -327,8 +328,8 @@ TEST(Test_LSP_JSON_RPC_Message_Parser, malformed_json) {
   server.flush_error_responses(remote);
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(look_up(remote.messages[0], "id"), ::boost::json::value());
-  expect_parse_error(remote.messages[0]);
+  EXPECT_EQ(remote.messages[0][u8"id"_sv], nullptr);
+  expect_parse_error(remote.messages[0].root());
 }
 
 TEST(Test_LSP_JSON_RPC_Message_Parser, invalid_message) {
@@ -383,13 +384,13 @@ TEST(Test_LSP_JSON_RPC_Message_Parser, invalid_message) {
     server.flush_error_responses(remote);
 
     ASSERT_EQ(remote.messages.size(), 1);
-    EXPECT_EQ(look_up(remote.messages[0], "jsonrpc"), "2.0");
+    EXPECT_EQ(remote.messages[0][u8"jsonrpc"_sv], u8"2.0"_sv);
     // TODO(strager): Check "id".
-    EXPECT_FALSE(look_up(remote.messages[0]).as_object().contains("result"));
-    ASSERT_TRUE(look_up(remote.messages[0]).as_object().contains("error"));
-    EXPECT_EQ(look_up(remote.messages[0], "error", "code"), -32600);
-    EXPECT_EQ(look_up(remote.messages[0], "error", "message"),
-              "Invalid Request");
+    EXPECT_FALSE(remote.messages[0][u8"result"_sv].exists());
+    ASSERT_TRUE(remote.messages[0][u8"error"_sv].exists());
+    EXPECT_EQ(remote.messages[0][u8"error"_sv][u8"code"_sv], -32600);
+    EXPECT_EQ(remote.messages[0][u8"error"_sv][u8"message"_sv],
+              u8"Invalid Request"_sv);
   }
 }
 }

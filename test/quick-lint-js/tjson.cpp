@@ -50,15 +50,17 @@ TJSON::TJSON(TJSON&& other) : impl_(std::exchange(other.impl_, nullptr)) {}
 
 TJSON::~TJSON() { delete this->impl_; }
 
-TJSON_Value TJSON::operator[](String8_View object_key) {
+TJSON_Value TJSON::operator[](String8_View object_key) const {
   return this->impl_->root[object_key];
 }
 
-TJSON_Value TJSON::operator[](std::size_t index) {
+TJSON_Value TJSON::operator[](std::size_t index) const {
   return this->impl_->root[index];
 }
 
 std::size_t TJSON::size() const { return this->impl_->root.size(); }
+
+TJSON_Value TJSON::root() const { return this->impl_->root; }
 
 TJSON_Value::TJSON_Value() : TJSON_Value(/*impl=*/nullptr) {}
 
@@ -80,15 +82,41 @@ String8_View TJSON_Value::to_string() const {
                       narrow_cast<std::size_t>(out.size()));
 }
 
-TJSON_Value TJSON_Value::operator[](String8_View object_key) {
+TJSON_Value TJSON_Value::operator[](String8_View object_key) const {
   // FIXME(strager): simdjson's operator[] does not handle escape sequences
   // properly.
   return this->impl_->tjson_impl->make_value(
       this->impl_->value[to_string_view(object_key)]);
 }
 
-TJSON_Value TJSON_Value::operator[](std::size_t index) {
+TJSON_Value TJSON_Value::operator[](std::size_t index) const {
   return this->impl_->tjson_impl->make_value(this->impl_->value.at(index));
+}
+
+std::optional<Span<const TJSON_Value>> TJSON_Value::try_get_array() const {
+  TJSON::Impl* tjson_impl = this->impl_->tjson_impl;
+  Bump_Vector<TJSON_Value, Monotonic_Allocator> items(
+      "TJSON_Value::try_get_array items", &tjson_impl->allocator);
+  ::simdjson::dom::array array;
+  if (this->impl_->value.get(array) != ::simdjson::SUCCESS) {
+    return std::nullopt;
+  }
+  for (::simdjson::dom::element item : array) {
+    items.push_back(tjson_impl->make_value(std::move(item)));
+  }
+  return Span<const TJSON_Value>(items);
+}
+
+Span<const TJSON_Value> TJSON_Value::get_array_or_empty() const {
+  return this->try_get_array().value_or(Span<const TJSON_Value>());
+}
+
+std::optional<String8_View> TJSON_Value::try_get_string() const {
+  std::string_view string;
+  if (this->impl_->value.get(string) != ::simdjson::SUCCESS) {
+    return std::nullopt;
+  }
+  return to_string8_view(string);
 }
 
 std::size_t TJSON_Value::size() const {
@@ -107,7 +135,29 @@ bool TJSON_Value::exists() const {
   return this->impl_->value.error() == ::simdjson::SUCCESS;
 }
 
+bool TJSON_Value::is_array() const { return this->impl_->value.is_array(); }
+
+bool TJSON_Value::is_object() const { return this->impl_->value.is_object(); }
+
 bool operator==(TJSON_Value lhs, int rhs) {
+  std::int64_t value_signed;
+  if (lhs.impl_->value.get(value_signed) == ::simdjson::SUCCESS) {
+    return value_signed == rhs;
+  }
+  // TODO(strager): Check std::uint64_t?
+  return false;
+}
+
+bool operator==(TJSON_Value lhs, long rhs) {
+  std::int64_t value_signed;
+  if (lhs.impl_->value.get(value_signed) == ::simdjson::SUCCESS) {
+    return value_signed == rhs;
+  }
+  // TODO(strager): Check std::uint64_t?
+  return false;
+}
+
+bool operator==(TJSON_Value lhs, long long rhs) {
   std::int64_t value_signed;
   if (lhs.impl_->value.get(value_signed) == ::simdjson::SUCCESS) {
     return value_signed == rhs;
@@ -134,6 +184,8 @@ bool operator==(TJSON_Value lhs, std::nullptr_t) {
 #define QLJS_OPERATOR_NE(RHS_Type) \
   bool operator!=(TJSON_Value lhs, RHS_Type rhs) { return !(lhs == rhs); }
 QLJS_OPERATOR_NE(int)
+QLJS_OPERATOR_NE(long)
+QLJS_OPERATOR_NE(long long)
 QLJS_OPERATOR_NE(bool)
 QLJS_OPERATOR_NE(String8_View)
 QLJS_OPERATOR_NE(std::nullptr_t)
