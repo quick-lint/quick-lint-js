@@ -12,6 +12,7 @@
 #include <quick-lint-js/port/span.h>
 
 namespace quick_lint_js {
+class Byte_Buffer;
 class TJSON_Value;
 
 // TJSON is a test-friendly DOM-style JSON parser.
@@ -29,6 +30,7 @@ class TJSON {
   static constexpr std::size_t invalid_size = static_cast<std::size_t>(-1);
 
   explicit TJSON(String8_View json);
+  explicit TJSON(const Byte_Buffer &json);
 
   TJSON(const TJSON &) = delete;
   TJSON &operator=(const TJSON &) = delete;

@@ -29,13 +29,7 @@ class Test_LSP_Diag_Reporter : public ::testing::Test {
   }
 
   TJSON parse_json() {
-    String8 json;
-    json.resize(this->buffer_.size());
-    this->buffer_.copy_to(json.data());
-    SCOPED_TRACE(out_string8(json));
-
-    TJSON document(json);
-
+    TJSON document(this->buffer_);
     this->buffer_.clear();
     return document;
   }
