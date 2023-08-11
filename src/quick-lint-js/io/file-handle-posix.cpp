@@ -67,6 +67,7 @@ int POSIX_FD_File_Ref::get() const { return this->fd_; }
 
 File_Read_Result POSIX_FD_File_Ref::read(void *buffer, int buffer_size) {
   QLJS_ASSERT(this->valid());
+retry:
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
@@ -83,6 +84,14 @@ File_Read_Result POSIX_FD_File_Ref::read(void *buffer, int buffer_size) {
         return File_Read_Result::end_of_file();
       }
 #endif
+    }
+    if (error == EINTR) {
+      // This happens on macOS when running
+      // Test_File.read_file_reads_from_pty_master with a debugger. (It probably
+      // happens in other cases with a debugger too.) Retry.
+      // FIXME(strager): Do we need to poll for readiness? Should we implement
+      // backoff to avoid 100% CPU usage?
+      goto retry;
     }
     return failed_result(POSIX_File_IO_Error{error});
   }
