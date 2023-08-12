@@ -20,7 +20,7 @@ if ! [ -f apt-ftparchive.conf ]; then
 fi
 
 apt_suite=experimental
-archs=(amd64 arm64)
+archs=(all amd64 arm64)
 
 for arch in "${archs[@]}"; do
   mkdir -p "dists/${apt_suite}/main/binary-${arch}/"
@@ -38,6 +38,10 @@ cp "appstream/export/data/${apt_suite}/main/"* "dists/${apt_suite}/main/dep11/"
 # notice the Components file at all. Create an uncompressed
 # version so the compressed version is noticed.
 for arch in "${archs[@]}"; do
+  if [ "${arch}" = all ]; then
+    # The 'all' architecture does not have Components files.
+    continue
+  fi
   gunzip <"dists/${apt_suite}/main/dep11/Components-${arch}.yml.gz" >"dists/${apt_suite}/main/dep11/Components-${arch}.yml"
 done
 
