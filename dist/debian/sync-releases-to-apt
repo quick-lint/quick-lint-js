@@ -100,15 +100,62 @@ copy_releases_to_debian_pool() {
     shift 4
     extra_builds=("${@}")
 
+    archs=(all amd64 arm64)
+
+    copy_build_to_pool() {
+      local release_path="${1}"
+      local release="$(basename "${release_path}")"
+      if [ -d "${release_path}/debian/amd64" ]; then
+        for arch_path in "${release_path}/debian/"*; do
+          # NOTE(strager): Later architectures might overwrite files from
+          # earlier architectures. This is fine. Unfortunately, some files (such
+          # as {amd64,arm64}/quick-lint-js-vim_2.15.0-1_all.deb) are logically
+          # identical but not bit-identical, so we choose an arbitrary version
+          # of the file.
+          #
+          # FIXME(strager): There is a race condition. If someone downloads a
+          # release while we copy, they might get the amd64 version of a file
+          # before the arm64 version is written. (The amd64 and arm64 versions
+          # might have different file hashes.)
+          copy_build_bins_to_pool "${arch_path}/" "${release}"
+        done
+      else
+        # Releases prior to 2.14.0 were only amd64 and did not have
+        # architecture-specific directories.
+        copy_build_bins_to_pool "${release_path}/debian/" "${release}"
+      fi
+    }
+
+    copy_build_bins_to_pool() {
+      local bin_path="${1}"
+      local release="${2}"
+
+      for file in "${bin_path}"/*; do
+        local file_arch="$(classify_file "${file}")"
+        mkdir -p "${debian_root}/pool/${release}/${file_arch}/"
+        rsync -a "${file}" "${debian_root}/pool/${release}/${file_arch}/"
+      done
+    }
+
+    classify_file() {
+      local file="${1}"
+      for arch in "${archs[@]}"; do
+        if [[ "${file}" = *"_${arch}."* ]]; then
+          echo "${arch}"
+          return
+        fi
+      done
+      echo source
+    }
+
     mkdir -p "${debian_root}/pool/"
     if [ "${sync_releases}" -ne 0 ]; then
       for release_path in "${releases_root}"/[0-9]*; do
-        release="$(basename "${release_path}")"
-        rsync -a "${release_path}/debian/" "${debian_root}/pool/${release}/"
+        copy_build_to_pool "${release_path}"
       done
     fi
     for extra_build in "${extra_builds[@]:+${extra_builds[@]}}"; do
-      rsync -a "${builds_root}/${extra_build}/debian/" "${debian_root}/pool/${extra_build}/"
+      copy_build_to_pool "${builds_root}/${extra_build}"
     done
 EOF
 }
