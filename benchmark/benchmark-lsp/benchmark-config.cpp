@@ -298,7 +298,8 @@ Benchmark_Config Benchmark_Config::load() {
       Benchmark_Config_Server{
           .name = "Rome",
           .program_name = "Rome",
-          .command = {"rome", "lsp-proxy"},
+          .command = {"./run.sh"},
+          .cwd = "rome/",
       },
 
       Benchmark_Config_Server{
