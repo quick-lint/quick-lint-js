@@ -364,7 +364,8 @@ LSP_Server_Process::wait_for_first_diagnostics_notification_async(
     ::boost::json::object message = message_value.as_object();
     if (::boost::json::string* method = if_string(message, "method")) {
       if (*method == "textDocument/publishDiagnostics") {
-        if (predicate(look_up(message, "params").get_object())) {
+        ::boost::json::object params = look_up(message, "params").get_object();
+        if (predicate(params)) {
           co_return message;
         }
       } else {
