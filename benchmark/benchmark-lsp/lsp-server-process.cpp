@@ -190,18 +190,25 @@ LSP_Task<void> LSP_Server_Process::initialize_lsp_async() {
   this->send_message(std::move(initialize_request));
 
   for (;;) {
-    ::boost::json::object response =
-        (co_await this->get_message_async()).as_object();
-    if (std::int64_t* request_id = if_int64(response, "id")) {
-      if (initialize_request_id == *request_id) {
-        ::boost::json::value text_document_sync =
-            look_up(response, "result", "capabilities", "textDocumentSync");
-        if (std::int64_t* text_document_sync_kind =
-                text_document_sync.if_int64()) {
-          this->text_document_sync_kind_ = *text_document_sync_kind;
-        } else if (std::int64_t* text_document_sync_kind =
-                       look_up(text_document_sync, "change").if_int64()) {
-          this->text_document_sync_kind_ = *text_document_sync_kind;
+    ::simdjson::dom::object response;
+    if ((co_await this->get_message_async()).get(response) !=
+        ::simdjson::SUCCESS) {
+      std::fprintf(stderr, "fatal: message should be an object\n");
+      std::exit(1);
+    }
+    std::int64_t request_id;
+    if (response["id"].get(request_id) == ::simdjson::SUCCESS) {
+      if (initialize_request_id == request_id) {
+        ::simdjson::simdjson_result<::simdjson::dom::element>
+            text_document_sync =
+                response["result"]["capabilities"]["textDocumentSync"];
+        std::int64_t text_document_sync_kind;
+        if (text_document_sync.get(text_document_sync_kind) ==
+            ::simdjson::SUCCESS) {
+          this->text_document_sync_kind_ = text_document_sync_kind;
+        } else if (text_document_sync["change"].get(text_document_sync_kind) ==
+                   ::simdjson::SUCCESS) {
+          this->text_document_sync_kind_ = text_document_sync_kind;
         }
         break;
       }
@@ -225,10 +232,15 @@ LSP_Task<void> LSP_Server_Process::shut_down_lsp() {
   this->send_message(std::move(shutdown_request));
 
   for (;;) {
-    ::boost::json::object response =
-        (co_await this->get_message_async()).as_object();
-    if (std::int64_t* request_id = if_int64(response, "id")) {
-      if (shutdown_request_id == *request_id) {
+    ::simdjson::dom::object response;
+    if ((co_await this->get_message_async()).get(response) !=
+        ::simdjson::SUCCESS) {
+      std::fprintf(stderr, "fatal: response should be an object\n");
+      std::exit(1);
+    }
+    std::int64_t request_id;
+    if (response["id"].get(request_id) == ::simdjson::SUCCESS) {
+      if (shutdown_request_id == request_id) {
         break;
       }
     }
@@ -240,19 +252,32 @@ LSP_Task<void> LSP_Server_Process::shut_down_lsp() {
   this->send_message(std::move(exit_notification));
 }
 
-void LSP_Server_Process::handle_misc_message(::boost::json::object& message) {
-  if (::boost::json::string* method = if_string(message, "method")) {
-    if (*method == "client/registerCapability") {
+void LSP_Server_Process::handle_misc_message(::simdjson::dom::object& message) {
+  std::string_view method;
+  if (message["method"].get(method) == ::simdjson::SUCCESS) {
+    if (method == "client/registerCapability"sv) {
+      std::int64_t id;
+      if (message["id"].get(id) != ::simdjson::SUCCESS) {
+        std::fprintf(stderr, "fatal: could not parse id\n");
+        std::exit(1);
+      }
+
       Byte_Buffer response;
       response.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
-      response.append_decimal_integer(look_up(message, "id").get_int64());
+      response.append_decimal_integer(id);
       response.append_copy(u8R"(,"result":null})"sv);
       this->send_message(std::move(response));
       return;
-    } else if (*method == "workspace/configuration") {
+    } else if (method == "workspace/configuration"sv) {
+      std::int64_t id;
+      if (message["id"].get(id) != ::simdjson::SUCCESS) {
+        std::fprintf(stderr, "fatal: could not parse id\n");
+        std::exit(1);
+      }
+
       Byte_Buffer response;
       response.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
-      response.append_decimal_integer(look_up(message, "id").get_int64());
+      response.append_decimal_integer(id);
       response.append_copy(u8R"(,"result":[)"sv);
       response.append_copy(
           to_string8_view(this->workspace_configuration_json_));
@@ -263,28 +288,34 @@ void LSP_Server_Process::handle_misc_message(::boost::json::object& message) {
   }
 }
 
-LSP_Task<::boost::json::array> LSP_Server_Process::wait_for_diagnostics_async(
+LSP_Task<::simdjson::dom::array> LSP_Server_Process::wait_for_diagnostics_async(
     String8_View document_uri, std::int64_t document_version) {
   co_return co_await this->wait_for_diagnostics_async(
-      [&](::boost::json::object& params) {
-        ::boost::json::string diagnostics_uri =
-            look_up(params, "uri").get_string();
-        if (diagnostics_uri != to_boost_string_view(document_uri)) {
+      [&](::simdjson::dom::object& params) {
+        std::string_view diagnostics_uri;
+        if (params["uri"].get(diagnostics_uri) != ::simdjson::SUCCESS) {
+          std::fprintf(stderr, "fatal: missing 'uri' from diagnostic\n");
+          std::exit(1);
+        }
+        if (to_string8_view(diagnostics_uri) != document_uri) {
           return false;
         }
-        std::int64_t* diagnostics_version = if_int64(params, "version");
-        return !diagnostics_version || *diagnostics_version == document_version;
+        std::int64_t diagnostics_version;
+        if (params["version"].get(diagnostics_version) == ::simdjson::SUCCESS) {
+          return diagnostics_version == document_version;
+        }
+        return true;
       });
 }
 
-LSP_Task<::boost::json::array> LSP_Server_Process::wait_for_diagnostics_async(
+LSP_Task<::simdjson::dom::array> LSP_Server_Process::wait_for_diagnostics_async(
     std::int64_t document_version) {
   return this->wait_for_diagnostics_ignoring_async(
       document_version,
       /*messages_to_ignore=*/this->diagnostics_messages_to_ignore_);
 }
 
-LSP_Task<::boost::json::array>
+LSP_Task<::simdjson::dom::array>
 LSP_Server_Process::wait_for_diagnostics_after_incremental_change_async(
     std::int64_t document_version) {
   return this->wait_for_diagnostics_ignoring_async(
@@ -293,19 +324,22 @@ LSP_Server_Process::wait_for_diagnostics_after_incremental_change_async(
           ->diagnostics_messages_to_ignore_after_incremental_change_);
 }
 
-LSP_Task<::boost::json::array>
+LSP_Task<::simdjson::dom::array>
 LSP_Server_Process::wait_for_diagnostics_ignoring_async(
     std::int64_t document_version, std::int64_t messages_to_ignore) {
   co_return co_await this->wait_for_diagnostics_ignoring_async(
-      [&](::boost::json::object& params) {
-        std::int64_t* diagnostics_version = if_int64(params, "version");
-        return !diagnostics_version || *diagnostics_version == document_version;
+      [&](::simdjson::dom::object& params) {
+        std::int64_t diagnostics_version;
+        if (params["version"].get(diagnostics_version) == ::simdjson::SUCCESS) {
+          return diagnostics_version == document_version;
+        }
+        return true;
       },
       /*messages_to_ignore=*/messages_to_ignore);
 }
 
 template <class Params_Predicate>
-LSP_Task<::boost::json::array> LSP_Server_Process::wait_for_diagnostics_async(
+LSP_Task<::simdjson::dom::array> LSP_Server_Process::wait_for_diagnostics_async(
     Params_Predicate&& predicate) {
   return this->wait_for_diagnostics_ignoring_async(
       std::forward<Params_Predicate>(predicate),
@@ -313,24 +347,30 @@ LSP_Task<::boost::json::array> LSP_Server_Process::wait_for_diagnostics_async(
 }
 
 template <class Params_Predicate>
-LSP_Task<::boost::json::array>
+LSP_Task<::simdjson::dom::array>
 LSP_Server_Process::wait_for_diagnostics_ignoring_async(
     Params_Predicate&& predicate, std::int64_t messages_to_ignore) {
-  ::boost::json::object notification =
+  ::simdjson::dom::object notification =
       co_await this->wait_for_diagnostics_notification_async(
           std::forward<Params_Predicate>(predicate),
           /*messages_to_ignore=*/messages_to_ignore);
-  co_return look_up(notification, "params", "diagnostics").get_array();
+  ::simdjson::dom::array diagnostics;
+  if (notification["params"]["diagnostics"].get(diagnostics) !=
+      ::simdjson::SUCCESS) {
+    std::fprintf(stderr, "fatal: params.diagnostics should be an array\n");
+    std::exit(1);
+  }
+  co_return diagnostics;
 }
 
-LSP_Task<::boost::json::object>
+LSP_Task<::simdjson::dom::object>
 LSP_Server_Process::wait_for_diagnostics_notification_async() {
   co_return co_await this->wait_for_diagnostics_notification_async(
-      []([[maybe_unused]] ::boost::json::object& params) { return true; });
+      []([[maybe_unused]] ::simdjson::dom::object& params) { return true; });
 }
 
 template <class Params_Predicate>
-LSP_Task<::boost::json::object>
+LSP_Task<::simdjson::dom::object>
 LSP_Server_Process::wait_for_diagnostics_notification_async(
     Params_Predicate&& predicate) {
   return this->wait_for_diagnostics_notification_async(
@@ -339,7 +379,7 @@ LSP_Server_Process::wait_for_diagnostics_notification_async(
 }
 
 template <class Params_Predicate>
-LSP_Task<::boost::json::object>
+LSP_Task<::simdjson::dom::object>
 LSP_Server_Process::wait_for_diagnostics_notification_async(
     Params_Predicate&& predicate, std::int64_t messages_to_ignore) {
   for (std::int64_t i = 0; i < messages_to_ignore; ++i) {
@@ -349,22 +389,29 @@ LSP_Server_Process::wait_for_diagnostics_notification_async(
       predicate);
 }
 
-LSP_Task<::boost::json::object>
+LSP_Task<::simdjson::dom::object>
 LSP_Server_Process::wait_for_first_diagnostics_notification_async() {
   co_return co_await this->wait_for_first_diagnostics_notification_async(
-      []([[maybe_unused]] ::boost::json::object& params) { return true; });
+      []([[maybe_unused]] ::simdjson::dom::object& params) { return true; });
 }
 
 template <class Params_Predicate>
-LSP_Task<::boost::json::object>
+LSP_Task<::simdjson::dom::object>
 LSP_Server_Process::wait_for_first_diagnostics_notification_async(
     Params_Predicate&& predicate) {
   for (;;) {
-    ::boost::json::value message_value = co_await this->get_message_async();
-    ::boost::json::object message = message_value.as_object();
-    if (::boost::json::string* method = if_string(message, "method")) {
-      if (*method == "textDocument/publishDiagnostics") {
-        ::boost::json::object params = look_up(message, "params").get_object();
+    ::simdjson::dom::element message_value = co_await this->get_message_async();
+    ::simdjson::dom::object message;
+    if (message_value.get(message) != ::simdjson::SUCCESS) {
+      std::fprintf(stderr, "fatal: message should be an object\n");
+    }
+    std::string_view method;
+    if (message["method"].get(method) == ::simdjson::SUCCESS) {
+      if (method == "textDocument/publishDiagnostics"sv) {
+        ::simdjson::dom::object params;
+        if (message["params"].get(params) != ::simdjson::SUCCESS) {
+          std::fprintf(stderr, "fatal: message params should be an object\n");
+        }
         if (predicate(params)) {
           co_return message;
         }
@@ -420,12 +467,18 @@ void LSP_Server_Process::create_file_on_disk_if_needed(String8_View path) {
   }
 }
 
-::boost::json::value LSP_Server_Process::Get_Message_Awaitable::await_resume() {
+::simdjson::dom::element
+LSP_Server_Process::Get_Message_Awaitable::await_resume() {
   QLJS_ASSERT(!this->message_content_.empty());
-  ::boost::json::error_code error;
-  ::boost::json::value root =
-      ::boost::json::parse(to_boost_string_view(this->message_content_), error);
-  if (error != ::boost::json::error_code()) {
+  ::simdjson::dom::element root;
+  // TODO(strager): Pad message_content_ to avoid a copy here.
+  ::simdjson::error_code error =
+      this->process_->json_parser_
+          .parse(reinterpret_cast<const std::uint8_t*>(
+                     this->message_content_.data()),
+                 this->message_content_.size())
+          .get(root);
+  if (error != ::simdjson::SUCCESS) {
     std::fprintf(stderr, "error: parsing JSON from LSP server failed\n");
     std::exit(1);
   }

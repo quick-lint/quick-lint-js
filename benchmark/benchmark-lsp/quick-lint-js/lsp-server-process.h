@@ -19,6 +19,8 @@
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/memory-resource.h>
+#include <simdjson.h>
 #include <type_traits>
 #include <unistd.h>
 #include <utility>
@@ -234,49 +236,52 @@ class LSP_Server_Process {
   LSP_Task<void> initialize_lsp_async();
   LSP_Task<void> shut_down_lsp();
 
-  void handle_misc_message(::boost::json::object& message);
+  void handle_misc_message(::simdjson::dom::object& message);
 
   // Receives the next message sent by the server. Returns an awaitable yielding
-  // a ::boost::json::value.
+  // a ::simdjson::dom::element. The returned value is invalidated on the next
+  // call to get_message_async. See NOTE[LSP_Server_Process-message] for
+  // details.
   Get_Message_Awaitable get_message_async() {
     return Get_Message_Awaitable(this);
   }
 
   // Returns just the array of diagnostics.
   // Respects diagnosticsMessagesToIgnore.
-  LSP_Task<::boost::json::array> wait_for_diagnostics_async(
+  LSP_Task<::simdjson::dom::array> wait_for_diagnostics_async(
       std::int64_t document_version);
-  LSP_Task<::boost::json::array>
+  LSP_Task<::simdjson::dom::array>
   wait_for_diagnostics_after_incremental_change_async(
       std::int64_t document_version);
-  LSP_Task<::boost::json::array> wait_for_diagnostics_ignoring_async(
+  LSP_Task<::simdjson::dom::array> wait_for_diagnostics_ignoring_async(
       std::int64_t document_version, std::int64_t messages_to_ignore);
-  LSP_Task<::boost::json::array> wait_for_diagnostics_async(
+  LSP_Task<::simdjson::dom::array> wait_for_diagnostics_async(
       String8_View document_uri, std::int64_t document_version);
   template <class Params_Predicate>
-  LSP_Task<::boost::json::array> wait_for_diagnostics_async(Params_Predicate&&);
+  LSP_Task<::simdjson::dom::array> wait_for_diagnostics_async(
+      Params_Predicate&&);
   template <class Params_Predicate>
-  LSP_Task<::boost::json::array> wait_for_diagnostics_ignoring_async(
+  LSP_Task<::simdjson::dom::array> wait_for_diagnostics_ignoring_async(
       Params_Predicate&&, std::int64_t messages_to_ignore);
 
   // Returns the entire notification object.
   // Respects diagnosticsMessagesToIgnore.
-  LSP_Task<::boost::json::object> wait_for_diagnostics_notification_async();
+  LSP_Task<::simdjson::dom::object> wait_for_diagnostics_notification_async();
   template <class Params_Predicate>
-  LSP_Task<::boost::json::object> wait_for_diagnostics_notification_async(
+  LSP_Task<::simdjson::dom::object> wait_for_diagnostics_notification_async(
       Params_Predicate&&);
   template <class Params_Predicate>
-  LSP_Task<::boost::json::object> wait_for_diagnostics_notification_async(
+  LSP_Task<::simdjson::dom::object> wait_for_diagnostics_notification_async(
       Params_Predicate&&, std::int64_t messages_to_ignore);
 
   // Returns the entire notification object.
   // Does not respect diagnosticsMessagesToIgnore; returns the first matching
   // message.
-  LSP_Task<::boost::json::object>
+  LSP_Task<::simdjson::dom::object>
   wait_for_first_diagnostics_notification_async();
   template <class Params_Predicate>
-  LSP_Task<::boost::json::object> wait_for_first_diagnostics_notification_async(
-      Params_Predicate&&);
+  LSP_Task<::simdjson::dom::object>
+  wait_for_first_diagnostics_notification_async(Params_Predicate&&);
 
   void send_message(Byte_Buffer&& message);
 
@@ -299,7 +304,7 @@ class LSP_Server_Process {
       message_parser.out_message_content_ = &this->message_content_;
     }
 
-    ::boost::json::value await_resume();
+    ::simdjson::dom::element await_resume();
 
    private:
     String8_View message_content_;
@@ -400,6 +405,16 @@ class LSP_Server_Process {
   Continuing_LSP_Message_Parser message_parser_;
   LSP_Pipe_Writer message_writer_ = LSP_Pipe_Writer(this->writer_.ref());
   LSP_Event_Loop event_loop_ = LSP_Event_Loop(this);
+
+  // This holds the most recently parsed message (if any).
+  //
+  // NOTE[LSP_Server_Process-message]: get_message_async calls
+  // json_parser_.parse(). This means that get_message_async's returned
+  // ::simdjson::dom::element's lifetime ends when the next call to
+  // get_message_async begins.
+  //
+  // Reusing a parser minimizes malloc/free traffic during the timed benchmark.
+  ::simdjson::dom::parser json_parser_;
 
   std::int64_t next_message_id_ = 1;
   std::int64_t text_document_sync_kind_ = TEXT_DOCUMENT_SYNC_KIND_NONE;

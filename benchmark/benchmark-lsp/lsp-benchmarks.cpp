@@ -97,11 +97,11 @@ class Open_Wait_Close_Benchmark : public Benchmark {
         this->iterations_[narrow_cast<std::size_t>(iteration_index)];
     server.send_message(std::move(iteration.open_notification));
 
-    ::boost::json::array diagnostics;
+    ::simdjson::dom::array diagnostics;
     do {
       diagnostics =
           co_await server.wait_for_diagnostics_async(iteration.version);
-    } while (diagnostics.empty());
+    } while (diagnostics.size() == 0);
 
     server.send_message(std::move(iteration.close_notification));
   }
@@ -171,10 +171,17 @@ class Change_Wait_Benchmark : public Benchmark {
             iteration.uri, server_config.diagnostics_messages_to_ignore + 1);
       }
       while (!remaining_uris.empty()) {
-        ::boost::json::object notification =
+        ::simdjson::dom::object notification =
             co_await server.wait_for_first_diagnostics_notification_async();
-        String8 notification_uri = to_string8(to_string_view(
-            look_up(notification, "params", "uri").get_string()));
+
+        std::string_view notification_uri_view;
+        if (notification["params"]["uri"].get(notification_uri_view) !=
+            ::simdjson::SUCCESS) {
+          std::fprintf(stderr,
+                       "fatal: message params.uri should be an string\n");
+          std::exit(1);
+        }
+        String8 notification_uri = to_string8(notification_uri_view);
 
         auto uri_it = remaining_uris.find(notification_uri);
         QLJS_ALWAYS_ASSERT(uri_it != remaining_uris.end());
@@ -193,11 +200,11 @@ class Change_Wait_Benchmark : public Benchmark {
 
     server.send_message(std::move(iteration.change_text_notification));
 
-    ::boost::json::array diagnostics;
+    ::simdjson::dom::array diagnostics;
     do {
       diagnostics = co_await server.wait_for_diagnostics_async(
           iteration.uri, this->changed_version);
-    } while (diagnostics.empty());
+    } while (diagnostics.size() == 0);
   }
 
  private:
@@ -244,10 +251,10 @@ class Incremental_Change_Wait_Benchmark : public Benchmark {
 
     server.send_message(make_text_document_did_open_notification(
         uri, version, this->source_file_->source.string_view()));
-    ::boost::json::array diagnostics;
+    ::simdjson::dom::array diagnostics;
     do {
       diagnostics = co_await server.wait_for_diagnostics_async(uri, version);
-    } while (diagnostics.empty());
+    } while (diagnostics.size() == 0);
     this->expected_diagnostics = diagnostics;
     version += 1;
 
@@ -276,7 +283,7 @@ class Incremental_Change_Wait_Benchmark : public Benchmark {
 
     server.send_message(std::move(iteration.change_text_notification));
 
-    ::boost::json::array diagnostics =
+    ::simdjson::dom::array diagnostics =
         co_await server.wait_for_diagnostics_after_incremental_change_async(
             iteration.version);
     if (diagnostics.size() != this->expected_diagnostics.size()) {
@@ -300,7 +307,7 @@ class Incremental_Change_Wait_Benchmark : public Benchmark {
   const Source_File* source_file_;
   void (*changes_factory_)(int i, Byte_Buffer& out_changes);
   std::vector<Iteration_Data> iterations_;
-  ::boost::json::array expected_diagnostics;
+  ::simdjson::dom::array expected_diagnostics;
 };
 
 class Full_Change_Wait_Benchmark : public Benchmark {
@@ -329,10 +336,10 @@ class Full_Change_Wait_Benchmark : public Benchmark {
     Padded_String initial_source = this->source_factory_(0);
     server.send_message(make_text_document_did_open_notification(
         uri, version, initial_source.string_view()));
-    ::boost::json::array diagnostics;
+    ::simdjson::dom::array diagnostics;
     do {
       diagnostics = co_await server.wait_for_diagnostics_async(uri, version);
-    } while (diagnostics.empty());
+    } while (diagnostics.size() == 0);
     this->expected_diagnostics = diagnostics;
     version += 1;
 
@@ -365,10 +372,10 @@ class Full_Change_Wait_Benchmark : public Benchmark {
     server.send_message(std::move(iteration.change_text_notification));
 
   retry:
-    ::boost::json::array diagnostics =
+    ::simdjson::dom::array diagnostics =
         co_await server.wait_for_diagnostics_async(iteration.version);
     if (diagnostics.size() != this->expected_diagnostics.size()) {
-      if (diagnostics.empty()) {
+      if (diagnostics.size() == 0) {
         // HACK(strager): Some LSP servers, such as Flow and TypeScript, give us
         // an empty list of diagnostics before giving us the real list of
         // diagnostics. Skip the empty list and wait for the real list.
@@ -394,7 +401,7 @@ class Full_Change_Wait_Benchmark : public Benchmark {
   std::string name_;
   Padded_String (*source_factory_)(int i);
   std::vector<iteration_data> iterations_;
-  ::boost::json::array expected_diagnostics;
+  ::simdjson::dom::array expected_diagnostics;
 };
 
 std::vector<Benchmark_Factory> get_benchmark_factories() {
