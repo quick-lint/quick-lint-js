@@ -204,11 +204,11 @@ class LSP_Server_Process {
       if (!exited) {
         this->kill();
 
-        // HACK(strager): Flow doesn't ever close our reader (its writer), even
-        // if we kill the process. (Flow forks its own processes which we can't
-        // directly kill.) It does reliably crash if we close our writer (its
-        // reader), though, so let's force a crash.
-        this->stop_future_writes();
+        // HACK(strager): Flow and Rome don't ever close our reader (its
+        // writer), even if we kill the process. (They fork their own processes
+        // which we can't directly kill.) Work around this by forcefully
+        // stopping our event loop.
+        this->stop_event_loop();
 
         this->wait_for_exit();
       }
@@ -219,9 +219,9 @@ class LSP_Server_Process {
   // Forcefully stop the server.
   void kill();
 
-  // HACK(strager): Close the client->server pipe to make Flow's LSP server
-  // stop.
-  void stop_future_writes();
+  // HACK(strager): Close the server->client pipe to make Flow's and Rome's LSP
+  // servers stop.
+  void stop_event_loop();
 
   // Wait for the server to stop on its own. Should be called to clean up
   // OS resources.
@@ -318,7 +318,10 @@ class LSP_Server_Process {
    public:
     explicit LSP_Event_Loop(LSP_Server_Process* process) : process_(process) {}
 
-    Platform_File_Ref get_readable_pipe() const {
+    std::optional<Platform_File_Ref> get_readable_pipe() const {
+      if (this->process_->should_stop_event_loop_) {
+        return std::nullopt;
+      }
       return this->process_->reader_.ref();
     }
 
@@ -390,6 +393,7 @@ class LSP_Server_Process {
   bool need_files_on_disk_;
 
   ::pid_t pid_;
+  bool should_stop_event_loop_ = false;
   Platform_File reader_;  // server -> client
   Platform_File writer_;  // client -> server
 
