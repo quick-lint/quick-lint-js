@@ -134,6 +134,19 @@
 #define QLJS_HAVE_UNISTD_H 0
 #endif
 
+// Whether <sys/types.h>, which contains pid_t, exists.
+#if defined(QLJS_HAVE_SYS_TYPES_H) && QLJS_HAVE_SYS_TYPES_H
+#elif defined(__has_include)
+#if __has_include(<sys/types.h>)
+#define QLJS_HAVE_SYS_TYPES_H 1
+#endif
+#elif defined(__unix__) || QLJS_HAVE_UNISTD_H
+#define QLJS_HAVE_SYS_TYPES_H 1
+#endif
+#if !defined(QLJS_HAVE_SYS_TYPES_H)
+#define QLJS_HAVE_SYS_TYPES_H 0
+#endif
+
 #if defined(QLJS_HAVE_SYS_WAIT_H) && QLJS_HAVE_SYS_WAIT_H
 #elif defined(__has_include)
 #if __has_include(<sys/wait.h>) && !defined(__EMSCRIPTEN__)

@@ -26,6 +26,7 @@
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/pty.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <stdlib.h>
 #include <string>
@@ -37,21 +38,9 @@
 #include <quick-lint-js/port/windows.h>
 #endif
 
-#if QLJS_HAVE_LIBUTIL_H
-#include <libutil.h>
-#endif
-
 #if QLJS_HAVE_MKFIFO
 #include <sys/stat.h>
 #include <sys/types.h>
-#endif
-
-#if QLJS_HAVE_UTIL_H
-#include <util.h>
-#endif
-
-#if QLJS_HAVE_PTY_H
-#include <pty.h>
 #endif
 
 using ::testing::HasSubstr;
@@ -246,8 +235,8 @@ TEST_F(Test_File, read_file_reads_from_pty_master) {
   std::fflush(stderr);
 
   int raw_tty_fd;
-  ::pid_t pid = ::forkpty(&raw_tty_fd, /*name=*/nullptr, /*termp=*/nullptr,
-                          /*winp=*/nullptr);
+  ::pid_t pid = forkpty(&raw_tty_fd, /*name=*/nullptr, /*termp=*/nullptr,
+                        /*winp=*/nullptr);
   ASSERT_NE(pid, -1) << std::strerror(errno);
   if (pid == 0) {
     // Child.

@@ -12,18 +12,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/child-process.h>
 #include <quick-lint-js/port/have.h>
-
-#if QLJS_HAVE_LIBUTIL_H
-#include <libutil.h>
-#endif
-
-#if QLJS_HAVE_UTIL_H
-#include <util.h>
-#endif
-
-#if QLJS_HAVE_PTY_H
-#include <pty.h>
-#endif
+#include <quick-lint-js/port/pty.h>
 
 #if QLJS_HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -314,8 +303,8 @@ TEST_F(Test_CLI, auto_hyperlinks_are_not_printed_in_dumb_terminals) {
       test_file, u8"var parenthesesMissing;\nif parenthesesMissing { }\n"_sv);
 
   int tty_fd;
-  ::pid_t pid = ::forkpty(&tty_fd, /*name=*/nullptr, /*termp=*/nullptr,
-                          /*winp=*/nullptr);
+  ::pid_t pid =
+      forkpty(&tty_fd, /*name=*/nullptr, /*termp=*/nullptr, /*winp=*/nullptr);
   ASSERT_NE(pid, -1) << std::strerror(errno);
   if (pid == 0) {
     // Child.
