@@ -221,7 +221,7 @@ LSP_Task<void> LSP_Server_Process::shut_down_lsp() {
   Byte_Buffer shutdown_request;
   shutdown_request.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
   shutdown_request.append_decimal_integer(shutdown_request_id);
-  shutdown_request.append_copy(u8R"(,"method":"shutdown","params":null})"sv);
+  shutdown_request.append_copy(u8R"(,"method":"shutdown"})"sv);
   this->send_message(std::move(shutdown_request));
 
   for (;;) {
