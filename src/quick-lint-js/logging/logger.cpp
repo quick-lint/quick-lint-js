@@ -39,7 +39,7 @@ struct Global_Loggers {
       return;
     }
 #if defined(QLJS_DEBUG_LOGGING_FILE)
-    static file_logger default_logger(QLJS_DEBUG_LOGGING_FILE);
+    static File_Logger default_logger(QLJS_DEBUG_LOGGING_FILE);
     this->loggers.push_back(&default_logger);
 #endif
     this->initialized = true;
