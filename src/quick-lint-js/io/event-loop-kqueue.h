@@ -41,6 +41,8 @@ class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
   POSIX_FD_File_Ref kqueue_fd() { return this->kqueue_fd_.ref(); }
 
   void run() {
+    std::optional<POSIX_FD_File_Ref> pipe_write_fd;
+
     {
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       std::optional<Platform_File_Ref> pipe =
@@ -55,10 +57,10 @@ class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
       EV_SET(&changes.emplace_back(), pipe->get(), EVFILT_READ, EV_ADD, 0, 0,
              reinterpret_cast<void*>(event_udata_readable_pipe));
 
-      if (std::optional<POSIX_FD_File_Ref> fd =
-              this->derived().get_pipe_write_fd()) {
-        EV_SET(&changes.emplace_back(), fd->get(), EVFILT_WRITE, EV_ADD, 0, 0,
-               reinterpret_cast<void*>(event_udata_pipe_write));
+      pipe_write_fd = this->derived().get_pipe_write_fd();
+      if (pipe_write_fd.has_value()) {
+        EV_SET(&changes.emplace_back(), pipe_write_fd->get(), EVFILT_WRITE,
+               EV_ADD, 0, 0, reinterpret_cast<void*>(event_udata_pipe_write));
       }
 
       QLJS_ASSERT(changes.size() > 0);
@@ -78,19 +80,36 @@ class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
       // NOTE(strager): The readable pipe can change between turns of the event
       // loop.
       // FIXME(strager): If it can change, we should add the new file descriptor
-      // to the kqueue.
-      // FIXME(strager): Can the writable pipe change too? Shouldn't we check
-      // it?
+      // to the kqueue (like we do with pipe_write_fd).
       std::optional<Platform_File_Ref> pipe =
           this->const_derived().get_readable_pipe();
       if (!pipe.has_value()) {
         break;
       }
 
+      Fixed_Vector<struct ::kevent, 2> changes;
+      std::optional<POSIX_FD_File_Ref> new_pipe_write_fd =
+          this->derived().get_pipe_write_fd();
+      if (new_pipe_write_fd != pipe_write_fd) {
+        // TODO(strager): If possible, EV_ENABLE/EV_DISABLE is probably better
+        // than EV_ADD/EV_DELETE.
+        if (pipe_write_fd.has_value()) {
+          EV_SET(&changes.emplace_back(), pipe_write_fd->get(), EVFILT_WRITE,
+                 EV_DELETE, 0, 0,
+                 reinterpret_cast<void*>(event_udata_pipe_write));
+        }
+        pipe_write_fd = new_pipe_write_fd;
+        if (pipe_write_fd.has_value()) {
+          EV_SET(&changes.emplace_back(), pipe_write_fd->get(), EVFILT_WRITE,
+                 EV_ADD, 0, 0, reinterpret_cast<void*>(event_udata_pipe_write));
+        }
+      }
+
       Fixed_Vector<struct ::kevent, 10> events;
       events.resize(events.capacity());
       int rc = ::kevent(this->kqueue_fd_.get(),
-                        /*changelist=*/nullptr, /*nchanges=*/0,
+                        /*changelist=*/changes.data(),
+                        /*nchanges=*/narrow_cast<int>(changes.size()),
                         /*eventlist=*/events.data(),
                         /*nevents=*/narrow_cast<int>(events.size()),
                         /*timeout=*/nullptr);

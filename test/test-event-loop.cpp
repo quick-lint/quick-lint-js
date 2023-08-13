@@ -74,6 +74,11 @@ struct Spy_Event_Loop : public Event_Loop<Spy_Event_Loop> {
     this->pipe_write_fd_ = fd;
     this->pipe_write_event_callback_ = std::move(on_event);
   }
+
+  // Precondition: set_pipe_write was previously called.
+  void set_pipe_write_fd(std::optional<POSIX_FD_File_Ref> fd) {
+    this->pipe_write_fd_ = fd;
+  }
 #endif
 
 #if QLJS_HAVE_KQUEUE
@@ -204,6 +209,64 @@ TEST_F(Test_Event_Loop, signals_writable_pipe) {
 
   this->loop.run();
   EXPECT_TRUE(called);
+}
+
+TEST_F(Test_Event_Loop, signals_pipe_if_made_writable_during_append) {
+  // Write to this->pipe.writer so append is called by the event loop.
+  write_full_message(this->pipe.writer.ref(), u8"Hi"_sv);
+
+  Pipe_FDs test_pipe = make_pipe();
+  bool called = false;
+  this->loop.set_append_callback([&](String8_View data) -> void {
+    EXPECT_EQ(data, u8"Hi"_sv);
+
+    this->loop.set_pipe_write(
+        test_pipe.writer.ref(), [this, &called, &test_pipe](const auto& event) {
+          ASSERT_FALSE(called)
+              << "write pipe ready callback should only be called once";
+          called = true;
+#if QLJS_HAVE_KQUEUE
+          EXPECT_EQ(event.ident, test_pipe.writer.get());
+          EXPECT_EQ(event.filter, EVFILT_WRITE);
+#elif QLJS_HAVE_POLL
+          EXPECT_EQ(event.fd, test_pipe.writer.get());
+          EXPECT_TRUE(event.revents & POLLOUT);
+#endif
+          // Stop event_loop::run.
+          this->loop.unset_readable_pipe();
+        });
+  });
+
+  this->loop.run();
+  EXPECT_TRUE(called);
+}
+
+TEST_F(Test_Event_Loop,
+       does_not_signal_pipe_if_made_unwritable_during_write_callback_SLOW) {
+  std::thread stopping_thread;
+
+  int call_count = 0;
+  Pipe_FDs test_pipe = make_pipe();
+  this->loop.set_pipe_write(test_pipe.writer.ref(), [&](const auto&) {
+    EXPECT_EQ(call_count, 0)
+        << "write pipe ready callback should only be called once";
+    call_count += 1;
+
+    // Cause the event loop to not call this callback again.
+    this->loop.set_pipe_write_fd(std::nullopt);
+
+    // Stop the event loop eventually.
+    stopping_thread = std::thread([this]() {
+      std::this_thread::sleep_for(10ms);
+      // Interrupt Event_Loop::run on the main thread.
+      this->pipe.writer.close();
+    });
+  });
+
+  this->loop.run();
+  EXPECT_EQ(call_count, 1);
+
+  stopping_thread.join();
 }
 
 TEST_F(Test_Event_Loop, does_not_write_to_unwritable_pipe) {

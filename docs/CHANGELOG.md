@@ -13,6 +13,11 @@ Semantic Versioning.
 * `2 ^ 8` now reports [E0710][] ("'^' is the XOR operator; to exponentiate, use
   '**' instead"). (Implemented by [pedrobl1718][].)
 
+### Fixed
+
+* LSP: On macOS, quick-lint-js no longer hangs if a file has too many
+  diagnostics.
+
 ## 2.15.0 (2023-07-18)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.15.0/)

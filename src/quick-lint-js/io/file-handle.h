@@ -191,6 +191,11 @@ class POSIX_FD_File_Ref {
   void set_pipe_non_blocking();
   std::size_t get_pipe_buffer_size();
 
+  // Returns true if the two file descriptors are the same. (After a dup(), the
+  // two file descriptors are considered different.)
+  friend bool operator==(POSIX_FD_File_Ref, POSIX_FD_File_Ref);
+  friend bool operator!=(POSIX_FD_File_Ref, POSIX_FD_File_Ref);
+
   static std::string get_last_error_message();
 
   static POSIX_FD_File_Ref get_stdout();

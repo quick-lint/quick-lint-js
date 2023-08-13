@@ -170,6 +170,14 @@ std::size_t POSIX_FD_File_Ref::get_pipe_buffer_size() {
 }
 #endif
 
+bool operator==(POSIX_FD_File_Ref lhs, POSIX_FD_File_Ref rhs) {
+  return lhs.get() == rhs.get();
+}
+
+bool operator!=(POSIX_FD_File_Ref lhs, POSIX_FD_File_Ref rhs) {
+  return !(lhs == rhs);
+}
+
 void POSIX_FD_File_Ref::set_pipe_non_blocking() {
   QLJS_ASSERT(this->valid());
 #if QLJS_HAVE_FCNTL_H
