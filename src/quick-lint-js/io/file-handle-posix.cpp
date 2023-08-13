@@ -228,6 +228,11 @@ void POSIX_FD_File::close() {
 }
 
 POSIX_FD_File_Ref POSIX_FD_File::ref() const { return *this; }
+
+int POSIX_FD_File::release() {
+  QLJS_ASSERT(this->valid());
+  return std::exchange(this->fd_, this->invalid_fd);
+}
 }
 
 #endif

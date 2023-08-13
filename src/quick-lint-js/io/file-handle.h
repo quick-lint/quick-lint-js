@@ -222,6 +222,14 @@ class POSIX_FD_File : private POSIX_FD_File_Ref {
 
   POSIX_FD_File_Ref ref() const;
 
+  // Remove ownership of the file.
+  //
+  // Returns this->get().
+  //
+  // Precondition: this->valid()
+  // Postcondition: !this->valid()
+  int release();
+
   using POSIX_FD_File_Ref::get;
   using POSIX_FD_File_Ref::get_last_error_message;
   using POSIX_FD_File_Ref::get_pipe_buffer_size;
