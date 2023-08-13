@@ -11,6 +11,7 @@
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/process.h>
 #include <spawn.h>
 #include <string>
@@ -20,6 +21,8 @@
 #if QLJS_HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
 #endif
+
+QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;

@@ -235,7 +235,7 @@ class Incremental_Change_Wait_Benchmark : public Benchmark {
   }
 
   LSP_Task<void> set_up_async(LSP_Server_Process& server,
-                              const Benchmark_Config_Server& server_config,
+                              const Benchmark_Config_Server&,
                               int iteration_count) override {
     String8 file_name = u8"test.js";
     server.create_file_on_disk_if_needed(file_name);
@@ -319,7 +319,7 @@ class Full_Change_Wait_Benchmark : public Benchmark {
   }
 
   LSP_Task<void> set_up_async(LSP_Server_Process& server,
-                              const Benchmark_Config_Server& server_config,
+                              const Benchmark_Config_Server&,
                               int iteration_count) override {
     String8 file_name = u8"test.js";
     server.create_file_on_disk_if_needed(file_name);
