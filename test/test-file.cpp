@@ -267,6 +267,17 @@ TEST_F(Test_File, read_file_reads_from_pty_master) {
       ADD_FAILURE() << output.error_to_string();
       return;
     }
+
+    int status = 0;
+    ::pid_t rc = ::waitpid(pid, &status, /*options=*/0);
+    EXPECT_NE(rc, -1) << std::strerror(errno);
+    EXPECT_EQ(rc, pid);
+    EXPECT_TRUE(WIFEXITED(status)) << "child should not have crashed";
+    if (WIFEXITED(status)) {
+      EXPECT_EQ(WEXITSTATUS(status), 0)
+          << "child write() should not have failed";
+    }
+
     EXPECT_THAT(output->string_view(), u8"hello"_sv);
   }
 }
