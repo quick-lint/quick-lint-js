@@ -172,6 +172,7 @@ quick_lint_js_add_executable(
   test-pipe-writer.cpp
   test-po-parser.cpp
   test-pointer.cpp
+  test-pty.cpp
   test-result.cpp
   test-simd.cpp
   test-sorted-search.cpp

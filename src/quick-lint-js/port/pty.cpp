@@ -9,6 +9,10 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/pty.h>
 
+#if QLJS_HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+
 #if QLJS_HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -34,6 +38,9 @@
 //
 // * If fork() fails, file descriptors are leaked.
 // * If login_tty fails, the error is not communicated to the caller.
+// * If the slave (child) is closed before the master (parent) reads, the tty's
+//   buffer is cleared thus the master (parent) reads nothing. See
+//   NOTE[macOS-S_CTTYREF].
 #define QLJS_HAVE_WORKING_FORKPTY 0
 #else
 #define QLJS_HAVE_WORKING_FORKPTY 1
@@ -115,6 +122,10 @@ Result<std::optional<int>, Platform_File_IO_Error> Error_Pipe::receive() {
   return error;
 }
 #endif
+
+#if defined(__APPLE__)
+void macos_set_cttyref_flag(Error_Pipe &);
+#endif
 }
 
 #if QLJS_HAVE_FORKPTY
@@ -154,6 +165,11 @@ Result<std::optional<int>, Platform_File_IO_Error> Error_Pipe::receive() {
     }
     slave.release();  // ::login_tty claimed ownership of the file descriptor.
 
+#if defined(__APPLE__)
+    // See NOTE[macOS-S_CTTYREF].
+    macos_set_cttyref_flag(error_pipe);
+#endif
+
     error_pipe.send_success();
     return 0;
   } else {
@@ -183,6 +199,152 @@ Result<std::optional<int>, Platform_File_IO_Error> Error_Pipe::receive() {
 #endif
 }
 #endif
+
+namespace {
+#if defined(__APPLE__)
+// NOTE[macOS-S_CTTYREF]: On macOS, after a forkpty(), if the pty slave (child)
+// is closed before the pty master (parent) reads, the pty's buffer is cleared
+// thus the master (parent) reads nothing. This can happen if the child exits
+// before the parent has a chance to call master.read().
+//
+// This issue has been reported to Apple, but has not been resolved:
+// https://developer.apple.com/forums/thread/663632
+//
+// Work around this issue by opening /dev/tty then closing it. This ultimately
+// causes the child's exit() to flush the slave pty's output buffer in a
+// blocking way. This fixes the problem on macOS 13.2 in my testing.
+//
+// Here's how the workaround works in detail:
+//
+// If we open /dev/tty, it sets the S_CTTYREF flag on the process. This flag
+// remains set if we close the /dev/tty file descriptor.
+// https://github.com/apple-oss-distributions/xnu/blob/aca3beaa3dfbd42498b42c5e5ce20a938e6554e5/bsd/kern/tty_tty.c#L128
+// Additionally, opening /dev/tty retains a reference to the pty slave.
+// https://github.com/apple-oss-distributions/xnu/blob/aca3beaa3dfbd42498b42c5e5ce20a938e6554e5/bsd/kern/tty_tty.c#L147
+//
+// When the child process exits:
+//
+// 1. All open file descriptors (including stdin/stdout/stderr which are the pty
+//    slave) are closed. This does *not* drain unread pty slave output.
+//    * If S_CTTYREF was set, closing the file descriptors does not close the
+//      last reference to the pty slave, so no cleanup happens yet.
+//    * NOTE[macOS-pty-close-loss]: If S_CTTYREF was not set, closing the file
+//      descriptors drops the last reference to the pty slave. Unread data is
+//      dropped.
+//
+// 2. If the S_CTTYREF flag is set on the child process, the controlling
+//    terminal (pty slave) is closed. XNU's ptsclose() ultimately calls
+//    ttywait().
+//    https://github.com/apple-oss-distributions/xnu/blob/aca3beaa3dfbd42498b42c5e5ce20a938e6554e5/bsd/kern/kern_exit.c#L2272
+//    * ttywait() is the same as ioctl(slave, TIOCDRAIN); it blocks waiting for
+//      output to be received.
+//      https://github.com/apple-oss-distributions/xnu/blob/aca3beaa3dfbd42498b42c5e5ce20a938e6554e5/bsd/kern/tty.c#L1129-L1130
+//    * NOTE[macOS-pty-waitpid-hang]: Because of the blocking ttywait(), the
+//      process is in an exiting (but not zombie) state. waitpid() will hang.
+//
+//    * NOTE[macOS-pty-close-loss]: If the S_CTTYREF flag is not set on the
+//      child process, ttywait() is not called, thus the pty slave does not
+//      block waiting for the output to be received, and the output is dropped.
+//      A well-behaving parent will use a poll() loop anyway, so this isn't a
+//      problem. (It does make quick tests annoying to write though.)
+//
+// Demonstration of NOTE[macOS-pty-close-loss] (S_CTTYREF is not set before
+// exit):
+//
+//     // On macOS, this program should report 'data = ""', demonstrating that
+//     // writes are lost.
+//
+//     #include <stdlib.h>
+//     #include <errno.h>
+//     #include <stdio.h>
+//     #include <string.h>
+//     #include <unistd.h>
+//     #include <util.h>
+//
+//     int main() {
+//       int tty_fd;
+//       pid_t pid = forkpty(&tty_fd, /*name=*/NULL, /*termp=*/NULL,
+//                           /*winp=*/NULL);
+//       if (pid == -1) { perror("forkpty"); abort(); }
+//
+//       if (pid == 0) {
+//         // Child.
+//         (void)write(STDOUT_FILENO, "y", 1);
+//         exit(0);
+//       } else {
+//         // Parent.
+//
+//         // Cause the child to write() then exit(). exit() will drop written
+//         // data.
+//         sleep(1);
+//
+//         char buffer[10];
+//         ssize_t rc = read(tty_fd, buffer, sizeof(buffer));
+//         if (rc < 0) { perror("read"); abort(); }
+//         fprintf(stderr, "data = \"%.*s\"\n", (int)rc, buffer);
+//       }
+//
+//       return 0;
+//     }
+//
+// Demonstration of NOTE[macOS-pty-waitpid-hang] (S_CTTYREF is set before exit):
+//
+//     // On macOS, this program should hang, demonstrating that the child
+//     // process doesn't finish exiting.
+//     //
+//     // During the hang, observe that the child is in an exiting state ("E"):
+//     //
+//     //     $ ps -e -o pid,stat | grep 20125
+//     //     20125 ?Es
+//
+//     #include <errno.h>
+//     #include <fcntl.h>
+//     #include <stdio.h>
+//     #include <stdlib.h>
+//     #include <string.h>
+//     #include <unistd.h>
+//     #include <util.h>
+//
+//     int main() {
+//       int tty_fd;
+//       pid_t pid = forkpty(&tty_fd, /*name=*/NULL, /*termp=*/NULL,
+//                           /*winp=*/NULL);
+//       if (pid == -1) { perror("forkpty"); abort(); }
+//
+//       if (pid == 0) {
+//         // Child.
+//         close(open("/dev/tty", O_WRONLY));
+//         (void)write(STDOUT_FILENO, "y", 1);
+//         exit(0);
+//       } else {
+//         // Parent.
+//
+//         fprintf(stderr, "child PID: %d\n", pid);
+//
+//         // This will hang because, despite the child being is an exiting
+//         // state, the child is waiting for us to read().
+//         pid_t rc = waitpid(pid, NULL, 0);
+//         if (rc < 0) { perror("waitpid"); abort(); }
+//       }
+//
+//       return 0;
+//     }
+void macos_set_cttyref_flag(Error_Pipe &error_pipe) {
+  int tty_fd = ::open("/dev/tty", O_WRONLY);
+  if (tty_fd == -1) {
+    QLJS_DEBUG_LOG("forkpty child: opening /dev/tty failed: %d (%s)\n", errno,
+                   std::strerror(errno));
+    error_pipe.send_error_and_exit(errno);
+  }
+  int close_rc = ::close(tty_fd);
+  if (close_rc == -1) {
+    QLJS_DEBUG_LOG("forkpty child: closing /dev/tty failed: %d (%s)\n", errno,
+                   std::strerror(errno));
+    error_pipe.send_error_and_exit(errno);
+  }
+}
+#endif
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
