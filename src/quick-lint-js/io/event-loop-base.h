@@ -83,13 +83,17 @@ class Event_Loop_Base {
   // still have data available (now or in the future).
   bool read_from_pipe() {
     std::array<Char8, 65536> buffer;
-    Platform_File_Ref pipe = this->const_derived().get_readable_pipe();
+    std::optional<Platform_File_Ref> pipe =
+        this->const_derived().get_readable_pipe();
+    if (!pipe.has_value()) {
+      return true;
+    }
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-    QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
+    QLJS_SLOW_ASSERT(pipe->is_pipe_non_blocking());
 #else
-    QLJS_SLOW_ASSERT(!pipe.is_pipe_non_blocking());
+    QLJS_SLOW_ASSERT(!pipe->is_pipe_non_blocking());
 #endif
-    File_Read_Result read_result = pipe.read(buffer.data(), buffer.size());
+    File_Read_Result read_result = pipe->read(buffer.data(), buffer.size());
     if (!read_result.ok()) {
 #if QLJS_HAVE_UNISTD_H
       if (read_result.error().error == EAGAIN) {

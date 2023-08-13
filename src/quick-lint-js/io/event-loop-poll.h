@@ -39,14 +39,18 @@ class Poll_Event_Loop : public Event_Loop_Base<Derived> {
       }
 
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
-      Platform_File_Ref pipe = this->const_derived().get_readable_pipe();
-      QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
+      std::optional<Platform_File_Ref> pipe =
+          this->const_derived().get_readable_pipe();
+      if (!pipe.has_value()) {
+        break;
+      }
+      QLJS_SLOW_ASSERT(pipe->is_pipe_non_blocking());
 
       Fixed_Vector<::pollfd, 3> pollfds;
 
       Fixed_Vector_Size read_pipe_index = pollfds.size();
       pollfds.push_back(
-          ::pollfd{.fd = pipe.get(), .events = POLLIN, .revents = 0});
+          ::pollfd{.fd = pipe->get(), .events = POLLIN, .revents = 0});
 
       std::optional<Fixed_Vector_Size> write_pipe_index;
       if (std::optional<POSIX_FD_File_Ref> fd =

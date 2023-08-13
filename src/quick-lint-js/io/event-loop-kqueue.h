@@ -43,12 +43,16 @@ class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
   void run() {
     {
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
-      Platform_File_Ref pipe = this->const_derived().get_readable_pipe();
-      QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
+      std::optional<Platform_File_Ref> pipe =
+          this->const_derived().get_readable_pipe();
+      if (!pipe.has_value()) {
+        return;
+      }
+      QLJS_SLOW_ASSERT(pipe->is_pipe_non_blocking());
 
       Fixed_Vector<struct ::kevent, 2> changes;
 
-      EV_SET(&changes.emplace_back(), pipe.get(), EVFILT_READ, EV_ADD, 0, 0,
+      EV_SET(&changes.emplace_back(), pipe->get(), EVFILT_READ, EV_ADD, 0, 0,
              reinterpret_cast<void*>(event_udata_readable_pipe));
 
       if (std::optional<POSIX_FD_File_Ref> fd =
@@ -71,6 +75,18 @@ class Kqueue_Event_Loop : public Event_Loop_Base<Derived> {
     }
 
     for (;;) {
+      // NOTE(strager): The readable pipe can change between turns of the event
+      // loop.
+      // FIXME(strager): If it can change, we should add the new file descriptor
+      // to the kqueue.
+      // FIXME(strager): Can the writable pipe change too? Shouldn't we check
+      // it?
+      std::optional<Platform_File_Ref> pipe =
+          this->const_derived().get_readable_pipe();
+      if (!pipe.has_value()) {
+        break;
+      }
+
       Fixed_Vector<struct ::kevent, 10> events;
       events.resize(events.capacity());
       int rc = ::kevent(this->kqueue_fd_.get(),

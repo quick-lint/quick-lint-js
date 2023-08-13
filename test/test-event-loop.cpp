@@ -25,13 +25,26 @@ void write_full_message(Platform_File_Ref, String8_View);
 struct Spy_Event_Loop : public Event_Loop<Spy_Event_Loop> {
   explicit Spy_Event_Loop(Platform_File_Ref pipe) : pipe_(pipe) {}
 
-  Platform_File_Ref get_readable_pipe() const { return this->pipe_; }
+  std::optional<Platform_File_Ref> get_readable_pipe() const {
+    return this->pipe_;
+  }
 
   void append(String8_View data) {
     std::unique_lock lock(this->mutex_);
     this->read_data_.append(data);
     this->new_data_.notify_all();
+
+    if (this->append_callback_) {
+      this->append_callback_(data);
+    }
   }
+
+  template <class Func>
+  void set_append_callback(Func on_append) {
+    this->append_callback_ = std::move(on_append);
+  }
+
+  void unset_readable_pipe() { this->pipe_ = std::nullopt; }
 
   String8 get_read_data() {
     std::unique_lock lock(this->mutex_);
@@ -83,7 +96,7 @@ struct Spy_Event_Loop : public Event_Loop<Spy_Event_Loop> {
 #endif
 
  private:
-  Platform_File_Ref pipe_;
+  std::optional<Platform_File_Ref> pipe_;
 
   Mutex mutex_;
   Condition_Variable new_data_;
@@ -95,6 +108,7 @@ struct Spy_Event_Loop : public Event_Loop<Spy_Event_Loop> {
   std::optional<POSIX_FD_File_Ref> pipe_write_fd_;
 #endif
 
+  Heap_Function<void(String8_View)> append_callback_;
 #if QLJS_HAVE_KQUEUE
   Heap_Function<void(const struct ::kevent&)> pipe_write_event_callback_;
 #elif QLJS_HAVE_POLL
@@ -150,6 +164,25 @@ TEST_F(Test_Event_Loop, reads_many_messages) {
 
   writer_thread.join();
   EXPECT_EQ(this->loop.get_read_data(), u8"firstSECOND");
+}
+
+TEST_F(Test_Event_Loop, stops_if_no_reader) {
+  write_full_message(this->pipe.writer.ref(), u8"Hi"_sv);
+  this->loop.unset_readable_pipe();
+
+  this->loop.run();
+  // run() should terminate.
+}
+
+TEST_F(Test_Event_Loop, stops_if_reader_is_unset_after_receiving_data) {
+  write_full_message(this->pipe.writer.ref(), u8"Hi"_sv);
+  this->loop.set_append_callback([&](String8_View data) -> void {
+    EXPECT_EQ(data, u8"Hi"_sv);
+    this->loop.unset_readable_pipe();
+  });
+
+  this->loop.run();
+  // run() should terminate.
 }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
