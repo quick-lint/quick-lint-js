@@ -14,7 +14,8 @@ Install the LSP servers you want to benchmark:
 * **RSLint**: Install [RSLint's rslint_lsp crate][install-rslint]. Ensure the
   `rslint-lsp` command is in `$PATH`.
 * **Rome**: Run `yarn` in the `rome/` directory.
-* **TypeScript**: Run `yarn` in the `typescript/` directory.
+* **TypeScript**: Run `yarn` in the `typescript/` and `typescript-jsx/`
+  directories.
 * **quick-lint-js**: Install quick-lint-js. Ensure the `quick-lint-js` command
   is in `$PATH`.
 
