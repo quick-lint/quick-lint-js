@@ -6,8 +6,8 @@
 
 #include <boost/json/value.hpp>
 #include <chrono>
+#include <coroutine>
 #include <cstdint>
-#include <experimental/coroutine>
 #include <filesystem>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -36,7 +36,7 @@
 #endif
 
 namespace quick_lint_js {
-namespace std_coroutine = std::experimental;
+namespace std_coroutine = std;
 
 Byte_Buffer make_text_document_did_open_notification(String8_View uri,
                                                      std::int64_t version,
@@ -58,8 +58,8 @@ class LSP_Task_Promise_Type_Base {
     bool await_ready() const noexcept { return false; }
 
     template <class Promise>
-    std::experimental::coroutine_handle<> await_suspend(
-        std::experimental::coroutine_handle<Promise> continuation) noexcept {
+    std_coroutine::coroutine_handle<> await_suspend(
+        std_coroutine::coroutine_handle<Promise> continuation) noexcept {
       auto cont = continuation.promise().continuation_;
       return cont ? cont : std_coroutine::noop_coroutine();
     }

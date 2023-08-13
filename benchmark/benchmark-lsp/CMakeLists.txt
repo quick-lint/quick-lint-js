@@ -7,8 +7,8 @@ include(CheckIncludeFileCXX)
 include(QuickLintJSTarget)
 
 check_include_file_cxx(
-  experimental/coroutine
-  QUICK_LINT_JS_HAVE_EXPERIMENTAL_COROUTINE
+  coroutine
+  QUICK_LINT_JS_HAVE_COROUTINE
 )
 check_cxx_source_compiles(
   "#include <filesystem>
@@ -18,9 +18,10 @@ int main() {
   QUICK_LINT_JS_HAVE_FILESYSTEM_CHAR8
 )
 if (
-  QUICK_LINT_JS_HAVE_EXPERIMENTAL_COROUTINE AND
+  QUICK_LINT_JS_HAVE_COROUTINE AND
   QUICK_LINT_JS_HAVE_FILESYSTEM_CHAR8 AND
-  NOT EMSCRIPTEN  # We don't support Emscripten.
+  NOT EMSCRIPTEN AND  # We don't support Emscripten.
+  NOT WIN32  # We don't support Windows yet.
 )
   quick_lint_js_add_executable(
     quick-lint-js-benchmark-lsp-servers
