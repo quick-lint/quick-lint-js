@@ -360,8 +360,8 @@ LSP_Task<::boost::json::object>
 LSP_Server_Process::wait_for_first_diagnostics_notification_async(
     Params_Predicate&& predicate) {
   for (;;) {
-    ::boost::json::object message =
-        (co_await this->get_message_async()).as_object();
+    ::boost::json::value message_value = co_await this->get_message_async();
+    ::boost::json::object message = message_value.as_object();
     if (::boost::json::string* method = if_string(message, "method")) {
       if (*method == "textDocument/publishDiagnostics") {
         if (predicate(look_up(message, "params").get_object())) {
