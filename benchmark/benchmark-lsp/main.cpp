@@ -71,26 +71,20 @@ class Benchmark_Results_Writer {
 
   void add_metadata(const Benchmark_Config_Program& program_config) {
     if (this->json_output_) {
-      ::boost::json::object out_metadata;
-      for (auto& [key, value] : program_config.get_metadata()) {
-        out_metadata[key] = value;
-      }
-      this->metadatas_[program_config.name] = out_metadata;
+      this->metadatas_[program_config.name] = program_config.get_metadata();
     }
   }
 
   void begin_benchmark(const char* name,
                        const Benchmark_Run_Config& run_config) {
-    QLJS_ASSERT(this->current_benchmark_.empty());
-    QLJS_ASSERT(this->current_benchmark_samples_.empty());
+    QLJS_ASSERT(this->current_benchmark_.samples.empty());
 
-    this->current_benchmark_.emplace("benchmarkName", name);
-    this->current_benchmark_.emplace("warmupIterations",
-                                     run_config.warmup_iterations);
-    this->current_benchmark_.emplace("measurementIterations",
-                                     run_config.measurement_iterations);
+    this->current_benchmark_.benchmark_name = name;
+    this->current_benchmark_.warmup_iterations = run_config.warmup_iterations;
+    this->current_benchmark_.measurement_iterations =
+        run_config.measurement_iterations;
 
-    this->current_benchmark_samples_.reserve(
+    this->current_benchmark_.samples.reserve(
         narrow_cast<std::size_t>(run_config.samples));
 
     if (this->verbose_output_) {
@@ -100,22 +94,12 @@ class Benchmark_Results_Writer {
   }
 
   void end_benchmark() {
-    ::boost::json::object& samples =
-        this->current_benchmark_["samples"].emplace_object();
-    ::boost::json::array& duration_per_iteration_array =
-        samples["durationPerIteration"].emplace_array();
-    for (sample& s : this->current_benchmark_samples_) {
-      duration_per_iteration_array.push_back(s.duration_per_iteration);
-    }
-
-    this->datas_.emplace_back(std::move(this->current_benchmark_));
-
-    this->current_benchmark_.clear();
-    this->current_benchmark_samples_.clear();
+    this->benchmark_results_.emplace_back(std::move(this->current_benchmark_));
+    this->current_benchmark_ = Benchmark_Result();
   }
 
   void write_sample(double duration_per_iteration) {
-    this->current_benchmark_samples_.emplace_back(
+    this->current_benchmark_.samples.emplace_back(
         sample{.duration_per_iteration = duration_per_iteration});
 
     if (this->verbose_output_) {
@@ -128,8 +112,36 @@ class Benchmark_Results_Writer {
   void done() {
     if (this->json_output_) {
       ::boost::json::object root;
-      root.emplace("data", std::move(this->datas_));
-      root.emplace("metadata", std::move(this->metadatas_));
+      {
+        ::boost::json::array datas;
+        for (const Benchmark_Result& result : this->benchmark_results_) {
+          ::boost::json::object benchmark_result;
+          benchmark_result["benchmarkName"] = result.benchmark_name;
+          benchmark_result["warmupIterations"] = result.warmup_iterations;
+          benchmark_result["measurementIterations"] =
+              result.measurement_iterations;
+          ::boost::json::object& samples =
+              benchmark_result["samples"].emplace_object();
+          ::boost::json::array& duration_per_iteration_array =
+              samples["durationPerIteration"].emplace_array();
+          for (const sample& s : result.samples) {
+            duration_per_iteration_array.push_back(s.duration_per_iteration);
+          }
+          datas.emplace_back(std::move(benchmark_result));
+        }
+        root.emplace("data", std::move(datas));
+      }
+      {
+        ::boost::json::object metadata_json;
+        for (const auto& [program_name, program_metadata] : this->metadatas_) {
+          ::boost::json::object program_metadata_json;
+          for (const auto& [key, value] : program_metadata) {
+            program_metadata_json[key] = value;
+          }
+          metadata_json[program_name] = std::move(program_metadata_json);
+        }
+        root.emplace("metadata", std::move(metadata_json));
+      }
       std::string json = ::boost::json::serialize(std::move(root));
       std::size_t written =
           std::fwrite(json.data(), 1, json.size(), this->json_output_);
@@ -145,12 +157,18 @@ class Benchmark_Results_Writer {
     double duration_per_iteration;
   };
 
+  struct Benchmark_Result {
+    std::string benchmark_name;
+    int warmup_iterations;
+    int measurement_iterations;
+    std::vector<sample> samples;
+  };
+
   FILE* json_output_;
   FILE* verbose_output_;
-  ::boost::json::array datas_;
-  ::boost::json::object current_benchmark_;
-  ::boost::json::object metadatas_;
-  std::vector<sample> current_benchmark_samples_;
+  Benchmark_Result current_benchmark_;
+  std::vector<Benchmark_Result> benchmark_results_;
+  std::map<std::string, std::map<std::string, std::string>> metadatas_;
 };
 
 void run_benchmark(Benchmark_Factory&, const Benchmark_Config_Server&,
