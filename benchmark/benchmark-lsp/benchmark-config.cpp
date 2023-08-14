@@ -13,6 +13,7 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/process.h>
+#include <simdjson.h>
 #include <spawn.h>
 #include <string>
 #include <unistd.h>
@@ -106,19 +107,27 @@ std::map<std::string, std::string> get_yarn_packages_versions(
   std::string_view json = lines[lines.size() - 1];
   QLJS_ALWAYS_ASSERT(!json.empty());
 
-  ::boost::json::error_code error;
-  ::boost::json::value root =
-      ::boost::json::parse(to_boost_string_view(json), error);
-  if (error != ::boost::json::error_code()) {
+  ::simdjson::dom::parser parser;
+  ::simdjson::dom::element root;
+  if (parser.parse(json.data(), json.size()).get(root) != ::simdjson::SUCCESS) {
     std::fprintf(stderr, "error: parsing 'yarn list' JSON failed\n");
     std::exit(1);
   }
 
   std::map<std::string, std::string> package_versions;
-  ::boost::json::value packages = look_up(root, "data", "trees");
-  for (::boost::json::value package : packages.as_array()) {
-    std::string full_package_name(
-        to_string_view(look_up(package, "name").as_string()));
+  ::simdjson::dom::array packages;
+  if (root["data"]["trees"].get(packages) != ::simdjson::SUCCESS) {
+    std::fprintf(stderr, "error: 'yarn list' JSON missing .data.trees array\n");
+    std::exit(1);
+  }
+  for (::simdjson::dom::element package : packages) {
+    std::string_view full_package_name;
+    if (package["name"].get(full_package_name) != ::simdjson::SUCCESS) {
+      std::fprintf(
+          stderr,
+          "error: 'yarn list' JSON missing .name in .data.trees array\n");
+      std::exit(1);
+    }
     std::size_t version_separator_index = full_package_name.rfind('@');
     QLJS_ALWAYS_ASSERT(version_separator_index != full_package_name.npos);
     std::string_view package_name =
@@ -367,18 +376,27 @@ Benchmark_Config Benchmark_Config::load() {
                                package_json_content.error_to_string().c_str());
                   std::exit(1);
                 }
-                ::boost::json::error_code error;
-                ::boost::json::value package_info = ::boost::json::parse(
-                    to_boost_string_view(package_json_content->string_view()),
-                    error);
-                if (error != ::boost::json::error_code()) {
+                ::simdjson::dom::parser parser;
+                ::simdjson::dom::element root;
+                if (parser
+                        .parse(reinterpret_cast<const char*>(
+                                   package_json_content->data()),
+                               package_json_content->size())
+                        .get(root) != ::simdjson::SUCCESS) {
                   std::fprintf(stderr, "error: %s: parsing JSON failed\n",
                                package_json_path);
                   std::exit(1);
                 }
-                metadata["vscode-eslint"] = to_string_view(
-                    look_up(package_info, "dependencies", "vscode-eslint")
-                        .as_string());
+                std::string_view vscode_eslint_dependency;
+                if (root["dependencies"]["vscode-eslint"].get(
+                        vscode_eslint_dependency) != ::simdjson::SUCCESS) {
+                  std::fprintf(stderr,
+                               "error: %s: failed to extract "
+                               ".dependencies['vscode-eslint']\n",
+                               package_json_path);
+                  std::exit(1);
+                }
+                metadata["vscode-eslint"] = vscode_eslint_dependency;
 
                 return metadata;
               },
