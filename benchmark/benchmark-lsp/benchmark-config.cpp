@@ -408,12 +408,7 @@ Benchmark_Config Benchmark_Config::load() {
 
       Benchmark_Config_Program{
           .name = "Rome",
-          .get_metadata =
-              []() {
-                // TODO(strager): Add version information when Rome adopts a
-                // --version option.
-                return std::map<std::string, std::string>{};
-              },
+          .get_metadata = []() { return get_yarn_packages_versions("rome"); },
       },
 
       Benchmark_Config_Program{
