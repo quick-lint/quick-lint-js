@@ -39,7 +39,7 @@ release archive:
     $ cd ../../
     $ rm -r "${qljs_vendor}/boost/"
     $ mkdir "${qljs_vendor}/boost/"
-    $ boost_libs="boost/container/pmr/memory_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/container/pmr/unsynchronized_pool_resource.hpp boost/json/parse.hpp boost/json.hpp boost/json/src.hpp boost/throw_exception.hpp"
+    $ boost_libs="boost/container/pmr/memory_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/throw_exception.hpp"
     $ eval ./dist/bin/bcp ${boost_libs} "${qljs_vendor}/boost/"
     $ eval ./dist/bin/bcp --report ${boost_libs} "${qljs_vendor}/boost/report.html"
     $ cp LICENSE_1_0.txt "${qljs_vendor}/boost/"
@@ -48,12 +48,6 @@ release archive:
 Additionally, the following patches have been manually applied:
 
 * boost-static-var.patch
-
-Additionally, the following directories and files have been deleted to reduce
-storage consumption:
-
-* boost/boost/shared_ptr.hpp
-* boost/boost/smart_ptr/
 
 Copyright: various
 Download URL: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2
