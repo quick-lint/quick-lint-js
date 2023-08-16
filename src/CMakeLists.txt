@@ -192,6 +192,8 @@ quick_lint_js_add_library(
   quick-lint-js/port/windows.h
   quick-lint-js/reflection/cxx-parser.cpp
   quick-lint-js/reflection/cxx-parser.h
+  quick-lint-js/util/float.cpp
+  quick-lint-js/util/float.h
   quick-lint-js/util/integer.cpp
   quick-lint-js/util/integer.h
   quick-lint-js/util/narrow-cast.h

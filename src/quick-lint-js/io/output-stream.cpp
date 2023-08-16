@@ -10,6 +10,7 @@
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/float.h>
 #include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
@@ -27,6 +28,13 @@ Output_Stream::Output_Stream(int buffer_size)
 }
 
 Output_Stream::~Output_Stream() = default;
+
+void Output_Stream::append_decimal_float_slow(double value) {
+  this->append(max_decimal_float_string_length<double>, [&](Char8* out) -> int {
+    Char8* end = write_decimal_float(value, out);
+    return narrow_cast<int>(end - out);
+  });
+}
 
 [[gnu::noinline]] void Output_Stream::append_copy(String8_View data) {
   Char8* out = this->reserve(narrow_cast<int>(data.size()));

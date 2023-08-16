@@ -61,6 +61,8 @@ class Output_Stream {
     });
   }
 
+  void append_decimal_float_slow(double value);
+
   [[gnu::noinline]] void append_copy(String8_View data);
   void append_copy(Char8 data);
 

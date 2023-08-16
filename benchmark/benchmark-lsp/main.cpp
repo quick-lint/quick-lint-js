@@ -16,6 +16,7 @@
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/lsp-benchmarks.h>
 #include <quick-lint-js/lsp-logging.h>
 #include <quick-lint-js/lsp-server-process.h>
@@ -111,41 +112,67 @@ class Benchmark_Results_Writer {
 
   void done() {
     if (this->json_output_) {
-      ::boost::json::object root;
-      {
-        ::boost::json::array datas;
-        for (const Benchmark_Result& result : this->benchmark_results_) {
-          ::boost::json::object benchmark_result;
-          benchmark_result["benchmarkName"] = result.benchmark_name;
-          benchmark_result["warmupIterations"] = result.warmup_iterations;
-          benchmark_result["measurementIterations"] =
-              result.measurement_iterations;
-          ::boost::json::object& samples =
-              benchmark_result["samples"].emplace_object();
-          ::boost::json::array& duration_per_iteration_array =
-              samples["durationPerIteration"].emplace_array();
-          for (const sample& s : result.samples) {
-            duration_per_iteration_array.push_back(s.duration_per_iteration);
-          }
-          datas.emplace_back(std::move(benchmark_result));
+      Memory_Output_Stream json;
+
+      json.append_copy(u8"{\n  \"data\": [\n"_sv);
+      bool need_data_comma = false;
+      for (const Benchmark_Result& result : this->benchmark_results_) {
+        if (need_data_comma) {
+          json.append_copy(u8",\n"_sv);
         }
-        root.emplace("data", std::move(datas));
-      }
-      {
-        ::boost::json::object metadata_json;
-        for (const auto& [program_name, program_metadata] : this->metadatas_) {
-          ::boost::json::object program_metadata_json;
-          for (const auto& [key, value] : program_metadata) {
-            program_metadata_json[key] = value;
+        json.append_copy(u8"    {\n      \"benchmarkName\": \""_sv);
+        write_json_escaped_string(json, to_string8_view(result.benchmark_name));
+        json.append_copy(u8"\",\n      \"warmupIterations\": "_sv);
+        json.append_decimal_integer(result.warmup_iterations);
+        json.append_copy(u8",\n      \"measurementIterations\": "_sv);
+        json.append_decimal_integer(result.measurement_iterations);
+        json.append_copy(
+            u8",\n      \"samples\": {\n      \"durationPerIteration\": ["_sv);
+        bool need_sample_comma = false;
+        for (const sample& s : result.samples) {
+          if (need_sample_comma) {
+            json.append_copy(u8", "_sv);
           }
-          metadata_json[program_name] = std::move(program_metadata_json);
+          json.append_decimal_float_slow(s.duration_per_iteration);
+          need_sample_comma = true;
         }
-        root.emplace("metadata", std::move(metadata_json));
+        json.append_copy(u8"]\n      }\n    }"_sv);
+        need_data_comma = true;
       }
-      std::string json = ::boost::json::serialize(std::move(root));
-      std::size_t written =
-          std::fwrite(json.data(), 1, json.size(), this->json_output_);
-      if (written != json.size()) {
+
+      json.append_copy(u8"\n  ],\n  \"metadata\": {\n"_sv);
+      bool need_metadata_comma = false;
+      for (const auto& [program_name, program_metadata] : this->metadatas_) {
+        if (need_metadata_comma) {
+          json.append_copy(u8",\n"_sv);
+        }
+        json.append_copy(u8"    \""_sv);
+        write_json_escaped_string(json, to_string8_view(program_name));
+        json.append_copy(u8"\": {\n"_sv);
+        bool need_metadata_entry_comma = false;
+        for (const auto& [key, value] : program_metadata) {
+          if (need_metadata_entry_comma) {
+            json.append_copy(u8",\n"_sv);
+          }
+          json.append_copy(u8"      \""_sv);
+          write_json_escaped_string(json, to_string8_view(key));
+          json.append_copy(u8"\": \""_sv);
+          write_json_escaped_string(json, to_string8_view(value));
+          json.append_copy(u8"\""_sv);
+          need_metadata_entry_comma = true;
+        }
+        json.append_copy(u8"\n    }\n"_sv);
+        need_metadata_comma = true;
+      }
+      json.append_copy(u8"  }\n"_sv);
+
+      json.append_copy(u8"}\n"_sv);
+      json.flush();
+      String8 json_string = json.get_flushed_string8();
+
+      std::size_t written = std::fwrite(json_string.data(), 1,
+                                        json_string.size(), this->json_output_);
+      if (written != json_string.size()) {
         std::fprintf(stderr, "error: failed to write JSON\n");
         std::exit(1);
       }
