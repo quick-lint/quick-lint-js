@@ -1,12 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/json/parse.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <quick-lint-js/benchmark-config.h>
-#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/port/char8.h>

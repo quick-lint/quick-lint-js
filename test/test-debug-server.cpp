@@ -18,7 +18,6 @@
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-reader.h>
 #include <quick-lint-js/lsp/lsp-server.h>
-#include <quick-lint-js/parse-json.h>
 #include <quick-lint-js/port/process.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/unreachable.h>

@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_LSP_SERVER_PROCESS_H
 #define QUICK_LINT_JS_LSP_SERVER_PROCESS_H
 
-#include <boost/json/value.hpp>
 #include <chrono>
 #include <coroutine>
 #include <cstdint>

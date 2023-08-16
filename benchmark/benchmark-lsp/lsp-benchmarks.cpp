@@ -2,7 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
-#include <boost/json/value.hpp>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -10,7 +9,6 @@
 #include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/benchmark-config.h>
-#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/result.h>

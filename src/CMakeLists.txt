@@ -506,24 +506,6 @@ if (QUICK_LINT_JS_ENABLE_CLI)
   endif ()
 endif ()
 
-quick_lint_js_add_library(
-  quick-lint-js-boost-json
-  quick-lint-js/boost-json.cpp
-  quick-lint-js/boost-json.h
-)
-target_include_directories(quick-lint-js-boost-json PUBLIC .)
-target_link_libraries(
-  quick-lint-js-boost-json
-  PUBLIC
-  boost_json
-  quick-lint-js-lib
-)
-target_compile_definitions(
-  quick-lint-js-boost-json
-  PRIVATE
-  QLJS_BUILDING_QLJS_BOOST_JSON
-)
-
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #

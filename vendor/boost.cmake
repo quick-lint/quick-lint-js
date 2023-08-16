@@ -15,16 +15,10 @@ if (QUICK_LINT_JS_USE_BUNDLED_BOOST)
     BOOST_EXCEPTION_MINI_BOOST
     BOOST_NO_EXCEPTIONS
   )
-
-  # Keep boost_json as a separate library so we can use it only in tests (and not
-  # compile and link it into production executables).
-  add_library(boost_json STATIC "${CMAKE_CURRENT_LIST_DIR}/boost-json.cpp")
-  target_link_libraries(boost_json PUBLIC boost)
 else ()
-  find_package(Boost REQUIRED COMPONENTS container json)
+  find_package(Boost REQUIRED COMPONENTS container)
   add_library(boost INTERFACE)
   target_link_libraries(boost INTERFACE Boost::boost Boost::container)
-  add_library(boost_json ALIAS Boost::json)
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.

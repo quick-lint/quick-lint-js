@@ -4,10 +4,8 @@
 #ifndef QUICK_LINT_JS_LSP_SUPPORT_H
 #define QUICK_LINT_JS_LSP_SUPPORT_H
 
-#include <boost/json/value.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/tjson.h>

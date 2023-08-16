@@ -1,8 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/json/serialize.hpp>
-#include <boost/json/value.hpp>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -11,7 +9,6 @@
 #include <map>
 #include <memory>
 #include <quick-lint-js/benchmark-config.h>
-#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/string-view.h>

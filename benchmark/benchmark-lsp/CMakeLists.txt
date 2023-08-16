@@ -39,8 +39,6 @@ if (
   target_link_libraries(
     quick-lint-js-benchmark-lsp-servers
     PRIVATE
-    boost_json
-    quick-lint-js-boost-json
     quick-lint-js-lib
     simdjson
   )

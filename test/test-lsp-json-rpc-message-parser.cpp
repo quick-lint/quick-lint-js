@@ -6,8 +6,6 @@
 // No LSP on the web.
 #else
 
-#include <boost/json/serialize.hpp>
-#include <boost/json/value.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/json.h>
