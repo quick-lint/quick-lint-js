@@ -181,8 +181,8 @@ void Change_Detecting_Filesystem_Inotify::read_inotify() {
     ssize_t rc = ::read(this->inotify_fd_->get(), &buffer, sizeof(buffer));
     QLJS_ASSERT(rc <= narrow_cast<ssize_t>(sizeof(buffer)));
     if (rc == -1) {
-      int error = errno;
-      if (error == EAGAIN) {
+      POSIX_File_IO_Error error{.error = errno};
+      if (error.is_would_block_try_again_error()) {
         // We read all of the queuedevents.
         break;
       }

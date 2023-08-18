@@ -16,6 +16,7 @@
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/pipe.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <string_view>
@@ -41,6 +42,16 @@ bool POSIX_File_IO_Error::is_file_not_found_error() const {
 
 bool POSIX_File_IO_Error::is_not_a_directory_error() const {
   return this->error == ENOTDIR;
+}
+
+bool POSIX_File_IO_Error::is_would_block_try_again_error() const {
+  QLJS_WARNING_PUSH
+  // On many platforms, EAGAIN == EWOULDBLOCK.
+  QLJS_WARNING_IGNORE_GCC("-Wlogical-op")
+
+  return this->error == EAGAIN || this->error == EWOULDBLOCK;
+
+  QLJS_WARNING_POP
 }
 
 std::string POSIX_File_IO_Error::to_string() const {
@@ -158,7 +169,7 @@ std::size_t POSIX_FD_File_Ref::get_pipe_buffer_size() {
     Result<std::size_t, POSIX_File_IO_Error> written =
         pipe.writer.write(&c, sizeof(c));
     if (!written.ok()) {
-      QLJS_ASSERT(written.error().error == EAGAIN);
+      QLJS_ASSERT(written.error().is_would_block_try_again_error());
       break;
     }
     pipe_buffer_size += *written;

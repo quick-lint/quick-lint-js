@@ -96,7 +96,7 @@ class Event_Loop_Base {
     File_Read_Result read_result = pipe->read(buffer.data(), buffer.size());
     if (!read_result.ok()) {
 #if QLJS_HAVE_UNISTD_H
-      if (read_result.error().error == EAGAIN) {
+      if (read_result.error().is_would_block_try_again_error()) {
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
         return false;
 #else

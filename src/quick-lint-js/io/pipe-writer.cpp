@@ -68,7 +68,7 @@ void Background_Thread_Pipe_Writer::write_all_now_blocking(
     auto write_result = this->pipe_.write(chunk.data, chunk.size);
     if (!write_result.ok()) {
 #if QLJS_HAVE_UNISTD_H
-      QLJS_ASSERT(write_result.error().error != EAGAIN);
+      QLJS_ASSERT(!write_result.error().is_would_block_try_again_error());
 #endif
       QLJS_UNIMPLEMENTED();
     }
@@ -178,7 +178,8 @@ void Non_Blocking_Pipe_Writer::write_as_much_as_possible_now_non_blocking(
     ::ssize_t raw_bytes_written =
         ::writev(this->pipe_.get(), data.iovec(), data.iovec_count());
     if (raw_bytes_written < 0) {
-      if (errno == EAGAIN) {
+      POSIX_File_IO_Error error{.error = errno};
+      if (error.is_would_block_try_again_error()) {
         break;
       }
       QLJS_UNIMPLEMENTED();
@@ -190,7 +191,7 @@ void Non_Blocking_Pipe_Writer::write_as_much_as_possible_now_non_blocking(
     auto write_result = this->pipe_.write(chunk.data, chunk.size);
     if (!write_result.ok()) {
 #if QLJS_HAVE_UNISTD_H
-      if (write_result.error().error == EAGAIN) {
+      if (write_result.error().is_would_block_try_again_error()) {
         break;
       }
 #endif

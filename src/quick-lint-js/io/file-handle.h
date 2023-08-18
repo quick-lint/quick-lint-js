@@ -42,6 +42,10 @@ struct POSIX_File_IO_Error {
   bool is_file_not_found_error() const;
   bool is_not_a_directory_error() const;
 
+  // Return true if the file descriptor was non-blocking and a function
+  // signalled that it has no data but might have data in the future.
+  bool is_would_block_try_again_error() const;
+
   std::string to_string() const;
 
   friend bool operator==(POSIX_File_IO_Error, POSIX_File_IO_Error);
