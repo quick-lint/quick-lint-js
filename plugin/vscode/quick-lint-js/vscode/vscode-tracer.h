@@ -143,8 +143,9 @@ class VSCode_Tracer {
           Trace_Event_VSCode_Document_Changed<::Napi::Value>{
               .timestamp = this->timestamp(),
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
-              .changes = traced_changes.data(),
-              .change_count = traced_changes.size(),
+              .changes =
+                  Span<const Trace_VSCode_Document_Change<::Napi::Value>>(
+                      traced_changes),
           });
       tw->commit();
       Trace_Flusher::instance()->flush_async();

@@ -191,8 +191,9 @@ TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
       Trace_Event_VSCode_Document_Changed<std::u16string_view>{
           .timestamp = 0x5678,
           .document_id = 0x1234,
-          .changes = changes.data(),
-          .change_count = changes.size(),
+          .changes =
+              Span<const Trace_VSCode_Document_Change<std::u16string_view>>(
+                  changes),
       });
 
   data.commit();

@@ -71,8 +71,7 @@ struct Trace_Event_VSCode_Document_Changed {
 
   std::uint64_t timestamp;
   std::uint64_t document_id;
-  const Trace_VSCode_Document_Change<String>* changes;
-  std::uint64_t change_count;
+  Span<const Trace_VSCode_Document_Change<String>> changes;
 };
 
 template <class String>
@@ -227,19 +226,18 @@ void Trace_Writer::write_event_vscode_document_changed(
     w.u64_le(event.timestamp);
     w.u8(event.id);
     w.u64_le(event.document_id);
-    w.u64_le(event.change_count);
+    w.u64_le(narrow_cast<std::uint64_t>(event.changes.size()));
   });
-  for (std::uint64_t i = 0; i < event.change_count; ++i) {
-    const Trace_VSCode_Document_Change<String>* change = &event.changes[i];
+  for (const Trace_VSCode_Document_Change<String>& change : event.changes) {
     this->append_binary(8 * 6, [&](Binary_Writer& w) {
-      w.u64_le(change->range.start.line);
-      w.u64_le(change->range.start.character);
-      w.u64_le(change->range.end.line);
-      w.u64_le(change->range.end.character);
-      w.u64_le(change->range_offset);
-      w.u64_le(change->range_length);
+      w.u64_le(change.range.start.line);
+      w.u64_le(change.range.start.character);
+      w.u64_le(change.range.end.line);
+      w.u64_le(change.range.end.character);
+      w.u64_le(change.range_offset);
+      w.u64_le(change.range_length);
     });
-    this->write_utf16le_string(change->text);
+    this->write_utf16le_string(change.text);
   }
 }
 
