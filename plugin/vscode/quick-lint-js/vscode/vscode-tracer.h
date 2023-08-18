@@ -19,11 +19,9 @@ namespace quick_lint_js {
 // Use this as a StringWriter for trace_writer.
 class NAPI_String_Writer {
  public:
-  explicit NAPI_String_Writer(::Napi::Env env) : env_(env) {}
-
   std::size_t string_size(::Napi::Value string) const {
     std::size_t size;
-    ::napi_status status = ::napi_get_value_string_utf16(this->env_, string,
+    ::napi_status status = ::napi_get_value_string_utf16(string.Env(), string,
                                                          /*buf=*/nullptr,
                                                          /*bufsize=*/0,
                                                          /*result=*/&size);
@@ -34,7 +32,7 @@ class NAPI_String_Writer {
   void copy_string(::Napi::Value string, char16_t* out,
                    std::size_t capacity) const {
     std::size_t length;
-    ::napi_status status = ::napi_get_value_string_utf16(this->env_, string,
+    ::napi_status status = ::napi_get_value_string_utf16(string.Env(), string,
                                                          /*buf=*/out,
                                                          /*bufsize=*/capacity,
                                                          /*result=*/&length);
@@ -43,9 +41,6 @@ class NAPI_String_Writer {
     // the string.
     QLJS_ASSERT(length < capacity);
   }
-
- private:
-  ::Napi::Env env_;
 };
 
 // Manages traces in the VS Code extension directory.
@@ -95,7 +90,7 @@ class VSCode_Tracer {
     this->tracer_backend_.reset();
   }
 
-  void trace_vscode_document_opened(::Napi::Env env, VSCode_Document vscode_doc,
+  void trace_vscode_document_opened(::Napi::Env, VSCode_Document vscode_doc,
                                     void* doc) {
     Trace_Writer* tw =
         Trace_Flusher::instance()->trace_writer_for_current_thread();
@@ -109,13 +104,13 @@ class VSCode_Tracer {
               .language_id = vscode_doc.get().Get("languageId"),
               .content = vscode_doc.get_text(),
           },
-          NAPI_String_Writer(env));
+          NAPI_String_Writer());
       tw->commit();
       Trace_Flusher::instance()->flush_async();
     }
   }
 
-  void trace_vscode_document_changed(::Napi::Env env, void* doc,
+  void trace_vscode_document_changed(::Napi::Env, void* doc,
                                      ::Napi::Array changes) {
     Trace_Writer* tw =
         Trace_Flusher::instance()->trace_writer_for_current_thread();
@@ -154,13 +149,13 @@ class VSCode_Tracer {
               .changes = traced_changes.data(),
               .change_count = traced_changes.size(),
           },
-          NAPI_String_Writer(env));
+          NAPI_String_Writer());
       tw->commit();
       Trace_Flusher::instance()->flush_async();
     }
   }
 
-  void trace_vscode_document_closed(::Napi::Env env, VSCode_Document vscode_doc,
+  void trace_vscode_document_closed(::Napi::Env, VSCode_Document vscode_doc,
                                     void* doc) {
     Trace_Writer* tw =
         Trace_Flusher::instance()->trace_writer_for_current_thread();
@@ -173,13 +168,13 @@ class VSCode_Tracer {
               .uri = uri.Get("toString").As<::Napi::Function>().Call(uri, {}),
               .language_id = vscode_doc.get().Get("languageId"),
           },
-          NAPI_String_Writer(env));
+          NAPI_String_Writer());
       tw->commit();
       Trace_Flusher::instance()->flush_async();
     }
   }
 
-  void trace_vscode_document_sync(::Napi::Env env, VSCode_Document vscode_doc,
+  void trace_vscode_document_sync(::Napi::Env, VSCode_Document vscode_doc,
                                   void* doc) {
     Trace_Writer* tw =
         Trace_Flusher::instance()->trace_writer_for_current_thread();
@@ -193,7 +188,7 @@ class VSCode_Tracer {
               .language_id = vscode_doc.get().Get("languageId"),
               .content = vscode_doc.get_text(),
           },
-          NAPI_String_Writer(env));
+          NAPI_String_Writer());
       tw->commit();
       Trace_Flusher::instance()->flush_async();
     }
