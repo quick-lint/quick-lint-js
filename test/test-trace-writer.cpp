@@ -16,19 +16,6 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-class U16_CString_Trace_String_Writer {
- public:
-  std::size_t string_size(std::u16string_view string) const {
-    return string.size();
-  }
-
-  void copy_string(std::u16string_view string, char16_t* out,
-                   std::size_t capacity) const {
-    QLJS_ASSERT(capacity >= string.size());
-    std::copy(string.begin(), string.end(), out);
-  }
-};
-
 TEST(Test_Trace_Writer, write_header) {
   Async_Byte_Queue data;
   Trace_Writer w(&data);
@@ -91,8 +78,7 @@ TEST(Test_Trace_Writer, write_event_vscode_document_opened) {
           .uri = u"test.js",
           .language_id = u"js",
           .content = u"hi",
-      },
-      U16_CString_Trace_String_Writer());
+      });
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
@@ -132,8 +118,7 @@ TEST(Test_Trace_Writer, write_event_vscode_document_closed) {
           .document_id = 0x1234,
           .uri = u"test.js",
           .language_id = u"js",
-      },
-      U16_CString_Trace_String_Writer());
+      });
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
@@ -208,8 +193,7 @@ TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
           .document_id = 0x1234,
           .changes = changes.data(),
           .change_count = changes.size(),
-      },
-      U16_CString_Trace_String_Writer());
+      });
 
   data.commit();
   EXPECT_THAT(
@@ -268,8 +252,7 @@ TEST(Test_Trace_Writer, write_event_vscode_document_sync) {
           .uri = u"test.js",
           .language_id = u"js",
           .content = u"hi",
-      },
-      U16_CString_Trace_String_Writer());
+      });
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),

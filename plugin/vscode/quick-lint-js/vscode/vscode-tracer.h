@@ -15,11 +15,9 @@
 
 namespace quick_lint_js {
 // Writes N-API strings into buffers.
-//
-// Use this as a StringWriter for trace_writer.
-class NAPI_String_Writer {
- public:
-  std::size_t string_size(::Napi::Value string) const {
+template <>
+struct Trace_String_Writer<::Napi::Value> {
+  static std::size_t string_size_u16(::Napi::Value string) {
     std::size_t size;
     ::napi_status status = ::napi_get_value_string_utf16(string.Env(), string,
                                                          /*buf=*/nullptr,
@@ -29,8 +27,8 @@ class NAPI_String_Writer {
     return size;
   }
 
-  void copy_string(::Napi::Value string, char16_t* out,
-                   std::size_t capacity) const {
+  static void copy_string_u16(::Napi::Value string, char16_t* out,
+                              std::size_t capacity) {
     std::size_t length;
     ::napi_status status = ::napi_get_value_string_utf16(string.Env(), string,
                                                          /*buf=*/out,
@@ -103,8 +101,7 @@ class VSCode_Tracer {
               .uri = uri.Get("toString").As<::Napi::Function>().Call(uri, {}),
               .language_id = vscode_doc.get().Get("languageId"),
               .content = vscode_doc.get_text(),
-          },
-          NAPI_String_Writer());
+          });
       tw->commit();
       Trace_Flusher::instance()->flush_async();
     }
@@ -148,8 +145,7 @@ class VSCode_Tracer {
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .changes = traced_changes.data(),
               .change_count = traced_changes.size(),
-          },
-          NAPI_String_Writer());
+          });
       tw->commit();
       Trace_Flusher::instance()->flush_async();
     }
@@ -167,8 +163,7 @@ class VSCode_Tracer {
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = uri.Get("toString").As<::Napi::Function>().Call(uri, {}),
               .language_id = vscode_doc.get().Get("languageId"),
-          },
-          NAPI_String_Writer());
+          });
       tw->commit();
       Trace_Flusher::instance()->flush_async();
     }
@@ -187,8 +182,7 @@ class VSCode_Tracer {
               .uri = uri.Get("toString").As<::Napi::Function>().Call(uri, {}),
               .language_id = vscode_doc.get().Get("languageId"),
               .content = vscode_doc.get_text(),
-          },
-          NAPI_String_Writer());
+          });
       tw->commit();
       Trace_Flusher::instance()->flush_async();
     }
