@@ -208,6 +208,7 @@ Nygard][ADR-bible].
 * [ADR015: Logging and tracing](ADR015-Logging-and-tracing.md)
 * [ADR016: Collections](ADR016-Collections.md)
 * [ADR018: Naming style](ADR018-Naming-style.md)
+* [ADR019: I/O manager](ADR019-IO-manager.md)
 
 ### Rejected ADRs
 
