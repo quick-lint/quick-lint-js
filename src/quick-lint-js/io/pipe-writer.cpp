@@ -67,7 +67,7 @@ void Background_Thread_Pipe_Writer::write_all_now_blocking(
     QLJS_ASSERT(chunk.size != 0);  // Writing can hang if given size 0.
     auto write_result = this->pipe_.write(chunk.data, chunk.size);
     if (!write_result.ok()) {
-#if defined(QLJS_HAVE_UNISTD_H)
+#if QLJS_HAVE_UNISTD_H
       QLJS_ASSERT(write_result.error().error != EAGAIN);
 #endif
       QLJS_UNIMPLEMENTED();
