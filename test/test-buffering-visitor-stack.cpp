@@ -14,7 +14,7 @@ namespace {
 // NOTE[setjmp-in-tests]: setjmp requires that all local variables in the
 // current function be marked 'volatile' if they are modified after the first
 // call to setjmp. This is inconvenient for class objects (such as
-// buffering_visitor_stack), so instead of marking variables as 'volatile' we
+// Buffering_Visitor_Stack), so instead of marking variables as 'volatile' we
 // use a lambda to make our mutated variables not technically local.
 
 class Test_Buffering_Visitor_Stack : public ::testing::Test {

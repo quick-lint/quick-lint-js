@@ -94,13 +94,13 @@ class Trace_Flusher_Directory_Backend final : public Trace_Flusher_Backend {
   Hash_Map<Trace_Flusher_Thread_Index, Platform_File> thread_files_;
 };
 
-// A trace_flusher gives trace_writer instances and writes traces to files.
+// A Trace_Flusher gives trace_writer instances and writes traces to files.
 //
 // See docs/TRACING.md for details on the file format.
 //
 // Typical use:
 //
-// 1. Get a trace_flusher using trace_flusher::instance.
+// 1. Get a trace_flusher using Trace_Flusher::instance.
 // 2. Enable tracing with enable_backend. (This can be done at any time.)
 // 3. On threads which want to write data, call register_current_thread.
 // 4. Periodically, call trace_writer_for_current_thread()->write_[event].

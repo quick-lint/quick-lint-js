@@ -97,7 +97,7 @@ class LSP_Task {
       : continuation_(continuation) {}
 
   auto operator co_await() const noexcept {
-    struct awaitable {
+    struct Awaitable {
       void await_suspend(
           std_coroutine::coroutine_handle<> continuation) noexcept {
         Promise_Type& promise = this->continuation_.promise();
@@ -122,7 +122,7 @@ class LSP_Task {
       std_coroutine::coroutine_handle<Promise_Type> continuation_;
     };
 
-    return awaitable{this->continuation_};
+    return Awaitable{this->continuation_};
   }
 
  private:

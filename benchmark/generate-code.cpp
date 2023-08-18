@@ -45,7 +45,7 @@ Padded_String make_source_code(const std::vector<int> &line_lengths,
   return Padded_String(std::move(source));
 }
 
-source_code_with_spans make_realisticish_code(int line_count, int span_count) {
+Source_Code_With_Spans make_realisticish_code(int line_count, int span_count) {
   std::mt19937_64 rng;
 
   String8 newline = u8"\n";
@@ -91,7 +91,7 @@ source_code_with_spans make_realisticish_code(int line_count, int span_count) {
   });
   partial_shuffle(spans, rng, /*rounds=*/5);
 
-  return source_code_with_spans(std::move(source), std::move(spans));
+  return Source_Code_With_Spans(std::move(source), std::move(spans));
 }
 
 namespace {

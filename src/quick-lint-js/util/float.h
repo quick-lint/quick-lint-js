@@ -8,22 +8,22 @@
 
 namespace quick_lint_js {
 template <class T>
-struct max_decimal_float_string_length_impl;
+struct Max_Decimal_Float_String_Length_Impl;
 
 template <>
-struct max_decimal_float_string_length_impl<float> {
+struct Max_Decimal_Float_String_Length_Impl<float> {
   // FIXME(strager): This is certainly overkill.
   static constexpr int value = 512;
 };
 template <>
-struct max_decimal_float_string_length_impl<double> {
+struct Max_Decimal_Float_String_Length_Impl<double> {
   // FIXME(strager): This is certainly overkill.
   static constexpr int value = 512;
 };
 
 template <class T>
 inline constexpr int max_decimal_float_string_length =
-    max_decimal_float_string_length_impl<T>::value;
+    Max_Decimal_Float_String_Length_Impl<T>::value;
 
 template <class T>
 Char8 *write_decimal_float(T, Char8 *out);

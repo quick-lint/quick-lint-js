@@ -35,7 +35,7 @@ struct Benchmark_Run_Config {
   int samples;
 };
 
-struct parsed_args {
+struct Parsed_Args {
   std::string_view benchmark_filter = std::string_view();
   const char* output_json_path = nullptr;
   bool list_benchmarks = false;
@@ -46,7 +46,7 @@ struct parsed_args {
   };
 };
 
-parsed_args parse_arguments(int argc, char** argv);
+Parsed_Args parse_arguments(int argc, char** argv);
 
 // {
 //   "data": [
@@ -98,7 +98,7 @@ class Benchmark_Results_Writer {
 
   void write_sample(double duration_per_iteration) {
     this->current_benchmark_.samples.emplace_back(
-        sample{.duration_per_iteration = duration_per_iteration});
+        Sample{.duration_per_iteration = duration_per_iteration});
 
     if (this->verbose_output_) {
       std::fprintf(this->verbose_output_, "%.2f ms per iteration\n",
@@ -126,7 +126,7 @@ class Benchmark_Results_Writer {
         json.append_copy(
             u8",\n      \"samples\": {\n      \"durationPerIteration\": ["_sv);
         bool need_sample_comma = false;
-        for (const sample& s : result.samples) {
+        for (const Sample& s : result.samples) {
           if (need_sample_comma) {
             json.append_copy(u8", "_sv);
           }
@@ -177,7 +177,7 @@ class Benchmark_Results_Writer {
   }
 
  private:
-  struct sample {
+  struct Sample {
     double duration_per_iteration;
   };
 
@@ -185,7 +185,7 @@ class Benchmark_Results_Writer {
     std::string benchmark_name;
     int warmup_iterations;
     int measurement_iterations;
-    std::vector<sample> samples;
+    std::vector<Sample> samples;
   };
 
   FILE* json_output_;
@@ -204,7 +204,7 @@ void run_benchmark_once(Benchmark*, const Benchmark_Config_Server&,
 }
 
 int main(int argc, char** argv) {
-  parsed_args args = parse_arguments(argc, argv);
+  Parsed_Args args = parse_arguments(argc, argv);
 
   FILE* output_json_file = nullptr;
   if (args.output_json_path) {
@@ -259,7 +259,7 @@ int main(int argc, char** argv) {
 }
 
 namespace {
-parsed_args parse_arguments(int argc, char** argv) {
+Parsed_Args parse_arguments(int argc, char** argv) {
   auto read_number = [](const char* arg_value) {
     int output_number;
     if (parse_integer_exact(std::string_view(arg_value), output_number) !=
@@ -270,7 +270,7 @@ parsed_args parse_arguments(int argc, char** argv) {
     return output_number;
   };
 
-  parsed_args args;
+  Parsed_Args args;
 
   Arg_Parser parser(argc, argv);
   while (!parser.done()) {

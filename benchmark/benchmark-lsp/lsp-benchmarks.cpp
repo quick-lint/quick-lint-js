@@ -91,7 +91,7 @@ class Open_Wait_Close_Benchmark : public Benchmark {
 
   LSP_Task<void> run_iteration_async(LSP_Server_Process& server,
                                      int iteration_index) override {
-    iteration_data& iteration =
+    Iteration_Data& iteration =
         this->iterations_[narrow_cast<std::size_t>(iteration_index)];
     server.send_message(std::move(iteration.open_notification));
 
@@ -105,8 +105,8 @@ class Open_Wait_Close_Benchmark : public Benchmark {
   }
 
  private:
-  struct iteration_data {
-    explicit iteration_data(std::int64_t version, Byte_Buffer open_notification,
+  struct Iteration_Data {
+    explicit Iteration_Data(std::int64_t version, Byte_Buffer open_notification,
                             Byte_Buffer close_notification)
         : version(version),
           open_notification(std::move(open_notification)),
@@ -118,7 +118,7 @@ class Open_Wait_Close_Benchmark : public Benchmark {
   };
 
   const Source_File* source_file_;
-  std::vector<iteration_data> iterations_;
+  std::vector<Iteration_Data> iterations_;
 };
 
 class Change_Wait_Benchmark : public Benchmark {
@@ -164,7 +164,7 @@ class Change_Wait_Benchmark : public Benchmark {
     if (server_config.wait_for_empty_diagnostics_on_open &&
         server_config.parallelize_open) {
       Hash_Map<String8, int> remaining_uris;
-      for (iteration_data& iteration : this->iterations_) {
+      for (Iteration_Data& iteration : this->iterations_) {
         remaining_uris.emplace(
             iteration.uri, server_config.diagnostics_messages_to_ignore + 1);
       }
@@ -193,7 +193,7 @@ class Change_Wait_Benchmark : public Benchmark {
 
   LSP_Task<void> run_iteration_async(LSP_Server_Process& server,
                                      int iteration_index) override {
-    iteration_data& iteration =
+    Iteration_Data& iteration =
         this->iterations_[narrow_cast<std::size_t>(iteration_index)];
 
     server.send_message(std::move(iteration.change_text_notification));
@@ -206,8 +206,8 @@ class Change_Wait_Benchmark : public Benchmark {
   }
 
  private:
-  struct iteration_data {
-    explicit iteration_data(String8 uri, Byte_Buffer&& change_text_notification)
+  struct Iteration_Data {
+    explicit Iteration_Data(String8 uri, Byte_Buffer&& change_text_notification)
         : uri(std::move(uri)),
           change_text_notification(std::move(change_text_notification)) {}
 
@@ -219,7 +219,7 @@ class Change_Wait_Benchmark : public Benchmark {
   static inline constexpr std::int64_t changed_version = 1;
 
   const Source_File* source_file_;
-  std::vector<iteration_data> iterations_;
+  std::vector<Iteration_Data> iterations_;
 };
 
 class Incremental_Change_Wait_Benchmark : public Benchmark {
@@ -364,7 +364,7 @@ class Full_Change_Wait_Benchmark : public Benchmark {
 
   LSP_Task<void> run_iteration_async(LSP_Server_Process& server,
                                      int iteration_index) override {
-    iteration_data& iteration =
+    Iteration_Data& iteration =
         this->iterations_[narrow_cast<std::size_t>(iteration_index)];
 
     server.send_message(std::move(iteration.change_text_notification));
@@ -386,8 +386,8 @@ class Full_Change_Wait_Benchmark : public Benchmark {
   }
 
  private:
-  struct iteration_data {
-    explicit iteration_data(std::int64_t version,
+  struct Iteration_Data {
+    explicit Iteration_Data(std::int64_t version,
                             Byte_Buffer&& change_text_notification)
         : version(version),
           change_text_notification(std::move(change_text_notification)) {}
@@ -398,7 +398,7 @@ class Full_Change_Wait_Benchmark : public Benchmark {
 
   std::string name_;
   Padded_String (*source_factory_)(int i);
-  std::vector<iteration_data> iterations_;
+  std::vector<Iteration_Data> iterations_;
   ::simdjson::dom::array expected_diagnostics;
 };
 

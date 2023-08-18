@@ -81,7 +81,7 @@ BENCHMARK(benchmark_range_scale_of_empty_lines);
 void benchmark_location_realisticish(::benchmark::State &state) {
   int line_count = 10'000;
   int span_count = narrow_cast<int>(state.range(0));
-  source_code_with_spans code = make_realisticish_code(
+  Source_Code_With_Spans code = make_realisticish_code(
       /*line_count=*/line_count, /*span_count=*/span_count);
 
   for (auto _ : state) {
@@ -97,7 +97,7 @@ BENCHMARK(benchmark_location_realisticish)->Arg(1)->Arg(50);
 void benchmark_from_position_realisticish(::benchmark::State &state) {
   int line_count = 10'000;
   int span_count = narrow_cast<int>(state.range(0));
-  source_code_with_spans code = make_realisticish_code(
+  Source_Code_With_Spans code = make_realisticish_code(
       /*line_count=*/line_count, /*span_count=*/span_count);
 
   std::vector<LSP_Position> positions;
