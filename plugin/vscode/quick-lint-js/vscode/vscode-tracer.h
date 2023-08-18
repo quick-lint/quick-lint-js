@@ -21,24 +21,23 @@ class NAPI_String_Writer {
  public:
   explicit NAPI_String_Writer(::Napi::Env env) : env_(env) {}
 
-  std::size_t string_size(void* string) const {
+  std::size_t string_size(::napi_value string) const {
     std::size_t size;
-    ::napi_status status =
-        ::napi_get_value_string_utf16(this->env_, this->get(string),
-                                      /*buf=*/nullptr,
-                                      /*bufsize=*/0,
-                                      /*result=*/&size);
+    ::napi_status status = ::napi_get_value_string_utf16(this->env_, string,
+                                                         /*buf=*/nullptr,
+                                                         /*bufsize=*/0,
+                                                         /*result=*/&size);
     QLJS_ASSERT(status == ::napi_ok);
     return size;
   }
 
-  void copy_string(void* string, char16_t* out, std::size_t capacity) const {
+  void copy_string(::napi_value string, char16_t* out,
+                   std::size_t capacity) const {
     std::size_t length;
-    ::napi_status status =
-        ::napi_get_value_string_utf16(this->env_, this->get(string),
-                                      /*buf=*/out,
-                                      /*bufsize=*/capacity,
-                                      /*result=*/&length);
+    ::napi_status status = ::napi_get_value_string_utf16(this->env_, string,
+                                                         /*buf=*/out,
+                                                         /*bufsize=*/capacity,
+                                                         /*result=*/&length);
     QLJS_ASSERT(status == ::napi_ok);
     // If the following assertion fails, napi_get_value_string_utf16 truncated
     // the string.
@@ -46,10 +45,6 @@ class NAPI_String_Writer {
   }
 
  private:
-  static ::napi_value get(void* string) {
-    return reinterpret_cast<::napi_value>(string);
-  }
-
   ::Napi::Env env_;
 };
 
@@ -107,7 +102,7 @@ class VSCode_Tracer {
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_opened(
-          Trace_Event_VSCode_Document_Opened{
+          Trace_Event_VSCode_Document_Opened<::napi_value>{
               .timestamp = this->timestamp(),
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = ::napi_value(
@@ -126,7 +121,7 @@ class VSCode_Tracer {
     Trace_Writer* tw =
         Trace_Flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
-      std::vector<Trace_VSCode_Document_Change> traced_changes(
+      std::vector<Trace_VSCode_Document_Change<::napi_value>> traced_changes(
           changes.Length());
       for (std::size_t i = 0; i < traced_changes.size(); ++i) {
         ::Napi::Object change =
@@ -134,7 +129,7 @@ class VSCode_Tracer {
         ::Napi::Object range = change.Get("range").As<::Napi::Object>();
         ::Napi::Object start = range.Get("start").As<::Napi::Object>();
         ::Napi::Object end = range.Get("end").As<::Napi::Object>();
-        traced_changes[i] = Trace_VSCode_Document_Change{
+        traced_changes[i] = Trace_VSCode_Document_Change<::napi_value>{
             .range =
                 {
                     .start =
@@ -154,7 +149,7 @@ class VSCode_Tracer {
         };
       }
       tw->write_event_vscode_document_changed(
-          Trace_Event_VSCode_Document_Changed{
+          Trace_Event_VSCode_Document_Changed<::napi_value>{
               .timestamp = this->timestamp(),
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .changes = traced_changes.data(),
@@ -173,7 +168,7 @@ class VSCode_Tracer {
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_closed(
-          Trace_Event_VSCode_Document_Closed{
+          Trace_Event_VSCode_Document_Closed<::napi_value>{
               .timestamp = this->timestamp(),
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = ::napi_value(
@@ -193,7 +188,7 @@ class VSCode_Tracer {
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_sync(
-          Trace_Event_VSCode_Document_Sync{
+          Trace_Event_VSCode_Document_Sync<::napi_value>{
               .timestamp = this->timestamp(),
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = ::napi_value(

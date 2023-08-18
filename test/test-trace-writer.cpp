@@ -18,19 +18,14 @@ namespace quick_lint_js {
 namespace {
 class U16_CString_Trace_String_Writer {
  public:
-  std::size_t string_size(void* string) const {
-    return this->get(string).size();
+  std::size_t string_size(std::u16string_view string) const {
+    return string.size();
   }
 
-  void copy_string(void* string, char16_t* out, std::size_t capacity) const {
-    std::u16string_view s = this->get(string);
-    QLJS_ASSERT(capacity >= s.size());
-    std::copy(s.begin(), s.end(), out);
-  }
-
- private:
-  static std::u16string_view get(void* string) {
-    return static_cast<const char16_t*>(string);
+  void copy_string(std::u16string_view string, char16_t* out,
+                   std::size_t capacity) const {
+    QLJS_ASSERT(capacity >= string.size());
+    std::copy(string.begin(), string.end(), out);
   }
 };
 
@@ -90,12 +85,12 @@ TEST(Test_Trace_Writer, write_event_vscode_document_opened) {
   Trace_Writer w(&data);
 
   w.write_event_vscode_document_opened(
-      Trace_Event_VSCode_Document_Opened{
+      Trace_Event_VSCode_Document_Opened<std::u16string_view>{
           .timestamp = 0x5678,
           .document_id = 0x1234,
-          .uri = const_cast<char16_t*>(u"test.js"),
-          .language_id = const_cast<char16_t*>(u"js"),
-          .content = const_cast<char16_t*>(u"hi"),
+          .uri = u"test.js",
+          .language_id = u"js",
+          .content = u"hi",
       },
       U16_CString_Trace_String_Writer());
 
@@ -132,11 +127,11 @@ TEST(Test_Trace_Writer, write_event_vscode_document_closed) {
   Trace_Writer w(&data);
 
   w.write_event_vscode_document_closed(
-      Trace_Event_VSCode_Document_Closed{
+      Trace_Event_VSCode_Document_Closed<std::u16string_view>{
           .timestamp = 0x5678,
           .document_id = 0x1234,
-          .uri = const_cast<char16_t*>(u"test.js"),
-          .language_id = const_cast<char16_t*>(u"js"),
+          .uri = u"test.js",
+          .language_id = u"js",
       },
       U16_CString_Trace_String_Writer());
 
@@ -169,7 +164,7 @@ TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
   Trace_Writer w(&data);
 
   std::array changes{
-      Trace_VSCode_Document_Change{
+      Trace_VSCode_Document_Change<std::u16string_view>{
           .range =
               {
                   .start =
@@ -185,9 +180,9 @@ TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
               },
           .range_offset = 0x55,
           .range_length = 0x66,
-          .text = const_cast<char16_t*>(u"hi"),
+          .text = u"hi",
       },
-      Trace_VSCode_Document_Change{
+      Trace_VSCode_Document_Change<std::u16string_view>{
           .range =
               {
                   .start =
@@ -203,12 +198,12 @@ TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
               },
           .range_offset = 0xee,
           .range_length = 0xff,
-          .text = const_cast<char16_t*>(u"bye"),
+          .text = u"bye",
       },
   };
 
   w.write_event_vscode_document_changed(
-      Trace_Event_VSCode_Document_Changed{
+      Trace_Event_VSCode_Document_Changed<std::u16string_view>{
           .timestamp = 0x5678,
           .document_id = 0x1234,
           .changes = changes.data(),
@@ -267,12 +262,12 @@ TEST(Test_Trace_Writer, write_event_vscode_document_sync) {
   Trace_Writer w(&data);
 
   w.write_event_vscode_document_sync(
-      Trace_Event_VSCode_Document_Sync{
+      Trace_Event_VSCode_Document_Sync<std::u16string_view>{
           .timestamp = 0x5678,
           .document_id = 0x1234,
-          .uri = const_cast<char16_t*>(u"test.js"),
-          .language_id = const_cast<char16_t*>(u"js"),
-          .content = const_cast<char16_t*>(u"hi"),
+          .uri = u"test.js",
+          .language_id = u"js",
+          .content = u"hi",
       },
       U16_CString_Trace_String_Writer());
 
