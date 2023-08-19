@@ -104,6 +104,8 @@ struct File_Read_Result
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
+class Windows_Handle_File;
+
 // Windows_Handle_File_Ref is a non-owning reference to a Win32 file handle.
 //
 // Windows_Handle_File_Ref may hold an invalid handle (NULL or
@@ -116,6 +118,8 @@ class Windows_Handle_File_Ref {
   bool valid() const;
 
   HANDLE get();
+
+  Windows_Handle_File duplicate() const;
 
   File_Read_Result read(void *buffer, int buffer_size);
   Result<std::size_t, Windows_File_IO_Error> write(const void *buffer,
@@ -159,6 +163,14 @@ class Windows_Handle_File : private Windows_Handle_File_Ref {
   void close();
 
   Windows_Handle_File_Ref ref() const;
+
+  // Remove ownership of the file.
+  //
+  // Returns this->ref().
+  //
+  // Precondition: this->valid()
+  // Postcondition: !this->valid()
+  Windows_Handle_File_Ref release();
 
   using Windows_Handle_File_Ref::get;
   using Windows_Handle_File_Ref::get_last_error_message;

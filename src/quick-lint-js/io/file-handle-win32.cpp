@@ -57,6 +57,22 @@ bool Windows_Handle_File_Ref::valid() const {
 
 HANDLE Windows_Handle_File_Ref::get() { return this->handle_; }
 
+Windows_Handle_File Windows_Handle_File_Ref::duplicate() const {
+  QLJS_ASSERT(this->valid());
+  ::HANDLE new_handle;
+  ::HANDLE current_process = ::GetCurrentProcess();
+  ::BOOL ok = ::DuplicateHandle(
+      /*hSourceProcessHandle=*/current_process,
+      /*hSourceHandle=*/this->handle_,
+      /*hTargetProcessHandle=*/current_process,
+      /*lpTargetHandle=*/&new_handle,
+      /*dwDesiredAccess=*/0,
+      /*bInheritHandle=*/true,
+      /*dwOptions=*/DUPLICATE_SAME_ACCESS);
+  QLJS_ALWAYS_ASSERT(ok);
+  return Windows_Handle_File(new_handle);
+}
+
 File_Read_Result Windows_Handle_File_Ref::read(void *buffer, int buffer_size) {
   QLJS_ASSERT(this->valid());
   DWORD read_size;
@@ -168,21 +184,12 @@ Windows_Handle_File_Ref Windows_Handle_File_Ref::get_stderr() {
   // Test.
   // NOTE(strager): We don't need to close this handle on destruction, so a raw
   // HANDLE is fine.
-  static ::HANDLE stderr_copy = []() -> ::HANDLE {
-    ::HANDLE new_handle;
-    ::HANDLE current_process = ::GetCurrentProcess();
-    ::BOOL ok = ::DuplicateHandle(
-        /*hSourceProcessHandle=*/current_process,
-        /*hSourceHandle=*/::GetStdHandle(STD_ERROR_HANDLE),
-        /*hTargetProcessHandle=*/current_process,
-        /*lpTargetHandle=*/&new_handle,
-        /*dwDesiredAccess=*/0,
-        /*bInheritHandle=*/true,
-        /*dwOptions=*/DUPLICATE_SAME_ACCESS);
-    QLJS_ALWAYS_ASSERT(ok);
-    return new_handle;
+  static Windows_Handle_File_Ref stderr_copy = []() -> Windows_Handle_File_Ref {
+    Windows_Handle_File_Ref stderr_handle(::GetStdHandle(STD_ERROR_HANDLE));
+    Windows_Handle_File stderr_copy_owned = stderr_handle.duplicate();
+    return stderr_copy_owned.release();
   }();
-  return Windows_Handle_File_Ref(stderr_copy);
+  return stderr_copy;
 }
 
 Windows_Handle_File::Windows_Handle_File() = default;
@@ -219,6 +226,12 @@ void Windows_Handle_File::close() {
 }
 
 Windows_Handle_File_Ref Windows_Handle_File::ref() const { return *this; }
+
+Windows_Handle_File_Ref Windows_Handle_File::release() {
+  QLJS_ASSERT(this->valid());
+  return Windows_Handle_File_Ref(
+      std::exchange(this->handle_, this->invalid_handle_1));
+}
 }
 
 #endif
