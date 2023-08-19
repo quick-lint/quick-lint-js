@@ -10,7 +10,6 @@
 #define QUICK_LINT_JS_PORT_THREAD_H
 
 #include <cstdint>
-#include <memory>
 #include <mutex>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
@@ -65,10 +64,13 @@ class Thread {
 
   template <class Func>
   void start(Func &&func) {
-    std::unique_ptr<Thread_Closure<Func>> closure =
-        std::make_unique<Thread_Closure<Func>>(std::forward<Func>(func));
-    this->start(Thread_Closure<Func>::run, closure.get());
-    closure.release();
+    using Closure = Thread_Closure<Func>;
+
+    Closure *closure = new Closure(std::forward<Func>(func));
+    this->start(Closure::run, closure);
+
+    this->closure_ = closure;
+    this->destroy_closure_ = &Closure::destroy;
   }
 
   bool joinable() const;
@@ -96,8 +98,7 @@ class Thread {
         void *
 #endif
         run(void *user_data) {
-      std::unique_ptr<Thread_Closure> self(
-          static_cast<Thread_Closure *>(user_data));
+      Thread_Closure *self = static_cast<Thread_Closure *>(user_data);
       self->func();
 #if defined(QLJS_THREADS_WINDOWS)
       return 0;
@@ -105,14 +106,25 @@ class Thread {
       return nullptr;
 #endif
     }
+
+    // NOTE(strager): destroy must be called from the main thread not from the
+    // spawned thread. If destroy was called from the spawned thread, then
+    // Thread::terminate would cause a memory leak.
+    static void destroy(void *user_data) {
+      delete static_cast<Thread_Closure *>(user_data);
+    }
   };
 
 #if defined(QLJS_THREADS_WINDOWS)
   Windows_Handle_File thread_handle_;
 #elif defined(QLJS_THREADS_POSIX)
   ::pthread_t thread_handle_;
+  // TODO(strager): Reuse this->closure_ != nullptr.
   bool thread_is_running_ = false;
 #endif
+
+  void *closure_ = nullptr;
+  void (*destroy_closure_)(void *) = nullptr;
 };
 #endif
 

@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <atomic>
 #include <chrono>
 #include <gtest/gtest.h>
 #include <iostream>
@@ -37,6 +38,29 @@ TEST(Test_Thread, thread_ids_differ_between_threads) {
   other_thread.join();
 
   EXPECT_NE(main_id, other_id) << "thread IDs should differ";
+}
+
+TEST(Test_Thread, start_thread_after_construction) {
+  static std::atomic<bool> other_thread_routine_started;
+  other_thread_routine_started = false;
+
+  Thread other_thread;
+  other_thread.start([] { other_thread_routine_started = true; });
+  other_thread.join();
+
+  EXPECT_TRUE(other_thread_routine_started);
+}
+
+TEST(Test_Thread, move_assign_started_thread) {
+  static std::atomic<bool> other_thread_routine_started;
+  other_thread_routine_started = false;
+
+  // TODO(strager): Discourage this style. You should use .start instead.
+  Thread other_thread;
+  other_thread = Thread([] { other_thread_routine_started = true; });
+  other_thread.join();
+
+  EXPECT_TRUE(other_thread_routine_started);
 }
 #endif
 

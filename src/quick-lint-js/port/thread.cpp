@@ -72,6 +72,8 @@ Thread& Thread::operator=(Thread&& other) {
   QLJS_ASSERT(!this->thread_handle_.valid());
 
   this->thread_handle_ = std::move(other.thread_handle_);
+  this->closure_ = std::exchange(other.closure_, nullptr);
+  this->destroy_closure_ = std::exchange(other.destroy_closure_, nullptr);
 
   QLJS_ASSERT(!other.thread_handle_.valid());
   return *this;
@@ -87,6 +89,10 @@ void Thread::join() {
   QLJS_ALWAYS_ASSERT(rc != WAIT_FAILED);
   QLJS_ASSERT(rc == WAIT_OBJECT_0);
   this->thread_handle_.close();
+
+  this->destroy_closure_(this->closure_);
+  this->closure_ = nullptr;
+  this->destroy_closure_ = nullptr;
 }
 
 void Thread::terminate() {
@@ -149,6 +155,8 @@ Thread& Thread::operator=(Thread&& other) {
   std::memcpy(&this->thread_handle_, &other.thread_handle_,
               sizeof(this->thread_handle_));
   this->thread_is_running_ = std::exchange(other.thread_is_running_, false);
+  this->closure_ = std::exchange(other.closure_, nullptr);
+  this->destroy_closure_ = std::exchange(other.destroy_closure_, nullptr);
 
   QLJS_ASSERT(!other.thread_is_running_);
   return *this;
@@ -163,6 +171,11 @@ void Thread::join() {
 
   int rc = ::pthread_join(this->thread_handle_, /*retval=*/nullptr);
   QLJS_ALWAYS_ASSERT(rc == 0);
+
+  this->destroy_closure_(this->closure_);
+  this->closure_ = nullptr;
+  this->destroy_closure_ = nullptr;
+
   this->thread_is_running_ = false;
 }
 
