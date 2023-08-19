@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/hash.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/port/have.h>
 #include <string>
@@ -117,19 +118,24 @@ class Windows_Handle_File_Ref {
 
   bool valid() const;
 
-  HANDLE get();
+  HANDLE get() const;
 
   Windows_Handle_File duplicate() const;
 
-  File_Read_Result read(void *buffer, int buffer_size);
+  File_Read_Result read(void *buffer, int buffer_size) const;
   Result<std::size_t, Windows_File_IO_Error> write(const void *buffer,
                                                    std::size_t buffer_size);
   Result<void, Windows_File_IO_Error> write_full(const void *buffer,
                                                  std::size_t buffer_size);
 
-  bool is_pipe_non_blocking();
+  bool is_pipe_non_blocking() const;
   void set_pipe_non_blocking();
   std::size_t get_pipe_buffer_size();
+
+  // Returns true if the two file descriptors are the same. (After a
+  // DuplicateHandle(), the two file descriptors are considered different.)
+  friend bool operator==(Windows_Handle_File_Ref, Windows_Handle_File_Ref);
+  friend bool operator!=(Windows_Handle_File_Ref, Windows_Handle_File_Ref);
 
   static std::string get_last_error_message();
 
@@ -181,6 +187,13 @@ class Windows_Handle_File : private Windows_Handle_File_Ref {
   using Windows_Handle_File_Ref::valid;
   using Windows_Handle_File_Ref::write;
   using Windows_Handle_File_Ref::write_full;
+};
+
+template <>
+struct Hasher<Windows_Handle_File_Ref> {
+  std::size_t operator()(Windows_Handle_File_Ref file) const {
+    return Hasher<::HANDLE>()(file.get());
+  }
 };
 #endif
 
@@ -260,6 +273,13 @@ class POSIX_FD_File : private POSIX_FD_File_Ref {
   using POSIX_FD_File_Ref::valid;
   using POSIX_FD_File_Ref::write;
   using POSIX_FD_File_Ref::write_full;
+};
+
+template <>
+struct Hasher<POSIX_FD_File_Ref> {
+  std::size_t operator()(POSIX_FD_File_Ref file) const {
+    return Hasher<int>()(file.get());
+  }
 };
 #endif
 

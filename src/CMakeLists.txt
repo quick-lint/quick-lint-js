@@ -325,6 +325,11 @@ quick_lint_js_add_library(
   quick-lint-js/io/event-loop-poll.h
   quick-lint-js/io/event-loop-win32.h
   quick-lint-js/io/event-loop.h
+  quick-lint-js/io/event-loop2-kqueue.cpp
+  quick-lint-js/io/event-loop2-poll.cpp
+  quick-lint-js/io/event-loop2-windows.cpp
+  quick-lint-js/io/event-loop2.cpp
+  quick-lint-js/io/event-loop2.h
   quick-lint-js/io/file-canonical.cpp
   quick-lint-js/io/file-canonical.h
   quick-lint-js/io/pipe-writer.cpp

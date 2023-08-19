@@ -1,6 +1,6 @@
 # ADR019: I/O manager
 
-**Status**: Accepted and active.
+**Status**: Accepted and pending migration (`Event_Loop` -> `Event_Loop2`).
 
 ## Context
 
@@ -33,11 +33,16 @@ For filesystem notifications:
 * Linux: inotify with a poll() event loop (`Poll_Event_Loop`)
 * Windows: oplocks with an I/O completion port event loop (`Windows_Event_Loop`)
 
-An `Event_Loop` class centralizes the aforementioned IPC and filesystem
+An old `Event_Loop` class centralizes the aforementioned IPC and filesystem
 notifications and abstracts over some platform differences. Some parts of
 `Event_Loop`, such as write-ready pipe notification and filesytem notification,
 are optional, enabling code reuse. `Event_Loop` accomplishes optionality by
 periodically polling a CRTP derived class for which events to listen to.
+
+A new `Event_Loop2` class centralizes the aforementioned IPC and filesystem
+notifications and abstracts over some platform differences. The event loop can
+be stopped arbitrarily. Events are registered by attaching callbacks, thus
+different users can listen for different events.
 
 For file I/O, use synchronous file I/O with no overlapping.
 
@@ -52,7 +57,9 @@ Supporting different methods of I/O for different operating systems is complex.
 The current solution is halfway toward bankruptcy; using the `Event_Loop`
 abstraction requires a lot of platform-specific code (via `#if`), making the
 code hard to follow. Some of the caller complexity is necessary, but there is
-much to be improved in this area.
+much to be improved in this area. The new `Event_Loop2` abstraction should make
+this better, but `Event_Loop2`'s interaction with `Pipe_Writer` is still a
+portability problem.
 
 `Event_Loop` does not handle all IPC. `Pipe_Writer` handles the write part on
 Windows, and it is littered with `#if` too.
@@ -63,18 +70,21 @@ polling a CRTP derived class for events to listen to: It has been the source of
 basic (but not immediately detected) bugs, mostly because this optionality was
 tacked onto the design after the fact. (The most [egregeous
 bug](https://github.com/quick-lint/quick-lint-js/issues/1057) was there from the
-beginning, though.) The design also makes testing more convoluted. A
-callback-based approach, like exposed by libevent and libuv, would be much
-better in terms of ergonomics and in terms of discovering or preventing edge
-cases.
+beginning, though.) The design also makes testing more convoluted. The new
+`Event_Loop2` is a callback-based design like libevent and libuv. It has better
+ergonomics and is easier to find edge cases in.
 
 Testing of `Event_Loop` is lacking, hence the presence of some bugs.
+`Event_Loop2` is much more testable and is much better tested.
 
 `Event_Loop`'s livetime is coupled to its reader IPC pipe. This makes its use in
 the Visual Studio Code extension (which has no IPC pipe) ugly. (The extension
 code creates a dummy pipe to keep the event loop alive.) It also has lead to
 hacks in the LSP benchmarks for servers which refuse to close the other end of
-the reader IPC pipe.
+the reader IPC pipe. The new `Event_Loop2` design has explicit retain/release
+calls for the event loop, removing the need for a dummy pipe. (Technically, the
+dummy pipe still exists within the `Event_Loop2` implementation, but only on
+Linux.)
 
 Synchronous file I/O with no overlapping is problematic when quick-lint-js is
 embedded. For example, in the Visual Studio Code extension, synchronous file I/O

@@ -93,6 +93,10 @@ class Hash_Map {
  private:
   Unordered_Map map_;
 };
+
+// A Hash_Map with pointer-stable values.
+template <class Key, class Value, class Hash = Hasher<Key>>
+using Stable_Hash_Map = Hash_Map<Key, Value, Hash>;
 }
 
 #endif

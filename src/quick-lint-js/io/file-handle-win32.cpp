@@ -55,7 +55,7 @@ bool Windows_Handle_File_Ref::valid() const {
          this->handle_ != this->invalid_handle_2;
 }
 
-HANDLE Windows_Handle_File_Ref::get() { return this->handle_; }
+HANDLE Windows_Handle_File_Ref::get() const { return this->handle_; }
 
 Windows_Handle_File Windows_Handle_File_Ref::duplicate() const {
   QLJS_ASSERT(this->valid());
@@ -73,7 +73,8 @@ Windows_Handle_File Windows_Handle_File_Ref::duplicate() const {
   return Windows_Handle_File(new_handle);
 }
 
-File_Read_Result Windows_Handle_File_Ref::read(void *buffer, int buffer_size) {
+File_Read_Result Windows_Handle_File_Ref::read(void *buffer,
+                                               int buffer_size) const {
   QLJS_ASSERT(this->valid());
   DWORD read_size;
   if (!::ReadFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
@@ -130,7 +131,7 @@ Result<void, Windows_File_IO_Error> Windows_Handle_File_Ref::write_full(
   return {};
 }
 
-bool Windows_Handle_File_Ref::is_pipe_non_blocking() {
+bool Windows_Handle_File_Ref::is_pipe_non_blocking() const {
   QLJS_ASSERT(this->valid());
   DWORD state;
   BOOL ok = ::GetNamedPipeHandleStateA(this->get(),
@@ -168,6 +169,17 @@ std::size_t Windows_Handle_File_Ref::get_pipe_buffer_size() {
     QLJS_UNIMPLEMENTED();
   }
   return outBufferSize;
+}
+
+bool operator==(Windows_Handle_File_Ref lhs, Windows_Handle_File_Ref rhs) {
+  if (lhs.valid() != rhs.valid()) {
+    return false;
+  }
+  return lhs.get() == rhs.get();
+}
+
+bool operator!=(Windows_Handle_File_Ref lhs, Windows_Handle_File_Ref rhs) {
+  return !(lhs == rhs);
 }
 
 std::string Windows_Handle_File_Ref::get_last_error_message() {

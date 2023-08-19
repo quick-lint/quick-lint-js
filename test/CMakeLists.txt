@@ -102,6 +102,7 @@ quick_lint_js_add_executable(
   test-emacs-lisp-diag-reporter.cpp
   test-emacs-location.cpp
   test-event-loop.cpp
+  test-event-loop2.cpp
   test-file-canonical.cpp
   test-file-path.cpp
   test-file.cpp
@@ -224,6 +225,9 @@ target_link_libraries(
   quick-lint-js-test-lib
   quick-lint-js-typescript-test-lib
 )
+if (WIN32)
+  target_link_libraries(quick-lint-js-test PRIVATE wsock32 ws2_32)
+endif ()
 if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
   target_link_libraries(quick-lint-js-test PRIVATE mongoose)
 endif ()
