@@ -89,6 +89,12 @@ void Thread::join() {
   this->thread_handle_.close();
 }
 
+void Thread::terminate() {
+  QLJS_ASSERT(this->joinable());
+  ::BOOL ok = ::TerminateThread(this->thread_handle_.get(), 0);
+  QLJS_ASSERT(ok);
+}
+
 void Thread::start(OS_Thread_Routine thread_routine, void* user_data) {
   QLJS_ASSERT(!this->thread_handle_.valid());
 

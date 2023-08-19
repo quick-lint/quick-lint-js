@@ -74,6 +74,12 @@ class Thread {
   bool joinable() const;
   void join();
 
+#if defined(QLJS_THREADS_WINDOWS)
+  // Call TerminateThread. This is pretty unsafe. Know what you are doing before
+  // calling this function.
+  void terminate();
+#endif
+
  private:
   void start(OS_Thread_Routine thread_routine, void *user_data);
 
