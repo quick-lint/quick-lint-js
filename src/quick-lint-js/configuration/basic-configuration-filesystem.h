@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONFIGURATION_BASIC_CONFIGURATION_FILESYSTEM_H
-#define QUICK_LINT_JS_CONFIGURATION_BASIC_CONFIGURATION_FILESYSTEM_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No filesystem on the web.
@@ -25,8 +24,6 @@ class Basic_Configuration_Filesystem : public Configuration_Filesystem {
       const Canonical_Path&) override;
 };
 }
-
-#endif
 
 #endif
 

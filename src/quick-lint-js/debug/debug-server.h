@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DEBUG_DEBUG_SERVER_H
-#define QUICK_LINT_JS_DEBUG_DEBUG_SERVER_H
+#pragma once
 
 #include <quick-lint-js/feature.h>
 
@@ -119,8 +118,6 @@ class Debug_Server {
   friend class Trace_Flusher_WebSocket_Backend;
 };
 }
-
-#endif
 
 #endif
 

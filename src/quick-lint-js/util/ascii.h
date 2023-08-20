@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_ASCII_H
-#define QUICK_LINT_JS_UTIL_ASCII_H
+#pragma once
 
 #include <quick-lint-js/port/char8.h>
 
@@ -11,8 +10,6 @@ inline bool is_ascii_alpha(Char8 c) {
   return (u8'a' <= c && c <= u8'z') || (u8'A' <= c && c <= u8'Z');
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

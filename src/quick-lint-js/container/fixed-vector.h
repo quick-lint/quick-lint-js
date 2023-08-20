@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_FIXED_VECTOR_H
-#define QUICK_LINT_JS_CONTAINER_FIXED_VECTOR_H
+#pragma once
 
 #include <memory>
 #include <new>
@@ -348,8 +347,6 @@ class Fixed_Vector : private Fixed_Vector_Base<T, max_size> {
   friend Base;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

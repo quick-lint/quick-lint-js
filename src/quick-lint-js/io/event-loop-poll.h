@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_IO_EVENT_LOOP_POLL_H
-#define QUICK_LINT_JS_IO_EVENT_LOOP_POLL_H
+#pragma once
 
 #include <quick-lint-js/port/have.h>
 
@@ -111,8 +110,6 @@ class Poll_Event_Loop : public Event_Loop_Base<Derived> {
   }
 };
 }
-
-#endif
 
 #endif
 

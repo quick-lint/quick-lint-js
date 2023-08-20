@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CLI_EMACS_LISP_DIAG_REPORTER_H
-#define QUICK_LINT_JS_CLI_EMACS_LISP_DIAG_REPORTER_H
+#pragma once
 
 #include <optional>
 #include <quick-lint-js/cli/emacs-location.h>
@@ -52,8 +51,6 @@ class Emacs_Lisp_Diag_Formatter
   Emacs_Locator &locator_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_CHAR8_H
-#define QUICK_LINT_JS_PORT_CHAR8_H
+#pragma once
 
 #include <cstddef>
 #include <iosfwd>
@@ -86,8 +85,6 @@ template <>
 void PrintTo(char8_t *const &, std::ostream *);
 #endif
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

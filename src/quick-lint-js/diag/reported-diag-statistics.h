@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DIAG_REPORTED_DIAG_STATISTICS_H
-#define QUICK_LINT_JS_DIAG_REPORTED_DIAG_STATISTICS_H
+#pragma once
 
 #include <quick-lint-js/cli/text-diag-reporter.h>
 #include <quick-lint-js/cli/vim-qflist-json-diag-reporter.h>
@@ -37,8 +36,6 @@ class Reported_Diag_Statistics final : public Diag_Reporter {
   bool found_matching_diag_ = false;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

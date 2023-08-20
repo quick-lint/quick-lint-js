@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_IO_FILE_H
-#define QUICK_LINT_JS_IO_FILE_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No file I/O on the web.
@@ -71,8 +70,6 @@ Result<Platform_File, Write_File_IO_Error> open_file_for_writing(
 bool file_ids_equal(const ::FILE_ID_INFO &, const ::FILE_ID_INFO &);
 #endif
 }
-
-#endif
 
 #endif
 

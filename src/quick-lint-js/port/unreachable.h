@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_UNREACHABLE_H
-#define QUICK_LINT_JS_PORT_UNREACHABLE_H
+#pragma once
 
 #if defined(__GNUC__) || defined(__clang__)
 #define QLJS_UNREACHABLE() __builtin_unreachable()
@@ -12,8 +11,6 @@
 #define QLJS_UNREACHABLE() \
   do {                     \
   } while (false)
-#endif
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

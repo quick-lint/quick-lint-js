@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_IO_PIPE_WRITER_H
-#define QUICK_LINT_JS_IO_PIPE_WRITER_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No pipe_writer on the web.
@@ -116,8 +115,6 @@ using Pipe_Writer = Background_Thread_Pipe_Writer;
 using Pipe_Writer = Non_Blocking_Pipe_Writer;
 #endif
 }
-
-#endif
 
 #endif
 

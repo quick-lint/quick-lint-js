@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CHARACTERS_H
-#define QUICK_LINT_JS_CHARACTERS_H
+#pragma once
 
 #include <array>
 #include <quick-lint-js/array.h>
@@ -55,8 +54,6 @@ inline constexpr std::array control_characters_except_line_terminators =
                       u8"\u000b"_sv,    // VT Vertical tab
                       u8"\u000c"_sv));  // FF Form feed
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

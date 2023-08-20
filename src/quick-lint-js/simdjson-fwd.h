@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SIMDJSON_FWD_H
-#define QUICK_LINT_JS_SIMDJSON_FWD_H
+#pragma once
 
 // These forward declarations let us avoid #include-ing <simdjson.h> in our
 // headers. This reduces compile times.
@@ -35,8 +34,6 @@ namespace ondemand = QUICK_LINT_JS_SIMDJSON_IMPLEMENTATION_NAMESPACE::ondemand;
 // We don't know which namespace simdjson will select. Don't try to guess; just
 // use simdjson's declarations.
 #include <simdjson.h>
-#endif
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

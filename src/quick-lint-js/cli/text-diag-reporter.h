@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CLI_TEXT_DIAG_REPORTER_H
-#define QUICK_LINT_JS_CLI_TEXT_DIAG_REPORTER_H
+#pragma once
 
 #include <optional>
 #include <quick-lint-js/cli/cli-location.h>
@@ -57,8 +56,6 @@ class Text_Diag_Formatter : public Diagnostic_Formatter<Text_Diag_Formatter> {
   bool format_escape_errors_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

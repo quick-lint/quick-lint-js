@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_HASH_H
-#define QUICK_LINT_JS_CONTAINER_HASH_H
+#pragma once
 
 #include <cstddef>
 #include <functional>
@@ -66,8 +65,6 @@ struct Hasher<std::pair<T1, T2>> {
   }
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

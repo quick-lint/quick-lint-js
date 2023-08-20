@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LSP_LSP_JSON_RPC_MESSAGE_PARSER_H
-#define QUICK_LINT_JS_LSP_LSP_JSON_RPC_MESSAGE_PARSER_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No LSP on the web.
@@ -92,8 +91,6 @@ class LSP_JSON_RPC_Message_Parser
 extern template void LSP_Message_Parser<LSP_JSON_RPC_Message_Parser>::append(
     String8_View);
 }
-
-#endif
 
 #endif
 

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_BIT_H
-#define QUICK_LINT_JS_PORT_BIT_H
+#pragma once
 
 #include <cstdint>
 #include <type_traits>
@@ -96,8 +95,6 @@ T bit_ceil(T x) {
   return (T(1) << shift);
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

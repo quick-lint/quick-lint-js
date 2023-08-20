@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_PARSE_VISITOR_H
-#define QUICK_LINT_JS_FE_PARSE_VISITOR_H
+#pragma once
 
 #include <optional>
 #include <quick-lint-js/fe/identifier.h>
@@ -65,8 +64,6 @@ class Parse_Visitor_Base {
   virtual void visit_end_of_module() = 0;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

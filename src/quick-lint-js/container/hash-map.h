@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_HASH_MAP_H
-#define QUICK_LINT_JS_CONTAINER_HASH_MAP_H
+#pragma once
 
 #include <quick-lint-js/container/hash.h>
 #include <unordered_map>
@@ -98,8 +97,6 @@ class Hash_Map {
 template <class Key, class Value, class Hash = Hasher<Key>>
 using Stable_Hash_Map = Hash_Map<Key, Value, Hash>;
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

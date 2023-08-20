@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LSP_LSP_URI_H
-#define QUICK_LINT_JS_LSP_LSP_URI_H
+#pragma once
 
 #include <quick-lint-js/port/char8.h>
 #include <string>
@@ -12,8 +11,6 @@ std::string parse_file_from_lsp_uri(String8_View uri);
 std::string parse_file_from_lsp_uri_posix(String8_View uri);
 std::string parse_file_from_lsp_uri_win32(String8_View uri);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

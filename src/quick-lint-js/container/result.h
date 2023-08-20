@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_RESULT_H
-#define QUICK_LINT_JS_CONTAINER_RESULT_H
+#pragma once
 
 #include <new>
 #include <quick-lint-js/assert.h>
@@ -324,8 +323,6 @@ class Result<void, Error> : public Result_Base<void, Error> {
   friend class Result_Base;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

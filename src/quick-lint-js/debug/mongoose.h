@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DEBUG_MONGOOSE_H
-#define QUICK_LINT_JS_DEBUG_MONGOOSE_H
+#pragma once
 
 #include <quick-lint-js/feature.h>
 
@@ -49,8 +48,6 @@ mg_event_handler_t mongoose_callback() {
   };
 }
 }
-
-#endif
 
 #endif
 

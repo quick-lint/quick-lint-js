@@ -2,8 +2,7 @@
 // Copyright (c) 2014-2020, Arm Limited.
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_SIMD_NEON_ARM_H
-#define QUICK_LINT_JS_PORT_SIMD_NEON_ARM_H
+#pragma once
 
 #include <cstdint>
 #include <quick-lint-js/port/attribute.h>
@@ -86,8 +85,6 @@ QLJS_FORCE_INLINE inline std::uint32_t Bool_Vector_16_NEON::mask() const {
 }
 #endif
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

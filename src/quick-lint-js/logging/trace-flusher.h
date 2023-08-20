@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LOGGING_TRACE_FLUSHER_H
-#define QUICK_LINT_JS_LOGGING_TRACE_FLUSHER_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No filesystem on web.
@@ -194,8 +193,6 @@ class Trace_Flusher {
   Thread flushing_thread_;
 };
 }
-
-#endif
 
 #endif
 

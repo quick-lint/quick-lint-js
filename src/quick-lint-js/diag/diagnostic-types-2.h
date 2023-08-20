@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DIAG_DIAGNOSTIC_TYPES_2_H
-#define QUICK_LINT_JS_DIAG_DIAGNOSTIC_TYPES_2_H
+#pragma once
 
 #include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/language.h>
@@ -2947,8 +2946,6 @@ struct Diag_Expected_Expression_In_Template_Literal {
 }
 
 QLJS_WARNING_POP
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

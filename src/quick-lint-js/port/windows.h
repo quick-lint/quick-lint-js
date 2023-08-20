@@ -1,12 +1,11 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_WINDOWS_H
-#define QUICK_LINT_JS_PORT_WINDOWS_H
+#pragma once
 
 #include <quick-lint-js/port/have.h>
 
-#ifndef QUICK_LINT_JS_PORT_WINDOWS_H
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 
@@ -63,8 +62,6 @@ HRESULT WINAPI GetThreadDescription(HANDLE hThread,
 WINBASEAPI
 HRESULT WINAPI SetThreadDescription(HANDLE hThread, PCWSTR lpThreadDescription);
 }
-#endif
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

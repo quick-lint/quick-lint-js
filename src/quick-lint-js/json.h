@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_JSON_H
-#define QUICK_LINT_JS_JSON_H
+#pragma once
 
 #include <quick-lint-js/port/char8.h>
 
@@ -15,8 +14,6 @@ void write_json_escaped_string(Output_Stream &, String8_View);
 
 String8 to_json_escaped_string_with_quotes(String8_View);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

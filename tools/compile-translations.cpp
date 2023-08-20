@@ -335,8 +335,7 @@ void write_translation_table_header(const Compiled_Translation_Table& table,
 
   out.append_copy(
       u8R"(
-#ifndef QUICK_LINT_JS_I18N_TRANSLATION_TABLE_GENERATED_H
-#define QUICK_LINT_JS_I18N_TRANSLATION_TABLE_GENERATED_H
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -397,8 +396,6 @@ using namespace std::literals::string_view_literals;
   return 0;
 }
 }
-
-#endif
 
 )"_sv);
   write_copyright_footer(out);
@@ -529,8 +526,7 @@ void write_translation_test_header(
 
   out.append_copy(
       u8R"(
-#ifndef QUICK_LINT_JS_I18N_TRANSLATION_TABLE_TEST_GENERATED_H
-#define QUICK_LINT_JS_I18N_TRANSLATION_TABLE_TEST_GENERATED_H
+#pragma once
 
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/port/char8.h>
@@ -593,8 +589,6 @@ inline const Translated_String test_translation_table[)"_sv);
       u8R"(};
 // clang-format on
 }
-
-#endif
 
 )"_sv);
   write_copyright_footer(out);

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_VARIABLE_ANALYZER_H
-#define QUICK_LINT_JS_FE_VARIABLE_ANALYZER_H
+#pragma once
 
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -316,8 +315,6 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   Variable_Analyzer_Options options_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

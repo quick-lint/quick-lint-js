@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_WINDOWS_ERROR_H
-#define QUICK_LINT_JS_PORT_WINDOWS_ERROR_H
+#pragma once
 
 #include <quick-lint-js/port/have.h>
 
@@ -21,8 +20,6 @@ std::string windows_error_message(DWORD error);
 // Uses the error code from GetLastError().
 std::string windows_last_error_message();
 }
-
-#endif
 
 #endif
 

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONFIGURATION_CONFIGURATION_H
-#define QUICK_LINT_JS_CONFIGURATION_CONFIGURATION_H
+#pragma once
 
 #include <array>
 #include <cstddef>
@@ -54,8 +53,6 @@ class Configuration {
   String8_View save_string(std::string_view s);
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

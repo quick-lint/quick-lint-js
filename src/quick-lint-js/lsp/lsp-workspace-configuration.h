@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LSP_LSP_WORKSPACE_CONFIGURATION_H
-#define QUICK_LINT_JS_LSP_LSP_WORKSPACE_CONFIGURATION_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No LSP on the web.
@@ -62,8 +61,6 @@ class LSP_Workspace_Configuration {
   std::vector<Item> items_;
 };
 }
-
-#endif
 
 #endif
 

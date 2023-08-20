@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_LINTER_H
-#define QUICK_LINT_JS_FE_LINTER_H
+#pragma once
 
 namespace quick_lint_js {
 class Diag_Reporter;
@@ -25,8 +24,6 @@ struct Linter_Options {
 void parse_and_lint(Padded_String_View code, Diag_Reporter&,
                     const Global_Declared_Variable_Set&, Linter_Options);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

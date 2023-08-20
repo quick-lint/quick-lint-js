@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_C_STRING_LIST_H
-#define QUICK_LINT_JS_CONTAINER_C_STRING_LIST_H
+#pragma once
 
 #include <cstddef>
 #include <cstring>
@@ -76,8 +75,6 @@ class C_String_List_View {
   const char* begin_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_KEYWORD_LIST_H
-#define QUICK_LINT_JS_FE_KEYWORD_LIST_H
+#pragma once
 
 // X-macro for JavaScript and TypeScript reserved words, future reserved words,
 // conditionally reserved words, and contextual keywords.
@@ -92,8 +91,6 @@
   QLJS_KEYWORD(while)       \
   QLJS_KEYWORD(with)        \
   QLJS_KEYWORD(yield)
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

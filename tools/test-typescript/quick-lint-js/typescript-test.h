@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_TYPESCRIPT_TEST_H
-#define QUICK_LINT_JS_TYPESCRIPT_TEST_H
+#pragma once
 
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/linter.h>
@@ -23,8 +22,6 @@ using typescript_test_units = std::vector<typescript_test_unit>;
 typescript_test_units extract_units_from_typescript_test(
     Padded_String&& file, String8_View test_file_name);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

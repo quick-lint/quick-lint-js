@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CLI_OPTIONS_H
-#define QUICK_LINT_JS_CLI_OPTIONS_H
+#pragma once
 
 #include <optional>
 #include <quick-lint-js/diag/diag-code-list.h>
@@ -71,8 +70,6 @@ struct Options {
 
 Options parse_options(int argc, char **argv);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

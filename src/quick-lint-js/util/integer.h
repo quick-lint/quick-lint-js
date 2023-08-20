@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_INTEGER_H
-#define QUICK_LINT_JS_UTIL_INTEGER_H
+#pragma once
 
 #include <cstddef>
 #include <limits>
@@ -104,8 +103,6 @@ extern template Char8 *write_integer_fixed_hexadecimal<char32_t>(char32_t,
                                                                  int width,
                                                                  Char8 *out);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_SORTED_SEARCH_H
-#define QUICK_LINT_JS_CONTAINER_SORTED_SEARCH_H
+#pragma once
 
 #include <cstddef>
 #include <string_view>
@@ -34,8 +33,6 @@ constexpr It sorted_search(It begin, It end, std::string_view needle) {
   return end;
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_CRASH_H
-#define QUICK_LINT_JS_PORT_CRASH_H
+#pragma once
 
 #include <cstdlib>
 #include <quick-lint-js/port/have.h>
@@ -17,8 +16,6 @@
 #define QLJS_CRASH_ALLOWING_CORE_DUMP() __builtin_trap()
 #else
 #define QLJS_CRASH_ALLOWING_CORE_DUMP() ::std::abort()
-#endif
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

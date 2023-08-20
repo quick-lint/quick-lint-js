@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_JSX_H
-#define QUICK_LINT_JS_FE_JSX_H
+#pragma once
 
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/port/char8.h>
@@ -14,8 +13,6 @@ struct JSX_Attribute {
 
 const Hash_Map<String8_View, JSX_Attribute> &jsx_attribute_aliases();
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

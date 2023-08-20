@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LOGGING_TRACE_READER_H
-#define QUICK_LINT_JS_LOGGING_TRACE_READER_H
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -193,8 +192,6 @@ struct Parsed_Trace_Event {
   Parsed_LSP_Documents_Event lsp_documents_event = {};
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

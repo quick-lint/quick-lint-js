@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_CHILD_PROCESS_H
-#define QUICK_LINT_JS_PORT_CHILD_PROCESS_H
+#pragma once
 
 #include <initializer_list>
 #include <quick-lint-js/container/padded-string.h>
@@ -43,8 +42,6 @@ Run_Program_Result run_program(Span<const char* const> command,
 std::uint32_t wait_for_process_exit(::pid_t);
 #endif
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

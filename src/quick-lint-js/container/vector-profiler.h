@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_VECTOR_PROFILER_H
-#define QUICK_LINT_JS_CONTAINER_VECTOR_PROFILER_H
+#pragma once
 
 #include <algorithm>
 #include <cstddef>
@@ -345,8 +344,6 @@ class Instrumented_Vector {
 };
 #endif
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

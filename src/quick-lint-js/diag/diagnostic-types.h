@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DIAG_DIAGNOSTIC_TYPES_H
-#define QUICK_LINT_JS_DIAG_DIAGNOSTIC_TYPES_H
+#pragma once
 
 #include <iosfwd>
 #include <quick-lint-js/diag/diagnostic-metadata-generated.h>
@@ -24,8 +23,6 @@ enum class Diag_Type {
 
 std::ostream& operator<<(std::ostream&, Diag_Type);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

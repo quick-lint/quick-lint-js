@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CLI_EMACS_LOCATION_H
-#define QUICK_LINT_JS_CLI_EMACS_LOCATION_H
+#pragma once
 
 #include <cstddef>
 #include <iosfwd>
@@ -61,8 +60,6 @@ class Emacs_Locator {
   Padded_String_View input_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

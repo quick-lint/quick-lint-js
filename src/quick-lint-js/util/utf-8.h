@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_UTF_8_H
-#define QUICK_LINT_JS_UTIL_UTF_8_H
+#pragma once
 
 #include <cstddef>
 #include <quick-lint-js/container/padded-string.h>
@@ -38,8 +37,6 @@ std::size_t count_utf_8_characters(Padded_String_View, std::size_t);
 const Char8* advance_lsp_characters_in_utf_8(String8_View, int character_count);
 std::ptrdiff_t count_lsp_characters_in_utf_8(Padded_String_View, int offset);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

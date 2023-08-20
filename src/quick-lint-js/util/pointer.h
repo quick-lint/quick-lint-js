@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_POINTER_H
-#define QUICK_LINT_JS_UTIL_POINTER_H
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -20,8 +19,6 @@ Integer_Pointer align_up(Integer_Pointer p, std::size_t alignment) {
   return ((p - 1) | alignment_mask) + 1;
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

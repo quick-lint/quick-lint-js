@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONFIGURATION_CHANGE_DETECTING_FILESYSTEM_H
-#define QUICK_LINT_JS_CONFIGURATION_CHANGE_DETECTING_FILESYSTEM_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No filesystem on web.
@@ -220,8 +219,6 @@ class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
 #endif
 QLJS_WARNING_POP
 }
-
-#endif
 
 #endif
 

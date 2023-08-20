@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_VSCODE_TRACER_H
-#define QUICK_LINT_JS_VSCODE_VSCODE_TRACER_H
+#pragma once
 
 #include <cstddef>
 #include <napi.h>
@@ -199,8 +198,6 @@ class VSCode_Tracer {
   std::unique_ptr<Trace_Flusher_Directory_Backend> tracer_backend_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

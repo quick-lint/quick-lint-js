@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DIAG_BUFFERING_DIAG_REPORTER_H
-#define QUICK_LINT_JS_DIAG_BUFFERING_DIAG_REPORTER_H
+#pragma once
 
 #include <memory>
 #include <quick-lint-js/diag/diag-reporter.h>
@@ -39,8 +38,6 @@ class Buffering_Diag_Reporter final : public Diag_Reporter {
   std::unique_ptr<Impl, Impl_Deleter> impl_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

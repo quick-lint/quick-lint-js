@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_SPAN_H
-#define QUICK_LINT_JS_PORT_SPAN_H
+#pragma once
 
 #include <array>
 #include <cstddef>
@@ -81,8 +80,6 @@ class Span {
   Span_Size size_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

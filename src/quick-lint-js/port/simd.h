@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_SIMD_H
-#define QUICK_LINT_JS_PORT_SIMD_H
+#pragma once
 
 #include <cstdint>
 #include <cstring>
@@ -366,8 +365,6 @@ class Char_Vector_1 {
 
 // Some routines have a different copyright, thus are in a separate file.
 #include <quick-lint-js/port/simd-neon-arm.h>
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

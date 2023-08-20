@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FILESYSTEM_TEST_H
-#define QUICK_LINT_JS_FILESYSTEM_TEST_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No filesystem on web.
@@ -65,8 +64,6 @@ class Filesystem_Test {
   std::optional<std::string> old_working_directory_;
 };
 }
-
-#endif
 
 #endif
 

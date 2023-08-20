@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_C_API_DIAG_REPORTER_H
-#define QUICK_LINT_JS_C_API_DIAG_REPORTER_H
+#pragma once
 
 #include <cstdint>
 #include <optional>
@@ -81,8 +80,6 @@ extern template class C_API_Diag_Reporter<QLJS_Web_Demo_Diagnostic,
 
 QLJS_WARNING_POP
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

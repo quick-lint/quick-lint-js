@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_I18N_TRANSLATION_H
-#define QUICK_LINT_JS_I18N_TRANSLATION_H
+#pragma once
 
 #include <cstdint>
 #include <quick-lint-js/i18n/locale.h>
@@ -71,8 +70,6 @@ operator""_translatable(const char* raw_message, std::size_t length) {
   return Translatable_Message(raw_message, static_cast<int>(length));
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

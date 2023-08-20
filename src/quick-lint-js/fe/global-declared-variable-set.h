@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_GLOBAL_DECLARED_VARIABLE_SET_H
-#define QUICK_LINT_JS_FE_GLOBAL_DECLARED_VARIABLE_SET_H
+#pragma once
 
 #include <optional>
 #include <quick-lint-js/container/hash-map.h>
@@ -67,8 +66,6 @@ class Global_Declared_Variable_Set {
   bool all_variables_declared_ = false;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LOGGING_TRACE_WRITER_H
-#define QUICK_LINT_JS_LOGGING_TRACE_WRITER_H
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -280,8 +279,6 @@ void Trace_Writer::write_event_vscode_document_sync(
   this->write_utf16le_string(event.content);
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

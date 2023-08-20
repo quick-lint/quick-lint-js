@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_WARNING_H
-#define QUICK_LINT_JS_PORT_WARNING_H
+#pragma once
 
 #if defined(__clang__)
 #define QLJS_WARNING_PUSH _Pragma("clang diagnostic push")
@@ -41,8 +40,6 @@
 
 #define QLJS_WARNING_PRAGMA_STRING(x, y) QLJS_WARNING_PRAGMA_STRING_(x y)
 #define QLJS_WARNING_PRAGMA_STRING_(x) #x
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

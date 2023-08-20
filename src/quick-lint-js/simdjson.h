@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SIMDJSON_H
-#define QUICK_LINT_JS_SIMDJSON_H
+#pragma once
 
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/simdjson-fwd.h>
@@ -58,8 +57,6 @@ bool get_string8(::simdjson::simdjson_result<::simdjson::ondemand::value>& root,
 // 'int'?
 bool get_int(::simdjson::ondemand::object& root, const char* key, int* out);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

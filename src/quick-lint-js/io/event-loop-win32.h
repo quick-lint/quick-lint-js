@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_IO_EVENT_LOOP_WIN32_H
-#define QUICK_LINT_JS_IO_EVENT_LOOP_WIN32_H
+#pragma once
 
 #include <quick-lint-js/port/have.h>
 
@@ -122,8 +121,6 @@ inline Windows_Handle_File create_io_completion_port() {
   return iocp;
 }
 }
-
-#endif
 
 #endif
 

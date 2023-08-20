@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LSP_BENCHMARKS_H
-#define QUICK_LINT_JS_LSP_BENCHMARKS_H
+#pragma once
 
 #include <memory>
 #include <quick-lint-js/lsp-server-process.h>
@@ -36,8 +35,6 @@ using Benchmark_Factory = std::unique_ptr<Benchmark> (*)();
 
 std::vector<Benchmark_Factory> get_benchmark_factories();
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

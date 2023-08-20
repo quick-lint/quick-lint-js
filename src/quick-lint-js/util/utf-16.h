@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_UTF_16_H
-#define QUICK_LINT_JS_UTIL_UTF_16_H
+#pragma once
 
 #include <optional>
 #include <quick-lint-js/port/char8.h>
@@ -40,7 +39,6 @@ std::size_t count_utf_8_code_units(std::wstring_view);
 
 String8 utf_16_to_utf_8(std::u16string_view);
 }
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

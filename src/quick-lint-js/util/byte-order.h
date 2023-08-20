@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_BYTE_ORDER_H
-#define QUICK_LINT_JS_UTIL_BYTE_ORDER_H
+#pragma once
 
 #include <cstdint>
 
@@ -27,8 +26,6 @@ inline std::uint64_t load_u64_le(const void* data) {
          (static_cast<std::uint64_t>(d[7]) << (8 * 7));
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

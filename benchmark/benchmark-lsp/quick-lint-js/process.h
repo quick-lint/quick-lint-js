@@ -1,16 +1,13 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PROCESS_H
-#define QUICK_LINT_JS_PROCESS_H
+#pragma once
 
 #include <unistd.h>
 
 namespace quick_lint_js {
 void wait_for_process_exit(::pid_t);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

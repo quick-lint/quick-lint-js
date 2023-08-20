@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_STRING_VIEW_H
-#define QUICK_LINT_JS_CONTAINER_STRING_VIEW_H
+#pragma once
 
 #include <cstddef>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -86,8 +85,6 @@ inline bool contains(std::basic_string_view<Char> haystack, Char needle) {
   return haystack.find(needle) != haystack.npos;
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

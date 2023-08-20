@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_ALLOCATOR_H
-#define QUICK_LINT_JS_CONTAINER_ALLOCATOR_H
+#pragma once
 
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/warning.h>
@@ -25,8 +24,6 @@ void delete_object(Memory_Resource* memory, T* object) {
   memory->deallocate(object, sizeof(T), alignof(T));
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_IO_FILE_PATH_H
-#define QUICK_LINT_JS_IO_FILE_PATH_H
+#pragma once
 
 #include <quick-lint-js/port/have.h>
 #include <string>
@@ -20,8 +19,6 @@ std::string parent_path(std::string&&);
 
 std::string_view path_file_name(std::string_view);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

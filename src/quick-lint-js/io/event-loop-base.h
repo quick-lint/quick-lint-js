@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_IO_EVENT_LOOP_BASE_H
-#define QUICK_LINT_JS_IO_EVENT_LOOP_BASE_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No LSP on the web.
@@ -143,8 +142,6 @@ class Event_Loop_Base {
   Mutex user_code_mutex_;
 };
 }
-
-#endif
 
 #endif
 

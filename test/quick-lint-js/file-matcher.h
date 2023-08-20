@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FILE_MATCHER_H
-#define QUICK_LINT_JS_FILE_MATCHER_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No filesystem on the web.
@@ -164,8 +163,6 @@ inline ::testing::AssertionResult assert_file_does_not_exist(
   return assert_file_does_not_exist(expr, path.c_str());
 }
 }
-
-#endif
 
 #endif
 

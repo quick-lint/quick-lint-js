@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_PROCESS_H
-#define QUICK_LINT_JS_PORT_PROCESS_H
+#pragma once
 
 #include <cstdint>
 
@@ -12,8 +11,6 @@ namespace quick_lint_js {
 std::uint64_t get_current_process_id();
 #endif
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

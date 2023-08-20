@@ -1,16 +1,13 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LOGGING_TRACE_METADATA_H
-#define QUICK_LINT_JS_LOGGING_TRACE_METADATA_H
+#pragma once
 
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 extern const Char8 trace_metadata[];
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

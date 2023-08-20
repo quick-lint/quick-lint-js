@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_ASYNC_BYTE_QUEUE_H
-#define QUICK_LINT_JS_CONTAINER_ASYNC_BYTE_QUEUE_H
+#pragma once
 
 #include <cstddef>
 #include <quick-lint-js/assert.h>
@@ -186,8 +185,6 @@ void Async_Byte_Queue::take_committed(Chunk_Func&& chunk_callback,
   }
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

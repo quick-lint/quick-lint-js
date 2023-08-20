@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_CONSTEVAL_H
-#define QUICK_LINT_JS_PORT_CONSTEVAL_H
+#pragma once
 
 #include <quick-lint-js/port/have.h>
 
@@ -10,8 +9,6 @@
 #define QLJS_CONSTEVAL consteval
 #else
 #define QLJS_CONSTEVAL constexpr
-#endif
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_VSCODE_DIAG_REPORTER_H
-#define QUICK_LINT_JS_VSCODE_VSCODE_DIAG_REPORTER_H
+#pragma once
 
 #include <napi.h>
 #include <quick-lint-js/diag/diagnostic-formatter.h>
@@ -157,8 +156,6 @@ class VSCode_Diag_Reporter final : public Diag_Reporter {
   ::Napi::Value document_uri_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

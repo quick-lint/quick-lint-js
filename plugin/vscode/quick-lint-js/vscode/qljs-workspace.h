@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_QLJS_WORKSPACE_H
-#define QUICK_LINT_JS_VSCODE_QLJS_WORKSPACE_H
+#pragma once
 
 // TODO(strager): Trim includes.
 #include <cstdio>
@@ -254,8 +253,6 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

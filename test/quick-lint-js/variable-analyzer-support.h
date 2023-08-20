@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VARIABLE_ANALYZER_SUPPORT_H
-#define QUICK_LINT_JS_VARIABLE_ANALYZER_SUPPORT_H
+#pragma once
 
 #include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/fe/variable-analyzer.h>
@@ -56,8 +55,6 @@ void test_parse_and_analyze(
     const Test_Parse_And_Analyze_Options&, const Global_Declared_Variable_Set&,
     Source_Location caller = Source_Location::current());
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

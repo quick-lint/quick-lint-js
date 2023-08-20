@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_PADDED_STRING_H
-#define QUICK_LINT_JS_CONTAINER_PADDED_STRING_H
+#pragma once
 
 #include <iosfwd>
 #include <quick-lint-js/assert.h>
@@ -133,8 +132,6 @@ class Padded_String_View {
   Size_Type length_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

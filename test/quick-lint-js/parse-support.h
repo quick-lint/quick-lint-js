@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PARSE_SUPPORT_H
-#define QUICK_LINT_JS_PARSE_SUPPORT_H
+#pragma once
 
 #include <array>
 #include <gmock/gmock.h>
@@ -371,8 +370,6 @@ const inline Dirty_Set<String8> typescript_type_only_keywords = {
 };
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SPY_LSP_ENDPOINT_REMOTE_H
-#define QUICK_LINT_JS_SPY_LSP_ENDPOINT_REMOTE_H
+#pragma once
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/container/byte-buffer.h>
@@ -70,8 +69,6 @@ class Spy_LSP_Endpoint_Remote final : public LSP_Endpoint_Remote {
   bool allow_batch_messages = false;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_ASSERT_H
-#define QUICK_LINT_JS_ASSERT_H
+#pragma once
 
 #include <quick-lint-js/port/crash.h>
 #include <quick-lint-js/port/have.h>
@@ -101,8 +100,6 @@ void report_assertion_failure(const char *qljs_file_name, int qljs_line,
                               const char *qljs_function_name,
                               const char *message);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

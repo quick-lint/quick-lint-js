@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_UI_H
-#define QUICK_LINT_JS_VSCODE_UI_H
+#pragma once
 
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/port/span.h>
@@ -37,8 +36,6 @@ class VSCode_UI {
   QLJS_Workspace* workspace_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

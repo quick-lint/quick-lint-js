@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DEBUG_DEBUG_PROBE_H
-#define QUICK_LINT_JS_DEBUG_DEBUG_PROBE_H
+#pragma once
 
 namespace quick_lint_js {
 template <class Data>
@@ -21,8 +20,6 @@ void debug_probe_publish_lsp_documents();
 // statistics to opened browsers.
 void debug_probe_publish_vector_profile();
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

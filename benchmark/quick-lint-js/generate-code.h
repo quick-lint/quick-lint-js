@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_GENERATE_CODE_H
-#define QUICK_LINT_JS_GENERATE_CODE_H
+#pragma once
 
 #include <memory>
 #include <quick-lint-js/container/padded-string.h>
@@ -30,8 +29,6 @@ struct Source_Code_With_Spans {
 
 Source_Code_With_Spans make_realisticish_code(int line_count, int span_count);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

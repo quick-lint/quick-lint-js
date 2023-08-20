@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DIAG_DIAGNOSTIC_H
-#define QUICK_LINT_JS_DIAG_DIAGNOSTIC_H
+#pragma once
 
 #include <array>
 #include <cstddef>
@@ -123,8 +122,6 @@ constexpr Diagnostic_Arg_Type get_diagnostic_message_arg_type<String8_View>() {
 }
 
 #undef QLJS_WORK_AROUND_GCC_BUG_105191
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

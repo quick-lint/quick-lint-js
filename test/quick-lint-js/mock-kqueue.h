@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_MOCK_KQUEUE_H
-#define QUICK_LINT_JS_MOCK_KQUEUE_H
+#pragma once
 
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/port/have.h>
@@ -30,8 +29,6 @@ class Mock_Kqueue_Directory_Open_Error_Guard {
 };
 #endif
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

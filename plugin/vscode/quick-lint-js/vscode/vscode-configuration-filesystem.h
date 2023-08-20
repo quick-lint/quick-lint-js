@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_VSCODE_CONFIGURATION_FILESYSTEM_H
-#define QUICK_LINT_JS_VSCODE_VSCODE_CONFIGURATION_FILESYSTEM_H
+#pragma once
 
 // TODO(strager): Trim includes.
 #include <cstdio>
@@ -162,8 +161,6 @@ class VSCode_Configuration_Filesystem : public Configuration_Filesystem {
   Configuration_Filesystem* underlying_fs_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

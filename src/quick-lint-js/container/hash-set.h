@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_HASH_SET_H
-#define QUICK_LINT_JS_CONTAINER_HASH_SET_H
+#pragma once
 
 #include <quick-lint-js/container/hash-map.h>
 #include <tuple>
@@ -155,8 +154,6 @@ class Hash_Set {
   Map set_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

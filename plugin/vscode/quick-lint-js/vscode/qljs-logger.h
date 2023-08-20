@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_QLJS_LOGGER_H
-#define QUICK_LINT_JS_VSCODE_QLJS_LOGGER_H
+#pragma once
 
 #include <cstdio>
 #include <memory>
@@ -95,8 +94,6 @@ class QLJS_Logger : public Logger, public ::Napi::ObjectWrap<QLJS_Logger> {
   Thread_Safe_JS_Function<flush_from_thread> flush_on_js_thread_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

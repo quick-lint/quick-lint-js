@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_VARIANT_H
-#define QUICK_LINT_JS_CONTAINER_VARIANT_H
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -605,8 +604,6 @@ class Variant<T0, T1, T2> {
 #undef QLJS_VARIANT_MIXIN
 #undef QLJS_VARIANT_MOVE_ASSIGN_CASE
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

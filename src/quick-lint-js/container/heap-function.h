@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_HEAP_FUNCTION_H
-#define QUICK_LINT_JS_CONTAINER_HEAP_FUNCTION_H
+#pragma once
 
 #include <type_traits>
 #include <utility>
@@ -71,8 +70,6 @@ class Heap_Function<Result(Args...)> {
   Dynamic_Callable_Base* callable_ = nullptr;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

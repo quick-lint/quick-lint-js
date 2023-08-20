@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_KEYWORD_LEXER_H
-#define QUICK_LINT_JS_FE_KEYWORD_LEXER_H
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -104,8 +103,6 @@ struct Keyword_Lexer {
 #endif
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

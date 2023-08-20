@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LOGGING_LOG_H
-#define QUICK_LINT_JS_LOGGING_LOG_H
+#pragma once
 
 // This file is separate from logger.h to reduce #include bloat.
 
@@ -18,8 +17,6 @@ bool is_logging_enabled();
 
 void debug_log(const char* format, ...);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

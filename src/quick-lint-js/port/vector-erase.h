@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_VECTOR_ERASE_H
-#define QUICK_LINT_JS_PORT_VECTOR_ERASE_H
+#pragma once
 
 #include <algorithm>
 
@@ -21,8 +20,6 @@ void erase_if(Vector& v, Pred&& pred) {
   v.erase(std::remove_if(v.begin(), end, pred), end);
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

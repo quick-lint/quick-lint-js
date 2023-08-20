@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FEATURE_H
-#define QUICK_LINT_JS_FEATURE_H
+#pragma once
 
 #if !defined(QLJS_FEATURE_DEBUG_SERVER)
 #define QLJS_FEATURE_DEBUG_SERVER 0
@@ -10,8 +9,6 @@
 
 #if !defined(QLJS_FEATURE_VECTOR_PROFILING)
 #define QLJS_FEATURE_VECTOR_PROFILING 0
-#endif
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

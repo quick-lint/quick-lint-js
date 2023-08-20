@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_NARROW_CAST_H
-#define QUICK_LINT_JS_UTIL_NARROW_CAST_H
+#pragma once
 
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/port/have.h>
@@ -33,8 +32,6 @@ Out narrow_cast(In x
   return static_cast<Out>(x);
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

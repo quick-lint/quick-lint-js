@@ -4,8 +4,7 @@
 // See ADR001-Feature-testing-with-have-h.md for usage of and rationale for this
 // file.
 
-#ifndef QUICK_LINT_JS_PORT_HAVE_H
-#define QUICK_LINT_JS_PORT_HAVE_H
+#pragma once
 
 #if defined(QLJS_HAVE_VERSION_HEADER) && QLJS_HAVE_VERSION_HEADER
 #elif defined(__has_include)
@@ -553,8 +552,6 @@
 #endif
 #if !defined(QLJS_HAVE_POSIX_SPAWN)
 #define QLJS_HAVE_POSIX_SPAWN 0
-#endif
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

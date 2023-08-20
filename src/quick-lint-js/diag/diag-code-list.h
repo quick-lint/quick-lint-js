@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DIAG_DIAG_CODE_LIST_H
-#define QUICK_LINT_JS_DIAG_DIAG_CODE_LIST_H
+#pragma once
 
 #include <array>
 #include <bitset>
@@ -52,8 +51,6 @@ class Compiled_Diag_Code_List {
   bool has_missing_predicate_error_ = false;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

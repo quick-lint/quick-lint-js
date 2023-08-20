@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_BINARY_READER_H
-#define QUICK_LINT_JS_UTIL_BINARY_READER_H
+#pragma once
 
 #include <algorithm>
 #include <cstddef>
@@ -76,8 +75,6 @@ class Checked_Binary_Reader {
   Function_Ref<void()> unexpected_end_of_file_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

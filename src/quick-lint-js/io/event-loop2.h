@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_IO_EVENT_LOOP2_H
-#define QUICK_LINT_JS_IO_EVENT_LOOP2_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No event loops on the web.
@@ -498,8 +497,6 @@ using Event_Loop2 =
 }
 
 QLJS_WARNING_POP
-
-#endif
 
 #endif
 

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_LINKED_BUMP_ALLOCATOR_H
-#define QUICK_LINT_JS_CONTAINER_LINKED_BUMP_ALLOCATOR_H
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -315,8 +314,6 @@ class Linked_Bump_Allocator : public Memory_Resource {
 #endif
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_CONCAT_H
-#define QUICK_LINT_JS_CONTAINER_CONCAT_H
+#pragma once
 
 #include <quick-lint-js/port/char8.h>
 #include <string>
@@ -172,8 +171,6 @@ String8 concat(String8_View, String8_View, String8_View, String8_View, String8_V
 // clang-format on
 #endif
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

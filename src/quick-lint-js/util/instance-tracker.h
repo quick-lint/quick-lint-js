@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_INSTANCE_TRACKER_H
-#define QUICK_LINT_JS_UTIL_INSTANCE_TRACKER_H
+#pragma once
 
 #include <memory>
 #include <quick-lint-js/port/vector-erase.h>
@@ -58,8 +57,6 @@ class Instance_Tracker {
       weak_instances_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

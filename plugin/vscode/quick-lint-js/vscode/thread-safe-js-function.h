@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VSCODE_THREAD_SAFE_JS_FUNCTION_H
-#define QUICK_LINT_JS_VSCODE_THREAD_SAFE_JS_FUNCTION_H
+#pragma once
 
 #include <napi.h>
 #include <quick-lint-js/assert.h>
@@ -85,8 +84,6 @@ class Thread_Safe_JS_Function {
   ::Napi::TypedThreadSafeFunction<void, void, call_func> function_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_FLOAT_H
-#define QUICK_LINT_JS_UTIL_FLOAT_H
+#pragma once
 
 #include <quick-lint-js/port/char8.h>
 
@@ -31,8 +30,6 @@ Char8 *write_decimal_float(T, Char8 *out);
 extern template Char8 *write_decimal_float<float>(float, Char8 *out);
 extern template Char8 *write_decimal_float<double>(double, Char8 *out);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

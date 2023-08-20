@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
-#define QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No filesystem on the web.
@@ -48,8 +47,6 @@ class Fake_Configuration_Filesystem : public Configuration_Filesystem {
   Hash_Map<Canonical_Path, Heap_Function<Read_File_Result()>> files_;
 };
 }
-
-#endif
 
 #endif
 

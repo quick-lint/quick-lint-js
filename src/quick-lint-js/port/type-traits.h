@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_TYPE_TRAITS_H
-#define QUICK_LINT_JS_PORT_TYPE_TRAITS_H
+#pragma once
 
 #include <quick-lint-js/port/have.h>
 #include <type_traits>
@@ -24,8 +23,6 @@ struct Make_Unsigned<char8_t> {
 template <class T>
 using Make_Unsigned_T = typename Make_Unsigned<T>::type;
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

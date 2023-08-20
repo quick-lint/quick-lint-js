@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CLI_VIM_QFLIST_JSON_DIAG_REPORTER_H
-#define QUICK_LINT_JS_CLI_VIM_QFLIST_JSON_DIAG_REPORTER_H
+#pragma once
 
 #include <optional>
 #include <quick-lint-js/cli/vim-location.h>
@@ -63,8 +62,6 @@ class Vim_QFList_JSON_Diag_Formatter
   std::string_view bufnr_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

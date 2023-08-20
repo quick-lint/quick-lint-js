@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_I18N_TRANSLATION_TABLE_COMPILER_H
-#define QUICK_LINT_JS_I18N_TRANSLATION_TABLE_COMPILER_H
+#pragma once
 
 #include <cstdint>
 #include <optional>
@@ -130,8 +129,6 @@ Span<String8_View> get_locale_names(Span<const PO_File> files,
 Span<String8_View> get_all_untranslated(Span<const PO_File> files,
                                         Monotonic_Allocator* allocator);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

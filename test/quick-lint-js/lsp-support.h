@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LSP_SUPPORT_H
-#define QUICK_LINT_JS_LSP_SUPPORT_H
+#pragma once
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -38,8 +37,6 @@ inline void expect_parse_error(const TJSON_Value& message) {
   EXPECT_EQ(message[u8"id"_sv], nullptr);
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

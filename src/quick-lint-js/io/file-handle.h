@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_IO_FILE_HANDLE_H
-#define QUICK_LINT_JS_IO_FILE_HANDLE_H
+#pragma once
 
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -295,8 +294,6 @@ using Platform_File_Ref = POSIX_FD_File_Ref;
 #error "Unknown platform"
 #endif
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

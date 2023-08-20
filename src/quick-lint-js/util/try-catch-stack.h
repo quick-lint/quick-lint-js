@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_TRY_CATCH_STACK_H
-#define QUICK_LINT_JS_UTIL_TRY_CATCH_STACK_H
+#pragma once
 
 #include <csetjmp>
 #include <optional>
@@ -100,8 +99,6 @@ class Try_Catch_Stack {
   std::vector<Catch_Entry> catch_stack_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

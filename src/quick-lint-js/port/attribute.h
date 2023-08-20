@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_ATTRIBUTE_H
-#define QUICK_LINT_JS_PORT_ATTRIBUTE_H
+#pragma once
 
 #if defined(__clang__) || defined(__GNUC__)
 #define QLJS_FORCE_INLINE [[gnu::always_inline]]
@@ -10,8 +9,6 @@
 #define QLJS_FORCE_INLINE __forceinline
 #else
 #define QLJS_FORCE_INLINE /* empty */
-#endif
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

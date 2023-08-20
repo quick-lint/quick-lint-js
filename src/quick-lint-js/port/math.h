@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_MATH_H
-#define QUICK_LINT_JS_PORT_MATH_H
+#pragma once
 
 #include <cstdint>
 #include <quick-lint-js/port/have.h>
@@ -53,8 +52,6 @@ inline std::uint64_t multiply_u64_get_top_64(std::uint64_t lhs,
 #endif
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

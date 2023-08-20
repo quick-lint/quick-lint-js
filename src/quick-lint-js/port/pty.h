@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_PTY_H
-#define QUICK_LINT_JS_PORT_PTY_H
+#pragma once
 
 #include <quick-lint-js/port/have.h>
 
@@ -20,8 +19,6 @@ namespace quick_lint_js {
                 struct ::winsize *winp);
 #endif
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

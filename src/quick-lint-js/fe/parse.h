@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_PARSE_H
-#define QUICK_LINT_JS_FE_PARSE_H
+#pragma once
 
 #include <cstdlib>
 #include <optional>
@@ -1142,8 +1141,6 @@ Parser::consume_semicolon<Diag_Missing_Semicolon_After_Interface_Method>();
 extern template void
 Parser::consume_semicolon<Diag_Missing_Semicolon_After_Statement>();
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

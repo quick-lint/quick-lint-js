@@ -1,16 +1,13 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONTAINER_MONOTONIC_ALLOCATOR_H
-#define QUICK_LINT_JS_CONTAINER_MONOTONIC_ALLOCATOR_H
+#pragma once
 
 #include <quick-lint-js/container/linked-bump-allocator.h>
 
 namespace quick_lint_js {
 using Monotonic_Allocator = Linked_Bump_Allocator<alignof(void*)>;
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

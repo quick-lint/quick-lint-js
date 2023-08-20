@@ -6,8 +6,7 @@
 // GCC+MinGW's threading implementation on Windows is heavy-weight, increasing
 // binary size. Our classes use Win32 APIs directly, avoiding bloat.
 
-#ifndef QUICK_LINT_JS_PORT_THREAD_H
-#define QUICK_LINT_JS_PORT_THREAD_H
+#pragma once
 
 #include <cstdint>
 #include <mutex>
@@ -201,8 +200,6 @@ class Condition_Variable {
 
 std::uint64_t get_current_thread_id();
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

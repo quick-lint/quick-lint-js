@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DIAG_COLLECTOR_H
-#define QUICK_LINT_JS_DIAG_COLLECTOR_H
+#pragma once
 
 #include <iosfwd>
 #include <quick-lint-js/assert.h>
@@ -59,8 +58,6 @@ void PrintTo(const Diag_Collector::Diag &, std::ostream *);
 QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

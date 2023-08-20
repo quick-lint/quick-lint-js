@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PORT_IN_RANGE_H
-#define QUICK_LINT_JS_PORT_IN_RANGE_H
+#pragma once
 
 #include <quick-lint-js/port/limits.h>
 #include <quick-lint-js/port/type-traits.h>
@@ -27,8 +26,6 @@ constexpr bool in_range([[maybe_unused]] In x) {
   }
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

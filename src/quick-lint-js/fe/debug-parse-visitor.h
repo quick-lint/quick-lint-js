@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_DEBUG_PARSE_VISITOR_H
-#define QUICK_LINT_JS_FE_DEBUG_PARSE_VISITOR_H
+#pragma once
 
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse-visitor.h>
@@ -239,8 +238,6 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
   Output_Stream *output_;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

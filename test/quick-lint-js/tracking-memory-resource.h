@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_TRACKING_MEMORY_RESOURCE_H
-#define QUICK_LINT_JS_TRACKING_MEMORY_RESOURCE_H
+#pragma once
 
 #include <cstdint>
 #include <quick-lint-js/assert.h>
@@ -48,8 +47,6 @@ class Tracking_Memory_Resource : public Memory_Resource {
   std::uint64_t deallocated_bytes_ = 0;
 };
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

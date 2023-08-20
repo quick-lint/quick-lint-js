@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_I18N_PO_PARSER_H
-#define QUICK_LINT_JS_I18N_PO_PARSER_H
+#pragma once
 
 #include <iosfwd>
 #include <quick-lint-js/container/linked-vector.h>
@@ -49,8 +48,6 @@ Span<PO_Entry> parse_po_file(Padded_String_View code, const char* file_path,
                              CLI_Locator* locator,
                              Monotonic_Allocator* allocator);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

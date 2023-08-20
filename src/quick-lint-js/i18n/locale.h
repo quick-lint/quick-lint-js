@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_I18N_LOCALE_H
-#define QUICK_LINT_JS_I18N_LOCALE_H
+#pragma once
 
 #include <cstring>
 #include <optional>
@@ -18,8 +17,6 @@ std::optional<int> find_locale(const char* locales, const char* locale_name);
 
 std::vector<std::string> locale_name_combinations(const char* locale_name);
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

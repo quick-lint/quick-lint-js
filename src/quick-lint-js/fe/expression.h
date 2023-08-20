@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_EXPRESSION_H
-#define QUICK_LINT_JS_FE_EXPRESSION_H
+#pragma once
 
 #include <array>
 #include <memory>
@@ -1472,8 +1471,6 @@ inline Function_Attributes Expression::attributes() const {
 QLJS_WARNING_POP
 
 #undef QLJS_UNEXPECTED_EXPRESSION_KIND
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

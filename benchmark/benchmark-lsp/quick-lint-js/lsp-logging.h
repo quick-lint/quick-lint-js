@@ -1,15 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LSP_LOGGING_H
-#define QUICK_LINT_JS_LSP_LOGGING_H
+#pragma once
 
 namespace quick_lint_js {
 extern FILE* log_file;
 extern bool log_colors;
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

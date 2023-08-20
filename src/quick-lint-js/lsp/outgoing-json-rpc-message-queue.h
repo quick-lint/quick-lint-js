@@ -1,8 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LSP_OUTGOING_JSON_RPC_MESSAGE_QUEUE_H
-#define QUICK_LINT_JS_LSP_OUTGOING_JSON_RPC_MESSAGE_QUEUE_H
+#pragma once
 
 #if defined(__EMSCRIPTEN__)
 // No LSP on the web.
@@ -34,8 +33,6 @@ class Outgoing_JSON_RPC_Message_Queue {
   std::vector<Byte_Buffer> messages_;
 };
 }
-
-#endif
 
 #endif
 
