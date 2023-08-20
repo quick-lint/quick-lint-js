@@ -23,6 +23,8 @@ Variable_Kind Global_Declared_Variable::kind() const {
   }
 }
 
+Global_Declared_Variable_Set::Global_Declared_Variable_Set() { this->clear(); }
+
 void Global_Declared_Variable_Set::add_predefined_global_variable(
     const Char8 *name, bool is_writable) {
   this->add_global_variable(Global_Declared_Variable{
@@ -92,6 +94,11 @@ std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find_type(
     Identifier name) const {
   // TODO(#690): Do not treat all globals as type-visible.
   return this->find(name);
+}
+
+void Global_Declared_Variable_Set::clear() {
+  this->variables_.clear();
+  this->all_variables_declared_ = false;
 }
 
 std::vector<String8_View> Global_Declared_Variable_Set::get_all_variable_names()

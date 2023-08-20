@@ -31,6 +31,8 @@ class Global_Declared_Variable_Set {
  public:
   using Found_Variable_Type = std::optional<Global_Declared_Variable>;
 
+  explicit Global_Declared_Variable_Set();
+
   void add_predefined_global_variable(const Char8 *name, bool is_writable);
 
   void add_global_variable(Global_Declared_Variable);
@@ -49,6 +51,9 @@ class Global_Declared_Variable_Set {
   // See variable_analyzer::declared_variable_set::find_type.
   std::optional<Global_Declared_Variable> find_type(Identifier name) const;
 
+  // Return this Global_Declared_Variable_Set to its default-constructed state.
+  void clear();
+
   // For testing only:
   std::vector<String8_View> get_all_variable_names() const;
 
@@ -63,7 +68,7 @@ class Global_Declared_Variable_Set {
   };
 
   Hash_Map<String8_View, Variable_Options> variables_;
-  bool all_variables_declared_ = false;
+  bool all_variables_declared_;
 };
 }
 

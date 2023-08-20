@@ -138,8 +138,7 @@ void Configuration::load_from_json(Padded_String_View json,
 }
 
 void Configuration::reset() {
-  // TODO(strager): Make this more efficient by avoiding reallocations.
-  this->globals_ = Global_Declared_Variable_Set();
+  this->globals_.clear();
   this->globals_to_remove_.clear();
   this->did_add_globals_from_groups_ = false;
   for (bool& enabled : this->enabled_global_groups_) {

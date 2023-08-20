@@ -425,6 +425,65 @@ TEST(Test_Configuration, overwrite_global_variable) {
   }
 }
 
+TEST(Test_Configuration, reset_removes_added_globals) {
+  Configuration c;
+  c.add_global_variable(Global_Declared_Variable{
+      .name = u8"testGlobalVariable"_sv,
+      .is_writable = false,
+      .is_shadowable = false,
+      .is_type_only = false,
+  });
+
+  c.reset();
+
+  EXPECT_FALSE(c.globals().find(u8"testGlobalVariable"_sv).has_value());
+}
+
+TEST(Test_Configuration, reset_undoes_removed_global_group) {
+  {
+    Configuration c;
+    ASSERT_TRUE(c.globals().find(u8"console"_sv).has_value())
+        << "'console' should be declared by default";
+  }
+
+  Configuration c;
+  c.reset_global_groups();
+  c.add_global_group(u8"ecmascript");
+  ASSERT_FALSE(c.globals().find(u8"console"_sv).has_value())
+      << "reset_global_groups should undeclare 'console'";
+  ASSERT_TRUE(c.globals().find(u8"Array"_sv).has_value());
+
+  c.reset();
+
+  EXPECT_TRUE(c.globals().find(u8"console"_sv).has_value());
+  EXPECT_TRUE(c.globals().find(u8"Array"_sv).has_value());
+}
+
+TEST(Test_Configuration, reset_removes_literally_anything_group) {
+  Configuration c;
+  c.add_global_group(u8"literally-anything");
+  ASSERT_TRUE(c.globals().find(u8"testGlobalVariable"_sv).has_value());
+
+  c.reset();
+
+  EXPECT_FALSE(c.globals().find(u8"testGlobalVariable"_sv).has_value());
+}
+
+TEST(Test_Configuration, reset_undoes_removed_global_variables) {
+  {
+    Configuration c;
+    ASSERT_TRUE(c.globals().find(u8"console"_sv).has_value())
+        << "'console' should be declared by default";
+  }
+
+  Configuration c;
+  c.remove_global_variable(u8"console");
+
+  c.reset();
+
+  EXPECT_TRUE(c.globals().find(u8"console"_sv).has_value());
+}
+
 TEST(Test_Configuration_JSON, empty_json_creates_default_config) {
   Configuration c;
   load_from_json(c, u8"{}"_sv);
