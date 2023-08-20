@@ -3,26 +3,81 @@
 
 #pragma once
 
+#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <quick-lint-js/container/hash.h>
+#include <quick-lint-js/port/memory-resource.h>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
 namespace quick_lint_js {
+// Like std::pmr::polymorphic_allocator<T>, but with allocator propagation
+// enabled and with a specific default allocator.
+template <class T>
+class Hash_Map_Allocator
+    : public ::boost::container::pmr::polymorphic_allocator<T> {
+ private:
+  using Base = ::boost::container::pmr::polymorphic_allocator<T>;
+
+ public:
+  using Base::polymorphic_allocator;
+
+  explicit Hash_Map_Allocator() : Hash_Map_Allocator(new_delete_resource()) {}
+
+  Hash_Map_Allocator select_on_container_copy_construction() { return *this; }
+
+  using propagate_on_container_copy_assignment = std::true_type;
+  using propagate_on_container_move_assignment = std::true_type;
+  using propagate_on_container_swap = std::true_type;
+};
+
 // Like std::unordered_map.
 template <class Key, class Value, class Hash = Hasher<Key>>
 class Hash_Map {
  private:
-  using Unordered_Map = std::unordered_map<Key, Value, Hash>;
+  using Key_Equal = std::equal_to<>;
+  using Allocator = Hash_Map_Allocator<std::pair<const Key, Value>>;
+  using Unordered_Map =
+      std::unordered_map<Key, Value, Hash, Key_Equal, Allocator>;
 
  public:
+  using allocator_type = Allocator;
   using const_iterator = typename Unordered_Map::const_iterator;
   using iterator = typename Unordered_Map::iterator;
   using size_type = typename Unordered_Map::size_type;
   using value_type = typename Unordered_Map::value_type;
 
-  explicit Hash_Map() = default;
+  // TODO(strager): Require a Memory_Resource.
+  explicit Hash_Map() : Hash_Map(new_delete_resource()) {}
 
-  explicit Hash_Map(std::initializer_list<value_type> init) : map_(init) {}
+  // Needed for AllocatorAwareContainer.
+  explicit Hash_Map(const Allocator& allocator)
+      : Hash_Map(allocator.resource()) {}
+
+  explicit Hash_Map(Memory_Resource* memory) : map_(memory) {}
+
+  // TODO(strager): Require a Memory_Resource.
+  explicit Hash_Map(std::initializer_list<value_type> init)
+      : Hash_Map(init, new_delete_resource()) {}
+
+  explicit Hash_Map(std::initializer_list<value_type> init,
+                    Memory_Resource* memory)
+      : map_(init, /*bucket_count=*/0, memory) {}
+
+  Hash_Map(const Hash_Map&) = default;
+  // Propagates the Memory_Resource.
+  Hash_Map& operator=(const Hash_Map&) = default;
+
+  Hash_Map(Hash_Map&&) = default;
+  // Propagates the Memory_Resource.
+  Hash_Map& operator=(Hash_Map&&) = default;
+
+  // Needed for AllocatorAwareContainer.
+  Hash_Map(const Hash_Map& other, const Allocator& allocator)
+      : map_(other.map_, allocator) {}
+
+  // Needed for AllocatorAwareContainer.
+  const Allocator& get_allocator() { return this->map_.get_allocator(); }
 
   template <class K>
   const_iterator find(const K& key) const {
