@@ -23,7 +23,7 @@ if [[ -z "${parallelism}" ]]; then
   parallelism=3
 fi
 
-files_to_parse=($(find_non_vendor_files | matching '\.(c|cpp|h)$'))
+files_to_parse=($(find_non_vendor_files | matching '\.(c|cpp|h)$' | grep -v '^tools/templates/'))
 chunk_size=$(((${#files_to_parse[@]} + ${parallelism} - 1) / ${parallelism}))
 
 printf '%s\n' "${files_to_parse[@]}" \
