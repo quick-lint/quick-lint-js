@@ -1,0 +1,10 @@
+# Configure GitHub's Linguist.
+# https://github.com/github-linguist/linguist/blob/master/docs/overrides.md
+*.h linguist-language=C++
+/** -linguist-vendored
+/vendor/*/** linguist-vendored
+/vendor/*.patch linguist-detectable
+/benchmark/benchmark-lsp/corpus/** -linguist-detectable
+/** -linguist-documentation
+/docs/** linguist-documentation
+/website/** linguist-documentation
