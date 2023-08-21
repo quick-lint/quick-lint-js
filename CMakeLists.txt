@@ -105,11 +105,6 @@ option(
 )
 
 option(
-  QUICK_LINT_JS_USE_BUNDLED_BOOST
-  "Use the third-party Boost library bundled with quick-lint-js instead of using the host-installed Boost"
-  ON
-)
-option(
   QUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK
   "Use the third-party Google Benchmark library bundled with quick-lint-js instead of using the host-installed Google Benchmark"
   ON
@@ -164,7 +159,6 @@ add_subdirectory(tools)
 if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
   include(vendor/benchmark.cmake)
 endif ()
-include(vendor/boost.cmake)
 include(vendor/googletest.cmake)
 if (QUICK_LINT_JS_FEATURE_DEBUG_SERVER)
   include(vendor/mongoose.cmake)

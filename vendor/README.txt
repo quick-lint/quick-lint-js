@@ -21,46 +21,6 @@ Release URL: https://github.com/google/benchmark/releases/tag/v1.6.1
 Release date: January 10, 2022
 Version: v1.6.1
 
-## boost
-
-The boost directory contains Boost, free peer-reviewed portable C++ source
-libraries.
-
-The boost directory was generated using Boost's [bcp
-tool](https://www.boost.org/doc/libs/1_76_0/tools/bcp/doc/html/index.html). To
-regenerate the boost directory, run the following commands inside a Boost
-release archive:
-
-    $ qljs_vendor=/PATH/TO/quick-lint-js/vendor/
-    $ cd /PATH/TO/BOOST/
-    $ ./bootstrap.sh
-    $ cd tools/bcp/
-    $ ../../b2
-    $ cd ../../
-    $ rm -r "${qljs_vendor}/boost/"
-    $ mkdir "${qljs_vendor}/boost/"
-    $ boost_libs="boost/container/pmr/memory_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/throw_exception.hpp"
-    $ eval ./dist/bin/bcp ${boost_libs} "${qljs_vendor}/boost/"
-    $ eval ./dist/bin/bcp --report ${boost_libs} "${qljs_vendor}/boost/report.html"
-    $ cp LICENSE_1_0.txt "${qljs_vendor}/boost/"
-    $ rm -r "${qljs_vendor}/boost/usr/"
-
-Additionally, the following patches have been manually applied:
-
-* boost-static-var.patch
-
-Copyright: various
-Download URL: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2
-Download date: June 27, 2021
-Git commit: ccb2ab3b4384a16deafaa849de509bce2b2cbada (et al)
-License file: boost/LICENSE_1_0.txt
-License type: BSL-1.0
-Location: boost
-Project URL: https://www.boost.org/
-Release URL: https://www.boost.org/users/history/version_1_76_0.html
-Release date: April 16th, 2021
-Version: 1.76.0
-
 ## googletest
 
 The googletest directory contains Google Test, a testing framework for C++

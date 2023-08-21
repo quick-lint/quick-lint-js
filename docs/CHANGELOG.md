@@ -18,6 +18,11 @@ Semantic Versioning.
 * LSP: On macOS, quick-lint-js no longer hangs if a file has too many
   diagnostics.
 
+### Changed
+
+* quick-lint-js no longer depends on the Boost third-party library. The
+  `QUICK_LINT_JS_USE_BUNDLED_BOOST` CMake variable now has no effect.
+
 ## 2.15.0 (2023-07-18)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.15.0/)

@@ -18,7 +18,6 @@ jobs:
           pacman -Syyuu --noconfirm \
             base-devel \
             benchmark \
-            boost \
             cmake \
             git \
             gtest \
@@ -56,7 +55,6 @@ jobs:
             -DBUILD_TESTING=YES \
             -DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES \
             -DQUICK_LINT_JS_HAVE_WORKING_FCHAR8_T=NO \
-            -DQUICK_LINT_JS_USE_BUNDLED_BOOST=NO \
             -DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=NO \
             -DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=NO \
             -DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=NO \

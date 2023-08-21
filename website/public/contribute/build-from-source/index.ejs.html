@@ -63,7 +63,7 @@
           Linux only):
         </p>
         <blockquote>
-          <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>c++ -o quick-lint-js -std=gnu++17 -I src -I vendor/boost -I vendor/simdjson/include -I vendor/simdjson/src -D_LIBCPP_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=1 -D_LIBCPP_INLINE_VISIBILITY="__attribute__((internal_linkage))" src/quick-lint-js/*.cpp src/quick-lint-js/*/*.cpp vendor/boost/libs/container/src/*.cpp vendor/boost/libs/container/src/alloc_lib.c vendor/simdjson/src/simdjson.cpp -pthread</kbd></span>
+          <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>c++ -o quick-lint-js -std=gnu++17 -I src -I vendor/simdjson/include -I vendor/simdjson/src -D_LIBCPP_HIDE_FROM_ABI_PER_TU_BY_DEFAULT=1 -D_LIBCPP_INLINE_VISIBILITY="__attribute__((internal_linkage))" src/quick-lint-js/*.cpp src/quick-lint-js/*/*.cpp vendor/simdjson/src/simdjson.cpp -pthread</kbd></span>
 <kbd>./quick-lint-js <var>path/to/my-file.js</var></kbd></code></pre>
         </blockquote>
       </section>
@@ -111,24 +111,6 @@
         <h3>Optional dependencies</h3>
         <p>Each of the following are optional:</p>
         <dl>
-          <dt>Boost Container</dt>
-          <dd>
-            Vendored by default; use your own version by setting the
-            <code>QUICK_LINT_JS_USE_BUNDLED_BOOST</code> CMake variable to
-            <code>NO</code>
-          </dd>
-          <dt>Boost JSON</dt>
-          <dd>
-            Vendored by default; used only for testing; use your own version by
-            setting the <code>QUICK_LINT_JS_USE_BUNDLED_BOOST</code> CMake
-            variable to <code>NO</code>
-          </dd>
-          <dt>Boost JSON</dt>
-          <dd>
-            Vendored by default; used only for testing; use your own version by
-            setting the <code>QUICK_LINT_JS_USE_BUNDLED_BOOST</code> CMake
-            variable to <code>NO</code>
-          </dd>
           <dt>Google Benchmark</dt>
           <dd>
             Vendored by default; used only for testing; use your own version by

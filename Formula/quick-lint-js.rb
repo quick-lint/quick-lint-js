@@ -11,7 +11,6 @@ class QuickLintJs < Formula
   depends_on "cmake" => :build
   depends_on "googletest" => :build
   depends_on "pkg-config" => :build
-  depends_on "boost"
   depends_on "simdjson"
 
   fails_with :gcc do
@@ -25,7 +24,6 @@ class QuickLintJs < Formula
                     "-DQUICK_LINT_JS_ENABLE_BENCHMARKS=OFF",
                     "-DQUICK_LINT_JS_INSTALL_EMACS_DIR=#{elisp}",
                     "-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON",
-                    "-DQUICK_LINT_JS_USE_BUNDLED_BOOST=OFF",
                     "-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=OFF",
                     "-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=OFF",
                     "-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=OFF",
