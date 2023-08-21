@@ -19,7 +19,7 @@
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/linter.h>
-#include <quick-lint-js/io/event-loop.h>
+#include <quick-lint-js/io/event-loop2.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/logger.h>
@@ -109,97 +109,50 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
   // This function runs on a background thread.
   void run_fs_change_detection_thread();
 
-  class FS_Change_Detection_Event_Loop
-      : public Event_Loop<FS_Change_Detection_Event_Loop> {
+  class FS_Change_Detection_Event_Loop :
+#if QLJS_HAVE_KQUEUE
+      public Event_Loop2_Custom_Kqueue_Delegate
+#elif QLJS_HAVE_INOTIFY
+      public Event_Loop2_Custom_Poll_Delegate
+#elif defined(_WIN32)
+      public Event_Loop2_Custom_Windows_IO_Completion_Delegate
+#endif
+  {
    public:
     explicit FS_Change_Detection_Event_Loop(QLJS_Workspace* workspace)
         :
 #if QLJS_HAVE_KQUEUE
-          fs_(this->kqueue_fd(),
-              reinterpret_cast<void*>(event_udata_fs_changed)),
+          kqueue_udata_(this->event_loop_.register_custom_kqueue(this)),
+          fs_(this->event_loop_.kqueue_fd(), this->kqueue_udata_),
 #elif QLJS_HAVE_INOTIFY
           fs_(),
 #elif defined(_WIN32)
-          fs_(this->io_completion_port(), completion_key_fs_changed),
+          windows_completion_key_(
+              this->event_loop_.register_custom_windows_io_completion(this)),
+          fs_(this->event_loop_.windows_io_completion_port(),
+              this->windows_completion_key_),
 #else
 #error "Unsupported platform"
 #endif
           workspace_(workspace) {
-#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-      this->stop_pipe_.reader.set_pipe_non_blocking();
+#if !QLJS_HAVE_KQUEUE && QLJS_HAVE_INOTIFY
+      this->event_loop_.register_custom_poll(this->fs_.get_inotify_fd().value(),
+                                             POLLIN, this);
 #endif
+
+      this->event_loop_.keep_alive();
     }
 
+    // Callable on any one thread once.
+    void run() { this->event_loop_.run(); }
+
+    // Callable on any thread once.
     void stop() {
-      this->stop_pipe_.writer.close();
+      this->event_loop_.un_keep_alive();
 #if defined(_WIN32)
       this->fs_.clear_watches();
 #endif
     }
-
-    Platform_File_Ref get_readable_pipe() const {
-      return this->stop_pipe_.reader.ref();
-    }
-
-    [[noreturn]] void append(String8_View) { QLJS_UNREACHABLE(); }
-
-#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-    std::optional<POSIX_FD_File_Ref> get_pipe_write_fd() {
-      return std::nullopt;
-    }
-#endif
-
-#if QLJS_HAVE_KQUEUE
-    [[noreturn]] void on_pipe_write_event(const struct ::kevent&) {
-      QLJS_UNREACHABLE();
-    }
-#elif QLJS_HAVE_POLL
-    [[noreturn]] void on_pipe_write_event(const ::pollfd&) {
-      QLJS_UNREACHABLE();
-    }
-#endif
-
-    void filesystem_changed() {
-      QLJS_DEBUG_LOG("Workspace %p: filesystem changed detected\n",
-                     this->workspace_);
-      ::napi_status status =
-          this->workspace_->check_for_config_file_changes_on_js_thread_
-              .BlockingCall();
-      // BlockingCall should not return napi_closing because we never call
-      // Abort.
-      QLJS_ASSERT(status == ::napi_ok);
-    }
-
-#if QLJS_HAVE_KQUEUE
-    void on_fs_changed_kevent(const struct ::kevent& event) {
-      this->fs_.handle_kqueue_event(event);
-    }
-
-    void on_fs_changed_kevents() { this->filesystem_changed(); }
-#endif
-
-#if QLJS_HAVE_INOTIFY
-    std::optional<POSIX_FD_File_Ref> get_inotify_fd() {
-      return this->fs_.get_inotify_fd();
-    }
-
-    void on_fs_changed_event(const ::pollfd& event) {
-      this->fs_.handle_poll_event(event);
-      this->filesystem_changed();
-    }
-#endif
-
-#if defined(_WIN32)
-    void on_fs_changed_event(::OVERLAPPED* overlapped,
-                             ::DWORD number_of_bytes_transferred,
-                             ::DWORD error) {
-      bool fs_changed = this->fs_.handle_event(
-          overlapped, number_of_bytes_transferred, error);
-      if (fs_changed) {
-        this->filesystem_changed();
-      }
-    }
-#endif
 
     using Underlying_FS_Type =
 #if QLJS_HAVE_KQUEUE
@@ -217,9 +170,80 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
       return &this->fs_;
     }
 
+   protected:
+#if QLJS_HAVE_KQUEUE
+    void on_custom_kqueue_events(Event_Loop2_Base*,
+                                 Span<struct ::kevent> events) override {
+      for (const struct ::kevent& event : events) {
+        this->fs_.handle_kqueue_event(event);
+      }
+      this->filesystem_changed();
+    }
+#endif
+
+#if QLJS_HAVE_INOTIFY
+    void on_custom_poll_event(Event_Loop2_Base*, POSIX_FD_File_Ref fd,
+                              short revents) override {
+      // TODO(strager): Make handle_poll_event accept just revents.
+      struct ::pollfd e;
+      e.fd = fd.get();
+      e.events = POLLIN;
+      e.revents = revents;
+      this->fs_.handle_poll_event(e);
+
+      this->filesystem_changed();
+    }
+#endif
+
+#if defined(_WIN32)
+    void on_custom_windows_io_completion(Event_Loop2_Base*, ::ULONG_PTR,
+                                         ::DWORD number_of_bytes_transferred,
+                                         ::OVERLAPPED* overlapped) override {
+      this->on_filesystem_io_completion(overlapped, number_of_bytes_transferred,
+                                        /*error=*/0);
+    }
+
+    void on_custom_windows_io_completion_error(
+        Event_Loop2_Base*, ::ULONG_PTR, ::DWORD error,
+        ::DWORD number_of_bytes_transferred,
+        ::OVERLAPPED* overlapped) override {
+      this->on_filesystem_io_completion(overlapped, number_of_bytes_transferred,
+                                        error);
+    }
+
+    void on_filesystem_io_completion(::OVERLAPPED* overlapped,
+                                     ::DWORD number_of_bytes_transferred,
+                                     ::DWORD error) {
+      bool fs_changed = this->fs_.handle_event(
+          overlapped, number_of_bytes_transferred, error);
+      if (fs_changed) {
+        this->filesystem_changed();
+      }
+    }
+#endif
+
    private:
+    void filesystem_changed() {
+      QLJS_DEBUG_LOG("Workspace %p: filesystem changed detected\n",
+                     this->workspace_);
+      ::napi_status status =
+          this->workspace_->check_for_config_file_changes_on_js_thread_
+              .BlockingCall();
+      // BlockingCall should not return napi_closing because we never call
+      // Abort.
+      QLJS_ASSERT(status == ::napi_ok);
+    }
+
+   private:
+    Event_Loop2 event_loop_;
+#if QLJS_HAVE_KQUEUE
+    Event_Loop2::Kqueue_Udata kqueue_udata_;
+#elif QLJS_HAVE_INOTIFY
+    // No extra state.
+#elif defined(_WIN32)
+    Event_Loop2::Windows_Completion_Key windows_completion_key_;
+#endif
     Thread_Safe_Configuration_Filesystem<Underlying_FS_Type> fs_;
-    Pipe_FDs stop_pipe_ = make_pipe();
     QLJS_Workspace* workspace_;
   };
 
