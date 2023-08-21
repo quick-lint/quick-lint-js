@@ -210,7 +210,6 @@ endif ()
 
 quick_lint_js_add_library(
   quick-lint-js-lib
-  quick-lint-js/boost.cpp
   quick-lint-js/c-api-diag-reporter.cpp
   quick-lint-js/c-api-diag-reporter.h
   quick-lint-js/c-api.cpp
