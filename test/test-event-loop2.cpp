@@ -519,7 +519,7 @@ TEST_P(Test_Event_Loop2,
   Thread stop_thread([&]() -> void {
     // Wait for the event loop to start.
     std::this_thread::sleep_for(10ms);
-    // Stop the event this->loop->
+    // Stop the event loop.
     this->loop->un_keep_alive();
   });
 
@@ -592,6 +592,78 @@ TEST_P(
 
   EXPECT_EQ(delegate.state_.lock()->pipe_read_data_call_count, 1);
   EXPECT_EQ(delegate.state_.lock()->pipe_write_ready_call_count, 1);
+}
+#endif
+
+#if QLJS_EVENT_LOOP2_PIPE_WRITE
+TEST_P(Test_Event_Loop2, disabling_pipe_write_again_has_no_effect_SLOW) {
+  // This test's implementation is like
+  // disabled_pipe_write_callback_does_not_fire_if_write_can_not_block_SLOW.
+
+  Pipe_FDs pipe = make_pipe();
+  pipe.writer.set_pipe_non_blocking();
+
+  struct Delegate : public Failing_Event_Loop2_Pipe_Write_Delegate {
+    void on_pipe_write_ready(Event_Loop2_Base*, Platform_File_Ref) override {
+      ADD_FAILURE()
+          << "pipe should be writable but callback should not be called";
+    }
+  };
+  Delegate delegate;
+  this->loop->register_pipe_write(pipe.writer.ref(), &delegate);
+  this->loop->keep_alive();
+
+  this->loop->disable_pipe_write(pipe.writer.ref());
+  // Disable again. This should leave the pipe_write registration disabled.
+  this->loop->disable_pipe_write(pipe.writer.ref());
+
+  Thread stop_thread([&]() -> void {
+    // Wait for the event loop to start.
+    std::this_thread::sleep_for(10ms);
+    this->loop->stop_event_loop_testing_only();
+  });
+
+  this->loop->run();
+
+  stop_thread.join();
+}
+#endif
+
+#if QLJS_EVENT_LOOP2_PIPE_WRITE
+TEST_P(Test_Event_Loop2, enabling_pipe_write_again_has_no_effect_SLOW) {
+  Pipe_FDs pipe = make_pipe();
+  pipe.writer.set_pipe_non_blocking();
+
+  struct Delegate : public Failing_Event_Loop2_Pipe_Write_Delegate {
+    void on_pipe_write_ready(Event_Loop2_Base* loop,
+                             Platform_File_Ref) override {
+      this->pipe_write_ready_call_count += 1;
+      loop->stop_event_loop_testing_only();
+    }
+
+    std::atomic<int> pipe_write_ready_call_count = 0;
+  };
+  Delegate delegate;
+  this->loop->register_pipe_write(pipe.writer.ref(), &delegate);
+  this->loop->keep_alive();
+
+  this->loop->disable_pipe_write(pipe.writer.ref());
+
+  Thread enable_thread([&]() -> void {
+    // Wait for the event loop to start.
+    std::this_thread::sleep_for(10ms);
+    EXPECT_EQ(delegate.pipe_write_ready_call_count, 0)
+        << "event loop should not call on_pipe_write_ready while the "
+           "registration is disabled";
+
+    this->loop->enable_pipe_write(pipe.writer.ref());
+    // Enable again. This should leave the pipe_write registration enabled.
+    this->loop->enable_pipe_write(pipe.writer.ref());
+  });
+
+  this->loop->run();
+
+  enable_thread.join();
 }
 #endif
 

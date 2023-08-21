@@ -219,8 +219,9 @@ class Event_Loop2_Base {
   // Event_Loop2_Pipe_Write_Delegate::on_pipe_write_end still might be called if
   // the registration is disabled.
   //
+  // If the pipe's registration was already disabled, this call does nothing.
+  //
   // Precondition: pipe was previously registered with register_pipe_write.
-  // Precondition: pipe is enabled.
   virtual void disable_pipe_write(Platform_File_Ref pipe) = 0;
 
   // Undo the effect of this->disable_pipe_write(pipe).
@@ -228,8 +229,9 @@ class Event_Loop2_Base {
   // Event_Loop2_Pipe_Write_Delegate::on_pipe_write_ready can be called again
   // after enable_pipe_write returns.
   //
+  // If the pipe's registration was already enabled, this call does nothing.
+  //
   // Precondition: pipe was previously registered with register_pipe_write.
-  // Precondition: pipe is disabled.
   virtual void enable_pipe_write(Platform_File_Ref pipe) = 0;
 #endif
 

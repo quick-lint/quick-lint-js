@@ -222,7 +222,10 @@ void Event_Loop2_Poll::disable_pipe_write(Platform_File_Ref pipe) {
   auto it = state->registered_events.find(pipe);
   QLJS_ASSERT(it != state->registered_events.end());
   Registered_Event& r = it->second;
-  QLJS_ASSERT(r.enabled);
+  if (!r.enabled) {
+    // disable_pipe_write does nothing if already disabled.
+    return;
+  }
 
   r.enabled = false;
 
@@ -235,7 +238,10 @@ void Event_Loop2_Poll::enable_pipe_write(Platform_File_Ref pipe) {
   auto it = state->registered_events.find(pipe);
   QLJS_ASSERT(it != state->registered_events.end());
   Registered_Event& r = it->second;
-  QLJS_ASSERT(!r.enabled);
+  if (r.enabled) {
+    // enable_pipe_write does nothing if already enabled.
+    return;
+  }
 
   r.enabled = true;
 
