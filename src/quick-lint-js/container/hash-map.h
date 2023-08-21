@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <quick-lint-js/container/hash.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <type_traits>
@@ -12,23 +11,52 @@
 
 namespace quick_lint_js {
 // Like std::pmr::polymorphic_allocator<T>, but with allocator propagation
-// enabled and with a specific default allocator.
+// enabled and with no default allocator.
 template <class T>
-class Hash_Map_Allocator
-    : public ::boost::container::pmr::polymorphic_allocator<T> {
- private:
-  using Base = ::boost::container::pmr::polymorphic_allocator<T>;
-
+class Hash_Map_Allocator {
  public:
-  using Base::polymorphic_allocator;
+  using value_type = T;
 
-  explicit Hash_Map_Allocator() : Hash_Map_Allocator(new_delete_resource()) {}
+  Hash_Map_Allocator(Memory_Resource* memory) : memory_(memory) {}
+
+  template <class U>
+  explicit Hash_Map_Allocator(Hash_Map_Allocator<U> other)
+      : memory_(other.resource()) {}
+
+  Hash_Map_Allocator(const Hash_Map_Allocator&) = default;
+  Hash_Map_Allocator& operator=(const Hash_Map_Allocator&) = default;
+
+  Hash_Map_Allocator(Hash_Map_Allocator&&) = default;
+  Hash_Map_Allocator& operator=(Hash_Map_Allocator&&) = default;
+
+  T* allocate(std::size_t size) {
+    return static_cast<T*>(
+        this->memory_->allocate(size * sizeof(T), alignof(T)));
+  }
+
+  void deallocate(T* p, std::size_t size) {
+    return this->memory_->deallocate(p, size * sizeof(T), alignof(T));
+  }
+
+  friend bool operator==(Hash_Map_Allocator lhs, Hash_Map_Allocator rhs) {
+    return lhs.memory_ == rhs.memory_;
+  }
+  friend bool operator!=(Hash_Map_Allocator lhs, Hash_Map_Allocator rhs) {
+    return !(lhs == rhs);
+  }
 
   Hash_Map_Allocator select_on_container_copy_construction() { return *this; }
 
   using propagate_on_container_copy_assignment = std::true_type;
   using propagate_on_container_move_assignment = std::true_type;
   using propagate_on_container_swap = std::true_type;
+
+  using is_always_empty = std::false_type;
+
+  Memory_Resource* resource() const { return this->memory_; }
+
+ private:
+  Memory_Resource* memory_;
 };
 
 // Like std::unordered_map.
