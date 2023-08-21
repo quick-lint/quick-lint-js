@@ -107,7 +107,7 @@ LSP_Server_Process LSP_Server_Process::spawn(
 
   posix_spawn_file_actions_destroy(&file_actions);
 
-#if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
+#if QLJS_EVENT_LOOP2_READ_PIPE_NON_BLOCKING
   server_to_client.reader.set_pipe_non_blocking();
 #endif
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD

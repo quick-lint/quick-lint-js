@@ -221,9 +221,6 @@ class LSP_Server_Process : private Event_Loop2_Pipe_Read_Delegate
     }();
 
     event_loop.keep_alive();
-#if QLJS_EVENT_LOOP2_READ_PIPE_NON_BLOCKING
-    this->reader_.set_pipe_non_blocking();
-#endif
     event_loop.register_pipe_read(this->reader_.ref(), this);
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
     event_loop.register_pipe_write(this->message_writer_.get_pipe_fd(), this);
