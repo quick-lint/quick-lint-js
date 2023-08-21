@@ -203,7 +203,6 @@ quick_lint_js_add_library(
   quick-lint-js/util/utf-8.h
 )
 target_include_directories(quick-lint-js-tool-lib PUBLIC .)
-target_link_libraries(quick-lint-js-tool-lib PUBLIC boost)
 if (WIN32)
   target_link_libraries(quick-lint-js-tool-lib PUBLIC pathcch)
 endif ()
@@ -414,7 +413,6 @@ target_include_directories(quick-lint-js-lib PUBLIC .)
 target_link_libraries(
   quick-lint-js-lib
   PUBLIC
-  boost
   quick-lint-js-diagnostic-metadata
   quick-lint-js-i18n
   quick-lint-js-tool-lib
@@ -493,7 +491,7 @@ quick_lint_js_add_library(
   quick-lint-js/lsp/lsp-location-debug.cpp
   quick-lint-js/port/char8-debug.cpp
 )
-target_link_libraries(quick-lint-js-lib-debug PUBLIC boost quick-lint-js-lib)
+target_link_libraries(quick-lint-js-lib-debug PUBLIC quick-lint-js-lib)
 
 if (QUICK_LINT_JS_ENABLE_CLI)
   quick_lint_js_collect_copyright(
