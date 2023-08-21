@@ -13,8 +13,10 @@
 #include <ostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/hash-map.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
+#include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
@@ -98,8 +100,9 @@ void Vector_Instrumentation::register_dump_on_exit_if_requested() {
       {
         Vector_Max_Size_Histogram_By_Owner hist;
         hist.add_entries(entries);
+        Monotonic_Allocator memory("Vector_Instrumentation dump_on_exit");
         Vector_Max_Size_Histogram_By_Owner::dump(
-            hist.histogram(), std::cerr,
+            hist.histogram(&memory), std::cerr,
             Vector_Max_Size_Histogram_By_Owner::Dump_Options{
                 .maximum_line_length = 80,
                 .max_adjacent_empty_rows = 5,
@@ -141,8 +144,9 @@ void Vector_Max_Size_Histogram_By_Owner::add_entries(
   }
 }
 
-std::map<std::string_view, std::map<std::size_t, int>>
-Vector_Max_Size_Histogram_By_Owner::histogram() const {
+Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>
+Vector_Max_Size_Histogram_By_Owner::histogram(
+    Monotonic_Allocator *memory) const {
   // TODO(strager): Avoid this copy.
   Hash_Map<const char *, Hash_Map<std::size_t, int>> histogram =
       this->histogram_;
@@ -152,6 +156,7 @@ Vector_Max_Size_Histogram_By_Owner::histogram() const {
   }
 
   // Convert hash_map into std::map.
+  // TODO(strager): Avoid this conversion. Convert straight into vectors.
   // NOTE(strager): We might need to merge some inner maps because we built the
   // hash_map with pointer comparison but we're building the std::map with
   // string comparison.
@@ -162,17 +167,41 @@ Vector_Max_Size_Histogram_By_Owner::histogram() const {
       stable_counts[size] += count;
     }
   }
-  return stable_histogram;
+
+  // NOTE(strager): We use Raw_Bump_Vector to prevent vector profiling code from
+  // emitting events itself.
+  Raw_Bump_Vector<Trace_Vector_Max_Size_Histogram_By_Owner_Entry,
+                  Monotonic_Allocator>
+      out_entries_by_owner(memory);
+  out_entries_by_owner.reserve(
+      narrow_cast<Bump_Vector_Size>(stable_histogram.size()));
+  for (auto &[owner, counts] : stable_histogram) {
+    Raw_Bump_Vector<Trace_Vector_Max_Size_Histogram_Entry, Monotonic_Allocator>
+        out_entries(memory);
+    out_entries.reserve(narrow_cast<Bump_Vector_Size>(counts.size()));
+    for (auto &[size, count] : counts) {
+      out_entries.push_back(Trace_Vector_Max_Size_Histogram_Entry{
+          .max_size = narrow_cast<std::uint64_t>(size),
+          .count = narrow_cast<std::uint64_t>(count),
+      });
+    }
+    out_entries_by_owner.push_back(
+        Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+            .owner = owner,
+            .max_size_entries = out_entries.release_to_span(),
+        });
+  }
+  return out_entries_by_owner.release_to_span();
 }
 
 void Vector_Max_Size_Histogram_By_Owner::dump(
-    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
+    Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> histogram,
     std::ostream &out) {
   return dump(histogram, out, Dump_Options());
 }
 
 void Vector_Max_Size_Histogram_By_Owner::dump(
-    const std::map<std::string_view, std::map<std::size_t, int>> &histogram,
+    Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> histogram,
     std::ostream &out, const Dump_Options &options) {
   bool need_blank_line = false;
   for (const auto &[group_name, object_size_histogram] : histogram) {
@@ -185,22 +214,23 @@ void Vector_Max_Size_Histogram_By_Owner::dump(
 
     out << "Max sizes for " << group_name << ":\n";
 
-    int max_count = 0;
-    int total_count = 0;
+    std::uint64_t max_count = 0;
+    std::uint64_t total_count = 0;
     for (const auto &[_object_size, count] : object_size_histogram) {
       total_count += count;
       max_count = std::max(max_count, count);
     }
-    std::size_t max_object_size = object_size_histogram.rbegin()->first;
+    std::uint64_t max_object_size = object_size_histogram.back().max_size;
 
     int max_digits_in_legend = static_cast<int>(
         std::ceil(std::log10(static_cast<double>(max_object_size + 1))));
     int legend_length = max_digits_in_legend + 9;
     int maximum_bar_length = options.maximum_line_length - legend_length;
-    double bar_scale_factor = max_count > maximum_bar_length
-                                  ? static_cast<double>(maximum_bar_length) /
-                                        static_cast<double>(max_count)
-                                  : 1.0;
+    double bar_scale_factor =
+        max_count > narrow_cast<std::uint64_t>(maximum_bar_length)
+            ? static_cast<double>(maximum_bar_length) /
+                  static_cast<double>(max_count)
+            : 1.0;
 
     std::size_t next_object_size = 0;
     for (auto &[object_size, count] : object_size_histogram) {

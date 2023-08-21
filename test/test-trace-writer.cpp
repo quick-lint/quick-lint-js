@@ -314,21 +314,30 @@ TEST(Test_Trace_Writer, write_event_vector_max_size_histogram_by_owner) {
   Async_Byte_Queue data;
   Trace_Writer w(&data);
 
-  std::map<std::string_view, std::map<std::size_t, int>> histogram = {
-      {"o1"sv,
-       {
-           {0, 4},
-           {1, 3},
-       }},
-      {"o2"sv,
-       {
-           {3, 7},
-       }},
+  Trace_Vector_Max_Size_Histogram_Entry o1_entries[] = {
+      {.max_size = 0, .count = 4},
+      {.max_size = 1, .count = 3},
+  };
+  Trace_Vector_Max_Size_Histogram_Entry o2_entries[] = {
+      {.max_size = 3, .count = 7},
+  };
+  Trace_Vector_Max_Size_Histogram_By_Owner_Entry entries[] = {
+      {
+          .owner = "o1",
+          .max_size_entries =
+              Span<const Trace_Vector_Max_Size_Histogram_Entry>(o1_entries),
+      },
+      {
+          .owner = "o2",
+          .max_size_entries =
+              Span<const Trace_Vector_Max_Size_Histogram_Entry>(o2_entries),
+      },
   };
   w.write_event_vector_max_size_histogram_by_owner(
       Trace_Event_Vector_Max_Size_Histogram_By_Owner{
           .timestamp = 0x5678,
-          .histogram = &histogram,
+          .entries = Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>(
+              entries),
       });
 
   data.commit();

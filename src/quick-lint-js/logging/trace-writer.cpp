@@ -58,15 +58,16 @@ void Trace_Writer::write_event_vector_max_size_histogram_by_owner(
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
     w.u64_le(event.timestamp);
     w.u8(event.id);
-    w.u64_le(event.histogram->size());
+    w.u64_le(narrow_cast<std::uint64_t>(event.entries.size()));
   });
-  for (auto& [owner, max_size_histogram] : *event.histogram) {
+  for (auto& [owner, max_size_histogram] : event.entries) {
     this->out_->append_copy(owner.data(), owner.size());
     this->out_->append_copy(u8'\0');
     this->append_binary(
-        8 + (8 + 8) * max_size_histogram.size(),
+        8 + (8 + 8) * narrow_cast<Async_Byte_Queue::Size_Type>(
+                          max_size_histogram.size()),
         [&, &max_size_histogram = max_size_histogram](Binary_Writer& w) {
-          w.u64_le(max_size_histogram.size());
+          w.u64_le(narrow_cast<std::uint64_t>(max_size_histogram.size()));
           for (auto& [max_size, count] : max_size_histogram) {
             w.u64_le(max_size);
             w.u64_le(narrow_cast<std::uint64_t>(count));
@@ -103,6 +104,26 @@ void Trace_Writer::write_event_lsp_documents(
 void Trace_Writer::write_utf8_string(String8_View s) {
   this->append_binary(8, [&](Binary_Writer& w) { w.u64_le(s.size()); });
   this->out_->append_copy(s.data(), s.size());
+}
+
+bool operator==(Trace_Vector_Max_Size_Histogram_Entry lhs,
+                Trace_Vector_Max_Size_Histogram_Entry rhs) {
+  return lhs.max_size == rhs.max_size && lhs.count == rhs.count;
+}
+
+bool operator!=(Trace_Vector_Max_Size_Histogram_Entry lhs,
+                Trace_Vector_Max_Size_Histogram_Entry rhs) {
+  return !(lhs == rhs);
+}
+
+bool operator==(const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& lhs,
+                const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& rhs) {
+  return lhs.owner == rhs.owner && lhs.max_size_entries == rhs.max_size_entries;
+}
+
+bool operator!=(const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& lhs,
+                const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& rhs) {
+  return !(lhs == rhs);
 }
 }
 

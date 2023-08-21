@@ -107,7 +107,8 @@ void benchmark_max_size_histogram_by_owner(::benchmark::State& state,
   for (auto _ : state) {
     Vector_Max_Size_Histogram_By_Owner histogram;
     histogram.add_entries(entries);
-    auto hist = histogram.histogram();
+    Monotonic_Allocator memory("benchmark_max_size_histogram_by_owner");
+    auto hist = histogram.histogram(&memory);
     ::benchmark::DoNotOptimize(hist);
   }
 

@@ -11,6 +11,7 @@
 #include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/hash-map.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
 #include <quick-lint-js/port/span.h>
@@ -24,6 +25,8 @@
 #include <vector>
 
 namespace quick_lint_js {
+struct Trace_Vector_Max_Size_Histogram_By_Owner_Entry;
+
 // vector_instrumentation is thread-safe.
 class Vector_Instrumentation {
  public:
@@ -85,19 +88,18 @@ class Vector_Max_Size_Histogram_By_Owner {
 
   void add_entries(const std::vector<Vector_Instrumentation::Entry> &);
 
-  std::map<std::string_view, std::map<std::size_t, int>> histogram() const;
+  Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> histogram(
+      Monotonic_Allocator *memory) const;
 
   struct Dump_Options {
     int maximum_line_length = (std::numeric_limits<int>::max)();
     int max_adjacent_empty_rows = (std::numeric_limits<int>::max)();
   };
 
-  static void dump(
-      const std::map<std::string_view, std::map<std::size_t, int>> &,
-      std::ostream &);
-  static void dump(
-      const std::map<std::string_view, std::map<std::size_t, int>> &,
-      std::ostream &, const Dump_Options &options);
+  static void dump(Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>,
+                   std::ostream &);
+  static void dump(Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>,
+                   std::ostream &, const Dump_Options &options);
 
  private:
   Hash_Map<const char *, Hash_Map<std::size_t, int>> histogram_;

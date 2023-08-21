@@ -7,9 +7,11 @@
 #include <gtest/gtest.h>
 #include <map>
 #include <quick-lint-js/container/linked-bump-allocator.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/feature.h>
+#include <quick-lint-js/logging/trace-writer.h>
 #include <sstream>
 
 #if QLJS_FEATURE_VECTOR_PROFILING
@@ -246,14 +248,21 @@ TEST(Test_Vector_Instrumentation, take_one_entry) {
   EXPECT_THAT(data.take_entries(), IsEmpty());
 }
 
-TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner, no_events) {
+class Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner
+    : public ::testing::Test {
+ public:
+  Monotonic_Allocator memory{
+      "Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner"};
+};
+
+TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner, no_events) {
   Vector_Instrumentation data;
   Vector_Max_Size_Histogram_By_Owner histogram;
-  EXPECT_THAT(histogram.histogram(), IsEmpty());
+  EXPECT_THAT(histogram.histogram(&this->memory), IsEmpty());
 }
 
-TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
-     distinctly_owned_vectors_with_one_event_each) {
+TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
+       distinctly_owned_vectors_with_one_event_each) {
   Vector_Instrumentation data;
   data.add_entry(
       /*object_id=*/1,
@@ -279,19 +288,35 @@ TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
 
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
-  auto hist = histogram.histogram();
-  EXPECT_THAT(hist, UnorderedElementsAreArray({
-                        Key("first"),
-                        Key("second"),
-                        Key("third"),
-                    }));
-  EXPECT_THAT(hist["first"], UnorderedElementsAreArray({std::pair(3, 1)}));
-  EXPECT_THAT(hist["second"], UnorderedElementsAreArray({std::pair(5, 1)}));
-  EXPECT_THAT(hist["third"], UnorderedElementsAreArray({std::pair(0, 1)}));
+  auto hist = histogram.histogram(&this->memory);
+  EXPECT_THAT(hist,
+              ElementsAreArray({
+                  Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+                      .owner = "first",
+                      .max_size_entries =
+                          Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                              {.max_size = 3, .count = 1},
+                          }),
+                  },
+                  Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+                      .owner = "second",
+                      .max_size_entries =
+                          Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                              {.max_size = 5, .count = 1},
+                          }),
+                  },
+                  Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+                      .owner = "third",
+                      .max_size_entries =
+                          Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                              {.max_size = 0, .count = 1},
+                          }),
+                  },
+              }));
 }
 
-TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
-     appending_to_vector_keeps_maximum_size) {
+TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
+       appending_to_vector_keeps_maximum_size) {
   std::uint64_t object_id = 42;
   const char *owner = "test vector";
   Vector_Instrumentation data;
@@ -327,12 +352,21 @@ TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
 
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
-  auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({std::pair(5, 1)}));
+  auto hist = histogram.histogram(&this->memory);
+  EXPECT_THAT(hist,
+              ElementsAreArray({
+                  Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+                      .owner = owner,
+                      .max_size_entries =
+                          Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                              {.max_size = 5, .count = 1},
+                          }),
+                  },
+              }));
 }
 
-TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
-     growing_vector_and_shrinking_keeps_maximum_size) {
+TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
+       growing_vector_and_shrinking_keeps_maximum_size) {
   std::uint64_t object_id = 42;
   const char *owner = "test vector";
   Vector_Instrumentation data;
@@ -361,11 +395,20 @@ TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
 
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
-  auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({std::pair(10, 1)}));
+  auto hist = histogram.histogram(&this->memory);
+  EXPECT_THAT(hist,
+              ElementsAreArray({
+                  Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+                      .owner = owner,
+                      .max_size_entries =
+                          Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                              {.max_size = 10, .count = 1},
+                          }),
+                  },
+              }));
 }
 
-TEST(
+TEST_F(
     Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
     appending_to_different_vectors_with_same_owner_keeps_maximum_size_of_each) {
   std::uint64_t object_id_1 = 42;
@@ -405,14 +448,21 @@ TEST(
 
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
-  auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({
-                               std::pair(4, 1),
-                               std::pair(11, 1),
-                           }));
+  auto hist = histogram.histogram(&this->memory);
+  EXPECT_THAT(hist,
+              ElementsAreArray({
+                  Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+                      .owner = owner,
+                      .max_size_entries =
+                          Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                              {.max_size = 4, .count = 1},
+                              {.max_size = 11, .count = 1},
+                          }),
+                  },
+              }));
 }
 
-TEST(
+TEST_F(
     Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
     different_vectors_with_same_owner_and_object_id_keeps_maximum_size_of_each) {
   std::uint64_t object_id = 42;
@@ -451,15 +501,22 @@ TEST(
 
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
-  auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({
-                               std::pair(3, 1),
-                               std::pair(2, 1),
-                           }));
+  auto hist = histogram.histogram(&this->memory);
+  EXPECT_THAT(hist,
+              ElementsAreArray({
+                  Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+                      .owner = owner,
+                      .max_size_entries =
+                          Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                              {.max_size = 2, .count = 1},
+                              {.max_size = 3, .count = 1},
+                          }),
+                  },
+              }));
 }
 
-TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
-     different_vectors_with_same_owner_and_size_count_separately) {
+TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
+       different_vectors_with_same_owner_and_size_count_separately) {
   std::uint64_t object_id_1 = 42;
   std::uint64_t object_id_2_and_3 = 69;
   std::size_t size = 8;
@@ -506,26 +563,43 @@ TEST(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
 
   Vector_Max_Size_Histogram_By_Owner histogram;
   histogram.add_entries(data.take_entries());
-  auto hist = histogram.histogram();
-  EXPECT_THAT(hist[owner], UnorderedElementsAreArray({std::pair(size, 3)}));
+  auto hist = histogram.histogram(&this->memory);
+  EXPECT_THAT(hist,
+              ElementsAreArray({
+                  Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+                      .owner = owner,
+                      .max_size_entries =
+                          Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                              {.max_size = size, .count = 3},
+                          }),
+                  },
+              }));
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_empty_histogram) {
-  std::map<std::string_view, std::map<std::size_t, int>> histogram;
   std::ostringstream stream;
-  Vector_Max_Size_Histogram_By_Owner::dump(histogram, stream);
+  Vector_Max_Size_Histogram_By_Owner::dump(
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>(), stream);
   EXPECT_EQ(stream.str(), "");
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_histogram_with_one_group) {
-  std::map<std::string_view, std::map<std::size_t, int>> histogram;
-  histogram["test group"][0] = 3;
-  histogram["test group"][1] = 2;
-  histogram["test group"][2] = 1;
   std::ostringstream stream;
-  Vector_Max_Size_Histogram_By_Owner::dump(histogram, stream);
+  Vector_Max_Size_Histogram_By_Owner::dump(
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
+          Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+              .owner = "test group",
+              .max_size_entries =
+                  Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                      {.max_size = 0, .count = 3},
+                      {.max_size = 1, .count = 2},
+                      {.max_size = 2, .count = 1},
+                  }),
+          },
+      }),
+      stream);
   EXPECT_EQ(stream.str(), R"(Max sizes for test group:
 0  (50%)  ***
 1  (33%)  **
@@ -535,10 +609,18 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_histogram_with_one_data_point_per_group) {
-  std::map<std::string_view, std::map<std::size_t, int>> histogram;
-  histogram["test group"][0] = 2;
   std::ostringstream stream;
-  Vector_Max_Size_Histogram_By_Owner::dump(histogram, stream);
+  Vector_Max_Size_Histogram_By_Owner::dump(
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
+          Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+              .owner = "test group",
+              .max_size_entries =
+                  Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                      {.max_size = 0, .count = 2},
+                  }),
+          },
+      }),
+      stream);
   EXPECT_EQ(stream.str(), R"(Max sizes for test group:
 0  (ALL)  **
 )");
@@ -546,13 +628,27 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_histogram_with_multiple_groups) {
-  std::map<std::string_view, std::map<std::size_t, int>> histogram;
-  histogram["group A"][0] = 3;
-  histogram["group A"][1] = 3;
-  histogram["group B"][0] = 2;
-  histogram["group B"][1] = 2;
   std::ostringstream stream;
-  Vector_Max_Size_Histogram_By_Owner::dump(histogram, stream);
+  Vector_Max_Size_Histogram_By_Owner::dump(
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
+          Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+              .owner = "group A",
+              .max_size_entries =
+                  Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                      {.max_size = 0, .count = 3},
+                      {.max_size = 1, .count = 3},
+                  }),
+          },
+          Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+              .owner = "group B",
+              .max_size_entries =
+                  Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                      {.max_size = 0, .count = 2},
+                      {.max_size = 1, .count = 2},
+                  }),
+          },
+      }),
+      stream);
   EXPECT_EQ(stream.str(), R"(Max sizes for group A:
 0  (50%)  ***
 1  (50%)  ***
@@ -565,13 +661,21 @@ Max sizes for group B:
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_sparse_histogram) {
-  std::map<std::string_view, std::map<std::size_t, int>> histogram;
-  histogram["test group"][1] = 1;
-  histogram["test group"][4] = 1;
-  histogram["test group"][5] = 1;
-  histogram["test group"][9] = 1;
   std::ostringstream stream;
-  Vector_Max_Size_Histogram_By_Owner::dump(histogram, stream);
+  Vector_Max_Size_Histogram_By_Owner::dump(
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
+          Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+              .owner = "test group",
+              .max_size_entries =
+                  Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                      {.max_size = 1, .count = 1},
+                      {.max_size = 4, .count = 1},
+                      {.max_size = 5, .count = 1},
+                      {.max_size = 9, .count = 1},
+                  }),
+          },
+      }),
+      stream);
   EXPECT_EQ(stream.str(), R"(Max sizes for test group:
 0  ( 0%)
 1  (25%)  *
@@ -588,11 +692,19 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      histogram_legend_is_padded_with_spaces) {
-  std::map<std::string_view, std::map<std::size_t, int>> histogram;
-  histogram["test group"][3] = 1;
-  histogram["test group"][100] = 1;
   std::ostringstream stream;
-  Vector_Max_Size_Histogram_By_Owner::dump(histogram, stream);
+  Vector_Max_Size_Histogram_By_Owner::dump(
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
+          Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+              .owner = "test group",
+              .max_size_entries =
+                  Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                      {.max_size = 3, .count = 1},
+                      {.max_size = 100, .count = 1},
+                  }),
+          },
+      }),
+      stream);
   EXPECT_THAT(stream.str(), HasSubstr("\n  3  ("));
   EXPECT_THAT(stream.str(), HasSubstr("\n100  ("));
 }
@@ -606,7 +718,19 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   histogram["test group"][3] = 1;
   std::ostringstream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
-      histogram, stream,
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
+          Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+              .owner = "test group",
+              .max_size_entries =
+                  Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                      {.max_size = 0, .count = 100},
+                      {.max_size = 1, .count = 50},
+                      {.max_size = 2, .count = 25},
+                      {.max_size = 3, .count = 1},
+                  }),
+          },
+      }),
+      stream,
       Vector_Max_Size_Histogram_By_Owner::Dump_Options{
           .maximum_line_length = 20,
       });
@@ -620,15 +744,21 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      histogram_skips_many_empty_rows) {
-  std::map<std::string_view, std::map<std::size_t, int>> histogram;
-  auto &test_group = histogram["test group"];
-  test_group[0] = 1;
-  test_group[1] = 2;
-  test_group[2] = 1;
-  test_group[8] = 1;
   std::ostringstream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
-      histogram, stream,
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
+          Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+              .owner = "test group",
+              .max_size_entries =
+                  Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                      {.max_size = 0, .count = 1},
+                      {.max_size = 1, .count = 2},
+                      {.max_size = 2, .count = 1},
+                      {.max_size = 8, .count = 1},
+                  }),
+          },
+      }),
+      stream,
       Vector_Max_Size_Histogram_By_Owner::Dump_Options{
           .max_adjacent_empty_rows = 3,
       });
@@ -643,11 +773,18 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      histogram_including_legend_is_limited_to_max_screen_width) {
-  std::map<std::string_view, std::map<std::size_t, int>> histogram;
-  histogram["test group"][100] = 99999;
   std::ostringstream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
-      histogram, stream,
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
+          Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
+              .owner = "test group",
+              .max_size_entries =
+                  Span<const Trace_Vector_Max_Size_Histogram_Entry>({
+                      {.max_size = 100, .count = 99999},
+                  }),
+          },
+      }),
+      stream,
       Vector_Max_Size_Histogram_By_Owner::Dump_Options{
           .maximum_line_length = 20,
       });

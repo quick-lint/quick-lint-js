@@ -353,15 +353,17 @@ void Debug_Server::wakeup_pipe_callback(::mg_connection *c, int ev, void *) {
 
       this->max_size_histogram_.add_entries(
           Vector_Instrumentation::instance.take_entries());
-      auto histogram = this->max_size_histogram_.histogram();
 
       Trace_Writer *tw =
           Trace_Flusher::instance()->trace_writer_for_current_thread();
       if (tw != nullptr) {
+        Monotonic_Allocator memory("Debug_Server publish vector profile");
+        auto histogram = this->max_size_histogram_.histogram(&memory);
+
         tw->write_event_vector_max_size_histogram_by_owner(
             Trace_Event_Vector_Max_Size_Histogram_By_Owner{
                 .timestamp = 0,  // TODO(strager)
-                .histogram = &histogram,
+                .entries = histogram,
             });
         tw->commit();
       }

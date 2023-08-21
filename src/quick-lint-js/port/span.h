@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <quick-lint-js/assert.h>
@@ -74,6 +75,12 @@ class Span {
   T *end() const { return this->data_ + this->size_; }
 
   bool empty() const { return this->size() == 0; }
+
+  friend bool operator==(Span lhs, Span rhs) {
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+  }
+
+  friend bool operator!=(Span lhs, Span rhs) { return !(lhs == rhs); }
 
  private:
   T *data_;

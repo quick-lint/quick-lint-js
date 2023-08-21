@@ -306,6 +306,13 @@ class Raw_Bump_Vector {
     return result;
   }
 
+  // Like operator Span<T>() followed by this->release().
+  Span<value_type> release_to_span() {
+    Span<value_type> result = Span<value_type>(*this);
+    this->release();
+    return result;
+  }
+
   explicit operator Span<value_type>() {
     return Span<value_type>(this->data_, this->size());
   }

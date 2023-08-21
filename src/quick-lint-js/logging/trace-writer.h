@@ -91,11 +91,31 @@ struct Trace_Event_LSP_Client_To_Server_Message {
   String8_View body;
 };
 
+struct Trace_Vector_Max_Size_Histogram_Entry {
+  std::uint64_t max_size;
+  std::uint64_t count;
+
+  friend bool operator==(Trace_Vector_Max_Size_Histogram_Entry,
+                         Trace_Vector_Max_Size_Histogram_Entry);
+  friend bool operator!=(Trace_Vector_Max_Size_Histogram_Entry,
+                         Trace_Vector_Max_Size_Histogram_Entry);
+};
+
+struct Trace_Vector_Max_Size_Histogram_By_Owner_Entry {
+  std::string_view owner;
+  Span<const Trace_Vector_Max_Size_Histogram_Entry> max_size_entries;
+
+  friend bool operator==(const Trace_Vector_Max_Size_Histogram_By_Owner_Entry&,
+                         const Trace_Vector_Max_Size_Histogram_By_Owner_Entry&);
+  friend bool operator!=(const Trace_Vector_Max_Size_Histogram_By_Owner_Entry&,
+                         const Trace_Vector_Max_Size_Histogram_By_Owner_Entry&);
+};
+
 struct Trace_Event_Vector_Max_Size_Histogram_By_Owner {
   static constexpr std::uint8_t id = 0x07;
 
   std::uint64_t timestamp;
-  std::map<std::string_view, std::map<std::size_t, int>>* histogram;
+  Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries;
 };
 
 struct Trace_Event_Process_ID {
