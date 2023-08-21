@@ -19,7 +19,6 @@
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/linter.h>
-#include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/logger.h>

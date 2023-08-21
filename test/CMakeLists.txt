@@ -101,7 +101,6 @@ quick_lint_js_add_executable(
   test-dirty-set.cpp
   test-emacs-lisp-diag-reporter.cpp
   test-emacs-location.cpp
-  test-event-loop.cpp
   test-event-loop2.cpp
   test-file-canonical.cpp
   test-file-path.cpp

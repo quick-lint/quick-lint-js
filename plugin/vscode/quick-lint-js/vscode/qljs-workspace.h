@@ -42,6 +42,10 @@
 #include <string_view>
 #include <vector>
 
+#if QLJS_HAVE_KQUEUE
+#include <sys/event.h>
+#endif
+
 namespace quick_lint_js {
 // NOTE[workspace-cleanup]:
 //

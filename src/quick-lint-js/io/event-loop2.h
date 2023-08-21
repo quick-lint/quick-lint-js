@@ -485,6 +485,19 @@ class Event_Loop2_Windows final : public Event_Loop2_Base {
 };
 #endif
 
+#if defined(_WIN32)
+inline Windows_Handle_File create_io_completion_port() {
+  Windows_Handle_File iocp(::CreateIoCompletionPort(
+      /*FileHandle=*/INVALID_HANDLE_VALUE,
+      /*ExistingCompletionPort=*/nullptr, /*CompletionKey=*/0,
+      /*NumberOfConcurrentThreads=*/1));
+  if (!iocp.valid()) {
+    QLJS_UNIMPLEMENTED();
+  }
+  return iocp;
+}
+#endif
+
 // The best Event_Loop_Base implementation for the current platform.
 using Event_Loop2 =
 #if QLJS_HAVE_KQUEUE
