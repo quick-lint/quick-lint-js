@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <quick-lint-js/container/fixed-vector.h>
-#include <quick-lint-js/io/event-loop2.h>
+#include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/crash.h>

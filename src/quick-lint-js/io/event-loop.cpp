@@ -7,7 +7,7 @@
 
 #include <atomic>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/io/event-loop2.h>
+#include <quick-lint-js/io/event-loop.h>
 
 #if defined(_WIN32)
 #include <quick-lint-js/port/windows.h>

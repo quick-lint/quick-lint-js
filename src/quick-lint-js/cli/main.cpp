@@ -29,7 +29,7 @@
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/i18n/translation.h>
-#include <quick-lint-js/io/event-loop2.h>
+#include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/pipe-writer.h>
 #include <quick-lint-js/logging/trace-flusher.h>

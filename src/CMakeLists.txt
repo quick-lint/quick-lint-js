@@ -318,11 +318,11 @@ quick_lint_js_add_library(
   quick-lint-js/i18n/translation-table.h
   quick-lint-js/i18n/translation.cpp
   quick-lint-js/i18n/translation.h
-  quick-lint-js/io/event-loop2-kqueue.cpp
-  quick-lint-js/io/event-loop2-poll.cpp
-  quick-lint-js/io/event-loop2-windows.cpp
-  quick-lint-js/io/event-loop2.cpp
-  quick-lint-js/io/event-loop2.h
+  quick-lint-js/io/event-loop-kqueue.cpp
+  quick-lint-js/io/event-loop-poll.cpp
+  quick-lint-js/io/event-loop-windows.cpp
+  quick-lint-js/io/event-loop.cpp
+  quick-lint-js/io/event-loop.h
   quick-lint-js/io/file-canonical.cpp
   quick-lint-js/io/file-canonical.h
   quick-lint-js/io/pipe-writer.cpp

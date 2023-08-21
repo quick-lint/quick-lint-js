@@ -10,7 +10,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/byte-buffer.h>
-#include <quick-lint-js/io/event-loop2.h>
+#include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>

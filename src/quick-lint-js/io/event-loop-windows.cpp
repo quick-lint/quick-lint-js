@@ -6,7 +6,7 @@
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/io/event-loop2.h>
+#include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
