@@ -140,6 +140,10 @@ std::optional<POSIX_FD_File_Ref> Non_Blocking_Pipe_Writer::get_event_fd() {
 }
 #endif
 
+Platform_File_Ref Non_Blocking_Pipe_Writer::get_pipe_fd() {
+  return this->pipe_;
+}
+
 #if QLJS_HAVE_KQUEUE
 void Non_Blocking_Pipe_Writer::on_poll_event(const struct ::kevent& event) {
   QLJS_ASSERT(narrow_cast<int>(event.ident) != this->pipe_.get());
@@ -164,6 +168,18 @@ void Non_Blocking_Pipe_Writer::on_poll_event(const ::pollfd& fd) {
   }
 }
 #endif
+
+void Non_Blocking_Pipe_Writer::on_pipe_write_ready() {
+  this->write_as_much_as_possible_now_non_blocking(this->pending_);
+}
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_CLANG("-Wmissing-noreturn")
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
+
+void Non_Blocking_Pipe_Writer::on_pipe_write_end() { QLJS_UNIMPLEMENTED(); }
+
+QLJS_WARNING_POP
 
 void Non_Blocking_Pipe_Writer::write(Byte_Buffer&& data) {
   this->pending_.append(std::move(data));

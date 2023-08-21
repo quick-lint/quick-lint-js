@@ -128,15 +128,6 @@ void LSP_Server_Process::kill() {
   }
 }
 
-void LSP_Server_Process::stop_event_loop() {
-  // Caller should have flushed our writer.
-#if !QLJS_PIPE_WRITER_SEPARATE_THREAD && QLJS_HAVE_POLL
-  QLJS_ASSERT(!this->message_writer_.get_event_fd().has_value());
-#endif
-
-  this->should_stop_event_loop_ = true;
-}
-
 void LSP_Server_Process::wait_for_exit() { wait_for_process_exit(this->pid_); }
 
 bool LSP_Server_Process::wait_for_exit_for(std::chrono::milliseconds timeout) {

@@ -10,7 +10,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/byte-buffer.h>
-#include <quick-lint-js/io/event-loop.h>
+#include <quick-lint-js/io/event-loop2.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
@@ -184,7 +184,12 @@ enum {
   TEXT_DOCUMENT_SYNC_KIND_INCREMENTAL = 2,
 };
 
-class LSP_Server_Process {
+class LSP_Server_Process : private Event_Loop2_Pipe_Read_Delegate
+#if QLJS_EVENT_LOOP2_PIPE_WRITE
+    ,
+                           private Event_Loop2_Pipe_Write_Delegate
+#endif
+{
  private:
   class Get_Message_Awaitable;
 
@@ -195,6 +200,8 @@ class LSP_Server_Process {
   // stop the server.
   template <class Func>
   void run_and_kill(Func&& func) {
+    Event_Loop2 event_loop;
+
     [[maybe_unused]] LSP_Task<void> task = [&]() -> LSP_Task<void> {
       co_await std::forward<Func>(func)();
       this->message_writer_.flush();  // FIXME(strager): Might deadlock.
@@ -203,25 +210,29 @@ class LSP_Server_Process {
           std::chrono::milliseconds(300));  // FIXME(strager): Might deadlock.
       if (!exited) {
         this->kill();
+        this->wait_for_exit();
 
         // HACK(strager): Flow and Rome don't ever close our reader (its
         // writer), even if we kill the process. (They fork their own processes
         // which we can't directly kill.) Work around this by forcefully
         // stopping our event loop.
-        this->stop_event_loop();
-
-        this->wait_for_exit();
+        event_loop.un_keep_alive();
       }
     }();
-    this->event_loop_.run();
+
+    event_loop.keep_alive();
+#if QLJS_EVENT_LOOP2_READ_PIPE_NON_BLOCKING
+    this->reader_.set_pipe_non_blocking();
+#endif
+    event_loop.register_pipe_read(this->reader_.ref(), this);
+#if QLJS_EVENT_LOOP2_PIPE_WRITE
+    event_loop.register_pipe_write(this->message_writer_.get_pipe_fd(), this);
+#endif
+    event_loop.run();
   }
 
   // Forcefully stop the server.
   void kill();
-
-  // HACK(strager): Close the server->client pipe to make Flow's and Rome's LSP
-  // servers stop.
-  void stop_event_loop();
 
   // Wait for the server to stop on its own. Should be called to clean up
   // OS resources.
@@ -317,59 +328,27 @@ class LSP_Server_Process {
     String8_View* out_message_content_ = nullptr;
   };
 
-  class LSP_Event_Loop : public Event_Loop<LSP_Event_Loop> {
-   public:
-    explicit LSP_Event_Loop(LSP_Server_Process* process) : process_(process) {}
+  void on_pipe_read_data(Event_Loop2_Base*, Platform_File_Ref,
+                         String8_View data) override {
+    this->message_parser_.append(data);
+  }
+  void on_pipe_read_end(Event_Loop2_Base* event_loop,
+                        Platform_File_Ref) override {
+    event_loop->un_keep_alive();
+  }
+  void on_pipe_read_error(Event_Loop2_Base* event_loop, Platform_File_Ref,
+                          Platform_File_IO_Error) override {
+    event_loop->un_keep_alive();
+  }
 
-    std::optional<Platform_File_Ref> get_readable_pipe() const {
-      if (this->process_->should_stop_event_loop_) {
-        return std::nullopt;
-      }
-      return this->process_->reader_.ref();
-    }
-
-    void append(String8_View data) {
-      this->process_->message_parser_.append(data);
-    }
-
-#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-    std::optional<POSIX_FD_File_Ref> get_pipe_write_fd() {
-      if (!this->process_->writer_.valid()) {
-        return std::nullopt;
-      }
-      return this->process_->message_writer_.get_event_fd();
-    }
+#if QLJS_EVENT_LOOP2_PIPE_WRITE
+  void on_pipe_write_ready(Event_Loop2_Base*, Platform_File_Ref) override {
+    this->message_writer_.on_pipe_write_ready();
+  }
+  void on_pipe_write_end(Event_Loop2_Base*, Platform_File_Ref) override {
+    this->message_writer_.on_pipe_write_end();
+  }
 #endif
-
-#if QLJS_HAVE_KQUEUE
-    void on_pipe_write_event(const struct ::kevent& event) {
-      this->process_->message_writer_.on_poll_event(event);
-    }
-#elif QLJS_HAVE_POLL
-    void on_pipe_write_event(const ::pollfd& event) {
-      this->process_->message_writer_.on_poll_event(event);
-    }
-#endif
-
-#if QLJS_HAVE_KQUEUE
-    void on_fs_changed_kevent(const struct ::kevent&) {}
-
-    void on_fs_changed_kevents() {}
-#endif
-
-#if QLJS_HAVE_INOTIFY
-    std::optional<POSIX_FD_File_Ref> get_inotify_fd() { return std::nullopt; }
-
-    void on_fs_changed_event(const ::pollfd&) {}
-#endif
-
-#if defined(_WIN32)
-    void on_fs_changed_event(::OVERLAPPED*, ::DWORD, ::DWORD) {}
-#endif
-
-   private:
-    LSP_Server_Process* process_;
-  };
 
   explicit LSP_Server_Process(std::filesystem::path server_root,
                               const Benchmark_Config_Server& config,
@@ -396,13 +375,11 @@ class LSP_Server_Process {
   bool need_files_on_disk_;
 
   ::pid_t pid_;
-  bool should_stop_event_loop_ = false;
   Platform_File reader_;  // server -> client
   Platform_File writer_;  // client -> server
 
   Continuing_LSP_Message_Parser message_parser_;
   LSP_Pipe_Writer message_writer_ = LSP_Pipe_Writer(this->writer_.ref());
-  LSP_Event_Loop event_loop_ = LSP_Event_Loop(this);
 
   // This holds the most recently parsed message (if any).
   //

@@ -93,6 +93,7 @@ class Non_Blocking_Pipe_Writer {
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
   std::optional<POSIX_FD_File_Ref> get_event_fd();
 #endif
+  Platform_File_Ref get_pipe_fd();
 
 #if QLJS_HAVE_KQUEUE
   void on_poll_event(const struct ::kevent &);
@@ -100,6 +101,9 @@ class Non_Blocking_Pipe_Writer {
 #if QLJS_HAVE_POLL
   void on_poll_event(const ::pollfd &);
 #endif
+
+  void on_pipe_write_ready();
+  void on_pipe_write_end();
 
  private:
   void write_as_much_as_possible_now_non_blocking(Byte_Buffer_IOVec &);
