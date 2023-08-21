@@ -203,7 +203,8 @@ class Event_Loop2_Base {
   // register_pipe_write is meant to be combined with Pipe_Writer.
   //
   // TODO(strager): Merge Pipe_Writer into these event loop classes. This would
-  // remove some #if-s in the interface, simplifying callers.
+  // remove some #if-s in the interface, simplifying callers. It would also fix
+  // HACK[Non_Blocking_Pipe_Writer-enable-disable].
   //
   // Precondition: pipe is the read end of an anonymous OS pipe (not a Win32
   //               named pipe or a POSIX FIFO).
