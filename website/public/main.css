@@ -819,6 +819,14 @@ kbd.keystroke {
   }
 }
 
+/* Scrollable container */
+@media screen and (max-width: 670px) {
+  pre {
+    overflow-x: auto;
+    max-height: 400px;
+  }
+}
+
 /*
  * quick-lint-js finds bugs in JavaScript programs.
  * Copyright (C) 2020  Matthew "strager" Glazar
