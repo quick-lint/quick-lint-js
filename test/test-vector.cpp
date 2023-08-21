@@ -40,6 +40,23 @@ TEST(Test_Bump_Vector, append_into_reserved_memory) {
   EXPECT_THAT(v, ElementsAreArray({100, 200}));
 }
 
+TEST(Test_Bump_Vector, reserve_0_does_nothing) {
+  Linked_Bump_Allocator<alignof(int)> alloc("test");
+
+  Bump_Vector<int, decltype(alloc)> v("test", &alloc);
+  v.reserve(0);
+  EXPECT_EQ(v.capacity(), 0);
+  EXPECT_EQ(v.size(), 0);
+
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+  Bump_Vector_Size old_capacity = v.capacity();
+  v.reserve(0);
+  EXPECT_EQ(v.capacity(), old_capacity);
+  EXPECT_EQ(v.size(), 3);
+}
+
 TEST(Test_Bump_Vector, append_into_new_memory) {
   Linked_Bump_Allocator<alignof(int)> alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);

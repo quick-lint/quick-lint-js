@@ -166,7 +166,7 @@ class Raw_Bump_Vector {
   }
 
   void reserve(size_type new_capacity) {
-    QLJS_ASSERT(new_capacity > 0);
+    QLJS_ASSERT(new_capacity >= 0);
     if (this->capacity() < new_capacity) {
       this->reserve_grow(new_capacity);
     }
