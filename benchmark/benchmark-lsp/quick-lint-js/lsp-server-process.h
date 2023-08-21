@@ -184,10 +184,10 @@ enum {
   TEXT_DOCUMENT_SYNC_KIND_INCREMENTAL = 2,
 };
 
-class LSP_Server_Process : private Event_Loop2_Pipe_Read_Delegate
+class LSP_Server_Process : private Event_Loop_Pipe_Read_Delegate
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
     ,
-                           private Event_Loop2_Pipe_Write_Delegate
+                           private Event_Loop_Pipe_Write_Delegate
 #endif
 {
  private:
@@ -200,7 +200,7 @@ class LSP_Server_Process : private Event_Loop2_Pipe_Read_Delegate
   // stop the server.
   template <class Func>
   void run_and_kill(Func&& func) {
-    Event_Loop2 event_loop;
+    Event_Loop event_loop;
 
     [[maybe_unused]] LSP_Task<void> task = [&]() -> LSP_Task<void> {
       co_await std::forward<Func>(func)();
@@ -326,36 +326,36 @@ class LSP_Server_Process : private Event_Loop2_Pipe_Read_Delegate
     String8_View* out_message_content_ = nullptr;
   };
 
-  void on_pipe_read_data(Event_Loop2_Base* event_loop, Platform_File_Ref,
+  void on_pipe_read_data(Event_Loop_Base* event_loop, Platform_File_Ref,
                          String8_View data) override {
     this->message_parser_.append(data);
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
     this->enable_or_disable_writer_events_as_needed(event_loop);
 #endif
   }
-  void on_pipe_read_end(Event_Loop2_Base* event_loop,
+  void on_pipe_read_end(Event_Loop_Base* event_loop,
                         Platform_File_Ref) override {
     event_loop->un_keep_alive();
   }
-  void on_pipe_read_error(Event_Loop2_Base* event_loop, Platform_File_Ref,
+  void on_pipe_read_error(Event_Loop_Base* event_loop, Platform_File_Ref,
                           Platform_File_IO_Error) override {
     event_loop->un_keep_alive();
   }
 
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
-  void on_pipe_write_ready(Event_Loop2_Base* event_loop,
+  void on_pipe_write_ready(Event_Loop_Base* event_loop,
                            Platform_File_Ref) override {
     this->message_writer_.on_pipe_write_ready();
     this->enable_or_disable_writer_events_as_needed(event_loop);
   }
-  void on_pipe_write_end(Event_Loop2_Base*, Platform_File_Ref) override {
+  void on_pipe_write_end(Event_Loop_Base*, Platform_File_Ref) override {
     this->message_writer_.on_pipe_write_end();
   }
 
   // We have the same problem enabling and disabling the
   // Non_Blocking_Pipe_Writer that the LSP server has. See
   // HACK[Non_Blocking_Pipe_Writer-enable-disable] for details.
-  void enable_or_disable_writer_events_as_needed(Event_Loop2_Base* event_loop) {
+  void enable_or_disable_writer_events_as_needed(Event_Loop_Base* event_loop) {
     bool should_be_enabled = this->message_writer_.get_event_fd().has_value();
     if (should_be_enabled) {
       event_loop->enable_pipe_write(this->message_writer_.get_pipe_fd());

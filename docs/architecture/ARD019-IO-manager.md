@@ -1,6 +1,6 @@
 # ADR019: I/O manager
 
-**Status**: Accepted and pending migration (`Event_Loop` -> `Event_Loop2`).
+**Status**: Accepted and pending migration (`Event_Loop` -> `Event_Loop`).
 
 ## Context
 
@@ -39,7 +39,7 @@ notifications and abstracts over some platform differences. Some parts of
 are optional, enabling code reuse. `Event_Loop` accomplishes optionality by
 periodically polling a CRTP derived class for which events to listen to.
 
-A new `Event_Loop2` class centralizes the aforementioned IPC and filesystem
+A new `Event_Loop` class centralizes the aforementioned IPC and filesystem
 notifications and abstracts over some platform differences. The event loop can
 be stopped arbitrarily. Events are registered by attaching callbacks, thus
 different users can listen for different events.
@@ -57,8 +57,8 @@ Supporting different methods of I/O for different operating systems is complex.
 The current solution is halfway toward bankruptcy; using the `Event_Loop`
 abstraction requires a lot of platform-specific code (via `#if`), making the
 code hard to follow. Some of the caller complexity is necessary, but there is
-much to be improved in this area. The new `Event_Loop2` abstraction should make
-this better, but `Event_Loop2`'s interaction with `Pipe_Writer` is still a
+much to be improved in this area. The new `Event_Loop` abstraction should make
+this better, but `Event_Loop`'s interaction with `Pipe_Writer` is still a
 portability problem.
 
 `Event_Loop` does not handle all IPC. `Pipe_Writer` handles the write part on
@@ -71,19 +71,19 @@ basic (but not immediately detected) bugs, mostly because this optionality was
 tacked onto the design after the fact. (The most [egregeous
 bug](https://github.com/quick-lint/quick-lint-js/issues/1057) was there from the
 beginning, though.) The design also makes testing more convoluted. The new
-`Event_Loop2` is a callback-based design like libevent and libuv. It has better
+`Event_Loop` is a callback-based design like libevent and libuv. It has better
 ergonomics and is easier to find edge cases in.
 
 Testing of `Event_Loop` is lacking, hence the presence of some bugs.
-`Event_Loop2` is much more testable and is much better tested.
+`Event_Loop` is much more testable and is much better tested.
 
 `Event_Loop`'s livetime is coupled to its reader IPC pipe. This makes its use in
 the Visual Studio Code extension (which has no IPC pipe) ugly. (The extension
 code creates a dummy pipe to keep the event loop alive.) It also has lead to
 hacks in the LSP benchmarks for servers which refuse to close the other end of
-the reader IPC pipe. The new `Event_Loop2` design has explicit retain/release
+the reader IPC pipe. The new `Event_Loop` design has explicit retain/release
 calls for the event loop, removing the need for a dummy pipe. (Technically, the
-dummy pipe still exists within the `Event_Loop2` implementation, but only on
+dummy pipe still exists within the `Event_Loop` implementation, but only on
 Linux.)
 
 Synchronous file I/O with no overlapping is problematic when quick-lint-js is

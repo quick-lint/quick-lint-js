@@ -45,60 +45,60 @@ QLJS_WARNING_IGNORE_CLANG("-Wnon-virtual-dtor")
 QLJS_WARNING_IGNORE_GCC("-Wnon-virtual-dtor")
 
 namespace quick_lint_js {
-class Event_Loop2_Base;
+class Event_Loop_Base;
 
-// See Event_Loop2_Base::register_pipe_read.
-class Event_Loop2_Pipe_Read_Delegate {
+// See Event_Loop_Base::register_pipe_read.
+class Event_Loop_Pipe_Read_Delegate {
  public:
-  virtual void on_pipe_read_data(Event_Loop2_Base*, Platform_File_Ref,
+  virtual void on_pipe_read_data(Event_Loop_Base*, Platform_File_Ref,
                                  String8_View data) = 0;
-  virtual void on_pipe_read_end(Event_Loop2_Base*, Platform_File_Ref) = 0;
-  virtual void on_pipe_read_error(Event_Loop2_Base*, Platform_File_Ref,
+  virtual void on_pipe_read_end(Event_Loop_Base*, Platform_File_Ref) = 0;
+  virtual void on_pipe_read_error(Event_Loop_Base*, Platform_File_Ref,
                                   Platform_File_IO_Error) = 0;
 };
 
-// See Event_Loop2_Base::register_pipe_write.
-struct Event_Loop2_Pipe_Write_Delegate {
+// See Event_Loop_Base::register_pipe_write.
+struct Event_Loop_Pipe_Write_Delegate {
  public:
-  virtual void on_pipe_write_ready(Event_Loop2_Base*, Platform_File_Ref) = 0;
-  virtual void on_pipe_write_end(Event_Loop2_Base*, Platform_File_Ref) = 0;
+  virtual void on_pipe_write_ready(Event_Loop_Base*, Platform_File_Ref) = 0;
+  virtual void on_pipe_write_end(Event_Loop_Base*, Platform_File_Ref) = 0;
 };
 
 #if QLJS_HAVE_KQUEUE
-// See Event_Loop2_Kqueue::register_custom_kqueue.
-struct Event_Loop2_Custom_Kqueue_Delegate {
-  virtual void on_custom_kqueue_events(Event_Loop2_Base*,
+// See Event_Loop_Kqueue::register_custom_kqueue.
+struct Event_Loop_Custom_Kqueue_Delegate {
+  virtual void on_custom_kqueue_events(Event_Loop_Base*,
                                        Span<struct ::kevent> events) = 0;
 };
 #endif
 
 #if QLJS_HAVE_POLL
-// See Event_Loop2_Poll::register_custom_poll.
-struct Event_Loop2_Custom_Poll_Delegate {
-  virtual void on_custom_poll_event(Event_Loop2_Base*, POSIX_FD_File_Ref,
+// See Event_Loop_Poll::register_custom_poll.
+struct Event_Loop_Custom_Poll_Delegate {
+  virtual void on_custom_poll_event(Event_Loop_Base*, POSIX_FD_File_Ref,
                                     short revents) = 0;
 };
 #endif
 
 #if defined(_WIN32)
-// See Event_Loop2_Windows::register_custom_windows_io_completion.
-struct Event_Loop2_Custom_Windows_IO_Completion_Delegate {
+// See Event_Loop_Windows::register_custom_windows_io_completion.
+struct Event_Loop_Custom_Windows_IO_Completion_Delegate {
   virtual void on_custom_windows_io_completion(
-      Event_Loop2_Base*, ::ULONG_PTR completion_key,
+      Event_Loop_Base*, ::ULONG_PTR completion_key,
       ::DWORD number_of_bytes_transferred, ::OVERLAPPED* overlapped) = 0;
   virtual void on_custom_windows_io_completion_error(
-      Event_Loop2_Base*, ::ULONG_PTR completion_key, ::DWORD error,
+      Event_Loop_Base*, ::ULONG_PTR completion_key, ::DWORD error,
       ::DWORD number_of_bytes_transferred, ::OVERLAPPED* overlapped) = 0;
 };
 #endif
 
-// Derived classes of Event_Loop2_Base implement callback-based I/O concurrency.
+// Derived classes of Event_Loop_Base implement callback-based I/O concurrency.
 //
-// NOTE[Event_Loop2-thread-safety]: Event loop implementations are thread-safe.
+// NOTE[Event_Loop-thread-safety]: Event loop implementations are thread-safe.
 // Their methods can be called concurrently from any thread. Exception: run()
 // can only be called from one thread.
 //
-// NOTE[Event_Loop2-delegate-thread-safety]: An event loop implementation may
+// NOTE[Event_Loop-delegate-thread-safety]: An event loop implementation may
 // spawn one or more background threads. For a given registration (e.g. for one
 // register_pipe_read call), all delegate function calls are serialized, but
 // calls might happen on different threads. For different registrations (e.g.
@@ -106,7 +106,7 @@ struct Event_Loop2_Custom_Windows_IO_Completion_Delegate {
 // register_pipe_write call), delegate functions may be called concurrently from
 // multiple threads.
 //
-// NOTE[Event_Loop2-run-state]: There are run three states for an event loop:
+// NOTE[Event_Loop-run-state]: There are run three states for an event loop:
 // * stopped
 // * running
 // * stopping
@@ -122,34 +122,34 @@ struct Event_Loop2_Custom_Windows_IO_Completion_Delegate {
 // * exit run(), ref count =0:       stopping -> stopped
 // Note that there is no legal transition for stopping -> running or for
 // running -> stopped.
-class Event_Loop2_Base {
+class Event_Loop_Base {
  public:
-  explicit Event_Loop2_Base();
+  explicit Event_Loop_Base();
 
-  Event_Loop2_Base(const Event_Loop2_Base&) = delete;
-  Event_Loop2_Base& operator=(const Event_Loop2_Base&) = delete;
+  Event_Loop_Base(const Event_Loop_Base&) = delete;
+  Event_Loop_Base& operator=(const Event_Loop_Base&) = delete;
 
-  ~Event_Loop2_Base() = default;
+  ~Event_Loop_Base() = default;
 
   // Increment a reference count. This must be called at least once if you want
   // the event loop to do anything useful.
   //
   // Precondition: The event loop is in the stopped state or in the running
   //               state. The event loop must not be in the stopping state. See
-  //               NOTE[Event_Loop2-run-state].
+  //               NOTE[Event_Loop-run-state].
   void keep_alive();
 
   // Decrement a reference count. When the reference count reaches zero, the
   // event loop is in the stopping state.
   //
-  // NOTE[Event_Loop2-stop]: When the event loop is in the stopping state,
+  // NOTE[Event_Loop-stop]: When the event loop is in the stopping state,
   // registered delegate functions might still be called. (This is because
   // another thread might be calling a callback.) However, if un_keep_alive is
   // called during the execution of a registration's callback and causes the
   // event loop to stop, then it is guaranteed that no more callbacks for that
   // registration will be called. (This is because calls of a registration's
   // delegate functions are serialized. See
-  // NOTE[Event_Loop2-delegate-thread-safety].)
+  // NOTE[Event_Loop-delegate-thread-safety].)
   //
   // After all delegate callbacks are called during the stopping state, run()
   // returns and the event loop enters the stopped state.
@@ -168,12 +168,12 @@ class Event_Loop2_Base {
   // Register callbacks for the read end of an anonymous pipe.
   //
   // When data is written on the other end of pipe, the event loop calls
-  // Event_Loop2_Pipe_Read_Delegate::on_pipe_read_data with (potentially only
+  // Event_Loop_Pipe_Read_Delegate::on_pipe_read_data with (potentially only
   // part of) the data that was written. The event loop performs the read on
   // your behalf.
   //
   // When the other end of pipe is closed, the event loop calls
-  // Event_Loop2_Pipe_Read_Delegate::on_pipe_read_end.
+  // Event_Loop_Pipe_Read_Delegate::on_pipe_read_end.
   //
   // Precondition: pipe is the read end of an anonymous OS pipe (not a Win32
   //               named pipe or a POSIX FIFO).
@@ -183,13 +183,13 @@ class Event_Loop2_Base {
   // Precondition: If !QLJS_EVENT_LOOP2_READ_PIPE_NON_BLOCKING, then pipe is
   //               blocking.
   virtual void register_pipe_read(Platform_File_Ref pipe,
-                                  Event_Loop2_Pipe_Read_Delegate* delegate) = 0;
+                                  Event_Loop_Pipe_Read_Delegate* delegate) = 0;
 
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
   // Register callbacks for the write end of an anonymous pipe.
   //
   // When at least one byte can be written to pipe, the event loop calls
-  // Event_Loop2_Pipe_Write_Delegate::on_pipe_write_ready. The event loop does
+  // Event_Loop_Pipe_Write_Delegate::on_pipe_write_ready. The event loop does
   // not perform any writes on your behalf. If on_pipe_write_ready would do
   // nothing, you should call this->disable_pipe_write(pipe).
   //
@@ -198,7 +198,7 @@ class Event_Loop2_Base {
   // repeatedly call on_pipe_write_ready.
   //
   // When the other end of pipe is closed, the event loop calls
-  // Event_Loop2_Pipe_Write_Delegate::on_pipe_write_end.
+  // Event_Loop_Pipe_Write_Delegate::on_pipe_write_end.
   //
   // register_pipe_write is meant to be combined with Pipe_Writer.
   //
@@ -211,13 +211,13 @@ class Event_Loop2_Base {
   // Precondition: pipe was not previously registered.
   // Precondition: pipe is non-blocking.
   virtual void register_pipe_write(Platform_File_Ref pipe,
-                                   Event_Loop2_Pipe_Write_Delegate*) = 0;
+                                   Event_Loop_Pipe_Write_Delegate*) = 0;
 
-  // Prevent Event_Loop2_Pipe_Write_Delegate::on_pipe_write_ready from being
+  // Prevent Event_Loop_Pipe_Write_Delegate::on_pipe_write_ready from being
   // called. To reduce wasted CPU resources, you should call disable_pipe_write
   // if on_pipe_write_ready would do nothing anyway.
   //
-  // Event_Loop2_Pipe_Write_Delegate::on_pipe_write_end still might be called if
+  // Event_Loop_Pipe_Write_Delegate::on_pipe_write_end still might be called if
   // the registration is disabled.
   //
   // If the pipe's registration was already disabled, this call does nothing.
@@ -227,7 +227,7 @@ class Event_Loop2_Base {
 
   // Undo the effect of this->disable_pipe_write(pipe).
   //
-  // Event_Loop2_Pipe_Write_Delegate::on_pipe_write_ready can be called again
+  // Event_Loop_Pipe_Write_Delegate::on_pipe_write_ready can be called again
   // after enable_pipe_write returns.
   //
   // If the pipe's registration was already enabled, this call does nothing.
@@ -281,7 +281,7 @@ class Event_Loop2_Base {
   //               blocking.
   Read_From_Pipe_Result handle_read_from_pipe_result(
       const File_Read_Result& read_result, Span<const Char8> buffer,
-      Platform_File_Ref pipe, Event_Loop2_Pipe_Read_Delegate* delegate);
+      Platform_File_Ref pipe, Event_Loop_Pipe_Read_Delegate* delegate);
 
  private:
   std::atomic<int> alive_count_ = 0;
@@ -289,30 +289,30 @@ class Event_Loop2_Base {
 
 #if QLJS_HAVE_KQUEUE
 // Event loop implementation based on kqueue (BSDs, macOS).
-class Event_Loop2_Kqueue final : public Event_Loop2_Base {
+class Event_Loop_Kqueue final : public Event_Loop_Base {
  private:
   // EVFILT_USER ident used to stop the event loop. See
-  // NOTE[Event_Loop2_Kqueue-stop].
+  // NOTE[Event_Loop_Kqueue-stop].
   static constexpr std::uintptr_t stop_kqueue_user_ident = 0;
 
  public:
   using Kqueue_Udata = void*;
 
-  // EVFILT_USER ident which is reserved for Event_Loop2_Kqueue.
+  // EVFILT_USER ident which is reserved for Event_Loop_Kqueue.
   static constexpr int reserved_kqueue_user_ident = stop_kqueue_user_ident;
 
-  explicit Event_Loop2_Kqueue();
-  ~Event_Loop2_Kqueue();
+  explicit Event_Loop_Kqueue();
+  ~Event_Loop_Kqueue();
 
   POSIX_FD_File_Ref kqueue_fd() const;
 
   void run() override;
 
   void register_pipe_read(Platform_File_Ref pipe,
-                          Event_Loop2_Pipe_Read_Delegate* delegate) override;
+                          Event_Loop_Pipe_Read_Delegate* delegate) override;
 
   void register_pipe_write(Platform_File_Ref pipe,
-                           Event_Loop2_Pipe_Write_Delegate* delegate) override;
+                           Event_Loop_Pipe_Write_Delegate* delegate) override;
   void disable_pipe_write(Platform_File_Ref pipe) override;
   void enable_pipe_write(Platform_File_Ref pipe) override;
 
@@ -321,13 +321,13 @@ class Event_Loop2_Kqueue final : public Event_Loop2_Base {
   //
   // Example of adding a one-second timer to the event loop:
   //
-  //   struct Timer_Delegate : public Event_Loop2_Custom_Kqueue_Delegate {
-  //     void on_custom_kqueue_events(Event_Loop2_Base*,
+  //   struct Timer_Delegate : public Event_Loop_Custom_Kqueue_Delegate {
+  //     void on_custom_kqueue_events(Event_Loop_Base*,
   //                                  Span<struct ::kevent>) override {
   //       std::println("timer fired!");
   //     }
   //   };
-  //   Event_Loop2_Kqueue::Kqueue_Udata timer_udata =
+  //   Event_Loop_Kqueue::Kqueue_Udata timer_udata =
   //       loop.register_custom_kqueue(new Timer_Delegate());
   //   struct ::kevent change;
   //   std::uintptr_t timer_id = 0;  // Arbitrary.
@@ -340,16 +340,16 @@ class Event_Loop2_Kqueue final : public Event_Loop2_Base {
   // all of the events. This is so that Configuration_Loader can update its
   // caches once if there is a lot of filesystem activity instead of updating
   // once per individual changed directory. See
-  // NOTE[Event_Loop2_Kqueue-custom-kqueue-batch] for implementation details.
+  // NOTE[Event_Loop_Kqueue-custom-kqueue-batch] for implementation details.
   //
   // Restrictions:
   //
-  // * EVFILT_USER with ident==Event_Loop2_Kqueue::reserved_kqueue_user_ident is
+  // * EVFILT_USER with ident==Event_Loop_Kqueue::reserved_kqueue_user_ident is
   //   reserved and must not be used by a custom event.
   // * Any file descriptor used with register_pipe_read or register_pipe_write
   //   must not be added to the kqueue as a custom event.
   Kqueue_Udata register_custom_kqueue(
-      Event_Loop2_Custom_Kqueue_Delegate* delegate);
+      Event_Loop_Custom_Kqueue_Delegate* delegate);
 
  private:
   enum class Registered_Event_Kind;
@@ -366,18 +366,18 @@ class Event_Loop2_Kqueue final : public Event_Loop2_Base {
 #if QLJS_HAVE_POLL
 // Event loop implementation based on the poll syscall (POSIX platforms
 // including Linux).
-class Event_Loop2_Poll final : public Event_Loop2_Base {
+class Event_Loop_Poll final : public Event_Loop_Base {
  public:
-  explicit Event_Loop2_Poll();
-  ~Event_Loop2_Poll();
+  explicit Event_Loop_Poll();
+  ~Event_Loop_Poll();
 
   void run() override;
 
   void register_pipe_read(Platform_File_Ref pipe,
-                          Event_Loop2_Pipe_Read_Delegate* delegate) override;
+                          Event_Loop_Pipe_Read_Delegate* delegate) override;
 
   void register_pipe_write(Platform_File_Ref pipe,
-                           Event_Loop2_Pipe_Write_Delegate* delegate) override;
+                           Event_Loop_Pipe_Write_Delegate* delegate) override;
   void disable_pipe_write(Platform_File_Ref pipe) override;
   void enable_pipe_write(Platform_File_Ref pipe) override;
 
@@ -391,7 +391,7 @@ class Event_Loop2_Poll final : public Event_Loop2_Base {
   // Preconditions: events must be a valid value in ::pollfd::events for file
   //                according to the ::poll function.
   void register_custom_poll(POSIX_FD_File_Ref file, short events,
-                            Event_Loop2_Custom_Poll_Delegate* delegate);
+                            Event_Loop_Custom_Poll_Delegate* delegate);
 
  private:
   enum class Registered_Event_Kind;
@@ -410,19 +410,19 @@ class Event_Loop2_Poll final : public Event_Loop2_Base {
 #if defined(_WIN32)
 // Event loop implementation based on Windows I/O Completion Ports and
 // background threads.
-class Event_Loop2_Windows final : public Event_Loop2_Base {
+class Event_Loop_Windows final : public Event_Loop_Base {
  public:
   using Windows_Completion_Key = ::ULONG_PTR;
 
-  explicit Event_Loop2_Windows();
-  ~Event_Loop2_Windows();
+  explicit Event_Loop_Windows();
+  ~Event_Loop_Windows();
 
   Windows_Handle_File_Ref windows_io_completion_port() const;
 
   void run() override;
 
   void register_pipe_read(Platform_File_Ref pipe,
-                          Event_Loop2_Pipe_Read_Delegate* delegate) override;
+                          Event_Loop_Pipe_Read_Delegate* delegate) override;
 
   // Create a unique value for lpCompletionKey which can be used to register
   // events with ::CreateIoCompletionPort or ::PostQueuedCompletionStatus.
@@ -430,9 +430,9 @@ class Event_Loop2_Windows final : public Event_Loop2_Base {
   // Example of queueing an overlapped write on the event loop:
   //
   //   struct Write_Delegate :
-  //       public Event_Loop2_Custom_Windows_IO_Completion_Delegate {
+  //       public Event_Loop_Custom_Windows_IO_Completion_Delegate {
   //     void on_custom_windows_io_completion(
-  //         Event_Loop2_Base*, Windows_Completion_Key,
+  //         Event_Loop_Base*, Windows_Completion_Key,
   //         ::DWORD number_of_bytes_transferred,
   //         ::OVERLAPPED* overlapped) override {
   //       std::println("WriteFile successfully wrote {} bytes",
@@ -440,12 +440,12 @@ class Event_Loop2_Windows final : public Event_Loop2_Base {
   //     }
   //
   //     void on_custom_windows_io_completion_error(
-  //         Event_Loop2_Base*, Windows_Completion_Key, ::DWORD error,
+  //         Event_Loop_Base*, Windows_Completion_Key, ::DWORD error,
   //         ::DWORD, ::OVERLAPPED*) override {
   //       std::println("error occurred: {}", error);
   //     }
   //   };
-  //   Event_Loop2_Windows::Windows_Completion_Key completion_key =
+  //   Event_Loop_Windows::Windows_Completion_Key completion_key =
   //       loop.register_custom_windows_io_completion(new Write_Delegate());
   //
   //   ::HANDLE file = ...;
@@ -466,7 +466,7 @@ class Event_Loop2_Windows final : public Event_Loop2_Base {
   // delegate->on_custom_windows_io_completion_error is called if the event is
   // an error.
   Windows_Completion_Key register_custom_windows_io_completion(
-      Event_Loop2_Custom_Windows_IO_Completion_Delegate* delegate);
+      Event_Loop_Custom_Windows_IO_Completion_Delegate* delegate);
 
  private:
   class Registered_Pipe_Read;
@@ -499,13 +499,13 @@ inline Windows_Handle_File create_io_completion_port() {
 #endif
 
 // The best Event_Loop_Base implementation for the current platform.
-using Event_Loop2 =
+using Event_Loop =
 #if QLJS_HAVE_KQUEUE
-    Event_Loop2_Kqueue
+    Event_Loop_Kqueue
 #elif QLJS_HAVE_POLL
-    Event_Loop2_Poll
+    Event_Loop_Poll
 #elif defined(_WIN32)
-    Event_Loop2_Windows
+    Event_Loop_Windows
 #else
 #error "Unknown platform"
 #endif

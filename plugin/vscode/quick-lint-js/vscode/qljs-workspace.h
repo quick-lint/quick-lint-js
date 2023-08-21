@@ -115,11 +115,11 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
 
   class FS_Change_Detection_Event_Loop :
 #if QLJS_HAVE_KQUEUE
-      public Event_Loop2_Custom_Kqueue_Delegate
+      public Event_Loop_Custom_Kqueue_Delegate
 #elif QLJS_HAVE_INOTIFY
-      public Event_Loop2_Custom_Poll_Delegate
+      public Event_Loop_Custom_Poll_Delegate
 #elif defined(_WIN32)
-      public Event_Loop2_Custom_Windows_IO_Completion_Delegate
+      public Event_Loop_Custom_Windows_IO_Completion_Delegate
 #endif
   {
    public:
@@ -176,7 +176,7 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
 
    protected:
 #if QLJS_HAVE_KQUEUE
-    void on_custom_kqueue_events(Event_Loop2_Base*,
+    void on_custom_kqueue_events(Event_Loop_Base*,
                                  Span<struct ::kevent> events) override {
       for (const struct ::kevent& event : events) {
         this->fs_.handle_kqueue_event(event);
@@ -186,7 +186,7 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
 #endif
 
 #if QLJS_HAVE_INOTIFY
-    void on_custom_poll_event(Event_Loop2_Base*, POSIX_FD_File_Ref fd,
+    void on_custom_poll_event(Event_Loop_Base*, POSIX_FD_File_Ref fd,
                               short revents) override {
       // TODO(strager): Make handle_poll_event accept just revents.
       struct ::pollfd e;
@@ -200,7 +200,7 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
 #endif
 
 #if defined(_WIN32)
-    void on_custom_windows_io_completion(Event_Loop2_Base*, ::ULONG_PTR,
+    void on_custom_windows_io_completion(Event_Loop_Base*, ::ULONG_PTR,
                                          ::DWORD number_of_bytes_transferred,
                                          ::OVERLAPPED* overlapped) override {
       this->on_filesystem_io_completion(overlapped, number_of_bytes_transferred,
@@ -208,7 +208,7 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
     }
 
     void on_custom_windows_io_completion_error(
-        Event_Loop2_Base*, ::ULONG_PTR, ::DWORD error,
+        Event_Loop_Base*, ::ULONG_PTR, ::DWORD error,
         ::DWORD number_of_bytes_transferred,
         ::OVERLAPPED* overlapped) override {
       this->on_filesystem_io_completion(overlapped, number_of_bytes_transferred,
@@ -239,13 +239,13 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
     }
 
    private:
-    Event_Loop2 event_loop_;
+    Event_Loop event_loop_;
 #if QLJS_HAVE_KQUEUE
-    Event_Loop2::Kqueue_Udata kqueue_udata_;
+    Event_Loop::Kqueue_Udata kqueue_udata_;
 #elif QLJS_HAVE_INOTIFY
     // No extra state.
 #elif defined(_WIN32)
-    Event_Loop2::Windows_Completion_Key windows_completion_key_;
+    Event_Loop::Windows_Completion_Key windows_completion_key_;
 #endif
     Thread_Safe_Configuration_Filesystem<Underlying_FS_Type> fs_;
     QLJS_Workspace* workspace_;

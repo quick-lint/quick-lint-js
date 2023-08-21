@@ -1,18 +1,18 @@
 ---- MODULE WindowsPipeReadThread ----
 (*
-NOTE[Event_Loop2_Windows-Registered_Pipe_Read-proof]:
-This is a TLA+/PlusCal specification for how Event_Loop2_Windows manages the
-Event_Loop2_Windows::Registered_Pipe_Read thread.
+NOTE[Event_Loop_Windows-Registered_Pipe_Read-proof]:
+This is a TLA+/PlusCal specification for how Event_Loop_Windows manages the
+Event_Loop_Windows::Registered_Pipe_Read thread.
 
 The specification has three threads (PlusCal processes):
-* The main thread. In C++ it executes Event_Loop2_Windows::run.
+* The main thread. In C++ it executes Event_Loop_Windows::run.
 * The reader thread. In C++ it executes
-  Event_Loop2_Windows::Registered_Pipe_Read::thread_routine.
+  Event_Loop_Windows::Registered_Pipe_Read::thread_routine.
 * An arbitrary other thread, which in C++ could be the main thread or the reader
   thread or some other thread. It requests a that the reader thread stop via a
-  call to Event_Loop2_Base::un_keep_alive.
+  call to Event_Loop_Base::un_keep_alive.
 
-NOTE[Event_Loop2_Windows-Registered_Pipe_Read-terminate]: The specification
+NOTE[Event_Loop_Windows-Registered_Pipe_Read-terminate]: The specification
 proves that calling the Win32 TerminateThread API can only interrupt a ReadFile
 call, not a running user callback. See the
 ReaderThreadCannotBeTerminatedDuringCallback constraint.
@@ -25,7 +25,7 @@ liveness properties.
 The specification also proves that neither the reader thread nor the main thread
 deadlock.
 
-NOTE[Event_Loop2_Windows-Registered_Pipe_Read-data-loss]: The specification does
+NOTE[Event_Loop_Windows-Registered_Pipe_Read-data-loss]: The specification does
 *not* prove no data loss. In fact, it proves data loss! A Win32 ReadFile call
 might finish successfully but the reader thread might still be terminated via
 Win32 TerminateThread before the ReadFile's data is given to a user callback.
@@ -451,7 +451,7 @@ ReaderThreadIsDoneIfMainThreadStopped ==
 ReaderThreadCanOnlyRunIfMainThreadRequests ==
   pc[MainThreadID] = "M_Idle" => pc[ReaderThreadID] = "R_NotStarted"
 
-(* See NOTE[Event_Loop2_Windows-Registered_Pipe_Read-terminate]. *)
+(* See NOTE[Event_Loop_Windows-Registered_Pipe_Read-terminate]. *)
 ReaderThreadCannotBeTerminatedDuringCallback ==
   terminateRequested => pc[ReaderThreadID] /= "R_InCallback"
   
@@ -496,7 +496,7 @@ ReaderThreadRunsIfMainThreadSpawnsReaderThread ==
     ~> (pc[ReaderThreadID] = "R_Loop")
 
 (* Liveness property. This property does *not* hold. See
-   NOTE[Event_Loop2_Windows-Registered_Pipe_Read-data-loss]. *)
+   NOTE[Event_Loop_Windows-Registered_Pipe_Read-data-loss]. *)
 ReadDataIsNotDropped ==
   \A ticket \in LegalReadTickets
     : (pc[ReaderThreadID] = "R_FinishedRead" /\ readTicket = ticket)

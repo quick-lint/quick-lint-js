@@ -360,16 +360,16 @@ void run_lsp_server() {
 
   class LSP_Event_Loop :
 #if QLJS_HAVE_KQUEUE
-      public Event_Loop2_Custom_Kqueue_Delegate,
+      public Event_Loop_Custom_Kqueue_Delegate,
 #elif QLJS_HAVE_INOTIFY
-      public Event_Loop2_Custom_Poll_Delegate,
+      public Event_Loop_Custom_Poll_Delegate,
 #elif defined(_WIN32)
-      public Event_Loop2_Custom_Windows_IO_Completion_Delegate,
+      public Event_Loop_Custom_Windows_IO_Completion_Delegate,
 #endif
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
-      public Event_Loop2_Pipe_Write_Delegate,
+      public Event_Loop_Pipe_Write_Delegate,
 #endif
-      public Event_Loop2_Pipe_Read_Delegate {
+      public Event_Loop_Pipe_Read_Delegate {
    public:
     explicit LSP_Event_Loop(Platform_File_Ref input_pipe,
                             Platform_File_Ref output_pipe)
@@ -434,7 +434,7 @@ void run_lsp_server() {
     // Callable on any one thread once.
     void run() { this->event_loop_.run(); }
 
-    void on_pipe_read_data(Event_Loop2_Base *, Platform_File_Ref,
+    void on_pipe_read_data(Event_Loop_Base *, Platform_File_Ref,
                            String8_View data) override {
       this->endpoint_.append(data);
       this->endpoint_.flush_error_responses(this->writer_);
@@ -450,7 +450,7 @@ void run_lsp_server() {
       Trace_Flusher::instance()->flush_async();
     }
 
-    void on_pipe_read_end(Event_Loop2_Base *event_loop,
+    void on_pipe_read_end(Event_Loop_Base *event_loop,
                           Platform_File_Ref) override {
       event_loop->un_keep_alive();
     }
@@ -459,7 +459,7 @@ void run_lsp_server() {
     QLJS_WARNING_IGNORE_CLANG("-Wmissing-noreturn")
     QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 
-    void on_pipe_read_error(Event_Loop2_Base *, Platform_File_Ref,
+    void on_pipe_read_error(Event_Loop_Base *, Platform_File_Ref,
                             Platform_File_IO_Error) override {
       QLJS_UNIMPLEMENTED();
     }
@@ -467,16 +467,16 @@ void run_lsp_server() {
     QLJS_WARNING_POP
 
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
-    void on_pipe_write_ready(Event_Loop2_Base *, Platform_File_Ref) override {
+    void on_pipe_write_ready(Event_Loop_Base *, Platform_File_Ref) override {
       this->writer_.on_pipe_write_ready();
       this->enable_or_disable_writer_events_as_needed();
     }
-    void on_pipe_write_end(Event_Loop2_Base *, Platform_File_Ref) override {
+    void on_pipe_write_end(Event_Loop_Base *, Platform_File_Ref) override {
       this->writer_.on_pipe_write_end();
     }
 
     // HACK[Non_Blocking_Pipe_Writer-enable-disable]: Synchronize
-    // Non_Blocking_Pipe_Writer with Event_Loop2. Ideally this would be
+    // Non_Blocking_Pipe_Writer with Event_Loop. Ideally this would be
     // coordinated automatically between the two classes.
     //
     // If this->writer_ has no pending data to write to the pipe (e.g. if
@@ -499,7 +499,7 @@ void run_lsp_server() {
 #endif
 
 #if QLJS_HAVE_KQUEUE
-    void on_custom_kqueue_events(Event_Loop2_Base *,
+    void on_custom_kqueue_events(Event_Loop_Base *,
                                  Span<struct ::kevent> events) override {
       for (const struct ::kevent &event : events) {
         this->fs_.handle_kqueue_event(event);
@@ -509,7 +509,7 @@ void run_lsp_server() {
 #endif
 
 #if QLJS_HAVE_INOTIFY
-    void on_custom_poll_event(Event_Loop2_Base *, POSIX_FD_File_Ref fd,
+    void on_custom_poll_event(Event_Loop_Base *, POSIX_FD_File_Ref fd,
                               short revents) override {
       // TODO(strager): Make handle_poll_event accept just revents.
       struct ::pollfd e;
@@ -523,7 +523,7 @@ void run_lsp_server() {
 #endif
 
 #if defined(_WIN32)
-    void on_custom_windows_io_completion(Event_Loop2_Base *, ::ULONG_PTR,
+    void on_custom_windows_io_completion(Event_Loop_Base *, ::ULONG_PTR,
                                          ::DWORD number_of_bytes_transferred,
                                          ::OVERLAPPED *overlapped) override {
       this->on_filesystem_io_completion(overlapped, number_of_bytes_transferred,
@@ -531,7 +531,7 @@ void run_lsp_server() {
     }
 
     void on_custom_windows_io_completion_error(
-        Event_Loop2_Base *, ::ULONG_PTR, ::DWORD error,
+        Event_Loop_Base *, ::ULONG_PTR, ::DWORD error,
         ::DWORD number_of_bytes_transferred,
         ::OVERLAPPED *overlapped) override {
       this->on_filesystem_io_completion(overlapped, number_of_bytes_transferred,
@@ -568,15 +568,15 @@ void run_lsp_server() {
     }
 
    private:
-    Event_Loop2 event_loop_;
+    Event_Loop event_loop_;
 
 #if QLJS_HAVE_KQUEUE
-    Event_Loop2::Kqueue_Udata kqueue_udata_;
+    Event_Loop::Kqueue_Udata kqueue_udata_;
     Change_Detecting_Filesystem_Kqueue fs_;
 #elif QLJS_HAVE_INOTIFY
     Change_Detecting_Filesystem_Inotify fs_;
 #elif defined(_WIN32)
-    Event_Loop2::Windows_Completion_Key windows_completion_key_;
+    Event_Loop::Windows_Completion_Key windows_completion_key_;
     Change_Detecting_Filesystem_Win32 fs_;
 #else
 #error "Unsupported platform"

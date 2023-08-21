@@ -23,32 +23,32 @@
 #if defined(_WIN32)
 namespace quick_lint_js {
 namespace {
-// NOTE[Event_Loop2_Windows-control]: control_event_loop_completion_key is used
+// NOTE[Event_Loop_Windows-control]: control_event_loop_completion_key is used
 // to interrupt the event loop's main thread. Signalling it with
 // ::PostQueuedCompletionStatus (with control_event_loop_overlapped as the
 // ::OVERLAPPED) causes the ::GetQueuedCompletionStatus loop to recognize a
 // change in state.
-Event_Loop2_Windows::Windows_Completion_Key control_event_loop_completion_key =
+Event_Loop_Windows::Windows_Completion_Key control_event_loop_completion_key =
     0;
-Event_Loop2_Windows::Windows_Completion_Key invalid_completion_key =
-    static_cast<Event_Loop2_Windows::Windows_Completion_Key>(-1);
+Event_Loop_Windows::Windows_Completion_Key invalid_completion_key =
+    static_cast<Event_Loop_Windows::Windows_Completion_Key>(-1);
 ::OVERLAPPED* control_event_loop_overlapped =
     reinterpret_cast<::OVERLAPPED*>(1);
 }
 
-struct Event_Loop2_Windows::Registered_Custom {
-  Event_Loop2_Custom_Windows_IO_Completion_Delegate* delegate;
+struct Event_Loop_Windows::Registered_Custom {
+  Event_Loop_Custom_Windows_IO_Completion_Delegate* delegate;
 };
 
 // Spawns a thread which continuously calls ::ReadFile (blocking) on a pipe.
 //
 // The algorithm of this class has some features proven and disproven using a
-// theorem prover. See NOTE[Event_Loop2_Windows-Registered_Pipe_Read-proof].
-class Event_Loop2_Windows::Registered_Pipe_Read {
+// theorem prover. See NOTE[Event_Loop_Windows-Registered_Pipe_Read-proof].
+class Event_Loop_Windows::Registered_Pipe_Read {
  public:
   explicit Registered_Pipe_Read(Windows_Handle_File_Ref pipe,
-                                Event_Loop2_Windows* loop,
-                                Event_Loop2_Pipe_Read_Delegate* delegate)
+                                Event_Loop_Windows* loop,
+                                Event_Loop_Pipe_Read_Delegate* delegate)
       : pipe_(pipe), loop_(loop), delegate_(delegate) {
     QLJS_ASSERT(!pipe.is_pipe_non_blocking());
   }
@@ -84,12 +84,12 @@ class Event_Loop2_Windows::Registered_Pipe_Read {
     //   interrupt the call.
     // * ::ReadFile returned. We use ::TerminateThread or set
     //   this->stop_requested_ to interrupt the thread. This can lead to data
-    //   loss; see NOTE[Event_Loop2_Windows-Registered_Pipe_Read-data-loss].
+    //   loss; see NOTE[Event_Loop_Windows-Registered_Pipe_Read-data-loss].
     //
     // Because we cannot atomically determine the state of the thread, we use
     // ::TerminateThread to handle all cases.
     //
-    // See NOTE[Event_Loop2_Windows-Registered_Pipe_Read-terminate] for a proof
+    // See NOTE[Event_Loop_Windows-Registered_Pipe_Read-terminate] for a proof
     // that ::TerminateThread will not interrupt a user callback.
     if (this->allow_terminate_) {
       this->thread_.terminate();
@@ -147,8 +147,8 @@ class Event_Loop2_Windows::Registered_Pipe_Read {
   }
 
   const Windows_Handle_File_Ref pipe_;
-  Event_Loop2_Windows* const loop_;
-  Event_Loop2_Pipe_Read_Delegate* const delegate_;
+  Event_Loop_Windows* const loop_;
+  Event_Loop_Pipe_Read_Delegate* const delegate_;
 
   Thread thread_;
   std::atomic<bool> allow_terminate_ = false;
@@ -156,30 +156,29 @@ class Event_Loop2_Windows::Registered_Pipe_Read {
 
 // Mutable state which is across multiple threads thus requires
 // synchronization.
-struct Event_Loop2_Windows::Shared_State {
-  Monotonic_Allocator memory{"Event_Loop2_Windows"};
+struct Event_Loop_Windows::Shared_State {
+  Monotonic_Allocator memory{"Event_Loop_Windows"};
 
   Stable_Hash_Map<Platform_File_Ref, Registered_Pipe_Read>
       registered_pipe_reads;
 };
 
-struct Event_Loop2_Windows::Impl {
+struct Event_Loop_Windows::Impl {
   // io_completion_port can be used by any thread.
   Windows_Handle_File io_completion_port{create_io_completion_port()};
 
   Synchronized<Shared_State> state;
 };
 
-Event_Loop2_Windows::Event_Loop2_Windows() : impl_(new Impl()) {}
+Event_Loop_Windows::Event_Loop_Windows() : impl_(new Impl()) {}
 
-Event_Loop2_Windows::~Event_Loop2_Windows() { delete this->impl_; }
+Event_Loop_Windows::~Event_Loop_Windows() { delete this->impl_; }
 
-Windows_Handle_File_Ref Event_Loop2_Windows::windows_io_completion_port()
-    const {
+Windows_Handle_File_Ref Event_Loop_Windows::windows_io_completion_port() const {
   return this->impl_->io_completion_port.ref();
 }
 
-void Event_Loop2_Windows::run() {
+void Event_Loop_Windows::run() {
   this->start_new_registered_pipe_reads();
   while (!this->is_stop_requested()) {
     ::DWORD number_of_bytes_transferred = 0;
@@ -207,7 +206,7 @@ void Event_Loop2_Windows::run() {
 
     if (completion_key == control_event_loop_completion_key) {
       // Event loop stop or update was requested. See
-      // NOTE[Event_Loop2_Windows-control].
+      // NOTE[Event_Loop_Windows-control].
       QLJS_ASSERT(overlapped == control_event_loop_overlapped);
       QLJS_ASSERT(error == 0);
       if (this->is_stop_requested()) {
@@ -231,8 +230,8 @@ void Event_Loop2_Windows::run() {
   this->stop_registered_pipe_reads();
 }
 
-void Event_Loop2_Windows::register_pipe_read(
-    Platform_File_Ref pipe, Event_Loop2_Pipe_Read_Delegate* delegate) {
+void Event_Loop_Windows::register_pipe_read(
+    Platform_File_Ref pipe, Event_Loop_Pipe_Read_Delegate* delegate) {
   QLJS_ASSERT(!pipe.is_pipe_non_blocking());
   Lock_Ptr<Shared_State> state = this->impl_->state.lock();
 
@@ -244,9 +243,9 @@ void Event_Loop2_Windows::register_pipe_read(
   this->notify_via_control();
 }
 
-Event_Loop2_Windows::Windows_Completion_Key
-Event_Loop2_Windows::register_custom_windows_io_completion(
-    Event_Loop2_Custom_Windows_IO_Completion_Delegate* delegate) {
+Event_Loop_Windows::Windows_Completion_Key
+Event_Loop_Windows::register_custom_windows_io_completion(
+    Event_Loop_Custom_Windows_IO_Completion_Delegate* delegate) {
   Lock_Ptr<Shared_State> state = this->impl_->state.lock();
 
   Registered_Custom* r =
@@ -259,10 +258,10 @@ Event_Loop2_Windows::register_custom_windows_io_completion(
   return completion_key;
 }
 
-void Event_Loop2_Windows::request_stop() { this->notify_via_control(); }
+void Event_Loop_Windows::request_stop() { this->notify_via_control(); }
 
-void Event_Loop2_Windows::notify_via_control() {
-  // See NOTE[Event_Loop2_Windows-control].
+void Event_Loop_Windows::notify_via_control() {
+  // See NOTE[Event_Loop_Windows-control].
   ::BOOL ok = ::PostQueuedCompletionStatus(
       /*CompletionPort=*/this->impl_->io_completion_port.get(),
       /*dwNumberOfBytesTransferred=*/0,
@@ -273,7 +272,7 @@ void Event_Loop2_Windows::notify_via_control() {
   }
 }
 
-void Event_Loop2_Windows::start_new_registered_pipe_reads() {
+void Event_Loop_Windows::start_new_registered_pipe_reads() {
   Lock_Ptr<Shared_State> state = this->impl_->state.lock();
   for (auto& [pipe, registered_pipe_read] : state->registered_pipe_reads) {
     if (this->is_stop_requested()) {
@@ -285,7 +284,7 @@ void Event_Loop2_Windows::start_new_registered_pipe_reads() {
   }
 }
 
-void Event_Loop2_Windows::stop_registered_pipe_reads() {
+void Event_Loop_Windows::stop_registered_pipe_reads() {
   Lock_Ptr<Shared_State> state = this->impl_->state.lock();
   // TODO(strager): To improve performance, stop all threads, then join all
   // threads.

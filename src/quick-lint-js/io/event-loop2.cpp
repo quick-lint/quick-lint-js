@@ -14,11 +14,11 @@
 #endif
 
 namespace quick_lint_js {
-Event_Loop2_Base::Event_Loop2_Base() = default;
+Event_Loop_Base::Event_Loop_Base() = default;
 
-void Event_Loop2_Base::keep_alive() { this->alive_count_ += 1; }
+void Event_Loop_Base::keep_alive() { this->alive_count_ += 1; }
 
-void Event_Loop2_Base::un_keep_alive() {
+void Event_Loop_Base::un_keep_alive() {
   int old_alive_count = this->alive_count_.fetch_sub(1);
   QLJS_ASSERT(
       old_alive_count > 0 &&
@@ -29,19 +29,19 @@ void Event_Loop2_Base::un_keep_alive() {
   }
 }
 
-void Event_Loop2_Base::stop_event_loop_testing_only() {
+void Event_Loop_Base::stop_event_loop_testing_only() {
   this->alive_count_ = 0;
   this->request_stop();
 }
 
-bool Event_Loop2_Base::is_stop_requested() const {
+bool Event_Loop_Base::is_stop_requested() const {
   return this->alive_count_ <= 0;
 }
 
-Event_Loop2_Base::Read_From_Pipe_Result
-Event_Loop2_Base::handle_read_from_pipe_result(
+Event_Loop_Base::Read_From_Pipe_Result
+Event_Loop_Base::handle_read_from_pipe_result(
     const File_Read_Result& read_result, Span<const Char8> buffer,
-    Platform_File_Ref pipe, Event_Loop2_Pipe_Read_Delegate* delegate) {
+    Platform_File_Ref pipe, Event_Loop_Pipe_Read_Delegate* delegate) {
   if (!read_result.ok()) {
 #if QLJS_HAVE_UNISTD_H
     if (read_result.error().is_would_block_try_again_error()) {
