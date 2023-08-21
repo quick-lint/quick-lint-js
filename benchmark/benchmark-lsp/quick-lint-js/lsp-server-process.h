@@ -224,6 +224,7 @@ class LSP_Server_Process : private Event_Loop2_Pipe_Read_Delegate
     event_loop.register_pipe_read(this->reader_.ref(), this);
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
     event_loop.register_pipe_write(this->message_writer_.get_pipe_fd(), this);
+    this->enable_or_disable_writer_events_as_needed(&event_loop);
 #endif
     event_loop.run();
   }
@@ -325,9 +326,12 @@ class LSP_Server_Process : private Event_Loop2_Pipe_Read_Delegate
     String8_View* out_message_content_ = nullptr;
   };
 
-  void on_pipe_read_data(Event_Loop2_Base*, Platform_File_Ref,
+  void on_pipe_read_data(Event_Loop2_Base* event_loop, Platform_File_Ref,
                          String8_View data) override {
     this->message_parser_.append(data);
+#if QLJS_EVENT_LOOP2_PIPE_WRITE
+    this->enable_or_disable_writer_events_as_needed(event_loop);
+#endif
   }
   void on_pipe_read_end(Event_Loop2_Base* event_loop,
                         Platform_File_Ref) override {
@@ -339,11 +343,25 @@ class LSP_Server_Process : private Event_Loop2_Pipe_Read_Delegate
   }
 
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
-  void on_pipe_write_ready(Event_Loop2_Base*, Platform_File_Ref) override {
+  void on_pipe_write_ready(Event_Loop2_Base* event_loop,
+                           Platform_File_Ref) override {
     this->message_writer_.on_pipe_write_ready();
+    this->enable_or_disable_writer_events_as_needed(event_loop);
   }
   void on_pipe_write_end(Event_Loop2_Base*, Platform_File_Ref) override {
     this->message_writer_.on_pipe_write_end();
+  }
+
+  // We have the same problem enabling and disabling the
+  // Non_Blocking_Pipe_Writer that the LSP server has. See
+  // HACK[Non_Blocking_Pipe_Writer-enable-disable] for details.
+  void enable_or_disable_writer_events_as_needed(Event_Loop2_Base* event_loop) {
+    bool should_be_enabled = this->message_writer_.get_event_fd().has_value();
+    if (should_be_enabled) {
+      event_loop->enable_pipe_write(this->message_writer_.get_pipe_fd());
+    } else {
+      event_loop->disable_pipe_write(this->message_writer_.get_pipe_fd());
+    }
   }
 #endif
 
