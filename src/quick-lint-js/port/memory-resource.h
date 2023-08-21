@@ -3,14 +3,35 @@
 
 #pragma once
 
-#include <boost/container/pmr/memory_resource.hpp>
+#include <cstddef>
 
 namespace quick_lint_js {
-using Memory_Resource = ::boost::container::pmr::memory_resource;
+// Like std::pmr::memory_resource.
+class Memory_Resource {
+ public:
+  virtual ~Memory_Resource() = default;
 
-// Like boost::container::pmr::new_delete_resource, but without a dependency on
-// dlmalloc.
-Memory_Resource *new_delete_resource();
+  void* allocate(std::size_t bytes, std::size_t alignment) {
+    return this->do_allocate(bytes, alignment);
+  }
+
+  void deallocate(void* p, std::size_t bytes, std::size_t alignment) {
+    return this->do_deallocate(p, bytes, alignment);
+  }
+
+  bool is_equal(const Memory_Resource& other) const {
+    return this->do_is_equal(other);
+  }
+
+ protected:
+  virtual void* do_allocate(std::size_t bytes, std::size_t alignment) = 0;
+  virtual void do_deallocate(void* p, std::size_t bytes,
+                             std::size_t alignment) = 0;
+  virtual bool do_is_equal(const Memory_Resource& other) const = 0;
+};
+
+// Like std::pmr::new_delete_resource.
+Memory_Resource* new_delete_resource();
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

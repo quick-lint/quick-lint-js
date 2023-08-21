@@ -225,19 +225,17 @@ class Linked_Bump_Allocator : public Memory_Resource {
   [[nodiscard]] Disable_Guard disable() { return Disable_Guard(this); }
 
  protected:
-  void* do_allocate(std::size_t bytes,
-                    std::size_t align) BOOST_NOEXCEPT override {
+  void* do_allocate(std::size_t bytes, std::size_t align) override {
     QLJS_ASSERT(align <= alignment);
     return this->allocate_bytes(this->align_up(bytes));
   }
 
-  void do_deallocate(void* p, std::size_t bytes,
-                     std::size_t align) BOOST_NOEXCEPT override {
+  void do_deallocate(void* p, std::size_t bytes, std::size_t align) override {
     QLJS_ASSERT(align <= alignment);
     this->deallocate_bytes(p, bytes);
   }
 
-  bool do_is_equal(const memory_resource& other) const BOOST_NOEXCEPT override {
+  bool do_is_equal(const Memory_Resource& other) const override {
     return this == static_cast<const Linked_Bump_Allocator*>(&other);
   }
 
