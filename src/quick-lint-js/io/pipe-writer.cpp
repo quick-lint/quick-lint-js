@@ -113,9 +113,9 @@ Non_Blocking_Pipe_Writer::Non_Blocking_Pipe_Writer(Platform_File_Ref pipe)
 
 void Non_Blocking_Pipe_Writer::flush() {
 #if QLJS_HAVE_POLL
-  while (std::optional<POSIX_FD_File_Ref> fd = this->get_event_fd()) {
+  while (this->has_pending_data()) {
     ::pollfd event = {
-        .fd = fd->get(),
+        .fd = this->get_pipe_fd().get(),
         .events = POLLOUT,
         .revents = 0,
     };
@@ -130,15 +130,9 @@ void Non_Blocking_Pipe_Writer::flush() {
 #endif
 }
 
-#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-std::optional<POSIX_FD_File_Ref> Non_Blocking_Pipe_Writer::get_event_fd() {
-  if (this->pending_.empty()) {
-    return std::nullopt;
-  } else {
-    return this->pipe_;
-  }
+bool Non_Blocking_Pipe_Writer::has_pending_data() const {
+  return !this->pending_.empty();
 }
-#endif
 
 Platform_File_Ref Non_Blocking_Pipe_Writer::get_pipe_fd() {
   return this->pipe_;

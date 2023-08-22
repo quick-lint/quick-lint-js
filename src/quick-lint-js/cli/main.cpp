@@ -489,7 +489,7 @@ void run_lsp_server() {
     // notifications), then if the event loop has write events disabled, then
     // the client won't receive any data.
     void enable_or_disable_writer_events_as_needed() {
-      bool should_be_enabled = this->writer_.get_event_fd().has_value();
+      bool should_be_enabled = this->writer_.has_pending_data();
       if (should_be_enabled) {
         this->event_loop_.enable_pipe_write(this->writer_.get_pipe_fd());
       } else {

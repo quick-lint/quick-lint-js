@@ -90,9 +90,9 @@ class Non_Blocking_Pipe_Writer {
   // For testing purposes only.
   void flush();
 
-#if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
-  std::optional<POSIX_FD_File_Ref> get_event_fd();
-#endif
+  // Returns true if there is data which has not been written to the pipe yet.
+  bool has_pending_data() const;
+
   Platform_File_Ref get_pipe_fd();
 
 #if QLJS_HAVE_KQUEUE

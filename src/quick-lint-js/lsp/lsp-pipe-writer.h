@@ -28,8 +28,8 @@ class LSP_Pipe_Writer : public LSP_Endpoint_Remote, private Pipe_Writer {
 
   using Pipe_Writer::flush;
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD && QLJS_HAVE_POLL
-  using Pipe_Writer::get_event_fd;
   using Pipe_Writer::get_pipe_fd;
+  using Pipe_Writer::has_pending_data;
   using Pipe_Writer::on_pipe_write_end;
   using Pipe_Writer::on_pipe_write_ready;
   using Pipe_Writer::on_poll_event;

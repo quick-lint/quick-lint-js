@@ -356,7 +356,7 @@ class LSP_Server_Process : private Event_Loop_Pipe_Read_Delegate
   // Non_Blocking_Pipe_Writer that the LSP server has. See
   // HACK[Non_Blocking_Pipe_Writer-enable-disable] for details.
   void enable_or_disable_writer_events_as_needed(Event_Loop_Base* event_loop) {
-    bool should_be_enabled = this->message_writer_.get_event_fd().has_value();
+    bool should_be_enabled = this->message_writer_.has_pending_data();
     if (should_be_enabled) {
       event_loop->enable_pipe_write(this->message_writer_.get_pipe_fd());
     } else {
