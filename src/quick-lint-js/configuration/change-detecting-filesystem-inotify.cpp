@@ -149,12 +149,11 @@ Change_Detecting_Filesystem_Inotify::get_inotify_fd() {
   return this->inotify_fd_->ref();
 }
 
-void Change_Detecting_Filesystem_Inotify::handle_poll_event(
-    const ::pollfd& event) {
-  if (event.revents & POLLIN) {
+void Change_Detecting_Filesystem_Inotify::handle_poll_event(short revents) {
+  if (revents & POLLIN) {
     this->read_inotify();
   }
-  if (event.revents & POLLERR) {
+  if (revents & POLLERR) {
     QLJS_UNIMPLEMENTED();
   }
 }

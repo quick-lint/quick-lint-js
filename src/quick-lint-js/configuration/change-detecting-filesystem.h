@@ -70,8 +70,7 @@ class Change_Detecting_Filesystem_Inotify : public Configuration_Filesystem,
   void on_canonicalize_child_of_directory(const wchar_t*) override;
 
   std::optional<POSIX_FD_File_Ref> get_inotify_fd();
-  // TODO(strager): Accept just revents.
-  void handle_poll_event(const ::pollfd& event);
+  void handle_poll_event(short revents);
 
   std::vector<Watch_IO_Error> take_watch_errors();
 

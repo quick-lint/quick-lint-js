@@ -2356,7 +2356,7 @@ bool Change_Detecting_Configuration_Loader::detect_changes() {
     ADD_FAILURE() << "poll failed: " << std::strerror(errno);
     return {};
   }
-  this->fs_.handle_poll_event(pollfds[0]);
+  this->fs_.handle_poll_event(pollfds[0].revents);
   return poll_rc != 0;
 #elif QLJS_HAVE_KQUEUE
   Fixed_Vector<struct ::kevent, 20> events;

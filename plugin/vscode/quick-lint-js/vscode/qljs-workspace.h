@@ -188,14 +188,9 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
 #endif
 
 #if QLJS_HAVE_INOTIFY
-    void on_custom_poll_event(Event_Loop_Base*, POSIX_FD_File_Ref fd,
+    void on_custom_poll_event(Event_Loop_Base*, POSIX_FD_File_Ref,
                               short revents) override {
-      // TODO(strager): Make handle_poll_event accept just revents.
-      struct ::pollfd e;
-      e.fd = fd.get();
-      e.events = POLLIN;
-      e.revents = revents;
-      this->fs_.handle_poll_event(e);
+      this->fs_.handle_poll_event(revents);
 
       this->filesystem_changed();
     }
