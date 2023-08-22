@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/char8.h>
 #include <string_view>
 #include <vector>
@@ -22,6 +23,10 @@ class Trace_Reader {
 
   void append_bytes(const void* data, std::size_t data_size);
 
+  // The memory returned by pull_new_events is only valid until the next call to
+  // pull_new_events, append_bytes, or ~Trace_Reader. In other words,
+  // pull_new_events and append_bytes deallocate memory allocated by the
+  // previous call to pull_new_events.
   std::vector<Parsed_Trace_Event> pull_new_events();
   void pull_new_events(std::vector<Parsed_Trace_Event>& out);
 
@@ -36,6 +41,9 @@ class Trace_Reader {
   std::vector<Parsed_Trace_Event> parsed_events_;
   bool parsed_header_ = false;
   bool encountered_error_ = false;
+  // The number of bytes at the beginning of this->queue_ which pull_new_events
+  // has already parsed. These bytes can be erased.
+  std::size_t parsed_bytes_ = 0;
 };
 
 enum class Parsed_Trace_Event_Type {
@@ -63,7 +71,7 @@ struct Parsed_Packet_Header {
 
 struct Parsed_Init_Event {
   std::uint64_t timestamp;
-  String8 version;
+  String8_View version;
 };
 
 struct Parsed_VSCode_Document_Opened_Event {

@@ -12,6 +12,7 @@
 #include <map>
 #include <optional>
 #include <quick-lint-js/container/async-byte-queue.h>
+#include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
@@ -54,14 +55,13 @@ class Test_Trace_Flusher_Directory_Backend : public Test_Trace_Flusher,
   std::string trace_dir = this->make_temporary_directory();
 };
 
-std::vector<Parsed_Trace_Event> read_trace_stream_file(
-    const std::string& path) {
+std::vector<Parsed_Trace_Event> read_trace_stream_file(const std::string& path,
+                                                       Trace_Reader& reader) {
   auto stream_file = read_file(path);
   if (!stream_file.ok()) {
     ADD_FAILURE() << stream_file.error_to_string();
     return std::vector<Parsed_Trace_Event>();
   }
-  Trace_Reader reader;
   reader.append_bytes(stream_file->data(),
                       narrow_cast<std::size_t>(stream_file->size()));
   return reader.pull_new_events();
@@ -80,7 +80,8 @@ std::vector<std::string> get_init_versions(
 }
 
 std::vector<std::string> read_init_versions(const std::string& stream_path) {
-  return get_init_versions(read_trace_stream_file(stream_path));
+  Trace_Reader reader;
+  return get_init_versions(read_trace_stream_file(stream_path, reader));
 }
 
 class Spy_Trace_Flusher_Backend final : public Trace_Flusher_Backend {
@@ -129,7 +130,7 @@ class Spy_Trace_Flusher_Backend final : public Trace_Flusher_Backend {
   }
 
   std::vector<Parsed_Trace_Event> parse_thread_trace_stream(
-      Trace_Flusher_Thread_Index thread_index) const {
+      Trace_Flusher_Thread_Index thread_index) {
     std::lock_guard<Mutex> lock(this->mutex_);
     auto it = this->thread_states.find(thread_index);
     if (it == this->thread_states.end()) {
@@ -137,14 +138,15 @@ class Spy_Trace_Flusher_Backend final : public Trace_Flusher_Backend {
       return std::vector<Parsed_Trace_Event>();
     }
     const Thread_State& t = it->second;
-    Trace_Reader reader;
+
+    Trace_Reader& reader = this->readers.emplace_back();
     reader.append_bytes(t.written_data.data(),
                         narrow_cast<std::size_t>(t.written_data.size()));
     return reader.pull_new_events();
   }
 
   std::vector<std::string> get_thread_init_versions(
-      Trace_Flusher_Thread_Index thread_index) const {
+      Trace_Flusher_Thread_Index thread_index) {
     return get_init_versions(this->parse_thread_trace_stream(thread_index));
   }
 
@@ -161,6 +163,7 @@ class Spy_Trace_Flusher_Backend final : public Trace_Flusher_Backend {
   }
 
   std::map<Trace_Flusher_Thread_Index, Thread_State> thread_states;
+  Linked_Vector<Trace_Reader> readers{new_delete_resource()};
   mutable Mutex mutex_;
 };
 
@@ -873,8 +876,9 @@ TEST_F(Test_Trace_Flusher_Directory_Backend,
   ASSERT_TRUE(backend.ok()) << backend.error_to_string();
   flusher.enable_backend(&*backend);
 
+  Trace_Reader event_reader;
   std::vector<Parsed_Trace_Event> events = read_trace_stream_file(
-      this->trace_dir + "/thread" + std::to_string(thread_index));
+      this->trace_dir + "/thread" + std::to_string(thread_index), event_reader);
   EXPECT_EQ(events.size(), 3);
   EXPECT_EQ(events[0].type, Parsed_Trace_Event_Type::packet_header);
   EXPECT_EQ(events[0].packet_header.thread_id, get_current_thread_id());

@@ -3,6 +3,7 @@
 
 #include <csetjmp>
 #include <cstddef>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/logging/trace-reader.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/binary-reader.h>
@@ -25,6 +26,18 @@ std::vector<Parsed_Trace_Event> Trace_Reader::pull_new_events() {
 }
 
 void Trace_Reader::pull_new_events(std::vector<Parsed_Trace_Event>& out) {
+  // Delete already-parsed data from this->queue_. We can't do this after
+  // parsing because the parsed event objects point to memory inside
+  // this->queue_.
+  {
+    std::vector<std::uint8_t>::iterator begin = this->queue_.begin();
+    std::vector<std::uint8_t>::iterator end = begin + this->parsed_bytes_;
+#if QLJS_DEBUG
+    std::fill(begin, end, 'x');
+#endif
+    this->queue_.erase(begin, end);
+  }
+
   std::jmp_buf buf;
   auto unexpected_end_of_file = [&buf]() {
     std::longjmp(buf, 1);
@@ -42,9 +55,8 @@ void Trace_Reader::pull_new_events(std::vector<Parsed_Trace_Event>& out) {
   } else {
     // End of file prematurely reached.
   }
-
-  this->queue_.erase(this->queue_.begin(),
-                     this->queue_.begin() + (committed - this->queue_.data()));
+  this->parsed_bytes_ =
+      narrow_cast<std::size_t>(committed - this->queue_.data());
 
   out.insert(out.end(), this->parsed_events_.begin(),
              this->parsed_events_.end());
@@ -118,6 +130,13 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     return String8(reinterpret_cast<const Char8*>(bytes),
                    narrow_cast<std::size_t>(end - bytes));
   };
+  auto read_utf8_zstring_in_place = [&r]() -> String8_View {
+    const std::uint8_t* bytes = r.cursor();
+    r.find_and_skip_byte(0x00);
+    const std::uint8_t* end = r.cursor() - 1;
+    return String8_View(reinterpret_cast<const Char8*>(bytes),
+                        narrow_cast<std::size_t>(end - bytes));
+  };
   auto read_lsp_document_type = [&]() -> Parsed_LSP_Document_Type {
     std::uint8_t raw_type = r.u8();
     if (raw_type > static_cast<std::uint8_t>(last_parsed_lsp_document_type)) {
@@ -133,15 +152,12 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
   std::uint8_t event_id = r.u8();
   switch (event_id) {
   case 0x01: {
-    const std::uint8_t* version_string = r.cursor();
-    r.find_and_skip_byte(0x00);
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::init_event,
         .init_event =
             Parsed_Init_Event{
                 .timestamp = timestamp,
-                .version =
-                    String8(reinterpret_cast<const Char8*>(version_string)),
+                .version = read_utf8_zstring_in_place(),
             },
     });
     break;
