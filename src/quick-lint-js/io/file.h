@@ -52,6 +52,7 @@ Result<Padded_String, Read_File_IO_Error> read_file(const char *path,
 Result<Padded_String, Platform_File_IO_Error> read_file(Platform_File_Ref);
 Result<Padded_String, Read_File_IO_Error> read_stdin(void);
 
+Padded_String read_file_or_exit(const std::string &path);
 Padded_String read_file_or_exit(const char *path);
 
 Result<void, Write_File_IO_Error> write_file(const std::string &path,
@@ -61,6 +62,12 @@ Result<void, Write_File_IO_Error> write_file(const char *path,
 
 void write_file_or_exit(const std::string &path, String8_View content);
 void write_file_or_exit(const char *path, String8_View content);
+
+// Returns true if the file was different.
+Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
+    const std::string &path, String8_View content);
+Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
+    const char *path, String8_View content);
 
 // Truncates the file if it exists.
 Result<Platform_File, Write_File_IO_Error> open_file_for_writing(

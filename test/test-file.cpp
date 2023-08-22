@@ -39,8 +39,11 @@
 #endif
 
 #if QLJS_HAVE_MKFIFO
-#include <sys/stat.h>
 #include <sys/types.h>
+#endif
+
+#if QLJS_HAVE_SYS_STAT_H
+#include <sys/stat.h>
 #endif
 
 using ::testing::HasSubstr;
@@ -271,6 +274,116 @@ TEST_F(Test_File, read_file_reads_from_pty_master) {
   }
 }
 #endif
+
+TEST_F(
+    Test_File,
+    write_file_if_different_modifies_file_if_same_size_but_different_content) {
+  std::string temp_dir = this->make_temporary_directory();
+  std::string temp_file = temp_dir + "/file";
+  write_file_or_exit(temp_file, u8"hello world"_sv);
+
+  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+      write_file_if_different(temp_file, u8"hello,world"_sv);
+  ASSERT_TRUE(result.ok()) << result.error_to_string();
+  EXPECT_TRUE(*result);
+
+  EXPECT_EQ(read_file_or_exit(temp_file), u8"hello,world"_sv);
+}
+
+TEST_F(Test_File,
+       write_file_if_different_modifies_file_if_bigger_size_but_same_prefix) {
+  std::string temp_dir = this->make_temporary_directory();
+  std::string temp_file = temp_dir + "/file";
+  write_file_or_exit(temp_file, u8"hello"_sv);
+
+  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+      write_file_if_different(temp_file, u8"hello world"_sv);
+  ASSERT_TRUE(result.ok()) << result.error_to_string();
+  EXPECT_TRUE(*result);
+
+  EXPECT_EQ(read_file_or_exit(temp_file), u8"hello world"_sv);
+}
+
+TEST_F(Test_File,
+       write_file_if_different_modifies_file_if_smaller_size_but_same_prefix) {
+  std::string temp_dir = this->make_temporary_directory();
+  std::string temp_file = temp_dir + "/file";
+  write_file_or_exit(temp_file, u8"hello world"_sv);
+
+  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+      write_file_if_different(temp_file, u8"hello"_sv);
+  ASSERT_TRUE(result.ok()) << result.error_to_string();
+  EXPECT_TRUE(*result);
+
+  EXPECT_EQ(read_file_or_exit(temp_file), u8"hello"_sv);
+}
+
+TEST_F(Test_File, write_file_if_different_does_not_touch_file_if_same_SLOW) {
+  std::string temp_dir = this->make_temporary_directory();
+  std::string temp_file = temp_dir + "/file";
+  write_file_or_exit(temp_file, u8"hello world"_sv);
+
+#if QLJS_HAVE_SYS_STAT_H
+  struct ::stat stat_before;
+  ASSERT_EQ(::stat(temp_file.c_str(), &stat_before), 0) << std::strerror(errno);
+#endif
+#if defined(_WIN32)
+  ::WIN32_FILE_ATTRIBUTE_DATA attributes_before;
+  ASSERT_TRUE(::GetFileAttributesExA(temp_file.c_str(), ::GetFileExInfoStandard,
+                                     &attributes_before));
+#endif
+
+#if QLJS_HAVE_SYS_STAT_H
+  // HACK(strager): Wait for the filesystem's clock to change. This is just a
+  // guess. If this duration is too small, we won't accurately assert that the
+  // file's timestamps didn't change. If this duration is too large, we slow
+  // down testing.
+  std::this_thread::sleep_for(10ms);
+#endif
+
+  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+      write_file_if_different(temp_file, u8"hello world"_sv);
+  ASSERT_TRUE(result.ok()) << result.error_to_string();
+  EXPECT_FALSE(*result);
+
+#if QLJS_HAVE_SYS_STAT_H
+  struct ::stat stat_after;
+  ASSERT_EQ(::stat(temp_file.c_str(), &stat_after), 0) << std::strerror(errno);
+
+  EXPECT_EQ(stat_before.st_dev, stat_after.st_dev);
+  EXPECT_EQ(stat_before.st_ino, stat_after.st_ino);
+  EXPECT_EQ(stat_before.st_mode, stat_after.st_mode);
+  EXPECT_EQ(stat_before.st_uid, stat_after.st_uid);
+  EXPECT_EQ(stat_before.st_gid, stat_after.st_gid);
+#if defined(__APPLE__)
+  EXPECT_EQ(stat_before.st_mtimespec.tv_sec, stat_after.st_mtimespec.tv_sec);
+  EXPECT_EQ(stat_before.st_mtimespec.tv_nsec, stat_after.st_mtimespec.tv_nsec);
+#elif defined(_WIN32)
+  EXPECT_EQ(stat_before.st_mtime, stat_after.st_mtime);
+  EXPECT_EQ(stat_before.st_mtime, stat_after.st_mtime);
+#else
+  EXPECT_EQ(stat_before.st_mtim.tv_sec, stat_after.st_mtim.tv_sec);
+  EXPECT_EQ(stat_before.st_mtim.tv_nsec, stat_after.st_mtim.tv_nsec);
+#endif
+#endif
+#if defined(_WIN32)
+  ::WIN32_FILE_ATTRIBUTE_DATA attributes_after;
+  ASSERT_TRUE(::GetFileAttributesExA(temp_file.c_str(), ::GetFileExInfoStandard,
+                                     &attributes_after));
+  EXPECT_EQ(attributes_before.dwFileAttributes,
+            attributes_after.dwFileAttributes);
+  EXPECT_EQ(attributes_before.ftCreationTime.dwHighDateTime,
+            attributes_after.ftCreationTime.dwHighDateTime);
+  EXPECT_EQ(attributes_before.ftCreationTime.dwLowDateTime,
+            attributes_after.ftCreationTime.dwLowDateTime);
+  EXPECT_EQ(attributes_before.ftLastWriteTime.dwHighDateTime,
+            attributes_after.ftLastWriteTime.dwHighDateTime);
+  EXPECT_EQ(attributes_before.ftLastWriteTime.dwLowDateTime,
+            attributes_after.ftLastWriteTime.dwLowDateTime);
+#endif
+
+  EXPECT_EQ(read_file_or_exit(temp_file), u8"hello world"_sv);
+}
 }
 }
 

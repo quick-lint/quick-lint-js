@@ -287,6 +287,10 @@ Result<Padded_String, Read_File_IO_Error> read_stdin() {
 }
 #endif
 
+Padded_String read_file_or_exit(const std::string &path) {
+  return read_file_or_exit(path.c_str());
+}
+
 Padded_String read_file_or_exit(const char *path) {
   Result<Padded_String, Read_File_IO_Error> r = read_file(path);
   if (!r.ok()) {
@@ -369,6 +373,30 @@ void write_file_or_exit(const char *path, String8_View content) {
   if (!result.ok()) {
     result.error().print_and_exit();
   }
+}
+
+Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
+    const std::string &path, String8_View content) {
+  return write_file_if_different(path.c_str(), content);
+}
+
+Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
+    const char *path, String8_View content) {
+  Result<Padded_String, Read_File_IO_Error> read_result = read_file(path);
+  if (!read_result.ok()) {
+    // FIXME(strager): Should we try to write the file anyway?
+    return read_result.propagate();
+  }
+
+  if (*read_result == content) {
+    return false;
+  }
+
+  Result<void, Write_File_IO_Error> write_result = write_file(path, content);
+  if (!write_result.ok()) {
+    return write_result.propagate();
+  }
+  return true;
 }
 
 #if QLJS_HAVE_WINDOWS_H
