@@ -100,16 +100,13 @@ async function installVSCodeAsync(version, target) {
 }
 
 function getVSCodeVersionForTarget(target) {
-  if (target.arch === "arm" || target.arch === "arm64") {
-    // HACK(strager): 1.49.x does not exist for darwin-arm64 or linux-arm or linux-arm64.
-    if (target.platform === "darwin") {
-      return "1.54.3";
-    } else {
-      return "1.50.1";
-    }
-  } else {
-    return "1.49.0";
-  }
+  // <1.54.0 does not support darwin arm64.
+  // <1.50.0 does not support linux arm/arm64.
+  // <1.55.0 has a bug causing flakiness on Windows:
+  //
+  //   Error: EBUSY: resource busy or locked, unlink
+  //   '\\?\C:\Users\strager\AppData\Local\Temp\QDPghQ\logs\20230821T201118\exthost1\exthost.log'
+  return "1.55.2";
 }
 
 function parseNodePlatformAndArchitecture(s) {
