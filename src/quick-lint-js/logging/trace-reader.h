@@ -77,16 +77,16 @@ struct Parsed_Init_Event {
 struct Parsed_VSCode_Document_Opened_Event {
   std::uint64_t timestamp;
   std::uint64_t document_id;
-  std::u16string uri;
-  std::u16string language_id;
-  std::u16string content;
+  std::u16string_view uri;
+  std::u16string_view language_id;
+  std::u16string_view content;
 };
 
 struct Parsed_VSCode_Document_Closed_Event {
   std::uint64_t timestamp;
   std::uint64_t document_id;
-  std::u16string uri;
-  std::u16string language_id;
+  std::u16string_view uri;
+  std::u16string_view language_id;
 };
 
 struct Parsed_VSCode_Document_Position {
@@ -103,7 +103,7 @@ struct Parsed_VSCode_Document_Change {
   Parsed_VSCode_Document_Range range;
   std::uint64_t range_offset;
   std::uint64_t range_length;
-  std::u16string text;
+  std::u16string_view text;
 
   // For testing.
   bool operator==(const Parsed_VSCode_Document_Change& other) const;
@@ -119,14 +119,14 @@ struct Parsed_VSCode_Document_Changed_Event {
 struct Parsed_VSCode_Document_Sync_Event {
   std::uint64_t timestamp;
   std::uint64_t document_id;
-  std::u16string uri;
-  std::u16string language_id;
-  std::u16string content;
+  std::u16string_view uri;
+  std::u16string_view language_id;
+  std::u16string_view content;
 };
 
 struct Parsed_LSP_Client_To_Server_Message_Event {
   std::uint64_t timestamp;
-  String8 body;
+  String8_View body;
 };
 
 struct Parsed_Vector_Max_Size_Histogram_Entry {
@@ -145,7 +145,7 @@ struct Parsed_Vector_Max_Size_Histogram_Entry {
 };
 
 struct Parsed_Vector_Max_Size_Histogram_By_Owner_Entry {
-  String8 owner;
+  String8_View owner;
   std::vector<Parsed_Vector_Max_Size_Histogram_Entry> max_size_entries;
 };
 
@@ -169,9 +169,9 @@ inline constexpr Parsed_LSP_Document_Type last_parsed_lsp_document_type =
 
 struct Parsed_LSP_Document_State {
   Parsed_LSP_Document_Type type;
-  String8 uri;
-  String8 text;
-  String8 language_id;
+  String8_View uri;
+  String8_View text;
+  String8_View language_id;
 };
 
 struct Parsed_LSP_Documents_Event {
