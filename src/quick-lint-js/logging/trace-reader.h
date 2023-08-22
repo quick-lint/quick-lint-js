@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/char8.h>
 #include <string_view>
@@ -44,6 +45,8 @@ class Trace_Reader {
   // The number of bytes at the beginning of this->queue_ which pull_new_events
   // has already parsed. These bytes can be erased.
   std::size_t parsed_bytes_ = 0;
+
+  Monotonic_Allocator memory_{"Trace_Reader::memory"};
 };
 
 enum class Parsed_Trace_Event_Type {
@@ -113,7 +116,7 @@ struct Parsed_VSCode_Document_Change {
 struct Parsed_VSCode_Document_Changed_Event {
   std::uint64_t timestamp;
   std::uint64_t document_id;
-  std::vector<Parsed_VSCode_Document_Change> changes;
+  Span<const Parsed_VSCode_Document_Change> changes;
 };
 
 struct Parsed_VSCode_Document_Sync_Event {
@@ -146,12 +149,12 @@ struct Parsed_Vector_Max_Size_Histogram_Entry {
 
 struct Parsed_Vector_Max_Size_Histogram_By_Owner_Entry {
   String8_View owner;
-  std::vector<Parsed_Vector_Max_Size_Histogram_Entry> max_size_entries;
+  Span<const Parsed_Vector_Max_Size_Histogram_Entry> max_size_entries;
 };
 
 struct Parsed_Vector_Max_Size_Histogram_By_Owner_Event {
   std::uint64_t timestamp;
-  std::vector<Parsed_Vector_Max_Size_Histogram_By_Owner_Entry> entries;
+  Span<const Parsed_Vector_Max_Size_Histogram_By_Owner_Entry> entries;
 };
 
 struct Parsed_Process_ID_Event {
@@ -176,7 +179,7 @@ struct Parsed_LSP_Document_State {
 
 struct Parsed_LSP_Documents_Event {
   std::uint64_t timestamp;
-  std::vector<Parsed_LSP_Document_State> documents;
+  Span<const Parsed_LSP_Document_State> documents;
 };
 
 struct Parsed_Trace_Event {

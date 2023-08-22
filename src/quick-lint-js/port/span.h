@@ -30,7 +30,7 @@ class Span {
   using iterator = T *;
   using const_iterator = T *;
 
-  explicit Span() : data_(nullptr), size_(0) {}
+  /*implicit*/ Span() : data_(nullptr), size_(0) {}
 
   template <std::size_t n>
   explicit Span(const std::array<std::remove_const_t<T>, n> &data)
