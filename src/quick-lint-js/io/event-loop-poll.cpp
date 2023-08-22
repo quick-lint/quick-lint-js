@@ -124,6 +124,16 @@ void Event_Loop_Poll::run() {
         // We were notified of changes by notify_via_control_pipe. See
         // NOTE[Event_Loop_Poll-control_pipe].
         QLJS_ASSERT(fd == this->impl_->control_pipe.reader.ref());
+
+        {
+          char buffer;
+          File_Read_Result read_result =
+              this->impl_->control_pipe.reader.read(&buffer, sizeof(buffer));
+          QLJS_ASSERT(read_result.ok());
+          // We don't care whether we reached EOF or not. Either way, behave as
+          // if we were notified.
+        }
+
         if (this->is_stop_requested()) {
           // Stop the event loop. Do not process other events.
           return;
