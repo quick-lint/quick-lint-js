@@ -419,8 +419,10 @@ void run_lsp_server() {
 
       this->event_loop_.keep_alive();
 #if !QLJS_HAVE_KQUEUE && QLJS_HAVE_INOTIFY
-      this->event_loop_.register_custom_poll(this->fs_.get_inotify_fd().value(),
-                                             POLLIN, this);
+      if (std::optional<Platform_File_Ref> inotify_fd =
+              this->fs_.get_inotify_fd()) {
+        this->event_loop_.register_custom_poll(*inotify_fd, POLLIN, this);
+      }
 #endif
       this->event_loop_.register_pipe_read(this->input_pipe_, this);
 #if QLJS_EVENT_LOOP2_PIPE_WRITE

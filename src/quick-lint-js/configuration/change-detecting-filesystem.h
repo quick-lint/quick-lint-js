@@ -69,7 +69,6 @@ class Change_Detecting_Filesystem_Inotify : public Configuration_Filesystem,
   void on_canonicalize_child_of_directory(const char*) override;
   void on_canonicalize_child_of_directory(const wchar_t*) override;
 
-  // TODO(strager): Drop the std::optional.
   std::optional<POSIX_FD_File_Ref> get_inotify_fd();
   // TODO(strager): Accept just revents.
   void handle_poll_event(const ::pollfd& event);

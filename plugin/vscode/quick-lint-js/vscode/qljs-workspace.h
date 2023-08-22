@@ -140,8 +140,10 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
 #endif
           workspace_(workspace) {
 #if !QLJS_HAVE_KQUEUE && QLJS_HAVE_INOTIFY
-      this->event_loop_.register_custom_poll(this->fs_.get_inotify_fd().value(),
-                                             POLLIN, this);
+      if (std::optional<Platform_File_Ref> inotify_fd =
+              this->fs_.get_inotify_fd()) {
+        this->event_loop_.register_custom_poll(*inotify_fd, POLLIN, this);
+      }
 #endif
 
       this->event_loop_.keep_alive();
