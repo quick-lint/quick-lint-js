@@ -384,6 +384,18 @@ TEST_F(Test_File, write_file_if_different_does_not_touch_file_if_same_SLOW) {
 
   EXPECT_EQ(read_file_or_exit(temp_file), u8"hello world"_sv);
 }
+
+TEST_F(Test_File, write_file_if_different_creates_file_if_missing) {
+  std::string temp_dir = this->make_temporary_directory();
+  std::string temp_file = temp_dir + "/file";
+
+  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+      write_file_if_different(temp_file, u8"hello"_sv);
+  ASSERT_TRUE(result.ok()) << result.error_to_string();
+  EXPECT_TRUE(*result);
+
+  EXPECT_EQ(read_file_or_exit(temp_file), u8"hello"_sv);
+}
 }
 }
 

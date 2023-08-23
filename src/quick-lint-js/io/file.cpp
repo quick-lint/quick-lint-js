@@ -383,12 +383,16 @@ Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
 Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
     const char *path, String8_View content) {
   Result<Padded_String, Read_File_IO_Error> read_result = read_file(path);
-  if (!read_result.ok()) {
+  bool file_is_different;
+  if (read_result.ok()) {
+    file_is_different = *read_result != content;
+  } else if (read_result.error().is_file_not_found_error()) {
+    file_is_different = true;
+  } else {
     // FIXME(strager): Should we try to write the file anyway?
     return read_result.propagate();
   }
-
-  if (*read_result == content) {
+  if (!file_is_different) {
     return false;
   }
 
