@@ -275,9 +275,57 @@ const CXX_Diagnostic_Variable* CXX_Diagnostic_Type::variable_from_name(
   return &*it;
 }
 
-CXX_Diagnostic_Types_Parser::CXX_Diagnostic_Types_Parser(
-    Padded_String_View input, const char* file_path, CLI_Locator* locator)
+CXX_Parser_Base::CXX_Parser_Base(Padded_String_View input,
+                                 const char* file_path, CLI_Locator* locator)
     : lexer_(input, file_path, locator) {}
+
+void CXX_Parser_Base::skip_preprocessor_directives() {
+again:
+  if (this->peek().type == CXX_Token_Type::identifier) {
+    if (this->peek().identifier == u8"QLJS_WARNING_PUSH") {
+      this->skip();
+      goto again;
+    } else if (this->peek().identifier == u8"QLJS_WARNING_IGNORE_CLANG" ||
+               this->peek().identifier == u8"QLJS_WARNING_IGNORE_GCC") {
+      this->skip();
+      this->expect_skip(CXX_Token_Type::left_paren);
+      this->expect_skip(CXX_Token_Type::string_literal);
+      this->expect_skip(CXX_Token_Type::right_paren);
+      goto again;
+    }
+  }
+}
+
+void CXX_Parser_Base::expect_skip(CXX_Token_Type expected_token_type) {
+  this->expect(expected_token_type);
+  this->skip();
+}
+
+void CXX_Parser_Base::expect(CXX_Token_Type expected_token_type) {
+  if (this->peek().type != expected_token_type) {
+    this->fatal(concat("expected "sv, to_string(expected_token_type)).c_str());
+  }
+}
+
+void CXX_Parser_Base::expect_skip(String8_View expected_identifier) {
+  std::string message = concat("expected identifier '"sv,
+                               to_string_view(expected_identifier), "'"sv);
+  if (this->peek().type != CXX_Token_Type::identifier) {
+    this->fatal(message.c_str());
+  }
+  if (this->peek().identifier != expected_identifier) {
+    this->fatal(message.c_str());
+  }
+  this->skip();
+}
+
+[[noreturn]] void CXX_Parser_Base::fatal(const char* message) {
+  CLI_Source_Position p = this->lexer_.locator_->position(this->lexer_.input_);
+  std::fprintf(stderr, "%s:%d:%d: error: failed to parse before: %s\n",
+               this->lexer_.file_path_, p.line_number, p.column_number,
+               message);
+  std::exit(1);
+}
 
 void CXX_Diagnostic_Types_Parser::parse_file() {
   this->skip_preprocessor_directives();
@@ -483,56 +531,6 @@ String8 CXX_Diagnostic_Types_Parser::next_unused_diag_code_string() {
     }
   }
   QLJS_UNIMPLEMENTED();
-}
-
-void CXX_Diagnostic_Types_Parser::skip_preprocessor_directives() {
-again:
-  if (this->peek().type == CXX_Token_Type::identifier) {
-    if (this->peek().identifier == u8"QLJS_WARNING_PUSH") {
-      this->skip();
-      goto again;
-    } else if (this->peek().identifier == u8"QLJS_WARNING_IGNORE_CLANG" ||
-               this->peek().identifier == u8"QLJS_WARNING_IGNORE_GCC") {
-      this->skip();
-      this->expect_skip(CXX_Token_Type::left_paren);
-      this->expect_skip(CXX_Token_Type::string_literal);
-      this->expect_skip(CXX_Token_Type::right_paren);
-      goto again;
-    }
-  }
-}
-
-void CXX_Diagnostic_Types_Parser::expect_skip(
-    CXX_Token_Type expected_token_type) {
-  this->expect(expected_token_type);
-  this->skip();
-}
-
-void CXX_Diagnostic_Types_Parser::expect(CXX_Token_Type expected_token_type) {
-  if (this->peek().type != expected_token_type) {
-    this->fatal(concat("expected "sv, to_string(expected_token_type)).c_str());
-  }
-}
-
-void CXX_Diagnostic_Types_Parser::expect_skip(
-    String8_View expected_identifier) {
-  std::string message = concat("expected identifier '"sv,
-                               to_string_view(expected_identifier), "'"sv);
-  if (this->peek().type != CXX_Token_Type::identifier) {
-    this->fatal(message.c_str());
-  }
-  if (this->peek().identifier != expected_identifier) {
-    this->fatal(message.c_str());
-  }
-  this->skip();
-}
-
-[[noreturn]] void CXX_Diagnostic_Types_Parser::fatal(const char* message) {
-  CLI_Source_Position p = this->lexer_.locator_->position(this->lexer_.input_);
-  std::fprintf(stderr, "%s:%d:%d: error: failed to parse before: %s\n",
-               this->lexer_.file_path_, p.line_number, p.column_number,
-               message);
-  std::exit(1);
 }
 
 Fixed_Vector<std::size_t, 4> layout_offsets(

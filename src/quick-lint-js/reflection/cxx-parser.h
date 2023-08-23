@@ -15,6 +15,8 @@
 
 namespace quick_lint_js {
 class CLI_Locator;
+class CXX_Diagnostic_Types_Parser;
+class CXX_Parser_Base;
 
 enum class CXX_Token_Type {
   end_of_file,
@@ -82,7 +84,8 @@ class CXX_Lexer {
   Monotonic_Allocator decoded_string_allocator_{
       "CXX_Lexer::decoded_string_allocator_"};
 
-  friend class CXX_Diagnostic_Types_Parser;
+  friend CXX_Diagnostic_Types_Parser;
+  friend CXX_Parser_Base;
 };
 
 struct CXX_Diagnostic_Message {
@@ -109,12 +112,30 @@ struct CXX_Diagnostic_Type {
       String8_View variable_name) const;
 };
 
-// Parses <quick-lint-js/diag/diagnostic-types-2.h>.
-class CXX_Diagnostic_Types_Parser {
+class CXX_Parser_Base {
  public:
-  explicit CXX_Diagnostic_Types_Parser(Padded_String_View input,
-                                       const char* file_path,
-                                       CLI_Locator* locator);
+  explicit CXX_Parser_Base(Padded_String_View input, const char* file_path,
+                           CLI_Locator* locator);
+
+ protected:
+  void skip_preprocessor_directives();
+
+  const CXX_Token& peek() { return this->lexer_.peek(); }
+  void skip() { this->lexer_.skip(); }
+
+  void expect_skip(CXX_Token_Type expected_token_type);
+  void expect(CXX_Token_Type expected_token_type);
+  void expect_skip(String8_View expected_identifier);
+
+  [[noreturn]] void fatal(const char* message);
+
+  CXX_Lexer lexer_;
+};
+
+// Parses <quick-lint-js/diag/diagnostic-types-2.h>.
+class CXX_Diagnostic_Types_Parser : private CXX_Parser_Base {
+ public:
+  using CXX_Parser_Base::CXX_Parser_Base;
 
   void parse_file();
 
@@ -128,20 +149,6 @@ class CXX_Diagnostic_Types_Parser {
 
   std::vector<CXX_Diagnostic_Type> parsed_types;
   std::vector<String8_View> reserved_code_strings;
-
- private:
-  void skip_preprocessor_directives();
-
-  const CXX_Token& peek() { return this->lexer_.peek(); }
-  void skip() { this->lexer_.skip(); }
-
-  void expect_skip(CXX_Token_Type expected_token_type);
-  void expect(CXX_Token_Type expected_token_type);
-  void expect_skip(String8_View expected_identifier);
-
-  [[noreturn]] void fatal(const char* message);
-
-  CXX_Lexer lexer_;
 };
 
 // Precondition: variables.size() <= 4
