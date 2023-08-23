@@ -33,10 +33,11 @@ void Trace_Writer::write_header(const Trace_Context& context) {
   });
 }
 
-void Trace_Writer::write_event_init(const Trace_Event_Init& event) {
+void Trace_Writer::write_event_init(const Trace_Event_Header& header,
+                                    const Trace_Event_Init& event) {
   QLJS_ASSERT(!contains(event.version, u8'\0'));
   this->append_binary(8 + 1, [&](Binary_Writer& w) {
-    w.u64_le(event.timestamp);
+    w.u64_le(header.timestamp);
     w.u8(event.id);
   });
   this->out_->append_copy(event.version.data(), event.version.size());
@@ -44,9 +45,10 @@ void Trace_Writer::write_event_init(const Trace_Event_Init& event) {
 }
 
 void Trace_Writer::write_event_lsp_client_to_server_message(
+    const Trace_Event_Header& header,
     const Trace_Event_LSP_Client_To_Server_Message& event) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
-    w.u64_le(event.timestamp);
+    w.u64_le(header.timestamp);
     w.u8(event.id);
     w.u64_le(event.body.size());
   });
@@ -54,9 +56,10 @@ void Trace_Writer::write_event_lsp_client_to_server_message(
 }
 
 void Trace_Writer::write_event_vector_max_size_histogram_by_owner(
+    const Trace_Event_Header& header,
     const Trace_Event_Vector_Max_Size_Histogram_By_Owner& event) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
-    w.u64_le(event.timestamp);
+    w.u64_le(header.timestamp);
     w.u8(event.id);
     w.u64_le(narrow_cast<std::uint64_t>(event.entries.size()));
   });
@@ -76,18 +79,19 @@ void Trace_Writer::write_event_vector_max_size_histogram_by_owner(
   }
 }
 
-void Trace_Writer::write_event_process_id(const Trace_Event_Process_ID& event) {
+void Trace_Writer::write_event_process_id(const Trace_Event_Header& header,
+                                          const Trace_Event_Process_ID& event) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
-    w.u64_le(event.timestamp);
+    w.u64_le(header.timestamp);
     w.u8(event.id);
     w.u64_le(event.process_id);
   });
 }
 
 void Trace_Writer::write_event_lsp_documents(
-    const Trace_Event_LSP_Documents& event) {
+    const Trace_Event_Header& header, const Trace_Event_LSP_Documents& event) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
-    w.u64_le(event.timestamp);
+    w.u64_le(header.timestamp);
     w.u8(event.id);
     w.u64_le(narrow_cast<std::uint64_t>(event.documents.size()));
   });

@@ -117,7 +117,7 @@ TEST(Test_Trace_Reader, init_event) {
   std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and init event";
   EXPECT_EQ(events[1].type, Parsed_Trace_Event_Type::init_event);
-  EXPECT_EQ(events[1].init_event.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
   EXPECT_EQ(events[1].init_event.version, u8"1.0.0"_sv);
 }
 
@@ -154,7 +154,7 @@ TEST(Test_Trace_Reader, vscode_document_opened_event) {
             Parsed_Trace_Event_Type::vscode_document_opened_event);
   Trace_Event_VSCode_Document_Opened<std::u16string_view>& event =
       events[1].vscode_document_opened_event;
-  EXPECT_EQ(event.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
   EXPECT_EQ(event.uri, u"test.js"sv);
   EXPECT_EQ(event.language_id, u"js"sv);
@@ -190,7 +190,7 @@ TEST(Test_Trace_Reader, vscode_document_closed_event) {
             Parsed_Trace_Event_Type::vscode_document_closed_event);
   Trace_Event_VSCode_Document_Closed<std::u16string_view>& event =
       events[1].vscode_document_closed_event;
-  EXPECT_EQ(event.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
   EXPECT_EQ(event.uri, u"test.js"sv);
   EXPECT_EQ(event.language_id, u"js"sv);
@@ -246,7 +246,7 @@ TEST(Test_Trace_Reader, vscode_document_changed_event) {
             Parsed_Trace_Event_Type::vscode_document_changed_event);
   Trace_Event_VSCode_Document_Changed<std::u16string_view>& event =
       events[1].vscode_document_changed_event;
-  EXPECT_EQ(event.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
   EXPECT_THAT(event.changes,
               ElementsAreArray({
@@ -322,7 +322,7 @@ TEST(Test_Trace_Reader, vscode_document_sync_event) {
             Parsed_Trace_Event_Type::vscode_document_sync_event);
   Trace_Event_VSCode_Document_Sync<std::u16string_view>& event =
       events[1].vscode_document_sync_event;
-  EXPECT_EQ(event.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
   EXPECT_EQ(event.uri, u"test.js"sv);
   EXPECT_EQ(event.language_id, u"js"sv);
@@ -350,7 +350,7 @@ TEST(Test_Trace_Reader, lsp_client_to_server_message_event) {
             Parsed_Trace_Event_Type::lsp_client_to_server_message_event);
   Trace_Event_LSP_Client_To_Server_Message& event =
       events[1].lsp_client_to_server_message_event;
-  EXPECT_EQ(event.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
   EXPECT_EQ(event.body, u8"{}"_sv);
 }
 
@@ -376,7 +376,7 @@ TEST(Test_Trace_Reader, read_lsp_client_to_server_message_event_in_two_parts) {
             Parsed_Trace_Event_Type::lsp_client_to_server_message_event);
   Trace_Event_LSP_Client_To_Server_Message& e =
       events[1].lsp_client_to_server_message_event;
-  EXPECT_EQ(e.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
   EXPECT_EQ(e.body, u8"{}"_sv);
 }
 
@@ -416,7 +416,7 @@ TEST(Test_Trace_Reader, vector_max_size_histogram_by_owner_event) {
             Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event);
   Trace_Event_Vector_Max_Size_Histogram_By_Owner& event =
       events[1].vector_max_size_histogram_by_owner_event;
-  EXPECT_EQ(event.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
 
   ASSERT_EQ(event.entries.size(), 2);
   EXPECT_EQ(event.entries[0].owner, "o1"sv);
@@ -452,7 +452,7 @@ TEST(Test_Trace_Reader, process_id_event) {
   ASSERT_EQ(events.size(), 2) << "expected packet header and process event";
   EXPECT_EQ(events[1].type, Parsed_Trace_Event_Type::process_id_event);
   Trace_Event_Process_ID& event = events[1].process_id_event;
-  EXPECT_EQ(event.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
   EXPECT_EQ(event.process_id, 0x0123);
 }
 
@@ -489,7 +489,7 @@ TEST(Test_Trace_Reader, lsp_documents_event) {
   ASSERT_EQ(events.size(), 2) << "expected packet header and lsp event";
   EXPECT_EQ(events[1].type, Parsed_Trace_Event_Type::lsp_documents_event);
   Trace_Event_LSP_Documents& event = events[1].lsp_documents_event;
-  EXPECT_EQ(event.timestamp, 0x5678);
+  EXPECT_EQ(events[1].header.timestamp, 0x5678);
   ASSERT_EQ(event.documents.size(), 1);
   EXPECT_EQ(event.documents[0].type, Trace_LSP_Document_Type::lintable);
   EXPECT_EQ(event.documents[0].uri, u8"file:///f"_sv);

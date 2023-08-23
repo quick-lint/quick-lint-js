@@ -46,10 +46,13 @@ TEST(Test_Trace_Writer, write_header) {
 TEST(Test_Trace_Writer, write_event_init) {
   Async_Byte_Queue data;
   Trace_Writer w(&data);
-  w.write_event_init(Trace_Event_Init{
-      .timestamp = 0x5678,
-      .version = u8"1.0.0"_sv,
-  });
+  w.write_event_init(
+      Trace_Event_Header{
+          .timestamp = 0x5678,
+      },
+      Trace_Event_Init{
+          .version = u8"1.0.0"_sv,
+      });
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
@@ -72,8 +75,10 @@ TEST(Test_Trace_Writer, write_event_vscode_document_opened) {
   Trace_Writer w(&data);
 
   w.write_event_vscode_document_opened(
-      Trace_Event_VSCode_Document_Opened<std::u16string_view>{
+      Trace_Event_Header{
           .timestamp = 0x5678,
+      },
+      Trace_Event_VSCode_Document_Opened<std::u16string_view>{
           .document_id = 0x1234,
           .uri = u"test.js",
           .language_id = u"js",
@@ -113,8 +118,10 @@ TEST(Test_Trace_Writer, write_event_vscode_document_closed) {
   Trace_Writer w(&data);
 
   w.write_event_vscode_document_closed(
-      Trace_Event_VSCode_Document_Closed<std::u16string_view>{
+      Trace_Event_Header{
           .timestamp = 0x5678,
+      },
+      Trace_Event_VSCode_Document_Closed<std::u16string_view>{
           .document_id = 0x1234,
           .uri = u"test.js",
           .language_id = u"js",
@@ -188,8 +195,10 @@ TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
   };
 
   w.write_event_vscode_document_changed(
-      Trace_Event_VSCode_Document_Changed<std::u16string_view>{
+      Trace_Event_Header{
           .timestamp = 0x5678,
+      },
+      Trace_Event_VSCode_Document_Changed<std::u16string_view>{
           .document_id = 0x1234,
           .changes =
               Span<const Trace_VSCode_Document_Change<std::u16string_view>>(
@@ -247,8 +256,10 @@ TEST(Test_Trace_Writer, write_event_vscode_document_sync) {
   Trace_Writer w(&data);
 
   w.write_event_vscode_document_sync(
-      Trace_Event_VSCode_Document_Sync<std::u16string_view>{
+      Trace_Event_Header{
           .timestamp = 0x5678,
+      },
+      Trace_Event_VSCode_Document_Sync<std::u16string_view>{
           .document_id = 0x1234,
           .uri = u"test.js",
           .language_id = u"js",
@@ -288,8 +299,10 @@ TEST(Test_Trace_Writer, write_event_lsp_client_to_server_message) {
   Trace_Writer w(&data);
 
   w.write_event_lsp_client_to_server_message(
-      Trace_Event_LSP_Client_To_Server_Message{
+      Trace_Event_Header{
           .timestamp = 0x5678,
+      },
+      Trace_Event_LSP_Client_To_Server_Message{
           .body = u8"{ }"_sv,
       });
 
@@ -334,8 +347,10 @@ TEST(Test_Trace_Writer, write_event_vector_max_size_histogram_by_owner) {
       },
   };
   w.write_event_vector_max_size_histogram_by_owner(
-      Trace_Event_Vector_Max_Size_Histogram_By_Owner{
+      Trace_Event_Header{
           .timestamp = 0x5678,
+      },
+      Trace_Event_Vector_Max_Size_Histogram_By_Owner{
           .entries = Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>(
               entries),
       });
@@ -376,10 +391,13 @@ TEST(Test_Trace_Writer, write_event_process_id) {
   Async_Byte_Queue data;
   Trace_Writer w(&data);
 
-  w.write_event_process_id(Trace_Event_Process_ID{
-      .timestamp = 0x5678,
-      .process_id = 0x0123,
-  });
+  w.write_event_process_id(
+      Trace_Event_Header{
+          .timestamp = 0x5678,
+      },
+      Trace_Event_Process_ID{
+          .process_id = 0x0123,
+      });
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),
@@ -409,10 +427,13 @@ TEST(Test_Trace_Writer, write_event_lsp_documents) {
           .language_id = u8"js"_sv,
       },
   };
-  w.write_event_lsp_documents(Trace_Event_LSP_Documents{
-      .timestamp = 0x5678,
-      .documents = Span<const Trace_LSP_Document_State>(documents),
-  });
+  w.write_event_lsp_documents(
+      Trace_Event_Header{
+          .timestamp = 0x5678,
+      },
+      Trace_Event_LSP_Documents{
+          .documents = Span<const Trace_LSP_Document_State>(documents),
+      });
 
   data.commit();
   EXPECT_THAT(data.take_committed_string8(),

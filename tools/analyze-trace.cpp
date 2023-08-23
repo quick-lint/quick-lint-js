@@ -58,43 +58,53 @@ class Counting_Trace_Stream_Event_Visitor {
   // The first call to a visit_ function will set this to 0.
   std::uint64_t event_index = (std::numeric_limits<std::uint64_t>::max)();
 
-  void visit_init_event(const Trace_Event_Init&) { ++this->event_index; }
+  void visit_init_event(const Trace_Event_Header&, const Trace_Event_Init&) {
+    ++this->event_index;
+  }
 
   void visit_vscode_document_opened_event(
+      const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Opened<std::u16string_view>&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_closed_event(
+      const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Closed<std::u16string_view>&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_changed_event(
+      const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Changed<std::u16string_view>&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_sync_event(
+      const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Sync<std::u16string_view>&) {
     ++this->event_index;
   }
 
   void visit_lsp_client_to_server_message_event(
+      const Trace_Event_Header&,
       const Trace_Event_LSP_Client_To_Server_Message&) {
     ++this->event_index;
   }
 
-  void visit_lsp_documents_event(const Trace_Event_LSP_Documents&) {
+  void visit_lsp_documents_event(const Trace_Event_Header&,
+                                 const Trace_Event_LSP_Documents&) {
     ++this->event_index;
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
+      const Trace_Event_Header&,
       const Trace_Event_Vector_Max_Size_Histogram_By_Owner&) {
     ++this->event_index;
   }
 
-  void visit_process_id_event(const Trace_Event_Process_ID&) {
+  void visit_process_id_event(const Trace_Event_Header&,
+                              const Trace_Event_Process_ID&) {
     ++this->event_index;
   }
 };
@@ -126,8 +136,9 @@ class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
   void visit_packet_header(const Trace_Context&) {}
 
   void visit_vscode_document_opened_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Opened<std::u16string_view>& event) {
-    Base::visit_vscode_document_opened_event(event);
+    Base::visit_vscode_document_opened_event(header, event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
       return;
@@ -137,8 +148,9 @@ class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_closed_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Closed<std::u16string_view>& event) {
-    Base::visit_vscode_document_closed_event(event);
+    Base::visit_vscode_document_closed_event(header, event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
       return;
@@ -148,8 +160,9 @@ class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_changed_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Changed<std::u16string_view>& event) {
-    Base::visit_vscode_document_changed_event(event);
+    Base::visit_vscode_document_changed_event(header, event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
       return;
@@ -162,8 +175,9 @@ class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
+      const Trace_Event_Header& header,
       const Trace_Event_Vector_Max_Size_Histogram_By_Owner& event) {
-    Base::visit_vector_max_size_histogram_by_owner_event(event);
+    Base::visit_vector_max_size_histogram_by_owner_event(header, event);
   }
 
   void print_document_content() {
@@ -204,8 +218,9 @@ class Document_Content_Checker : public Counting_Trace_Stream_Event_Visitor {
   void visit_packet_header(const Trace_Context&) {}
 
   void visit_vscode_document_opened_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Opened<std::u16string_view>& event) {
-    Base::visit_vscode_document_opened_event(event);
+    Base::visit_vscode_document_opened_event(header, event);
     if (event.document_id == 0) {
       return;
     }
@@ -216,8 +231,9 @@ class Document_Content_Checker : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_closed_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Closed<std::u16string_view>& event) {
-    Base::visit_vscode_document_closed_event(event);
+    Base::visit_vscode_document_closed_event(header, event);
     if (event.document_id == 0) {
       return;
     }
@@ -225,8 +241,9 @@ class Document_Content_Checker : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_changed_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Changed<std::u16string_view>& event) {
-    Base::visit_vscode_document_changed_event(event);
+    Base::visit_vscode_document_changed_event(header, event);
     if (event.document_id == 0) {
       return;
     }
@@ -247,8 +264,9 @@ class Document_Content_Checker : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_sync_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Sync<std::u16string_view>& event) {
-    Base::visit_vscode_document_sync_event(event);
+    Base::visit_vscode_document_sync_event(header, event);
     if (event.document_id == 0) {
       return;
     }
@@ -320,22 +338,24 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
 
   void visit_packet_header(const Trace_Context&) {}
 
-  void visit_init_event(const Trace_Event_Init& event) {
-    Base::visit_init_event(event);
+  void visit_init_event(const Trace_Event_Header& header,
+                        const Trace_Event_Init& event) {
+    Base::visit_init_event(header, event);
     if (!this->should_dump()) return;
 
-    this->print_event_header(event);
+    this->print_event_header(header);
     std::printf("init version='");
     this->print_utf8(event.version);
     std::printf("'\n");
   }
 
   void visit_vscode_document_opened_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Opened<std::u16string_view>& event) {
-    Base::visit_vscode_document_opened_event(event);
+    Base::visit_vscode_document_opened_event(header, event);
     if (!this->should_dump()) return;
 
-    this->print_event_header(event);
+    this->print_event_header(header);
     std::printf("document ");
     this->print_document_id(event.document_id);
     std::printf(" opened: ");
@@ -344,11 +364,12 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_closed_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Closed<std::u16string_view>& event) {
-    Base::visit_vscode_document_closed_event(event);
+    Base::visit_vscode_document_closed_event(header, event);
     if (!this->should_dump()) return;
 
-    this->print_event_header(event);
+    this->print_event_header(header);
     std::printf("document ");
     this->print_document_id(event.document_id);
     std::printf(" closed: ");
@@ -357,11 +378,12 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_changed_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Changed<std::u16string_view>& event) {
-    Base::visit_vscode_document_changed_event(event);
+    Base::visit_vscode_document_changed_event(header, event);
     if (!this->should_dump()) return;
 
-    this->print_event_header(event);
+    this->print_event_header(header);
     std::printf("document ");
     this->print_document_id(event.document_id);
     std::printf(" changed\n");
@@ -377,11 +399,12 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_sync_event(
+      const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Sync<std::u16string_view>& event) {
-    Base::visit_vscode_document_sync_event(event);
+    Base::visit_vscode_document_sync_event(header, event);
     if (!this->should_dump()) return;
 
-    this->print_event_header(event);
+    this->print_event_header(header);
     std::printf("document ");
     this->print_document_id(event.document_id);
     std::printf(" sync: ");
@@ -390,21 +413,23 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_lsp_client_to_server_message_event(
+      const Trace_Event_Header& header,
       const Trace_Event_LSP_Client_To_Server_Message& event) {
-    Base::visit_lsp_client_to_server_message_event(event);
+    Base::visit_lsp_client_to_server_message_event(header, event);
     if (!this->should_dump()) return;
 
-    this->print_event_header(event);
+    this->print_event_header(header);
     std::printf("client->server LSP message: ");
     this->print_utf8(event.body);
     std::printf("\n");
   }
 
-  void visit_lsp_documents_event(const Trace_Event_LSP_Documents& event) {
-    Base::visit_lsp_documents_event(event);
+  void visit_lsp_documents_event(const Trace_Event_Header& header,
+                                 const Trace_Event_LSP_Documents& event) {
+    Base::visit_lsp_documents_event(header, event);
     if (!this->should_dump()) return;
 
-    this->print_event_header(event);
+    this->print_event_header(header);
     std::printf("LSP documents:\n");
     for (const Trace_LSP_Document_State& doc : event.documents) {
       std::printf("* ");
@@ -414,29 +439,30 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
+      const Trace_Event_Header& header,
       const Trace_Event_Vector_Max_Size_Histogram_By_Owner& event) {
-    Base::visit_vector_max_size_histogram_by_owner_event(event);
+    Base::visit_vector_max_size_histogram_by_owner_event(header, event);
     if (!this->should_dump()) return;
 
-    this->print_event_header(event);
+    this->print_event_header(header);
     std::printf("vector max size histogram by owner\n");
   }
 
-  void visit_process_id_event(const Trace_Event_Process_ID& event) {
-    Base::visit_process_id_event(event);
+  void visit_process_id_event(const Trace_Event_Header& header,
+                              const Trace_Event_Process_ID& event) {
+    Base::visit_process_id_event(header, event);
     if (!this->should_dump()) return;
 
-    this->print_event_header(event);
+    this->print_event_header(header);
     std::printf("process ID: %#" PRIx64 "\n", event.process_id);
   }
 
  private:
-  template <class Event>
-  void print_event_header(const Event& event) {
+  void print_event_header(const Trace_Event_Header& header) {
     std::uint64_t ns_per_s = 1'000'000'000;
     std::printf("@%0*llu.%09llu ", this->header_width - 1 - 1 - 9 - 1,
-                narrow_cast<unsigned long long>(event.timestamp % ns_per_s),
-                narrow_cast<unsigned long long>(event.timestamp / ns_per_s));
+                narrow_cast<unsigned long long>(header.timestamp % ns_per_s),
+                narrow_cast<unsigned long long>(header.timestamp / ns_per_s));
   }
 
   void print_document_id(std::uint64_t document_id) {
@@ -479,15 +505,18 @@ void visit_events(const std::vector<Parsed_Trace_Event>& events,
       v.visit_error_unsupported_lsp_document_type();
       break;
 
-#define VISIT(event_type)                   \
-  case Parsed_Trace_Event_Type::event_type: \
-    v.visit_##event_type(event.event_type); \
+    case Parsed_Trace_Event_Type::packet_header:
+      v.visit_packet_header(event.packet_header);
+      break;
+
+#define VISIT(event_type)                                 \
+  case Parsed_Trace_Event_Type::event_type:               \
+    v.visit_##event_type(event.header, event.event_type); \
     break;
 
       VISIT(init_event)
       VISIT(lsp_client_to_server_message_event)
       VISIT(lsp_documents_event)
-      VISIT(packet_header)
       VISIT(process_id_event)
       VISIT(vector_max_size_histogram_by_owner_event)
       VISIT(vscode_document_changed_event)

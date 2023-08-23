@@ -104,6 +104,11 @@ void Trace_Reader::parse_header(Checked_Binary_Reader& r) {
 
   this->parsed_events_.push_back(Parsed_Trace_Event{
       .type = Parsed_Trace_Event_Type::packet_header,
+      // TODO(strager): Don't initialize .header. (Move it inside the union?)
+      .header =
+          Trace_Event_Header{
+              .timestamp = 0,
+          },
       .packet_header =
           Trace_Context{
               .thread_id = thread_id,
@@ -144,15 +149,17 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     return static_cast<Trace_LSP_Document_Type>(raw_type);
   };
 
-  std::uint64_t timestamp = r.u64_le();
+  Trace_Event_Header header = {
+      .timestamp = r.u64_le(),
+  };
   std::uint8_t event_id = r.u8();
   switch (event_id) {
   case 0x01: {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::init_event,
+        .header = header,
         .init_event =
             Trace_Event_Init{
-                .timestamp = timestamp,
                 .version = read_utf8_zstring_in_place(),
             },
     });
@@ -162,9 +169,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
   case 0x02:
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::vscode_document_opened_event,
+        .header = header,
         .vscode_document_opened_event =
             Trace_Event_VSCode_Document_Opened<std::u16string_view>{
-                .timestamp = timestamp,
                 .document_id = r.u64_le(),
                 .uri = read_utf16le_string_in_place(),
                 .language_id = read_utf16le_string_in_place(),
@@ -176,9 +183,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
   case 0x03:
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::vscode_document_closed_event,
+        .header = header,
         .vscode_document_closed_event =
             Trace_Event_VSCode_Document_Closed<std::u16string_view>{
-                .timestamp = timestamp,
                 .document_id = r.u64_le(),
                 .uri = read_utf16le_string_in_place(),
                 .language_id = read_utf16le_string_in_place(),
@@ -215,9 +222,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     }
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::vscode_document_changed_event,
+        .header = header,
         .vscode_document_changed_event =
             Trace_Event_VSCode_Document_Changed<std::u16string_view>{
-                .timestamp = timestamp,
                 .document_id = document_id,
                 .changes = changes,
             },
@@ -228,9 +235,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
   case 0x05:
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::vscode_document_sync_event,
+        .header = header,
         .vscode_document_sync_event =
             Trace_Event_VSCode_Document_Sync<std::u16string_view>{
-                .timestamp = timestamp,
                 .document_id = r.u64_le(),
                 .uri = read_utf16le_string_in_place(),
                 .language_id = read_utf16le_string_in_place(),
@@ -242,9 +249,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
   case 0x06:
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::lsp_client_to_server_message_event,
+        .header = header,
         .lsp_client_to_server_message_event =
             Trace_Event_LSP_Client_To_Server_Message{
-                .timestamp = timestamp,
                 .body = read_utf8_string_in_place(),
             },
     });
@@ -275,9 +282,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type =
             Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event,
+        .header = header,
         .vector_max_size_histogram_by_owner_event =
             Trace_Event_Vector_Max_Size_Histogram_By_Owner{
-                .timestamp = timestamp,
                 .entries = entries,
             },
     });
@@ -288,9 +295,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     std::uint64_t process_id = r.u64_le();
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::process_id_event,
+        .header = header,
         .process_id_event =
             Trace_Event_Process_ID{
-                .timestamp = timestamp,
                 .process_id = process_id,
             },
     });
@@ -312,9 +319,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     }
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::lsp_documents_event,
+        .header = header,
         .lsp_documents_event =
             Trace_Event_LSP_Documents{
-                .timestamp = timestamp,
                 .documents = documents,
             },
     });

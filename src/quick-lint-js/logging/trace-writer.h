@@ -42,33 +42,41 @@ class Trace_Writer {
 
   void write_header(const Trace_Context&);
 
-  void write_event_init(const Trace_Event_Init&);
+  void write_event_init(const Trace_Event_Header&, const Trace_Event_Init&);
 
   template <class String>
   void write_event_vscode_document_opened(
+      const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Opened<String>&);
 
   template <class String>
   void write_event_vscode_document_closed(
+      const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Closed<String>&);
 
   template <class String>
   void write_event_vscode_document_changed(
+      const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Changed<String>&);
 
   template <class String>
   void write_event_vscode_document_sync(
+      const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Sync<String>&);
 
   void write_event_lsp_client_to_server_message(
+      const Trace_Event_Header&,
       const Trace_Event_LSP_Client_To_Server_Message&);
 
   void write_event_vector_max_size_histogram_by_owner(
+      const Trace_Event_Header&,
       const Trace_Event_Vector_Max_Size_Histogram_By_Owner&);
 
-  void write_event_process_id(const Trace_Event_Process_ID&);
+  void write_event_process_id(const Trace_Event_Header&,
+                              const Trace_Event_Process_ID&);
 
-  void write_event_lsp_documents(const Trace_Event_LSP_Documents&);
+  void write_event_lsp_documents(const Trace_Event_Header&,
+                                 const Trace_Event_LSP_Documents&);
 
  private:
   template <class Func>
@@ -84,9 +92,10 @@ class Trace_Writer {
 
 template <class String>
 void Trace_Writer::write_event_vscode_document_opened(
+    const Trace_Event_Header& header,
     const Trace_Event_VSCode_Document_Opened<String>& event) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
-    w.u64_le(event.timestamp);
+    w.u64_le(header.timestamp);
     w.u8(event.id);
     w.u64_le(event.document_id);
   });
@@ -97,9 +106,10 @@ void Trace_Writer::write_event_vscode_document_opened(
 
 template <class String>
 void Trace_Writer::write_event_vscode_document_closed(
+    const Trace_Event_Header& header,
     const Trace_Event_VSCode_Document_Closed<String>& event) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
-    w.u64_le(event.timestamp);
+    w.u64_le(header.timestamp);
     w.u8(event.id);
     w.u64_le(event.document_id);
   });
@@ -109,9 +119,10 @@ void Trace_Writer::write_event_vscode_document_closed(
 
 template <class String>
 void Trace_Writer::write_event_vscode_document_changed(
+    const Trace_Event_Header& header,
     const Trace_Event_VSCode_Document_Changed<String>& event) {
   this->append_binary(8 + 1 + 8 + 8, [&](Binary_Writer& w) {
-    w.u64_le(event.timestamp);
+    w.u64_le(header.timestamp);
     w.u8(event.id);
     w.u64_le(event.document_id);
     w.u64_le(narrow_cast<std::uint64_t>(event.changes.size()));
@@ -157,9 +168,10 @@ void Trace_Writer::write_utf16le_string(String string) {
 
 template <class String>
 void Trace_Writer::write_event_vscode_document_sync(
+    const Trace_Event_Header& header,
     const Trace_Event_VSCode_Document_Sync<String>& event) {
   this->append_binary(8 + 1 + 8, [&](Binary_Writer& w) {
-    w.u64_le(event.timestamp);
+    w.u64_le(header.timestamp);
     w.u8(event.id);
     w.u64_le(event.document_id);
   });

@@ -12,10 +12,13 @@ struct Trace_Context {
   std::uint64_t thread_id;
 };
 
+struct Trace_Event_Header {
+  std::uint64_t timestamp;
+};
+
 struct Trace_Event_Init {
   static constexpr std::uint8_t id = 0x01;
 
-  std::uint64_t timestamp;
   String8_View version;
 };
 
@@ -23,7 +26,6 @@ template <class String>
 struct Trace_Event_VSCode_Document_Opened {
   static constexpr std::uint8_t id = 0x02;
 
-  std::uint64_t timestamp;
   std::uint64_t document_id;
   String uri;
   String language_id;
@@ -34,7 +36,6 @@ template <class String>
 struct Trace_Event_VSCode_Document_Closed {
   static constexpr std::uint8_t id = 0x03;
 
-  std::uint64_t timestamp;
   std::uint64_t document_id;
   String uri;
   String language_id;
@@ -78,7 +79,6 @@ template <class String>
 struct Trace_Event_VSCode_Document_Changed {
   static constexpr std::uint8_t id = 0x04;
 
-  std::uint64_t timestamp;
   std::uint64_t document_id;
   Span<const Trace_VSCode_Document_Change<String>> changes;
 };
@@ -87,7 +87,6 @@ template <class String>
 struct Trace_Event_VSCode_Document_Sync {
   static constexpr std::uint8_t id = 0x05;
 
-  std::uint64_t timestamp;
   std::uint64_t document_id;
   String uri;
   String language_id;
@@ -97,7 +96,6 @@ struct Trace_Event_VSCode_Document_Sync {
 struct Trace_Event_LSP_Client_To_Server_Message {
   static constexpr std::uint8_t id = 0x06;
 
-  std::uint64_t timestamp;
   String8_View body;
 };
 
@@ -124,14 +122,12 @@ struct Trace_Vector_Max_Size_Histogram_By_Owner_Entry {
 struct Trace_Event_Vector_Max_Size_Histogram_By_Owner {
   static constexpr std::uint8_t id = 0x07;
 
-  std::uint64_t timestamp;
   Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries;
 };
 
 struct Trace_Event_Process_ID {
   static constexpr std::uint8_t id = 0x08;
 
-  std::uint64_t timestamp;
   std::uint64_t process_id;
 };
 
@@ -153,7 +149,6 @@ struct Trace_LSP_Document_State {
 struct Trace_Event_LSP_Documents {
   static constexpr std::uint8_t id = 0x09;
 
-  std::uint64_t timestamp;
   Span<const Trace_LSP_Document_State> documents;
 };
 }

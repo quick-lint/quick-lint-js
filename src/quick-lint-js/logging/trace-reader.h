@@ -71,9 +71,13 @@ enum class Parsed_Trace_Event_Type {
 struct Parsed_Trace_Event {
   Parsed_Trace_Event_Type type;
 
+  Trace_Event_Header header;
+
   union {
+    // 'header' is not initialized for packet_header.
     Trace_Context packet_header;
 
+    // The following have 'header' initialized.
     Trace_Event_Init init_event;
     Trace_Event_VSCode_Document_Opened<std::u16string_view>
         vscode_document_opened_event;
