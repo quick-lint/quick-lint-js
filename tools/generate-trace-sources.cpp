@@ -675,6 +675,326 @@ stream {
   write_file_copyright_end(out);
   out.append_literal(u8")\";\n}\n"_sv);
 }
+
+void write_parser_js(CXX_Trace_Types_Parser& types, Output_Stream& out) {
+  write_file_copyright_begin(out);
+  write_file_generated_comment(out);
+  out.append_literal(
+      u8R"(
+export class TraceReaderError extends Error {}
+
+export class TraceReaderUnknownEventType extends TraceReaderError {
+  constructor() {
+    super("unrecognized event type");
+  }
+}
+
+)"_sv);
+
+  // Value: Name of a TraceByteReader method
+  // (src/quick-lint-js/debug/public/trace.mjs)
+  Hash_Map<String8_View, String8_View> ctf_name_to_byte_reader_method(
+      &types.memory_);
+  ctf_name_to_byte_reader_method[u8"u8"] = u8"u8"_sv;
+  ctf_name_to_byte_reader_method[u8"u16"] = u8"u16"_sv;
+  ctf_name_to_byte_reader_method[u8"u32"] = u8"u32"_sv;
+  ctf_name_to_byte_reader_method[u8"u64"] = u8"u64BigInt"_sv;
+  ctf_name_to_byte_reader_method[u8"utf8_string"] = u8"utf8String"_sv;
+  ctf_name_to_byte_reader_method[u8"utf8_zstring"] = u8"utf8ZString"_sv;
+  ctf_name_to_byte_reader_method[u8"utf16le_string"] = u8"utf16String"_sv;
+
+  Hash_Map<String8_View, String8_View> cxx_name_to_ctf_name(&types.memory_);
+  cxx_name_to_ctf_name[u8"uint8_t"_sv] = u8"u8"_sv;
+  cxx_name_to_ctf_name[u8"uint16_t"_sv] = u8"u16"_sv;
+  cxx_name_to_ctf_name[u8"uint32_t"_sv] = u8"u32"_sv;
+  cxx_name_to_ctf_name[u8"uint64_t"_sv] = u8"u64"_sv;
+  cxx_name_to_ctf_name[u8"String8_View"_sv] = u8"utf8_string"_sv;
+  cxx_name_to_ctf_name[u8"String16"_sv] = u8"utf16le_string"_sv;
+  // TODO(strager): Remove std::string_view from the C++ code.
+  cxx_name_to_ctf_name[u8"string_view"_sv] = u8"utf8_string"_sv;
+
+  auto write_upper_case = [&out](String8_View s) -> void {
+    out.append(narrow_cast<int>(s.size()), [&](Char8* o) {
+      for (Char8 c : s) {
+        *o++ = toupper(c);
+      }
+      return narrow_cast<int>(s.size());
+    });
+  };
+  auto write_lower_case = [&out](String8_View s) -> void {
+    out.append(narrow_cast<int>(s.size()), [&](Char8* o) {
+      for (Char8 c : s) {
+        *o++ = tolower(c);
+      }
+      return narrow_cast<int>(s.size());
+    });
+  };
+
+  auto strings_equal_case_insensitive = [](String8_View lhs,
+                                           String8_View rhs) -> bool {
+    return ranges_equal(
+        lhs, rhs, [](Char8 x, Char8 y) { return tolower(x) == tolower(y); });
+  };
+
+  auto write_camel_case = [&](String8_View s, bool start_upper) -> void {
+    bool need_upper_case = start_upper;
+    while (!s.empty()) {
+      std::size_t segment_end = s.find(u8'_');
+      String8_View segment;
+      if (segment_end == s.npos) {
+        segment = s;
+        s = String8_View();
+      } else {
+        segment = s.substr(0, segment_end);
+        s = s.substr(segment_end + 1);
+      }
+
+      if (!segment.empty()) {
+        if (need_upper_case) {
+          if (strings_equal_case_insensitive(segment, u8"VSCode"_sv)) {
+            out.append_literal(u8"VSCode"_sv);
+          } else if (strings_equal_case_insensitive(segment, u8"LSP"_sv)) {
+            out.append_literal(u8"LSP"_sv);
+          } else if (strings_equal_case_insensitive(segment, u8"ID"_sv)) {
+            out.append_literal(u8"ID"_sv);
+          } else {
+            out.append_copy(toupper(segment[0]));
+            write_lower_case(segment.substr(1));
+          }
+        } else {
+          write_lower_case(segment);
+        }
+      }
+      need_upper_case = true;
+    }
+  };
+
+  auto write_upper_camel_case = [&](String8_View s) -> void {
+    write_camel_case(s, /*start_upper=*/true);
+  };
+  auto write_lower_camel_case = [&](String8_View s) -> void {
+    write_camel_case(s, /*start_upper=*/false);
+  };
+
+  auto write_field_name = [&](String8_View name) -> void {
+    write_lower_camel_case(name);
+  };
+
+  auto write_type_name = [&](String8_View name) -> void {
+    out.append_literal(u8"Trace"_sv);
+    write_upper_camel_case(name);
+  };
+
+  auto write_member_read =
+      [&](const CXX_Trace_Types_Parser::Parsed_Struct_Member& member) -> void {
+    auto ctf_name_it = cxx_name_to_ctf_name.find(member.cxx_type);
+    if (ctf_name_it == cxx_name_to_ctf_name.end()) {
+      CLI_Source_Position p = types.locator().position(member.cxx_type.data());
+      std::fprintf(stderr, "%s:%d:%d: error: unknown type: %.*s\n",
+                   types.file_path(), p.line_number, p.column_number,
+                   narrow_cast<int>(member.cxx_type.size()),
+                   to_string_view(member.cxx_type).data());
+      std::exit(1);
+    }
+    String8_View ctf_name = ctf_name_it->second;
+    if (member.type_is_zero_terminated) {
+      if (ctf_name == u8"utf8_string"_sv) {
+        ctf_name = u8"utf8_zstring"_sv;
+      } else if (ctf_name == u8"utf16_string"_sv) {
+        ctf_name = u8"utf16_zstring"_sv;
+      } else {
+        CLI_Source_Position p =
+            types.locator().position(member.cxx_type.data());
+        std::fprintf(stderr,
+                     "%s:%d:%d: error: cannot process trace_zero_terminated\n",
+                     types.file_path(), p.line_number, p.column_number);
+        std::exit(1);
+      }
+    }
+
+    if (member.type_is_array) {
+      out.append_literal(u8"r.sizedArray(() => "_sv);
+    }
+
+    auto byte_reader_method_it = ctf_name_to_byte_reader_method.find(ctf_name);
+    if (byte_reader_method_it == ctf_name_to_byte_reader_method.end()) {
+      write_type_name(ctf_name);
+      out.append_literal(u8".parse(r)"_sv);
+    } else {
+      out.append_literal(u8"r."_sv);
+      out.append_copy(byte_reader_method_it->second);
+      out.append_literal(u8"()"_sv);
+    }
+
+    if (member.type_is_array) {
+      out.append_literal(u8")"_sv);
+    }
+  };
+
+  out.append_literal(u8"export const TraceEventType = {\n"_sv);
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+        declaration._struct.id.has_value()) {
+      out.append_literal(u8"  "_sv);
+      write_upper_case(declaration._struct.ctf_name);
+      out.append_literal(u8": "_sv);
+      out.append_decimal_integer(*declaration._struct.id);
+      out.append_literal(u8",\n"_sv);
+    }
+  }
+  out.append_literal(u8"};\n\n"_sv);
+
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
+      const CXX_Trace_Types_Parser::Parsed_Enum& e = declaration._enum;
+      cxx_name_to_ctf_name[e.cxx_name] = e.ctf_name;
+
+      out.append_literal(u8"export class TraceReaderInvalid"_sv);
+      write_upper_camel_case(e.ctf_name);
+      out.append_literal(u8" extends TraceReaderError {\n"_sv);
+      out.append_literal(u8"  constructor() {\n"_sv);
+      out.append_literal(u8"    super(\"invalid "_sv);
+      out.append_copy(e.ctf_name);
+      out.append_literal(u8"\");\n"_sv);
+      out.append_literal(u8"  }\n"_sv);
+      out.append_literal(u8"}\n\n"_sv);
+
+      out.append_literal(u8"export const "_sv);
+      write_type_name(declaration._enum.ctf_name);
+      out.append_literal(u8" = {\n"_sv);
+
+      for (const CXX_Trace_Types_Parser::Parsed_Enum_Member& member :
+           declaration._enum.members) {
+        out.append_literal(u8"  "_sv);
+        write_upper_case(member.cxx_name);
+        out.append_literal(u8": "_sv);
+        out.append_decimal_integer(member.value);
+        out.append_literal(u8",\n"_sv);
+      }
+
+      out.append_literal(u8"\n"_sv);
+      out.append_literal(u8"  parse(r) {\n"_sv);
+      out.append_literal(u8"    let value = "_sv);
+      CXX_Trace_Types_Parser::Parsed_Struct_Member fake_member;
+      fake_member.cxx_type = e.underlying_cxx_type;
+      write_member_read(fake_member);
+      out.append_literal(u8";\n"_sv);
+      out.append_literal(u8"    switch (value) {\n"_sv);
+      for (const CXX_Trace_Types_Parser::Parsed_Enum_Member& member :
+           declaration._enum.members) {
+        out.append_literal(u8"      case "_sv);
+        write_type_name(declaration._enum.ctf_name);
+        out.append_literal(u8"."_sv);
+        write_upper_case(member.cxx_name);
+        out.append_literal(u8":\n"_sv);
+      }
+      out.append_literal(u8"        return value;\n"_sv);
+      out.append_literal(u8"      default:\n"_sv);
+      out.append_literal(u8"        throw new TraceReaderInvalid"_sv);
+      write_upper_camel_case(e.ctf_name);
+      out.append_literal(u8"();\n"_sv);
+      out.append_literal(u8"    }\n"_sv);
+      out.append_literal(u8"  },\n"_sv);
+
+      out.append_literal(u8"};\n\n"_sv);
+    } else if (declaration.kind ==
+                   CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+               !declaration._struct.ctf_name.empty() &&
+               !declaration._struct.id.has_value()) {
+      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      cxx_name_to_ctf_name[s.cxx_name] = s.ctf_name;
+
+      out.append_literal(u8"class "_sv);
+      write_type_name(s.ctf_name);
+      out.append_literal(u8" {\n"_sv);
+
+      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
+           declaration._struct.members) {
+        out.append_literal(u8"  "_sv);
+        write_field_name(member.cxx_name);
+        out.append_literal(u8";\n"_sv);
+      }
+      out.append_literal(u8"\n"_sv);
+
+      out.append_literal(u8"  static parse(r) {\n"_sv);
+      out.append_literal(u8"    let result = {}; // TODO(strager): new "_sv);
+      write_type_name(s.ctf_name);
+      out.append_literal(u8"()\n"_sv);
+
+      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
+           declaration._struct.members) {
+        if (member.type_is_array) {
+          out.append_literal(u8"    // prettier-ignore\n"_sv);
+        }
+        out.append_literal(u8"    result."_sv);
+        write_field_name(member.cxx_name);
+        out.append_literal(u8" = "_sv);
+        write_member_read(member);
+        out.append_literal(u8";\n"_sv);
+      }
+
+      out.append_literal(u8"    return result;\n"_sv);
+      out.append_literal(u8"  }\n"_sv);
+      out.append_literal(u8"}\n\n"_sv);
+    } else if (declaration.kind ==
+               CXX_Trace_Types_Parser::Declaration_Kind::type_alias) {
+      const CXX_Trace_Types_Parser::Parsed_Type_Alias& type_alias =
+          declaration.type_alias;
+      auto ctf_type_it = cxx_name_to_ctf_name.find(type_alias.cxx_type);
+      if (ctf_type_it == cxx_name_to_ctf_name.end()) {
+        CLI_Source_Position p =
+            types.locator().position(type_alias.cxx_type.data());
+        std::fprintf(stderr, "%s:%d:%d: error: unknown type: %.*s\n",
+                     types.file_path(), p.line_number, p.column_number,
+                     narrow_cast<int>(type_alias.cxx_type.size()),
+                     to_string_view(type_alias.cxx_type).data());
+        std::exit(1);
+      }
+      cxx_name_to_ctf_name[type_alias.cxx_name] = ctf_type_it->second;
+    }
+  }
+
+  out.append_literal(u8"export function parseEvent(r) {\n"_sv);
+  out.append_literal(u8"  let timestamp = r.u64BigInt();\n"_sv);
+  out.append_literal(u8"  let eventType = r.u8();\n"_sv);
+  out.append_literal(u8"  switch (eventType) {\n"_sv);
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+        declaration._struct.id.has_value()) {
+      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      out.append_literal(u8"    case TraceEventType."_sv);
+      write_upper_case(s.ctf_name);
+      out.append_literal(u8":\n"_sv);
+      out.append_literal(u8"      return {\n"_sv);
+      out.append_literal(u8"        timestamp: timestamp,\n"_sv);
+      out.append_literal(u8"        eventType: eventType,\n"_sv);
+
+      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
+           declaration._struct.members) {
+        if (member.type_is_array) {
+          out.append_literal(u8"        // prettier-ignore\n"_sv);
+        }
+        out.append_literal(u8"        "_sv);
+        write_field_name(member.cxx_name);
+        out.append_literal(u8": "_sv);
+        write_member_read(member);
+        out.append_literal(u8",\n"_sv);
+      }
+
+      out.append_literal(u8"      };\n\n"_sv);
+    }
+  }
+
+  out.append_literal(u8"    default:\n"_sv);
+  out.append_literal(u8"      throw new TraceReaderUnknownEventType();\n"_sv);
+  out.append_literal(u8"  }\n"_sv);
+  out.append_literal(u8"}\n"_sv);
+
+  write_file_copyright_end(out);
+}
 }
 }
 
@@ -683,6 +1003,7 @@ int main(int argc, char** argv) {
 
   const char* trace_types_h_path = nullptr;
   const char* output_metadata_cpp_path = nullptr;
+  const char* output_parser_js_path = nullptr;
   Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
     QLJS_ARGUMENT(const char* argument) {
@@ -698,6 +1019,10 @@ int main(int argc, char** argv) {
       output_metadata_cpp_path = arg_value;
     }
 
+    QLJS_OPTION(const char* arg_value, "--output-parser-js"sv) {
+      output_parser_js_path = arg_value;
+    }
+
     QLJS_UNRECOGNIZED_OPTION(const char* unrecognized) {
       std::fprintf(stderr, "error: unrecognized option: %s\n", unrecognized);
       std::exit(2);
@@ -705,10 +1030,6 @@ int main(int argc, char** argv) {
   }
   if (trace_types_h_path == nullptr) {
     std::fprintf(stderr, "error: missing --trace-types-h\n");
-    std::exit(2);
-  }
-  if (output_metadata_cpp_path == nullptr) {
-    std::fprintf(stderr, "error: missing --output-metadata-cpp\n");
     std::exit(2);
   }
 
@@ -725,10 +1046,15 @@ int main(int argc, char** argv) {
                                     &locator);
   cxx_parser.parse_file();
 
-  {
+  if (output_metadata_cpp_path != nullptr) {
     Memory_Output_Stream out;
     write_metadata_cpp(cxx_parser, out);
     out.write_file_if_different_or_exit(output_metadata_cpp_path);
+  }
+  if (output_parser_js_path != nullptr) {
+    Memory_Output_Stream out;
+    write_parser_js(cxx_parser, out);
+    out.write_file_if_different_or_exit(output_parser_js_path);
   }
 
   return 0;

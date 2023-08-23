@@ -87,15 +87,17 @@ endif ()
 if (TARGET quick-lint-js-generate-trace-sources)
   add_custom_command(
     OUTPUT
+    "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/debug/public/trace-generated.mjs"
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-metadata-generated.cpp"
     COMMAND
       $<TARGET_FILE:quick-lint-js-generate-trace-sources>
       --output-metadata-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-metadata-generated.cpp"
+      --output-parser-js "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/debug/public/trace-generated.mjs"
       --trace-types-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-types.h"
     DEPENDS
       quick-lint-js-generate-trace-sources
       "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-types.h"
-    COMMENT "Generating metadata files for tracing"
+    COMMENT "Generating metadata files and parsers for tracing"
   )
 endif ()
 
