@@ -16,7 +16,15 @@ Trace_Reader::~Trace_Reader() = default;
 void Trace_Reader::append_bytes(const void* data, std::size_t data_size) {
   const std::uint8_t* new_bytes = reinterpret_cast<const std::uint8_t*>(data);
   this->queue_.insert(this->queue_.end(), new_bytes, new_bytes + data_size);
+}
 
+std::vector<Parsed_Trace_Event> Trace_Reader::pull_new_events() {
+  std::vector<Parsed_Trace_Event> result;
+  this->pull_new_events(result);
+  return result;
+}
+
+void Trace_Reader::pull_new_events(std::vector<Parsed_Trace_Event>& out) {
   std::jmp_buf buf;
   auto unexpected_end_of_file = [&buf]() {
     std::longjmp(buf, 1);
@@ -25,7 +33,7 @@ void Trace_Reader::append_bytes(const void* data, std::size_t data_size) {
   Checked_Binary_Reader r(this->queue_.data(), this->queue_.size(),
                           unexpected_end_of_file);
 
-  const std::uint8_t* committed = r.cursor();
+  const std::uint8_t* volatile committed = r.cursor();
   if (setjmp(buf) == 0) {
     while (!r.eof() && !this->encountered_error_) {
       this->parse_one(r);
@@ -37,15 +45,7 @@ void Trace_Reader::append_bytes(const void* data, std::size_t data_size) {
 
   this->queue_.erase(this->queue_.begin(),
                      this->queue_.begin() + (committed - this->queue_.data()));
-}
 
-std::vector<Parsed_Trace_Event> Trace_Reader::pull_new_events() {
-  std::vector<Parsed_Trace_Event> result;
-  this->pull_new_events(result);
-  return result;
-}
-
-void Trace_Reader::pull_new_events(std::vector<Parsed_Trace_Event>& out) {
   out.insert(out.end(), this->parsed_events_.begin(),
              this->parsed_events_.end());
   this->parsed_events_.clear();
