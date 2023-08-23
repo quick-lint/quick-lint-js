@@ -68,137 +68,26 @@ enum class Parsed_Trace_Event_Type {
   lsp_documents_event,
 };
 
-struct Parsed_Packet_Header {
-  std::uint64_t thread_id;
-};
-
-struct Parsed_Init_Event {
-  std::uint64_t timestamp;
-  String8_View version;
-};
-
-struct Parsed_VSCode_Document_Opened_Event {
-  std::uint64_t timestamp;
-  std::uint64_t document_id;
-  std::u16string_view uri;
-  std::u16string_view language_id;
-  std::u16string_view content;
-};
-
-struct Parsed_VSCode_Document_Closed_Event {
-  std::uint64_t timestamp;
-  std::uint64_t document_id;
-  std::u16string_view uri;
-  std::u16string_view language_id;
-};
-
-struct Parsed_VSCode_Document_Position {
-  std::uint64_t line;
-  std::uint64_t character;
-};
-
-struct Parsed_VSCode_Document_Range {
-  Parsed_VSCode_Document_Position start;
-  Parsed_VSCode_Document_Position end;
-};
-
-struct Parsed_VSCode_Document_Change {
-  Parsed_VSCode_Document_Range range;
-  std::uint64_t range_offset;
-  std::uint64_t range_length;
-  std::u16string_view text;
-
-  // For testing.
-  bool operator==(const Parsed_VSCode_Document_Change& other) const;
-  bool operator!=(const Parsed_VSCode_Document_Change& other) const;
-};
-
-struct Parsed_VSCode_Document_Changed_Event {
-  std::uint64_t timestamp;
-  std::uint64_t document_id;
-  Span<const Parsed_VSCode_Document_Change> changes;
-};
-
-struct Parsed_VSCode_Document_Sync_Event {
-  std::uint64_t timestamp;
-  std::uint64_t document_id;
-  std::u16string_view uri;
-  std::u16string_view language_id;
-  std::u16string_view content;
-};
-
-struct Parsed_LSP_Client_To_Server_Message_Event {
-  std::uint64_t timestamp;
-  String8_View body;
-};
-
-struct Parsed_Vector_Max_Size_Histogram_Entry {
-  std::uint64_t max_size;
-  std::uint64_t count;
-
-  friend bool operator==(const Parsed_Vector_Max_Size_Histogram_Entry& lhs,
-                         const Parsed_Vector_Max_Size_Histogram_Entry& rhs) {
-    return lhs.max_size == rhs.max_size && lhs.count == rhs.count;
-  }
-
-  friend bool operator!=(const Parsed_Vector_Max_Size_Histogram_Entry& lhs,
-                         const Parsed_Vector_Max_Size_Histogram_Entry& rhs) {
-    return !(lhs == rhs);
-  }
-};
-
-struct Parsed_Vector_Max_Size_Histogram_By_Owner_Entry {
-  String8_View owner;
-  Span<const Parsed_Vector_Max_Size_Histogram_Entry> max_size_entries;
-};
-
-struct Parsed_Vector_Max_Size_Histogram_By_Owner_Event {
-  std::uint64_t timestamp;
-  Span<const Parsed_Vector_Max_Size_Histogram_By_Owner_Entry> entries;
-};
-
-struct Parsed_Process_ID_Event {
-  std::uint64_t timestamp;
-  std::uint64_t process_id;
-};
-
-enum class Parsed_LSP_Document_Type : std::uint8_t {
-  unknown = 0,
-  config = 1,
-  lintable = 2,
-};
-inline constexpr Parsed_LSP_Document_Type last_parsed_lsp_document_type =
-    Parsed_LSP_Document_Type::lintable;
-
-struct Parsed_LSP_Document_State {
-  Parsed_LSP_Document_Type type;
-  String8_View uri;
-  String8_View text;
-  String8_View language_id;
-};
-
-struct Parsed_LSP_Documents_Event {
-  std::uint64_t timestamp;
-  Span<const Parsed_LSP_Document_State> documents;
-};
-
 struct Parsed_Trace_Event {
   Parsed_Trace_Event_Type type;
 
   union {
-    Parsed_Packet_Header packet_header;
+    Trace_Context packet_header;
 
-    Parsed_Init_Event init_event;
-    Parsed_VSCode_Document_Opened_Event vscode_document_opened_event;
-    Parsed_VSCode_Document_Closed_Event vscode_document_closed_event;
-    Parsed_VSCode_Document_Changed_Event vscode_document_changed_event;
-    Parsed_VSCode_Document_Sync_Event vscode_document_sync_event;
-    Parsed_LSP_Client_To_Server_Message_Event
-        lsp_client_to_server_message_event;
-    Parsed_Vector_Max_Size_Histogram_By_Owner_Event
+    Trace_Event_Init init_event;
+    Trace_Event_VSCode_Document_Opened<std::u16string_view>
+        vscode_document_opened_event;
+    Trace_Event_VSCode_Document_Closed<std::u16string_view>
+        vscode_document_closed_event;
+    Trace_Event_VSCode_Document_Changed<std::u16string_view>
+        vscode_document_changed_event;
+    Trace_Event_VSCode_Document_Sync<std::u16string_view>
+        vscode_document_sync_event;
+    Trace_Event_LSP_Client_To_Server_Message lsp_client_to_server_message_event;
+    Trace_Event_Vector_Max_Size_Histogram_By_Owner
         vector_max_size_histogram_by_owner_event;
-    Parsed_Process_ID_Event process_id_event;
-    Parsed_LSP_Documents_Event lsp_documents_event;
+    Trace_Event_Process_ID process_id_event;
+    Trace_Event_LSP_Documents lsp_documents_event;
   };
 };
 }

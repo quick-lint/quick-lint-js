@@ -6,6 +6,7 @@
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/logging/trace-reader.h>
+#include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/binary-reader.h>
 #include <vector>
@@ -104,7 +105,7 @@ void Trace_Reader::parse_header(Checked_Binary_Reader& r) {
   this->parsed_events_.push_back(Parsed_Trace_Event{
       .type = Parsed_Trace_Event_Type::packet_header,
       .packet_header =
-          Parsed_Packet_Header{
+          Trace_Context{
               .thread_id = thread_id,
           },
   });
@@ -133,14 +134,14 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     return String8_View(reinterpret_cast<const Char8*>(bytes),
                         narrow_cast<std::size_t>(end - bytes));
   };
-  auto read_lsp_document_type = [&]() -> Parsed_LSP_Document_Type {
+  auto read_lsp_document_type = [&]() -> Trace_LSP_Document_Type {
     std::uint8_t raw_type = r.u8();
-    if (raw_type > static_cast<std::uint8_t>(last_parsed_lsp_document_type)) {
+    if (raw_type > static_cast<std::uint8_t>(last_trace_lsp_document_type)) {
       this->on_error(
           Parsed_Trace_Event_Type::error_unsupported_lsp_document_type);
-      return Parsed_LSP_Document_Type::unknown;
+      return Trace_LSP_Document_Type::unknown;
     }
-    return static_cast<Parsed_LSP_Document_Type>(raw_type);
+    return static_cast<Trace_LSP_Document_Type>(raw_type);
   };
 
   std::uint64_t timestamp = r.u64_le();
@@ -150,7 +151,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::init_event,
         .init_event =
-            Parsed_Init_Event{
+            Trace_Event_Init{
                 .timestamp = timestamp,
                 .version = read_utf8_zstring_in_place(),
             },
@@ -162,7 +163,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::vscode_document_opened_event,
         .vscode_document_opened_event =
-            Parsed_VSCode_Document_Opened_Event{
+            Trace_Event_VSCode_Document_Opened<std::u16string_view>{
                 .timestamp = timestamp,
                 .document_id = r.u64_le(),
                 .uri = read_utf16le_string_in_place(),
@@ -176,7 +177,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::vscode_document_closed_event,
         .vscode_document_closed_event =
-            Parsed_VSCode_Document_Closed_Event{
+            Trace_Event_VSCode_Document_Closed<std::u16string_view>{
                 .timestamp = timestamp,
                 .document_id = r.u64_le(),
                 .uri = read_utf16le_string_in_place(),
@@ -188,11 +189,12 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
   case 0x04: {
     std::uint64_t document_id = r.u64_le();
     std::uint64_t change_count = r.u64_le();
-    Span<Parsed_VSCode_Document_Change> changes =
-        this->memory_.allocate_span<Parsed_VSCode_Document_Change>(
-            narrow_cast<std::size_t>(change_count));
+    Span<Trace_VSCode_Document_Change<std::u16string_view>> changes =
+        this->memory_
+            .allocate_span<Trace_VSCode_Document_Change<std::u16string_view>>(
+                narrow_cast<std::size_t>(change_count));
     for (Span_Size i = 0; i < changes.size(); ++i) {
-      changes[i] = Parsed_VSCode_Document_Change{
+      changes[i] = Trace_VSCode_Document_Change<std::u16string_view>{
           .range =
               {
                   .start =
@@ -214,7 +216,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::vscode_document_changed_event,
         .vscode_document_changed_event =
-            Parsed_VSCode_Document_Changed_Event{
+            Trace_Event_VSCode_Document_Changed<std::u16string_view>{
                 .timestamp = timestamp,
                 .document_id = document_id,
                 .changes = changes,
@@ -227,7 +229,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::vscode_document_sync_event,
         .vscode_document_sync_event =
-            Parsed_VSCode_Document_Sync_Event{
+            Trace_Event_VSCode_Document_Sync<std::u16string_view>{
                 .timestamp = timestamp,
                 .document_id = r.u64_le(),
                 .uri = read_utf16le_string_in_place(),
@@ -241,7 +243,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::lsp_client_to_server_message_event,
         .lsp_client_to_server_message_event =
-            Parsed_LSP_Client_To_Server_Message_Event{
+            Trace_Event_LSP_Client_To_Server_Message{
                 .timestamp = timestamp,
                 .body = read_utf8_string_in_place(),
             },
@@ -250,20 +252,20 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
 
   case 0x07: {
     std::uint64_t entry_count = r.u64_le();
-    Span<Parsed_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
+    Span<Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
         this->memory_
-            .allocate_span<Parsed_Vector_Max_Size_Histogram_By_Owner_Entry>(
+            .allocate_span<Trace_Vector_Max_Size_Histogram_By_Owner_Entry>(
                 narrow_cast<std::size_t>(entry_count));
     for (Span_Size i = 0; i < entries.size(); ++i) {
-      Parsed_Vector_Max_Size_Histogram_By_Owner_Entry& entry = entries[i];
-      entry.owner = read_utf8_zstring_in_place();
+      Trace_Vector_Max_Size_Histogram_By_Owner_Entry& entry = entries[i];
+      entry.owner = to_string_view(read_utf8_zstring_in_place());
 
       std::uint64_t max_size_entry_count = r.u64_le();
-      Span<Parsed_Vector_Max_Size_Histogram_Entry> max_size_entries =
-          this->memory_.allocate_span<Parsed_Vector_Max_Size_Histogram_Entry>(
+      Span<Trace_Vector_Max_Size_Histogram_Entry> max_size_entries =
+          this->memory_.allocate_span<Trace_Vector_Max_Size_Histogram_Entry>(
               narrow_cast<std::size_t>(max_size_entry_count));
       for (Span_Size j = 0; j < max_size_entries.size(); ++j) {
-        max_size_entries[j] = Parsed_Vector_Max_Size_Histogram_Entry{
+        max_size_entries[j] = Trace_Vector_Max_Size_Histogram_Entry{
             .max_size = r.u64_le(),
             .count = r.u64_le(),
         };
@@ -274,7 +276,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
         .type =
             Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event,
         .vector_max_size_histogram_by_owner_event =
-            Parsed_Vector_Max_Size_Histogram_By_Owner_Event{
+            Trace_Event_Vector_Max_Size_Histogram_By_Owner{
                 .timestamp = timestamp,
                 .entries = entries,
             },
@@ -287,7 +289,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::process_id_event,
         .process_id_event =
-            Parsed_Process_ID_Event{
+            Trace_Event_Process_ID{
                 .timestamp = timestamp,
                 .process_id = process_id,
             },
@@ -297,11 +299,11 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
 
   case 0x09: {
     std::uint64_t document_count = r.u64_le();
-    Span<Parsed_LSP_Document_State> documents =
-        this->memory_.allocate_span<Parsed_LSP_Document_State>(
+    Span<Trace_LSP_Document_State> documents =
+        this->memory_.allocate_span<Trace_LSP_Document_State>(
             narrow_cast<std::size_t>(document_count));
     for (Span_Size i = 0; i < documents.size(); ++i) {
-      documents[i] = Parsed_LSP_Document_State{
+      documents[i] = Trace_LSP_Document_State{
           .type = read_lsp_document_type(),
           .uri = read_utf8_string_in_place(),
           .text = read_utf8_string_in_place(),
@@ -311,7 +313,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     this->parsed_events_.push_back(Parsed_Trace_Event{
         .type = Parsed_Trace_Event_Type::lsp_documents_event,
         .lsp_documents_event =
-            Parsed_LSP_Documents_Event{
+            Trace_Event_LSP_Documents{
                 .timestamp = timestamp,
                 .documents = documents,
             },
@@ -334,21 +336,6 @@ void Trace_Reader::on_error(Parsed_Trace_Event_Type error) {
   });
   QLJS_WARNING_POP
   this->encountered_error_ = true;
-}
-
-bool Parsed_VSCode_Document_Change::operator==(
-    const Parsed_VSCode_Document_Change& other) const {
-  return this->range.start.line == other.range.start.line &&
-         this->range.start.character == other.range.start.character &&
-         this->range.end.line == other.range.end.line &&
-         this->range.end.character == other.range.end.character &&
-         this->range_offset == other.range_offset &&
-         this->range_length == other.range_length && this->text == other.text;
-}
-
-bool Parsed_VSCode_Document_Change::operator!=(
-    const Parsed_VSCode_Document_Change& other) const {
-  return !(*this == other);
 }
 }
 

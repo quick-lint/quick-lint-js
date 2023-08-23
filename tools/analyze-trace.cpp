@@ -38,7 +38,7 @@ struct Analyze_Options {
   std::uint64_t end_event_index = (std::numeric_limits<std::uint64_t>::max)();
 };
 
-LSP_Range to_lsp_range(const Parsed_VSCode_Document_Range& range) {
+LSP_Range to_lsp_range(const Trace_VSCode_Document_Range& range) {
   return LSP_Range{
       .start =
           {
@@ -58,43 +58,43 @@ class Counting_Trace_Stream_Event_Visitor {
   // The first call to a visit_ function will set this to 0.
   std::uint64_t event_index = (std::numeric_limits<std::uint64_t>::max)();
 
-  void visit_init_event(const Parsed_Init_Event&) { ++this->event_index; }
+  void visit_init_event(const Trace_Event_Init&) { ++this->event_index; }
 
   void visit_vscode_document_opened_event(
-      const Parsed_VSCode_Document_Opened_Event&) {
+      const Trace_Event_VSCode_Document_Opened<std::u16string_view>&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_closed_event(
-      const Parsed_VSCode_Document_Closed_Event&) {
+      const Trace_Event_VSCode_Document_Closed<std::u16string_view>&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_changed_event(
-      const Parsed_VSCode_Document_Changed_Event&) {
+      const Trace_Event_VSCode_Document_Changed<std::u16string_view>&) {
     ++this->event_index;
   }
 
   void visit_vscode_document_sync_event(
-      const Parsed_VSCode_Document_Sync_Event&) {
+      const Trace_Event_VSCode_Document_Sync<std::u16string_view>&) {
     ++this->event_index;
   }
 
   void visit_lsp_client_to_server_message_event(
-      const Parsed_LSP_Client_To_Server_Message_Event&) {
+      const Trace_Event_LSP_Client_To_Server_Message&) {
     ++this->event_index;
   }
 
-  void visit_lsp_documents_event(const Parsed_LSP_Documents_Event&) {
+  void visit_lsp_documents_event(const Trace_Event_LSP_Documents&) {
     ++this->event_index;
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
-      const Parsed_Vector_Max_Size_Histogram_By_Owner_Event&) {
+      const Trace_Event_Vector_Max_Size_Histogram_By_Owner&) {
     ++this->event_index;
   }
 
-  void visit_process_id_event(const Parsed_Process_ID_Event&) {
+  void visit_process_id_event(const Trace_Event_Process_ID&) {
     ++this->event_index;
   }
 };
@@ -123,10 +123,10 @@ class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
     std::fprintf(stderr, "error: unsupported LSP document type\n");
   }
 
-  void visit_packet_header(const Parsed_Packet_Header&) {}
+  void visit_packet_header(const Trace_Context&) {}
 
   void visit_vscode_document_opened_event(
-      const Parsed_VSCode_Document_Opened_Event& event) {
+      const Trace_Event_VSCode_Document_Opened<std::u16string_view>& event) {
     Base::visit_vscode_document_opened_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
@@ -137,7 +137,7 @@ class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_closed_event(
-      const Parsed_VSCode_Document_Closed_Event& event) {
+      const Trace_Event_VSCode_Document_Closed<std::u16string_view>& event) {
     Base::visit_vscode_document_closed_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
@@ -148,7 +148,7 @@ class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_changed_event(
-      const Parsed_VSCode_Document_Changed_Event& event) {
+      const Trace_Event_VSCode_Document_Changed<std::u16string_view>& event) {
     Base::visit_vscode_document_changed_event(event);
     if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
@@ -162,7 +162,7 @@ class Document_Content_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
-      const Parsed_Vector_Max_Size_Histogram_By_Owner_Event& event) {
+      const Trace_Event_Vector_Max_Size_Histogram_By_Owner& event) {
     Base::visit_vector_max_size_histogram_by_owner_event(event);
   }
 
@@ -201,10 +201,10 @@ class Document_Content_Checker : public Counting_Trace_Stream_Event_Visitor {
     std::fprintf(stderr, "error: unsupported LSP document type\n");
   }
 
-  void visit_packet_header(const Parsed_Packet_Header&) {}
+  void visit_packet_header(const Trace_Context&) {}
 
   void visit_vscode_document_opened_event(
-      const Parsed_VSCode_Document_Opened_Event& event) {
+      const Trace_Event_VSCode_Document_Opened<std::u16string_view>& event) {
     Base::visit_vscode_document_opened_event(event);
     if (event.document_id == 0) {
       return;
@@ -216,7 +216,7 @@ class Document_Content_Checker : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_closed_event(
-      const Parsed_VSCode_Document_Closed_Event& event) {
+      const Trace_Event_VSCode_Document_Closed<std::u16string_view>& event) {
     Base::visit_vscode_document_closed_event(event);
     if (event.document_id == 0) {
       return;
@@ -225,7 +225,7 @@ class Document_Content_Checker : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_changed_event(
-      const Parsed_VSCode_Document_Changed_Event& event) {
+      const Trace_Event_VSCode_Document_Changed<std::u16string_view>& event) {
     Base::visit_vscode_document_changed_event(event);
     if (event.document_id == 0) {
       return;
@@ -247,7 +247,7 @@ class Document_Content_Checker : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_sync_event(
-      const Parsed_VSCode_Document_Sync_Event& event) {
+      const Trace_Event_VSCode_Document_Sync<std::u16string_view>& event) {
     Base::visit_vscode_document_sync_event(event);
     if (event.document_id == 0) {
       return;
@@ -318,9 +318,9 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
     std::fprintf(stderr, "error: unsupported LSP document type\n");
   }
 
-  void visit_packet_header(const Parsed_Packet_Header&) {}
+  void visit_packet_header(const Trace_Context&) {}
 
-  void visit_init_event(const Parsed_Init_Event& event) {
+  void visit_init_event(const Trace_Event_Init& event) {
     Base::visit_init_event(event);
     if (!this->should_dump()) return;
 
@@ -331,7 +331,7 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_opened_event(
-      const Parsed_VSCode_Document_Opened_Event& event) {
+      const Trace_Event_VSCode_Document_Opened<std::u16string_view>& event) {
     Base::visit_vscode_document_opened_event(event);
     if (!this->should_dump()) return;
 
@@ -344,7 +344,7 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_closed_event(
-      const Parsed_VSCode_Document_Closed_Event& event) {
+      const Trace_Event_VSCode_Document_Closed<std::u16string_view>& event) {
     Base::visit_vscode_document_closed_event(event);
     if (!this->should_dump()) return;
 
@@ -357,7 +357,7 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_changed_event(
-      const Parsed_VSCode_Document_Changed_Event& event) {
+      const Trace_Event_VSCode_Document_Changed<std::u16string_view>& event) {
     Base::visit_vscode_document_changed_event(event);
     if (!this->should_dump()) return;
 
@@ -377,7 +377,7 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vscode_document_sync_event(
-      const Parsed_VSCode_Document_Sync_Event& event) {
+      const Trace_Event_VSCode_Document_Sync<std::u16string_view>& event) {
     Base::visit_vscode_document_sync_event(event);
     if (!this->should_dump()) return;
 
@@ -390,7 +390,7 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_lsp_client_to_server_message_event(
-      const Parsed_LSP_Client_To_Server_Message_Event& event) {
+      const Trace_Event_LSP_Client_To_Server_Message& event) {
     Base::visit_lsp_client_to_server_message_event(event);
     if (!this->should_dump()) return;
 
@@ -400,13 +400,13 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
     std::printf("\n");
   }
 
-  void visit_lsp_documents_event(const Parsed_LSP_Documents_Event& event) {
+  void visit_lsp_documents_event(const Trace_Event_LSP_Documents& event) {
     Base::visit_lsp_documents_event(event);
     if (!this->should_dump()) return;
 
     this->print_event_header(event);
     std::printf("LSP documents:\n");
-    for (const Parsed_LSP_Document_State& doc : event.documents) {
+    for (const Trace_LSP_Document_State& doc : event.documents) {
       std::printf("* ");
       this->print_utf8(doc.uri);
       std::printf("\n");
@@ -414,7 +414,7 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
   }
 
   void visit_vector_max_size_histogram_by_owner_event(
-      const Parsed_Vector_Max_Size_Histogram_By_Owner_Event& event) {
+      const Trace_Event_Vector_Max_Size_Histogram_By_Owner& event) {
     Base::visit_vector_max_size_histogram_by_owner_event(event);
     if (!this->should_dump()) return;
 
@@ -422,7 +422,7 @@ class Event_Dumper : public Counting_Trace_Stream_Event_Visitor {
     std::printf("vector max size histogram by owner\n");
   }
 
-  void visit_process_id_event(const Parsed_Process_ID_Event& event) {
+  void visit_process_id_event(const Trace_Event_Process_ID& event) {
     Base::visit_process_id_event(event);
     if (!this->should_dump()) return;
 

@@ -152,7 +152,7 @@ TEST(Test_Trace_Reader, vscode_document_opened_event) {
   ASSERT_EQ(events.size(), 2) << "expected packet header and vscode event";
   EXPECT_EQ(events[1].type,
             Parsed_Trace_Event_Type::vscode_document_opened_event);
-  Parsed_VSCode_Document_Opened_Event& event =
+  Trace_Event_VSCode_Document_Opened<std::u16string_view>& event =
       events[1].vscode_document_opened_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
@@ -188,7 +188,7 @@ TEST(Test_Trace_Reader, vscode_document_closed_event) {
   ASSERT_EQ(events.size(), 2) << "expected packet header and vscode event";
   EXPECT_EQ(events[1].type,
             Parsed_Trace_Event_Type::vscode_document_closed_event);
-  Parsed_VSCode_Document_Closed_Event& event =
+  Trace_Event_VSCode_Document_Closed<std::u16string_view>& event =
       events[1].vscode_document_closed_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
@@ -244,48 +244,49 @@ TEST(Test_Trace_Reader, vscode_document_changed_event) {
   ASSERT_EQ(events.size(), 2) << "expected packet header and vscode event";
   EXPECT_EQ(events[1].type,
             Parsed_Trace_Event_Type::vscode_document_changed_event);
-  Parsed_VSCode_Document_Changed_Event& event =
+  Trace_Event_VSCode_Document_Changed<std::u16string_view>& event =
       events[1].vscode_document_changed_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
-  EXPECT_THAT(event.changes, ElementsAreArray({
-                                 Parsed_VSCode_Document_Change{
-                                     .range =
-                                         {
-                                             .start =
-                                                 {
-                                                     .line = 0x11,
-                                                     .character = 0x22,
-                                                 },
-                                             .end =
-                                                 {
-                                                     .line = 0x33,
-                                                     .character = 0x44,
-                                                 },
-                                         },
-                                     .range_offset = 0x55,
-                                     .range_length = 0x66,
-                                     .text = u"hi",
-                                 },
-                                 Parsed_VSCode_Document_Change{
-                                     .range =
-                                         {
-                                             .start =
-                                                 {
-                                                     .line = 0xaa,
-                                                     .character = 0xbb,
-                                                 },
-                                             .end =
-                                                 {
-                                                     .line = 0xcc,
-                                                     .character = 0xdd,
-                                                 },
-                                         },
-                                     .range_offset = 0xee,
-                                     .range_length = 0xff,
-                                     .text = u"bye",
-                                 },
-                             }));
+  EXPECT_THAT(event.changes,
+              ElementsAreArray({
+                  Trace_VSCode_Document_Change<std::u16string_view>{
+                      .range =
+                          {
+                              .start =
+                                  {
+                                      .line = 0x11,
+                                      .character = 0x22,
+                                  },
+                              .end =
+                                  {
+                                      .line = 0x33,
+                                      .character = 0x44,
+                                  },
+                          },
+                      .range_offset = 0x55,
+                      .range_length = 0x66,
+                      .text = u"hi",
+                  },
+                  Trace_VSCode_Document_Change<std::u16string_view>{
+                      .range =
+                          {
+                              .start =
+                                  {
+                                      .line = 0xaa,
+                                      .character = 0xbb,
+                                  },
+                              .end =
+                                  {
+                                      .line = 0xcc,
+                                      .character = 0xdd,
+                                  },
+                          },
+                      .range_offset = 0xee,
+                      .range_length = 0xff,
+                      .text = u"bye",
+                  },
+              }));
 }
 
 TEST(Test_Trace_Reader, vscode_document_sync_event) {
@@ -319,7 +320,7 @@ TEST(Test_Trace_Reader, vscode_document_sync_event) {
   ASSERT_EQ(events.size(), 2) << "expected packet header and vscode event";
   EXPECT_EQ(events[1].type,
             Parsed_Trace_Event_Type::vscode_document_sync_event);
-  Parsed_VSCode_Document_Sync_Event& event =
+  Trace_Event_VSCode_Document_Sync<std::u16string_view>& event =
       events[1].vscode_document_sync_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.document_id, 0x1234);
@@ -347,7 +348,7 @@ TEST(Test_Trace_Reader, lsp_client_to_server_message_event) {
   ASSERT_EQ(events.size(), 2) << "expected packet header and lsp event";
   EXPECT_EQ(events[1].type,
             Parsed_Trace_Event_Type::lsp_client_to_server_message_event);
-  Parsed_LSP_Client_To_Server_Message_Event& event =
+  Trace_Event_LSP_Client_To_Server_Message& event =
       events[1].lsp_client_to_server_message_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.body, u8"{}"_sv);
@@ -373,7 +374,7 @@ TEST(Test_Trace_Reader, read_lsp_client_to_server_message_event_in_two_parts) {
   ASSERT_EQ(events.size(), 2) << "expected packet header and lsp event";
   EXPECT_EQ(events[1].type,
             Parsed_Trace_Event_Type::lsp_client_to_server_message_event);
-  Parsed_LSP_Client_To_Server_Message_Event& e =
+  Trace_Event_LSP_Client_To_Server_Message& e =
       events[1].lsp_client_to_server_message_event;
   EXPECT_EQ(e.timestamp, 0x5678);
   EXPECT_EQ(e.body, u8"{}"_sv);
@@ -413,23 +414,23 @@ TEST(Test_Trace_Reader, vector_max_size_histogram_by_owner_event) {
   ASSERT_EQ(events.size(), 2) << "expected packet header and histogram event";
   EXPECT_EQ(events[1].type,
             Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event);
-  Parsed_Vector_Max_Size_Histogram_By_Owner_Event& event =
+  Trace_Event_Vector_Max_Size_Histogram_By_Owner& event =
       events[1].vector_max_size_histogram_by_owner_event;
   EXPECT_EQ(event.timestamp, 0x5678);
 
   ASSERT_EQ(event.entries.size(), 2);
-  EXPECT_EQ(event.entries[0].owner, u8"o1"_sv);
+  EXPECT_EQ(event.entries[0].owner, "o1"sv);
   EXPECT_THAT(
       event.entries[0].max_size_entries,
       ElementsAreArray({
-          Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 0, .count = 4},
-          Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 1, .count = 3},
+          Trace_Vector_Max_Size_Histogram_Entry{.max_size = 0, .count = 4},
+          Trace_Vector_Max_Size_Histogram_Entry{.max_size = 1, .count = 3},
       }));
-  EXPECT_EQ(event.entries[1].owner, u8"o2"_sv);
+  EXPECT_EQ(event.entries[1].owner, "o2"sv);
   EXPECT_THAT(
       event.entries[1].max_size_entries,
       ElementsAreArray({
-          Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 3, .count = 7},
+          Trace_Vector_Max_Size_Histogram_Entry{.max_size = 3, .count = 7},
       }));
 }
 
@@ -450,7 +451,7 @@ TEST(Test_Trace_Reader, process_id_event) {
   std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and process event";
   EXPECT_EQ(events[1].type, Parsed_Trace_Event_Type::process_id_event);
-  Parsed_Process_ID_Event& event = events[1].process_id_event;
+  Trace_Event_Process_ID& event = events[1].process_id_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   EXPECT_EQ(event.process_id, 0x0123);
 }
@@ -487,10 +488,10 @@ TEST(Test_Trace_Reader, lsp_documents_event) {
   std::vector<Parsed_Trace_Event> events = reader.pull_new_events();
   ASSERT_EQ(events.size(), 2) << "expected packet header and lsp event";
   EXPECT_EQ(events[1].type, Parsed_Trace_Event_Type::lsp_documents_event);
-  Parsed_LSP_Documents_Event& event = events[1].lsp_documents_event;
+  Trace_Event_LSP_Documents& event = events[1].lsp_documents_event;
   EXPECT_EQ(event.timestamp, 0x5678);
   ASSERT_EQ(event.documents.size(), 1);
-  EXPECT_EQ(event.documents[0].type, Parsed_LSP_Document_Type::lintable);
+  EXPECT_EQ(event.documents[0].type, Trace_LSP_Document_Type::lintable);
   EXPECT_EQ(event.documents[0].uri, u8"file:///f"_sv);
   EXPECT_EQ(event.documents[0].text, u8"hello"_sv);
   EXPECT_EQ(event.documents[0].language_id, u8"js"_sv);
@@ -528,9 +529,9 @@ TEST(Test_Trace_Reader, invalid_lsp_document_type) {
   EXPECT_EQ(events[1].type,
             Parsed_Trace_Event_Type::error_unsupported_lsp_document_type);
   EXPECT_EQ(events[2].type, Parsed_Trace_Event_Type::lsp_documents_event);
-  Parsed_LSP_Documents_Event& event = events[2].lsp_documents_event;
+  Trace_Event_LSP_Documents& event = events[2].lsp_documents_event;
   ASSERT_EQ(event.documents.size(), 1);
-  EXPECT_EQ(event.documents[0].type, Parsed_LSP_Document_Type::unknown);
+  EXPECT_EQ(event.documents[0].type, Trace_LSP_Document_Type::unknown);
 }
 }
 }

@@ -177,15 +177,15 @@ TEST_F(Test_Debug_Server,
     switch (event.type) {
     case Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event: {
       // This should eventually be called.
-      Span<const Parsed_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
           event.vector_max_size_histogram_by_owner_event.entries;
       EXPECT_EQ(entries.size(), 1);
       if (entries.size() > 0) {
-        EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
+        EXPECT_EQ(entries[0].owner, "debug server test vector"sv);
         EXPECT_THAT(entries[0].max_size_entries,
                     ::testing::ElementsAreArray({
-                        Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 0,
-                                                               .count = 1},
+                        Trace_Vector_Max_Size_Histogram_Entry{.max_size = 0,
+                                                              .count = 1},
                     }));
       }
 
@@ -251,17 +251,17 @@ TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
         return true;
       }
 
-      Span<const Parsed_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
+      Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
           event.vector_max_size_histogram_by_owner_event.entries;
       EXPECT_EQ(entries.size(), 1);
       if (entries.size() > 0) {
-        EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
+        EXPECT_EQ(entries[0].owner, "debug server test vector");
         EXPECT_THAT(entries[0].max_size_entries,
                     ::testing::ElementsAreArray({
-                        Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 2,
-                                                               .count = 1},
-                        Parsed_Vector_Max_Size_Histogram_Entry{.max_size = 4,
-                                                               .count = 1},
+                        Trace_Vector_Max_Size_Histogram_Entry{.max_size = 2,
+                                                              .count = 1},
+                        Trace_Vector_Max_Size_Histogram_Entry{.max_size = 4,
+                                                              .count = 1},
                     }));
       }
 
@@ -413,7 +413,7 @@ TEST_F(Test_Debug_Server, web_socket_publishes_lsp_documents_on_connect) {
     switch (event.type) {
     case Parsed_Trace_Event_Type::lsp_documents_event: {
       // This should eventually be called.
-      Span<const Parsed_LSP_Document_State> parsed_documents =
+      Span<const Trace_LSP_Document_State> parsed_documents =
           event.lsp_documents_event.documents;
       EXPECT_EQ(parsed_documents.size(), 1);
       if (parsed_documents.size() > 0) {
@@ -480,7 +480,7 @@ TEST_F(Test_Debug_Server, lsp_documents_probe_publishes_state) {
         return true;
       }
 
-      Span<const Parsed_LSP_Document_State> parsed_documents =
+      Span<const Trace_LSP_Document_State> parsed_documents =
           event.lsp_documents_event.documents;
       EXPECT_EQ(parsed_documents.size(), 1);
       if (parsed_documents.size() > 0) {

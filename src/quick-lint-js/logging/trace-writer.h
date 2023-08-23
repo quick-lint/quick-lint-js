@@ -62,6 +62,22 @@ struct Trace_VSCode_Document_Change {
   std::uint64_t range_offset;
   std::uint64_t range_length;
   String text;
+
+  // For testing.
+  friend bool operator==(const Trace_VSCode_Document_Change& lhs,
+                         const Trace_VSCode_Document_Change& rhs) {
+    return lhs.range.start.line == rhs.range.start.line &&
+           lhs.range.start.character == rhs.range.start.character &&
+           lhs.range.end.line == rhs.range.end.line &&
+           lhs.range.end.character == rhs.range.end.character &&
+           lhs.range_offset == rhs.range_offset &&
+           lhs.range_length == rhs.range_length && lhs.text == rhs.text;
+  }
+
+  friend bool operator!=(const Trace_VSCode_Document_Change& lhs,
+                         const Trace_VSCode_Document_Change& rhs) {
+    return !(lhs == rhs);
+  }
 };
 
 template <class String>
@@ -130,6 +146,8 @@ enum class Trace_LSP_Document_Type : std::uint8_t {
   config = 1,
   lintable = 2,
 };
+inline constexpr Trace_LSP_Document_Type last_trace_lsp_document_type =
+    Trace_LSP_Document_Type::lintable;
 
 struct Trace_LSP_Document_State {
   Trace_LSP_Document_Type type;
