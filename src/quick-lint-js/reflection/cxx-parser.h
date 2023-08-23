@@ -82,7 +82,7 @@ class CXX_Lexer {
   Monotonic_Allocator decoded_string_allocator_{
       "CXX_Lexer::decoded_string_allocator_"};
 
-  friend class CXX_Parser;
+  friend class CXX_Diagnostic_Types_Parser;
 };
 
 struct CXX_Diagnostic_Message {
@@ -109,10 +109,12 @@ struct CXX_Diagnostic_Type {
       String8_View variable_name) const;
 };
 
-class CXX_Parser {
+// Parses <quick-lint-js/diag/diagnostic-types-2.h>.
+class CXX_Diagnostic_Types_Parser {
  public:
-  explicit CXX_Parser(Padded_String_View input, const char* file_path,
-                      CLI_Locator* locator);
+  explicit CXX_Diagnostic_Types_Parser(Padded_String_View input,
+                                       const char* file_path,
+                                       CLI_Locator* locator);
 
   void parse_file();
 

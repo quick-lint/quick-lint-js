@@ -624,8 +624,8 @@ const Diagnostic_Info_Debug& get_diagnostic_info_debug(Diag_Type type) {
   static std::vector<Diagnostic_Info_Debug> infos =
       []() -> std::vector<Diagnostic_Info_Debug> {
     CLI_Locator locator(&diagnostic_types_code);
-    CXX_Parser parser(&diagnostic_types_code, QLJS_DIAGNOSTIC_TYPES_H_FILE_PATH,
-                      &locator);
+    CXX_Diagnostic_Types_Parser parser(
+        &diagnostic_types_code, QLJS_DIAGNOSTIC_TYPES_H_FILE_PATH, &locator);
     parser.parse_file();
 
     std::vector<Diagnostic_Info_Debug> infos;

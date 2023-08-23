@@ -275,11 +275,11 @@ const CXX_Diagnostic_Variable* CXX_Diagnostic_Type::variable_from_name(
   return &*it;
 }
 
-CXX_Parser::CXX_Parser(Padded_String_View input, const char* file_path,
-                       CLI_Locator* locator)
+CXX_Diagnostic_Types_Parser::CXX_Diagnostic_Types_Parser(
+    Padded_String_View input, const char* file_path, CLI_Locator* locator)
     : lexer_(input, file_path, locator) {}
 
-void CXX_Parser::parse_file() {
+void CXX_Diagnostic_Types_Parser::parse_file() {
   this->skip_preprocessor_directives();
   this->expect_skip(u8"namespace");
   this->expect_skip(u8"quick_lint_js");
@@ -316,7 +316,7 @@ void CXX_Parser::parse_file() {
   }
 }
 
-void CXX_Parser::parse_diagnostic_struct_body(
+void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
     String8_View diagnostic_struct_name) {
   CXX_Diagnostic_Type& type = this->parsed_types.emplace_back();
   type.name = diagnostic_struct_name;
@@ -409,7 +409,7 @@ void CXX_Parser::parse_diagnostic_struct_body(
   }
 }
 
-bool CXX_Parser::check_diag_codes() {
+bool CXX_Diagnostic_Types_Parser::check_diag_codes() {
   bool ok = true;
   Hash_Map<String8_View, String8_View> code_to_diag_name;
   for (String8_View reserved_code_string : this->reserved_code_strings) {
@@ -456,7 +456,8 @@ bool CXX_Parser::check_diag_codes() {
   return ok;
 }
 
-bool CXX_Parser::is_valid_code_string(String8_View code_string) {
+bool CXX_Diagnostic_Types_Parser::is_valid_code_string(
+    String8_View code_string) {
   return code_string.size() == 5 && code_string[0] == u8'E' &&
          this->lexer_.is_digit(code_string[1]) &&
          this->lexer_.is_digit(code_string[2]) &&
@@ -464,7 +465,7 @@ bool CXX_Parser::is_valid_code_string(String8_View code_string) {
          this->lexer_.is_digit(code_string[4]);
 }
 
-String8 CXX_Parser::next_unused_diag_code_string() {
+String8 CXX_Diagnostic_Types_Parser::next_unused_diag_code_string() {
   for (int i = 1; i <= 9999; ++i) {
     char code_string_raw[8];
     std::snprintf(code_string_raw, sizeof(code_string_raw), "E%04d", i);
@@ -484,7 +485,7 @@ String8 CXX_Parser::next_unused_diag_code_string() {
   QLJS_UNIMPLEMENTED();
 }
 
-void CXX_Parser::skip_preprocessor_directives() {
+void CXX_Diagnostic_Types_Parser::skip_preprocessor_directives() {
 again:
   if (this->peek().type == CXX_Token_Type::identifier) {
     if (this->peek().identifier == u8"QLJS_WARNING_PUSH") {
@@ -501,18 +502,20 @@ again:
   }
 }
 
-void CXX_Parser::expect_skip(CXX_Token_Type expected_token_type) {
+void CXX_Diagnostic_Types_Parser::expect_skip(
+    CXX_Token_Type expected_token_type) {
   this->expect(expected_token_type);
   this->skip();
 }
 
-void CXX_Parser::expect(CXX_Token_Type expected_token_type) {
+void CXX_Diagnostic_Types_Parser::expect(CXX_Token_Type expected_token_type) {
   if (this->peek().type != expected_token_type) {
     this->fatal(concat("expected "sv, to_string(expected_token_type)).c_str());
   }
 }
 
-void CXX_Parser::expect_skip(String8_View expected_identifier) {
+void CXX_Diagnostic_Types_Parser::expect_skip(
+    String8_View expected_identifier) {
   std::string message = concat("expected identifier '"sv,
                                to_string_view(expected_identifier), "'"sv);
   if (this->peek().type != CXX_Token_Type::identifier) {
@@ -524,7 +527,7 @@ void CXX_Parser::expect_skip(String8_View expected_identifier) {
   this->skip();
 }
 
-[[noreturn]] void CXX_Parser::fatal(const char* message) {
+[[noreturn]] void CXX_Diagnostic_Types_Parser::fatal(const char* message) {
   CLI_Source_Position p = this->lexer_.locator_->position(this->lexer_.input_);
   std::fprintf(stderr, "%s:%d:%d: error: failed to parse before: %s\n",
                this->lexer_.file_path_, p.line_number, p.column_number,
