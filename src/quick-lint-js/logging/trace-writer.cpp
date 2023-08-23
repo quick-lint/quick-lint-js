@@ -105,26 +105,6 @@ void Trace_Writer::write_utf8_string(String8_View s) {
   this->append_binary(8, [&](Binary_Writer& w) { w.u64_le(s.size()); });
   this->out_->append_copy(s.data(), s.size());
 }
-
-bool operator==(Trace_Vector_Max_Size_Histogram_Entry lhs,
-                Trace_Vector_Max_Size_Histogram_Entry rhs) {
-  return lhs.max_size == rhs.max_size && lhs.count == rhs.count;
-}
-
-bool operator!=(Trace_Vector_Max_Size_Histogram_Entry lhs,
-                Trace_Vector_Max_Size_Histogram_Entry rhs) {
-  return !(lhs == rhs);
-}
-
-bool operator==(const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& lhs,
-                const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& rhs) {
-  return lhs.owner == rhs.owner && lhs.max_size_entries == rhs.max_size_entries;
-}
-
-bool operator!=(const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& lhs,
-                const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& rhs) {
-  return !(lhs == rhs);
-}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

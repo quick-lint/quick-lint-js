@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/container/monotonic-allocator.h>
-#include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/logging/trace-types.h>
 #include <quick-lint-js/port/char8.h>
 #include <string_view>
 #include <vector>
