@@ -185,22 +185,21 @@ struct Parsed_LSP_Documents_Event {
 struct Parsed_Trace_Event {
   Parsed_Trace_Event_Type type;
 
-  // NOTE(strager): The below fields have an explicit initializer to silence
-  // GCC's -Wmissing-field-initializers warning in users.
+  union {
+    Parsed_Packet_Header packet_header;
 
-  Parsed_Packet_Header packet_header = {};
-
-  Parsed_Init_Event init_event = {};
-  Parsed_VSCode_Document_Opened_Event vscode_document_opened_event = {};
-  Parsed_VSCode_Document_Closed_Event vscode_document_closed_event = {};
-  Parsed_VSCode_Document_Changed_Event vscode_document_changed_event = {};
-  Parsed_VSCode_Document_Sync_Event vscode_document_sync_event = {};
-  Parsed_LSP_Client_To_Server_Message_Event lsp_client_to_server_message_event =
-      {};
-  Parsed_Vector_Max_Size_Histogram_By_Owner_Event
-      vector_max_size_histogram_by_owner_event = {};
-  Parsed_Process_ID_Event process_id_event = {};
-  Parsed_LSP_Documents_Event lsp_documents_event = {};
+    Parsed_Init_Event init_event;
+    Parsed_VSCode_Document_Opened_Event vscode_document_opened_event;
+    Parsed_VSCode_Document_Closed_Event vscode_document_closed_event;
+    Parsed_VSCode_Document_Changed_Event vscode_document_changed_event;
+    Parsed_VSCode_Document_Sync_Event vscode_document_sync_event;
+    Parsed_LSP_Client_To_Server_Message_Event
+        lsp_client_to_server_message_event;
+    Parsed_Vector_Max_Size_Histogram_By_Owner_Event
+        vector_max_size_histogram_by_owner_event;
+    Parsed_Process_ID_Event process_id_event;
+    Parsed_LSP_Documents_Event lsp_documents_event;
+  };
 };
 }
 

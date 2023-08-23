@@ -326,9 +326,13 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
 }
 
 void Trace_Reader::on_error(Parsed_Trace_Event_Type error) {
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
   this->parsed_events_.push_back(Parsed_Trace_Event{
       .type = error,
+      // Don't initialize any union member.
   });
+  QLJS_WARNING_POP
   this->encountered_error_ = true;
 }
 
