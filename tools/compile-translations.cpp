@@ -305,14 +305,9 @@ msgstr ""
 }
 
 void write_messages_po_template(const String_Table& strings, const char* path) {
-  Result<Platform_File, Write_File_IO_Error> file = open_file_for_writing(path);
-  if (!file.ok()) {
-    std::fprintf(stderr, "error: %s\n", file.error_to_string().c_str());
-    std::exit(1);
-  }
-  File_Output_Stream out(file->ref());
+  Memory_Output_Stream out;
   write_messages_po_template(strings, out);
-  out.flush();
+  out.write_file_if_different_or_exit(path);
 }
 
 void write_po_string_literal(Output_Stream& out, String8_View string) {
@@ -403,14 +398,9 @@ using namespace std::literals::string_view_literals;
 
 void write_translation_table_header(const Compiled_Translation_Table& table,
                                     const char* path) {
-  Result<Platform_File, Write_File_IO_Error> file = open_file_for_writing(path);
-  if (!file.ok()) {
-    std::fprintf(stderr, "error: %s\n", file.error_to_string().c_str());
-    std::exit(1);
-  }
-  File_Output_Stream out(file->ref());
+  Memory_Output_Stream out;
   write_translation_table_header(table, out);
-  out.flush();
+  out.write_file_if_different_or_exit(path);
 }
 
 void write_translation_table_source(const Compiled_Translation_Table& table,
@@ -484,14 +474,9 @@ const Translation_Table translation_data = {
 
 void write_translation_table_source(const Compiled_Translation_Table& table,
                                     const char* path) {
-  Result<Platform_File, Write_File_IO_Error> file = open_file_for_writing(path);
-  if (!file.ok()) {
-    std::fprintf(stderr, "error: %s\n", file.error_to_string().c_str());
-    std::exit(1);
-  }
-  File_Output_Stream out(file->ref());
+  Memory_Output_Stream out;
   write_translation_table_source(table, out);
-  out.flush();
+  out.write_file_if_different_or_exit(path);
 }
 
 void write_translation_test_header(
@@ -597,14 +582,9 @@ inline const Translated_String test_translation_table[)"_sv);
 void write_translation_test_header(
     Span<const PO_File> po_files, Span<const String8_View> untranslated_strings,
     const char* path) {
-  Result<Platform_File, Write_File_IO_Error> file = open_file_for_writing(path);
-  if (!file.ok()) {
-    std::fprintf(stderr, "error: %s\n", file.error_to_string().c_str());
-    std::exit(1);
-  }
-  File_Output_Stream out(file->ref());
+  Memory_Output_Stream out;
   write_translation_test_header(po_files, untranslated_strings, out);
-  out.flush();
+  out.write_file_if_different_or_exit(path);
 }
 
 void write_copyright_footer(Output_Stream& out) {

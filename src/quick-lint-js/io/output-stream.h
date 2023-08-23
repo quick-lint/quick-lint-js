@@ -7,6 +7,7 @@
 #include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -118,7 +119,7 @@ class File_Output_Stream final : public Output_Stream {
 };
 #endif
 
-// Designed for testing only.
+// Designed for testing and scripts only.
 class Memory_Output_Stream final : public Output_Stream {
  public:
   explicit Memory_Output_Stream();
@@ -129,6 +130,14 @@ class Memory_Output_Stream final : public Output_Stream {
 
   // Remove flushed and unflushed output.
   void clear();
+
+#if !defined(__EMSCRIPTEN__)
+  // Performs this->flush() then
+  // quick_lint_js::write_file_if_different(path, this->get_flushed_string8()).
+  Result<void, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
+      const char* path);
+  void write_file_if_different_or_exit(const char* path);
+#endif
 
  protected:
   void flush_impl(String8_View) override;

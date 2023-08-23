@@ -376,15 +376,9 @@ Token_Type Lexer::identifier_token_type(String8_View identifier) {
 
 void dump_table_code(const Hash_Table& t, const String_Table& strings,
                      const char* file_path) {
-  Result<Platform_File, Write_File_IO_Error> file =
-      open_file_for_writing(file_path);
-  if (!file.ok()) {
-    std::fprintf(stderr, "error: %s\n", file.error_to_string().c_str());
-    std::exit(1);
-  }
-  File_Output_Stream out(file->ref());
+  Memory_Output_Stream out;
   dump_table_code(t, strings, out);
-  out.flush();
+  out.write_file_if_different_or_exit(file_path);
 }
 }
 }

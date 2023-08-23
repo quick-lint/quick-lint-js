@@ -264,30 +264,17 @@ int main(int argc, char** argv) {
   }
 
   {
-    Result<Platform_File, Write_File_IO_Error> type_list_h =
-        open_file_for_writing(output_type_list_h_path);
-    if (!type_list_h.ok()) {
-      std::fprintf(stderr, "error: %s\n",
-                   type_list_h.error_to_string().c_str());
-      std::exit(1);
-    }
-    File_Output_Stream out(type_list_h->ref());
+    Memory_Output_Stream out;
     write_type_list_h(Span<const CXX_Diagnostic_Type>(cxx_parser.parsed_types),
                       out);
-    out.flush();
+    out.write_file_if_different_or_exit(output_type_list_h_path);
   }
 
   {
-    Result<Platform_File, Write_File_IO_Error> info_cpp =
-        open_file_for_writing(output_info_cpp_path);
-    if (!info_cpp.ok()) {
-      std::fprintf(stderr, "error: %s\n", info_cpp.error_to_string().c_str());
-      std::exit(1);
-    }
-    File_Output_Stream out(info_cpp->ref());
+    Memory_Output_Stream out;
     write_info_cpp(Span<const CXX_Diagnostic_Type>(cxx_parser.parsed_types),
                    out);
-    out.flush();
+    out.write_file_if_different_or_exit(output_info_cpp_path);
   }
 
   return 0;

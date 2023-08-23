@@ -3,10 +3,13 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 #include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
@@ -129,6 +132,26 @@ void Memory_Output_Stream::clear() {
   this->flush();
   this->data_.clear();
 }
+
+#if !defined(__EMSCRIPTEN__)
+Result<void, Read_File_IO_Error, Write_File_IO_Error>
+Memory_Output_Stream::write_file_if_different(const char* path) {
+  this->flush();
+  auto result = quick_lint_js::write_file_if_different(path, this->data_);
+  if (!result.ok()) {
+    return result.propagate();
+  }
+  return {};
+}
+
+void Memory_Output_Stream::write_file_if_different_or_exit(const char* path) {
+  auto result = this->write_file_if_different(path);
+  if (!result.ok()) {
+    std::fprintf(stderr, "error: %s\n", result.error_to_string().c_str());
+    std::exit(1);
+  }
+}
+#endif
 
 void Memory_Output_Stream::flush_impl(String8_View data) {
   this->data_ += data;

@@ -726,16 +726,9 @@ int main(int argc, char** argv) {
   cxx_parser.parse_file();
 
   {
-    Result<Platform_File, Write_File_IO_Error> output_metadata_cpp =
-        open_file_for_writing(output_metadata_cpp_path);
-    if (!output_metadata_cpp.ok()) {
-      std::fprintf(stderr, "error: %s\n",
-                   output_metadata_cpp.error_to_string().c_str());
-      std::exit(1);
-    }
-    File_Output_Stream out(output_metadata_cpp->ref());
+    Memory_Output_Stream out;
     write_metadata_cpp(cxx_parser, out);
-    out.flush();
+    out.write_file_if_different_or_exit(output_metadata_cpp_path);
   }
 
   return 0;
