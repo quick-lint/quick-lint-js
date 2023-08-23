@@ -29,13 +29,24 @@ std::string_view to_string(CXX_Token_Type token_type) {
   case CXX_Token_Type::tt: \
     return #tt##sv;
   switch (token_type) {
+    QLJS_CASE(ampersand)
+    QLJS_CASE(ampersand_ampersand)
+    QLJS_CASE(bang)
+    QLJS_CASE(bang_equal)
+    QLJS_CASE(colon)
     QLJS_CASE(colon_colon)
     QLJS_CASE(comma)
+    QLJS_CASE(dot)
     QLJS_CASE(end_of_file)
+    QLJS_CASE(equal)
+    QLJS_CASE(equal_equal)
+    QLJS_CASE(greater)
     QLJS_CASE(identifier)
     QLJS_CASE(left_curly)
     QLJS_CASE(left_paren)
     QLJS_CASE(left_square)
+    QLJS_CASE(less)
+    QLJS_CASE(number_literal)
     QLJS_CASE(right_curly)
     QLJS_CASE(right_paren)
     QLJS_CASE(right_square)
@@ -81,7 +92,10 @@ parse_again:
     SINGLE_CHARACTER_TOKEN(u8'(', CXX_Token_Type::left_paren)
     SINGLE_CHARACTER_TOKEN(u8')', CXX_Token_Type::right_paren)
     SINGLE_CHARACTER_TOKEN(u8',', CXX_Token_Type::comma)
+    SINGLE_CHARACTER_TOKEN(u8'.', CXX_Token_Type::dot)
     SINGLE_CHARACTER_TOKEN(u8';', CXX_Token_Type::semicolon)
+    SINGLE_CHARACTER_TOKEN(u8'<', CXX_Token_Type::less)
+    SINGLE_CHARACTER_TOKEN(u8'>', CXX_Token_Type::greater)
     SINGLE_CHARACTER_TOKEN(u8'[', CXX_Token_Type::left_square)
     SINGLE_CHARACTER_TOKEN(u8']', CXX_Token_Type::right_square)
     SINGLE_CHARACTER_TOKEN(u8'{', CXX_Token_Type::left_curly)
@@ -90,11 +104,90 @@ parse_again:
 #undef SINGLE_CHARACTER_TOKEN
 
   case u8':':
-    if (this->input_[1] != u8':') {
-      this->fatal();
+    if (this->input_[1] == u8':') {
+      this->input_ += 2;
+      this->token_.type = CXX_Token_Type::colon_colon;
+    } else {
+      this->input_ += 1;
+      this->token_.type = CXX_Token_Type::colon;
     }
-    this->input_ += 2;
-    this->token_.type = CXX_Token_Type::colon_colon;
+    break;
+
+  case u8'&':
+    if (this->input_[1] == u8'&') {
+      this->input_ += 2;
+      this->token_.type = CXX_Token_Type::ampersand_ampersand;
+    } else {
+      this->input_ += 1;
+      this->token_.type = CXX_Token_Type::ampersand;
+    }
+    break;
+
+  case u8'=':
+    if (this->input_[1] == u8'=') {
+      this->input_ += 2;
+      this->token_.type = CXX_Token_Type::equal_equal;
+    } else {
+      this->input_ += 1;
+      this->token_.type = CXX_Token_Type::equal;
+    }
+    break;
+
+  case u8'!':
+    if (this->input_[1] == u8'=') {
+      this->input_ += 2;
+      this->token_.type = CXX_Token_Type::bang_equal;
+    } else {
+      this->input_ += 1;
+      this->token_.type = CXX_Token_Type::bang;
+    }
+    break;
+
+  case u8'0':
+  case u8'1':
+  case u8'2':
+  case u8'3':
+  case u8'4':
+  case u8'5':
+  case u8'6':
+  case u8'7':
+  case u8'8':
+  case u8'9':
+    if (this->input_[1] == u8'x') {
+      this->input_ += 2;
+      std::size_t length = 0;
+      while (u8"0123456789abcdefABCDEF"_sv.find(this->input_[length]) !=
+             String8_View::npos) {
+        length += 1;
+      }
+
+      std::uint64_t result;
+      Parse_Integer_Exact_Error error =
+          parse_integer_exact_hex(String8_View(this->input_, length), result);
+      if (error != Parse_Integer_Exact_Error::ok) {
+        this->fatal();
+      }
+
+      this->input_ += length;
+      this->token_.type = CXX_Token_Type::number_literal;
+      this->token_.decoded_number = result;
+    } else {
+      std::size_t length = 0;
+      while (this->is_digit(this->input_[length])) {
+        length += 1;
+      }
+
+      std::uint64_t result;
+      Parse_Integer_Exact_Error error =
+          parse_integer_exact(String8_View(this->input_, length), result);
+      if (error != Parse_Integer_Exact_Error::ok) {
+        this->fatal();
+      }
+
+      this->input_ += length;
+      this->token_.type = CXX_Token_Type::number_literal;
+      this->token_.decoded_number = result;
+    }
     break;
 
   case u8' ':

@@ -56,6 +56,11 @@ quick_lint_js_add_build_tool_executable(
   generate-lex-keyword.cpp
 )
 
+quick_lint_js_add_build_tool_executable(
+  quick-lint-js-generate-trace-sources
+  generate-trace-sources.cpp
+)
+
 if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
   add_custom_target(
     quick-lint-js-build-tools

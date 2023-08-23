@@ -242,6 +242,10 @@ template Parse_Integer_Exact_Error parse_integer_exact_hex(
     std::string_view, unsigned char &value);
 template Parse_Integer_Exact_Error parse_integer_exact_hex(std::string_view,
                                                            char32_t &value);
+template Parse_Integer_Exact_Error parse_integer_exact_hex(
+    std::string_view, unsigned long &value);
+template Parse_Integer_Exact_Error parse_integer_exact_hex(
+    std::string_view, unsigned long long &value);
 
 #if QLJS_HAVE_CHAR8_T
 template <class T>
@@ -253,6 +257,10 @@ template Parse_Integer_Exact_Error parse_integer_exact_hex(
     String8_View, unsigned char &value);
 template Parse_Integer_Exact_Error parse_integer_exact_hex(String8_View,
                                                            char32_t &value);
+template Parse_Integer_Exact_Error parse_integer_exact_hex(
+    String8_View, unsigned long &value);
+template Parse_Integer_Exact_Error parse_integer_exact_hex(
+    String8_View, unsigned long long &value);
 #endif
 
 template Char8 *write_integer<unsigned short>(unsigned short, Char8 *out);

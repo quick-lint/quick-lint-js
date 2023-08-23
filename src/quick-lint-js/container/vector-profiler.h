@@ -317,6 +317,9 @@ class Instrumented_Vector {
   }
 
   // NOTE(strager): This is a non-standard function.
+  Span<value_type> release_to_span() { return this->data_.release_to_span(); }
+
+  // NOTE(strager): This is a non-standard function.
   std::basic_string_view<value_type> release_to_string_view() {
     return this->data_.release_to_string_view();
   }

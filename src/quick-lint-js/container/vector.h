@@ -84,6 +84,7 @@ class Uninstrumented_Vector : private Vector {
   using Vector::operator Span<value_type>;
   using Vector::operator+=;
   using Vector::release;
+  using Vector::release_to_span;
   using Vector::release_to_string_view;
   using Vector::to_string_view;
 };

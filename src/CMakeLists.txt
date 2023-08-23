@@ -84,6 +84,21 @@ if (TARGET quick-lint-js-generate-lex-keyword)
   )
 endif ()
 
+if (TARGET quick-lint-js-generate-trace-sources)
+  add_custom_command(
+    OUTPUT
+    "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-metadata-generated.cpp"
+    COMMAND
+      $<TARGET_FILE:quick-lint-js-generate-trace-sources>
+      --output-metadata-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-metadata-generated.cpp"
+      --trace-types-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-types.h"
+    DEPENDS
+      quick-lint-js-generate-trace-sources
+      "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-types.h"
+    COMMENT "Generating metadata files for tracing"
+  )
+endif ()
+
 # C++ files which contain QLJS_TRANSLATABLE directives.
 set(
   QLJS_TRANSLATION_SOURCES
@@ -339,7 +354,7 @@ quick_lint_js_add_library(
   quick-lint-js/logging/trace-flusher-directory-backend.cpp
   quick-lint-js/logging/trace-flusher.cpp
   quick-lint-js/logging/trace-flusher.h
-  quick-lint-js/logging/trace-metadata.cpp
+  quick-lint-js/logging/trace-metadata-generated.cpp
   quick-lint-js/logging/trace-metadata.h
   quick-lint-js/logging/trace-reader.cpp
   quick-lint-js/logging/trace-reader.h

@@ -71,6 +71,45 @@ TEST(Test_CXX_Parser, adjacent_string_literals_concatenate) {
   }
 }
 
+TEST(Test_CXX_Parser, hex_number_literal) {
+  {
+    Padded_String code(u8"0x0"_sv);
+    Test_CXX_Lexer l(&code);
+    ASSERT_EQ(l.peek().type, CXX_Token_Type::number_literal);
+    EXPECT_EQ(l.peek().decoded_number, 0);
+  }
+
+  {
+    Padded_String code(u8"0x123456789abcdef0"_sv);
+    Test_CXX_Lexer l(&code);
+    ASSERT_EQ(l.peek().type, CXX_Token_Type::number_literal);
+    EXPECT_EQ(l.peek().decoded_number, 0x123456789abcdef0ULL);
+  }
+}
+
+TEST(Test_CXX_Parser, decimal_number_literal) {
+  {
+    Padded_String code(u8"0"_sv);
+    Test_CXX_Lexer l(&code);
+    ASSERT_EQ(l.peek().type, CXX_Token_Type::number_literal);
+    EXPECT_EQ(l.peek().decoded_number, 0);
+  }
+
+  {
+    Padded_String code(u8"1"_sv);
+    Test_CXX_Lexer l(&code);
+    ASSERT_EQ(l.peek().type, CXX_Token_Type::number_literal);
+    EXPECT_EQ(l.peek().decoded_number, 1);
+  }
+
+  {
+    Padded_String code(u8"23456789"_sv);
+    Test_CXX_Lexer l(&code);
+    ASSERT_EQ(l.peek().type, CXX_Token_Type::number_literal);
+    EXPECT_EQ(l.peek().decoded_number, 23456789);
+  }
+}
+
 TEST(Test_CXX_Parser, layout_offsets) {
   EXPECT_THAT(layout_offsets(Span<const CXX_Diagnostic_Variable>()),
               ::testing::IsEmpty());

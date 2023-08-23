@@ -6,6 +6,11 @@
 #include <cstdint>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/span.h>
+#include <quick-lint-js/port/warning.h>
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_CLANG("-Wunknown-attributes")
+QLJS_WARNING_IGNORE_GCC("-Wattributes")
 
 namespace quick_lint_js {
 struct Trace_Context {
@@ -16,47 +21,59 @@ struct Trace_Event_Header {
   std::uint64_t timestamp;
 };
 
-struct Trace_Event_Init {
+// 0 is a sentinal value meaning no document ID.
+using Trace_Document_ID [[qljs::trace_ctf_name("document_id")]] = std::uint64_t;
+
+struct [[qljs::trace_ctf_name("init")]] Trace_Event_Init {
   static constexpr std::uint8_t id = 0x01;
 
+  [[qljs::trace_zero_terminated]]  //
   String8_View version;
 };
 
-template <class String>
-struct Trace_Event_VSCode_Document_Opened {
+template <class String16>
+struct [[qljs::trace_ctf_name("vscode_document_opened")]]  //
+Trace_Event_VSCode_Document_Opened {
   static constexpr std::uint8_t id = 0x02;
 
-  std::uint64_t document_id;
-  String uri;
-  String language_id;
-  String content;
+  Trace_Document_ID document_id;
+  String16 uri;
+  String16 language_id;
+  String16 content;
 };
 
-template <class String>
-struct Trace_Event_VSCode_Document_Closed {
+template <class String16>
+struct [[qljs::trace_ctf_name("vscode_document_closed")]]  //
+Trace_Event_VSCode_Document_Closed {
   static constexpr std::uint8_t id = 0x03;
 
-  std::uint64_t document_id;
-  String uri;
-  String language_id;
+  Trace_Document_ID document_id;
+  String16 uri;
+  String16 language_id;
 };
 
-struct Trace_VSCode_Document_Position {
+// vscode.Position
+struct [[qljs::trace_ctf_name("vscode_document_position")]]  //
+Trace_VSCode_Document_Position {
   std::uint64_t line;
   std::uint64_t character;
 };
 
-struct Trace_VSCode_Document_Range {
+// vscode.Range
+struct [[qljs::trace_ctf_name("vscode_document_range")]]  //
+Trace_VSCode_Document_Range {
   Trace_VSCode_Document_Position start;
   Trace_VSCode_Document_Position end;
 };
 
-template <class String>
-struct Trace_VSCode_Document_Change {
+// vscode.TextDocumentContentChangeEvent
+template <class String16>
+struct [[qljs::trace_ctf_name("vscode_document_change")]]  //
+Trace_VSCode_Document_Change {
   Trace_VSCode_Document_Range range;
   std::uint64_t range_offset;
   std::uint64_t range_length;
-  String text;
+  String16 text;
 
   // For testing.
   friend bool operator==(const Trace_VSCode_Document_Change& lhs,
@@ -75,31 +92,41 @@ struct Trace_VSCode_Document_Change {
   }
 };
 
-template <class String>
-struct Trace_Event_VSCode_Document_Changed {
+// vscode.TextDocumentChangeEvent
+template <class String16>
+struct [[qljs::trace_ctf_name("vscode_document_changed")]]  //
+Trace_Event_VSCode_Document_Changed {
   static constexpr std::uint8_t id = 0x04;
 
-  std::uint64_t document_id;
-  Span<const Trace_VSCode_Document_Change<String>> changes;
+  Trace_Document_ID document_id;                 // Cannot be 0.
+  [[qljs::trace_ctf_size_name("change_count")]]  //
+  Span<const Trace_VSCode_Document_Change<String16>>
+      changes;
 };
 
-template <class String>
-struct Trace_Event_VSCode_Document_Sync {
+// Not related to any particular Visual Studio Code event.
+template <class String16>
+struct [[qljs::trace_ctf_name("vscode_document_sync")]]  //
+Trace_Event_VSCode_Document_Sync {
   static constexpr std::uint8_t id = 0x05;
 
-  std::uint64_t document_id;
-  String uri;
-  String language_id;
-  String content;
+  Trace_Document_ID document_id;  // Cannot be 0.
+  String16 uri;
+  String16 language_id;
+  String16 content;
 };
 
-struct Trace_Event_LSP_Client_To_Server_Message {
+// An LSP message received by quick-lint-js.
+struct [[qljs::trace_ctf_name("lsp_client_to_server_message")]]  //
+Trace_Event_LSP_Client_To_Server_Message {
   static constexpr std::uint8_t id = 0x06;
 
+  // body is the JSON content only, excluding the header.
   String8_View body;
 };
 
-struct Trace_Vector_Max_Size_Histogram_Entry {
+struct [[qljs::trace_ctf_name("vector_max_size_histogram_entry")]]  //
+Trace_Vector_Max_Size_Histogram_Entry {
   std::uint64_t max_size;
   std::uint64_t count;
 
@@ -109,9 +136,13 @@ struct Trace_Vector_Max_Size_Histogram_Entry {
                          Trace_Vector_Max_Size_Histogram_Entry);
 };
 
-struct Trace_Vector_Max_Size_Histogram_By_Owner_Entry {
+struct [[qljs::trace_ctf_name("vector_max_size_histogram_by_owner_entry")]]  //
+Trace_Vector_Max_Size_Histogram_By_Owner_Entry {
+  [[qljs::trace_zero_terminated]]  //
   std::string_view owner;
-  Span<const Trace_Vector_Max_Size_Histogram_Entry> max_size_entries;
+  [[qljs::trace_ctf_size_name("max_size_entry_count")]]  //
+  Span<const Trace_Vector_Max_Size_Histogram_Entry>
+      max_size_entries;
 
   friend bool operator==(const Trace_Vector_Max_Size_Histogram_By_Owner_Entry&,
                          const Trace_Vector_Max_Size_Histogram_By_Owner_Entry&);
@@ -119,39 +150,49 @@ struct Trace_Vector_Max_Size_Histogram_By_Owner_Entry {
                          const Trace_Vector_Max_Size_Histogram_By_Owner_Entry&);
 };
 
-struct Trace_Event_Vector_Max_Size_Histogram_By_Owner {
+struct [[qljs::trace_ctf_name("vector_max_size_histogram_by_owner")]]  //
+Trace_Event_Vector_Max_Size_Histogram_By_Owner {
   static constexpr std::uint8_t id = 0x07;
 
-  Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries;
+  [[qljs::trace_ctf_size_name("entry_count")]]  //
+  Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>
+      entries;
 };
 
-struct Trace_Event_Process_ID {
+struct [[qljs::trace_ctf_name("process_id")]] Trace_Event_Process_ID {
   static constexpr std::uint8_t id = 0x08;
 
   std::uint64_t process_id;
 };
 
-enum class Trace_LSP_Document_Type : std::uint8_t {
-  unknown = 0,
-  config = 1,
-  lintable = 2,
+enum class [[qljs::trace_ctf_name("lsp_document_type")]]  //
+Trace_LSP_Document_Type : std::uint8_t{
+    unknown = 0,
+    config = 1,
+    lintable = 2,
 };
 inline constexpr Trace_LSP_Document_Type last_trace_lsp_document_type =
     Trace_LSP_Document_Type::lintable;
 
-struct Trace_LSP_Document_State {
+struct [[qljs::trace_ctf_name("lsp_document_state")]] Trace_LSP_Document_State {
   Trace_LSP_Document_Type type;
   String8_View uri;
   String8_View text;
   String8_View language_id;
+  // TODO(strager): String8_View version_json;
+  // TODO(strager): Lint settings.
 };
 
-struct Trace_Event_LSP_Documents {
+struct [[qljs::trace_ctf_name("lsp_documents")]] Trace_Event_LSP_Documents {
   static constexpr std::uint8_t id = 0x09;
 
-  Span<const Trace_LSP_Document_State> documents;
+  [[qljs::trace_ctf_size_name("document_count")]]  //
+  Span<const Trace_LSP_Document_State>
+      documents;
 };
 }
+
+QLJS_WARNING_POP
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

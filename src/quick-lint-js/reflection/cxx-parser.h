@@ -21,17 +21,28 @@ class CXX_Parser_Base;
 enum class CXX_Token_Type {
   end_of_file,
   identifier,
+  number_literal,
   string_literal,
 
-  colon_colon,   // ::
-  comma,         // ,
-  left_curly,    // {
-  left_paren,    // (
-  left_square,   // [
-  right_curly,   // }
-  right_paren,   // )
-  right_square,  // ]
-  semicolon,     // ;
+  ampersand,            // &
+  ampersand_ampersand,  // &&
+  bang,                 // !
+  bang_equal,           // !=
+  colon,                // :
+  colon_colon,          // ::
+  comma,                // ,
+  dot,                  // .
+  equal,                // =
+  equal_equal,          // ==
+  greater,              // >
+  left_curly,           // {
+  left_paren,           // (
+  left_square,          // [
+  less,                 // <
+  right_curly,          // }
+  right_paren,          // )
+  right_square,         // ]
+  semicolon,            // ;
 };
 
 std::string_view to_string(CXX_Token_Type);
@@ -43,6 +54,8 @@ struct CXX_Token {
   String8_View identifier;
   // If type == CXX_Token_Type::string_literal:
   String8_View decoded_string;
+  // If type == CXX_Token_Type::number_literal:
+  std::uint64_t decoded_number;
 };
 
 class CXX_Lexer {
@@ -116,6 +129,9 @@ class CXX_Parser_Base {
  public:
   explicit CXX_Parser_Base(Padded_String_View input, const char* file_path,
                            CLI_Locator* locator);
+
+  const char* file_path() const { return this->lexer_.file_path_; }
+  CLI_Locator& locator() const { return *this->lexer_.locator_; }
 
  protected:
   void skip_preprocessor_directives();
