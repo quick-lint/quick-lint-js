@@ -136,9 +136,8 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
   auto read_lsp_document_type = [&]() -> Parsed_LSP_Document_Type {
     std::uint8_t raw_type = r.u8();
     if (raw_type > static_cast<std::uint8_t>(last_parsed_lsp_document_type)) {
-      this->parsed_events_.push_back(Parsed_Trace_Event{
-          .type = Parsed_Trace_Event_Type::error_unsupported_lsp_document_type,
-      });
+      this->on_error(
+          Parsed_Trace_Event_Type::error_unsupported_lsp_document_type);
       return Parsed_LSP_Document_Type::unknown;
     }
     return static_cast<Parsed_LSP_Document_Type>(raw_type);
