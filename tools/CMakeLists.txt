@@ -21,93 +21,54 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
   set(QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX .exe)
 endif ()
 
-if (QUICK_LINT_JS_USE_BUILD_TOOLS)
-  add_executable(quick-lint-js-compile-translations IMPORTED GLOBAL)
-  set_target_properties(
-    quick-lint-js-compile-translations
-    PROPERTIES
-    IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-compile-translations${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
-  )
+set(QUICK_LINT_JS_BUILD_TOOL_TARGETS)
+function (quick_lint_js_add_build_tool_executable NAME)
+  set(SOURCES "${ARGN}")
+  if (QUICK_LINT_JS_USE_BUILD_TOOLS)
+    add_executable("${NAME}" IMPORTED GLOBAL)
+    set_target_properties(
+      "${NAME}"
+      PROPERTIES
+      IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/${NAME}${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
+    )
+  elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
+    quick_lint_js_add_executable("${NAME}" ${SOURCES})
+    set_target_properties("${NAME}" PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
+    target_link_libraries("${NAME}" PRIVATE quick-lint-js-tool-lib)
+  endif ()
 
-  add_executable(quick-lint-js-generate-diagnostic-metadata IMPORTED GLOBAL)
-  set_target_properties(
-    quick-lint-js-generate-diagnostic-metadata
-    PROPERTIES
-    IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-generate-diagnostic-metadata${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
-  )
+  list(APPEND QUICK_LINT_JS_BUILD_TOOL_TARGETS "${NAME}")
+  set(QUICK_LINT_JS_BUILD_TOOL_TARGETS "${QUICK_LINT_JS_BUILD_TOOL_TARGETS}" PARENT_SCOPE)
+endfunction ()
 
-  add_executable(quick-lint-js-generate-lex-keyword IMPORTED GLOBAL)
-  set_target_properties(
-    quick-lint-js-generate-lex-keyword
-    PROPERTIES
-    IMPORTED_LOCATION "${QUICK_LINT_JS_USE_BUILD_TOOLS}/quick-lint-js-generate-lex-keyword${QUICK_LINT_JS_BUILD_TOOL_EXECUTABLE_SUFFIX}"
-  )
-elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
-  quick_lint_js_add_executable(
-    quick-lint-js-compile-translations
-    compile-translations.cpp
-  )
-  set_target_properties(
-    quick-lint-js-compile-translations
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ..
-  )
-  target_link_libraries(
-    quick-lint-js-compile-translations
-    PRIVATE
-    quick-lint-js-tool-lib
-  )
+quick_lint_js_add_build_tool_executable(
+  quick-lint-js-compile-translations
+  compile-translations.cpp
+)
 
-  quick_lint_js_add_executable(
-    quick-lint-js-generate-diagnostic-metadata
-    generate-diagnostic-metadata.cpp
-  )
-  set_target_properties(
-    quick-lint-js-generate-diagnostic-metadata
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ..
-  )
-  target_link_libraries(
-    quick-lint-js-generate-diagnostic-metadata
-    PRIVATE
-    quick-lint-js-tool-lib
-  )
+quick_lint_js_add_build_tool_executable(
+  quick-lint-js-generate-diagnostic-metadata
+  generate-diagnostic-metadata.cpp
+)
 
-  quick_lint_js_add_executable(
-    quick-lint-js-generate-lex-keyword
-    generate-lex-keyword.cpp
-  )
-  set_target_properties(
-    quick-lint-js-generate-lex-keyword
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ..
-  )
-  target_link_libraries(
-    quick-lint-js-generate-lex-keyword
-    PRIVATE
-    quick-lint-js-tool-lib
-  )
-
-  install(
-    TARGETS
-      quick-lint-js-compile-translations
-      quick-lint-js-generate-diagnostic-metadata
-      quick-lint-js-generate-lex-keyword
-    COMPONENT build-tools
-    EXCLUDE_FROM_ALL
-    RUNTIME
-    DESTINATION "${CMAKE_INSTALL_BINDIR}"
-  )
-endif ()
+quick_lint_js_add_build_tool_executable(
+  quick-lint-js-generate-lex-keyword
+  generate-lex-keyword.cpp
+)
 
 if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
   add_custom_target(
     quick-lint-js-build-tools
     COMMENT "Building all quick-lint-js build-time tools"
-    DEPENDS
-    quick-lint-js-compile-translations
-    quick-lint-js-generate-diagnostic-metadata
-    quick-lint-js-generate-lex-keyword
+    DEPENDS ${QUICK_LINT_JS_BUILD_TOOL_TARGETS}
+  )
+elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
+  install(
+    TARGETS ${QUICK_LINT_JS_BUILD_TOOL_TARGETS}
+    COMPONENT build-tools
+    EXCLUDE_FROM_ALL
+    RUNTIME
+    DESTINATION "${CMAKE_INSTALL_BINDIR}"
   )
 endif ()
 
