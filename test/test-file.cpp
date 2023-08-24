@@ -46,6 +46,10 @@
 #include <sys/stat.h>
 #endif
 
+#if QLJS_HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+
 using ::testing::HasSubstr;
 using namespace std::literals::chrono_literals;
 
