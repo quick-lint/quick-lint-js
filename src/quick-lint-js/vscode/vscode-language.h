@@ -9,12 +9,12 @@
 #include <string_view>
 
 namespace quick_lint_js {
-// See also VSCode_Language.
-struct LSP_Language {
-  constexpr LSP_Language(std::string_view language_id,
-                         Linter_Options lint_options)
+// See also LSP_Language.
+struct VSCode_Language {
+  constexpr VSCode_Language(std::string_view language_id,
+                            Linter_Options lint_options)
       : lint_options(lint_options) {
-    quick_lint_js::copy(language_id.begin(), language_id.end(),
+    copy(language_id.begin(), language_id.end(),
                         this->raw_language_id);
     this->language_id_size = static_cast<unsigned char>(language_id.size());
   }
@@ -24,7 +24,8 @@ struct LSP_Language {
   }
 
   // Returns nullptr if the language does not exist.
-  static const LSP_Language* find(std::string_view language_id) {
+  static const VSCode_Language* find(std::string_view language_id,
+                                     bool allow_typescript) {
     using namespace std::literals::string_view_literals;
 
     static constexpr Linter_Options jsx = {
@@ -42,22 +43,25 @@ struct LSP_Language {
         .typescript = true,
         .print_parser_visits = false,
     };
-    static constexpr LSP_Language languages[] = {
-        // Keep in sync with docs/lsp.adoc.
-        LSP_Language("javascript"sv, jsx),
-        LSP_Language("javascriptreact"sv, jsx),
-        LSP_Language("js"sv, jsx),
-        LSP_Language("js-jsx"sv, jsx),
+    static constexpr VSCode_Language languages[] = {
+        VSCode_Language("javascript"sv, jsx),
+        VSCode_Language("javascriptreact"sv, jsx),
 
-        LSP_Language("typescript"sv, ts),
-
-        LSP_Language("tsx"sv, tsx),
-        LSP_Language("typescriptreact"sv, tsx),
+        VSCode_Language("typescript"sv, ts),
+        VSCode_Language("typescriptreact"sv, tsx),
     };
-    const LSP_Language* lang = find_unique_if(
-        std::begin(languages), std::end(languages),
-        [&](const LSP_Language& l) { return l.language_id() == language_id; });
-    return lang == std::end(languages) ? nullptr : lang;
+    const VSCode_Language* lang =
+        find_unique_if(std::begin(languages), std::end(languages),
+                       [&](const VSCode_Language& l) {
+                         return l.language_id() == language_id;
+                       });
+    if (lang == std::end(languages)) {
+      return nullptr;
+    }
+    if (lang->lint_options.typescript && !allow_typescript) {
+      return nullptr;
+    }
+    return lang;
   }
 
   char raw_language_id[16] = {};

@@ -34,6 +34,7 @@
 #include <quick-lint-js/vscode/thread-safe-js-function.h>
 #include <quick-lint-js/vscode/vscode-configuration-filesystem.h>
 #include <quick-lint-js/vscode/vscode-diag-reporter.h>
+#include <quick-lint-js/vscode/vscode-language.h>
 #include <quick-lint-js/vscode/vscode-tracer.h>
 #include <quick-lint-js/vscode/vscode.h>
 #include <string>
@@ -99,63 +100,6 @@ class Extension_Configuration {
 
  private:
   ::Napi::ObjectReference config_ref_;
-};
-
-struct VSCode_Language {
-  constexpr VSCode_Language(std::string_view language_id,
-                            Linter_Options lint_options)
-      : lint_options(lint_options) {
-    quick_lint_js::copy(language_id.begin(), language_id.end(),
-                        this->raw_language_id);
-    this->language_id_size = static_cast<unsigned char>(language_id.size());
-  }
-
-  std::string_view language_id() const {
-    return std::string_view(this->raw_language_id, this->language_id_size);
-  }
-
-  // Returns nullptr if the language does not exist.
-  static const VSCode_Language* find(std::string_view language_id,
-                                     bool allow_typescript) {
-    static constexpr Linter_Options jsx = {
-        .jsx = true,
-        .typescript = false,
-        .print_parser_visits = false,
-    };
-    static constexpr Linter_Options ts = {
-        .jsx = false,
-        .typescript = true,
-        .print_parser_visits = false,
-    };
-    static constexpr Linter_Options tsx = {
-        .jsx = true,
-        .typescript = true,
-        .print_parser_visits = false,
-    };
-    static constexpr VSCode_Language languages[] = {
-        VSCode_Language("javascript"sv, jsx),
-        VSCode_Language("javascriptreact"sv, jsx),
-
-        VSCode_Language("typescript"sv, ts),
-        VSCode_Language("typescriptreact"sv, tsx),
-    };
-    const VSCode_Language* lang =
-        find_unique_if(std::begin(languages), std::end(languages),
-                       [&](const VSCode_Language& l) {
-                         return l.language_id() == language_id;
-                       });
-    if (lang == std::end(languages)) {
-      return nullptr;
-    }
-    if (lang->lint_options.typescript && !allow_typescript) {
-      return nullptr;
-    }
-    return lang;
-  }
-
-  char raw_language_id[16] = {};
-  unsigned char language_id_size = 0;
-  Linter_Options lint_options;
 };
 }
 
