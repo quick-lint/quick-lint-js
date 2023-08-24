@@ -183,7 +183,8 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     for (Span_Size i = 0; i < ast->object_entry_count(); ++i) {
       auto entry = ast->object_entry(i);
 
-      if (entry.init && entry.is_merged_property_and_value_shorthand()) {
+      if (entry.init && context == Variable_Context::rhs &&
+          entry.is_merged_property_and_value_shorthand()) {
         // { key = value }  // Invalid.
         this->diag_reporter_->report(Diag_Object_Literal_Default_In_Expression{
             .equal = entry.init_equals_span(),
@@ -197,11 +198,23 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
       if (entry.property) {
         this->visit_expression(entry.property, v, Variable_Context::rhs);
       }
+
       if (entry.init) {
         // { key: value = init }
-        this->visit_expression(entry.init, v, context);
-        this->visit_expression(entry.value, v, Variable_Context::lhs);
-        this->maybe_visit_assignment(entry.value, v);
+        switch (context) {
+        case Variable_Context::rhs:
+          // Visit as if: { key: (value = init) }
+          this->visit_expression(entry.init, v, Variable_Context::rhs);
+          this->visit_expression(entry.value, v, Variable_Context::lhs);
+          this->maybe_visit_assignment(entry.value, v);
+          break;
+        case Variable_Context::lhs:
+          // ({ key: value = init } = obj);
+          // The caller will call maybe_visit_assignment for us.
+          this->visit_expression(entry.init, v, Variable_Context::rhs);
+          this->visit_expression(entry.value, v, Variable_Context::lhs);
+          break;
+        }
       } else {
         // { key: value }
         this->visit_expression(entry.value, v, context);

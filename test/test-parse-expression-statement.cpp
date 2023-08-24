@@ -300,7 +300,9 @@ TEST_F(Test_Parse_Expression_Statement, parse_assignment) {
     EXPECT_THAT(p.variable_assignments, IsEmpty());
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"xs", u8"i", u8"j"}));
   }
+}
 
+TEST_F(Test_Parse_Expression_Statement, parse_destrcturing_assignment) {
   {
     Test_Parser p(u8"{x: y} = z"_sv);
     p.parse_and_visit_expression();
@@ -321,6 +323,24 @@ TEST_F(Test_Parse_Expression_Statement, parse_assignment) {
     EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"x",  //
                                                           u8"y"}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"z"}));
+  }
+
+  {
+    Test_Parser p(u8"{x = y} = z"_sv);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"x"}));
+    // FIXME(strager): This order is technically wrong. z should be evaluated
+    // before y.
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"y", u8"z"}));
+  }
+
+  {
+    Test_Parser p(u8"{x: y = z} = w"_sv);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"y"}));
+    // FIXME(strager): This order is technically wrong. z should be evaluated
+    // before y.
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"z", u8"w"}));
   }
 
   {

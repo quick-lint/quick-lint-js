@@ -1395,12 +1395,33 @@ TEST_F(Test_Parse_Expression, parse_assignment) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, assign(var y, var z), var w)");
   }
+}
 
+TEST_F(Test_Parse_Expression, parse_destructuring_assignment) {
   {
     Test_Parser p(u8"[x,y]=[z,w]"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "assign(array(var x, var y), array(var z, var w))");
+  }
+
+  {
+    Test_Parser p(u8"{k} = o"_sv);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(object(literal: var k), var o)");
+  }
+
+  {
+    Test_Parser p(u8"{k: k2} = o"_sv);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(object(literal: var k2), var o)");
+  }
+
+  {
+    Test_Parser p(u8"{k = defaultValue} = o"_sv);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "assign(object(literal: var k = var defaultValue), var o)");
   }
 }
 

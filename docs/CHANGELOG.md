@@ -20,6 +20,8 @@ Semantic Versioning.
 
 * LSP: On macOS, quick-lint-js no longer hangs if a file has too many
   diagnostics.
+* `({k = defaultValue} = o);` no longer incorrectly reports [E0253][] ("use ':'
+  instead of '=' in object literals").
 * TypeScript support (still experimental):
   * quick-lint-js no longer falsely reports [E0058][] ("variable used before
     declaration") for code such as `function f<T extends T[]>() {}`.

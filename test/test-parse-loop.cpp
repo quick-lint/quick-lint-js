@@ -531,6 +531,15 @@ TEST_F(Test_Parse_Loop, for_in_loop_with_destructuring) {
   }
 
   {
+    Test_Parser p(u8"for ({x = defaultValue} in xs) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"x"}));
+    // FIXME(strager): This order is technically wrong. xs should be evaluated
+    // before defaultValue.
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"defaultValue", u8"xs"}));
+  }
+
+  {
     Test_Parser p(u8"for (let [x] in xs) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
@@ -875,6 +884,15 @@ TEST_F(Test_Parse_Loop, for_of_loop_with_destructuring) {
     Test_Parser p(u8"for ({x} of xs) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"x"}));
+  }
+
+  {
+    Test_Parser p(u8"for ({x = defaultValue} of xs) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"x"}));
+    // FIXME(strager): This order is technically wrong. xs should be evaluated
+    // before defaultValue.
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"defaultValue", u8"xs"}));
   }
 
   {
