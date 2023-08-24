@@ -740,13 +740,20 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
   }
 
   case Token_Type::private_identifier: {
-    this->diag_reporter_->report(
-        Diag_Cannot_Refer_To_Private_Variable_Without_Object{
-            .private_identifier = this->peek().span(),
-        });
     Expression* ast = this->make_expression<Expression::Private_Variable>(
         this->peek().identifier_name());
     this->skip();
+    if (this->peek().type == Token_Type::kw_in && prec.in_operator) {
+      // #prop in obj
+    } else {
+      // #prop()             // Invalid
+      // #prop.subprop       // Invalid
+      // for (#prop in obj)  // Invalid
+      this->diag_reporter_->report(
+          Diag_Cannot_Refer_To_Private_Variable_Without_Object{
+              .private_identifier = ast->span(),
+          });
+    }
     return ast;
   }
 

@@ -296,6 +296,15 @@ TEST_F(Test_Parse_Loop, c_style_for_loop_with_in_operator) {
                               "visit_variable_use",          // d
                           }));
   }
+
+  test_parse_and_visit_statement(
+      u8"for (#p in b; c; d) {}"_sv,  //
+      u8"        ^^ Diag_In_Disallowed_In_C_Style_For_Loop"_diag,
+      u8"     ^^ Diag_Cannot_Refer_To_Private_Variable_Without_Object"_diag);
+  test_parse_and_visit_statement(
+      u8"for (var x = #p in b; c; d) {}"_sv,  //
+      u8"                ^^ Diag_In_Disallowed_In_C_Style_For_Loop"_diag,
+      u8"             ^^ Diag_Cannot_Refer_To_Private_Variable_Without_Object"_diag);
 }
 
 TEST_F(Test_Parse_Loop, for_loop_with_missing_component) {
@@ -514,6 +523,13 @@ TEST_F(Test_Parse_Loop, for_in_loop) {
                               "visit_exit_block_scope",      //
                               "visit_exit_for_scope",
                           }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (#p in xs) { body; }"_sv,  //
+        u8"     ^^ Diag_Cannot_Refer_To_Private_Variable_Without_Object"_diag);
+    EXPECT_THAT(p.variable_assignments, IsEmpty());
   }
 }
 

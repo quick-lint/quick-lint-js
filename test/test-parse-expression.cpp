@@ -138,6 +138,12 @@ TEST_F(Test_Parse_Expression, private_identifiers_are_not_valid_expressions) {
   }
 }
 
+TEST_F(Test_Parse_Expression, private_identifier_with_in_operator) {
+  Test_Parser p(u8"#private in obj"_sv);
+  Expression* ast = p.parse_expression();
+  EXPECT_EQ(summarize(ast), "binary(privatevar #private, var obj)");
+}
+
 TEST_F(Test_Parse_Expression, parse_regular_expression) {
   {
     Test_Parser p(u8"/regexp/"_sv, capture_diags);

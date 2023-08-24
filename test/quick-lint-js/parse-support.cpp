@@ -247,7 +247,7 @@ void summarize(const Expression& expression, std::string& out) {
     out += "parenempty";
     break;
   case Expression_Kind::Private_Variable:
-    out += "var ";
+    out += "privatevar ";
     out += to_string_view(expression.variable_identifier().normalized_name());
     break;
   case Expression_Kind::RW_Unary_Prefix:

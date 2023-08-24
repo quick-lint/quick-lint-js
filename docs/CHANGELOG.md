@@ -12,6 +12,8 @@ Semantic Versioning.
 
 * `2 ^ 8` now reports [E0710][] ("'^' is the XOR operator; to exponentiate, use
   '\*\*' instead"). (Implemented by [pedrobl1718][].)
+* `#property in object` expressions are now parsed correctly and do not report
+  [E0155][].
 * TypeScript support (still experimental):
   * Invalid recursive type definitions such as `type T = T;` now report
     [E0384][] ("cannot use type directly in its own definition").
@@ -1057,6 +1059,7 @@ Beta release.
 [E0149]: https://quick-lint-js.com/errors/E0149/
 [E0150]: https://quick-lint-js.com/errors/E0150/
 [E0151]: https://quick-lint-js.com/errors/E0151/
+[E0155]: https://quick-lint-js.com/errors/E0155/
 [E0173]: https://quick-lint-js.com/errors/E0173/
 [E0176]: https://quick-lint-js.com/errors/E0176/
 [E0177]: https://quick-lint-js.com/errors/E0177/
