@@ -15,6 +15,7 @@
 namespace quick_lint_js {
 bool operator==(Linter_Options lhs, Linter_Options rhs) {
   return lhs.jsx == rhs.jsx && lhs.typescript == rhs.typescript &&
+         lhs.typescript_definition == rhs.typescript_definition &&
          lhs.print_parser_visits == rhs.print_parser_visits;
 }
 
@@ -29,6 +30,7 @@ void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
            Parser_Options{
                .jsx = options.jsx,
                .typescript = options.typescript,
+               .typescript_definition_file = options.typescript_definition,
            });
   Variable_Analyzer var_analyzer(
       &reporter, &globals,

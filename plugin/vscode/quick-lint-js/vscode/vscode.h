@@ -245,6 +245,15 @@ class VSCode_Document {
   // vscode.Document#uri
   ::Napi::Object uri() { return this->doc_.Get("uri").As<::Napi::Object>(); }
 
+  // vscode.Document#uri#toString(/*skipEncoding=*/true)
+  std::string uri_string() {
+    ::Napi::Object uri = this->uri();
+    ::Napi::Function to_string_method =
+        uri.Get("toString").As<::Napi::Function>();
+    ::Napi::Boolean js_true = ::Napi::Boolean::New(this->doc_.Env(), true);
+    return to_string(to_string_method.Call(uri, {js_true}));
+  }
+
   ::Napi::Object get() const { return this->doc_; }
   napi_env Env() const { return this->doc_.Env(); }
   operator napi_value() const { return this->doc_; }

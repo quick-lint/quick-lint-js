@@ -9,12 +9,13 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+constexpr String8_View dummy_uri = u8"file:///example.txt"_sv;
 constexpr bool allow_typescript = true;
 
 TEST(Test_VSCode_Language, primary_languages) {
   {
     const VSCode_Language* language =
-        VSCode_Language::find("javascript"sv, allow_typescript);
+        VSCode_Language::find("javascript"sv, dummy_uri, allow_typescript);
     ASSERT_NE(language, nullptr);
     EXPECT_TRUE(language->lint_options.jsx)
         << "JSX support should be enabled for 'javascript'";
@@ -23,7 +24,7 @@ TEST(Test_VSCode_Language, primary_languages) {
 
   {
     const VSCode_Language* language =
-        VSCode_Language::find("javascriptreact"sv, allow_typescript);
+        VSCode_Language::find("javascriptreact"sv, dummy_uri, allow_typescript);
     ASSERT_NE(language, nullptr);
     EXPECT_TRUE(language->lint_options.jsx);
     EXPECT_FALSE(language->lint_options.typescript);
@@ -31,7 +32,7 @@ TEST(Test_VSCode_Language, primary_languages) {
 
   {
     const VSCode_Language* language =
-        VSCode_Language::find("typescript"sv, allow_typescript);
+        VSCode_Language::find("typescript"sv, dummy_uri, allow_typescript);
     ASSERT_NE(language, nullptr);
     EXPECT_FALSE(language->lint_options.jsx);
     EXPECT_TRUE(language->lint_options.typescript);
@@ -39,7 +40,7 @@ TEST(Test_VSCode_Language, primary_languages) {
 
   {
     const VSCode_Language* language =
-        VSCode_Language::find("typescriptreact"sv, allow_typescript);
+        VSCode_Language::find("typescriptreact"sv, dummy_uri, allow_typescript);
     ASSERT_NE(language, nullptr);
     EXPECT_TRUE(language->lint_options.jsx);
     EXPECT_TRUE(language->lint_options.typescript);
@@ -49,10 +50,48 @@ TEST(Test_VSCode_Language, primary_languages) {
 TEST(Test_VSCode_Language, typescript_is_not_detected_if_disabled) {
   constexpr bool disallow_typescript = false;
 
-  EXPECT_EQ(VSCode_Language::find("typescript"sv, disallow_typescript),
+  EXPECT_EQ(
+      VSCode_Language::find("typescript"sv, dummy_uri, disallow_typescript),
+      nullptr);
+  EXPECT_EQ(VSCode_Language::find("typescriptreact"sv, dummy_uri,
+                                  disallow_typescript),
             nullptr);
-  EXPECT_EQ(VSCode_Language::find("typescriptreact"sv, disallow_typescript),
-            nullptr);
+}
+
+TEST(Test_VSCode_Language, typescript_file_without_d_is_source) {
+  {
+    const VSCode_Language* language = VSCode_Language::find(
+        "typescript"sv, u8"file:///test.ts"_sv, allow_typescript);
+    ASSERT_NE(language, nullptr);
+    EXPECT_FALSE(language->lint_options.typescript_definition);
+  }
+
+  {
+    const VSCode_Language* language = VSCode_Language::find(
+        "typescript"sv, u8"file:///folder.d.ts/test.ts"_sv, allow_typescript);
+    ASSERT_NE(language, nullptr);
+    EXPECT_FALSE(language->lint_options.typescript_definition)
+        << ".d. in containing directory should be ignored";
+  }
+
+  // TODO(strager): Query parameters should be ignored.
+  // TODO(strager): Fragments should be ignored.
+}
+
+TEST(Test_VSCode_Language, typescript_file_with_d_is_definition) {
+  for (String8_View uri : {
+           u8"file:///test.d.ts"_sv,       //
+           u8"file:///test.d.json.ts"_sv,  //
+           u8"file:///test.d.mts"_sv,      //
+           u8"file:///test.d.cts"_sv,      //
+           // TODO(strager): What should % encoding do?
+       }) {
+    SCOPED_TRACE(out_string8(uri));
+    const VSCode_Language* language =
+        VSCode_Language::find("typescript"sv, uri, allow_typescript);
+    ASSERT_NE(language, nullptr);
+    EXPECT_TRUE(language->lint_options.typescript_definition);
+  }
 }
 }
 }

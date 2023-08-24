@@ -5,7 +5,9 @@
 
 #include <iterator>
 #include <quick-lint-js/fe/linter.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/uri.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -25,22 +27,32 @@ struct VSCode_Language {
 
   // Returns nullptr if the language does not exist.
   static const VSCode_Language* find(std::string_view language_id,
-                                     bool allow_typescript) {
+                                     String8_View uri, bool allow_typescript) {
     using namespace std::literals::string_view_literals;
 
     static constexpr Linter_Options jsx = {
         .jsx = true,
         .typescript = false,
+        .typescript_definition = false,
         .print_parser_visits = false,
     };
     static constexpr Linter_Options ts = {
         .jsx = false,
         .typescript = true,
+        .typescript_definition = false,
         .print_parser_visits = false,
     };
+    static constexpr VSCode_Language ts_definition(
+        "typescript"sv, Linter_Options{
+                            .jsx = false,
+                            .typescript = true,
+                            .typescript_definition = true,
+                            .print_parser_visits = false,
+                        });
     static constexpr Linter_Options tsx = {
         .jsx = true,
         .typescript = true,
+        .typescript_definition = false,
         .print_parser_visits = false,
     };
     static constexpr VSCode_Language languages[] = {
@@ -60,6 +72,9 @@ struct VSCode_Language {
     }
     if (lang->lint_options.typescript && !allow_typescript) {
       return nullptr;
+    }
+    if (uri_looks_like_typescript_definition(uri)) {
+      return &ts_definition;
     }
     return lang;
   }

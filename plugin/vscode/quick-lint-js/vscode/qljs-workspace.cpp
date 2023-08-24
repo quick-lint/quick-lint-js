@@ -311,9 +311,9 @@ QLJS_Document_Base* QLJS_Workspace::maybe_create_document(
                               .get_experimental_typescript(env);
 
   QLJS_Document_Base* doc;
-  if (const VSCode_Language* lang =
-          VSCode_Language::find(vscode_doc.language_id(),
-                                /*allow_typescript=*/allow_typescript)) {
+  if (const VSCode_Language* lang = VSCode_Language::find(
+          vscode_doc.language_id(), to_string8_view(vscode_doc.uri_string()),
+          /*allow_typescript=*/allow_typescript)) {
     doc = new QLJS_Lintable_Document(vscode_doc, file_path, lang->lint_options);
   } else if (file_path.has_value() &&
              this->config_loader_.is_config_file_path(*file_path)) {

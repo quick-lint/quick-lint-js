@@ -143,6 +143,9 @@ Added in quick-lint-js version 0.3.0.
 * *experimental-typescript*: the latest TypeScript version.
 (EXPERIMENTAL.
 Subject to change in future versions of quick-lint-js.)
+* *experimental-typescript-definition*: the latest TypeScript version (.d.ts file).
+(EXPERIMENTAL.
+Subject to change in future versions of quick-lint-js.)
 * *experimental-typescript-jsx*: like *experimental-typescript* but with JSX (React) extensions.
 (EXPERIMENTAL.
 Subject to change in future versions of quick-lint-js.)

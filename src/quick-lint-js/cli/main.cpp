@@ -309,6 +309,11 @@ Linter_Options get_linter_options_from_language(Input_File_Language language) {
     o.jsx = false;
     o.typescript = true;
     break;
+  case Input_File_Language::typescript_definition:
+    o.jsx = false;
+    o.typescript = true;
+    o.typescript_definition = true;
+    break;
   case Input_File_Language::typescript_jsx:
     o.jsx = true;
     o.typescript = true;

@@ -70,7 +70,14 @@ endif::[]
 * `js-jsx`
 * `js`
 
-quick-lint-js interprets documents with the following document language IDs as if they were TypeScript files (like the
+For documents with the following document language IDs, quick-lint-js inspects the document's URI's base name. If the base name contains ".d.", then quick-lint-js interprets the documents as if they were TypeScript definition files (like the
+ifdef::backend-html5[]
+link:../../cli/#language[*--language=experimental-typescript-definition* command line option]).
+endif::[]
+ifndef::backend-html5[]
+*--language=experimental-typescript-definition* command-line option).
+endif::[]
+Otherwise, if the base name does not contain ".d.", then quick-lint-js interprets the documents as if they were TypeScript files (like the
 ifdef::backend-html5[]
 link:../../cli/#language[*--language=experimental-typescript* command line option]):
 endif::[]
@@ -79,6 +86,26 @@ ifndef::backend-html5[]
 endif::[]
 
 * `typescript`
+
+quick-lint-js interprets documents with the following document language IDs as if they were TypeScript files (like the
+ifdef::backend-html5[]
+link:../../cli/#language[*--language=experimental-typescript* command line option]):
+endif::[]
+ifndef::backend-html5[]
+*--language=experimental-typescript* command-line option):
+endif::[]
+
+* `typescriptsource`
+
+quick-lint-js interprets documents with the following document language IDs as if they were TypeScript definition files (like the
+ifdef::backend-html5[]
+link:../../cli/#language[*--language=experimental-typescript-definition* command line option]):
+endif::[]
+ifndef::backend-html5[]
+*--language=experimental-typescript-definition* command-line option):
+endif::[]
+
+* `typescriptdefinition`
 
 quick-lint-js interprets documents with the following document language IDs as if they were TypeScript JSX files (like the
 ifdef::backend-html5[]

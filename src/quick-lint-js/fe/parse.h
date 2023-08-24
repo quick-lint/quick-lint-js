@@ -65,6 +65,11 @@ struct Parser_Options {
 
   // If true, parse TypeScript instead of JavaScript.
   bool typescript = false;
+
+  // If true, parse as a TypeScript definition file (.d.ts).
+  //
+  // Invariant: typescript_definition_file implies typescript.
+  bool typescript_definition_file = false;
 };
 
 struct Parser_Transaction {

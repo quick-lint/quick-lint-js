@@ -121,6 +121,8 @@ Options parse_options(int argc, char** argv) {
         language = Input_File_Language::javascript_jsx;
       } else if (arg_value == "experimental-typescript"sv) {
         language = Input_File_Language::typescript;
+      } else if (arg_value == "experimental-typescript-definition"sv) {
+        language = Input_File_Language::typescript_definition;
       } else if (arg_value == "experimental-typescript-jsx"sv) {
         language = Input_File_Language::typescript_jsx;
       } else {

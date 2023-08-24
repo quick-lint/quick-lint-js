@@ -397,6 +397,14 @@ TEST(Test_Options, language) {
 
   {
     Options o = parse_options_no_errors(
+        {"--language=experimental-typescript-definition", "one.txt"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].language,
+              Input_File_Language::typescript_definition);
+  }
+
+  {
+    Options o = parse_options_no_errors(
         {"--language=experimental-typescript-jsx", "one.txt"});
     ASSERT_EQ(o.files_to_lint.size(), 1);
     EXPECT_EQ(o.files_to_lint[0].language, Input_File_Language::typescript_jsx);

@@ -468,7 +468,8 @@ void Linting_LSP_Server_Handler::handle_text_document_did_open_notification(
   };
 
   std::unique_ptr<LSP_Documents::Document_Base> doc_ptr;
-  if (const LSP_Language* lang = LSP_Language::find(notification.language_id)) {
+  if (const LSP_Language* lang =
+          LSP_Language::find(notification.language_id, notification.uri.data)) {
     auto doc = std::make_unique<LSP_Documents::Lintable_Document>();
     init_document(*doc);
     doc->lint_options = lang->lint_options;

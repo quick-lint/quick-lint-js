@@ -9,9 +9,12 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+constexpr String8_View dummy_uri = u8"file:///example.txt"_sv;
+
 TEST(Test_LSP_Language, primary_languages) {
   {
-    const LSP_Language* language = LSP_Language::find("javascript"sv);
+    const LSP_Language* language =
+        LSP_Language::find("javascript"sv, dummy_uri);
     ASSERT_NE(language, nullptr);
     EXPECT_TRUE(language->lint_options.jsx)
         << "JSX support should be enabled for 'javascript'";
@@ -19,21 +22,34 @@ TEST(Test_LSP_Language, primary_languages) {
   }
 
   {
-    const LSP_Language* language = LSP_Language::find("javascriptreact"sv);
+    const LSP_Language* language =
+        LSP_Language::find("javascriptreact"sv, dummy_uri);
     ASSERT_NE(language, nullptr);
     EXPECT_TRUE(language->lint_options.jsx);
     EXPECT_FALSE(language->lint_options.typescript);
   }
 
   {
-    const LSP_Language* language = LSP_Language::find("typescript"sv);
+    const LSP_Language* language =
+        LSP_Language::find("typescriptsource"sv, dummy_uri);
     ASSERT_NE(language, nullptr);
     EXPECT_FALSE(language->lint_options.jsx);
     EXPECT_TRUE(language->lint_options.typescript);
+    EXPECT_FALSE(language->lint_options.typescript_definition);
   }
 
   {
-    const LSP_Language* language = LSP_Language::find("typescriptreact"sv);
+    const LSP_Language* language =
+        LSP_Language::find("typescriptdefinition"sv, dummy_uri);
+    ASSERT_NE(language, nullptr);
+    EXPECT_FALSE(language->lint_options.jsx);
+    EXPECT_TRUE(language->lint_options.typescript);
+    EXPECT_TRUE(language->lint_options.typescript_definition);
+  }
+
+  {
+    const LSP_Language* language =
+        LSP_Language::find("typescriptreact"sv, dummy_uri);
     ASSERT_NE(language, nullptr);
     EXPECT_TRUE(language->lint_options.jsx);
     EXPECT_TRUE(language->lint_options.typescript);
@@ -42,34 +58,86 @@ TEST(Test_LSP_Language, primary_languages) {
 
 TEST(Test_LSP_Language, language_aliases) {
   for (std::string_view alias : {"js"sv}) {
-    const LSP_Language* main_language = LSP_Language::find("javascript"sv);
+    const LSP_Language* main_language =
+        LSP_Language::find("javascript"sv, dummy_uri);
     ASSERT_NE(main_language, nullptr);
 
     SCOPED_TRACE(alias);
-    const LSP_Language* alias_language = LSP_Language::find(alias);
+    const LSP_Language* alias_language = LSP_Language::find(alias, dummy_uri);
     ASSERT_NE(alias_language, nullptr);
     EXPECT_EQ(alias_language->lint_options, main_language->lint_options);
   }
 
   for (std::string_view alias : {"js-jsx"sv}) {
-    const LSP_Language* main_language = LSP_Language::find("javascriptreact"sv);
+    const LSP_Language* main_language =
+        LSP_Language::find("javascriptreact"sv, dummy_uri);
     ASSERT_NE(main_language, nullptr);
 
     SCOPED_TRACE(alias);
-    const LSP_Language* alias_language = LSP_Language::find(alias);
+    const LSP_Language* alias_language = LSP_Language::find(alias, dummy_uri);
     ASSERT_NE(alias_language, nullptr);
     EXPECT_EQ(alias_language->lint_options, main_language->lint_options);
   }
 
   for (std::string_view alias : {"tsx"sv}) {
-    const LSP_Language* main_language = LSP_Language::find("typescriptreact"sv);
+    const LSP_Language* main_language =
+        LSP_Language::find("typescriptreact"sv, dummy_uri);
     ASSERT_NE(main_language, nullptr);
 
     SCOPED_TRACE(alias);
-    const LSP_Language* alias_language = LSP_Language::find(alias);
+    const LSP_Language* alias_language = LSP_Language::find(alias, dummy_uri);
     ASSERT_NE(alias_language, nullptr);
     EXPECT_EQ(alias_language->lint_options, main_language->lint_options);
   }
+}
+
+TEST(Test_LSP_Language, typescript_file_without_d_is_source) {
+  {
+    const LSP_Language* language =
+        LSP_Language::find("typescript"sv, u8"file:///test.ts"_sv);
+    ASSERT_NE(language, nullptr);
+    EXPECT_FALSE(language->lint_options.typescript_definition);
+  }
+
+  {
+    const LSP_Language* language =
+        LSP_Language::find("typescript"sv, u8"file:///folder.d.ts/test.ts"_sv);
+    ASSERT_NE(language, nullptr);
+    EXPECT_FALSE(language->lint_options.typescript_definition)
+        << ".d. in containing directory should be ignored";
+  }
+
+  // TODO(strager): Query parameters should be ignored.
+  // TODO(strager): Fragments should be ignored.
+}
+
+TEST(Test_LSP_Language, typescript_file_with_d_is_definition) {
+  for (String8_View uri : {
+           u8"file:///test.d.ts"_sv,       //
+           u8"file:///test.d.json.ts"_sv,  //
+           u8"file:///test.d.mts"_sv,      //
+           u8"file:///test.d.cts"_sv,      //
+           // TODO(strager): What should % encoding do?
+       }) {
+    SCOPED_TRACE(out_string8(uri));
+    const LSP_Language* language = LSP_Language::find("typescript"sv, uri);
+    ASSERT_NE(language, nullptr);
+    EXPECT_TRUE(language->lint_options.typescript_definition);
+  }
+}
+
+TEST(Test_LSP_Language, typescriptsource_ignores_d_in_uri) {
+  const LSP_Language* language =
+      LSP_Language::find("typescriptsource"sv, u8"file:///test.d.ts"_sv);
+  ASSERT_NE(language, nullptr);
+  EXPECT_FALSE(language->lint_options.typescript_definition);
+}
+
+TEST(Test_LSP_Language, typescriptdefinition_does_not_require_d_in_uri) {
+  const LSP_Language* language =
+      LSP_Language::find("typescriptdefinition"sv, u8"file:///test.ts"_sv);
+  ASSERT_NE(language, nullptr);
+  EXPECT_TRUE(language->lint_options.typescript_definition);
 }
 }
 }

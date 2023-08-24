@@ -415,6 +415,8 @@ quick_lint_js_add_library(
   quick-lint-js/util/synchronized.h
   quick-lint-js/util/try-catch-stack.h
   quick-lint-js/util/type-traits.h
+  quick-lint-js/util/uri.cpp
+  quick-lint-js/util/uri.h
   quick-lint-js/version.h
   quick-lint-js/vscode/vscode-language.h
   quick-lint-js/web-demo-location.cpp

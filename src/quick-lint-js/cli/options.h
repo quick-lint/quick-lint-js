@@ -21,6 +21,7 @@ enum class Input_File_Language : unsigned char {
   javascript,
   javascript_jsx,
   typescript,
+  typescript_definition,
   typescript_jsx,
 };
 

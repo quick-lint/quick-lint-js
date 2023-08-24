@@ -17,6 +17,11 @@ struct Linter_Options {
   // If true, parse and lint TypeScript instead of JavaScript.
   bool typescript = false;
 
+  // If true, parse as a TypeScript definition file (.d.ts).
+  //
+  // Invariant: typescript_definition implies typescript.
+  bool typescript_definition = false;
+
   // If true, print a human-readable representation of parser visits to stderr.
   bool print_parser_visits = false;
 
