@@ -153,6 +153,7 @@ quick_lint_js_add_executable(
   test-parse-typescript-declare-tsmodule.cpp
   test-parse-typescript-declare-type-alias.cpp
   test-parse-typescript-declare-var.cpp
+  test-parse-typescript-definition.cpp
   test-parse-typescript-enum.cpp
   test-parse-typescript-export-declare.cpp
   test-parse-typescript-function.cpp

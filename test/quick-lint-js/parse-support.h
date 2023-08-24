@@ -62,6 +62,12 @@ inline constexpr Parser_Options typescript_options = [] {
   return options;
 }();
 
+inline constexpr Parser_Options typescript_definition_options = [] {
+  Parser_Options options = typescript_options;
+  options.typescript_definition_file = true;
+  return options;
+}();
+
 inline constexpr Parser_Options typescript_jsx_options = [] {
   Parser_Options options;
   options.jsx = true;

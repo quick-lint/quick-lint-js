@@ -4816,7 +4816,7 @@ void Parser::parse_and_visit_let_bindings(
       default:
         if (declaration_kind == Variable_Kind::_const) {
           if (!options.allow_const_without_initializer &&
-              !options.is_declare()) {
+              !options.is_declare(this)) {
             this->diag_reporter_->report(
                 Diag_Missing_Initializer_In_Const_Declaration{
                     .variable_name = variable->span()});

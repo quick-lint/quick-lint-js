@@ -527,7 +527,10 @@ class Parser {
     // for example.
     std::optional<Source_Code_Span> declare_keyword;
 
-    bool is_declare() const { return this->declare_keyword.has_value(); }
+    bool is_declare(Parser *parser) const {
+      return this->declare_keyword.has_value() ||
+             parser->options_.typescript_definition_file;
+    }
   };
   // declaring_token is the const/let/var token.
   void parse_and_visit_let_bindings(Parse_Visitor_Base &v,
