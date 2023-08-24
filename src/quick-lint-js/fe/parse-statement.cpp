@@ -1537,25 +1537,17 @@ next_parameter:
     // 'T' are legal.
     Stacked_Buffering_Visitor extends_visits =
         this->buffering_visitor_stack_.push();
-    if (this->peek().type == Token_Type::colon) {
+    if (this->peek().type == Token_Type::kw_extends ||
+        this->peek().type == Token_Type::colon) {
       // <T: U>  // Invalid.
-      this->diag_reporter_->report(
-          Diag_Unexpected_Colon_After_Generic_Definition{
-              .colon = this->peek().span(),
-          });
-      this->skip();
-      this->parse_and_visit_typescript_type_expression(
-          extends_visits.visitor(),
-          TypeScript_Type_Parse_Options{
-              .type_being_declared =
-                  TypeScript_Type_Parse_Options::Declaring_Type{
-                      .name = *parameter_name,
-                      .kind = parameter_kind,
-                  },
-          });
-    }
-    if (this->peek().type == Token_Type::kw_extends) {
       // <T extends U>
+      if (this->peek().type == Token_Type::colon) {
+        // <T: U>  // Invalid.
+        this->diag_reporter_->report(
+            Diag_Unexpected_Colon_After_Generic_Definition{
+                .colon = this->peek().span(),
+            });
+      }
       this->skip();
       this->parse_and_visit_typescript_type_expression(
           extends_visits.visitor(),
