@@ -248,8 +248,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
-                                "visit_variable_type_use",          // U
                                 "visit_variable_declaration",       // T
+                                "visit_variable_type_use",          // U
                                 "visit_variable_declaration",       // param
                                 "visit_enter_function_scope_body",  // {
                                 "visit_exit_function_scope",        // }
@@ -265,8 +265,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
-                                "visit_variable_type_use",          // U
                                 "visit_variable_declaration",       // T
+                                "visit_variable_type_use",          // U
                                 "visit_enter_function_scope_body",  // {
                                 "visit_variable_use",               // myPromise
                                 "visit_exit_function_scope",        // }

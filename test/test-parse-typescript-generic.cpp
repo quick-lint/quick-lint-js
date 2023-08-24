@@ -176,13 +176,156 @@ TEST_F(Test_Parse_TypeScript_Generic, parameter_list_extends) {
     Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
         u8"<T extends U>"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_type_use",     // U
                               "visit_variable_declaration",  // T
+                              "visit_variable_type_use",     // U
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
   }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic, extends_can_be_cyclic_with_indirection) {
+  // See NOTE[TypeScript-cyclic-type].
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends { k: T }>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends Array<T>>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends T[]>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends [T, number, string]>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends [T] | null>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends () => T>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends (param: T) => number>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends new () => T>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends new (param: T) => number>"_sv, no_diags,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends <U>() => T>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends <U>(param: T) => number>"_sv, no_diags, typescript_options);
+
+  // NOTE(strager): These are not a reference of type 'T', but they look like
+  // they are.
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends (T) => number>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends new (T) => number>"_sv, no_diags, typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends <U>(T) => number>"_sv, no_diags, typescript_options);
+
+  // TODO(strager): We should disallow this type. TypeScript allows it, but it's
+  // almost certainly a bug to have a tuple type which only can contain itself
+  // and no extra state.
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends [T]>"_sv, no_diags, typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Generic, extends_cannot_be_directly_cyclic) {
+  // See NOTE[TypeScript-cyclic-type].
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends T>"_sv,  //
+      u8"           ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends \\u{54}>"_sv,  //
+      u8"           ^^^^^^^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends (T)>"_sv,  //
+      u8"            ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T: T>"_sv,  //
+      u8"    ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      u8"  ^ Diag_Unexpected_Colon_After_Generic_Definition"_diag,
+      typescript_options);
+
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends null | T>"_sv,  //
+      u8"                  ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends T | null>"_sv,
+      u8"           ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends null & T>"_sv,
+      u8"                  ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends `${T}`>"_sv,
+      u8"              ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends T.foo>"_sv,
+      u8"           ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends T<number>>"_sv,
+      u8"           ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends T extends number ? true : false>"_sv,
+      u8"           ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends number extends T ? true : false>"_sv,
+      u8"                          ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends number extends number ? T : false>"_sv,
+      u8"                                   ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends number extends number ? true : T>"_sv,
+      u8"                                          ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends keyof T>"_sv,
+      u8"                 ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8" ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Generic, unexpected_colon_in_parameter_extends) {
@@ -192,8 +335,8 @@ TEST_F(Test_Parse_TypeScript_Generic, unexpected_colon_in_parameter_extends) {
         u8"  ^ Diag_Unexpected_Colon_After_Generic_Definition"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_type_use",     // U
                               "visit_variable_declaration",  // T
+                              "visit_variable_type_use",     // U
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
@@ -220,13 +363,13 @@ TEST_F(Test_Parse_TypeScript_Generic, type_parameter_default_with_extends) {
     Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
         u8"<T extends U = Def>"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_type_use",     // U
                               "visit_variable_type_use",     // Def
                               "visit_variable_declaration",  // T
+                              "visit_variable_type_use",     // U
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
-    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U", u8"Def"}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Def", u8"U"}));
   }
 }
 

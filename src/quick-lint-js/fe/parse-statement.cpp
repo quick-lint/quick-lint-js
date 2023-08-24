@@ -1447,6 +1447,8 @@ void Parser::parse_and_visit_typescript_generic_parameters(
         });
   }
 
+  Variable_Kind parameter_kind = Variable_Kind::_generic_parameter;
+
 next_parameter:
   std::optional<Identifier> in_keyword;
   std::optional<Identifier> out_keyword;
@@ -1525,30 +1527,59 @@ next_parameter:
     break;
   }
 
-  // <T: U> //Invalid.
-  if (this->peek().type == Token_Type::colon) {
-    this->diag_reporter_->report(Diag_Unexpected_Colon_After_Generic_Definition{
-        .colon = this->peek().span(),
-    });
-    this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
-  }
-  if (this->peek().type == Token_Type::kw_extends) {
-    // <T extends U>
-    this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
-  }
+  {
+    // NOTE(strager): Visit order is important. Given:
+    //
+    //   <T extends U = Default>
+    //
+    // 'Default' should be visited first so references to 'T' report
+    // use-before-declaration. 'U' should be visited after 'T' so references to
+    // 'T' are legal.
+    Stacked_Buffering_Visitor extends_visits =
+        this->buffering_visitor_stack_.push();
+    if (this->peek().type == Token_Type::colon) {
+      // <T: U>  // Invalid.
+      this->diag_reporter_->report(
+          Diag_Unexpected_Colon_After_Generic_Definition{
+              .colon = this->peek().span(),
+          });
+      this->skip();
+      this->parse_and_visit_typescript_type_expression(
+          extends_visits.visitor(),
+          TypeScript_Type_Parse_Options{
+              .type_being_declared =
+                  TypeScript_Type_Parse_Options::Declaring_Type{
+                      .name = *parameter_name,
+                      .kind = parameter_kind,
+                  },
+          });
+    }
+    if (this->peek().type == Token_Type::kw_extends) {
+      // <T extends U>
+      this->skip();
+      this->parse_and_visit_typescript_type_expression(
+          extends_visits.visitor(),
+          TypeScript_Type_Parse_Options{
+              .type_being_declared =
+                  TypeScript_Type_Parse_Options::Declaring_Type{
+                      .name = *parameter_name,
+                      .kind = parameter_kind,
+                  },
+          });
+    }
 
-  if (this->peek().type == Token_Type::equal) {
-    // <T = Default>
-    this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
-  }
+    if (this->peek().type == Token_Type::equal) {
+      // <T = Default>
+      this->skip();
+      this->parse_and_visit_typescript_type_expression(v);
+    }
 
-  QLJS_ASSERT(parameter_name.has_value());
-  v.visit_variable_declaration(*parameter_name,
-                               Variable_Kind::_generic_parameter,
-                               Variable_Declaration_Flags::none);
+    QLJS_ASSERT(parameter_name.has_value());
+    v.visit_variable_declaration(*parameter_name, parameter_kind,
+                                 Variable_Declaration_Flags::none);
+
+    extends_visits.visitor().move_into(v);
+  }
 
   switch (this->peek().type) {
   case Token_Type::greater:

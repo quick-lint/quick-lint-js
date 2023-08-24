@@ -168,6 +168,7 @@ again:
       if (name.normalized_name() ==
           parse_options.type_being_declared->name.normalized_name()) {
         // type T = T;  // Invalid
+        // NOTE[TypeScript-cyclic-type]:
         this->diag_reporter_->report(Diag_Cyclic_TypeScript_Type_Definition{
             .use = name.span(),
             .declaration = parse_options.type_being_declared->name.span(),

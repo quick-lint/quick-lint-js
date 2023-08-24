@@ -103,6 +103,7 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_requires_semicolon_or_asi) {
 
 TEST_F(Test_Parse_TypeScript_Type_Alias,
        type_alias_can_be_cyclic_with_indirection) {
+  // See NOTE[TypeScript-cyclic-type].
   test_parse_and_visit_statement(u8"type T = { k: T };"_sv, no_diags,
                                  typescript_options);
   test_parse_and_visit_statement(u8"type T = Array<T>;"_sv, no_diags,
@@ -143,6 +144,7 @@ TEST_F(Test_Parse_TypeScript_Type_Alias,
 }
 
 TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_cannot_be_directly_cyclic) {
+  // See NOTE[TypeScript-cyclic-type].
   test_parse_and_visit_statement(
       u8"type T = T;"_sv,  //
       u8"         ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag

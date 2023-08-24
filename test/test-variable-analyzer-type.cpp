@@ -122,6 +122,11 @@ TEST(Test_Variable_Analyzer_Type,
       u8"                     ^ Diag_Variable_Used_Before_Declaration.use\n"_diag
       u8"                        ^ .declaration"_diag,
       typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"(function< T extends number = U, U, >() { });"_sv,
+      u8"                                 ^ Diag_Variable_Used_Before_Declaration.declaration\n"_diag
+      u8"                              ^ .use"_diag,
+      typescript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Type, interface_can_be_exported) {
