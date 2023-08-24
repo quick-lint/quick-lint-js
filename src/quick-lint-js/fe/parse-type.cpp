@@ -107,7 +107,6 @@ again:
             .question = this->peek().span()});
     this->skip();
     goto again;
-    break;
 
   // Type
   // ns.Type<T>
