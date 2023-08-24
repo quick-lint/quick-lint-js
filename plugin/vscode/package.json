@@ -15,7 +15,9 @@
   "activationEvents": [
     "onLanguage:javascript",
     "onLanguage:javascriptreact",
-    "onLanguage:json"
+    "onLanguage:json",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
   ],
   "main": "./extension.js",
   "extensionDependencies": [
