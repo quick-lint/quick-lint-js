@@ -14,7 +14,7 @@ struct VSCode_Language {
   constexpr VSCode_Language(std::string_view language_id,
                             Linter_Options lint_options)
       : lint_options(lint_options) {
-    copy(language_id.begin(), language_id.end(),
+    quick_lint_js::copy(language_id.begin(), language_id.end(),
                         this->raw_language_id);
     this->language_id_size = static_cast<unsigned char>(language_id.size());
   }
