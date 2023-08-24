@@ -3,7 +3,6 @@
 
 #if !defined(__EMSCRIPTEN__)
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -19,6 +18,7 @@
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>
 #include <quick-lint-js/lsp/lsp-document-text.h>
+#include <quick-lint-js/lsp/lsp-language.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/lsp/lsp-uri.h>
@@ -47,59 +47,6 @@ std::optional<String_JSON_Token> maybe_get_string_token(
     ::simdjson::ondemand::value& string);
 std::optional<String_JSON_Token> maybe_get_string_token(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
-
-struct LSP_Language {
-  constexpr LSP_Language(std::string_view language_id,
-                         Linter_Options lint_options)
-      : lint_options(lint_options) {
-    quick_lint_js::copy(language_id.begin(), language_id.end(),
-                        this->raw_language_id);
-    this->language_id_size = static_cast<unsigned char>(language_id.size());
-  }
-
-  std::string_view language_id() const {
-    return std::string_view(this->raw_language_id, this->language_id_size);
-  }
-
-  // Returns nullptr if the language does not exist.
-  static const LSP_Language* find(std::string_view language_id) {
-    static constexpr Linter_Options jsx = {
-        .jsx = true,
-        .typescript = false,
-        .print_parser_visits = false,
-    };
-    static constexpr Linter_Options ts = {
-        .jsx = false,
-        .typescript = true,
-        .print_parser_visits = false,
-    };
-    static constexpr Linter_Options tsx = {
-        .jsx = true,
-        .typescript = true,
-        .print_parser_visits = false,
-    };
-    static constexpr LSP_Language languages[] = {
-        // Keep in sync with docs/lsp.adoc.
-        LSP_Language("javascript"sv, jsx),
-        LSP_Language("javascriptreact"sv, jsx),
-        LSP_Language("js"sv, jsx),
-        LSP_Language("js-jsx"sv, jsx),
-
-        LSP_Language("typescript"sv, ts),
-
-        LSP_Language("tsx"sv, tsx),
-        LSP_Language("typescriptreact"sv, tsx),
-    };
-    const LSP_Language* lang = find_unique_if(
-        std::begin(languages), std::end(languages),
-        [&](const LSP_Language& l) { return l.language_id() == language_id; });
-    return lang == std::end(languages) ? nullptr : lang;
-  }
-
-  char raw_language_id[16] = {};
-  unsigned char language_id_size = 0;
-  Linter_Options lint_options;
-};
 
 std::atomic<Synchronized<LSP_Documents>*> latest_lsp_server_documents{nullptr};
 }

@@ -370,6 +370,7 @@ quick_lint_js_add_library(
   quick-lint-js/lsp/lsp-document-text.h
   quick-lint-js/lsp/lsp-json-rpc-message-parser.cpp
   quick-lint-js/lsp/lsp-json-rpc-message-parser.h
+  quick-lint-js/lsp/lsp-language.h
   quick-lint-js/lsp/lsp-location.cpp
   quick-lint-js/lsp/lsp-location.h
   quick-lint-js/lsp/lsp-message-parser.cpp
