@@ -26,9 +26,10 @@ using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-class Test_Parse_TypeScript_Declare_Type : public Test_Parse_Expression {};
+class Test_Parse_TypeScript_Declare_Type_Alias : public Test_Parse_Expression {
+};
 
-TEST_F(Test_Parse_TypeScript_Declare_Type, declare_type_acts_like_type) {
+TEST_F(Test_Parse_TypeScript_Declare_Type_Alias, declare_type_acts_like_type) {
   {
     Test_Parser p(u8"declare type MyType = OtherType;"_sv, typescript_options);
     p.parse_and_visit_statement();
@@ -44,7 +45,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Type, declare_type_acts_like_type) {
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Declare_Type,
+TEST_F(Test_Parse_TypeScript_Declare_Type_Alias,
        declare_before_type_keyword_triggers_asi) {
   {
     Test_Parser p(u8"declare\ntype MyType = OtherType;"_sv, typescript_options);
