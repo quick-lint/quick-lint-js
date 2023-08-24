@@ -326,6 +326,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Cyclic_TypeScript_Type_Definition
+    {
+      .code = 384,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("cannot use type directly in its own definition"),
+        QLJS_TRANSLATABLE("type {1} is being defined here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Cyclic_TypeScript_Type_Definition, use), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Cyclic_TypeScript_Type_Definition, declaration), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Declare_Class_Fields_Cannot_Have_Initializers
     {
       .code = 335,

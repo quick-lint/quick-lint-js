@@ -178,6 +178,12 @@ class Parser {
   void parse_typescript_colon_for_type();
 
   struct TypeScript_Type_Parse_Options {
+    struct Declaring_Type {
+      Identifier name;
+      Variable_Kind kind;
+    };
+
+    std::optional<Declaring_Type> type_being_declared = std::nullopt;
     bool parse_question_as_invalid = true;
     bool allow_parenthesized_type = true;
   };
@@ -185,7 +191,7 @@ class Parser {
   void parse_and_visit_typescript_colon_type_expression(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_type_expression(
-      Parse_Visitor_Base &v, TypeScript_Type_Parse_Options);
+      Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
 
   void parse_and_visit_typescript_colon_type_expression_or_type_predicate(
       Parse_Visitor_Base &v, bool allow_parenthesized_type);
@@ -205,10 +211,10 @@ class Parser {
       Parse_Visitor_Base &v);
   TypeScript_Type_Arrow_Or_Paren
   parse_and_visit_typescript_arrow_or_paren_type_expression(
-      Parse_Visitor_Base &v);
+      Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
   void parse_and_visit_typescript_object_type_expression(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_template_type_expression(
-      Parse_Visitor_Base &v);
+      Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
   void parse_and_visit_typescript_tuple_type_expression(Parse_Visitor_Base &v);
 
  private:

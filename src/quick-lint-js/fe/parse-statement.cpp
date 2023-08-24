@@ -2787,9 +2787,9 @@ void Parser::parse_and_visit_typescript_type_alias(
             .type_keyword = type_token,
         });
   }
-  v.visit_variable_declaration(this->peek().identifier_name(),
-                               Variable_Kind::_type_alias,
-                               Variable_Declaration_Flags::none);
+  Identifier name = this->peek().identifier_name();
+  Variable_Kind kind = Variable_Kind::_type_alias;
+  v.visit_variable_declaration(name, kind, Variable_Declaration_Flags::none);
   this->skip();
 
   v.visit_enter_type_alias_scope();
@@ -2798,7 +2798,13 @@ void Parser::parse_and_visit_typescript_type_alias(
   }
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal);
   this->skip();
-  this->parse_and_visit_typescript_type_expression(v);
+  this->parse_and_visit_typescript_type_expression(
+      v,
+      TypeScript_Type_Parse_Options{
+          .type_being_declared = TypeScript_Type_Parse_Options::Declaring_Type{
+              .name = name,
+              .kind = kind,
+          }});
   v.visit_exit_type_alias_scope();
 
   this->consume_semicolon_after_statement();

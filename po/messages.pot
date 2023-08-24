@@ -198,6 +198,14 @@ msgid "'async export' is not allowed; write 'export async' instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "cannot use type directly in its own definition"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "type {1} is being defined here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare class' fields cannot be initalized"
 msgstr ""
 

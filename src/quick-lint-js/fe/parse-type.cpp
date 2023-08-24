@@ -47,7 +47,7 @@ void Parser::parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v) {
 }
 
 void Parser::parse_and_visit_typescript_type_expression(
-    Parse_Visitor_Base &v, TypeScript_Type_Parse_Options parse_options) {
+    Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &parse_options) {
   Depth_Guard guard(this);
   TypeScript_Only_Construct_Guard ts_guard =
       this->enter_typescript_only_construct();
@@ -97,7 +97,10 @@ again:
 
   // `template ${sometype}`
   case Token_Type::incomplete_template:
-    this->parse_and_visit_typescript_template_type_expression(v);
+    this->parse_and_visit_typescript_template_type_expression(
+        v, TypeScript_Type_Parse_Options{
+               .type_being_declared = parse_options.type_being_declared,
+           });
     break;
 
   //: ?Type // invalid
@@ -157,6 +160,20 @@ again:
     if (this->peek().type == Token_Type::less ||
         this->peek().type == Token_Type::less_less) {
       this->parse_and_visit_typescript_generic_arguments(v);
+    }
+
+    if (parse_options.type_being_declared.has_value() &&
+        this->peek().type != Token_Type::left_square) {
+      // Shallow use.
+      if (name.normalized_name() ==
+          parse_options.type_being_declared->name.normalized_name()) {
+        // type T = T;  // Invalid
+        this->diag_reporter_->report(Diag_Cyclic_TypeScript_Type_Definition{
+            .use = name.span(),
+            .declaration = parse_options.type_being_declared->name.span(),
+            .kind = parse_options.type_being_declared->kind,
+        });
+      }
     }
     break;
   }
@@ -257,7 +274,10 @@ again:
   // (typeexpr)
   case Token_Type::left_paren:
     if (parse_options.allow_parenthesized_type) {
-      this->parse_and_visit_typescript_arrow_or_paren_type_expression(v);
+      this->parse_and_visit_typescript_arrow_or_paren_type_expression(
+          v, TypeScript_Type_Parse_Options{
+                 .type_being_declared = parse_options.type_being_declared,
+             });
     } else {
       this->skip();
       // If allow_parenthesized_type is false, we still allow parenthesized
@@ -506,6 +526,7 @@ again:
           this->typescript_infer_declaration_buffer_ = &infer_visitor.visitor();
           this->parse_and_visit_typescript_type_expression(
               v, TypeScript_Type_Parse_Options{
+                     .type_being_declared = parse_options.type_being_declared,
                      .parse_question_as_invalid = false,
                  });
         },
@@ -519,12 +540,18 @@ again:
 
     v.visit_enter_conditional_type_scope();
     infer_visitor.visitor().move_into(v);
-    this->parse_and_visit_typescript_type_expression(v);
+    this->parse_and_visit_typescript_type_expression(
+        v, TypeScript_Type_Parse_Options{
+               .type_being_declared = parse_options.type_being_declared,
+           });
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::colon);
     v.visit_exit_conditional_type_scope();
 
     this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
+    this->parse_and_visit_typescript_type_expression(
+        v, TypeScript_Type_Parse_Options{
+               .type_being_declared = parse_options.type_being_declared,
+           });
   }
 }
 
@@ -617,7 +644,7 @@ void Parser::
 
 Parser::TypeScript_Type_Arrow_Or_Paren
 Parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
-    Parse_Visitor_Base &v) {
+    Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &parse_options) {
   QLJS_ASSERT(this->peek().type == Token_Type::left_paren);
   this->skip();
 
@@ -638,7 +665,10 @@ Parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
             this->buffering_visitor_stack_.push();
         const Char8 *old_begin = this->peek().begin;
         this->parse_and_visit_typescript_type_expression(
-            params_visitor.visitor());
+            params_visitor.visitor(),
+            TypeScript_Type_Parse_Options{
+                .type_being_declared = parse_options.type_being_declared,
+            });
         if (this->peek().begin == old_begin) {
           // We didn't parse anything.
           // (...params) => ReturnType
@@ -913,13 +943,13 @@ void Parser::parse_and_visit_typescript_object_type_expression(
 }
 
 void Parser::parse_and_visit_typescript_template_type_expression(
-    Parse_Visitor_Base &v) {
+    Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &parse_options) {
   const Char8 *template_begin = this->peek().begin;
   for (;;) {
     QLJS_ASSERT(this->peek().type == Token_Type::incomplete_template);
     // TODO(strager): report_errors_for_escape_sequences_in_template
     this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
+    this->parse_and_visit_typescript_type_expression(v, parse_options);
     switch (this->peek().type) {
     case Token_Type::right_curly:
       this->lexer_.skip_in_template(template_begin);

@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 465;
-constexpr std::size_t translation_table_string_table_size = 77365;
+constexpr std::uint16_t translation_table_mapping_table_size = 467;
+constexpr std::size_t translation_table_string_table_size = 77443;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -197,6 +197,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "cannot update variable with '{0}' while declaring it"sv,
           "cannot use '...' on 'this' parameter"sv,
           "cannot use 'declare' keyword with 'import'"sv,
+          "cannot use type directly in its own definition"sv,
           "catch variable can only be typed as '*', 'any', or 'unknown'"sv,
           "character is not allowed in identifiers"sv,
           "children end here"sv,
@@ -423,6 +424,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "this tuple type is a named tuple type because at least one element has a name"sv,
           "this {0} looks fishy"sv,
           "try statement starts here"sv,
+          "type {1} is being defined here"sv,
           "unclosed block comment"sv,
           "unclosed class; expected '}' by end of file"sv,
           "unclosed code block; expected '}' by end of file"sv,

@@ -29,6 +29,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Await_Followed_By_Arrow_Function) \
   QLJS_DIAG_TYPE_NAME(Diag_Async_Static_Method) \
   QLJS_DIAG_TYPE_NAME(Diag_Async_Export_Function) \
+  QLJS_DIAG_TYPE_NAME(Diag_Cyclic_TypeScript_Type_Definition) \
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Class_Fields_Cannot_Have_Initializers) \
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Class_Methods_Cannot_Be_Async) \
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Class_Methods_Cannot_Be_Generators) \
@@ -399,7 +400,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 387;
+inline constexpr int Diag_Type_Count = 388;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

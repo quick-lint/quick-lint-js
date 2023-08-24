@@ -102,6 +102,146 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_requires_semicolon_or_asi) {
 }
 
 TEST_F(Test_Parse_TypeScript_Type_Alias,
+       type_alias_can_be_cyclic_with_indirection) {
+  test_parse_and_visit_statement(u8"type T = { k: T };"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = Array<T>;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = T[];"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = [T, number, string];"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = [T] | null;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = () => T;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = (param: T) => number;"_sv,
+                                 no_diags, typescript_options);
+  test_parse_and_visit_statement(u8"type T = new () => T;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = new (param: T) => number;"_sv,
+                                 no_diags, typescript_options);
+  test_parse_and_visit_statement(u8"type T = <U>() => T;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = <U>(param: T) => number;"_sv,
+                                 no_diags, typescript_options);
+
+  // NOTE(strager): These are not a reference of type 'T', but they look like
+  // they are.
+  test_parse_and_visit_statement(u8"type T = (T) => number;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = new (T) => number;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = <U>(T) => number;"_sv, no_diags,
+                                 typescript_options);
+
+  // TODO(strager): We should disallow this type. TypeScript allows it, but it's
+  // almost certainly a bug to have a tuple type which only can contain itself
+  // and no extra state.
+  test_parse_and_visit_statement(u8"type T = [T];"_sv, no_diags,
+                                 typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_cannot_be_directly_cyclic) {
+  test_parse_and_visit_statement(
+      u8"type T = T;"_sv,  //
+      u8"         ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"type T = \\u{54};"_sv,  //
+      u8"         ^^^^^^^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"type T = (T);"_sv,  //
+      u8"          ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_statement(
+      u8"type T = null | T;"_sv,  //
+      u8"                ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"type T = T | null;"_sv,
+      u8"         ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"type T = null & T;"_sv,
+      u8"                ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_statement(
+      u8"type T = `${T}`;"_sv,
+      u8"            ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_statement(
+      u8"type T = T.foo;"_sv,
+      u8"         ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_statement(
+      u8"type T = T<number>;"_sv,
+      u8"         ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"type T<U> = T<number>;"_sv,
+      u8"            ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_statement(
+      u8"type T = T extends number ? true : false;"_sv,
+      u8"         ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"type T = number extends T ? true : false;"_sv,
+      u8"                        ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"type T = number extends number ? T : false;"_sv,
+      u8"                                 ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"type T = number extends number ? true : T;"_sv,
+      u8"                                        ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+
+  test_parse_and_visit_statement(
+      u8"type T = keyof T;"_sv,
+      u8"               ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Type_Alias,
        type_alias_can_be_named_certain_contextual_keywords) {
   for (String8 name :
        Dirty_Set<String8>{u8"await"} |

@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[464] = {
+inline const Translated_String test_translation_table[466] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1907,6 +1907,17 @@ inline const Translated_String test_translation_table[464] = {
             u8"cannot use 'declare' keyword with 'import'",
             u8"cannot use 'declare' keyword with 'import'",
             u8"cannot use 'declare' keyword with 'import'",
+        },
+    },
+    {
+        "cannot use type directly in its own definition"_translatable,
+        u8"cannot use type directly in its own definition",
+        {
+            u8"cannot use type directly in its own definition",
+            u8"cannot use type directly in its own definition",
+            u8"cannot use type directly in its own definition",
+            u8"cannot use type directly in its own definition",
+            u8"cannot use type directly in its own definition",
         },
     },
     {
@@ -4393,6 +4404,17 @@ inline const Translated_String test_translation_table[464] = {
             u8"l'instruction try d\u00e9bute ici",
             u8"instru\u00e7\u00e3o try iniciou aqui",
             u8"try sats startar h\u00e4r",
+        },
+    },
+    {
+        "type {1} is being defined here"_translatable,
+        u8"type {1} is being defined here",
+        {
+            u8"type {1} is being defined here",
+            u8"type {1} is being defined here",
+            u8"type {1} is being defined here",
+            u8"type {1} is being defined here",
+            u8"type {1} is being defined here",
         },
     },
     {

@@ -182,7 +182,8 @@ const Translation_Table translation_data = {
         {74, 45, 80, 74, 69, 63},            //
         {0, 0, 0, 67, 0, 53},                //
         {0, 0, 0, 0, 0, 37},                 //
-        {0, 0, 0, 50, 0, 43},                //
+        {0, 0, 0, 0, 0, 43},                 //
+        {0, 0, 0, 50, 0, 47},                //
         {72, 31, 71, 68, 56, 61},            //
         {34, 30, 0, 46, 0, 40},              //
         {0, 0, 0, 20, 0, 18},                //
@@ -408,7 +409,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 61, 0, 61},                //
         {50, 25, 0, 70, 0, 78},              //
         {33, 21, 74, 25, 44, 21},            //
-        {27, 19, 30, 29, 22, 26},            //
+        {0, 0, 0, 0, 0, 26},                 //
+        {27, 19, 30, 29, 22, 31},            //
         {25, 50, 0, 36, 0, 23},              //
         {66, 43, 31, 36, 30, 44},            //
         {70, 22, 62, 50, 61, 49},            //
@@ -1923,6 +1925,7 @@ const Translation_Table translation_data = {
         u8"cannot update variable with '{0}' while declaring it\0"
         u8"cannot use '...' on 'this' parameter\0"
         u8"cannot use 'declare' keyword with 'import'\0"
+        u8"cannot use type directly in its own definition\0"
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
         u8"children end here\0"
@@ -2149,6 +2152,7 @@ const Translation_Table translation_data = {
         u8"this tuple type is a named tuple type because at least one element has a name\0"
         u8"this {0} looks fishy\0"
         u8"try statement starts here\0"
+        u8"type {1} is being defined here\0"
         u8"unclosed block comment\0"
         u8"unclosed class; expected '}' by end of file\0"
         u8"unclosed code block; expected '}' by end of file\0"
