@@ -293,13 +293,13 @@ class Event_Loop_Kqueue final : public Event_Loop_Base {
  private:
   // EVFILT_TIMER ident used to stop the event loop. See
   // NOTE[Event_Loop_Kqueue-stop].
-  static constexpr std::uintptr_t stop_kqueue_timer_ident = 0;
+  static constexpr std::uintptr_t control_kqueue_timer_ident = 0;
 
  public:
   using Kqueue_Udata = void*;
 
   // EVFILT_TIMER ident which is reserved for Event_Loop_Kqueue.
-  static constexpr int reserved_kqueue_timer_ident = stop_kqueue_timer_ident;
+  static constexpr int reserved_kqueue_timer_ident = control_kqueue_timer_ident;
 
   explicit Event_Loop_Kqueue();
   ~Event_Loop_Kqueue();
@@ -358,6 +358,13 @@ class Event_Loop_Kqueue final : public Event_Loop_Base {
   struct Shared_State;
 
   void request_stop() override;
+
+  // Tell the event loop to stop (NOTE[Event_Loop_Kqueue-stop]) or call certain
+  // callbacks (NOTE[Event_Loop_Kqueue-FreeBSD-EPIPE]).
+  void notify_via_control();
+
+  // See NOTE[Event_Loop_Kqueue-FreeBSD-EPIPE].
+  void handle_pending_custom_events();
 
   Impl* impl_;
 };

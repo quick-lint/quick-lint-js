@@ -527,6 +527,39 @@ TEST_P(Test_Event_Loop,
 #endif
 
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
+TEST_P(Test_Event_Loop,
+       disabled_pipe_write_callback_does_not_fire_if_read_end_is_closed_SLOW) {
+  Pipe_FDs pipe = make_pipe();
+  pipe.writer.set_pipe_non_blocking();
+
+  // Make on_pipe_write_end be called if the pipe_write would be enabled.
+  pipe.reader.close();
+
+  struct Delegate : public Failing_Event_Loop_Pipe_Write_Delegate {
+    void on_pipe_write_end(Event_Loop_Base*, Platform_File_Ref) override {
+      ADD_FAILURE() << "pipe should end but callback should not be called";
+    }
+  };
+  Delegate delegate;
+  this->loop->register_pipe_write(pipe.writer.ref(), &delegate);
+  this->loop->keep_alive();
+
+  this->loop->disable_pipe_write(pipe.writer.ref());
+
+  Thread stop_thread([&]() -> void {
+    // Wait for the event loop to start.
+    std::this_thread::sleep_for(10ms);
+
+    this->loop->stop_event_loop_testing_only();
+  });
+
+  this->loop->run();
+
+  stop_thread.join();
+}
+#endif
+
+#if QLJS_EVENT_LOOP2_PIPE_WRITE
 TEST_P(
     Test_Event_Loop,
     reenabling_pipe_write_during_loop_calls_callback_if_write_can_not_block) {
@@ -589,6 +622,45 @@ TEST_P(
 
   EXPECT_EQ(delegate.state_.lock()->pipe_read_data_call_count, 1);
   EXPECT_EQ(delegate.state_.lock()->pipe_write_ready_call_count, 1);
+}
+#endif
+
+#if QLJS_EVENT_LOOP2_PIPE_WRITE
+TEST_P(
+    Test_Event_Loop,
+    reenabling_pipe_write_callback_from_thread_fires_if_read_end_is_closed_SLOW) {
+  Pipe_FDs pipe = make_pipe();
+  pipe.writer.set_pipe_non_blocking();
+
+  // Make on_pipe_write_end be called when the pipe_write is enabled.
+  pipe.reader.close();
+
+  struct Delegate : public Failing_Event_Loop_Pipe_Write_Delegate {
+    void on_pipe_write_end(Event_Loop_Base* l, Platform_File_Ref) override {
+      EXPECT_TRUE(this->thread_enabled_pipe_write);
+
+      l->stop_event_loop_testing_only();
+    }
+
+    std::atomic<bool> thread_enabled_pipe_write = false;
+  };
+  Delegate delegate;
+  this->loop->register_pipe_write(pipe.writer.ref(), &delegate);
+  this->loop->keep_alive();
+
+  this->loop->disable_pipe_write(pipe.writer.ref());
+
+  Thread stop_thread([&]() -> void {
+    // Wait for the event loop to start.
+    std::this_thread::sleep_for(10ms);
+
+    delegate.thread_enabled_pipe_write = true;
+    this->loop->enable_pipe_write(pipe.writer.ref());
+  });
+
+  this->loop->run();
+
+  stop_thread.join();
 }
 #endif
 
@@ -908,8 +980,16 @@ TEST_F(
   EXPECT_EQ(delegate.custom_kqueue_events_call_count, 3);
 }
 
+#if defined(__FreeBSD__)
+// FIXME(strager): Timers don't seem to be reliably batched on FreeBSD.
+// Sometimes we only get two timers, not all three, in a batch.
 TEST_F(Test_Event_Loop_Kqueue,
-       custom_kqueue_events_are_batched_into_one_callback) {
+       DISABLED_custom_kqueue_events_are_batched_into_one_callback)
+#else
+TEST_F(Test_Event_Loop_Kqueue,
+       custom_kqueue_events_are_batched_into_one_callback)
+#endif
+{
   // All of these timers fire immediately, thus their events should be returned
   // by the same call to kqueue(). Because they are registered with the same
   // udata, the events should be batched into one on_custom_kqueue_events call.

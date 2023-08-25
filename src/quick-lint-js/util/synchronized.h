@@ -22,6 +22,8 @@ class Synchronized {
   // get_unsafe does not acquire the mutex.
   Data* get_without_lock_unsafe() { return &this->data_; }
 
+  Mutex* get_mutex_unsafe() { return &this->mutex_; }
+
  private:
   Mutex mutex_;
   Data data_;
