@@ -1046,6 +1046,7 @@ Beta release.
 [E0053]: https://quick-lint-js.com/errors/E0053/
 [E0054]: https://quick-lint-js.com/errors/E0054/
 [E0057]: https://quick-lint-js.com/errors/E0057/
+[E0058]: https://quick-lint-js.com/errors/E0058/
 [E0059]: https://quick-lint-js.com/errors/E0059/
 [E0060]: https://quick-lint-js.com/errors/E0060/
 [E0061]: https://quick-lint-js.com/errors/E0061/
