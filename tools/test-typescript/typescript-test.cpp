@@ -151,8 +151,8 @@ typescript_test_units extract_units_from_typescript_test(
           .data = Padded_String(sv.substr(0, filename_directive->start_index)),
           .name = String8(next_file_name),
       });
-      next_file_name = filename_directive->metadata_value;
     }
+    next_file_name = filename_directive->metadata_value;
     sv = sv.substr(filename_directive->end_index);
   }
 

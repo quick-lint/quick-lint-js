@@ -48,6 +48,7 @@ TEST(Test_TypeScript_Test, filename_directive_at_beginning_of_file) {
       extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
   ASSERT_EQ(units.size(), 1);
   EXPECT_EQ(units[0].data, u8"first\nfile\n"_sv);
+  EXPECT_EQ(units[0].name, u8"banana.ts"_sv);
 }
 
 TEST(Test_TypeScript_Test, blank_lines_are_trimmed_after_filename_directive) {
