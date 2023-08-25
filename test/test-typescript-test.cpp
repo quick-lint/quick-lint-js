@@ -235,6 +235,20 @@ TEST(Test_TypeScript_Test, typescript_react_file_is_linted) {
     EXPECT_TRUE(options->jsx);
   }
 }
+
+TEST(Test_TypeScript_Test, typescript_definition_file) {
+  Padded_String file(
+      u8"// @filename: example.d.ts\n"_sv
+      u8"export const a;"_sv);
+  typescript_test_units units =
+      extract_units_from_typescript_test(std::move(file), u8"hello.ts");
+  ASSERT_EQ(units.size(), 1);
+  std::optional<Linter_Options> options = units[0].get_linter_options();
+  ASSERT_TRUE(options.has_value());
+  EXPECT_TRUE(options->typescript);
+  EXPECT_TRUE(options->typescript_definition);
+  EXPECT_FALSE(options->jsx);
+}
 }
 }
 

@@ -124,6 +124,10 @@ std::optional<Linter_Options> typescript_test_unit::get_linter_options() const {
   if (ends_with(String8_View(this->name), u8".json"_sv)) {
     return std::nullopt;
   }
+  if (ends_with(String8_View(this->name), u8".d.ts"_sv)) {
+    return Linter_Options{
+        .jsx = false, .typescript = true, .typescript_definition = true};
+  }
   if (ends_with(String8_View(this->name), u8".ts"_sv)) {
     return Linter_Options{.jsx = false, .typescript = true};
   }
