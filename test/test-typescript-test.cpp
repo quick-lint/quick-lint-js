@@ -249,6 +249,22 @@ TEST(Test_TypeScript_Test, typescript_definition_file) {
   EXPECT_TRUE(options->typescript_definition);
   EXPECT_FALSE(options->jsx);
 }
+
+TEST(Test_TypeScript_Test, markdown_unit_is_ignored) {
+  Padded_String file(
+      u8"// @filename: a.ts\n"_sv
+      u8"hello();\n"_sv
+      u8"// @filename: b.md\n"_sv
+      u8"# hello\n"_sv
+      u8"// @filename: c.ts\n"_sv
+      u8"hello();\n"_sv);
+  typescript_test_units units =
+      extract_units_from_typescript_test(std::move(file), u8"hello.ts");
+  ASSERT_EQ(units.size(), 3);
+  EXPECT_TRUE(units[0].get_linter_options().has_value());
+  EXPECT_FALSE(units[1].get_linter_options().has_value());
+  EXPECT_TRUE(units[2].get_linter_options().has_value());
+}
 }
 }
 

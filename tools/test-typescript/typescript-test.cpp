@@ -134,6 +134,9 @@ std::optional<Linter_Options> typescript_test_unit::get_linter_options() const {
   if (ends_with(String8_View(this->name), u8".tsx"_sv)) {
     return Linter_Options{.jsx = true, .typescript = true};
   }
+  if (ends_with(String8_View(this->name), u8".md"_sv)) {
+    return std::nullopt;
+  }
   // FIXME(strager): Should we reject unknown file extensions?
   return Linter_Options{.jsx = false, .typescript = true};
 }
