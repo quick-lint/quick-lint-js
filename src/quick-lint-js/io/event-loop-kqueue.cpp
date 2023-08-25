@@ -84,7 +84,7 @@ Event_Loop_Kqueue::Event_Loop_Kqueue() : impl_(new Impl()) {
 
   // Allocate resources for the stop timer. See NOTE[Event_Loop_Kqueue-stop].
   Fixed_Vector<struct ::kevent, 1> changes;
-  EV_SET(&changes.emplace_back(), this->stop_kqueue_user_ident, EVFILT_USER,
+  EV_SET(&changes.emplace_back(), this->stop_kqueue_timer_ident, EVFILT_TIMER,
          EV_ADD | EV_DISABLE, 0, 0, nullptr);
   int rc = kqueue_add_changes(this->kqueue_fd(),
                               Span<const struct ::kevent>(changes));
@@ -131,8 +131,8 @@ void Event_Loop_Kqueue::run() {
 
       if (event.udata == nullptr) {
         // Event loop stop was requested. See NOTE[Event_Loop_Kqueue-stop].
-        QLJS_ASSERT(event.filter == EVFILT_USER);
-        QLJS_ASSERT(event.ident == this->stop_kqueue_user_ident);
+        QLJS_ASSERT(event.filter == EVFILT_TIMER);
+        QLJS_ASSERT(event.ident == this->stop_kqueue_timer_ident);
         if (!this->is_stop_requested()) {
           // Somebody called this->keep_alive(). Don't stop the event loop;
           // ignore this event.
@@ -298,22 +298,26 @@ Event_Loop_Kqueue::Kqueue_Udata Event_Loop_Kqueue::register_custom_kqueue(
 }
 
 void Event_Loop_Kqueue::request_stop() {
-  // NOTE[Event_Loop_Kqueue-stop]: To stop the event loop, we create a user
-  // event (EVFILT_USER). The user event has a unique ID which will be caught by
-  // our loop handling returned events. When the event loop sees this user
-  // event, it stops looping.
+  // NOTE[Event_Loop_Kqueue-stop]: To stop the event loop, we create a timer
+  // (EVFILT_TIMER). The timer has a unique ID which will be caught by our loop
+  // handling returned events. When the event loop sees this user event, it
+  // stops looping.
   //
-  // To guarantee that creating the user event succeeds, we create the user
-  // event when we create the event loop and only *enable* it when requesting a
-  // stop of the event loop. Enabling an existing event should always succeed.
+  // To guarantee that creating the timer succeeds, we create the timer when we
+  // create the event loop and only *enable* it when requesting a stop of the
+  // event loop. Enabling an existing timer should always succeed.
   //
   // udata is set to nullptr so it sorts first (see
   // NOTE[Event_Loop_Kqueue-custom-kqueue-batch]).
+  //
+  // NOTE(strager): We use an EVFILT_TIMER instead of an EVFILT_USER for
+  // portability. OpenBSD does not support EVFILT_USER.
+  //
   // TODO(strager): Write a test which guarantees that the stop event is
   // processed before other events.
   Fixed_Vector<struct ::kevent, 1> changes;
-  EV_SET(&changes.emplace_back(), this->stop_kqueue_user_ident, EVFILT_USER,
-         EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_TRIGGER, 0, nullptr);
+  EV_SET(&changes.emplace_back(), this->stop_kqueue_timer_ident, EVFILT_TIMER,
+         EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_CRITICAL, 0, nullptr);
   int rc = kqueue_add_changes(this->kqueue_fd(),
                               Span<const struct ::kevent>(changes));
   QLJS_ALWAYS_ASSERT(rc == 0);

@@ -291,15 +291,15 @@ class Event_Loop_Base {
 // Event loop implementation based on kqueue (BSDs, macOS).
 class Event_Loop_Kqueue final : public Event_Loop_Base {
  private:
-  // EVFILT_USER ident used to stop the event loop. See
+  // EVFILT_TIMER ident used to stop the event loop. See
   // NOTE[Event_Loop_Kqueue-stop].
-  static constexpr std::uintptr_t stop_kqueue_user_ident = 0;
+  static constexpr std::uintptr_t stop_kqueue_timer_ident = 0;
 
  public:
   using Kqueue_Udata = void*;
 
-  // EVFILT_USER ident which is reserved for Event_Loop_Kqueue.
-  static constexpr int reserved_kqueue_user_ident = stop_kqueue_user_ident;
+  // EVFILT_TIMER ident which is reserved for Event_Loop_Kqueue.
+  static constexpr int reserved_kqueue_timer_ident = stop_kqueue_timer_ident;
 
   explicit Event_Loop_Kqueue();
   ~Event_Loop_Kqueue();
@@ -330,7 +330,7 @@ class Event_Loop_Kqueue final : public Event_Loop_Base {
   //   Event_Loop_Kqueue::Kqueue_Udata timer_udata =
   //       loop.register_custom_kqueue(new Timer_Delegate());
   //   struct ::kevent change;
-  //   std::uintptr_t timer_id = 0;  // Arbitrary.
+  //   std::uintptr_t timer_id = 1;  // See restrictions below.
   //   EV_SET(change, timer_id, EVFILT_TIMER, EV_ADD | EV_ONESHOT,
   //          NOTE_CRITICAL, 1000, timer_udata);
   //   ::kevent(loop.kqueue_fd(), &change, 1, nullptr, 0, nullptr);
@@ -344,7 +344,7 @@ class Event_Loop_Kqueue final : public Event_Loop_Base {
   //
   // Restrictions:
   //
-  // * EVFILT_USER with ident==Event_Loop_Kqueue::reserved_kqueue_user_ident is
+  // * EVFILT_TIMER with ident==Event_Loop_Kqueue::reserved_kqueue_user_ident is
   //   reserved and must not be used by a custom event.
   // * Any file descriptor used with register_pipe_read or register_pipe_write
   //   must not be added to the kqueue as a custom event.
