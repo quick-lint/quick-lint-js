@@ -15,15 +15,12 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/crash.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/kqueue.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <thread>
 #include <vector>
-
-#if QLJS_HAVE_KQUEUE
-#include <sys/event.h>
-#endif
 
 #if QLJS_HAVE_POLL
 #include <sys/poll.h>

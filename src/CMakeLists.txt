@@ -393,6 +393,7 @@ quick_lint_js_add_library(
   quick-lint-js/port/constinit.h
   quick-lint-js/port/crash.h
   quick-lint-js/port/function-ref.h
+  quick-lint-js/port/kqueue.h
   quick-lint-js/port/max-align.h
   quick-lint-js/port/process.cpp
   quick-lint-js/port/process.h

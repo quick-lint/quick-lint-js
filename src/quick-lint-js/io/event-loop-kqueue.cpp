@@ -10,15 +10,12 @@
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/kqueue.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <vector>
-
-#if QLJS_HAVE_KQUEUE
-#include <sys/event.h>
-#endif
 
 #if QLJS_HAVE_KQUEUE
 namespace quick_lint_js {
@@ -317,7 +314,7 @@ void Event_Loop_Kqueue::request_stop() {
   // processed before other events.
   Fixed_Vector<struct ::kevent, 1> changes;
   EV_SET(&changes.emplace_back(), this->stop_kqueue_timer_ident, EVFILT_TIMER,
-         EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_CRITICAL, 0, nullptr);
+         EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_TRIGGER, 0, nullptr);
   int rc = kqueue_add_changes(this->kqueue_fd(),
                               Span<const struct ::kevent>(changes));
   QLJS_ALWAYS_ASSERT(rc == 0);
