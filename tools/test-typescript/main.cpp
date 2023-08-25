@@ -34,12 +34,12 @@ constexpr String8_View ignored_tests[] = {
     u8"/usedImportNotElidedInJs.ts"sv,
 };
 
-struct test_typescript_options {
+struct Test_TypeScript_Options {
   std::vector<const char*> test_case_paths;
 };
 
-test_typescript_options parse_test_options(int argc, char** argv) {
-  test_typescript_options o;
+Test_TypeScript_Options parse_test_options(int argc, char** argv) {
+  Test_TypeScript_Options o;
 
   Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
@@ -56,9 +56,9 @@ test_typescript_options parse_test_options(int argc, char** argv) {
   return o;
 }
 
-class expected_test_results {
+class Expected_Test_Results {
  public:
-  struct expectations {
+  struct Expectations {
     bool has_errors;
   };
 
@@ -83,13 +83,13 @@ class expected_test_results {
     return {};
   }
 
-  std::optional<expectations> get_test_case_expectations(
+  std::optional<Expectations> get_test_case_expectations(
       const char* path) const {
     std::string_view test_name = path_file_name(path);
     for (std::string_view suffix : {".ts"sv, ".tsx"sv}) {
       if (ends_with(test_name, suffix)) {
         test_name.remove_suffix(suffix.size());
-        return expectations{
+        return Expectations{
             // FIXME(strager): We shouldn't have to create an std::string here.
             .has_errors = this->test_cases_expecting_error_.contains(
                 std::string(test_name)),
@@ -112,7 +112,7 @@ bool should_ignore_test(String8_View path) {
   return false;
 }
 
-void process_test_case_file(expected_test_results& expected_results,
+void process_test_case_file(Expected_Test_Results& expected_results,
                             const char* path) {
   String8_View path_view = to_string8_view(path);
   if (should_ignore_test(path_view)) {
@@ -120,7 +120,7 @@ void process_test_case_file(expected_test_results& expected_results,
     return;
   }
   std::fprintf(stderr, "note: checking %s\n", path);
-  std::optional<expected_test_results::expectations> expected =
+  std::optional<Expected_Test_Results::Expectations> expected =
       expected_results.get_test_case_expectations(path);
   if (!expected.has_value()) {
     std::fprintf(stderr,
@@ -142,7 +142,7 @@ void process_test_case_file(expected_test_results& expected_results,
   Text_Diag_Reporter text_reporter(Translator(), &diags,
                                    /*escape_errors=*/false);
 
-  for (typescript_test_unit& unit :
+  for (TypeScript_Test_Unit& unit :
        extract_units_from_typescript_test(std::move(*raw_source), path_view)) {
     std::optional<Linter_Options> options = unit.get_linter_options();
     if (options.has_value()) {
@@ -173,7 +173,7 @@ void process_test_case_file(expected_test_results& expected_results,
 }
 
 void process_test_case_directory_or_file(
-    expected_test_results& expected_results, const char* path) {
+    Expected_Test_Results& expected_results, const char* path) {
   auto visit_file = [&](const std::string& file_path) -> void {
     if (ends_with(file_path, ".ts"sv) || ends_with(file_path, ".tsx"sv)) {
       process_test_case_file(expected_results, file_path.c_str());
@@ -218,13 +218,13 @@ std::string find_typescript_tests_directory(const char* descendant_path) {
 int main(int argc, char** argv) {
   using namespace quick_lint_js;
 
-  test_typescript_options o = parse_test_options(argc, argv);
+  Test_TypeScript_Options o = parse_test_options(argc, argv);
   if (o.test_case_paths.empty()) {
     std::fprintf(stderr, "error: missing path to TypeScript test case\n");
     return 2;
   }
 
-  expected_test_results expected_results;
+  Expected_Test_Results expected_results;
   Result<void, Platform_File_IO_Error> load =
       expected_results.load_from_tests_directory(
           find_typescript_tests_directory(o.test_case_paths[0]).c_str());

@@ -13,7 +13,7 @@ namespace quick_lint_js {
 namespace {
 TEST(Test_TypeScript_Test, extract_units_without_directives_gives_one_file) {
   Padded_String file(u8"hello\nworld\n"_sv);
-  typescript_test_units units =
+  TypeScript_Test_Units units =
       extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
   ASSERT_EQ(units.size(), 1);
   EXPECT_EQ(units[0].data, u8"hello\nworld\n"_sv);
@@ -23,7 +23,7 @@ TEST(Test_TypeScript_Test, extract_units_without_directives_gives_one_file) {
 TEST(Test_TypeScript_Test, one_filename_directive) {
   Padded_String file(
       u8"hello\nworld\n// @filename: banana.ts\nsecond\nfile\n"_sv);
-  typescript_test_units units =
+  TypeScript_Test_Units units =
       extract_units_from_typescript_test(std::move(file), u8"testcase.ts"_sv);
   ASSERT_EQ(units.size(), 2);
   EXPECT_EQ(units[0].data, u8"hello\nworld\n"_sv);
@@ -36,7 +36,7 @@ TEST(Test_TypeScript_Test, filename_directive_at_end_of_line_is_ignored) {
   String8_View file_data =
       u8"hello\nworld // @filename: banana.ts\nsecond\nfile\n"_sv;
   Padded_String file(file_data);
-  typescript_test_units units =
+  TypeScript_Test_Units units =
       extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
   ASSERT_EQ(units.size(), 1);
   EXPECT_EQ(units[0].data, file_data);
@@ -44,7 +44,7 @@ TEST(Test_TypeScript_Test, filename_directive_at_end_of_line_is_ignored) {
 
 TEST(Test_TypeScript_Test, filename_directive_at_beginning_of_file) {
   Padded_String file(u8"// @filename: banana.ts\nfirst\nfile\n"_sv);
-  typescript_test_units units =
+  TypeScript_Test_Units units =
       extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
   ASSERT_EQ(units.size(), 1);
   EXPECT_EQ(units[0].data, u8"first\nfile\n"_sv);
@@ -54,7 +54,7 @@ TEST(Test_TypeScript_Test, filename_directive_at_beginning_of_file) {
 TEST(Test_TypeScript_Test, blank_lines_are_trimmed_after_filename_directive) {
   Padded_String file(
       u8"first\nfile\n// @filename: banana.ts\n\n\n\nsecond\nfile\n"_sv);
-  typescript_test_units units =
+  TypeScript_Test_Units units =
       extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
   ASSERT_EQ(units.size(), 2);
   EXPECT_EQ(units[0].data, u8"first\nfile\n"_sv);
@@ -64,7 +64,7 @@ TEST(Test_TypeScript_Test, blank_lines_are_trimmed_after_filename_directive) {
 TEST(Test_TypeScript_Test, filename_directive_at_end_of_file) {
   {
     Padded_String file(u8"first\nfile\n// @filename: banana.ts"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
     ASSERT_EQ(units.size(), 1);
     EXPECT_EQ(units[0].data, u8"first\nfile\n"_sv);
@@ -72,7 +72,7 @@ TEST(Test_TypeScript_Test, filename_directive_at_end_of_file) {
 
   {
     Padded_String file(u8"first\nfile\n// @filename: banana.ts\n"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
     ASSERT_EQ(units.size(), 1);
     EXPECT_EQ(units[0].data, u8"first\nfile\n"_sv);
@@ -82,7 +82,7 @@ TEST(Test_TypeScript_Test, filename_directive_at_end_of_file) {
 TEST(Test_TypeScript_Test, metadata_name_match_is_case_insensitive) {
   {
     Padded_String file(u8"first\n// @FILENAME: banana.ts\nsecond\n"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
     ASSERT_EQ(units.size(), 2);
     EXPECT_EQ(units[0].data, u8"first\n"_sv);
@@ -91,7 +91,7 @@ TEST(Test_TypeScript_Test, metadata_name_match_is_case_insensitive) {
 
   {
     Padded_String file(u8"first\n// @FileName: banana.ts\nsecond\n"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
     ASSERT_EQ(units.size(), 2);
     EXPECT_EQ(units[0].data, u8"first\n"_sv);
@@ -102,7 +102,7 @@ TEST(Test_TypeScript_Test, metadata_name_match_is_case_insensitive) {
 TEST(Test_TypeScript_Test, whitespace_is_allowed_around_metadata_name) {
   {
     Padded_String file(u8"first\n//\t@filename   : banana.ts\nsecond\n"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
     ASSERT_EQ(units.size(), 2);
     EXPECT_EQ(units[0].data, u8"first\n"_sv);
@@ -111,7 +111,7 @@ TEST(Test_TypeScript_Test, whitespace_is_allowed_around_metadata_name) {
 
   {
     Padded_String file(u8"first\n//@filename\t: banana.ts\nsecond\n"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"test.ts"_sv);
     ASSERT_EQ(units.size(), 2);
     EXPECT_EQ(units[0].data, u8"first\n"_sv);
@@ -125,7 +125,7 @@ TEST(Test_TypeScript_Test, multiple_units_are_allowed) {
       u8"// @filename: 2.ts\nsecond\n"_sv
       u8"// @filename: 3.ts\nthird\n"_sv
       u8"// @filename: 4.ts\nfourth\n"_sv);
-  typescript_test_units units =
+  TypeScript_Test_Units units =
       extract_units_from_typescript_test(std::move(file), u8"1.ts"_sv);
   ASSERT_EQ(units.size(), 4);
   EXPECT_EQ(units[0].data, u8"first\n"_sv);
@@ -143,7 +143,7 @@ TEST(Test_TypeScript_Test, unrelated_metadata_is_included_in_units) {
       u8"first\n// @something: xxx\nunit\n"_sv
       u8"// @filename: split.ts\n"_sv
       u8"second\n// @something: xxx\nunit\n"_sv);
-  typescript_test_units units =
+  TypeScript_Test_Units units =
       extract_units_from_typescript_test(std::move(file), u8"test.ts");
   ASSERT_EQ(units.size(), 2);
   EXPECT_EQ(units[0].data, u8"first\n// @something: xxx\nunit\n"_sv);
@@ -156,7 +156,7 @@ TEST(Test_TypeScript_Test, json_file_is_not_linted) {
         u8"TypeScript code\n"_sv
         u8"// @filename: hello.json\n"_sv
         u8"JSON code"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.ts");
     ASSERT_EQ(units.size(), 2);
     std::optional<Linter_Options> options = units[1].get_linter_options();
@@ -168,7 +168,7 @@ TEST(Test_TypeScript_Test, json_file_is_not_linted) {
         u8"JSON code\n"_sv
         u8"// @filename: hello.ts\n"_sv
         u8"TypeScript code"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.json");
     ASSERT_EQ(units.size(), 2);
     std::optional<Linter_Options> options = units[0].get_linter_options();
@@ -182,7 +182,7 @@ TEST(Test_TypeScript_Test, typescript_file_is_linted) {
         u8"TypeScript code\n"_sv
         u8"// @filename: hello.json\n"_sv
         u8"JSON code"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.ts");
     ASSERT_EQ(units.size(), 2);
     std::optional<Linter_Options> options = units[0].get_linter_options();
@@ -196,7 +196,7 @@ TEST(Test_TypeScript_Test, typescript_file_is_linted) {
         u8"JSON code\n"_sv
         u8"// @filename: hello.ts\n"_sv
         u8"TypeScript code"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.json");
     ASSERT_EQ(units.size(), 2);
     std::optional<Linter_Options> options = units[1].get_linter_options();
@@ -212,7 +212,7 @@ TEST(Test_TypeScript_Test, typescript_react_file_is_linted) {
         u8"TypeScript code\n"_sv
         u8"// @filename: hello.json\n"_sv
         u8"JSON code"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.tsx");
     ASSERT_EQ(units.size(), 2);
     std::optional<Linter_Options> options = units[0].get_linter_options();
@@ -226,7 +226,7 @@ TEST(Test_TypeScript_Test, typescript_react_file_is_linted) {
         u8"JSON code\n"_sv
         u8"// @filename: hello.tsx\n"_sv
         u8"TypeScript code"_sv);
-    typescript_test_units units =
+    TypeScript_Test_Units units =
         extract_units_from_typescript_test(std::move(file), u8"hello.json");
     ASSERT_EQ(units.size(), 2);
     std::optional<Linter_Options> options = units[1].get_linter_options();
@@ -240,7 +240,7 @@ TEST(Test_TypeScript_Test, typescript_definition_file) {
   Padded_String file(
       u8"// @filename: example.d.ts\n"_sv
       u8"export const a;"_sv);
-  typescript_test_units units =
+  TypeScript_Test_Units units =
       extract_units_from_typescript_test(std::move(file), u8"hello.ts");
   ASSERT_EQ(units.size(), 1);
   std::optional<Linter_Options> options = units[0].get_linter_options();
@@ -258,7 +258,7 @@ TEST(Test_TypeScript_Test, markdown_unit_is_ignored) {
       u8"# hello\n"_sv
       u8"// @filename: c.ts\n"_sv
       u8"hello();\n"_sv);
-  typescript_test_units units =
+  TypeScript_Test_Units units =
       extract_units_from_typescript_test(std::move(file), u8"hello.ts");
   ASSERT_EQ(units.size(), 3);
   EXPECT_TRUE(units[0].get_linter_options().has_value());

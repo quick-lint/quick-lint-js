@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct typescript_test_unit {
+struct TypeScript_Test_Unit {
   Padded_String data;
   String8 name;
 
@@ -17,9 +17,9 @@ struct typescript_test_unit {
   std::optional<Linter_Options> get_linter_options() const;
 };
 
-using typescript_test_units = std::vector<typescript_test_unit>;
+using TypeScript_Test_Units = std::vector<TypeScript_Test_Unit>;
 
-typescript_test_units extract_units_from_typescript_test(
+TypeScript_Test_Units extract_units_from_typescript_test(
     Padded_String&& file, String8_View test_file_name);
 }
 

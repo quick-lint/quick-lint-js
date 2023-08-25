@@ -120,7 +120,7 @@ find_typescript_test_filename_metadata_directive(
 }
 }
 
-std::optional<Linter_Options> typescript_test_unit::get_linter_options() const {
+std::optional<Linter_Options> TypeScript_Test_Unit::get_linter_options() const {
   if (ends_with(String8_View(this->name), u8".json"_sv)) {
     return std::nullopt;
   }
@@ -141,9 +141,9 @@ std::optional<Linter_Options> typescript_test_unit::get_linter_options() const {
   return Linter_Options{.jsx = false, .typescript = true};
 }
 
-typescript_test_units extract_units_from_typescript_test(
+TypeScript_Test_Units extract_units_from_typescript_test(
     Padded_String&& file, String8_View test_file_name) {
-  typescript_test_units units;
+  TypeScript_Test_Units units;
 
   String8_View sv = file.string_view();
   String8_View next_file_name = test_file_name;
@@ -154,7 +154,7 @@ typescript_test_units extract_units_from_typescript_test(
       break;
     }
     if (filename_directive->start_index != 0) {
-      units.push_back(typescript_test_unit{
+      units.push_back(TypeScript_Test_Unit{
           .data = Padded_String(sv.substr(0, filename_directive->start_index)),
           .name = String8(next_file_name),
       });
@@ -166,14 +166,14 @@ typescript_test_units extract_units_from_typescript_test(
   bool found_filename_directive = sv.data() != file.data();
   if (found_filename_directive) {
     if (!sv.empty()) {
-      units.push_back(typescript_test_unit{
+      units.push_back(TypeScript_Test_Unit{
           .data = Padded_String(sv),
           .name = String8(next_file_name),
       });
     }
   } else {
     // Don't copy the input string. Just move it.
-    units.push_back(typescript_test_unit{
+    units.push_back(TypeScript_Test_Unit{
         .data = std::move(file),
         .name = String8(next_file_name),
     });
