@@ -118,27 +118,6 @@ void Trace_Reader::parse_header(Checked_Binary_Reader& r) {
 }
 
 void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
-  auto read_utf16le_string_in_place = [&r]() -> std::u16string_view {
-    std::uint64_t length = r.u64_le();
-    const std::uint8_t* bytes = r.advance(length * 2);
-    static_assert(sizeof(char16_t) == 2 * sizeof(std::uint8_t));
-    // TODO(strager): This assumes the native endian is little endian.
-    return std::u16string_view(reinterpret_cast<const char16_t*>(bytes),
-                               length);
-  };
-  auto read_utf8_string_in_place = [&r]() -> String8_View {
-    std::uint64_t length = r.u64_le();
-    const std::uint8_t* bytes = r.advance(length);
-    static_assert(sizeof(Char8) == sizeof(std::uint8_t));
-    return String8_View(reinterpret_cast<const Char8*>(bytes), length);
-  };
-  auto read_utf8_zstring_in_place = [&r]() -> String8_View {
-    const std::uint8_t* bytes = r.cursor();
-    r.find_and_skip_byte(0x00);
-    const std::uint8_t* end = r.cursor() - 1;
-    return String8_View(reinterpret_cast<const Char8*>(bytes),
-                        narrow_cast<std::size_t>(end - bytes));
-  };
   auto read_lsp_document_type = [&]() -> Trace_LSP_Document_Type {
     std::uint8_t raw_type = r.u8();
     if (raw_type > static_cast<std::uint8_t>(last_trace_lsp_document_type)) {
@@ -160,7 +139,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
         .header = header,
         .init_event =
             Trace_Event_Init{
-                .version = read_utf8_zstring_in_place(),
+                .version = this->parse_utf8_zstring(r),
             },
     });
     break;
@@ -173,9 +152,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
         .vscode_document_opened_event =
             Trace_Event_VSCode_Document_Opened<std::u16string_view>{
                 .document_id = r.u64_le(),
-                .uri = read_utf16le_string_in_place(),
-                .language_id = read_utf16le_string_in_place(),
-                .content = read_utf16le_string_in_place(),
+                .uri = this->parse_utf16le_string(r),
+                .language_id = this->parse_utf16le_string(r),
+                .content = this->parse_utf16le_string(r),
             },
     });
     break;
@@ -187,8 +166,8 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
         .vscode_document_closed_event =
             Trace_Event_VSCode_Document_Closed<std::u16string_view>{
                 .document_id = r.u64_le(),
-                .uri = read_utf16le_string_in_place(),
-                .language_id = read_utf16le_string_in_place(),
+                .uri = this->parse_utf16le_string(r),
+                .language_id = this->parse_utf16le_string(r),
             },
     });
     break;
@@ -217,7 +196,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
               },
           .range_offset = r.u64_le(),
           .range_length = r.u64_le(),
-          .text = read_utf16le_string_in_place(),
+          .text = this->parse_utf16le_string(r),
       };
     }
     this->parsed_events_.push_back(Parsed_Trace_Event{
@@ -239,9 +218,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
         .vscode_document_sync_event =
             Trace_Event_VSCode_Document_Sync<std::u16string_view>{
                 .document_id = r.u64_le(),
-                .uri = read_utf16le_string_in_place(),
-                .language_id = read_utf16le_string_in_place(),
-                .content = read_utf16le_string_in_place(),
+                .uri = this->parse_utf16le_string(r),
+                .language_id = this->parse_utf16le_string(r),
+                .content = this->parse_utf16le_string(r),
             },
     });
     break;
@@ -252,7 +231,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
         .header = header,
         .lsp_client_to_server_message_event =
             Trace_Event_LSP_Client_To_Server_Message{
-                .body = read_utf8_string_in_place(),
+                .body = this->parse_utf8_string(r),
             },
     });
     break;
@@ -265,7 +244,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
                 narrow_cast<std::size_t>(entry_count));
     for (Span_Size i = 0; i < entries.size(); ++i) {
       Trace_Vector_Max_Size_Histogram_By_Owner_Entry& entry = entries[i];
-      entry.owner = to_string_view(read_utf8_zstring_in_place());
+      entry.owner = to_string_view(this->parse_utf8_zstring(r));
 
       std::uint64_t max_size_entry_count = r.u64_le();
       Span<Trace_Vector_Max_Size_Histogram_Entry> max_size_entries =
@@ -312,9 +291,9 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     for (Span_Size i = 0; i < documents.size(); ++i) {
       documents[i] = Trace_LSP_Document_State{
           .type = read_lsp_document_type(),
-          .uri = read_utf8_string_in_place(),
-          .text = read_utf8_string_in_place(),
-          .language_id = read_utf8_string_in_place(),
+          .uri = this->parse_utf8_string(r),
+          .text = this->parse_utf8_string(r),
+          .language_id = this->parse_utf8_string(r),
       };
     }
     this->parsed_events_.push_back(Parsed_Trace_Event{
@@ -332,6 +311,30 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
     // TODO(strager): Report an error.
     return;
   }
+}
+
+std::u16string_view Trace_Reader::parse_utf16le_string(
+    Checked_Binary_Reader& r) {
+  std::uint64_t length = r.u64_le();
+  const std::uint8_t* bytes = r.advance(length * 2);
+  static_assert(sizeof(char16_t) == 2 * sizeof(std::uint8_t));
+  // TODO(strager): This assumes the native endian is little endian.
+  return std::u16string_view(reinterpret_cast<const char16_t*>(bytes), length);
+}
+
+String8_View Trace_Reader::parse_utf8_string(Checked_Binary_Reader& r) {
+  std::uint64_t length = r.u64_le();
+  const std::uint8_t* bytes = r.advance(length);
+  static_assert(sizeof(Char8) == sizeof(std::uint8_t));
+  return String8_View(reinterpret_cast<const Char8*>(bytes), length);
+}
+
+String8_View Trace_Reader::parse_utf8_zstring(Checked_Binary_Reader& r) {
+  const std::uint8_t* bytes = r.cursor();
+  r.find_and_skip_byte(0x00);
+  const std::uint8_t* end = r.cursor() - 1;
+  return String8_View(reinterpret_cast<const Char8*>(bytes),
+                      narrow_cast<std::size_t>(end - bytes));
 }
 
 void Trace_Reader::on_error(Parsed_Trace_Event_Type error) {

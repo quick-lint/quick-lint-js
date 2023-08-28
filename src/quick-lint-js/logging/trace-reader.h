@@ -36,6 +36,10 @@ class Trace_Reader {
   void parse_header(Checked_Binary_Reader&);
   void parse_event(Checked_Binary_Reader&);
 
+  std::u16string_view parse_utf16le_string(Checked_Binary_Reader&);
+  String8_View parse_utf8_string(Checked_Binary_Reader&);
+  String8_View parse_utf8_zstring(Checked_Binary_Reader&);
+
   void on_error(Parsed_Trace_Event_Type);
 
   std::vector<std::uint8_t> queue_;
