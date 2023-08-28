@@ -274,13 +274,9 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
           this->expect_skip(u8"const"_sv);
         }
         if (!member.type_is_array && !member.ctf_size_name.empty()) {
-          CLI_Source_Position p =
-              this->locator().position(member.ctf_size_name.data());
-          std::fprintf(stderr,
-                       "%s:%d:%d: error: trace_ctf_size_name is only allowed "
-                       "with Span\n",
-                       this->file_path(), p.line_number, p.column_number);
-          std::exit(1);
+          this->fatal_at(member.ctf_size_name.data(),
+                         "error: trace_ctf_size_name is only allowed "
+                         "with Span");
         }
 
         member.cxx_type = this->parse_simple_type_name();
@@ -289,13 +285,9 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
             !(member.cxx_type == u8"string_view"_sv ||
               member.cxx_type == u8"String8_View" ||
               member.cxx_type == u8"String16"_sv)) {
-          CLI_Source_Position p =
-              this->locator().position(member.cxx_type.data());
-          std::fprintf(stderr,
-                       "%s:%d:%d: error: trace_zero_terminated is only allowed "
-                       "with string types\n",
-                       this->file_path(), p.line_number, p.column_number);
-          std::exit(1);
+          this->fatal_at(member.cxx_type.data(),
+                         "error: trace_zero_terminated is only allowed "
+                         "with string types");
         }
 
         if (this->peek().type == CXX_Token_Type::less) {
@@ -532,12 +524,9 @@ stream {
     QLJS_ASSERT(!cxx_name.empty());
     auto it = cxx_name_to_ctf_name.find(cxx_name);
     if (it == cxx_name_to_ctf_name.end()) {
-      CLI_Source_Position p = types.locator().position(cxx_name.data());
-      std::fprintf(stderr, "%s:%d:%d: error: unknown type: %.*s\n",
-                   types.file_path(), p.line_number, p.column_number,
-                   narrow_cast<int>(cxx_name.size()),
-                   to_string_view(cxx_name).data());
-      std::exit(1);
+      types.fatal_at(cxx_name.data(), "error: unknown type: %.*s",
+                     narrow_cast<int>(cxx_name.size()),
+                     to_string_view(cxx_name).data());
     }
     String8_View ctf_name = it->second;
 
@@ -548,11 +537,8 @@ stream {
       if (ctf_name == u8"utf16_string"_sv) {
         return u8"utf16_zstring"_sv;
       }
-      CLI_Source_Position p = types.locator().position(cxx_name.data());
-      std::fprintf(stderr,
-                   "%s:%d:%d: error: cannot process trace_zero_terminated\n",
-                   types.file_path(), p.line_number, p.column_number);
-      std::exit(1);
+      types.fatal_at(cxx_name.data(),
+                     "error: cannot process trace_zero_terminated");
     }
 
     return ctf_name;
@@ -789,12 +775,9 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
       [&](const CXX_Trace_Types_Parser::Parsed_Struct_Member& member) -> void {
     auto ctf_name_it = cxx_name_to_ctf_name.find(member.cxx_type);
     if (ctf_name_it == cxx_name_to_ctf_name.end()) {
-      CLI_Source_Position p = types.locator().position(member.cxx_type.data());
-      std::fprintf(stderr, "%s:%d:%d: error: unknown type: %.*s\n",
-                   types.file_path(), p.line_number, p.column_number,
-                   narrow_cast<int>(member.cxx_type.size()),
-                   to_string_view(member.cxx_type).data());
-      std::exit(1);
+      types.fatal_at(member.cxx_type.data(), "unknown type: %.*s",
+                     narrow_cast<int>(member.cxx_type.size()),
+                     to_string_view(member.cxx_type).data());
     }
     String8_View ctf_name = ctf_name_it->second;
     if (member.type_is_zero_terminated) {
@@ -803,12 +786,8 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
       } else if (ctf_name == u8"utf16_string"_sv) {
         ctf_name = u8"utf16_zstring"_sv;
       } else {
-        CLI_Source_Position p =
-            types.locator().position(member.cxx_type.data());
-        std::fprintf(stderr,
-                     "%s:%d:%d: error: cannot process trace_zero_terminated\n",
-                     types.file_path(), p.line_number, p.column_number);
-        std::exit(1);
+        types.fatal_at(member.cxx_type.data(),
+                       "cannot process trace_zero_terminated");
       }
     }
 
@@ -944,13 +923,9 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
           declaration.type_alias;
       auto ctf_type_it = cxx_name_to_ctf_name.find(type_alias.cxx_type);
       if (ctf_type_it == cxx_name_to_ctf_name.end()) {
-        CLI_Source_Position p =
-            types.locator().position(type_alias.cxx_type.data());
-        std::fprintf(stderr, "%s:%d:%d: error: unknown type: %.*s\n",
-                     types.file_path(), p.line_number, p.column_number,
-                     narrow_cast<int>(type_alias.cxx_type.size()),
-                     to_string_view(type_alias.cxx_type).data());
-        std::exit(1);
+        types.fatal_at(type_alias.cxx_type.data(), "unknown type: %.*s",
+                       narrow_cast<int>(type_alias.cxx_type.size()),
+                       to_string_view(type_alias.cxx_type).data());
       }
       cxx_name_to_ctf_name[type_alias.cxx_name] = ctf_type_it->second;
     }

@@ -338,10 +338,50 @@ void CXX_Lexer::skip_newline() {
   }
 }
 
+void CXX_Lexer::error_at(const Char8* location, const char* message, ...) {
+  std::va_list args;
+  va_start(args, message);
+  this->error_at_v(location, message, args);
+  va_end(args);
+}
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_CLANG("-Wformat-nonliteral")
+// TODO(strager): Add __attribute__ stuff to improve diagnostics for callers.
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=format")
+void CXX_Lexer::error_at_v(const Char8* location, const char* message,
+                           std::va_list args) {
+  CLI_Source_Position p = this->locator_->position(location);
+  std::fprintf(stderr, "%s:%d:%d: ", this->file_path_, p.line_number,
+               p.column_number);
+  std::vfprintf(stderr, message, args);
+  std::fputc('\n', stderr);
+}
+QLJS_WARNING_POP
+
+    // clang-format off
 [[noreturn]] void CXX_Lexer::fatal() {
-  CLI_Source_Position p = this->locator_->position(this->input_);
-  std::fprintf(stderr, "%s:%d:%d: error: failed to lex\n", this->file_path_,
-               p.line_number, p.column_number);
+  this->fatal("error: failed to lex");
+}
+// clang-format on
+
+[[noreturn]] void CXX_Lexer::fatal(const char* message, ...) {
+  std::va_list args;
+  va_start(args, message);
+  this->fatal_at_v(this->input_, message, args);
+}
+
+[[noreturn]] void CXX_Lexer::fatal_at(const Char8* location,
+                                      const char* message, ...) {
+  std::va_list args;
+  va_start(args, message);
+  this->fatal_at_v(location, message, args);
+}
+
+[[noreturn]] void CXX_Lexer::fatal_at_v(const Char8* location,
+                                        const char* message,
+                                        std::va_list args) {
+  this->error_at_v(location, message, args);
   std::exit(1);
 }
 
@@ -396,28 +436,50 @@ void CXX_Parser_Base::expect_skip(CXX_Token_Type expected_token_type) {
 
 void CXX_Parser_Base::expect(CXX_Token_Type expected_token_type) {
   if (this->peek().type != expected_token_type) {
-    this->fatal(concat("expected "sv, to_string(expected_token_type)).c_str());
+    std::string_view t = to_string(expected_token_type);
+    this->fatal("error: expected %.*s", narrow_cast<int>(t.size()), t.data());
   }
 }
 
 void CXX_Parser_Base::expect_skip(String8_View expected_identifier) {
-  std::string message = concat("expected identifier '"sv,
-                               to_string_view(expected_identifier), "'"sv);
-  if (this->peek().type != CXX_Token_Type::identifier) {
-    this->fatal(message.c_str());
-  }
-  if (this->peek().identifier != expected_identifier) {
-    this->fatal(message.c_str());
+  if (this->peek().type != CXX_Token_Type::identifier ||
+      this->peek().identifier != expected_identifier) {
+    this->fatal("expected identifier '%.*s'",
+                narrow_cast<int>(expected_identifier.size()),
+                reinterpret_cast<const char*>(expected_identifier.data()));
   }
   this->skip();
 }
 
-[[noreturn]] void CXX_Parser_Base::fatal(const char* message) {
-  CLI_Source_Position p = this->lexer_.locator_->position(this->lexer_.input_);
-  std::fprintf(stderr, "%s:%d:%d: error: failed to parse before: %s\n",
-               this->lexer_.file_path_, p.line_number, p.column_number,
-               message);
-  std::exit(1);
+void CXX_Parser_Base::error_at(const Char8* location, const char* message,
+                               ...) {
+  std::va_list args;
+  va_start(args, message);
+  this->error_at_v(location, message, args);
+}
+
+void CXX_Parser_Base::error_at_v(const Char8* location, const char* message,
+                                 std::va_list args) {
+  this->lexer_.error_at_v(location, message, args);
+}
+
+[[noreturn]] void CXX_Parser_Base::fatal(const char* message, ...) {
+  std::va_list args;
+  va_start(args, message);
+  this->fatal_at_v(this->lexer_.input_, message, args);
+}
+
+[[noreturn]] void CXX_Parser_Base::fatal_at(const Char8* location,
+                                            const char* message, ...) {
+  std::va_list args;
+  va_start(args, message);
+  this->lexer_.fatal_at_v(location, message, args);
+}
+
+[[noreturn]] void CXX_Parser_Base::fatal_at_v(const Char8* location,
+                                              const char* message,
+                                              std::va_list args) {
+  this->lexer_.fatal_at_v(location, message, args);
 }
 
 void CXX_Diagnostic_Types_Parser::parse_file() {
@@ -452,7 +514,7 @@ void CXX_Diagnostic_Types_Parser::parse_file() {
 
       this->expect_skip(CXX_Token_Type::right_paren);
     } else {
-      this->fatal("expected 'struct' or '}' or 'QLJS_RESERVED_DIAG'");
+      this->fatal("error: expected 'struct' or '}' or 'QLJS_RESERVED_DIAG'");
     }
   }
 }
@@ -518,7 +580,7 @@ void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
 
         this->expect_skip(CXX_Token_Type::right_paren);
       } else {
-        this->fatal("expected qljs::diag or qljs::message");
+        this->fatal("error: expected qljs::diag or qljs::message");
       }
       this->expect_skip(CXX_Token_Type::right_square);
       this->expect_skip(CXX_Token_Type::right_square);
@@ -544,7 +606,7 @@ void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
       return;
 
     default:
-      this->fatal("expected metadata or member variable or '}'");
+      this->fatal("error: expected metadata or member variable or '}'");
       break;
     }
   }
@@ -562,32 +624,24 @@ bool CXX_Diagnostic_Types_Parser::check_diag_codes() {
     if (existing_it == code_to_diag_name.end()) {
       code_to_diag_name.emplace(type.code_string, type.name);
     } else {
-      CLI_Source_Position p =
-          this->lexer_.locator_->position(type.code_string.data());
-      std::fprintf(
-          stderr,
-          "%s:%d:%d: error: diag code %s already in use; try this "
-          "unused diag code: %s\n",
-          this->lexer_.file_path_, p.line_number, p.column_number,
+      this->error_at(
+          type.code_string.data(),
+          "error: diag code %s already in use; try this "
+          "unused diag code: %s",
           quick_lint_js::to_string(type.code_string).c_str(),
           quick_lint_js::to_string(this->next_unused_diag_code_string())
               .c_str());
-      p = this->lexer_.locator_->position(existing_it->first.data());
-      std::fprintf(stderr, "%s:%d:%d: note: %s used code %s here\n",
-                   this->lexer_.file_path_, p.line_number, p.column_number,
-                   quick_lint_js::to_string(existing_it->second).c_str(),
-                   quick_lint_js::to_string(existing_it->first).c_str());
+      this->error_at(existing_it->first.data(), "note: %s used code %s here",
+                     quick_lint_js::to_string(existing_it->second).c_str(),
+                     quick_lint_js::to_string(existing_it->first).c_str());
       ok = false;
     }
 
     if (!this->is_valid_code_string(type.code_string)) {
-      CLI_Source_Position p =
-          this->lexer_.locator_->position(type.code_string.data());
-      std::fprintf(
-          stderr,
-          "%s:%d:%d: error: diag code %s is malformed; expected a code like "
-          "\"E1234\"; try this diag code instead: %s\n",
-          this->lexer_.file_path_, p.line_number, p.column_number,
+      this->error_at(
+          type.code_string.data(),
+          "error: diag code %s is malformed; expected a code like "
+          "\"E1234\"; try this diag code instead: %s",
           quick_lint_js::to_string(type.code_string).c_str(),
           quick_lint_js::to_string(this->next_unused_diag_code_string())
               .c_str());

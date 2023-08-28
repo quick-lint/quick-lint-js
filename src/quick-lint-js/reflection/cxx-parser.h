@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdarg>
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/container/fixed-vector.h>
@@ -67,9 +68,16 @@ class CXX_Lexer {
 
   void skip() { this->parse_token(); }
 
-  [[noreturn]] void fatal();
-
   const Char8* remaining() { return this->input_; }
+
+  void error_at(const Char8* location, const char* message, ...);
+  void error_at_v(const Char8* location, const char* message, std::va_list);
+
+  [[noreturn]] void fatal();
+  [[noreturn]] void fatal(const char* message, ...);
+  [[noreturn]] void fatal_at(const Char8* location, const char* message, ...);
+  [[noreturn]] void fatal_at_v(const Char8* location, const char* message,
+                               std::va_list);
 
  private:
   void parse_token();
@@ -143,8 +151,16 @@ class CXX_Parser_Base {
   void expect(CXX_Token_Type expected_token_type);
   void expect_skip(String8_View expected_identifier);
 
-  [[noreturn]] void fatal(const char* message);
+ public:
+  void error_at(const Char8* location, const char* message, ...);
+  void error_at_v(const Char8* location, const char* message, std::va_list);
 
+  [[noreturn]] void fatal(const char* message, ...);
+  [[noreturn]] void fatal_at(const Char8* location, const char* message, ...);
+  [[noreturn]] void fatal_at_v(const Char8* location, const char* message,
+                               std::va_list);
+
+ protected:
   CXX_Lexer lexer_;
 };
 
