@@ -452,6 +452,16 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
     this->lexer_.fatal_at(cxx_name.data(), "could not find struct");
   }
 
+  const Parsed_Enum* find_enum_with_cxx_name(String8_View cxx_name) {
+    for (const Parsed_Declaration& declaration : this->declarations) {
+      if (declaration.kind == Declaration_Kind::_enum &&
+          declaration._enum.cxx_name == cxx_name) {
+        return &declaration._enum;
+      }
+    }
+    return nullptr;
+  }
+
   String8_View resolve_type_aliases_cxx(String8_View cxx_name) {
     for (const Parsed_Declaration& declaration : this->declarations) {
       if (declaration.kind == Declaration_Kind::type_alias &&
@@ -1003,21 +1013,39 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
   write_file_copyright_end(out);
 }
 
-void write_struct_reference_for_cxx_parser(
+void write_struct_reference_for_cxx(
     Output_Stream& out, const CXX_Trace_Types_Parser::Parsed_Struct& s,
-    CXX_Trace_Types_Parser& types) {
+    CXX_Trace_Types_Parser& types, bool use_template_parameters) {
   out.append_copy(s.cxx_name);
   if (!s.template_parameters.empty()) {
     out.append_literal(u8"<"_sv);
     for (String8_View template_parameter : s.template_parameters) {
-      if (template_parameter == u8"String16"_sv) {
-        out.append_literal(u8"std::u16string_view"_sv);
+      if (use_template_parameters) {
+        out.append_copy(template_parameter);
       } else {
-        types.fatal_at(template_parameter.data(), "expected String16");
+        if (template_parameter == u8"String16"_sv) {
+          out.append_literal(u8"std::u16string_view"_sv);
+        } else {
+          types.fatal_at(template_parameter.data(), "expected String16");
+        }
       }
     }
     out.append_literal(u8">"_sv);
   }
+}
+
+void write_struct_reference_for_cxx_parser(
+    Output_Stream& out, const CXX_Trace_Types_Parser::Parsed_Struct& s,
+    CXX_Trace_Types_Parser& types) {
+  write_struct_reference_for_cxx(out, s, types,
+                                 /*use_template_parameters=*/false);
+}
+
+void write_struct_reference_for_cxx_writer(
+    Output_Stream& out, const CXX_Trace_Types_Parser::Parsed_Struct& s,
+    CXX_Trace_Types_Parser& types) {
+  write_struct_reference_for_cxx(out, s, types,
+                                 /*use_template_parameters=*/true);
 }
 
 void write_parser_h(CXX_Trace_Types_Parser& types, Output_Stream& out) {
@@ -1292,6 +1320,294 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
 
   write_file_copyright_end(out);
 }
+
+void write_writer_h(CXX_Trace_Types_Parser& types, Output_Stream& out) {
+  write_file_copyright_begin(out);
+  write_file_generated_comment(out);
+
+  out.append_literal(
+      u8R"(
+#pragma once
+
+#include <cstdint>
+#include <quick-lint-js/container/async-byte-queue.h>
+#include <quick-lint-js/logging/trace-types.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/binary-writer.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <string_view>
+
+// clang-format off
+namespace quick_lint_js {
+)"_sv);
+
+  // Write "template <class T>".
+  auto write_template_head = [&](Span<const String8_View> template_parameters,
+                                 String8_View indentation) {
+    if (!template_parameters.empty()) {
+      out.append_copy(indentation);
+      out.append_literal(u8"template <"_sv);
+      bool need_comma = false;
+      for (String8_View template_parameter : template_parameters) {
+        if (need_comma) {
+          out.append_literal(u8", "_sv);
+        }
+        out.append_literal(u8"class "_sv);
+        out.append_copy(template_parameter);
+        need_comma = true;
+      }
+      out.append_literal(u8">\n"_sv);
+    }
+  };
+
+  out.append_literal(
+      u8R"(class Trace_Writer {
+ public:
+  explicit Trace_Writer(Async_Byte_Queue*);
+
+  // Calls async_byte_queue::commit.
+  void commit();
+
+  void write_header(const Trace_Context&);
+
+)"_sv);
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
+      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      if (s.id.has_value()) {
+        write_template_head(s.template_parameters, u8"  "_sv);
+        out.append_literal(u8"  void write_event_"_sv);
+        out.append_copy(s.ctf_name);
+        out.append_literal(u8"(\n"_sv);
+        out.append_literal(u8"      const Trace_Event_Header&,\n"_sv);
+        out.append_literal(u8"      const "_sv);
+        write_struct_reference_for_cxx_writer(out, s, types);
+        out.append_literal(u8"&);\n"_sv);
+      }
+    }
+  }
+
+  out.append_literal(u8"\n private:\n"_sv);
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
+      // See NOTE[Trace_Writer-enum-code-gen].
+    } else if (declaration.kind ==
+               CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
+      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      if (!s.ctf_name.empty() && !s.id.has_value()) {
+        write_template_head(s.template_parameters, u8"  "_sv);
+        out.append_literal(u8"  void write_"_sv);
+        out.append_copy(s.cxx_name);
+        out.append_literal(u8"(\n"_sv);
+        out.append_literal(u8"      const "_sv);
+        write_struct_reference_for_cxx_writer(out, s, types);
+        out.append_literal(u8"&);\n"_sv);
+      }
+    }
+  }
+
+  out.append_literal(
+      u8R"(
+  template <class Func>
+  void append_binary(Async_Byte_Queue::Size_Type size, Func&& callback);
+
+  template <class String>
+  void write_utf16le_string(String string);
+
+  void write_utf8_string(String8_View);
+  void write_utf8_zstring(String8_View);
+
+  Async_Byte_Queue* out_;
+};
+
+)"_sv);
+
+  struct Built_In_Type {
+    String8_View write_method;
+    int byte_size;
+  };
+  Hash_Map<String8_View, Built_In_Type> built_in_types(&types.memory_);
+  built_in_types[u8"uint8_t"_sv] = Built_In_Type{u8"u8"_sv, 1};
+  built_in_types[u8"uint64_t"_sv] = Built_In_Type{u8"u64_le"_sv, 8};
+
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
+      // See NOTE[Trace_Writer-enum-code-gen].
+    } else if (declaration.kind ==
+               CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
+      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      if (!s.ctf_name.empty()) {
+        write_template_head(s.template_parameters, u8""_sv);
+        out.append_literal(u8"inline void Trace_Writer::write_"_sv);
+        if (s.id.has_value()) {
+          out.append_literal(u8"event_"_sv);
+          out.append_copy(s.ctf_name);
+        } else {
+          out.append_copy(s.cxx_name);
+        }
+        out.append_literal(u8"(\n"_sv);
+        if (s.id.has_value()) {
+          out.append_literal(u8"      const Trace_Event_Header& header,\n"_sv);
+        }
+        out.append_literal(u8"      const "_sv);
+        write_struct_reference_for_cxx_writer(out, s, types);
+        out.append_literal(u8"& s) {\n"_sv);
+
+        struct Write {
+          int byte_size;  // -1 if write_code does not use a Binary_Writer.
+          String8 code;
+        };
+        std::vector<Write> writes;
+        if (s.id.has_value()) {
+          writes.push_back(Write{
+              .byte_size = 8,
+              .code = u8"w.u64_le(header.timestamp);\n",
+          });
+          writes.push_back(Write{
+              .byte_size = 1,
+              .code = u8"w.u8(s.id);\n",
+          });
+        }
+        // We perform two passes:
+        // Pass #1: Collect write calls.
+        for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
+             s.members) {
+          if (member.type_is_array) {
+            writes.push_back(Write{
+                .byte_size = 8,
+                .code = concat(u8"w.u64_le(narrow_cast<std::uint64_t>(s."_sv,
+                               member.cxx_name, u8".size()));\n"_sv),
+            });
+          }
+
+          Memory_Output_Stream code;
+          String8 var = concat(u8"s."_sv, member.cxx_name);
+          int size = -1;
+          if (member.type_is_array) {
+            code.append_literal(u8"for (const "_sv);
+            write_struct_reference_for_cxx_writer(
+                code, types.get_struct_with_cxx_name(member.cxx_type), types);
+            code.append_literal(u8"& item : s."_sv);
+            code.append_copy(member.cxx_name);
+            code.append_literal(u8") {\n"_sv);
+
+            var = u8"item"_sv;
+          }
+
+          String8_View type = types.resolve_type_aliases_cxx(member.cxx_type);
+          bool need_cast = false;
+          if (const CXX_Trace_Types_Parser::Parsed_Enum* e =
+                  types.find_enum_with_cxx_name(type)) {
+            // NOTE[Trace_Writer-enum-code-gen]: Instead of creating a dedicated
+            // function for writing each enum type, we write the enum as its
+            // primitive type directly. This allows writing of the enum to be
+            // batched into one append_bytes call with other integers.
+            need_cast = true;
+            type = e->underlying_cxx_type;
+          }
+          auto built_in_it = built_in_types.find(type);
+          if (built_in_it == built_in_types.end()) {
+            if (member.cxx_type == u8"String8_View"_sv ||
+                member.cxx_type == u8"string_view"_sv) {
+              code.append_literal(u8"  "_sv);
+              if (member.type_is_zero_terminated) {
+                code.append_literal(u8"this->write_utf8_zstring"_sv);
+              } else {
+                code.append_literal(u8"this->write_utf8_string"_sv);
+              }
+              code.append_literal(u8"("_sv);
+              if (member.cxx_type == u8"string_view"_sv) {
+                code.append_literal(u8"to_string8_view("_sv);
+              }
+              code.append_copy(var);
+              if (member.cxx_type == u8"string_view"_sv) {
+                code.append_literal(u8")"_sv);
+              }
+              code.append_literal(u8");\n"_sv);
+            } else if (member.cxx_type == u8"String16"_sv) {
+              QLJS_ASSERT(!member.type_is_zero_terminated);
+              code.append_literal(u8"  this->write_utf16le_string"_sv);
+              code.append_literal(u8"("_sv);
+              code.append_copy(var);
+              code.append_literal(u8");\n"_sv);
+            } else {
+              // TODO(strager): As a run-time optimization, inline write calls
+              // for fixed-sized structs such as Trace_VSCode_Document_Range.
+              // This will enable more append_binary fusion.
+              code.append_literal(u8"  this->write_"_sv);
+              code.append_copy(member.cxx_type);
+              code.append_literal(u8"("_sv);
+              code.append_copy(var);
+              code.append_literal(u8");\n"_sv);
+            }
+          } else {
+            size = built_in_it->second.byte_size;
+            code.append_literal(u8"w."_sv);
+            code.append_copy(built_in_it->second.write_method);
+            code.append_literal(u8"("_sv);
+            if (need_cast) {
+              code.append_literal(u8"static_cast<std::"_sv);
+              code.append_copy(type);
+              code.append_literal(u8">("_sv);
+            }
+            code.append_copy(var);
+            if (need_cast) {
+              code.append_literal(u8")"_sv);
+            }
+            code.append_literal(u8");\n"_sv);
+          }
+
+          if (member.type_is_array) {
+            size = -1;
+            code.append_literal(u8"}\n"_sv);
+          }
+
+          code.flush();
+          writes.push_back(Write{
+              .byte_size = size,
+              .code = std::move(code).get_flushed_string8(),
+          });
+        }
+        // Pass #2: Batch primitive write calls and emit final code.
+        for (std::size_t i = 0; i < writes.size();) {
+          Write& write = writes[i];
+          if (write.byte_size == -1) {
+            out.append_copy(write.code);
+            i += 1;
+          } else {
+            int batch_total_bytes = 0;
+            std::size_t batch_start = i;
+            std::size_t batch_end = batch_start;
+            for (; batch_end < writes.size(); ++batch_end) {
+              if (writes[batch_end].byte_size == -1) {
+                break;
+              }
+              batch_total_bytes += writes[batch_end].byte_size;
+            }
+            QLJS_ASSERT(batch_total_bytes > 0);
+            out.append_literal(u8"  this->append_binary("_sv);
+            out.append_decimal_integer(batch_total_bytes);
+            out.append_literal(u8", [&](Binary_Writer& w) {\n"_sv);
+            for (std::size_t j = batch_start; j < batch_end; ++j) {
+              out.append_literal(u8"    "_sv);
+              out.append_copy(writes[j].code);
+            }
+            out.append_literal(u8"  });\n"_sv);
+            i = batch_end;
+          }
+        }
+
+        out.append_literal(u8"}\n\n"_sv);
+      }
+    }
+  }
+
+  out.append_literal(u8"}\n"_sv);
+  write_file_copyright_end(out);
+}
 }
 }
 
@@ -1303,6 +1619,7 @@ int main(int argc, char** argv) {
   const char* output_parser_cpp_path = nullptr;
   const char* output_parser_h_path = nullptr;
   const char* output_parser_js_path = nullptr;
+  const char* output_writer_h_path = nullptr;
   Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
     QLJS_ARGUMENT(const char* argument) {
@@ -1328,6 +1645,10 @@ int main(int argc, char** argv) {
 
     QLJS_OPTION(const char* arg_value, "--output-parser-js"sv) {
       output_parser_js_path = arg_value;
+    }
+
+    QLJS_OPTION(const char* arg_value, "--output-writer-h"sv) {
+      output_writer_h_path = arg_value;
     }
 
     QLJS_UNRECOGNIZED_OPTION(const char* unrecognized) {
@@ -1372,6 +1693,11 @@ int main(int argc, char** argv) {
     Memory_Output_Stream out;
     write_parser_js(cxx_parser, out);
     out.write_file_if_different_or_exit(output_parser_js_path);
+  }
+  if (output_writer_h_path != nullptr) {
+    Memory_Output_Stream out;
+    write_writer_h(cxx_parser, out);
+    out.write_file_if_different_or_exit(output_writer_h_path);
   }
 
   return 0;
