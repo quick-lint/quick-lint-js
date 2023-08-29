@@ -89,10 +89,14 @@ if (TARGET quick-lint-js-generate-trace-sources)
     OUTPUT
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/debug/public/trace-generated.mjs"
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-metadata-generated.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-reader-generated.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-reader-generated.h"
     COMMAND
       $<TARGET_FILE:quick-lint-js-generate-trace-sources>
       --output-metadata-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-metadata-generated.cpp"
       --output-parser-js "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/debug/public/trace-generated.mjs"
+      --output-parser-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-reader-generated.cpp"
+      --output-parser-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-reader-generated.h"
       --trace-types-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-types.h"
     DEPENDS
       quick-lint-js-generate-trace-sources
@@ -358,6 +362,8 @@ quick_lint_js_add_library(
   quick-lint-js/logging/trace-flusher.h
   quick-lint-js/logging/trace-metadata-generated.cpp
   quick-lint-js/logging/trace-metadata.h
+  quick-lint-js/logging/trace-reader-generated.cpp
+  quick-lint-js/logging/trace-reader-generated.h
   quick-lint-js/logging/trace-reader.cpp
   quick-lint-js/logging/trace-reader.h
   quick-lint-js/logging/trace-types.cpp

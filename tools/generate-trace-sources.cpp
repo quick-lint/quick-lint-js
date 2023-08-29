@@ -102,6 +102,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
     String8_View ctf_name;
     std::optional<std::uint64_t> id;
     Span<Parsed_Struct_Member> members;
+    Span<String8_View> template_parameters;
   };
 
   enum class Declaration_Kind {
@@ -129,15 +130,8 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
 
     while (this->peek().type != CXX_Token_Type::right_curly) {
       if (this->peek().type == CXX_Token_Type::identifier &&
-          this->peek().identifier == u8"template"_sv) {
-        // template <class Foo, class Bar>
-        this->skip();
-        while (this->peek().type != CXX_Token_Type::greater) {
-          this->skip();
-        }
-        this->skip();
-      } else if (this->peek().type == CXX_Token_Type::identifier &&
-                 this->peek().identifier == u8"struct"_sv) {
+          (this->peek().identifier == u8"struct"_sv ||
+           this->peek().identifier == u8"template"_sv)) {
         // struct Trace_Foo { };
         this->parse_struct();
       } else if (this->peek().type == CXX_Token_Type::identifier &&
@@ -166,6 +160,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
   }
 
   // struct Trace_Foo { };
+  // template <class String16> struct Trace_Foo { };
   void parse_struct() {
     Parsed_Declaration& declaration =
         this->declarations.emplace_back(Parsed_Declaration{
@@ -173,6 +168,22 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
             ._struct = {},
         });
     Parsed_Struct& s = declaration._struct;
+
+    this->expect(CXX_Token_Type::identifier);
+
+    if (this->peek().identifier == u8"template"_sv) {
+      // template <class Foo, class Bar>
+      this->skip();
+      this->expect_skip(CXX_Token_Type::less);
+      this->expect_skip(u8"class"_sv);
+      this->expect(CXX_Token_Type::identifier);
+      Bump_Vector<String8_View, Monotonic_Allocator> template_parameters(
+          "template_parameters", &this->memory_);
+      template_parameters.emplace_back(this->peek().identifier);
+      this->skip();
+      this->expect_skip(CXX_Token_Type::greater);
+      s.template_parameters = template_parameters.release_to_span();
+    }
 
     this->expect_skip(u8"struct"_sv);
 
@@ -429,6 +440,27 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
     String8_View type_name = this->peek().identifier;
     this->skip();
     return type_name;
+  }
+
+  const Parsed_Struct& get_struct_with_cxx_name(String8_View cxx_name) {
+    for (const Parsed_Declaration& declaration : this->declarations) {
+      if (declaration.kind == Declaration_Kind::_struct &&
+          declaration._struct.cxx_name == cxx_name) {
+        return declaration._struct;
+      }
+    }
+    this->lexer_.fatal_at(cxx_name.data(), "could not find struct");
+  }
+
+  String8_View resolve_type_aliases_cxx(String8_View cxx_name) {
+    for (const Parsed_Declaration& declaration : this->declarations) {
+      if (declaration.kind == Declaration_Kind::type_alias &&
+          declaration.type_alias.cxx_name == cxx_name) {
+        // TODO(strager): Support nested aliases.
+        return declaration.type_alias.cxx_type;
+      }
+    }
+    return cxx_name;
   }
 
   Monotonic_Allocator memory_{"CXX_Trace_Types_Parser"};
@@ -970,6 +1002,296 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
 
   write_file_copyright_end(out);
 }
+
+void write_struct_reference_for_cxx_parser(
+    Output_Stream& out, const CXX_Trace_Types_Parser::Parsed_Struct& s,
+    CXX_Trace_Types_Parser& types) {
+  out.append_copy(s.cxx_name);
+  if (!s.template_parameters.empty()) {
+    out.append_literal(u8"<"_sv);
+    for (String8_View template_parameter : s.template_parameters) {
+      if (template_parameter == u8"String16"_sv) {
+        out.append_literal(u8"std::u16string_view"_sv);
+      } else {
+        types.fatal_at(template_parameter.data(), "expected String16");
+      }
+    }
+    out.append_literal(u8">"_sv);
+  }
+}
+
+void write_parser_h(CXX_Trace_Types_Parser& types, Output_Stream& out) {
+  write_file_copyright_begin(out);
+  write_file_generated_comment(out);
+
+  out.append_literal(
+      u8R"(
+#pragma once
+
+#include <quick-lint-js/logging/trace-types.h>
+#include <quick-lint-js/port/char8.h>
+#include <string_view>
+
+namespace quick_lint_js {
+)"_sv);
+
+  out.append_literal(
+      u8R"(enum class Parsed_Trace_Event_Type {
+  error_invalid_magic,
+  error_invalid_uuid,
+  error_unsupported_compression_mode,
+
+  packet_header,
+
+)"_sv);
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
+      const CXX_Trace_Types_Parser::Parsed_Enum& e = declaration._enum;
+      out.append_literal(u8"  error_unsupported_"_sv);
+      out.append_copy(e.ctf_name);
+      out.append_literal(u8",\n"_sv);
+    }
+  }
+  out.append_literal(u8"\n"_sv);
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
+      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      if (s.id.has_value()) {
+        out.append_literal(u8"  "_sv);
+        out.append_copy(s.ctf_name);
+        out.append_literal(u8"_event,\n"_sv);
+      }
+    }
+  }
+  out.append_literal(
+      u8R"(};
+)"_sv);
+
+  out.append_literal(
+      u8R"(
+struct Parsed_Trace_Event {
+  Parsed_Trace_Event_Type type;
+
+  Trace_Event_Header header;
+
+  union {
+    // 'header' is not initialized for packet_header.
+    Trace_Context packet_header;
+
+    // The following have 'header' initialized.
+    // clang-format off
+)"_sv);
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
+      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      if (s.id.has_value()) {
+        out.append_literal(u8"    "_sv);
+        write_struct_reference_for_cxx_parser(out, s, types);
+        out.append_literal(u8" "_sv);
+        out.append_copy(s.ctf_name);
+        out.append_literal(u8"_event;\n"_sv);
+      }
+    }
+  }
+  out.append_literal(
+      u8R"(    // clang-format on
+  };
+};
+)"_sv);
+
+  out.append_literal(u8"}\n"_sv);
+  write_file_copyright_end(out);
+}
+
+void write_parser_cpp(CXX_Trace_Types_Parser& types, Output_Stream& out) {
+  write_file_copyright_begin(out);
+  write_file_generated_comment(out);
+  out.append_literal(
+      u8R"(
+#include <cstddef>
+#include <quick-lint-js/logging/trace-reader.h>
+#include <quick-lint-js/util/binary-reader.h>
+
+// clang-format off
+
+namespace quick_lint_js {
+namespace {
+)"_sv);
+
+  auto write_parse_expression =
+      [&](String8_View cxx_type, bool type_is_array = false,
+          bool type_is_zero_terminated = false) -> void {
+    cxx_type = types.resolve_type_aliases_cxx(cxx_type);
+    if (type_is_array) {
+      out.append_literal(u8"self->parse_array<"_sv);
+      write_struct_reference_for_cxx_parser(
+          out, types.get_struct_with_cxx_name(cxx_type), types);
+      out.append_literal(u8">(r, [&]() { return "_sv);
+    }
+    if (type_is_zero_terminated) {
+      if (cxx_type == u8"String8_View"_sv) {
+        out.append_literal(u8"self->parse_utf8_zstring(r)"_sv);
+      } else if (cxx_type == u8"string_view"_sv) {
+        out.append_literal(u8"to_string_view(self->parse_utf8_zstring(r))"_sv);
+      } else {
+        types.fatal_at(cxx_type.data(), "cannot process trace_zero_terminated");
+      }
+    } else {
+      if (cxx_type == u8"uint8_t"_sv) {
+        out.append_literal(u8"r.u8()"_sv);
+      } else if (cxx_type == u8"uint16_t"_sv) {
+        out.append_literal(u8"r.u16_le()"_sv);
+      } else if (cxx_type == u8"uint32_t"_sv) {
+        out.append_literal(u8"r.u32_le()"_sv);
+      } else if (cxx_type == u8"uint64_t"_sv) {
+        out.append_literal(u8"r.u64_le()"_sv);
+      } else if (cxx_type == u8"String8_View"_sv) {
+        out.append_literal(u8"self->parse_utf8_string(r)"_sv);
+      } else if (cxx_type == u8"String16"_sv) {
+        out.append_literal(u8"self->parse_utf16le_string(r)"_sv);
+      } else {
+        out.append_literal(u8"parse_"_sv);
+        out.append_copy(cxx_type);
+        out.append_literal(u8"(r, self)"_sv);
+      }
+    }
+    if (type_is_array) {
+      out.append_literal(u8"; })"_sv);
+    }
+  };
+
+  auto write_parse_member =
+      [&](const CXX_Trace_Types_Parser::Parsed_Struct_Member& member) -> void {
+    write_parse_expression(member.cxx_type, member.type_is_array,
+                           member.type_is_zero_terminated);
+  };
+
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
+      const CXX_Trace_Types_Parser::Parsed_Enum& e = declaration._enum;
+      out.append_copy(e.cxx_name);
+      out.append_literal(u8" parse_"_sv);
+      out.append_copy(e.cxx_name);
+      out.append_literal(
+          u8"(Checked_Binary_Reader& r, Trace_Reader* self) {\n"_sv);
+      out.append_literal(u8"  switch ("_sv);
+      write_parse_expression(e.underlying_cxx_type);
+      out.append_literal(u8") {\n"_sv);
+      out.append_literal(u8"  default:\n"_sv);
+      out.append_literal(
+          u8"    self->on_error(Parsed_Trace_Event_Type::error_unsupported_"_sv);
+      out.append_copy(e.ctf_name);
+      out.append_literal(u8");\n"_sv);
+      out.append_literal(u8"    [[fallthrough]];\n"_sv);
+      for (const CXX_Trace_Types_Parser::Parsed_Enum_Member& member :
+           e.members) {
+        out.append_literal(u8"  case "_sv);
+        out.append_decimal_integer(member.value);
+        out.append_literal(u8":\n"_sv);
+        out.append_literal(u8"    return "_sv);
+        out.append_copy(e.cxx_name);
+        out.append_literal(u8"::"_sv);
+        out.append_copy(member.cxx_name);
+        out.append_literal(u8";\n"_sv);
+      }
+      out.append_literal(u8"  }\n"_sv);
+      out.append_literal(u8"}\n"_sv);
+      out.append_literal(u8"\n"_sv);
+    } else if (declaration.kind ==
+                   CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+               !declaration._struct.id.has_value()) {
+      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      if (s.ctf_name.empty()) {
+        continue;
+      }
+
+      write_struct_reference_for_cxx_parser(out, s, types);
+      out.append_literal(u8" parse_"_sv);
+      out.append_copy(s.cxx_name);
+      out.append_literal(
+          u8"(Checked_Binary_Reader& r, [[maybe_unused]] Trace_Reader* self) {\n"_sv);
+      out.append_literal(u8"  return "_sv);
+      write_struct_reference_for_cxx_parser(out, s, types);
+      out.append_literal(u8"{\n"_sv);
+
+      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
+           s.members) {
+        out.append_literal(u8"      ."_sv);
+        out.append_copy(member.cxx_name);
+        out.append_literal(u8" = "_sv);
+        write_parse_member(member);
+        out.append_literal(u8",\n"_sv);
+      }
+
+      out.append_literal(u8"  };\n"_sv);
+      out.append_literal(u8"}\n"_sv);
+      out.append_literal(u8"\n"_sv);
+    }
+  }
+
+  out.append_literal(
+      u8R"(}
+
+void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
+  Trace_Reader* self = this;
+  Trace_Event_Header header = {
+      .timestamp = r.u64_le(),
+  };
+  std::uint8_t event_id = r.u8();
+  switch (event_id) {
+)");
+  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
+       types.declarations) {
+    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+        declaration._struct.id.has_value()) {
+      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      out.append_literal(u8"  case 0x"_sv);
+      out.append_fixed_hexadecimal_integer(*s.id, 2);
+      out.append_literal(u8":\n"_sv);
+      out.append_literal(
+          u8"    this->parsed_events_.push_back(Parsed_Trace_Event{\n"_sv);
+      out.append_literal(u8"        .type = Parsed_Trace_Event_Type::"_sv);
+      out.append_copy(s.ctf_name);
+      out.append_literal(u8"_event,\n"_sv);
+      out.append_literal(u8"        .header = header,\n"_sv);
+      out.append_literal(u8"        ."_sv);
+      out.append_copy(s.ctf_name);
+      out.append_literal(u8"_event =\n"_sv);
+      out.append_literal(u8"            "_sv);
+      write_struct_reference_for_cxx_parser(out, s, types);
+      out.append_literal(u8"{\n"_sv);
+
+      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
+           s.members) {
+        out.append_literal(u8"              ."_sv);
+        out.append_copy(member.cxx_name);
+        out.append_literal(u8" = "_sv);
+        write_parse_member(member);
+        out.append_literal(u8",\n"_sv);
+      }
+
+      out.append_literal(u8"            },\n"_sv);
+      out.append_literal(u8"    });\n"_sv);
+      out.append_literal(u8"    break;\n"_sv);
+    }
+  }
+
+  out.append_literal(
+      u8R"(
+  default:
+    // TODO(strager): Report an error.
+    return;
+  }
+}
+}
+)"_sv);
+
+  write_file_copyright_end(out);
+}
 }
 }
 
@@ -978,6 +1300,8 @@ int main(int argc, char** argv) {
 
   const char* trace_types_h_path = nullptr;
   const char* output_metadata_cpp_path = nullptr;
+  const char* output_parser_cpp_path = nullptr;
+  const char* output_parser_h_path = nullptr;
   const char* output_parser_js_path = nullptr;
   Arg_Parser parser(argc, argv);
   QLJS_ARG_PARSER_LOOP(parser) {
@@ -992,6 +1316,14 @@ int main(int argc, char** argv) {
 
     QLJS_OPTION(const char* arg_value, "--output-metadata-cpp"sv) {
       output_metadata_cpp_path = arg_value;
+    }
+
+    QLJS_OPTION(const char* arg_value, "--output-parser-cpp"sv) {
+      output_parser_cpp_path = arg_value;
+    }
+
+    QLJS_OPTION(const char* arg_value, "--output-parser-h"sv) {
+      output_parser_h_path = arg_value;
     }
 
     QLJS_OPTION(const char* arg_value, "--output-parser-js"sv) {
@@ -1025,6 +1357,16 @@ int main(int argc, char** argv) {
     Memory_Output_Stream out;
     write_metadata_cpp(cxx_parser, out);
     out.write_file_if_different_or_exit(output_metadata_cpp_path);
+  }
+  if (output_parser_cpp_path != nullptr) {
+    Memory_Output_Stream out;
+    write_parser_cpp(cxx_parser, out);
+    out.write_file_if_different_or_exit(output_parser_cpp_path);
+  }
+  if (output_parser_h_path != nullptr) {
+    Memory_Output_Stream out;
+    write_parser_h(cxx_parser, out);
+    out.write_file_if_different_or_exit(output_parser_h_path);
   }
   if (output_parser_js_path != nullptr) {
     Memory_Output_Stream out;

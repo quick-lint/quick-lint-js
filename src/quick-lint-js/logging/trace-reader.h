@@ -6,16 +6,15 @@
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/logging/trace-reader-generated.h>
 #include <quick-lint-js/logging/trace-types.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/binary-reader.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <vector>
 
 namespace quick_lint_js {
-class Checked_Binary_Reader;
-enum class Parsed_Trace_Event_Type;
-struct Parsed_Trace_Event;
-
 // Designed for convenience, not efficiency.
 class Trace_Reader {
  public:
@@ -31,16 +30,30 @@ class Trace_Reader {
   std::vector<Parsed_Trace_Event> pull_new_events();
   void pull_new_events(std::vector<Parsed_Trace_Event>& out);
 
- private:
-  void parse_one(Checked_Binary_Reader&);
-  void parse_header(Checked_Binary_Reader&);
-  void parse_event(Checked_Binary_Reader&);
-
+  // Private to Trace_Reader's generated code.
   std::u16string_view parse_utf16le_string(Checked_Binary_Reader&);
   String8_View parse_utf8_string(Checked_Binary_Reader&);
   String8_View parse_utf8_zstring(Checked_Binary_Reader&);
 
+  // Private to Trace_Reader's generated code.
+  template <class Item, class Func>
+  Span<Item> parse_array(Checked_Binary_Reader& r, Func&& parse_item) {
+    std::uint64_t count = r.u64_le();
+    Span<Item> items =
+        this->memory_.allocate_span<Item>(narrow_cast<std::size_t>(count));
+    for (Span_Size i = 0; i < items.size(); ++i) {
+      items[i] = parse_item();
+    }
+    return items;
+  }
+
+  // Private to Trace_Reader's generated code.
   void on_error(Parsed_Trace_Event_Type);
+
+ private:
+  void parse_one(Checked_Binary_Reader&);
+  void parse_header(Checked_Binary_Reader&);
+  void parse_event(Checked_Binary_Reader&);
 
   std::vector<std::uint8_t> queue_;
   std::vector<Parsed_Trace_Event> parsed_events_;
@@ -51,52 +64,6 @@ class Trace_Reader {
   std::size_t parsed_bytes_ = 0;
 
   Monotonic_Allocator memory_{"Trace_Reader::memory"};
-};
-
-enum class Parsed_Trace_Event_Type {
-  error_invalid_magic,
-  error_invalid_uuid,
-  error_unsupported_compression_mode,
-  error_unsupported_lsp_document_type,
-
-  packet_header,
-
-  init_event,
-  vscode_document_opened_event,
-  vscode_document_closed_event,
-  vscode_document_changed_event,
-  vscode_document_sync_event,
-  lsp_client_to_server_message_event,
-  vector_max_size_histogram_by_owner_event,
-  process_id_event,
-  lsp_documents_event,
-};
-
-struct Parsed_Trace_Event {
-  Parsed_Trace_Event_Type type;
-
-  Trace_Event_Header header;
-
-  union {
-    // 'header' is not initialized for packet_header.
-    Trace_Context packet_header;
-
-    // The following have 'header' initialized.
-    Trace_Event_Init init_event;
-    Trace_Event_VSCode_Document_Opened<std::u16string_view>
-        vscode_document_opened_event;
-    Trace_Event_VSCode_Document_Closed<std::u16string_view>
-        vscode_document_closed_event;
-    Trace_Event_VSCode_Document_Changed<std::u16string_view>
-        vscode_document_changed_event;
-    Trace_Event_VSCode_Document_Sync<std::u16string_view>
-        vscode_document_sync_event;
-    Trace_Event_LSP_Client_To_Server_Message lsp_client_to_server_message_event;
-    Trace_Event_Vector_Max_Size_Histogram_By_Owner
-        vector_max_size_histogram_by_owner_event;
-    Trace_Event_Process_ID process_id_event;
-    Trace_Event_LSP_Documents lsp_documents_event;
-  };
 };
 }
 
