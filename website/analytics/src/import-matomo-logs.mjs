@@ -14,7 +14,9 @@ async function mainAsync(args) {
   function saveDownload(download) {
     db.addWebDownload(download);
   }
-  await matomoDB.enumerateDownloadsAsync(saveDownload);
+  await db.batchAsync(async () => {
+    await matomoDB.enumerateDownloadsAsync(saveDownload);
+  });
 
   matomoDB.close();
   db.close();

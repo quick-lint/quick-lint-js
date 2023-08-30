@@ -31,15 +31,17 @@ async function mainAsync() {
   }
 
   for (let logFile of await globAsync(config["apache2.log_files"])) {
-    console.log(`importing from ${logFile} ...`);
-    await parseLogFileAsync(
-      logFile,
-      {
-        type: "apache",
-        format: '%v %h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
-      },
-      saveLogEntry
-    );
+    await db.batchAsync(async () => {
+      console.log(`importing from ${logFile} ...`);
+      await parseLogFileAsync(
+        logFile,
+        {
+          type: "apache",
+          format: '%v %h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
+        },
+        saveLogEntry
+      );
+    });
   }
 
   db.close();

@@ -73,6 +73,15 @@ export class AnalyticsDB {
     this.#sqlite3DB.close();
   }
 
+  async batchAsync(callback) {
+    try {
+      this.#sqlite3DB.prepare(sql`BEGIN TRANSACTION`).run();
+      return await callback();
+    } finally {
+      this.#sqlite3DB.prepare(sql`END TRANSACTION`).run();
+    }
+  }
+
   addWebDownload({ timestamp, url, downloaderIP, downloaderUserAgent }) {
     let insertResult = this.#sqlite3DB
       .prepare(
