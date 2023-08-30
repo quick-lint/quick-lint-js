@@ -1,0 +1,114 @@
+---
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+- name: Create qljs-analytics user
+  ansible.builtin.user:
+    name: qljs-analytics
+    home: /home/qljs-analytics
+    create_home: true
+    # Give the user read access to /var/log/apache2/.
+    # FIXME(strager): This is probably insecure. 'adm' sounds like a
+    # high-privilege group.
+    groups: ["adm"]
+    append: true
+  become: true
+
+- name: Set up quick-lint-js-website-analytics code build (local)
+  local_action:
+    module: ansible.builtin.command
+    chdir: ../../website/analytics/
+    cmd: yarn install --frozen-lockfile --dev
+
+- name: Build quick-lint-js-website-analytics code (local)
+  local_action:
+    module: ansible.builtin.command
+    chdir: ../../website/analytics/
+    cmd: yarn run package ../../infrastructure/quick-lint-js-web-2/roles/analytics/temp/quick-lint-js-website-analytics.tar.gz
+
+- name: Compute quick-lint-js-website-analytics version (local)
+  local_action:
+    module: ansible.builtin.stat
+    checksum_algorithm: sha1
+    get_attributes: false
+    get_mime: false
+    path: roles/analytics/temp/quick-lint-js-website-analytics.tar.gz
+  register: website_analytics_npm_package
+
+- name: Check if quick-lint-js-website-analytics is installed
+  ansible.builtin.stat:
+    path: /home/qljs-analytics/quick-lint-js-website-analytics-{{ website_analytics_npm_package.stat.checksum }}/node_modules/better-sqlite3/build/Release/better_sqlite3.node
+  register: website_analytics_installed_check
+  become: true
+  become_user: qljs-analytics
+
+- name: Install quick-lint-js-website-analytics
+  ansible.builtin.include_tasks:
+    file: install_website_analytics.yml
+  when: not website_analytics_installed_check.stat.exists
+
+- name: Create symlink pointing to the desired version of quick-lint-js-website-analytics
+  ansible.builtin.file:
+    src: /home/qljs-analytics/quick-lint-js-website-analytics-{{ website_analytics_npm_package.stat.checksum }}/
+    dest: /home/qljs-analytics/quick-lint-js-website-analytics
+    owner: qljs-analytics
+    group: qljs-analytics
+    state: link
+  become: true
+  become_user: qljs-analytics
+
+- name: Copy quick-lint-js-website-analytics config file
+  ansible.builtin.template:
+    src: quick-lint-js-website-analytics-config.json.j2
+    dest: /home/qljs-analytics/quick-lint-js-website-analytics/config.json
+    owner: qljs-analytics
+    group: qljs-analytics
+    mode: "0600"
+  become: true
+  become_user: qljs-analytics
+
+- name: Create admin.quick-lint-js.com directory for quick-lint-js-website-analytics
+  ansible.builtin.file:
+    path: /var/www/admin.quick-lint-js.com/analytics/
+    owner: qljs-analytics
+    group: www-data
+    state: directory
+  become: true
+  # NOTE(strager): /var/www/ is root-owned, so we cannot become_user: qljs-analytics.
+
+- name: Install quick-lint-js-website-analytics services
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  loop:
+    - quick-lint-js-website-analytics.service
+    - quick-lint-js-website-analytics.timer
+
+- name: Start quick-lint-js-website-analytics services
+  ansible.builtin.service:
+    name: quick-lint-js-website-analytics.timer
+    state: started
+    enabled: yes
+  become: true
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

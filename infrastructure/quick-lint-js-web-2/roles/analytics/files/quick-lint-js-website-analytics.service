@@ -1,23 +1,26 @@
----
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-- name: Development web server
-  hosts: web
-  vars_files: [vault-dev.yml, vars.yml]
-  vars:
-    apache_dev_tld: .developer.app
-  gather_facts: false
-  roles:
-    - acl
-    - mariadb
-    - php
-    - apache
-    - matomo
-    - builds
-    - chat
-    - nodejs
-    - analytics
+[Unit]
+Description = Collect logs and update website analytics (https://admin.quick-lint-js.com/analytics/)
+
+[Service]
+Type = oneshot
+
+ExecStart = node src/import-apache-logs.mjs
+ExecStart = node src/import-matomo-logs.mjs
+ExecStart = node src/make-charts.mjs
+
+WorkingDirectory = /home/qljs-analytics/quick-lint-js-website-analytics/
+User = qljs-analytics
+
+Restart = no
+TimeoutStartSec = 180min
+
+# Don't hinder user HTTP requests.
+Nice = 15
+CPUSchedulingPolicy = batch
+IOSchedulingClass = idle
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

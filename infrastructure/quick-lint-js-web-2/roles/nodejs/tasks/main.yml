@@ -2,22 +2,35 @@
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-- name: Development web server
-  hosts: web
-  vars_files: [vault-dev.yml, vars.yml]
-  vars:
-    apache_dev_tld: .developer.app
-  gather_facts: false
-  roles:
-    - acl
-    - mariadb
-    - php
-    - apache
-    - matomo
-    - builds
-    - chat
-    - nodejs
-    - analytics
+# https://github.com/nodesource/distributions#ubuntu-versions
+- name: Install NodeSource GPG key
+  ansible.builtin.copy:
+    src: nodesource.gpg
+    dest: /etc/apt/keyrings/nodesource.gpg
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+# https://github.com/nodesource/distributions#ubuntu-versions
+- name: Install NodeSource apt repository (Node.js 20.x)
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main"
+    state: present
+    filename: nodesource
+  become: true
+
+- name: Install Node.js
+  ansible.builtin.apt:
+    name:
+      - nodejs
+    state: present
+  become: true
+
+- name: Install Yarn
+  ansible.builtin.command:
+    cmd: npm install --global --no-save yarn
+  become: true
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

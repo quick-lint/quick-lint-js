@@ -2,22 +2,7 @@
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-- name: Development web server
-  hosts: web
-  vars_files: [vault-dev.yml, vars.yml]
-  vars:
-    apache_dev_tld: .developer.app
-  gather_facts: false
-  roles:
-    - acl
-    - mariadb
-    - php
-    - apache
-    - matomo
-    - builds
-    - chat
-    - nodejs
-    - analytics
+dependencies: []
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

@@ -1,0 +1,17 @@
+# Keep yarn.lock for when we push to production.
+!/yarn.lock
+
+# Keep everything below this comment in sync with .gitignore.
+
+/node_modules/
+
+/config.json
+
+# Described by /config.example.json:
+/analytics.sqlite3
+/analytics.sqlite3-shm
+/analytics.sqlite3-wal
+/dist/
+
+# Created by 'npm pack':
+/quick-lint-js-website-analytics-0.0.0.tgz

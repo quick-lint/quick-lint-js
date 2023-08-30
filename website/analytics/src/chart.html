@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<title>quick-lint-js download analytics</title>
+
+<script
+  type="text/javascript"
+  src="https://unpkg.com/dygraphs@2.2.1/dist/dygraph.min.js"
+  integrity="sha384-AnMQ9c3vyuLEAIrjWNnnpl3Xovk5w2qqoVw1xLxWU06XiKE7mIILcbF0nOzil/Up"
+  crossorigin="anonymous"
+></script>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="https://unpkg.com/dygraphs@2.2.1/dist/dygraph.min.css"
+  integrity="sha384-+Q4+3HadPVChRGn2kirov0CJhbfxQJiB+7MxGhLUOKSKyCwI+EriPGcxs5hbQmUc"
+  crossorigin="anonymous"
+/>
+
+<div id="daily-chart"></div>
+<div id="weekly-chart"></div>
+
+<script type="module">
+  let data = await (await fetch("data.json")).json();
+
+  function makeChart(element, rows, labels) {
+    for (let row of rows) {
+      row[0] = new Date(row[0]);
+    }
+    new Dygraph(element, rows, {
+      labels: ["Date", ...labels],
+    });
+  }
+
+  makeChart(
+    document.querySelector("#daily-chart"),
+    data.dailyWebDownloaders.rows,
+    data.dailyWebDownloaders.labels
+  );
+  makeChart(
+    document.querySelector("#weekly-chart"),
+    data.weeklyWebDownloaders.rows,
+    data.weeklyWebDownloaders.labels
+  );
+</script>

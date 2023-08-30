@@ -7,4 +7,5 @@
 /benchmark/benchmark-lsp/corpus/** -linguist-detectable
 /** -linguist-documentation
 /docs/** linguist-documentation
+/docs/analytics/** -linguist-documentation
 /website/** linguist-documentation

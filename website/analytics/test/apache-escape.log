@@ -1,0 +1,1 @@
+quick-lint-js.com 192.184.192.138 - - [25/Aug/2023:04:31:13 +0000] "GET / HTTP/2.0" 200 36107 "'escape\\test\"" "escape\ttest"
