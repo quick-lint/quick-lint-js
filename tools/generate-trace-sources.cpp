@@ -249,8 +249,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
         member.cxx_type = this->parse_simple_type_name();
 
         if (member.type_is_zero_terminated &&
-            !(member.cxx_type == u8"string_view"_sv ||
-              member.cxx_type == u8"String8_View" ||
+            !(member.cxx_type == u8"String8_View" ||
               member.cxx_type == u8"String16"_sv)) {
           this->fatal_at(member.cxx_type.data(),
                          "error: trace_zero_terminated is only allowed "
@@ -501,8 +500,6 @@ stream {
   cxx_name_to_ctf_name[u8"uint64_t"_sv] = u8"u64"_sv;
   cxx_name_to_ctf_name[u8"String8_View"_sv] = u8"utf8_string"_sv;
   cxx_name_to_ctf_name[u8"String16"_sv] = u8"utf16le_string"_sv;
-  // TODO(strager): Remove std::string_view from the C++ code.
-  cxx_name_to_ctf_name[u8"string_view"_sv] = u8"utf8_string"_sv;
 
   auto get_ctf_name = [&](String8_View cxx_name,
                           bool is_zero_terminated = false) {
@@ -676,8 +673,6 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
   cxx_name_to_ctf_name[u8"uint64_t"_sv] = u8"u64"_sv;
   cxx_name_to_ctf_name[u8"String8_View"_sv] = u8"utf8_string"_sv;
   cxx_name_to_ctf_name[u8"String16"_sv] = u8"utf16le_string"_sv;
-  // TODO(strager): Remove std::string_view from the C++ code.
-  cxx_name_to_ctf_name[u8"string_view"_sv] = u8"utf8_string"_sv;
 
   auto write_upper_case = [&out](String8_View s) -> void {
     out.append(narrow_cast<int>(s.size()), [&](Char8* o) {
@@ -1085,8 +1080,6 @@ namespace {
     if (type_is_zero_terminated) {
       if (cxx_type == u8"String8_View"_sv) {
         out.append_literal(u8"self->parse_utf8_zstring(r)"_sv);
-      } else if (cxx_type == u8"string_view"_sv) {
-        out.append_literal(u8"to_string_view(self->parse_utf8_zstring(r))"_sv);
       } else {
         types.fatal_at(cxx_type.data(), "cannot process trace_zero_terminated");
       }
@@ -1419,8 +1412,7 @@ namespace quick_lint_js {
           }
           auto built_in_it = built_in_types.find(type);
           if (built_in_it == built_in_types.end()) {
-            if (member.cxx_type == u8"String8_View"_sv ||
-                member.cxx_type == u8"string_view"_sv) {
+            if (member.cxx_type == u8"String8_View"_sv) {
               code.append_literal(u8"  "_sv);
               if (member.type_is_zero_terminated) {
                 code.append_literal(u8"this->write_utf8_zstring"_sv);
@@ -1428,13 +1420,7 @@ namespace quick_lint_js {
                 code.append_literal(u8"this->write_utf8_string"_sv);
               }
               code.append_literal(u8"("_sv);
-              if (member.cxx_type == u8"string_view"_sv) {
-                code.append_literal(u8"to_string8_view("_sv);
-              }
               code.append_copy(var);
-              if (member.cxx_type == u8"string_view"_sv) {
-                code.append_literal(u8")"_sv);
-              }
               code.append_literal(u8");\n"_sv);
             } else if (member.cxx_type == u8"String16"_sv) {
               QLJS_ASSERT(!member.type_is_zero_terminated);
