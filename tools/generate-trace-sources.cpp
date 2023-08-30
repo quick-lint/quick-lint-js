@@ -66,60 +66,60 @@ void write_file_copyright_end(Output_Stream& out) {
 )");
 }
 
+struct Parsed_Type_Alias {
+  String8_View cxx_name;
+  String8_View ctf_name;
+  String8_View cxx_type;
+};
+
+struct Parsed_Enum_Member {
+  String8_View cxx_name;
+  std::uint64_t value;
+};
+
+struct Parsed_Enum {
+  String8_View cxx_name;
+  String8_View ctf_name;
+  String8_View underlying_cxx_type;
+  Span<Parsed_Enum_Member> members;
+};
+
+struct Parsed_Struct_Member {
+  String8_View cxx_type;
+  String8_View cxx_name;
+  String8_View ctf_size_name;
+
+  // If true, 'type' is the element type of the array.
+  bool type_is_array = false;
+
+  bool type_is_zero_terminated = false;
+};
+
+struct Parsed_Struct {
+  String8_View cxx_name;
+  String8_View ctf_name;
+  std::optional<std::uint64_t> id;
+  Span<Parsed_Struct_Member> members;
+  Span<String8_View> template_parameters;
+};
+
+enum class Declaration_Kind {
+  _enum,
+  _struct,
+  type_alias,
+};
+
+struct Parsed_Declaration {
+  Declaration_Kind kind;
+  union {
+    Parsed_Type_Alias type_alias;
+    Parsed_Enum _enum;
+    Parsed_Struct _struct;
+  };
+};
+
 class CXX_Trace_Types_Parser : public CXX_Parser_Base {
  public:
-  struct Parsed_Type_Alias {
-    String8_View cxx_name;
-    String8_View ctf_name;
-    String8_View cxx_type;
-  };
-
-  struct Parsed_Enum_Member {
-    String8_View cxx_name;
-    std::uint64_t value;
-  };
-
-  struct Parsed_Enum {
-    String8_View cxx_name;
-    String8_View ctf_name;
-    String8_View underlying_cxx_type;
-    Span<Parsed_Enum_Member> members;
-  };
-
-  struct Parsed_Struct_Member {
-    String8_View cxx_type;
-    String8_View cxx_name;
-    String8_View ctf_size_name;
-
-    // If true, 'type' is the element type of the array.
-    bool type_is_array = false;
-
-    bool type_is_zero_terminated = false;
-  };
-
-  struct Parsed_Struct {
-    String8_View cxx_name;
-    String8_View ctf_name;
-    std::optional<std::uint64_t> id;
-    Span<Parsed_Struct_Member> members;
-    Span<String8_View> template_parameters;
-  };
-
-  enum class Declaration_Kind {
-    _enum,
-    _struct,
-    type_alias,
-  };
-
-  struct Parsed_Declaration {
-    Declaration_Kind kind;
-    union {
-      Parsed_Type_Alias type_alias;
-      Parsed_Enum _enum;
-      Parsed_Struct _struct;
-    };
-  };
-
   using CXX_Parser_Base::CXX_Parser_Base;
 
   void parse_file() {
@@ -559,49 +559,47 @@ stream {
     return ctf_name;
   };
 
-  auto write_struct_member =
-      [&](const CXX_Trace_Types_Parser::Parsed_Struct_Member& member,
-          String8_View indentation) {
-        if (member.type_is_array) {
-          out.append_copy(indentation);
-          out.append_literal(u8"u64 "_sv);
-          if (member.ctf_size_name.empty()) {
-            out.append_copy(member.cxx_name);
-            out.append_literal(u8"_count"_sv);
-          } else {
-            out.append_copy(member.ctf_size_name);
-          }
-          out.append_literal(u8";\n"_sv);
-          out.append_copy(indentation);
-          out.append_copy(get_ctf_name(
-              member.cxx_type,
-              /*is_zero_terminated=*/member.type_is_zero_terminated));
-          out.append_literal(u8" "_sv);
-          out.append_copy(member.cxx_name);
-          out.append_literal(u8"["_sv);
-          if (member.ctf_size_name.empty()) {
-            out.append_copy(member.cxx_name);
-            out.append_literal(u8"_count"_sv);
-          } else {
-            out.append_copy(member.ctf_size_name);
-          }
-          out.append_literal(u8"];\n"_sv);
-        } else {
-          out.append_copy(indentation);
-          out.append_copy(get_ctf_name(
-              member.cxx_type,
-              /*is_zero_terminated=*/member.type_is_zero_terminated));
-          out.append_literal(u8" "_sv);
-          out.append_copy(member.cxx_name);
-          out.append_literal(u8";\n"_sv);
-        }
-      };
+  auto write_struct_member = [&](const Parsed_Struct_Member& member,
+                                 String8_View indentation) {
+    if (member.type_is_array) {
+      out.append_copy(indentation);
+      out.append_literal(u8"u64 "_sv);
+      if (member.ctf_size_name.empty()) {
+        out.append_copy(member.cxx_name);
+        out.append_literal(u8"_count"_sv);
+      } else {
+        out.append_copy(member.ctf_size_name);
+      }
+      out.append_literal(u8";\n"_sv);
+      out.append_copy(indentation);
+      out.append_copy(
+          get_ctf_name(member.cxx_type,
+                       /*is_zero_terminated=*/member.type_is_zero_terminated));
+      out.append_literal(u8" "_sv);
+      out.append_copy(member.cxx_name);
+      out.append_literal(u8"["_sv);
+      if (member.ctf_size_name.empty()) {
+        out.append_copy(member.cxx_name);
+        out.append_literal(u8"_count"_sv);
+      } else {
+        out.append_copy(member.ctf_size_name);
+      }
+      out.append_literal(u8"];\n"_sv);
+    } else {
+      out.append_copy(indentation);
+      out.append_copy(
+          get_ctf_name(member.cxx_type,
+                       /*is_zero_terminated=*/member.type_is_zero_terminated));
+      out.append_literal(u8" "_sv);
+      out.append_copy(member.cxx_name);
+      out.append_literal(u8";\n"_sv);
+    }
+  };
 
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
+  for (const Parsed_Declaration& declaration : types.declarations) {
     switch (declaration.kind) {
-    case CXX_Trace_Types_Parser::Declaration_Kind::_enum: {
-      const CXX_Trace_Types_Parser::Parsed_Enum& e = declaration._enum;
+    case Declaration_Kind::_enum: {
+      const Parsed_Enum& e = declaration._enum;
       if (e.ctf_name.empty()) {
         continue;
       }
@@ -623,8 +621,8 @@ stream {
       break;
     }
 
-    case CXX_Trace_Types_Parser::Declaration_Kind::_struct: {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+    case Declaration_Kind::_struct: {
+      const Parsed_Struct& s = declaration._struct;
       if (s.ctf_name.empty()) {
         continue;
       }
@@ -637,15 +635,13 @@ stream {
         out.append_literal(u8";\n  name = \""_sv);
         out.append_copy(s.ctf_name);
         out.append_literal(u8"\";\n  fields := struct {\n"_sv);
-        for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
-             s.members) {
+        for (const Parsed_Struct_Member& member : s.members) {
           write_struct_member(member, u8"    "_sv);
         }
         out.append_literal(u8"  };\n};\n"_sv);
       } else {
         out.append_literal(u8"\ntypealias struct {\n"_sv);
-        for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
-             s.members) {
+        for (const Parsed_Struct_Member& member : s.members) {
           write_struct_member(member, u8"  "_sv);
         }
         out.append_literal(u8"} := "_sv);
@@ -655,9 +651,8 @@ stream {
       break;
     }
 
-    case CXX_Trace_Types_Parser::Declaration_Kind::type_alias: {
-      const CXX_Trace_Types_Parser::Parsed_Type_Alias& type_alias =
-          declaration.type_alias;
+    case Declaration_Kind::type_alias: {
+      const Parsed_Type_Alias& type_alias = declaration.type_alias;
       if (type_alias.ctf_name.empty()) {
         continue;
       }
@@ -786,8 +781,7 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
     write_upper_camel_case(name);
   };
 
-  auto write_member_read =
-      [&](const CXX_Trace_Types_Parser::Parsed_Struct_Member& member) -> void {
+  auto write_member_read = [&](const Parsed_Struct_Member& member) -> void {
     auto ctf_name_it = cxx_name_to_ctf_name.find(member.cxx_type);
     if (ctf_name_it == cxx_name_to_ctf_name.end()) {
       types.fatal_at(member.cxx_type.data(), "unknown type: %.*s",
@@ -826,9 +820,8 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
   };
 
   out.append_literal(u8"export const TraceEventType = {\n"_sv);
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_struct &&
         declaration._struct.id.has_value()) {
       out.append_literal(u8"  "_sv);
       write_upper_case(declaration._struct.ctf_name);
@@ -839,10 +832,9 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
   }
   out.append_literal(u8"};\n\n"_sv);
 
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
-      const CXX_Trace_Types_Parser::Parsed_Enum& e = declaration._enum;
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_enum) {
+      const Parsed_Enum& e = declaration._enum;
       cxx_name_to_ctf_name[e.cxx_name] = e.ctf_name;
 
       out.append_literal(u8"export class TraceReaderInvalid"_sv);
@@ -859,8 +851,7 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
       write_type_name(declaration._enum.ctf_name);
       out.append_literal(u8" = {\n"_sv);
 
-      for (const CXX_Trace_Types_Parser::Parsed_Enum_Member& member :
-           declaration._enum.members) {
+      for (const Parsed_Enum_Member& member : declaration._enum.members) {
         out.append_literal(u8"  "_sv);
         write_upper_case(member.cxx_name);
         out.append_literal(u8": "_sv);
@@ -871,13 +862,12 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
       out.append_literal(u8"\n"_sv);
       out.append_literal(u8"  parse(r) {\n"_sv);
       out.append_literal(u8"    let value = "_sv);
-      CXX_Trace_Types_Parser::Parsed_Struct_Member fake_member;
+      Parsed_Struct_Member fake_member;
       fake_member.cxx_type = e.underlying_cxx_type;
       write_member_read(fake_member);
       out.append_literal(u8";\n"_sv);
       out.append_literal(u8"    switch (value) {\n"_sv);
-      for (const CXX_Trace_Types_Parser::Parsed_Enum_Member& member :
-           declaration._enum.members) {
+      for (const Parsed_Enum_Member& member : declaration._enum.members) {
         out.append_literal(u8"      case "_sv);
         write_type_name(declaration._enum.ctf_name);
         out.append_literal(u8"."_sv);
@@ -893,19 +883,17 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
       out.append_literal(u8"  },\n"_sv);
 
       out.append_literal(u8"};\n\n"_sv);
-    } else if (declaration.kind ==
-                   CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+    } else if (declaration.kind == Declaration_Kind::_struct &&
                !declaration._struct.ctf_name.empty() &&
                !declaration._struct.id.has_value()) {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      const Parsed_Struct& s = declaration._struct;
       cxx_name_to_ctf_name[s.cxx_name] = s.ctf_name;
 
       out.append_literal(u8"class "_sv);
       write_type_name(s.ctf_name);
       out.append_literal(u8" {\n"_sv);
 
-      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
-           declaration._struct.members) {
+      for (const Parsed_Struct_Member& member : declaration._struct.members) {
         out.append_literal(u8"  "_sv);
         write_field_name(member.cxx_name);
         out.append_literal(u8";\n"_sv);
@@ -917,8 +905,7 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
       write_type_name(s.ctf_name);
       out.append_literal(u8"()\n"_sv);
 
-      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
-           declaration._struct.members) {
+      for (const Parsed_Struct_Member& member : declaration._struct.members) {
         if (member.type_is_array) {
           out.append_literal(u8"    // prettier-ignore\n"_sv);
         }
@@ -932,10 +919,8 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
       out.append_literal(u8"    return result;\n"_sv);
       out.append_literal(u8"  }\n"_sv);
       out.append_literal(u8"}\n\n"_sv);
-    } else if (declaration.kind ==
-               CXX_Trace_Types_Parser::Declaration_Kind::type_alias) {
-      const CXX_Trace_Types_Parser::Parsed_Type_Alias& type_alias =
-          declaration.type_alias;
+    } else if (declaration.kind == Declaration_Kind::type_alias) {
+      const Parsed_Type_Alias& type_alias = declaration.type_alias;
       auto ctf_type_it = cxx_name_to_ctf_name.find(type_alias.cxx_type);
       if (ctf_type_it == cxx_name_to_ctf_name.end()) {
         types.fatal_at(type_alias.cxx_type.data(), "unknown type: %.*s",
@@ -950,11 +935,10 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
   out.append_literal(u8"  let timestamp = r.u64BigInt();\n"_sv);
   out.append_literal(u8"  let eventType = r.u8();\n"_sv);
   out.append_literal(u8"  switch (eventType) {\n"_sv);
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_struct &&
         declaration._struct.id.has_value()) {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      const Parsed_Struct& s = declaration._struct;
       out.append_literal(u8"    case TraceEventType."_sv);
       write_upper_case(s.ctf_name);
       out.append_literal(u8":\n"_sv);
@@ -962,8 +946,7 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
       out.append_literal(u8"        timestamp: timestamp,\n"_sv);
       out.append_literal(u8"        eventType: eventType,\n"_sv);
 
-      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
-           declaration._struct.members) {
+      for (const Parsed_Struct_Member& member : declaration._struct.members) {
         if (member.type_is_array) {
           out.append_literal(u8"        // prettier-ignore\n"_sv);
         }
@@ -986,9 +969,9 @@ export class TraceReaderUnknownEventType extends TraceReaderError {
   write_file_copyright_end(out);
 }
 
-void write_struct_reference_for_cxx(
-    Output_Stream& out, const CXX_Trace_Types_Parser::Parsed_Struct& s,
-    CXX_Trace_Types_Parser& types, bool use_template_parameters) {
+void write_struct_reference_for_cxx(Output_Stream& out, const Parsed_Struct& s,
+                                    CXX_Trace_Types_Parser& types,
+                                    bool use_template_parameters) {
   out.append_copy(s.cxx_name);
   if (!s.template_parameters.empty()) {
     out.append_literal(u8"<"_sv);
@@ -1007,16 +990,16 @@ void write_struct_reference_for_cxx(
   }
 }
 
-void write_struct_reference_for_cxx_parser(
-    Output_Stream& out, const CXX_Trace_Types_Parser::Parsed_Struct& s,
-    CXX_Trace_Types_Parser& types) {
+void write_struct_reference_for_cxx_parser(Output_Stream& out,
+                                           const Parsed_Struct& s,
+                                           CXX_Trace_Types_Parser& types) {
   write_struct_reference_for_cxx(out, s, types,
                                  /*use_template_parameters=*/false);
 }
 
-void write_struct_reference_for_cxx_writer(
-    Output_Stream& out, const CXX_Trace_Types_Parser::Parsed_Struct& s,
-    CXX_Trace_Types_Parser& types) {
+void write_struct_reference_for_cxx_writer(Output_Stream& out,
+                                           const Parsed_Struct& s,
+                                           CXX_Trace_Types_Parser& types) {
   write_struct_reference_for_cxx(out, s, types,
                                  /*use_template_parameters=*/true);
 }
@@ -1045,20 +1028,18 @@ namespace quick_lint_js {
   packet_header,
 
 )"_sv);
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
-      const CXX_Trace_Types_Parser::Parsed_Enum& e = declaration._enum;
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_enum) {
+      const Parsed_Enum& e = declaration._enum;
       out.append_literal(u8"  error_unsupported_"_sv);
       out.append_copy(e.ctf_name);
       out.append_literal(u8",\n"_sv);
     }
   }
   out.append_literal(u8"\n"_sv);
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_struct) {
+      const Parsed_Struct& s = declaration._struct;
       if (s.id.has_value()) {
         out.append_literal(u8"  "_sv);
         out.append_copy(s.ctf_name);
@@ -1084,10 +1065,9 @@ struct Parsed_Trace_Event {
     // The following have 'header' initialized.
     // clang-format off
 )"_sv);
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_struct) {
+      const Parsed_Struct& s = declaration._struct;
       if (s.id.has_value()) {
         out.append_literal(u8"    "_sv);
         write_struct_reference_for_cxx_parser(out, s, types);
@@ -1164,16 +1144,14 @@ namespace {
     }
   };
 
-  auto write_parse_member =
-      [&](const CXX_Trace_Types_Parser::Parsed_Struct_Member& member) -> void {
+  auto write_parse_member = [&](const Parsed_Struct_Member& member) -> void {
     write_parse_expression(member.cxx_type, member.type_is_array,
                            member.type_is_zero_terminated);
   };
 
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
-      const CXX_Trace_Types_Parser::Parsed_Enum& e = declaration._enum;
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_enum) {
+      const Parsed_Enum& e = declaration._enum;
       out.append_copy(e.cxx_name);
       out.append_literal(u8" parse_"_sv);
       out.append_copy(e.cxx_name);
@@ -1188,8 +1166,7 @@ namespace {
       out.append_copy(e.ctf_name);
       out.append_literal(u8");\n"_sv);
       out.append_literal(u8"    [[fallthrough]];\n"_sv);
-      for (const CXX_Trace_Types_Parser::Parsed_Enum_Member& member :
-           e.members) {
+      for (const Parsed_Enum_Member& member : e.members) {
         out.append_literal(u8"  case "_sv);
         out.append_decimal_integer(member.value);
         out.append_literal(u8":\n"_sv);
@@ -1202,10 +1179,9 @@ namespace {
       out.append_literal(u8"  }\n"_sv);
       out.append_literal(u8"}\n"_sv);
       out.append_literal(u8"\n"_sv);
-    } else if (declaration.kind ==
-                   CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+    } else if (declaration.kind == Declaration_Kind::_struct &&
                !declaration._struct.id.has_value()) {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      const Parsed_Struct& s = declaration._struct;
       if (s.ctf_name.empty()) {
         continue;
       }
@@ -1219,8 +1195,7 @@ namespace {
       write_struct_reference_for_cxx_parser(out, s, types);
       out.append_literal(u8"{\n"_sv);
 
-      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
-           s.members) {
+      for (const Parsed_Struct_Member& member : s.members) {
         out.append_literal(u8"      ."_sv);
         out.append_copy(member.cxx_name);
         out.append_literal(u8" = "_sv);
@@ -1245,11 +1220,10 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
   std::uint8_t event_id = r.u8();
   switch (event_id) {
 )");
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct &&
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_struct &&
         declaration._struct.id.has_value()) {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+      const Parsed_Struct& s = declaration._struct;
       out.append_literal(u8"  case 0x"_sv);
       out.append_fixed_hexadecimal_integer(*s.id, 2);
       out.append_literal(u8":\n"_sv);
@@ -1266,8 +1240,7 @@ void Trace_Reader::parse_event(Checked_Binary_Reader& r) {
       write_struct_reference_for_cxx_parser(out, s, types);
       out.append_literal(u8"{\n"_sv);
 
-      for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
-           s.members) {
+      for (const Parsed_Struct_Member& member : s.members) {
         out.append_literal(u8"              ."_sv);
         out.append_copy(member.cxx_name);
         out.append_literal(u8" = "_sv);
@@ -1344,10 +1317,9 @@ namespace quick_lint_js {
   void write_header(const Trace_Context&);
 
 )"_sv);
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_struct) {
+      const Parsed_Struct& s = declaration._struct;
       if (s.id.has_value()) {
         write_template_head(s.template_parameters, u8"  "_sv);
         out.append_literal(u8"  void write_event_"_sv);
@@ -1362,13 +1334,11 @@ namespace quick_lint_js {
   }
 
   out.append_literal(u8"\n private:\n"_sv);
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_enum) {
       // See NOTE[Trace_Writer-enum-code-gen].
-    } else if (declaration.kind ==
-               CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+    } else if (declaration.kind == Declaration_Kind::_struct) {
+      const Parsed_Struct& s = declaration._struct;
       if (!s.ctf_name.empty() && !s.id.has_value()) {
         write_template_head(s.template_parameters, u8"  "_sv);
         out.append_literal(u8"  void write_"_sv);
@@ -1405,13 +1375,11 @@ namespace quick_lint_js {
   built_in_types[u8"uint8_t"_sv] = Built_In_Type{u8"u8"_sv, 1};
   built_in_types[u8"uint64_t"_sv] = Built_In_Type{u8"u64_le"_sv, 8};
 
-  for (const CXX_Trace_Types_Parser::Parsed_Declaration& declaration :
-       types.declarations) {
-    if (declaration.kind == CXX_Trace_Types_Parser::Declaration_Kind::_enum) {
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_enum) {
       // See NOTE[Trace_Writer-enum-code-gen].
-    } else if (declaration.kind ==
-               CXX_Trace_Types_Parser::Declaration_Kind::_struct) {
-      const CXX_Trace_Types_Parser::Parsed_Struct& s = declaration._struct;
+    } else if (declaration.kind == Declaration_Kind::_struct) {
+      const Parsed_Struct& s = declaration._struct;
       if (!s.ctf_name.empty()) {
         write_template_head(s.template_parameters, u8""_sv);
         out.append_literal(u8"inline void Trace_Writer::write_"_sv);
@@ -1446,8 +1414,7 @@ namespace quick_lint_js {
         }
         // We perform two passes:
         // Pass #1: Collect write calls.
-        for (const CXX_Trace_Types_Parser::Parsed_Struct_Member& member :
-             s.members) {
+        for (const Parsed_Struct_Member& member : s.members) {
           if (member.type_is_array) {
             writes.push_back(Write{
                 .byte_size = 8,
@@ -1472,8 +1439,7 @@ namespace quick_lint_js {
 
           String8_View type = types.resolve_type_aliases_cxx(member.cxx_type);
           bool need_cast = false;
-          if (const CXX_Trace_Types_Parser::Parsed_Enum* e =
-                  types.find_enum_with_cxx_name(type)) {
+          if (const Parsed_Enum* e = types.find_enum_with_cxx_name(type)) {
             // NOTE[Trace_Writer-enum-code-gen]: Instead of creating a dedicated
             // function for writing each enum type, we write the enum as its
             // primitive type directly. This allows writing of the enum to be
