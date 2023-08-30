@@ -7,8 +7,10 @@ let sql = String.raw;
 
 export class AnalyticsDB {
   #sqlite3DB;
-  #insertDownloadableQuery;
   #checkDownloadConflictQuery;
+
+  // Map<number, BetterSQLite3.Statement>
+  #insertDownloadablesQueryCache = new Map();
 
   constructor(sqlite3DB) {
     this.#sqlite3DB = sqlite3DB;
@@ -62,16 +64,6 @@ export class AnalyticsDB {
       )
       .run();
 
-    this.#insertDownloadableQuery = this.#sqlite3DB.prepare(
-      sql`
-        INSERT INTO downloadable (url)
-        VALUES (@url)
-        ON CONFLICT (url) DO
-        UPDATE SET url = url
-        RETURNING id
-      `
-    );
-
     this.#checkDownloadConflictQuery = this.#sqlite3DB.prepare(
       sql`
         SELECT
@@ -113,82 +105,114 @@ export class AnalyticsDB {
     }
   }
 
-  addWebDownload({ timestamp, url, downloaderIP, downloaderUserAgent }) {
-    let insertResult = this.#insertDownloadableQuery.get({
-      url: url,
-    });
-    let downloadableID = insertResult.id;
+  addWebDownloadBatch(downloads) {
+    if (downloads.length === 0) {
+      return;
+    }
 
-    let parameters = {
-      timestamp: timestampMSToS(timestamp),
-      downloader_ip: downloaderIP,
-      downloader_user_agent: downloaderUserAgent,
-      downloadable_id: downloadableID,
-    };
-    // TODO(strager): Put this query and the following query into a transation.
-    let conflictResult = this.#checkDownloadConflictQuery.get(parameters);
-    if (conflictResult === undefined) {
-      this.#sqlite3DB
+    let insertDownloadablesQuery = this.#insertDownloadablesQueryCache.get(
+      downloads.length
+    );
+    if (insertDownloadablesQuery === undefined) {
+      let urlPlaceholders = Array(downloads.length).fill("(?)").join(", ");
+      insertDownloadablesQuery = this.#sqlite3DB
         .prepare(
           sql`
-            INSERT INTO download (
-              timestamp,
-              timestamp_day,
-              timestamp_week,
-              downloader_ip,
-              downloader_user_agent,
-              downloadable_id
-            )
-            VALUES (
-              @timestamp,
-              STRFTIME('%s', DATETIME(@timestamp, 'unixepoch'), 'start of day'),
-              STRFTIME('%s', DATETIME(@timestamp, 'unixepoch'), 'start of day', '-6 days', 'weekday 1'),
-              @downloader_ip,
-              @downloader_user_agent,
-              @downloadable_id
-            )
+            INSERT INTO downloadable (url)
+            VALUES ${urlPlaceholders}
+            ON CONFLICT (url) DO
+            UPDATE SET url = url
+            RETURNING id
           `
         )
-        .run(parameters);
-    } else {
-      // A matching download is already in the database.
-      //
-      // One of the following is true:
-      //
-      // * the database has a single row with a null downloader_user_agent
-      //   (conflictResult.downloader_user_agent_is_null === true)
-      // * the database has one or more rows each with non-null
-      //   downloader_user_agent
-      //   (conflictResult.downloader_user_agent_is_null === false)
-      if (downloaderUserAgent === null) {
-        if (conflictResult.downloader_user_agent_is_null) {
-          // The database has a row which is identical to the row we want to
-          // insert.
-        } else {
-          // The database has a row with a user agent already. Don't insert a
-          // new row with a null user agent.
-        }
+        .pluck();
+      this.#insertDownloadablesQueryCache.set(
+        downloads.length,
+        insertDownloadablesQuery
+      );
+    }
+    let downloadableIDs = insertDownloadablesQuery.all(
+      downloads.map((download) => download.url)
+    );
+
+    for (let i = 0; i < downloads.length; ++i) {
+      let { timestamp, url, downloaderIP, downloaderUserAgent } = downloads[i];
+      let parameters = {
+        timestamp: timestampMSToS(timestamp),
+        downloader_ip: downloaderIP,
+        downloader_user_agent: downloaderUserAgent,
+        downloadable_id: downloadableIDs[i],
+      };
+      // TODO(strager): Put this query and the following query into a transation.
+      let conflictResult = this.#checkDownloadConflictQuery.get(parameters);
+      if (conflictResult === undefined) {
+        this.#sqlite3DB
+          .prepare(
+            sql`
+              INSERT INTO download (
+                timestamp,
+                timestamp_day,
+                timestamp_week,
+                downloader_ip,
+                downloader_user_agent,
+                downloadable_id
+              )
+              VALUES (
+                @timestamp,
+                STRFTIME('%s', DATETIME(@timestamp, 'unixepoch'), 'start of day'),
+                STRFTIME('%s', DATETIME(@timestamp, 'unixepoch'), 'start of day', '-6 days', 'weekday 1'),
+                @downloader_ip,
+                @downloader_user_agent,
+                @downloadable_id
+              )
+            `
+          )
+          .run(parameters);
       } else {
-        if (conflictResult.downloader_user_agent_is_null) {
-          // The database has a single row with a null downloader_user_agent.
-          this.#sqlite3DB
-            .prepare(
-              sql`
-                UPDATE download
-                SET downloader_user_agent = @downloader_user_agent
-                WHERE download.id = @download_id
-              `
-            )
-            .run({
-              downloader_user_agent: downloaderUserAgent,
-              download_id: conflictResult.download_id,
-            });
+        // A matching download is already in the database.
+        //
+        // One of the following is true:
+        //
+        // * the database has a single row with a null downloader_user_agent
+        //   (conflictResult.downloader_user_agent_is_null === true)
+        // * the database has one or more rows each with non-null
+        //   downloader_user_agent
+        //   (conflictResult.downloader_user_agent_is_null === false)
+        if (downloaderUserAgent === null) {
+          if (conflictResult.downloader_user_agent_is_null) {
+            // The database has a row which is identical to the row we want to
+            // insert.
+          } else {
+            // The database has a row with a user agent already. Don't insert a
+            // new row with a null user agent.
+          }
         } else {
-          // The database has a row which is identical to the row we want to
-          // insert.
+          if (conflictResult.downloader_user_agent_is_null) {
+            // The database has a single row with a null downloader_user_agent.
+            this.#sqlite3DB
+              .prepare(
+                sql`
+                  UPDATE download
+                  SET downloader_user_agent = @downloader_user_agent
+                  WHERE download.id = @download_id
+                `
+              )
+              .run({
+                downloader_user_agent: downloaderUserAgent,
+                download_id: conflictResult.download_id,
+              });
+          } else {
+            // The database has a row which is identical to the row we want to
+            // insert.
+          }
         }
       }
     }
+  }
+
+  // @param download { timestamp, url, downloaderIP, downloaderUserAgent }
+  addWebDownload(download) {
+    this.addWebDownloadBatch([download]);
   }
 
   getWebDownloadedURLs() {

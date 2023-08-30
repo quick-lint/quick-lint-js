@@ -11,12 +11,15 @@ async function mainAsync(args) {
   let matomoDB = await MatomoAnalyticsDB.fromConfigAsync(config);
   let db = AnalyticsDB.fromFile(config["db.file"]);
 
-  function saveDownload(download) {
-    db.addWebDownload(download);
+  let importedDownloads = 0;
+  function saveDownloads(downloads) {
+    db.addWebDownloadBatch(downloads);
+    importedDownloads += downloads.length;
   }
   await db.batchAsync(async () => {
-    await matomoDB.enumerateDownloadsAsync(saveDownload);
+    await matomoDB.enumerateDownloadsAsync(saveDownloads);
   });
+  console.log(`imported ${importedDownloads} downloads from Matomo`);
 
   matomoDB.close();
   db.close();

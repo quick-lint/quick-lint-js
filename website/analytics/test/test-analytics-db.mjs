@@ -138,6 +138,42 @@ describe("AnalyticsDB", () => {
         "https://example.com/other/",
       ]);
     });
+
+    describe("batch insert", () => {
+      it("URLs are deduplicated", () => {
+        let db = AnalyticsDB.newInMemory();
+        db.addWebDownloadBatch([
+          {
+            timestamp: Date.UTC(2020, 0, 1, 10, 12, 14),
+            url: "https://example.com/",
+            downloaderIP: "192.168.1.1",
+            downloaderUserAgent: "CoolBrowser version 1.0",
+          },
+          {
+            timestamp: Date.UTC(2021, 0, 1, 10, 12, 14),
+            url: "https://example.com/",
+            downloaderIP: "192.168.1.2",
+            downloaderUserAgent: "CoolBrowser version 2.0",
+          },
+          {
+            timestamp: Date.UTC(2022, 0, 1, 10, 12, 14),
+            url: "https://example.com/other/",
+            downloaderIP: "192.168.1.3",
+            downloaderUserAgent: "CoolBrowser version 3.0",
+          },
+          {
+            timestamp: Date.UTC(2023, 0, 1, 10, 12, 14),
+            url: "https://example.com/other/",
+            downloaderIP: "192.168.1.4",
+            downloaderUserAgent: "CoolBrowser version 4.0",
+          },
+        ]);
+        expect(db.getWebDownloadedURLs()).toEqual([
+          "https://example.com/",
+          "https://example.com/other/",
+        ]);
+      });
+    });
   });
 
   describe("countDailyWebDownloaders", () => {

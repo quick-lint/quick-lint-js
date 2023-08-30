@@ -15,19 +15,24 @@ async function mainAsync() {
   let config = await loadConfigAsync();
   let db = AnalyticsDB.fromFile(config["db.file"]);
 
-  function saveLogEntry(logEntry) {
-    if (!(logEntry.httpMethod === "GET" && logEntry.finalStatus === 200)) {
-      return;
-    }
-    if (isbot(logEntry["Apache_User-Agent"])) {
-      return;
-    }
-    db.addWebDownload({
-      timestamp: logEntry.requestTimestamp,
-      url: `https://${logEntry.serverName}${logEntry.uri}`,
-      downloaderIP: logEntry.remoteHostName,
-      downloaderUserAgent: logEntry["Apache_User-Agent"],
-    });
+  let importedLogs = 0;
+  function saveLogEntry(logEntries) {
+    logEntries = logEntries.filter(
+      (logEntry) =>
+        logEntry.httpMethod === "GET" &&
+        logEntry.finalStatus === 200 &&
+        !isbot(logEntry["Apache_User-Agent"])
+    );
+
+    db.addWebDownloadBatch(
+      logEntries.map((logEntry) => ({
+        timestamp: logEntry.requestTimestamp,
+        url: `https://${logEntry.serverName}${logEntry.uri}`,
+        downloaderIP: logEntry.remoteHostName,
+        downloaderUserAgent: logEntry["Apache_User-Agent"],
+      }))
+    );
+    importedLogs += logEntries.length;
   }
 
   for (let logFile of await globAsync(config["apache2.log_files"])) {
@@ -43,6 +48,8 @@ async function mainAsync() {
       );
     });
   }
+
+  console.log(`imported ${importedLogs} logs from Apache`);
 
   db.close();
 }

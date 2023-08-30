@@ -8,10 +8,13 @@ import zlib from "node:zlib";
 
 let pipe = nodeUtil.promisify(stream.pipeline);
 
-// Calls onLogEntry for each log entry found in the given file.
+let batchSize = 10000;
+
+// Calls onLogEntries zero or more times. Each call receives an array of one or
+// more log entries found in the given file.
 //
-// onLogEntry might return the same object each call.
-export async function parseLogFileAsync(path, logFormat, onLogEntry) {
+// onLogEntries might return the same array and subobjects each call.
+export async function parseLogFileAsync(path, logFormat, onLogEntries) {
   if (
     !(
       logFormat.type === "apache" &&
@@ -22,20 +25,28 @@ export async function parseLogFileAsync(path, logFormat, onLogEntry) {
     throw new Error("unsupported log format");
   }
   let logData = await readPossiblyGZippedFileAsTextAsync(path);
-  let entry = {
-    serverName: "",
-    remoteHostName: "",
-    remoteLogname: "",
-    remoteUser: "",
-    requestTimestamp: null,
-    httpMethod: "",
-    uri: "",
-    httpVersion: "",
-    finalStatus: 0,
-    responseBodySize: 0,
-    Apache_Referer: "",
-    "Apache_User-Agent": "",
-  };
+
+  let entries = [];
+  for (
+    let batchEntryIndex = 0;
+    batchEntryIndex < batchSize;
+    ++batchEntryIndex
+  ) {
+    entries.push({
+      serverName: "",
+      remoteHostName: "",
+      remoteLogname: "",
+      remoteUser: "",
+      requestTimestamp: null,
+      httpMethod: "",
+      uri: "",
+      httpVersion: "",
+      finalStatus: 0,
+      responseBodySize: 0,
+      Apache_Referer: "",
+      "Apache_User-Agent": "",
+    });
+  }
 
   let stringIndex = 0;
   let valid = true;
@@ -98,6 +109,7 @@ export async function parseLogFileAsync(path, logFormat, onLogEntry) {
     return result;
   }
 
+  let batchEntryIndex = 0;
   // TODO(strager): Make this parser robust in case components are missing.
   while (stringIndex < logData.length) {
     nextLineIndex = logData.indexOf("\n", stringIndex);
@@ -107,6 +119,8 @@ export async function parseLogFileAsync(path, logFormat, onLogEntry) {
       nextLineIndex += 1;
     }
     valid = true;
+
+    let entry = entries[batchEntryIndex];
 
     // Example:
     // c.quick-lint-js.com 114.119.132.159 - - [25/Aug/2023:03:05:22 +0000] "GET /builds/8ce11369a188603c3b8f95305a25752009029eae/?C=M%3BO%3DA HTTP/1.1" 200 643 "https://c.quick-lint-js.com/builds/8ce11369a188603c3b8f95305a25752009029eae/?C=D%3BO%3DA" "Mozilla/5.0 (Linux; Android 7.0;) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; PetalBot;+https://webmaster.petalsearch.com/site/petalbot)"
@@ -140,10 +154,18 @@ export async function parseLogFileAsync(path, logFormat, onLogEntry) {
       valid = false;
     }
     if (valid) {
-      onLogEntry(entry);
+      batchEntryIndex += 1;
+      if (batchEntryIndex === entries.length) {
+        onLogEntries(entries);
+        batchEntryIndex = 0;
+      }
     }
 
     stringIndex = nextLineIndex;
+  }
+
+  if (batchEntryIndex > 0) {
+    onLogEntries(entries.slice(0, batchEntryIndex));
   }
 }
 

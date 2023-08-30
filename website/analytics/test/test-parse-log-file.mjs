@@ -12,11 +12,13 @@ let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
 async function parseLogFileToArrayAsync(path, logFormat) {
-  let logEntries = [];
-  await parseLogFileAsync(path, logFormat, (logEntry) => {
-    logEntries.push({ ...logEntry });
+  let allLogEntries = [];
+  await parseLogFileAsync(path, logFormat, (logEntries) => {
+    for (let logEntry of logEntries) {
+      allLogEntries.push({ ...logEntry });
+    }
   });
-  return logEntries;
+  return allLogEntries;
 }
 
 describe("parseLogFileAsync", () => {

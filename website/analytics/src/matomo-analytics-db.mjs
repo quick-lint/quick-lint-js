@@ -5,6 +5,8 @@ import mariadb from "mariadb";
 
 let sql = String.raw;
 
+let batchSize = 10000;
+
 export class MatomoAnalyticsDB {
   #mariaDBConnection;
 
@@ -28,7 +30,11 @@ export class MatomoAnalyticsDB {
     this.#mariaDBConnection.end();
   }
 
-  async enumerateDownloadsAsync(onDownload) {
+  // Calls onDownloads zero or more times. Each call receives an array of one or
+  // more Matomo visitor actions found in the database.
+  //
+  // onDownloads might return the same array and subobjects each call.
+  async enumerateDownloadsAsync(onDownloads) {
     let rows = await this.#mariaDBConnection.query(sql`
       SELECT
         UNIX_TIMESTAMP(matomo_log_link_visit_action.server_time) * 1000 AS timestamp,
@@ -49,8 +55,8 @@ export class MatomoAnalyticsDB {
       WHERE
         matomo_log_action.name IS NOT NULL
     `);
-    for (let row of rows) {
-      onDownload(row);
+    for (let i = 0; i < rows.length; i += batchSize) {
+      onDownloads(rows.slice(i, i + batchSize));
     }
   }
 }
