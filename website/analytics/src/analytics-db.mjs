@@ -7,6 +7,8 @@ let sql = String.raw;
 
 export class AnalyticsDB {
   #sqlite3DB;
+  #insertDownloadableQuery;
+  #checkDownloadConflictQuery;
 
   constructor(sqlite3DB) {
     this.#sqlite3DB = sqlite3DB;
@@ -59,6 +61,35 @@ export class AnalyticsDB {
         `
       )
       .run();
+
+    this.#insertDownloadableQuery = this.#sqlite3DB.prepare(
+      sql`
+        INSERT INTO downloadable (url)
+        VALUES (@url)
+        ON CONFLICT (url) DO
+        UPDATE SET url = url
+        RETURNING id
+      `
+    );
+
+    this.#checkDownloadConflictQuery = this.#sqlite3DB.prepare(
+      sql`
+        SELECT
+          download.id AS download_id,
+          downloader_user_agent IS NULL AS downloader_user_agent_is_null
+        FROM download
+        WHERE
+          timestamp = @timestamp
+          AND downloader_ip = @downloader_ip
+          AND downloadable_id = @downloadable_id
+          AND (
+            downloader_user_agent IS NULL
+            OR @downloader_user_agent IS NULL
+            OR downloader_user_agent = @downloader_user_agent
+          )
+        LIMIT 1
+      `
+    );
   }
 
   static fromFile(path) {
@@ -83,19 +114,9 @@ export class AnalyticsDB {
   }
 
   addWebDownload({ timestamp, url, downloaderIP, downloaderUserAgent }) {
-    let insertResult = this.#sqlite3DB
-      .prepare(
-        sql`
-          INSERT INTO downloadable (url)
-          VALUES (@url)
-          ON CONFLICT (url) DO
-          UPDATE SET url = url
-          RETURNING id
-        `
-      )
-      .get({
-        url: url,
-      });
+    let insertResult = this.#insertDownloadableQuery.get({
+      url: url,
+    });
     let downloadableID = insertResult.id;
 
     let parameters = {
@@ -105,26 +126,7 @@ export class AnalyticsDB {
       downloadable_id: downloadableID,
     };
     // TODO(strager): Put this query and the following query into a transation.
-    let conflictResult = this.#sqlite3DB
-      .prepare(
-        sql`
-          SELECT
-            download.id AS download_id,
-            downloader_user_agent IS NULL AS downloader_user_agent_is_null
-          FROM download
-          WHERE
-            timestamp = @timestamp
-            AND downloader_ip = @downloader_ip
-            AND downloadable_id = @downloadable_id
-            AND (
-              downloader_user_agent IS NULL
-              OR @downloader_user_agent IS NULL
-              OR downloader_user_agent = @downloader_user_agent
-            )
-          LIMIT 1
-        `
-      )
-      .get(parameters);
+    let conflictResult = this.#checkDownloadConflictQuery.get(parameters);
     if (conflictResult === undefined) {
       this.#sqlite3DB
         .prepare(
