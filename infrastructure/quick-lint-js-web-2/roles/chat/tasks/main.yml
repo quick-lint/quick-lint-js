@@ -39,8 +39,7 @@
     group: qljs-chat-sync
     mode: "0600"
   become: true
-  # NOTE(strager): 'become_user: qljs-chat-sync' leads to permission errors for
-  # some reason. Make the config file as root instead.
+  become_user: qljs-chat-sync
 
 - name: Install chat sync services
   ansible.builtin.copy:

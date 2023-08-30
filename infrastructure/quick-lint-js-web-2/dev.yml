@@ -9,6 +9,7 @@
     apache_dev_tld: .developer.app
   gather_facts: false
   roles:
+    - acl
     - mariadb
     - php
     - apache
