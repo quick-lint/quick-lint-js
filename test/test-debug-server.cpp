@@ -181,7 +181,7 @@ TEST_F(Test_Debug_Server,
           event.vector_max_size_histogram_by_owner_event.entries;
       EXPECT_EQ(entries.size(), 1);
       if (entries.size() > 0) {
-        EXPECT_EQ(entries[0].owner, "debug server test vector"sv);
+        EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
         EXPECT_THAT(entries[0].max_size_entries,
                     ::testing::ElementsAreArray({
                         Trace_Vector_Max_Size_Histogram_Entry{.max_size = 0,
@@ -255,7 +255,7 @@ TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
           event.vector_max_size_histogram_by_owner_event.entries;
       EXPECT_EQ(entries.size(), 1);
       if (entries.size() > 0) {
-        EXPECT_EQ(entries[0].owner, "debug server test vector");
+        EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
         EXPECT_THAT(entries[0].max_size_entries,
                     ::testing::ElementsAreArray({
                         Trace_Vector_Max_Size_Histogram_Entry{.max_size = 2,

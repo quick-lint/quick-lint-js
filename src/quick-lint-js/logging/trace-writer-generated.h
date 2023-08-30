@@ -195,7 +195,7 @@ inline void Trace_Writer::write_Trace_Vector_Max_Size_Histogram_Entry(
 
 inline void Trace_Writer::write_Trace_Vector_Max_Size_Histogram_By_Owner_Entry(
       const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& s) {
-  this->write_utf8_zstring(to_string8_view(s.owner));
+  this->write_utf8_zstring(s.owner);
   this->append_binary(8, [&](Binary_Writer& w) {
     w.u64_le(narrow_cast<std::uint64_t>(s.max_size_entries.size()));
   });

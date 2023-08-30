@@ -292,21 +292,21 @@ TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
   EXPECT_THAT(hist,
               ElementsAreArray({
                   Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-                      .owner = "first",
+                      .owner = u8"first"_sv,
                       .max_size_entries =
                           Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                               {.max_size = 3, .count = 1},
                           }),
                   },
                   Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-                      .owner = "second",
+                      .owner = u8"second"_sv,
                       .max_size_entries =
                           Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                               {.max_size = 5, .count = 1},
                           }),
                   },
                   Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-                      .owner = "third",
+                      .owner = u8"third"_sv,
                       .max_size_entries =
                           Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                               {.max_size = 0, .count = 1},
@@ -356,7 +356,7 @@ TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
   EXPECT_THAT(hist,
               ElementsAreArray({
                   Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-                      .owner = owner,
+                      .owner = to_string8_view(owner),
                       .max_size_entries =
                           Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                               {.max_size = 5, .count = 1},
@@ -399,7 +399,7 @@ TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
   EXPECT_THAT(hist,
               ElementsAreArray({
                   Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-                      .owner = owner,
+                      .owner = to_string8_view(owner),
                       .max_size_entries =
                           Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                               {.max_size = 10, .count = 1},
@@ -452,7 +452,7 @@ TEST_F(
   EXPECT_THAT(hist,
               ElementsAreArray({
                   Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-                      .owner = owner,
+                      .owner = to_string8_view(owner),
                       .max_size_entries =
                           Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                               {.max_size = 4, .count = 1},
@@ -505,7 +505,7 @@ TEST_F(
   EXPECT_THAT(hist,
               ElementsAreArray({
                   Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-                      .owner = owner,
+                      .owner = to_string8_view(owner),
                       .max_size_entries =
                           Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                               {.max_size = 2, .count = 1},
@@ -567,7 +567,7 @@ TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
   EXPECT_THAT(hist,
               ElementsAreArray({
                   Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-                      .owner = owner,
+                      .owner = to_string8_view(owner),
                       .max_size_entries =
                           Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                               {.max_size = size, .count = 3},
@@ -590,7 +590,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-              .owner = "test group",
+              .owner = u8"test group"_sv,
               .max_size_entries =
                   Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                       {.max_size = 0, .count = 3},
@@ -613,7 +613,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-              .owner = "test group",
+              .owner = u8"test group"_sv,
               .max_size_entries =
                   Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                       {.max_size = 0, .count = 2},
@@ -632,7 +632,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-              .owner = "group A",
+              .owner = u8"group A"_sv,
               .max_size_entries =
                   Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                       {.max_size = 0, .count = 3},
@@ -640,7 +640,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
                   }),
           },
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-              .owner = "group B",
+              .owner = u8"group B"_sv,
               .max_size_entries =
                   Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                       {.max_size = 0, .count = 2},
@@ -665,7 +665,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-              .owner = "test group",
+              .owner = u8"test group"_sv,
               .max_size_entries =
                   Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                       {.max_size = 1, .count = 1},
@@ -696,7 +696,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-              .owner = "test group",
+              .owner = u8"test group"_sv,
               .max_size_entries =
                   Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                       {.max_size = 3, .count = 1},
@@ -720,7 +720,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-              .owner = "test group",
+              .owner = u8"test group"_sv,
               .max_size_entries =
                   Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                       {.max_size = 0, .count = 100},
@@ -748,7 +748,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-              .owner = "test group",
+              .owner = u8"test group"_sv,
               .max_size_entries =
                   Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                       {.max_size = 0, .count = 1},
@@ -777,7 +777,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-              .owner = "test group",
+              .owner = u8"test group"_sv,
               .max_size_entries =
                   Span<const Trace_Vector_Max_Size_Histogram_Entry>({
                       {.max_size = 100, .count = 99999},

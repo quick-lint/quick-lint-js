@@ -187,7 +187,7 @@ Vector_Max_Size_Histogram_By_Owner::histogram(
     }
     out_entries_by_owner.push_back(
         Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-            .owner = owner,
+            .owner = to_string8_view(owner),
             .max_size_entries = out_entries.release_to_span(),
         });
   }
@@ -212,7 +212,7 @@ void Vector_Max_Size_Histogram_By_Owner::dump(
     }
     need_blank_line = true;
 
-    out << "Max sizes for " << group_name << ":\n";
+    out << "Max sizes for " << out_string8(group_name) << ":\n";
 
     std::uint64_t max_count = 0;
     std::uint64_t total_count = 0;

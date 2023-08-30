@@ -44,7 +44,7 @@ Trace_Vector_Max_Size_Histogram_Entry parse_Trace_Vector_Max_Size_Histogram_Entr
 
 Trace_Vector_Max_Size_Histogram_By_Owner_Entry parse_Trace_Vector_Max_Size_Histogram_By_Owner_Entry(Checked_Binary_Reader& r, [[maybe_unused]] Trace_Reader* self) {
   return Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
-      .owner = to_string_view(self->parse_utf8_zstring(r)),
+      .owner = self->parse_utf8_zstring(r),
       .max_size_entries = self->parse_array<Trace_Vector_Max_Size_Histogram_Entry>(r, [&]() { return parse_Trace_Vector_Max_Size_Histogram_Entry(r, self); }),
   };
 }

@@ -139,7 +139,7 @@ Trace_Vector_Max_Size_Histogram_Entry {
 struct [[qljs::trace_ctf_name("vector_max_size_histogram_by_owner_entry")]]  //
 Trace_Vector_Max_Size_Histogram_By_Owner_Entry {
   [[qljs::trace_zero_terminated]]  //
-  std::string_view owner;
+  String8_View owner;
   [[qljs::trace_ctf_size_name("max_size_entry_count")]]  //
   Span<const Trace_Vector_Max_Size_Histogram_Entry>
       max_size_entries;

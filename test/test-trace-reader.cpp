@@ -419,14 +419,14 @@ TEST(Test_Trace_Reader, vector_max_size_histogram_by_owner_event) {
   EXPECT_EQ(events[1].header.timestamp, 0x5678);
 
   ASSERT_EQ(event.entries.size(), 2);
-  EXPECT_EQ(event.entries[0].owner, "o1"sv);
+  EXPECT_EQ(event.entries[0].owner, u8"o1"_sv);
   EXPECT_THAT(
       event.entries[0].max_size_entries,
       ElementsAreArray({
           Trace_Vector_Max_Size_Histogram_Entry{.max_size = 0, .count = 4},
           Trace_Vector_Max_Size_Histogram_Entry{.max_size = 1, .count = 3},
       }));
-  EXPECT_EQ(event.entries[1].owner, "o2"sv);
+  EXPECT_EQ(event.entries[1].owner, u8"o2"_sv);
   EXPECT_THAT(
       event.entries[1].max_size_entries,
       ElementsAreArray({

@@ -336,12 +336,12 @@ TEST(Test_Trace_Writer, write_event_vector_max_size_histogram_by_owner) {
   };
   Trace_Vector_Max_Size_Histogram_By_Owner_Entry entries[] = {
       {
-          .owner = "o1",
+          .owner = u8"o1"_sv,
           .max_size_entries =
               Span<const Trace_Vector_Max_Size_Histogram_Entry>(o1_entries),
       },
       {
-          .owner = "o2",
+          .owner = u8"o2"_sv,
           .max_size_entries =
               Span<const Trace_Vector_Max_Size_Histogram_Entry>(o2_entries),
       },
