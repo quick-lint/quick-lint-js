@@ -35,6 +35,7 @@ function (quick_lint_js_add_build_tool_executable NAME)
     quick_lint_js_add_executable("${NAME}" ${SOURCES})
     set_target_properties("${NAME}" PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
     target_link_libraries("${NAME}" PRIVATE quick-lint-js-tool-lib)
+    target_include_directories("${NAME}" PRIVATE .)
   endif ()
 
   list(APPEND QUICK_LINT_JS_BUILD_TOOL_TARGETS "${NAME}")

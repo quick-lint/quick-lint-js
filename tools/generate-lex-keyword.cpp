@@ -23,6 +23,7 @@
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/fe/keyword-lexer.h>
 #include <quick-lint-js/fe/keyword-list.h>
+#include <quick-lint-js/generated-source.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/bit.h>
@@ -234,10 +235,11 @@ void dump_table_code(const Hash_Table& t, const String_Table& strings,
 // source: src/quick-lint-js/fe/keyword-lexer.h
 // source: src/quick-lint-js/fe/keyword-list.h
 
-// Copyright (C) 2020  Matthew "strager" Glazar
-// See end of file for extended copyright information.
+)"_sv);
+  write_file_copyright_begin(out);
 
-#include <cstddef>
+  out.append_literal(
+      u8R"(#include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/fe/keyword-lexer.h>
 #include <quick-lint-js/fe/lex.h>
@@ -352,26 +354,7 @@ Token_Type Lexer::identifier_token_type(String8_View identifier) {
 }
 )"_sv);
 
-  out.append_literal(
-      u8R"(
-// quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew "strager" Glazar
-//
-// This file is part of quick-lint-js.
-//
-// quick-lint-js is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// quick-lint-js is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
-)"_sv);
+  write_file_copyright_end(out);
 }
 
 void dump_table_code(const Hash_Table& t, const String_Table& strings,
