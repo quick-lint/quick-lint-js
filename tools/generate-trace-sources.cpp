@@ -176,11 +176,9 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
       this->skip();
       this->expect_skip(CXX_Token_Type::less);
       this->expect_skip(u8"class"_sv);
-      this->expect(CXX_Token_Type::identifier);
       Bump_Vector<String8_View, Monotonic_Allocator> template_parameters(
           "template_parameters", &this->memory_);
-      template_parameters.emplace_back(this->peek().identifier);
-      this->skip();
+      template_parameters.emplace_back(this->expect_skip_identifier());
       this->expect_skip(CXX_Token_Type::greater);
       s.template_parameters = template_parameters.release_to_span();
     }
@@ -203,9 +201,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
       this->expect_skip(CXX_Token_Type::right_square);
     }
 
-    this->expect(CXX_Token_Type::identifier);
-    s.cxx_name = this->peek().identifier;
-    this->skip();
+    s.cxx_name = this->expect_skip_identifier();
 
     this->expect_skip(CXX_Token_Type::left_curly);
     Bump_Vector<Parsed_Struct_Member, Monotonic_Allocator> members(
@@ -258,17 +254,15 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
           this->expect_skip(CXX_Token_Type::left_square);
           this->expect_skip(u8"qljs"_sv);
           this->expect_skip(CXX_Token_Type::colon_colon);
-          this->expect(CXX_Token_Type::identifier);
-          if (this->peek().identifier == u8"trace_ctf_size_name"_sv) {
-            this->skip();
+          String8_View attribute = this->expect_skip_identifier();
+          if (attribute == u8"trace_ctf_size_name"_sv) {
             this->expect_skip(CXX_Token_Type::left_paren);
             this->expect(CXX_Token_Type::string_literal);
             member.ctf_size_name = this->peek().decoded_string;
             this->skip();
             this->expect_skip(CXX_Token_Type::right_paren);
-          } else if (this->peek().identifier == u8"trace_zero_terminated"_sv) {
+          } else if (attribute == u8"trace_zero_terminated"_sv) {
             member.type_is_zero_terminated = true;
-            this->skip();
           } else {
             this->fatal("unknown attribute");
           }
@@ -314,9 +308,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
           this->expect_skip(CXX_Token_Type::greater);
         }
 
-        this->expect(CXX_Token_Type::identifier);
-        member.cxx_name = this->peek().identifier;
-        this->skip();
+        member.cxx_name = this->expect_skip_identifier();
 
         this->expect_skip(CXX_Token_Type::semicolon);
       }
@@ -354,17 +346,13 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
       this->expect_skip(CXX_Token_Type::right_square);
     }
 
-    this->expect(CXX_Token_Type::identifier);
-    e.cxx_name = this->peek().identifier;
-    this->skip();
+    e.cxx_name = this->expect_skip_identifier();
 
     this->expect_skip(CXX_Token_Type::colon);
 
     this->expect_skip(u8"std"_sv);
     this->expect_skip(CXX_Token_Type::colon_colon);
-    this->expect(CXX_Token_Type::identifier);
-    e.underlying_cxx_type = this->peek().identifier;
-    this->skip();
+    e.underlying_cxx_type = this->expect_skip_identifier();
 
     this->expect_skip(CXX_Token_Type::left_curly);
     Bump_Vector<Parsed_Enum_Member, Monotonic_Allocator> members(
@@ -373,9 +361,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
       // name = 42,
       Parsed_Enum_Member& member = members.emplace_back();
 
-      this->expect(CXX_Token_Type::identifier);
-      member.cxx_name = this->peek().identifier;
-      this->skip();
+      member.cxx_name = this->expect_skip_identifier();
 
       this->expect_skip(CXX_Token_Type::equal);
 
@@ -401,9 +387,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
 
     this->expect_skip(u8"using"_sv);
 
-    this->expect(CXX_Token_Type::identifier);
-    type_alias.cxx_name = this->peek().identifier;
-    this->skip();
+    type_alias.cxx_name = this->expect_skip_identifier();
 
     if (this->peek().type == CXX_Token_Type::left_square) {
       // [[qljs::trace_ctf_name("document_id")]]
@@ -436,9 +420,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
       this->skip();
       this->expect_skip(CXX_Token_Type::colon_colon);
     }
-    this->expect(CXX_Token_Type::identifier);
-    String8_View type_name = this->peek().identifier;
-    this->skip();
+    String8_View type_name = this->expect_skip_identifier();
     return type_name;
   }
 

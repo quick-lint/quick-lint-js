@@ -151,6 +151,8 @@ class CXX_Parser_Base {
   void expect(CXX_Token_Type expected_token_type);
   void expect_skip(String8_View expected_identifier);
 
+  String8_View expect_skip_identifier();
+
  public:
   void error_at(const Char8* location, const char* message, ...);
   void error_at_v(const Char8* location, const char* message, std::va_list);

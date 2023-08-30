@@ -451,6 +451,13 @@ void CXX_Parser_Base::expect_skip(String8_View expected_identifier) {
   this->skip();
 }
 
+String8_View CXX_Parser_Base::expect_skip_identifier() {
+  this->expect(CXX_Token_Type::identifier);
+  String8_View identifier = this->peek().identifier;
+  this->skip();
+  return identifier;
+}
+
 void CXX_Parser_Base::error_at(const Char8* location, const char* message,
                                ...) {
   std::va_list args;
@@ -494,9 +501,7 @@ void CXX_Diagnostic_Types_Parser::parse_file() {
       // struct Diag_Name { ... };
       this->skip();
 
-      this->expect(CXX_Token_Type::identifier);
-      String8_View diagnostic_struct_name = this->peek().identifier;
-      this->skip();
+      String8_View diagnostic_struct_name = this->expect_skip_identifier();
 
       this->expect_skip(CXX_Token_Type::left_curly);
       this->parse_diagnostic_struct_body(diagnostic_struct_name);
@@ -526,17 +531,16 @@ void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
 
   for (;;) {
     switch (this->peek().type) {
-    case CXX_Token_Type::left_square:
+    case CXX_Token_Type::left_square: {
       // [[qljs:: ... ]]
       this->skip();
       this->expect_skip(CXX_Token_Type::left_square);
 
       this->expect_skip(u8"qljs"_sv);
       this->expect_skip(CXX_Token_Type::colon_colon);
-      this->expect(CXX_Token_Type::identifier);
-      if (this->peek().identifier == u8"diag"_sv) {
+      String8_View attribute = this->expect_skip_identifier();
+      if (attribute == u8"diag"_sv) {
         // [[qljs::diag("E0666", Diagnostic_Severity::warning)]]
-        this->skip();
         this->expect_skip(CXX_Token_Type::left_paren);
 
         this->expect(CXX_Token_Type::string_literal);
@@ -547,15 +551,12 @@ void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
         this->expect_skip(u8"Diagnostic_Severity"_sv);
         this->expect_skip(CXX_Token_Type::colon_colon);
 
-        this->expect(CXX_Token_Type::identifier);
-        type.severity = this->peek().identifier;
-        this->skip();
+        type.severity = this->expect_skip_identifier();
 
         this->expect_skip(CXX_Token_Type::right_paren);
-      } else if (this->peek().identifier == u8"message"_sv) {
+      } else if (attribute == u8"message"_sv) {
         // [[qljs::message("string", ARG(a))]]
         // [[qljs::message("string", ARG(a), ARG(b), ARG(c))]]
-        this->skip();
         this->expect_skip(CXX_Token_Type::left_paren);
 
         CXX_Diagnostic_Message& message = type.messages.emplace_back();
@@ -569,9 +570,7 @@ void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
       another_argument:
         this->expect_skip(u8"ARG"_sv);
         this->expect_skip(CXX_Token_Type::left_paren);
-        this->expect(CXX_Token_Type::identifier);
-        message.argument_variables.push_back(this->peek().identifier);
-        this->skip();
+        message.argument_variables.push_back(this->expect_skip_identifier());
         this->expect_skip(CXX_Token_Type::right_paren);
         if (this->peek().type == CXX_Token_Type::comma) {
           this->skip();
@@ -580,24 +579,21 @@ void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
 
         this->expect_skip(CXX_Token_Type::right_paren);
       } else {
-        this->fatal("error: expected qljs::diag or qljs::message");
+        this->fatal_at(attribute.data(),
+                       "error: expected qljs::diag or qljs::message");
       }
       this->expect_skip(CXX_Token_Type::right_square);
       this->expect_skip(CXX_Token_Type::right_square);
       break;
+    }
 
     case CXX_Token_Type::identifier: {
       // Source_Code_Span where;
       // Statement_Kind kind_of_statement;
       CXX_Diagnostic_Variable& var = type.variables.emplace_back();
 
-      var.type = this->peek().identifier;
-      this->skip();
-
-      this->expect(CXX_Token_Type::identifier);
-      var.name = this->peek().identifier;
-      this->skip();
-
+      var.type = this->expect_skip_identifier();
+      var.name = this->expect_skip_identifier();
       this->expect_skip(CXX_Token_Type::semicolon);
       break;
     }
