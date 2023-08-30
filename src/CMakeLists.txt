@@ -103,7 +103,7 @@ if (TARGET quick-lint-js-generate-trace-sources)
     DEPENDS
       quick-lint-js-generate-trace-sources
       "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-types.h"
-    COMMENT "Generating metadata files and parsers for tracing"
+    COMMENT "Generating metadata files, parsers, and writers for tracing"
   )
 endif ()
 
