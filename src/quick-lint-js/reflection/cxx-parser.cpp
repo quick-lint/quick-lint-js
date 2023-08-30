@@ -414,12 +414,12 @@ CXX_Parser_Base::CXX_Parser_Base(Padded_String_View input,
 
 void CXX_Parser_Base::skip_preprocessor_directives() {
 again:
-  if (this->peek().type == CXX_Token_Type::identifier) {
-    if (this->peek().identifier == u8"QLJS_WARNING_PUSH") {
+  if (this->peek_is(CXX_Token_Type::identifier)) {
+    if (this->peek_is(u8"QLJS_WARNING_PUSH")) {
       this->skip();
       goto again;
-    } else if (this->peek().identifier == u8"QLJS_WARNING_IGNORE_CLANG" ||
-               this->peek().identifier == u8"QLJS_WARNING_IGNORE_GCC") {
+    } else if (this->peek_is(u8"QLJS_WARNING_IGNORE_CLANG") ||
+               this->peek_is(u8"QLJS_WARNING_IGNORE_GCC")) {
       this->skip();
       this->expect_skip(CXX_Token_Type::left_paren);
       this->expect_skip(CXX_Token_Type::string_literal);
@@ -429,21 +429,29 @@ again:
   }
 }
 
+bool CXX_Parser_Base::peek_is(CXX_Token_Type token_type) {
+  return this->peek().type == token_type;
+}
+
+bool CXX_Parser_Base::peek_is(String8_View identifier) {
+  return this->peek().type == CXX_Token_Type::identifier &&
+         this->peek().identifier == identifier;
+}
+
 void CXX_Parser_Base::expect_skip(CXX_Token_Type expected_token_type) {
   this->expect(expected_token_type);
   this->skip();
 }
 
 void CXX_Parser_Base::expect(CXX_Token_Type expected_token_type) {
-  if (this->peek().type != expected_token_type) {
+  if (!this->peek_is(expected_token_type)) {
     std::string_view t = to_string(expected_token_type);
     this->fatal("error: expected %.*s", narrow_cast<int>(t.size()), t.data());
   }
 }
 
 void CXX_Parser_Base::expect_skip(String8_View expected_identifier) {
-  if (this->peek().type != CXX_Token_Type::identifier ||
-      this->peek().identifier != expected_identifier) {
+  if (!this->peek_is(expected_identifier)) {
     this->fatal("expected identifier '%.*s'",
                 narrow_cast<int>(expected_identifier.size()),
                 reinterpret_cast<const char*>(expected_identifier.data()));
@@ -495,9 +503,8 @@ void CXX_Diagnostic_Types_Parser::parse_file() {
   this->expect_skip(u8"quick_lint_js");
   this->expect_skip(CXX_Token_Type::left_curly);
 
-  while (this->peek().type != CXX_Token_Type::right_curly) {
-    if (this->peek().type == CXX_Token_Type::identifier &&
-        this->peek().identifier == u8"struct"_sv) {
+  while (!this->peek_is(CXX_Token_Type::right_curly)) {
+    if (this->peek_is(u8"struct"_sv)) {
       // struct Diag_Name { ... };
       this->skip();
 
@@ -507,8 +514,7 @@ void CXX_Diagnostic_Types_Parser::parse_file() {
       this->parse_diagnostic_struct_body(diagnostic_struct_name);
       this->expect_skip(CXX_Token_Type::right_curly);
       this->expect_skip(CXX_Token_Type::semicolon);
-    } else if (this->peek().type == CXX_Token_Type::identifier &&
-               this->peek().identifier == u8"QLJS_RESERVED_DIAG"_sv) {
+    } else if (this->peek_is(u8"QLJS_RESERVED_DIAG"_sv)) {
       // QLJS_RESERVED_DIAG("E0242")
       this->skip();
       this->expect_skip(CXX_Token_Type::left_paren);
@@ -572,7 +578,7 @@ void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
         this->expect_skip(CXX_Token_Type::left_paren);
         message.argument_variables.push_back(this->expect_skip_identifier());
         this->expect_skip(CXX_Token_Type::right_paren);
-        if (this->peek().type == CXX_Token_Type::comma) {
+        if (this->peek_is(CXX_Token_Type::comma)) {
           this->skip();
           goto another_argument;
         }

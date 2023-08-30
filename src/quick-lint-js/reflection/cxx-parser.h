@@ -147,6 +147,9 @@ class CXX_Parser_Base {
   const CXX_Token& peek() { return this->lexer_.peek(); }
   void skip() { this->lexer_.skip(); }
 
+  bool peek_is(CXX_Token_Type);
+  bool peek_is(String8_View identifier);
+
   void expect_skip(CXX_Token_Type expected_token_type);
   void expect(CXX_Token_Type expected_token_type);
   void expect_skip(String8_View expected_identifier);

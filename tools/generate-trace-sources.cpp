@@ -128,26 +128,21 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
     this->expect_skip(u8"quick_lint_js");
     this->expect_skip(CXX_Token_Type::left_curly);
 
-    while (this->peek().type != CXX_Token_Type::right_curly) {
-      if (this->peek().type == CXX_Token_Type::identifier &&
-          (this->peek().identifier == u8"struct"_sv ||
-           this->peek().identifier == u8"template"_sv)) {
+    while (!this->peek_is(CXX_Token_Type::right_curly)) {
+      if (this->peek_is(u8"struct"_sv) || this->peek_is(u8"template"_sv)) {
         // struct Trace_Foo { };
         this->parse_struct();
-      } else if (this->peek().type == CXX_Token_Type::identifier &&
-                 this->peek().identifier == u8"enum"_sv) {
+      } else if (this->peek_is(u8"enum"_sv)) {
         // enum class Foo : std::uint8_t { };
         this->parse_enum();
-      } else if (this->peek().type == CXX_Token_Type::identifier &&
-                 this->peek().identifier == u8"using"_sv) {
+      } else if (this->peek_is(u8"using"_sv)) {
         // using A = B;
         this->parse_type_alias();
-      } else if (this->peek().type == CXX_Token_Type::identifier &&
-                 this->peek().identifier == u8"inline"_sv) {
+      } else if (this->peek_is(u8"inline"_sv)) {
         // inline constexpr int x = 42;
         this->skip();
         this->expect_skip(u8"constexpr"_sv);
-        while (this->peek().type != CXX_Token_Type::semicolon) {
+        while (!this->peek_is(CXX_Token_Type::semicolon)) {
           this->skip();
         }
         this->skip();
@@ -171,7 +166,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
 
     this->expect(CXX_Token_Type::identifier);
 
-    if (this->peek().identifier == u8"template"_sv) {
+    if (this->peek_is(u8"template"_sv)) {
       // template <class Foo, class Bar>
       this->skip();
       this->expect_skip(CXX_Token_Type::less);
@@ -185,7 +180,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
 
     this->expect_skip(u8"struct"_sv);
 
-    if (this->peek().type == CXX_Token_Type::left_square) {
+    if (this->peek_is(CXX_Token_Type::left_square)) {
       // [[qljs::trace_ctf_name("lsp_documents")]]
       this->skip();
       this->expect_skip(CXX_Token_Type::left_square);
@@ -206,9 +201,8 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
     this->expect_skip(CXX_Token_Type::left_curly);
     Bump_Vector<Parsed_Struct_Member, Monotonic_Allocator> members(
         "members", &this->memory_);
-    while (this->peek().type != CXX_Token_Type::right_curly) {
-      if (this->peek().type == CXX_Token_Type::identifier &&
-          this->peek().identifier == u8"static"_sv) {
+    while (!this->peek_is(CXX_Token_Type::right_curly)) {
+      if (this->peek_is(u8"static"_sv)) {
         // static constexpr std::uint8_t id = 0x03;
         this->skip();
         this->expect_skip(u8"constexpr"_sv);
@@ -221,21 +215,20 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
         s.id = this->peek().decoded_number;
         this->skip();
         this->expect_skip(CXX_Token_Type::semicolon);
-      } else if (this->peek().type == CXX_Token_Type::identifier &&
-                 this->peek().identifier == u8"friend"_sv) {
+      } else if (this->peek_is(u8"friend"_sv)) {
         // friend bool operator==(...) { ... }
         // friend bool operator==(...);
         this->skip();
-        while (this->peek().type != CXX_Token_Type::right_paren) {
+        while (!this->peek_is(CXX_Token_Type::right_paren)) {
           this->skip();
         }
         this->skip();
-        if (this->peek().type == CXX_Token_Type::semicolon) {
+        if (this->peek_is(CXX_Token_Type::semicolon)) {
           // friend bool operator==(...);
           this->skip();
         } else {
           // friend bool operator==(...) { ... }
-          while (this->peek().type != CXX_Token_Type::right_curly) {
+          while (!this->peek_is(CXX_Token_Type::right_curly)) {
             this->skip();
           }
           this->skip();
@@ -247,7 +240,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
         // Span<const Foo<String>> foos;
         Parsed_Struct_Member& member = members.emplace_back();
 
-        if (this->peek().type == CXX_Token_Type::left_square) {
+        if (this->peek_is(CXX_Token_Type::left_square)) {
           // [[qljs::trace_ctf_size_name("lsp_documents")]]
           // [[qljs::trace_zero_terminated]]
           this->skip();
@@ -270,8 +263,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
           this->expect_skip(CXX_Token_Type::right_square);
         }
 
-        if (this->peek().type == CXX_Token_Type::identifier &&
-            this->peek().identifier == u8"Span"_sv) {
+        if (this->peek_is(u8"Span"_sv)) {
           // Span<const Foo> foos;
           member.type_is_array = true;
           this->skip();
@@ -295,10 +287,10 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
                          "with string types");
         }
 
-        if (this->peek().type == CXX_Token_Type::less) {
+        if (this->peek_is(CXX_Token_Type::less)) {
           // Foo<String> foo;
           this->skip();
-          while (this->peek().type != CXX_Token_Type::greater) {
+          while (!this->peek_is(CXX_Token_Type::greater)) {
             this->skip();
           }
           this->skip();
@@ -330,7 +322,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
     this->expect_skip(u8"enum"_sv);
     this->expect_skip(u8"class"_sv);
 
-    if (this->peek().type == CXX_Token_Type::left_square) {
+    if (this->peek_is(CXX_Token_Type::left_square)) {
       // [[qljs::trace_ctf_name("lsp_documents")]]
       this->skip();
       this->expect_skip(CXX_Token_Type::left_square);
@@ -357,7 +349,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
     this->expect_skip(CXX_Token_Type::left_curly);
     Bump_Vector<Parsed_Enum_Member, Monotonic_Allocator> members(
         "members", &this->memory_);
-    while (this->peek().type != CXX_Token_Type::right_curly) {
+    while (!this->peek_is(CXX_Token_Type::right_curly)) {
       // name = 42,
       Parsed_Enum_Member& member = members.emplace_back();
 
@@ -389,7 +381,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
 
     type_alias.cxx_name = this->expect_skip_identifier();
 
-    if (this->peek().type == CXX_Token_Type::left_square) {
+    if (this->peek_is(CXX_Token_Type::left_square)) {
       // [[qljs::trace_ctf_name("document_id")]]
       this->skip();
       this->expect_skip(CXX_Token_Type::left_square);
@@ -415,8 +407,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
   // std::uint8_t
   // String8_View
   String8_View parse_simple_type_name() {
-    if (this->peek().type == CXX_Token_Type::identifier &&
-        this->peek().identifier == u8"std"_sv) {
+    if (this->peek_is(u8"std"_sv)) {
       this->skip();
       this->expect_skip(CXX_Token_Type::colon_colon);
     }
