@@ -148,7 +148,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"declare namespace ns { declare enum E { } }"_sv,  //
         u8"                       ^^^^^^^ Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace.declare_keyword\n"_diag
         u8"^^^^^^^ .declare_namespace_declare_keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -164,7 +163,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns { declare const enum E { } }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -180,7 +178,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns { declare const myVariable; }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -194,7 +191,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns { declare let myVariable; }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -208,7 +204,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns { declare var myVariable; }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -222,7 +217,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns { declare class C { myMethod(); } }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",   // {
@@ -242,7 +236,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns { declare abstract class C { } }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",   // {
@@ -259,7 +252,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns { declare interface I { } }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -275,7 +267,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns { declare type T = U; }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",   // {
@@ -292,7 +283,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns { declare function f(); }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -308,7 +298,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare namespace ns1 { declare namespace ns2 { } }"_sv,  //
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
