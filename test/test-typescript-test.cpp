@@ -32,6 +32,18 @@ TEST(Test_TypeScript_Test, one_filename_directive) {
   EXPECT_EQ(units[1].name, u8"banana.ts"_sv);
 }
 
+TEST(Test_TypeScript_Test, one_filename_directive_with_dos_line_endings) {
+  Padded_String file(
+      u8"hello\r\nworld\r\n// @filename: banana.ts\r\nsecond\r\nfile\r\n"_sv);
+  TypeScript_Test_Units units =
+      extract_units_from_typescript_test(std::move(file), u8"testcase.ts"_sv);
+  ASSERT_EQ(units.size(), 2);
+  EXPECT_EQ(units[0].data, u8"hello\r\nworld\r\n"_sv);
+  EXPECT_EQ(units[0].name, u8"testcase.ts"_sv);
+  EXPECT_EQ(units[1].data, u8"second\r\nfile\r\n"_sv);
+  EXPECT_EQ(units[1].name, u8"banana.ts"_sv);
+}
+
 TEST(Test_TypeScript_Test, filename_directive_at_end_of_line_is_ignored) {
   String8_View file_data =
       u8"hello\nworld // @filename: banana.ts\nsecond\nfile\n"_sv;
