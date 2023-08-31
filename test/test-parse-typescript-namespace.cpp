@@ -110,9 +110,10 @@ TEST_F(Test_Parse_TypeScript_Namespace, incomplete_body) {
   }
 
   {
-    Test_Parser p(u8"namespace ns { export "_sv, typescript_options,
-                  capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"namespace ns { export "_sv,                     //
+        u8"             ^ Diag_Unclosed_Code_Block"_diag,  //
+        u8"Diag_Missing_Token_After_Export"_diag, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // implicit }

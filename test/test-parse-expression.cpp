@@ -2748,6 +2748,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     Test_Parser p(u8"x.'foo'"_sv, capture_diags);
     auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0], p.matches_offsets(1, 2));
+    // Ignore p.errors.
   }
 
   {
@@ -2755,6 +2756,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0],
                 p.matches_offsets(u8"x ."_sv.size(), u8"."_sv));
+    // Ignore p.errors.
   }
 
   {
@@ -2770,6 +2772,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     auto* binary = static_cast<Expression::Binary_Operator*>(ast->child_1());
     EXPECT_THAT(binary->operator_spans_[0],
                 p.matches_offsets(u8"f(x"_sv.size(), u8""_sv));
+    // Ignore p.errors.
   }
 
   {
@@ -2777,6 +2780,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0],
                 p.matches_offsets(u8"x.y "_sv.size(), u8"=>"_sv));
+    // Ignore p.errors.
   }
 
   {
@@ -2784,6 +2788,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
     // FIXME(strager): These spans look weird.
     EXPECT_THAT(ast->operator_spans_[0], p.matches_offsets(0, u8"f("_sv));
+    // Ignore p.errors.
   }
 }
 
@@ -3488,6 +3493,9 @@ TEST_F(Test_Parse_Expression, generator_misplaced_star) {
   Test_Parser p(u8"(*function f(){})"_sv, capture_diags);
   Expression* ast = p.parse_expression();
   EXPECT_THAT(ast->child_0()->span(), p.matches_offsets(1, 16));
+  EXPECT_THAT(p.errors,
+              ElementsAreArray({DIAG_TYPE(
+                  Diag_Generator_Function_Star_Belongs_Before_Name)}));
 }
 
 TEST_F(Test_Parse_Expression, unary_cannot_mix_with_star_star) {
@@ -3708,6 +3716,7 @@ TEST_F(Test_Parse_Expression, precedence) {
       Test_Parser p(code, options, capture_diags);
       Expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), expected_ast_summary);
+      // Ignore p.errors.
     }
   };
 
