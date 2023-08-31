@@ -22,9 +22,9 @@ struct Trace_Event_Header {
 };
 
 // 0 is a sentinal value meaning no document ID.
-using Trace_Document_ID [[qljs::trace_ctf_name("document_id")]] = std::uint64_t;
+using Trace_Document_ID = std::uint64_t;
 
-struct [[qljs::trace_ctf_name("init")]] Trace_Event_Init {
+struct Trace_Event_Init {
   static constexpr std::uint8_t id = 0x01;
 
   [[qljs::trace_zero_terminated]]  //
@@ -32,8 +32,7 @@ struct [[qljs::trace_ctf_name("init")]] Trace_Event_Init {
 };
 
 template <class String16>
-struct [[qljs::trace_ctf_name("vscode_document_opened")]]  //
-Trace_Event_VSCode_Document_Opened {
+struct Trace_Event_VSCode_Document_Opened {
   static constexpr std::uint8_t id = 0x02;
 
   Trace_Document_ID document_id;
@@ -43,8 +42,7 @@ Trace_Event_VSCode_Document_Opened {
 };
 
 template <class String16>
-struct [[qljs::trace_ctf_name("vscode_document_closed")]]  //
-Trace_Event_VSCode_Document_Closed {
+struct Trace_Event_VSCode_Document_Closed {
   static constexpr std::uint8_t id = 0x03;
 
   Trace_Document_ID document_id;
@@ -53,23 +51,20 @@ Trace_Event_VSCode_Document_Closed {
 };
 
 // vscode.Position
-struct [[qljs::trace_ctf_name("vscode_document_position")]]  //
-Trace_VSCode_Document_Position {
+struct Trace_VSCode_Document_Position {
   std::uint64_t line;
   std::uint64_t character;
 };
 
 // vscode.Range
-struct [[qljs::trace_ctf_name("vscode_document_range")]]  //
-Trace_VSCode_Document_Range {
+struct Trace_VSCode_Document_Range {
   Trace_VSCode_Document_Position start;
   Trace_VSCode_Document_Position end;
 };
 
 // vscode.TextDocumentContentChangeEvent
 template <class String16>
-struct [[qljs::trace_ctf_name("vscode_document_change")]]  //
-Trace_VSCode_Document_Change {
+struct Trace_VSCode_Document_Change {
   Trace_VSCode_Document_Range range;
   std::uint64_t range_offset;
   std::uint64_t range_length;
@@ -94,8 +89,7 @@ Trace_VSCode_Document_Change {
 
 // vscode.TextDocumentChangeEvent
 template <class String16>
-struct [[qljs::trace_ctf_name("vscode_document_changed")]]  //
-Trace_Event_VSCode_Document_Changed {
+struct Trace_Event_VSCode_Document_Changed {
   static constexpr std::uint8_t id = 0x04;
 
   Trace_Document_ID document_id;                 // Cannot be 0.
@@ -106,8 +100,7 @@ Trace_Event_VSCode_Document_Changed {
 
 // Not related to any particular Visual Studio Code event.
 template <class String16>
-struct [[qljs::trace_ctf_name("vscode_document_sync")]]  //
-Trace_Event_VSCode_Document_Sync {
+struct Trace_Event_VSCode_Document_Sync {
   static constexpr std::uint8_t id = 0x05;
 
   Trace_Document_ID document_id;  // Cannot be 0.
@@ -117,16 +110,14 @@ Trace_Event_VSCode_Document_Sync {
 };
 
 // An LSP message received by quick-lint-js.
-struct [[qljs::trace_ctf_name("lsp_client_to_server_message")]]  //
-Trace_Event_LSP_Client_To_Server_Message {
+struct Trace_Event_LSP_Client_To_Server_Message {
   static constexpr std::uint8_t id = 0x06;
 
   // body is the JSON content only, excluding the header.
   String8_View body;
 };
 
-struct [[qljs::trace_ctf_name("vector_max_size_histogram_entry")]]  //
-Trace_Vector_Max_Size_Histogram_Entry {
+struct Trace_Vector_Max_Size_Histogram_Entry {
   std::uint64_t max_size;
   std::uint64_t count;
 
@@ -136,8 +127,7 @@ Trace_Vector_Max_Size_Histogram_Entry {
                          Trace_Vector_Max_Size_Histogram_Entry);
 };
 
-struct [[qljs::trace_ctf_name("vector_max_size_histogram_by_owner_entry")]]  //
-Trace_Vector_Max_Size_Histogram_By_Owner_Entry {
+struct Trace_Vector_Max_Size_Histogram_By_Owner_Entry {
   [[qljs::trace_zero_terminated]]  //
   String8_View owner;
   [[qljs::trace_ctf_size_name("max_size_entry_count")]]  //
@@ -150,8 +140,7 @@ Trace_Vector_Max_Size_Histogram_By_Owner_Entry {
                          const Trace_Vector_Max_Size_Histogram_By_Owner_Entry&);
 };
 
-struct [[qljs::trace_ctf_name("vector_max_size_histogram_by_owner")]]  //
-Trace_Event_Vector_Max_Size_Histogram_By_Owner {
+struct Trace_Event_Vector_Max_Size_Histogram_By_Owner {
   static constexpr std::uint8_t id = 0x07;
 
   [[qljs::trace_ctf_size_name("entry_count")]]  //
@@ -159,22 +148,21 @@ Trace_Event_Vector_Max_Size_Histogram_By_Owner {
       entries;
 };
 
-struct [[qljs::trace_ctf_name("process_id")]] Trace_Event_Process_ID {
+struct Trace_Event_Process_ID {
   static constexpr std::uint8_t id = 0x08;
 
   std::uint64_t process_id;
 };
 
-enum class [[qljs::trace_ctf_name("lsp_document_type")]]  //
-Trace_LSP_Document_Type : std::uint8_t{
-    unknown = 0,
-    config = 1,
-    lintable = 2,
+enum class Trace_LSP_Document_Type : std::uint8_t {
+  unknown = 0,
+  config = 1,
+  lintable = 2,
 };
 inline constexpr Trace_LSP_Document_Type last_trace_lsp_document_type =
     Trace_LSP_Document_Type::lintable;
 
-struct [[qljs::trace_ctf_name("lsp_document_state")]] Trace_LSP_Document_State {
+struct Trace_LSP_Document_State {
   Trace_LSP_Document_Type type;
   String8_View uri;
   String8_View text;
@@ -183,7 +171,7 @@ struct [[qljs::trace_ctf_name("lsp_document_state")]] Trace_LSP_Document_State {
   // TODO(strager): Lint settings.
 };
 
-struct [[qljs::trace_ctf_name("lsp_documents")]] Trace_Event_LSP_Documents {
+struct Trace_Event_LSP_Documents {
   static constexpr std::uint8_t id = 0x09;
 
   [[qljs::trace_ctf_size_name("document_count")]]  //

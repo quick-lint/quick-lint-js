@@ -39,6 +39,15 @@ inline bool ends_with(std::string_view haystack, char needle) {
   return haystack.size() >= 1 && haystack[haystack.size() - 1] == needle;
 }
 
+template <class Char>
+inline std::basic_string_view<Char> remove_prefix_if_present(
+    std::basic_string_view<Char> s, std::basic_string_view<Char> prefix) {
+  if (starts_with(s, prefix)) {
+    s.remove_prefix(prefix.size());
+  }
+  return s;
+}
+
 inline std::string_view remove_suffix_if_present(std::string_view s,
                                                  std::string_view suffix) {
   if (ends_with(s, suffix)) {
