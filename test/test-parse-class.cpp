@@ -429,10 +429,12 @@ TEST_F(Test_Parse_Class, class_statement_with_fields) {
     Test_Parser p(u8"class C { prop = init; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       //
-                              "visit_enter_class_scope_body",  //
-                              "visit_variable_use",            // init
-                              "visit_property_declaration",    // prop
+                              "visit_enter_class_scope",            //
+                              "visit_enter_class_scope_body",       //
+                              "visit_enter_class_construct_scope",  //
+                              "visit_variable_use",                 // init
+                              "visit_exit_class_construct_scope",   //
+                              "visit_property_declaration",         // prop
                               "visit_exit_class_scope",
                               "visit_variable_declaration",  //
                           }));
@@ -445,10 +447,12 @@ TEST_F(Test_Parse_Class, class_statement_with_fields) {
     Test_Parser p(u8"class C { prop = init }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       //
-                              "visit_enter_class_scope_body",  //
-                              "visit_variable_use",            // init
-                              "visit_property_declaration",    // prop
+                              "visit_enter_class_scope",            //
+                              "visit_enter_class_scope_body",       //
+                              "visit_enter_class_construct_scope",  //
+                              "visit_variable_use",                 // init
+                              "visit_exit_class_construct_scope",   //
+                              "visit_property_declaration",         // prop
                               "visit_exit_class_scope",
                               "visit_variable_declaration",  //
                           }));
@@ -466,7 +470,9 @@ TEST_F(Test_Parse_Class, class_statement_with_fields) {
                               "visit_property_declaration",    // prop
                               "visit_exit_class_scope",
                               "visit_variable_declaration",  //
-                          }));
+                          }))
+        << "visit_enter_class_construct_scope should not be used for static "
+           "properties";
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"prop"}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"init"}));
   }
@@ -532,10 +538,12 @@ TEST_F(Test_Parse_Class, class_statement_with_fields) {
     Test_Parser p(u8"class C { 'fieldName' = init; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       //
-                              "visit_enter_class_scope_body",  //
-                              "visit_variable_use",            // init
-                              "visit_property_declaration",    // 'fieldName'
+                              "visit_enter_class_scope",            //
+                              "visit_enter_class_scope_body",       //
+                              "visit_enter_class_construct_scope",  //
+                              "visit_variable_use",                 // init
+                              "visit_exit_class_construct_scope",   //
+                              "visit_property_declaration",  // 'fieldName'
                               "visit_exit_class_scope",
                               "visit_variable_declaration",  //
                           }));
@@ -547,10 +555,12 @@ TEST_F(Test_Parse_Class, class_statement_with_fields) {
     Test_Parser p(u8"class C { 3.14 = pi; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       //
-                              "visit_enter_class_scope_body",  //
-                              "visit_variable_use",            // pi
-                              "visit_property_declaration",    // 'fieldName'
+                              "visit_enter_class_scope",            //
+                              "visit_enter_class_scope_body",       //
+                              "visit_enter_class_construct_scope",  //
+                              "visit_variable_use",                 // pi
+                              "visit_exit_class_construct_scope",   //
+                              "visit_property_declaration",  // 'fieldName'
                               "visit_exit_class_scope",
                               "visit_variable_declaration",  //
                           }));
@@ -595,12 +605,14 @@ TEST_F(Test_Parse_Class, class_statement_with_fields) {
     Test_Parser p(u8"class C { [x + y] = init; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       //
-                              "visit_enter_class_scope_body",  //
-                              "visit_variable_use",            // x
-                              "visit_variable_use",            // y
-                              "visit_variable_use",            // init
-                              "visit_property_declaration",    // (x + y)
+                              "visit_enter_class_scope",            //
+                              "visit_enter_class_scope_body",       //
+                              "visit_variable_use",                 // x
+                              "visit_variable_use",                 // y
+                              "visit_enter_class_construct_scope",  //
+                              "visit_variable_use",                 // init
+                              "visit_exit_class_construct_scope",   //
+                              "visit_property_declaration",         // (x + y)
                               "visit_exit_class_scope",
                               "visit_variable_declaration",  //
                           }));
@@ -621,12 +633,16 @@ TEST_F(Test_Parse_Class, class_fields_with_comma) {
         u8"class C { a = 1, b = 2 }"_sv,  //
         u8"               ^ Diag_Unexpected_Comma_After_Field_Initialization"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       //
-                              "visit_enter_class_scope_body",  //
-                              "visit_property_declaration",    // a
-                              "visit_property_declaration",    // b
-                              "visit_exit_class_scope",        //
-                              "visit_variable_declaration",    // C
+                              "visit_enter_class_scope",            //
+                              "visit_enter_class_scope_body",       //
+                              "visit_enter_class_construct_scope",  // 1
+                              "visit_exit_class_construct_scope",   // 1
+                              "visit_property_declaration",         // a
+                              "visit_enter_class_construct_scope",  // 2
+                              "visit_exit_class_construct_scope",   // 2
+                              "visit_property_declaration",         // b
+                              "visit_exit_class_scope",             //
+                              "visit_variable_declaration",         // C
                           }));
   }
 }
@@ -907,14 +923,16 @@ TEST_F(Test_Parse_Class, class_expression) {
     Test_Parser p(u8"(class C {#x = 10; m() {this.#x;}})"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",          // {
-                              "visit_enter_class_scope_body",     // C
-                              "visit_property_declaration",       // x
-                              "visit_property_declaration",       // m
-                              "visit_enter_function_scope",       //
-                              "visit_enter_function_scope_body",  //
-                              "visit_exit_function_scope",        //
-                              "visit_exit_class_scope",           // }
+                              "visit_enter_class_scope",            // {
+                              "visit_enter_class_scope_body",       // C
+                              "visit_enter_class_construct_scope",  // 10
+                              "visit_exit_class_construct_scope",   // 10
+                              "visit_property_declaration",         // #x
+                              "visit_property_declaration",         // m
+                              "visit_enter_function_scope",         //
+                              "visit_enter_function_scope_body",    //
+                              "visit_exit_function_scope",          //
+                              "visit_exit_class_scope",             // }
                           }));
   }
 }

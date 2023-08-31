@@ -115,7 +115,9 @@ void Variable_Analyzer::visit_enter_block_scope() { this->scopes_.push(); }
 
 void Variable_Analyzer::visit_enter_with_scope() { this->scopes_.push(); }
 
-void Variable_Analyzer::visit_enter_class_construct_scope() {}
+void Variable_Analyzer::visit_enter_class_construct_scope() {
+  this->scopes_.push();
+}
 
 void Variable_Analyzer::visit_enter_class_scope() { this->scopes_.push(); }
 
@@ -185,7 +187,13 @@ void Variable_Analyzer::visit_exit_with_scope() {
   this->scopes_.pop();
 }
 
-void Variable_Analyzer::visit_exit_class_construct_scope() {}
+void Variable_Analyzer::visit_exit_class_construct_scope() {
+  QLJS_ASSERT(!this->scopes_.empty());
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/true,
+      /*consume_arguments=*/false);
+  this->scopes_.pop();
+}
 
 void Variable_Analyzer::visit_exit_class_scope() {
   QLJS_ASSERT(!this->scopes_.empty());

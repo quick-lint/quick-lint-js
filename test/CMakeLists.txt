@@ -193,6 +193,7 @@ quick_lint_js_add_executable(
   test-utf-16.cpp
   test-utf-8.cpp
   test-variable-analyzer-arguments.cpp
+  test-variable-analyzer-class.cpp
   test-variable-analyzer-delete.cpp
   test-variable-analyzer-enum.cpp
   test-variable-analyzer-eval.cpp

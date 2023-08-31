@@ -61,13 +61,15 @@ TEST_F(Test_Parse_TypeScript_Class, field_with_type_is_allowed_in_typescript) {
                   typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       // C
-                              "visit_enter_class_scope_body",  //
-                              "visit_variable_type_use",       // FieldType
-                              "visit_variable_use",            // init
-                              "visit_property_declaration",    // fieldName
-                              "visit_exit_class_scope",        // C
-                              "visit_variable_declaration",    // C
+                              "visit_enter_class_scope",            // C
+                              "visit_enter_class_scope_body",       //
+                              "visit_variable_type_use",            // FieldType
+                              "visit_enter_class_construct_scope",  //
+                              "visit_variable_use",                 // init
+                              "visit_exit_class_construct_scope",   //
+                              "visit_property_declaration",         // fieldName
+                              "visit_exit_class_scope",             // C
+                              "visit_variable_declaration",         // C
                           }));
   }
 }
@@ -119,13 +121,15 @@ TEST_F(Test_Parse_TypeScript_Class,
 
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       // C
-                              "visit_enter_class_scope_body",  //
-                              "visit_property_declaration",    // field1
-                              "visit_variable_use",            // init
-                              "visit_property_declaration",    // field2
-                              "visit_exit_class_scope",        // C
-                              "visit_variable_declaration",    // C
+                              "visit_enter_class_scope",            // C
+                              "visit_enter_class_scope_body",       //
+                              "visit_property_declaration",         // field1
+                              "visit_enter_class_construct_scope",  //
+                              "visit_variable_use",                 // init
+                              "visit_exit_class_construct_scope",   //
+                              "visit_property_declaration",         // field2
+                              "visit_exit_class_scope",             // C
+                              "visit_variable_declaration",         // C
                           }));
   }
 }
@@ -136,13 +140,15 @@ TEST_F(Test_Parse_TypeScript_Class, optional_fields_are_allowed_in_typescript) {
                   typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       // C
-                              "visit_enter_class_scope_body",  //
-                              "visit_property_declaration",    // field1
-                              "visit_variable_use",            // init
-                              "visit_property_declaration",    // field2
-                              "visit_exit_class_scope",        // C
-                              "visit_variable_declaration",    // C
+                              "visit_enter_class_scope",            // C
+                              "visit_enter_class_scope_body",       //
+                              "visit_property_declaration",         // field1
+                              "visit_enter_class_construct_scope",  //
+                              "visit_variable_use",                 // init
+                              "visit_exit_class_construct_scope",   //
+                              "visit_property_declaration",         // field2
+                              "visit_exit_class_scope",             // C
+                              "visit_variable_declaration",         // C
                           }));
   }
 
@@ -1145,11 +1151,13 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_fields_cannot_have_initializers) {
 
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       // {
-                              "visit_enter_class_scope_body",  // C
-                              "visit_property_declaration",    // myField
-                              "visit_exit_class_scope",        // }
-                              "visit_variable_declaration",    // C
+                              "visit_enter_class_scope",            // {
+                              "visit_enter_class_scope_body",       // C
+                              "visit_enter_class_construct_scope",  // 'hello'
+                              "visit_exit_class_construct_scope",   // 'hello'
+                              "visit_property_declaration",         // myField
+                              "visit_exit_class_scope",             // }
+                              "visit_variable_declaration",         // C
                           }));
   }
 }

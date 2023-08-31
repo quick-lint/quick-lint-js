@@ -29,6 +29,9 @@ Semantic Versioning.
   diagnostics.
 * `({k = defaultValue} = o);` no longer incorrectly reports [E0253][] ("use ':'
   instead of '=' in object literals").
+* Class property initializers no longer incorrectly report [E0058][] ("variable
+  used before declaration"). Example:
+  `class C { myProperty = f(); }  const f = () => {};`
 * TypeScript support (still experimental):
   * quick-lint-js no longer falsely reports [E0058][] ("variable used before
     declaration") for code such as `function f<T extends T[]>() {}`.

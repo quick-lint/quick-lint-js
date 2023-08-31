@@ -889,6 +889,8 @@ void Parser::parse_and_visit_class_or_interface_member(
       QLJS_ASSERT(p->peek().type == Token_Type::equal);
       const Modifier *bang = this->find_modifier(Token_Type::bang);
       const Modifier *abstract = this->find_modifier(Token_Type::kw_abstract);
+      const Modifier *static_modifier =
+          this->find_modifier(Token_Type::kw_static);
       if (is_interface && !bang) {
         // Don't report if we found a bang. We already reported
         // Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Interfaces.
@@ -920,7 +922,14 @@ void Parser::parse_and_visit_class_or_interface_member(
         });
       }
       p->skip();
+
+      if (!static_modifier) {
+        v.visit_enter_class_construct_scope();
+      }
       p->parse_and_visit_expression(v, Precedence{.commas = false});
+      if (!static_modifier) {
+        v.visit_exit_class_construct_scope();
+      }
     }
 
     Function_Attributes function_attributes_from_modifiers(

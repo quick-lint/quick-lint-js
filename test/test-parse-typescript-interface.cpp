@@ -1145,11 +1145,13 @@ TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
                     typescript_options, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_variable_declaration",   // I
-                                "visit_enter_interface_scope",  //
-                                "visit_variable_use",           // y
-                                "visit_property_declaration",   // field_name
-                                "visit_exit_interface_scope",   //
+                                "visit_variable_declaration",         // I
+                                "visit_enter_interface_scope",        //
+                                "visit_enter_class_construct_scope",  //
+                                "visit_variable_use",                 // y
+                                "visit_exit_class_construct_scope",   //
+                                "visit_property_declaration",  // field_name
+                                "visit_exit_interface_scope",  //
                                 "visit_end_of_module",
                             }));
       EXPECT_THAT(
