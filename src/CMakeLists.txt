@@ -106,6 +106,17 @@ if (TARGET quick-lint-js-generate-trace-sources)
     COMMENT "Generating metadata files, parsers, and writers for tracing"
   )
 endif ()
+# See NOTE[generated-target].
+add_library(
+  quick-lint-js-trace
+  STATIC
+  quick-lint-js/logging/trace-metadata-generated.cpp
+  quick-lint-js/logging/trace-reader-generated.cpp
+  quick-lint-js/logging/trace-reader-generated.h
+  quick-lint-js/logging/trace-writer-generated.h
+)
+target_include_directories(quick-lint-js-trace PUBLIC .)
+target_link_libraries(quick-lint-js-trace PUBLIC quick-lint-js-tool-lib)
 
 # C++ files which contain QLJS_TRANSLATABLE directives.
 set(
@@ -362,10 +373,7 @@ quick_lint_js_add_library(
   quick-lint-js/logging/trace-flusher-directory-backend.cpp
   quick-lint-js/logging/trace-flusher.cpp
   quick-lint-js/logging/trace-flusher.h
-  quick-lint-js/logging/trace-metadata-generated.cpp
   quick-lint-js/logging/trace-metadata.h
-  quick-lint-js/logging/trace-reader-generated.cpp
-  quick-lint-js/logging/trace-reader-generated.h
   quick-lint-js/logging/trace-reader.cpp
   quick-lint-js/logging/trace-reader.h
   quick-lint-js/logging/trace-types.cpp
@@ -443,6 +451,7 @@ target_link_libraries(
   quick-lint-js-diagnostic-metadata
   quick-lint-js-i18n
   quick-lint-js-tool-lib
+  quick-lint-js-trace
   simdjson
   PRIVATE
   Threads::Threads
