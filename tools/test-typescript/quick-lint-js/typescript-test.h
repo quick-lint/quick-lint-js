@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/port/char8.h>
