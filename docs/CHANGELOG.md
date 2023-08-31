@@ -1133,6 +1133,7 @@ Beta release.
 [E0348]: https://quick-lint-js.com/errors/E0348/
 [E0349]: https://quick-lint-js.com/errors/E0349/
 [E0356]: https://quick-lint-js.com/errors/E0356/
+[E0357]: https://quick-lint-js.com/errors/E0357/
 [E0362]: https://quick-lint-js.com/errors/E0362/
 [E0365]: https://quick-lint-js.com/errors/E0365/
 [E0369]: https://quick-lint-js.com/errors/E0369/
