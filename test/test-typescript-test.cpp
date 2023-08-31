@@ -150,6 +150,22 @@ TEST(Test_TypeScript_Test, multiple_units_are_allowed) {
   EXPECT_EQ(units[3].name, u8"4.ts"_sv);
 }
 
+TEST(Test_TypeScript_Test,
+     line_comments_without_directives_are_included_as_data) {
+  Padded_String file(
+      u8"// hello\n"_sv
+      u8"// @filename: a.ts\n"_sv
+      u8"// a body\n"_sv
+      u8"// @filename: b.ts\n"_sv
+      u8"// b body\n"_sv);
+  TypeScript_Test_Units units =
+      extract_units_from_typescript_test(std::move(file), u8"testcase.ts"_sv);
+  ASSERT_EQ(units.size(), 3);
+  EXPECT_EQ(units[0].data, u8"// hello\n"_sv);
+  EXPECT_EQ(units[1].data, u8"// a body\n"_sv);
+  EXPECT_EQ(units[2].data, u8"// b body\n"_sv);
+}
+
 TEST(Test_TypeScript_Test, unrelated_metadata_is_included_in_units) {
   Padded_String file(
       u8"first\n// @something: xxx\nunit\n"_sv

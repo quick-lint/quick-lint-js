@@ -45,19 +45,25 @@ find_typescript_test_metadata_directive(String8_View sv,
   if (comment_index == String8_View::npos) {
     return std::nullopt;
   }
+
+  auto find_next_metadata =
+      [&]() -> std::optional<typescript_test_metadata_directive> {
+    return find_typescript_test_metadata_directive(sv, comment_index + 2);
+  };
+
   bool comment_at_beginning_of_line = comment_index == 0 ||
                                       sv[comment_index - 1] == u8'\n' ||
                                       sv[comment_index - 1] == u8'\r';
   if (!comment_at_beginning_of_line) {
-    return std::nullopt;
+    return find_next_metadata();
   }
 
   std::size_t at_index = sv.find_first_not_of(u8" \t"_sv, comment_index + 2);
   if (at_index == String8_View::npos) {
-    return std::nullopt;
+    return find_next_metadata();
   }
   if (sv[at_index] != u8'@') {
-    return std::nullopt;
+    return find_next_metadata();
   }
 
   std::size_t metadata_name_begin_index = at_index + 1;
@@ -73,10 +79,10 @@ find_typescript_test_metadata_directive(String8_View sv,
   std::size_t colon_index =
       sv.find_first_not_of(u8" \t"_sv, metadata_name_end_index);
   if (colon_index == String8_View::npos) {
-    return std::nullopt;
+    return find_next_metadata();
   }
   if (sv[colon_index] != u8':') {
-    return std::nullopt;
+    return find_next_metadata();
   }
 
   std::size_t metadata_value_begin_index = colon_index + 1;
