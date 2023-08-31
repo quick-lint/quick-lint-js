@@ -314,7 +314,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
 
   {
     Test_Parser p(u8"declare abstract class C { abstract myField: any; }"_sv,
-                  typescript_options, capture_diags);
+                  typescript_options);
     p.parse_and_visit_module();
   }
 }

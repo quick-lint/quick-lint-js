@@ -1696,7 +1696,7 @@ TEST_F(Test_Parse_TypeScript_Class, no_diag_for_more_than_one_escape) {
       u8"class C {\n"_sv
       u8"  \\u{63}onstructo\\u{72}() {}"_sv  // equivalent to: constructor() {}
       u8"}"_sv,
-      typescript_options, capture_diags);
+      typescript_options);
   p.parse_and_visit_statement();
 
   EXPECT_THAT(

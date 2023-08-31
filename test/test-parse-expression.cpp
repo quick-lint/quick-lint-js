@@ -345,7 +345,7 @@ TEST_F(Test_Parse_Expression, parse_logical_expression) {
         u8"2<2"_sv, u8"2>=2"_sv, u8"2<=2"_sv, u8"2&&2"_sv, u8"2??2"_sv,
         u8"2||2"_sv}) {
     SCOPED_TRACE(out_string8(u8"input = " + String8(input)));
-    Test_Parser p(input, capture_diags);
+    Test_Parser p(input);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, literal)");
   }
@@ -1826,7 +1826,7 @@ TEST_F(Test_Parse_Expression,
 
 TEST_F(Test_Parse_Expression, array_literal) {
   {
-    Test_Parser p(u8"[]"_sv, capture_diags);
+    Test_Parser p(u8"[]"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Array);
     EXPECT_EQ(ast->child_count(), 0);
@@ -1973,7 +1973,7 @@ TEST_F(Test_Parse_Expression, object_literal) {
   }
 
   {
-    Test_Parser p(u8"{key: variable = value}"_sv, capture_diags);
+    Test_Parser p(u8"{key: variable = value}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -1986,7 +1986,7 @@ TEST_F(Test_Parse_Expression, object_literal) {
   }
 
   {
-    Test_Parser p(u8"{key = value}"_sv, capture_diags);
+    Test_Parser p(u8"{key = value}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2790,7 +2790,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
            u8"<<"_sv, u8"<="_sv,  u8"=="_sv, u8"==="_sv, u8">"_sv,  u8">="_sv,
            u8">>"_sv, u8">>>"_sv, u8"??"_sv, u8"^"_sv,   u8"|"_sv,  u8"||"_sv,
        }) {
-    Test_Parser p(concat(u8"x"_sv, op, u8"y"_sv), capture_diags);
+    Test_Parser p(concat(u8"x"_sv, op, u8"y"_sv));
     SCOPED_TRACE(p.code);
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::Binary_Operator);
@@ -2801,7 +2801,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
   }
 
   {
-    Test_Parser p(u8"x + y * z"_sv, capture_diags);
+    Test_Parser p(u8"x + y * z"_sv);
     auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0],
                 p.matches_offsets(u8"x "_sv.size(), u8"+"_sv));
@@ -2823,7 +2823,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
   }
 
   {
-    Test_Parser p(u8"x in y"_sv, capture_diags);
+    Test_Parser p(u8"x in y"_sv);
     auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0],
                 p.matches_offsets(u8"x "_sv.size(), u8"in"_sv));

@@ -713,7 +713,7 @@ TEST_F(Test_Parse_Expression_Statement, delete_of_variable) {
 }
 
 TEST_F(Test_Parse_Expression_Statement, delete_of_expression) {
-  Test_Parser p(u8"delete x.p;"_sv, capture_diags);
+  Test_Parser p(u8"delete x.p;"_sv);
   p.parse_and_visit_expression();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_use",

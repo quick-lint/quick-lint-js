@@ -154,7 +154,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
 
   {
     Test_Parser p(u8"declare module 'mymod' { export default Z; }"_sv,
-                  typescript_options, capture_diags);
+                  typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
