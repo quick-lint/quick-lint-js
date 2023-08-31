@@ -32,6 +32,9 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * quick-lint-js no longer falsely reports [E0058][] ("variable used before
     declaration") for code such as `function f<T extends T[]>() {}`.
+  * Declaring a type alias or an interface inside a `declare namespace` no
+    longer reports [E0357][] ("'declare namespace' cannot contain statements,
+    only declarations").
   * VS Code: The extension now loads when only opening a TypeScript file.
     (Previously, the extension would only load when you opened a JavaScript or
     JSON file.) The `quick-lint-js.experimental-typescript` setting is still

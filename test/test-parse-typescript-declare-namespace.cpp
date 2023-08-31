@@ -314,7 +314,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
        interface_inside_declare_namespace_is_supported) {
   {
     Test_Parser p(u8"declare namespace ns { interface I { } }"_sv,
-                  typescript_options, capture_diags);
+                  typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -329,7 +329,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
 
   {
     Test_Parser p(u8"declare namespace ns { export interface I { } }"_sv,
-                  typescript_options, capture_diags);
+                  typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -347,7 +347,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
        type_alias_inside_declare_namespace_is_supported) {
   {
     Test_Parser p(u8"declare namespace ns { type T = U; }"_sv,
-                  typescript_options, capture_diags);
+                  typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",   // {
@@ -363,7 +363,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
 
   {
     Test_Parser p(u8"declare namespace ns { export type T = U; }"_sv,
-                  typescript_options, capture_diags);
+                  typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",   // {

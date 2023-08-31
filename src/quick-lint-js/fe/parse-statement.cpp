@@ -2735,9 +2735,11 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
       case Token_Type::kw_enum:
       case Token_Type::kw_function:
       case Token_Type::kw_import:
+      case Token_Type::kw_interface:
       case Token_Type::kw_let:
       case Token_Type::kw_module:
       case Token_Type::kw_namespace:
+      case Token_Type::kw_type:
       case Token_Type::kw_var:
         this->is_current_typescript_namespace_non_empty_ = true;
         this->parse_and_visit_declare_statement(v, declare_context);
