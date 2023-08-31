@@ -383,11 +383,9 @@ TEST_F(Test_Parse_JSX,
 
 TEST_F(Test_Parse_JSX, begin_and_end_tags_match_after_normalization) {
   {
-    Test_Parser p(u8R"(c = <div></\u{64}\u{69}\u{76}>;)"_sv, jsx_options,
-                  capture_diags);
+    // Shouldn't report Diag_Mismatched_JSX_Tags.
+    Test_Parser p(u8R"(c = <div></\u{64}\u{69}\u{76}>;)"_sv, jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty())
-        << "shouldn't report Diag_Mismatched_JSX_Tags";
   }
 }
 
@@ -456,17 +454,13 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
 
 TEST_F(Test_Parse_JSX, correctly_capitalized_attribute) {
   {
-    Test_Parser p(u8R"(c = <td colSpan="2" />;)"_sv, jsx_options,
-                  capture_diags);
+    Test_Parser p(u8R"(c = <td colSpan="2" />;)"_sv, jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8R"(c = <div onClick={handler} />;)"_sv, jsx_options,
-                  capture_diags);
+    Test_Parser p(u8R"(c = <div onClick={handler} />;)"_sv, jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -527,71 +521,59 @@ TEST_F(Test_Parse_JSX, commonly_misspelled_attribute) {
 
 TEST_F(Test_Parse_JSX, attribute_checking_ignores_namespaced_attributes) {
   {
-    Test_Parser p(u8R"(c = <div ns:onmouseenter={handler} />;)"_sv, jsx_options,
-                  capture_diags);
+    Test_Parser p(u8R"(c = <div ns:onmouseenter={handler} />;)"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     Test_Parser p(u8R"(c = <div onmouseenter:onmouseenter={handler} />;)"_sv,
-                  jsx_options, capture_diags);
+                  jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     Test_Parser p(u8R"(c = <div class:class="my-css-class" />;)"_sv,
-                  jsx_options, capture_diags);
+                  jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_JSX, attribute_checking_ignores_namespaced_elements) {
   {
-    Test_Parser p(u8R"(c = <svg:g onmouseenter={handler} />;)"_sv, jsx_options,
-                  capture_diags);
+    Test_Parser p(u8R"(c = <svg:g onmouseenter={handler} />;)"_sv, jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8R"(c = <svg:g class="red" />;)"_sv, jsx_options,
-                  capture_diags);
+    Test_Parser p(u8R"(c = <svg:g class="red" />;)"_sv, jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_JSX, attribute_checking_ignores_user_components) {
   {
     Test_Parser p(u8R"(c = <MyComponent onmouseenter={handler} />;)"_sv,
-                  jsx_options, capture_diags);
+                  jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8R"(c = <MyComponent class="red" />;)"_sv, jsx_options,
-                  capture_diags);
+    Test_Parser p(u8R"(c = <MyComponent class="red" />;)"_sv, jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     Test_Parser p(
         u8R"(c = <mymodule.mycomponent onmouseenter={handler} />;)"_sv,
-        jsx_options, capture_diags);
+        jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     Test_Parser p(u8R"(c = <mymodule.mycomponent class="red" />;)"_sv,
-                  jsx_options, capture_diags);
+                  jsx_options);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

@@ -605,10 +605,9 @@ TEST_F(Test_Parse_Expression_Statement, expression_statement) {
   }
 
   {
-    Test_Parser p(u8"import(url).then(); secondStatement;"_sv, capture_diags);
+    Test_Parser p(u8"import(url).then(); secondStatement;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
 
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // url
@@ -617,10 +616,9 @@ TEST_F(Test_Parse_Expression_Statement, expression_statement) {
   }
 
   {
-    Test_Parser p(u8"import.meta; secondStatement;"_sv, capture_diags);
+    Test_Parser p(u8"import.meta; secondStatement;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
 
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // secondStatement
@@ -734,10 +732,9 @@ TEST_F(Test_Parse_Expression_Statement,
 
 TEST_F(Test_Parse_Expression_Statement, asi_plusplus_minusminus) {
   {
-    Test_Parser p(u8"x\n++\ny;"_sv, capture_diags);
+    Test_Parser p(u8"x\n++\ny;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
 
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x",  //
                                                    u8"y"}));
@@ -846,15 +843,13 @@ TEST_F(Test_Parse_Expression_Statement, parse_invalid_function_calls) {
 
 TEST_F(Test_Parse_Expression_Statement, parse_function_call_as_statement) {
   {
-    Test_Parser p(u8"f(x); g(y);"_sv, capture_diags);
+    Test_Parser p(u8"f(x); g(y);"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"f", u8"x"}));
 
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"f", u8"x", u8"g", u8"y"}));
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

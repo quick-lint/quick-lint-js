@@ -1374,12 +1374,10 @@ TEST_F(Test_Parse_Loop, for_loop_in_for_loop_header_crash) {
         for (var f = () => {
           for (var xs = [x, x, x, x, x, x, x, x, x, x, x, x, x, x];;) {}
         };;) {}
-      )"_sv,
-      capture_diags);
+      )"_sv);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.variable_uses, Not(IsEmpty()));
   EXPECT_THAT(p.variable_uses, ::testing::Each(u8"x"));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 }
 }

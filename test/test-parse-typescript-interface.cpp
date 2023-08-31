@@ -1064,10 +1064,9 @@ TEST_F(Test_Parse_TypeScript_Interface, async_methods_are_not_allowed) {
       // ASI activates after 'async'.
       Test_Parser p(
           concat(u8"interface I { async\n"_sv, method_name, u8"(); }"_sv),
-          typescript_options, capture_diags);
+          typescript_options);
       p.parse_and_visit_module();
       EXPECT_THAT(p.property_declarations, ElementsAre(u8"async", method_name));
-      EXPECT_THAT(p.errors, IsEmpty());
     }
   }
 }

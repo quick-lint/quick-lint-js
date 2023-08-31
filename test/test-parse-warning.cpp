@@ -61,9 +61,8 @@ TEST_F(Test_Parse_Warning, non_condition_with_assignment_from_literal) {
            u8"switch (x = 'hello') {}"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
-    Test_Parser p(code, capture_diags);
+    Test_Parser p(code);
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

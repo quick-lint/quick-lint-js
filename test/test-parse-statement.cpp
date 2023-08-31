@@ -40,10 +40,9 @@ TEST_F(Test_Parse_Statement, return_statement) {
   }
 
   {
-    Test_Parser p(u8"return a\nreturn b"_sv, capture_diags);
+    Test_Parser p(u8"return a\nreturn b"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",
                               "visit_variable_use",
@@ -52,10 +51,9 @@ TEST_F(Test_Parse_Statement, return_statement) {
   }
 
   {
-    Test_Parser p(u8"return a; return b;"_sv, capture_diags);
+    Test_Parser p(u8"return a; return b;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",
                               "visit_variable_use",
@@ -64,10 +62,9 @@ TEST_F(Test_Parse_Statement, return_statement) {
   }
 
   {
-    Test_Parser p(u8"if (true) return; x;"_sv, capture_diags);
+    Test_Parser p(u8"if (true) return; x;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",
                           }));
@@ -1156,10 +1153,9 @@ TEST_F(Test_Parse_Statement, with_statement_without_parens) {
 
 TEST_F(Test_Parse_Statement, debugger_statement) {
   {
-    Test_Parser p(u8"debugger; x;"_sv, capture_diags);
+    Test_Parser p(u8"debugger; x;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",
                           }));
@@ -1169,10 +1165,9 @@ TEST_F(Test_Parse_Statement, debugger_statement) {
 
 TEST_F(Test_Parse_Statement, labelled_statement) {
   {
-    Test_Parser p(u8"some_label: ; x;"_sv, capture_diags);
+    Test_Parser p(u8"some_label: ; x;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
     // TODO(strager): Announce the label with a visit?
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // x

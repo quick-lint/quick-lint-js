@@ -668,41 +668,35 @@ TEST_F(Test_Parse_TypeScript_Generic,
 TEST_F(Test_Parse_TypeScript_Generic,
        generic_arguments_less_and_greater_are_operators_in_javascript) {
   {
-    Test_Parser p(u8"foo<T>(p)"_sv, javascript_options, capture_diags);
+    Test_Parser p(u8"foo<T>(p)"_sv, javascript_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, paren(var p))");
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"foo<<T>()=>{}>(p)"_sv, javascript_options, capture_diags);
+    Test_Parser p(u8"foo<<T>()=>{}>(p)"_sv, javascript_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "binary(var foo, var T, arrowfunc(), paren(var p))");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"foo<T>`bar`"_sv, javascript_options, capture_diags);
+    Test_Parser p(u8"foo<T>`bar`"_sv, javascript_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, literal)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"foo<T>`bar${baz}`"_sv, javascript_options, capture_diags);
+    Test_Parser p(u8"foo<T>`bar${baz}`"_sv, javascript_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, template(var baz))");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"foo<<T>() => number>`bar${baz}`"_sv, javascript_options,
-                  capture_diags);
+    Test_Parser p(u8"foo<<T>() => number>`bar${baz}`"_sv, javascript_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, arrowfunc())");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -717,11 +711,10 @@ TEST_F(Test_Parse_TypeScript_Generic,
   }
 
   {
-    Test_Parser p(u8"new Foo<T>(p);"_sv, javascript_options, capture_diags);
+    Test_Parser p(u8"new Foo<T>(p);"_sv, javascript_options);
     Expression* ast = p.parse_expression();
     // FIXME(#557): Precedence is incorrect.
     EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, paren(var p)))");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

@@ -31,59 +31,52 @@ namespace quick_lint_js {
 namespace {
 TEST_F(Test_Parse_Expression, parse_single_token_expression) {
   {
-    Test_Parser p(u8"x"_sv, capture_diags);
+    Test_Parser p(u8"x"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Variable);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"x"_sv);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 1));
   }
 
   {
-    Test_Parser p(u8"42"_sv, capture_diags);
+    Test_Parser p(u8"42"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
   }
 
   {
-    Test_Parser p(u8"'hello'"_sv, capture_diags);
+    Test_Parser p(u8"'hello'"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
   }
 
   {
-    Test_Parser p(u8"null"_sv, capture_diags);
+    Test_Parser p(u8"null"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
   }
 
   {
-    Test_Parser p(u8"true"_sv, capture_diags);
+    Test_Parser p(u8"true"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
   }
 
   {
-    Test_Parser p(u8"false"_sv, capture_diags);
+    Test_Parser p(u8"false"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
   }
 
   {
-    Test_Parser p(u8"this"_sv, capture_diags);
+    Test_Parser p(u8"this"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::This_Variable);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
   }
 }
@@ -146,29 +139,26 @@ TEST_F(Test_Parse_Expression, private_identifier_with_in_operator) {
 
 TEST_F(Test_Parse_Expression, parse_regular_expression) {
   {
-    Test_Parser p(u8"/regexp/"_sv, capture_diags);
+    Test_Parser p(u8"/regexp/"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
   }
 
   {
-    Test_Parser p(u8"/=regexp/"_sv, capture_diags);
+    Test_Parser p(u8"/=regexp/"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 9));
   }
 }
 
 TEST_F(Test_Parse_Expression, parse_math_expression) {
   {
-    Test_Parser p(u8"-x"_sv, capture_diags);
+    Test_Parser p(u8"-x"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Unary_Operator);
     EXPECT_EQ(ast->child_0()->kind(), Expression_Kind::Variable);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
   }
 
@@ -185,10 +175,9 @@ TEST_F(Test_Parse_Expression, parse_math_expression) {
   }
 
   {
-    Test_Parser p(u8"x+y"_sv, capture_diags);
+    Test_Parser p(u8"x+y"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, var y)");
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
   }
 
@@ -330,12 +319,11 @@ TEST_F(Test_Parse_Expression, comma_expression_with_trailing_comma) {
   {
     // Arrow expressions allow trailing commas in their parenthesized parameter
     // lists, but comma expressions do not allow trailing commas.
-    Test_Parser p(u8"(a, b, c,)"_sv, capture_diags);
+    // A trailing comma expression emits no errors; errors are emitted depending
+    // on the context.
+    Test_Parser p(u8"(a, b, c,)"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(trailingcomma(var a, var b, var c))");
-    EXPECT_THAT(p.errors, IsEmpty())
-        << "trailing comma expression emits no errors; errors are emitted "
-           "depending on the context";
   }
 }
 
@@ -432,22 +420,20 @@ TEST_F(Test_Parse_Expression, void_unary_operator) {
 
 TEST_F(Test_Parse_Expression, spread) {
   {
-    Test_Parser p(u8"...args"_sv, capture_diags);
+    Test_Parser p(u8"...args"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "spread(var args)");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, parse_function_call) {
   {
-    Test_Parser p(u8"f()"_sv, capture_diags);
+    Test_Parser p(u8"f()"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Call);
     EXPECT_EQ(summarize(ast->child_0()), "var f");
     EXPECT_EQ(ast->child_count(), 1);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
     Expression::Call* call = expression_cast<Expression::Call>(ast);
     EXPECT_THAT(call->left_paren_span(), p.matches_offsets(1, 2));
@@ -520,12 +506,11 @@ TEST_F(Test_Parse_Expression, parse_optional_function_call) {
 
 TEST_F(Test_Parse_Expression, parse_dot_expressions) {
   {
-    Test_Parser p(u8"x.prop"_sv, capture_diags);
+    Test_Parser p(u8"x.prop"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Dot);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"prop"_sv);
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 6));
   }
 
@@ -668,10 +653,9 @@ TEST_F(Test_Parse_Expression, invalid_dot_expression) {
 
 TEST_F(Test_Parse_Expression, parse_optional_dot_expressions) {
   {
-    Test_Parser p(u8"x?.prop"_sv, capture_diags);
+    Test_Parser p(u8"x?.prop"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var x, prop)");
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x?.prop"_sv));
   }
 
@@ -694,22 +678,20 @@ TEST_F(Test_Parse_Expression, parse_optional_dot_expressions) {
 
 TEST_F(Test_Parse_Expression, parse_indexing_expression) {
   {
-    Test_Parser p(u8"xs[i]"_sv, capture_diags);
+    Test_Parser p(u8"xs[i]"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Index);
     EXPECT_EQ(summarize(ast->child_0()), "var xs");
     EXPECT_EQ(summarize(ast->child_1()), "var i");
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
   }
 }
 
 TEST_F(Test_Parse_Expression, parse_optional_indexing_expression) {
   {
-    Test_Parser p(u8"xs?.[i]"_sv, capture_diags);
+    Test_Parser p(u8"xs?.[i]"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "index(var xs, var i)");
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"xs?.[i]"_sv));
   }
 }
@@ -751,10 +733,9 @@ TEST_F(Test_Parse_Expression, empty_indexing_expression) {
 
 TEST_F(Test_Parse_Expression, parse_parenthesized_expression) {
   {
-    Test_Parser p(u8"(x)"_sv, capture_diags);
+    Test_Parser p(u8"(x)"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(var x)");
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"(x)"_sv));
     EXPECT_THAT(ast->child_0()->span(), p.matches_offsets(1, 2));
   }
@@ -787,22 +768,20 @@ TEST_F(Test_Parse_Expression, parse_parenthesized_expression) {
 
 TEST_F(Test_Parse_Expression, await_unary_operator_inside_async_functions) {
   {
-    Test_Parser p(u8"await myPromise"_sv, capture_diags);
+    Test_Parser p(u8"await myPromise"_sv);
     auto guard = p.enter_function(Function_Attributes::async);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(var myPromise)");
     EXPECT_EQ(ast->kind(), Expression_Kind::Await);
     EXPECT_EQ(summarize(ast->child_0()), "var myPromise");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 15));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"await(x)"_sv, capture_diags);
+    Test_Parser p(u8"await(x)"_sv);
     auto guard = p.enter_function(Function_Attributes::async);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(paren(var x))");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1152,18 +1131,16 @@ TEST_F(Test_Parse_Expression,
 
 TEST_F(Test_Parse_Expression, await_variable_name_outside_async_functions) {
   {
-    Test_Parser p(u8"await(x)"_sv, capture_diags);
+    Test_Parser p(u8"await(x)"_sv);
     auto guard = p.enter_function(Function_Attributes::normal);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var await, var x)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"await < rhs"_sv, jsx_options, capture_diags);
+    Test_Parser p(u8"await < rhs"_sv, jsx_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var await, var rhs)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1190,13 +1167,12 @@ TEST_F(Test_Parse_Expression,
   };
 
   {
-    Test_Parser p(u8"yield"_sv, capture_diags);
+    Test_Parser p(u8"yield"_sv);
     auto guard = p.enter_function(Function_Attributes::generator);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yieldnone");
     EXPECT_EQ(ast->kind(), Expression_Kind::Yield_None);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   EXPECT_EQ(parse_expression_in_generator(u8"(yield)"_sv), "paren(yieldnone)");
@@ -1220,110 +1196,99 @@ TEST_F(Test_Parse_Expression,
 
 TEST_F(Test_Parse_Expression, yield_unary_operator_inside_generator_functions) {
   {
-    Test_Parser p(u8"yield v"_sv, capture_diags);
+    Test_Parser p(u8"yield v"_sv);
     auto guard = p.enter_function(Function_Attributes::generator);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yield(var v)");
     EXPECT_EQ(ast->kind(), Expression_Kind::Yield_One);
     EXPECT_EQ(summarize(ast->child_0()), "var v");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"yield(x)"_sv, capture_diags);
+    Test_Parser p(u8"yield(x)"_sv);
     auto guard = p.enter_function(Function_Attributes::generator);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yield(paren(var x))");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"f(yield a, yield b, c)}"_sv, capture_diags);
+    Test_Parser p(u8"f(yield a, yield b, c)}"_sv);
     auto generator_guard = p.enter_function(Function_Attributes::generator);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var f, yield(var a), yield(var b), var c)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression,
        yield_many_unary_operator_inside_generator_functions) {
   {
-    Test_Parser p(u8"yield *other"_sv, capture_diags);
+    Test_Parser p(u8"yield *other"_sv);
     auto guard = p.enter_function(Function_Attributes::generator);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yieldmany(var other)");
     EXPECT_EQ(ast->kind(), Expression_Kind::Yield_Many);
     EXPECT_EQ(summarize(ast->child_0()), "var other");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"f(yield *a, yield* b, c)}"_sv, capture_diags);
+    Test_Parser p(u8"f(yield *a, yield* b, c)}"_sv);
     auto generator_guard = p.enter_function(Function_Attributes::generator);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "call(var f, yieldmany(var a), yieldmany(var b), var c)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, yield_variable_name_outside_generator_functions) {
   {
-    Test_Parser p(u8"yield(x)"_sv, capture_diags);
+    Test_Parser p(u8"yield(x)"_sv);
     auto guard = p.enter_function(Function_Attributes::normal);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var yield, var x)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"yield*other"_sv, capture_diags);
+    Test_Parser p(u8"yield*other"_sv);
     auto guard = p.enter_function(Function_Attributes::normal);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var yield, var other)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, parse_new_expression) {
   {
-    Test_Parser p(u8"new Date"_sv, capture_diags);
+    Test_Parser p(u8"new Date"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::New);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child_0()), "var Date");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"new Date()"_sv, capture_diags);
+    Test_Parser p(u8"new Date()"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::New);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child_0()), "var Date");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 10));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"new Date(y,m,d)"_sv, capture_diags);
+    Test_Parser p(u8"new Date(y,m,d)"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Date, var y, var m, var d)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, new_target) {
   {
-    Test_Parser p(u8"new.target"_sv, capture_diags);
+    Test_Parser p(u8"new.target"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "newtarget");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 10));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1335,44 +1300,39 @@ TEST_F(Test_Parse_Expression, new_target) {
 
 TEST_F(Test_Parse_Expression, super) {
   {
-    Test_Parser p(u8"super()"_sv, capture_diags);
+    Test_Parser p(u8"super()"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(super)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"super.method()"_sv, capture_diags);
+    Test_Parser p(u8"super.method()"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(dot(super, method))");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, import) {
   {
-    Test_Parser p(u8"import(url)"_sv, capture_diags);
+    Test_Parser p(u8"import(url)"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(import, var url)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"import.meta"_sv, capture_diags);
+    Test_Parser p(u8"import.meta"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(import, meta)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, parse_assignment) {
   {
-    Test_Parser p(u8"x=y"_sv, capture_diags);
+    Test_Parser p(u8"x=y"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
   }
 
@@ -1436,12 +1396,11 @@ TEST_F(Test_Parse_Expression, parse_compound_assignment) {
        {u8"*="_sv, u8"/="_sv, u8"%="_sv, u8"+="_sv, u8"-="_sv, u8"<<="_sv,
         u8">>="_sv, u8">>>="_sv, u8"&="_sv, u8"^="_sv, u8"|="_sv, u8"**="_sv}) {
     SCOPED_TRACE(out_string8(op));
-    Test_Parser p(concat(u8"x "_sv, op, u8" y"_sv), capture_diags);
+    Test_Parser p(concat(u8"x "_sv, op, u8" y"_sv));
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Compound_Assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(
         ast->span(),
         p.matches_offsets(
@@ -1452,12 +1411,11 @@ TEST_F(Test_Parse_Expression, parse_compound_assignment) {
 TEST_F(Test_Parse_Expression, parse_conditional_assignment) {
   for (String8_View op : {u8"&&="_sv, u8"?\x3f="_sv, u8"||="_sv}) {
     SCOPED_TRACE(out_string8(op));
-    Test_Parser p(concat(u8"x "_sv, op, u8" y"_sv), capture_diags);
+    Test_Parser p(concat(u8"x "_sv, op, u8" y"_sv));
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Conditional_Assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(
         ast->span(),
         p.matches_offsets(
@@ -1510,55 +1468,49 @@ TEST_F(Test_Parse_Expression, parse_invalid_assignment) {
 
 TEST_F(Test_Parse_Expression, parse_prefix_plusplus_minusminus) {
   {
-    Test_Parser p(u8"++x"_sv, capture_diags);
+    Test_Parser p(u8"++x"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::RW_Unary_Prefix);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"--y"_sv, capture_diags);
+    Test_Parser p(u8"--y"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::RW_Unary_Prefix);
     EXPECT_EQ(summarize(ast->child_0()), "var y");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, parse_prefix_plusplus_plus_operand) {
   {
-    Test_Parser p(u8"++x\n+\ny"_sv, capture_diags);
+    Test_Parser p(u8"++x\n+\ny"_sv);
 
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(rwunary(var x), var y)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"--x\n+\ny"_sv, capture_diags);
+    Test_Parser p(u8"--x\n+\ny"_sv);
 
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(rwunary(var x), var y)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"++x.y"_sv, capture_diags);
+    Test_Parser p(u8"++x.y"_sv);
 
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "rwunary(dot(var x, y))");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"++x[y]"_sv, capture_diags);
+    Test_Parser p(u8"++x[y]"_sv);
 
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "rwunary(index(var x, var y))");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1617,26 +1569,23 @@ TEST_F(Test_Parse_Expression, parse_unary_prefix_operator_with_no_operand) {
 
 TEST_F(Test_Parse_Expression, parse_suffix_plusplus_minusminus) {
   {
-    Test_Parser p(u8"x++"_sv, capture_diags);
+    Test_Parser p(u8"x++"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::RW_Unary_Suffix);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, suffix_plusplus_minusminus_disallows_line_break) {
   {
-    Test_Parser p(u8"x\n++\ny"_sv, capture_diags);
+    Test_Parser p(u8"x\n++\ny"_sv);
 
     Expression* ast_1 = p.parse_expression();
     EXPECT_EQ(summarize(ast_1), "var x");
 
     Expression* ast_2 = p.parse_expression();
     EXPECT_EQ(summarize(ast_2), "rwunary(var y)");
-
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1653,21 +1602,19 @@ TEST_F(Test_Parse_Expression, prefix_plusplus_minusminus_cannot_nest) {
 
 TEST_F(Test_Parse_Expression, parse_template) {
   {
-    Test_Parser p(u8"`hello`"_sv, capture_diags);
+    Test_Parser p(u8"`hello`"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"`hello${world}`"_sv, capture_diags);
+    Test_Parser p(u8"`hello${world}`"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Template);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var world");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 15));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1685,24 +1632,22 @@ TEST_F(Test_Parse_Expression, parse_template) {
 
 TEST_F(Test_Parse_Expression, tagged_template_literal) {
   {
-    Test_Parser p(u8"hello`world`"_sv, capture_diags);
+    Test_Parser p(u8"hello`world`"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Tagged_Template_Literal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var hello");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"hello`template ${literal} thingy`"_sv, capture_diags);
+    Test_Parser p(u8"hello`template ${literal} thingy`"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Tagged_Template_Literal);
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "var hello");
     EXPECT_EQ(summarize(ast->child(1)), "var literal");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 33));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1858,10 +1803,9 @@ TEST_F(Test_Parse_Expression, array_literal) {
 
   {
     // Comma should be parsed as an array separator, not as a comma operator.
-    Test_Parser p(u8"[await myPromise,]"_sv, capture_diags);
+    Test_Parser p(u8"[await myPromise,]"_sv);
     auto guard = p.enter_function(Function_Attributes::async);
     Expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_EQ(summarize(ast), "array(await(var myPromise))");
   }
 }
@@ -1903,12 +1847,11 @@ TEST_F(Test_Parse_Expression, malformed_array_literal) {
 
 TEST_F(Test_Parse_Expression, object_literal) {
   {
-    Test_Parser p(u8"{}"_sv, capture_diags);
+    Test_Parser p(u8"{}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1951,7 +1894,7 @@ TEST_F(Test_Parse_Expression, object_literal) {
   }
 
   {
-    Test_Parser p(u8"{thing}"_sv, capture_diags);
+    Test_Parser p(u8"{thing}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -1961,7 +1904,6 @@ TEST_F(Test_Parse_Expression, object_literal) {
     EXPECT_EQ(summarize(entry.value), "var thing");
     EXPECT_THAT(entry.value->span(), p.matches_offsets(1, 6));
     EXPECT_FALSE(entry.init);
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2019,47 +1961,43 @@ TEST_F(Test_Parse_Expression, object_literal) {
 
 TEST_F(Test_Parse_Expression, object_literal_with_method_key) {
   {
-    Test_Parser p(u8"{ func(a, b) { } }"_sv, capture_diags);
+    Test_Parser p(u8"{ func(a, b) { } }"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 16));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"{ 'func'(a, b) { } }"_sv, capture_diags);
+    Test_Parser p(u8"{ 'func'(a, b) { } }"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 18));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"{ [func](a, b) { } }"_sv, capture_diags);
+    Test_Parser p(u8"{ [func](a, b) { } }"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 18));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"{ async func(a, b) { } }"_sv, capture_diags);
+    Test_Parser p(u8"{ async func(a, b) { } }"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 22));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2137,25 +2075,23 @@ TEST_F(Test_Parse_Expression, object_literal_with_method_key) {
 
 TEST_F(Test_Parse_Expression, object_literal_with_getter_setter_key) {
   {
-    Test_Parser p(u8"{ get prop() { } }"_sv, capture_diags);
+    Test_Parser p(u8"{ get prop() { } }"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 16));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"{ set prop(v) { } }"_sv, capture_diags);
+    Test_Parser p(u8"{ set prop(v) { } }"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 17));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2752,14 +2688,13 @@ TEST_F(Test_Parse_Expression,
 
 TEST_F(Test_Parse_Expression, parse_comma_expression) {
   {
-    Test_Parser p(u8"x,y,z"_sv, capture_diags);
+    Test_Parser p(u8"x,y,z"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Binary_Operator);
     EXPECT_EQ(summarize(ast->child(0)), "var x");
     EXPECT_EQ(summarize(ast->child(1)), "var y");
     EXPECT_EQ(summarize(ast->child(2)), "var z");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2854,12 +2789,11 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
 
 TEST_F(Test_Parse_Expression, parse_function_expression) {
   {
-    Test_Parser p(u8"function(){} /* */"_sv, capture_diags);
+    Test_Parser p(u8"function(){} /* */"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2914,32 +2848,29 @@ TEST_F(Test_Parse_Expression, function_with_spread_and_comma) {
 
 TEST_F(Test_Parse_Expression, async_function_expression) {
   {
-    Test_Parser p(u8"async function(){}"_sv, capture_diags);
+    Test_Parser p(u8"async function(){}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 18));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"async function f(){}"_sv, capture_diags);
+    Test_Parser p(u8"async function f(){}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Named_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 20));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, generator_function_expression) {
   {
-    Test_Parser p(u8"function*(){}"_sv, capture_diags);
+    Test_Parser p(u8"function*(){}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::generator);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 13));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2951,12 +2882,11 @@ TEST_F(Test_Parse_Expression, generator_function_expression) {
 
 TEST_F(Test_Parse_Expression, async_generator_function_expression) {
   {
-    Test_Parser p(u8"async function*(){}"_sv, capture_diags);
+    Test_Parser p(u8"async function*(){}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async_generator);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 19));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2968,46 +2898,42 @@ TEST_F(Test_Parse_Expression, async_generator_function_expression) {
 
 TEST_F(Test_Parse_Expression, arrow_function) {
   {
-    Test_Parser p(u8"() => a"_sv, capture_diags);
+    Test_Parser p(u8"() => a"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"a => b"_sv, capture_diags);
+    Test_Parser p(u8"a => b"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 6));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"(a) => b"_sv, capture_diags);
+    Test_Parser p(u8"(a) => b"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"(a, b) => c"_sv, capture_diags);
+    Test_Parser p(u8"(a, b) => c"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_EQ(summarize(ast->child(1)), "var b");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3035,24 +2961,22 @@ TEST_F(Test_Parse_Expression, arrow_function) {
   }
 
   {
-    Test_Parser p(u8"() => { a; }"_sv, capture_diags);
+    Test_Parser p(u8"() => { a; }"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"a => { b; } /* */"_sv, capture_diags);
+    Test_Parser p(u8"a => { b; } /* */"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 11));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -3072,56 +2996,51 @@ TEST_F(Test_Parse_Expression, arrow_function_with_spread_and_comma) {
 
 TEST_F(Test_Parse_Expression, arrow_function_with_destructuring_parameters) {
   {
-    Test_Parser p(u8"({a, b}) => c"_sv, capture_diags);
+    Test_Parser p(u8"({a, b}) => c"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)),
               "object(literal: var a, literal: var b)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"([a, b]) => c"_sv, capture_diags);
+    Test_Parser p(u8"([a, b]) => c"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "array(var a, var b)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"(...args) => null"_sv, capture_diags);
+    Test_Parser p(u8"(...args) => null"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "spread(var args)");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(Test_Parse_Expression, async_arrow_function) {
   {
-    Test_Parser p(u8"async () => { a; }"_sv, capture_diags);
+    Test_Parser p(u8"async () => { a; }"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
     EXPECT_EQ(ast->child_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 18));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"async x => { y; }"_sv, capture_diags);
+    Test_Parser p(u8"async x => { y; }"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var x");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3131,23 +3050,21 @@ TEST_F(Test_Parse_Expression, async_arrow_function) {
   }
 
   {
-    Test_Parser p(u8"async () => a"_sv, capture_diags);
+    Test_Parser p(u8"async () => a"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
     EXPECT_EQ(ast->child_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 13));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"async x => y"_sv, capture_diags);
+    Test_Parser p(u8"async x => y"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var x");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3332,27 +3249,24 @@ TEST_F(Test_Parse_Expression, function_without_parameter_list) {
 
 TEST_F(Test_Parse_Expression, invalid_parentheses) {
   {
-    Test_Parser p(u8"()"_sv, capture_diags);
+    // Errors should be reported during visitation.
+    Test_Parser p(u8"()"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "parenempty");
-    EXPECT_THAT(p.errors, IsEmpty())
-        << "errors should be reported during visitation";
   }
 
   {
-    Test_Parser p(u8"x = ()"_sv, capture_diags);
+    // Errors should be reported during visitation.
+    Test_Parser p(u8"x = ()"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var x, parenempty)");
-    EXPECT_THAT(p.errors, IsEmpty())
-        << "errors should be reported during visitation";
   }
 
   {
-    Test_Parser p(u8"() = x"_sv, capture_diags);
+    // Errors should be reported during visitation.
+    Test_Parser p(u8"() = x"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(parenempty, var x)");
-    EXPECT_THAT(p.errors, IsEmpty())
-        << "errors should be reported during visitation";
   }
 }
 
@@ -3370,19 +3284,17 @@ TEST_F(Test_Parse_Expression, invalid_keyword_in_expression) {
 
 TEST_F(Test_Parse_Expression, anonymous_class) {
   {
-    Test_Parser p(u8"class {}"_sv, capture_diags);
+    Test_Parser p(u8"class {}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Class);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    Test_Parser p(u8"class C {}"_sv, capture_diags);
+    Test_Parser p(u8"class C {}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Class);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 10));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

@@ -65,7 +65,7 @@ TEST_F(Test_Parse_Var, parse_simple_let) {
   }
 
   {
-    Test_Parser p(u8"let first; let second"_sv, capture_diags);
+    Test_Parser p(u8"let first; let second"_sv);
     p.parse_and_visit_statement();
     ASSERT_EQ(p.variable_declarations.size(), 1);
     EXPECT_EQ(p.variable_declarations[0].name, u8"first");
@@ -73,7 +73,6 @@ TEST_F(Test_Parse_Var, parse_simple_let) {
     ASSERT_EQ(p.variable_declarations.size(), 2);
     EXPECT_EQ(p.variable_declarations[0].name, u8"first");
     EXPECT_EQ(p.variable_declarations[1].name, u8"second");
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -229,7 +228,7 @@ TEST_F(Test_Parse_Var,
        variables_used_in_let_initializer_are_used_before_variable_declaration) {
   using namespace std::literals::string_view_literals;
 
-  Test_Parser p(u8"let x = x"_sv, capture_diags);
+  Test_Parser p(u8"let x = x"_sv);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_use",  //
@@ -239,7 +238,6 @@ TEST_F(Test_Parse_Var,
   ASSERT_EQ(p.variable_declarations.size(), 1);
   EXPECT_EQ(p.variable_declarations[0].name, u8"x");
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x"}));
-  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(Test_Parse_Var, parse_valid_let) {
@@ -1438,14 +1436,12 @@ TEST_F(Test_Parse_Var, forced_top_level_await_operator) {
         u8"await p;"_sv,
         Parser_Options{
             .top_level_await_mode = Parser_Top_Level_Await_Mode::await_operator,
-        },
-        capture_diags);
+        });
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // p
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {

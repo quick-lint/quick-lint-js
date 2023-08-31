@@ -596,14 +596,12 @@ TEST_F(Test_Parse_Module, parse_and_visit_import) {
   }
 
   {
-    Test_Parser p(u8"import fs from 'fs'; import net from 'net';"_sv,
-                  capture_diags);
+    Test_Parser p(u8"import fs from 'fs'; import net from 'net';"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({import_decl(u8"fs"_sv), import_decl(u8"net"_sv)}));
-    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
