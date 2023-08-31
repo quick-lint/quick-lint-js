@@ -474,6 +474,13 @@ TEST_F(Test_Parse_TypeScript_Enum, normal_enum_auto_requires_constant_value) {
 }
 
 // TODO(#758): Error on: enum E { A = "A", B }
+
+TEST_F(Test_Parse_TypeScript_Enum, enum_is_allowed_inside_if) {
+  test_parse_and_visit_module(u8"if (true) enum E { }"_sv, no_diags,
+                              typescript_options);
+  test_parse_and_visit_module(u8"if (true) const enum E { }"_sv, no_diags,
+                              typescript_options);
+}
 }
 }
 

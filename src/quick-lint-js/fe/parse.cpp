@@ -565,9 +565,24 @@ void Parser::error_on_class_statement(Statement_Kind statement_kind) {
 void Parser::error_on_lexical_declaration(Statement_Kind statement_kind) {
   bool is_lexical_declaration;
   switch (this->peek().type) {
-  case Token_Type::kw_const:
-    is_lexical_declaration = true;
+  case Token_Type::kw_const: {
+    if (this->options_.typescript) {
+      Lexer_Transaction transaction = this->lexer_.begin_transaction();
+      this->skip();
+      if (this->peek().type == Token_Type::kw_enum) {
+        // const enum E {}
+        is_lexical_declaration = false;
+      } else {
+        // const v = null;
+        is_lexical_declaration = true;
+      }
+      this->lexer_.roll_back_transaction(std::move(transaction));
+    } else {
+      // const v = null;
+      is_lexical_declaration = true;
+    }
     break;
+  }
 
   case Token_Type::kw_let: {
     Lexer_Transaction transaction = this->lexer_.begin_transaction();

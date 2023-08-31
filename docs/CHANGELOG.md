@@ -38,6 +38,7 @@ Semantic Versioning.
   * Declaring a type alias or an interface inside a `declare namespace` no
     longer reports [E0357][] ("'declare namespace' cannot contain statements,
     only declarations").
+  * `const enum E {}` no longer causes [E0150][].
   * VS Code: The extension now loads when only opening a TypeScript file.
     (Previously, the extension would only load when you opened a JavaScript or
     JSON file.) The `quick-lint-js.experimental-typescript` setting is still
