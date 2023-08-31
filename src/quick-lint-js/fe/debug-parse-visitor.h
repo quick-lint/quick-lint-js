@@ -28,6 +28,11 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
     this->output_->flush();
   }
 
+  void visit_enter_class_construct_scope() override {
+    this->output_->append_copy(u8"entered class construct scope\n"_sv);
+    this->output_->flush();
+  }
+
   void visit_enter_class_scope() override {
     this->output_->append_copy(u8"entered class scope\n"_sv);
     this->output_->flush();
@@ -101,6 +106,11 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
 
   void visit_exit_with_scope() override {
     this->output_->append_copy(u8"exited with scope\n"_sv);
+    this->output_->flush();
+  }
+
+  void visit_exit_class_construct_scope() override {
+    this->output_->append_copy(u8"exited class construct scope\n"_sv);
     this->output_->flush();
   }
 

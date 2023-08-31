@@ -27,6 +27,11 @@ class Multi_Parse_Visitor final : public Parse_Visitor_Base {
     this->visitor_2_->visit_enter_with_scope();
   }
 
+  void visit_enter_class_construct_scope() override {
+    this->visitor_1_->visit_enter_class_construct_scope();
+    this->visitor_2_->visit_enter_class_construct_scope();
+  }
+
   void visit_enter_class_scope() override {
     this->visitor_1_->visit_enter_class_scope();
     this->visitor_2_->visit_enter_class_scope();
@@ -96,6 +101,11 @@ class Multi_Parse_Visitor final : public Parse_Visitor_Base {
   void visit_exit_with_scope() override {
     this->visitor_1_->visit_exit_with_scope();
     this->visitor_2_->visit_exit_with_scope();
+  }
+
+  void visit_exit_class_construct_scope() override {
+    this->visitor_1_->visit_exit_class_construct_scope();
+    this->visitor_2_->visit_exit_class_construct_scope();
   }
 
   void visit_exit_class_scope() override {

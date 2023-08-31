@@ -194,6 +194,10 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
     this->visits.emplace_back("visit_enter_with_scope");
   }
 
+  void visit_enter_class_construct_scope() override {
+    this->visits.emplace_back("visit_enter_class_construct_scope");
+  }
+
   void visit_enter_class_scope() override {
     this->visits.emplace_back("visit_enter_class_scope");
   }
@@ -252,6 +256,10 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
 
   void visit_exit_with_scope() override {
     this->visits.emplace_back("visit_exit_with_scope");
+  }
+
+  void visit_exit_class_construct_scope() override {
+    this->visits.emplace_back("visit_exit_class_construct_scope");
   }
 
   void visit_exit_class_scope() override {
