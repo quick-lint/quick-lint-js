@@ -1395,7 +1395,7 @@ namespace quick_lint_js {
           } else {
             // TODO(strager): As a run-time optimization, inline write calls
             // for fixed-sized structs such as Trace_VSCode_Document_Range.
-            // This will enable more append_binary fusion.
+            // This will enable more Binary_Writer fusion.
             code.append_literal(u8"  this->write_"_sv);
             code.append_copy(member.cxx_type);
             code.append_literal(u8"("_sv);
@@ -1431,6 +1431,7 @@ namespace quick_lint_js {
         });
       }
       // Pass #2: Batch primitive write calls and emit final code.
+      bool made_binary_writer = false;
       for (std::size_t i = 0; i < writes.size();) {
         Write& write = writes[i];
         if (write.byte_size == -1) {
@@ -1447,14 +1448,21 @@ namespace quick_lint_js {
             batch_total_bytes += writes[batch_end].byte_size;
           }
           QLJS_ASSERT(batch_total_bytes > 0);
-          out.append_literal(u8"  this->append_binary("_sv);
+          if (made_binary_writer) {
+            out.append_literal(u8"  w = "_sv);
+          } else {
+            out.append_literal(u8"  Binary_Writer w = "_sv);
+            made_binary_writer = true;
+          }
+          out.append_literal(
+              u8"Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append("_sv);
           out.append_decimal_integer(batch_total_bytes);
-          out.append_literal(u8", [&](Binary_Writer& w) {\n"_sv);
+          out.append_literal(u8")));\n"_sv);
           for (std::size_t j = batch_start; j < batch_end; ++j) {
-            out.append_literal(u8"    "_sv);
+            out.append_literal(u8"  "_sv);
             out.append_copy(writes[j].code);
           }
-          out.append_literal(u8"  });\n"_sv);
+          out.append_literal(u8"  /* Done with w. */\n"_sv);
           i = batch_end;
         }
       }

@@ -87,10 +87,10 @@ class Trace_Writer {
 inline void Trace_Writer::write_event_init(
       const Trace_Event_Header& header,
       const Trace_Event_Init& s) {
-  this->append_binary(9, [&](Binary_Writer& w) {
-    w.u64_le(header.timestamp);
-    w.u8(s.id);
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(9)));
+  w.u64_le(header.timestamp);
+  w.u8(s.id);
+  /* Done with w. */
   this->write_utf8_zstring(s.version);
 }
 
@@ -98,11 +98,11 @@ template <class String16>
 inline void Trace_Writer::write_event_vscode_document_opened(
       const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Opened<String16>& s) {
-  this->append_binary(17, [&](Binary_Writer& w) {
-    w.u64_le(header.timestamp);
-    w.u8(s.id);
-    w.u64_le(s.document_id);
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
+  w.u64_le(header.timestamp);
+  w.u8(s.id);
+  w.u64_le(s.document_id);
+  /* Done with w. */
   this->write_utf16le_string(s.uri);
   this->write_utf16le_string(s.language_id);
   this->write_utf16le_string(s.content);
@@ -112,21 +112,21 @@ template <class String16>
 inline void Trace_Writer::write_event_vscode_document_closed(
       const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Closed<String16>& s) {
-  this->append_binary(17, [&](Binary_Writer& w) {
-    w.u64_le(header.timestamp);
-    w.u8(s.id);
-    w.u64_le(s.document_id);
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
+  w.u64_le(header.timestamp);
+  w.u8(s.id);
+  w.u64_le(s.document_id);
+  /* Done with w. */
   this->write_utf16le_string(s.uri);
   this->write_utf16le_string(s.language_id);
 }
 
 inline void Trace_Writer::write_Trace_VSCode_Document_Position(
       const Trace_VSCode_Document_Position& s) {
-  this->append_binary(16, [&](Binary_Writer& w) {
-    w.u64_le(s.line);
-    w.u64_le(s.character);
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(16)));
+  w.u64_le(s.line);
+  w.u64_le(s.character);
+  /* Done with w. */
 }
 
 inline void Trace_Writer::write_Trace_VSCode_Document_Range(
@@ -139,10 +139,10 @@ template <class String16>
 inline void Trace_Writer::write_Trace_VSCode_Document_Change(
       const Trace_VSCode_Document_Change<String16>& s) {
   this->write_Trace_VSCode_Document_Range(s.range);
-  this->append_binary(16, [&](Binary_Writer& w) {
-    w.u64_le(s.range_offset);
-    w.u64_le(s.range_length);
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(16)));
+  w.u64_le(s.range_offset);
+  w.u64_le(s.range_length);
+  /* Done with w. */
   this->write_utf16le_string(s.text);
 }
 
@@ -150,12 +150,12 @@ template <class String16>
 inline void Trace_Writer::write_event_vscode_document_changed(
       const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Changed<String16>& s) {
-  this->append_binary(25, [&](Binary_Writer& w) {
-    w.u64_le(header.timestamp);
-    w.u8(s.id);
-    w.u64_le(s.document_id);
-    w.u64_le(narrow_cast<std::uint64_t>(s.changes.size()));
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(25)));
+  w.u64_le(header.timestamp);
+  w.u8(s.id);
+  w.u64_le(s.document_id);
+  w.u64_le(narrow_cast<std::uint64_t>(s.changes.size()));
+  /* Done with w. */
 for (const Trace_VSCode_Document_Change<String16>& item : s.changes) {
   this->write_Trace_VSCode_Document_Change(item);
 }
@@ -165,11 +165,11 @@ template <class String16>
 inline void Trace_Writer::write_event_vscode_document_sync(
       const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Sync<String16>& s) {
-  this->append_binary(17, [&](Binary_Writer& w) {
-    w.u64_le(header.timestamp);
-    w.u8(s.id);
-    w.u64_le(s.document_id);
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
+  w.u64_le(header.timestamp);
+  w.u8(s.id);
+  w.u64_le(s.document_id);
+  /* Done with w. */
   this->write_utf16le_string(s.uri);
   this->write_utf16le_string(s.language_id);
   this->write_utf16le_string(s.content);
@@ -178,27 +178,27 @@ inline void Trace_Writer::write_event_vscode_document_sync(
 inline void Trace_Writer::write_event_lsp_client_to_server_message(
       const Trace_Event_Header& header,
       const Trace_Event_LSP_Client_To_Server_Message& s) {
-  this->append_binary(9, [&](Binary_Writer& w) {
-    w.u64_le(header.timestamp);
-    w.u8(s.id);
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(9)));
+  w.u64_le(header.timestamp);
+  w.u8(s.id);
+  /* Done with w. */
   this->write_utf8_string(s.body);
 }
 
 inline void Trace_Writer::write_Trace_Vector_Max_Size_Histogram_Entry(
       const Trace_Vector_Max_Size_Histogram_Entry& s) {
-  this->append_binary(16, [&](Binary_Writer& w) {
-    w.u64_le(s.max_size);
-    w.u64_le(s.count);
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(16)));
+  w.u64_le(s.max_size);
+  w.u64_le(s.count);
+  /* Done with w. */
 }
 
 inline void Trace_Writer::write_Trace_Vector_Max_Size_Histogram_By_Owner_Entry(
       const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& s) {
   this->write_utf8_zstring(s.owner);
-  this->append_binary(8, [&](Binary_Writer& w) {
-    w.u64_le(narrow_cast<std::uint64_t>(s.max_size_entries.size()));
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(8)));
+  w.u64_le(narrow_cast<std::uint64_t>(s.max_size_entries.size()));
+  /* Done with w. */
 for (const Trace_Vector_Max_Size_Histogram_Entry& item : s.max_size_entries) {
   this->write_Trace_Vector_Max_Size_Histogram_Entry(item);
 }
@@ -207,11 +207,11 @@ for (const Trace_Vector_Max_Size_Histogram_Entry& item : s.max_size_entries) {
 inline void Trace_Writer::write_event_vector_max_size_histogram_by_owner(
       const Trace_Event_Header& header,
       const Trace_Event_Vector_Max_Size_Histogram_By_Owner& s) {
-  this->append_binary(17, [&](Binary_Writer& w) {
-    w.u64_le(header.timestamp);
-    w.u8(s.id);
-    w.u64_le(narrow_cast<std::uint64_t>(s.entries.size()));
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
+  w.u64_le(header.timestamp);
+  w.u8(s.id);
+  w.u64_le(narrow_cast<std::uint64_t>(s.entries.size()));
+  /* Done with w. */
 for (const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& item : s.entries) {
   this->write_Trace_Vector_Max_Size_Histogram_By_Owner_Entry(item);
 }
@@ -220,18 +220,18 @@ for (const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& item : s.entries) {
 inline void Trace_Writer::write_event_process_id(
       const Trace_Event_Header& header,
       const Trace_Event_Process_ID& s) {
-  this->append_binary(17, [&](Binary_Writer& w) {
-    w.u64_le(header.timestamp);
-    w.u8(s.id);
-    w.u64_le(s.process_id);
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
+  w.u64_le(header.timestamp);
+  w.u8(s.id);
+  w.u64_le(s.process_id);
+  /* Done with w. */
 }
 
 inline void Trace_Writer::write_Trace_LSP_Document_State(
       const Trace_LSP_Document_State& s) {
-  this->append_binary(1, [&](Binary_Writer& w) {
-    w.u8(static_cast<std::uint8_t>(s.type));
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(1)));
+  w.u8(static_cast<std::uint8_t>(s.type));
+  /* Done with w. */
   this->write_utf8_string(s.uri);
   this->write_utf8_string(s.text);
   this->write_utf8_string(s.language_id);
@@ -240,11 +240,11 @@ inline void Trace_Writer::write_Trace_LSP_Document_State(
 inline void Trace_Writer::write_event_lsp_documents(
       const Trace_Event_Header& header,
       const Trace_Event_LSP_Documents& s) {
-  this->append_binary(17, [&](Binary_Writer& w) {
-    w.u64_le(header.timestamp);
-    w.u8(s.id);
-    w.u64_le(narrow_cast<std::uint64_t>(s.documents.size()));
-  });
+  Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
+  w.u64_le(header.timestamp);
+  w.u8(s.id);
+  w.u64_le(narrow_cast<std::uint64_t>(s.documents.size()));
+  /* Done with w. */
 for (const Trace_LSP_Document_State& item : s.documents) {
   this->write_Trace_LSP_Document_State(item);
 }
