@@ -685,12 +685,11 @@ TEST_F(Test_Parse_Expression_Statement, expression_statement) {
                               "visit_variable_use",  // index
                               "visit_variable_use",  // rhs
                           }));
-    EXPECT_THAT(p.errors,
-                ElementsAreArray({
-                    ::testing::VariantWith<
-                        Diag_Cannot_Refer_To_Private_Variable_Without_Object>(
-                        ::testing::_),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"Diag_Cannot_Refer_To_Private_Variable_Without_Object"_diag,
+        });
   }
 
   {
