@@ -9,9 +9,11 @@
 namespace quick_lint_js {
 void Diag_Collector::report_impl(Diag_Type type, void *diag) {
   switch (type) {
-#define QLJS_DIAG_TYPE_NAME(name)                                     \
-  case Diag_Type::name:                                               \
-    this->errors.emplace_back(*reinterpret_cast<const name *>(diag)); \
+    // NOTE(strager): Avoid emplace_back as it leads to many template
+    // instantiations, slowing down compilation.
+#define QLJS_DIAG_TYPE_NAME(name)                                        \
+  case Diag_Type::name:                                                  \
+    this->errors.push_back(Diag(*reinterpret_cast<const name *>(diag))); \
     break;
     QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
