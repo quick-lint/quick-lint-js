@@ -105,10 +105,7 @@ void Trace_Reader::parse_header(Checked_Binary_Reader& r) {
   this->parsed_events_.push_back(Parsed_Trace_Event{
       .type = Parsed_Trace_Event_Type::packet_header,
       // TODO(strager): Don't initialize .header. (Move it inside the union?)
-      .header =
-          Trace_Event_Header{
-              .timestamp = 0,
-          },
+      .header = Trace_Event_Header{.timestamp = 0},
       .packet_header =
           Trace_Context{
               .thread_id = thread_id,

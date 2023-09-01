@@ -253,16 +253,8 @@ TEST(Test_Trace_Reader, vscode_document_changed_event) {
                   Trace_VSCode_Document_Change<std::u16string_view>{
                       .range =
                           {
-                              .start =
-                                  {
-                                      .line = 0x11,
-                                      .character = 0x22,
-                                  },
-                              .end =
-                                  {
-                                      .line = 0x33,
-                                      .character = 0x44,
-                                  },
+                              .start = {.line = 0x11, .character = 0x22},
+                              .end = {.line = 0x33, .character = 0x44},
                           },
                       .range_offset = 0x55,
                       .range_length = 0x66,
@@ -271,16 +263,8 @@ TEST(Test_Trace_Reader, vscode_document_changed_event) {
                   Trace_VSCode_Document_Change<std::u16string_view>{
                       .range =
                           {
-                              .start =
-                                  {
-                                      .line = 0xaa,
-                                      .character = 0xbb,
-                                  },
-                              .end =
-                                  {
-                                      .line = 0xcc,
-                                      .character = 0xdd,
-                                  },
+                              .start = {.line = 0xaa, .character = 0xbb},
+                              .end = {.line = 0xcc, .character = 0xdd},
                           },
                       .range_offset = 0xee,
                       .range_length = 0xff,

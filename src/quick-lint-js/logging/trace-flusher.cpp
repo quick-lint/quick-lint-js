@@ -243,17 +243,12 @@ void Trace_Flusher::write_thread_header_to_backend(
   writer.write_header(Trace_Context{
       .thread_id = t.thread_id,
   });
-  writer.write_event_init(
-      Trace_Event_Header{
-          .timestamp = 0,  // TODO(strager)
-      },
-      Trace_Event_Init{
-          .version = QUICK_LINT_JS_VERSION_STRING_U8_SV,
-      });
+  writer.write_event_init(Trace_Event_Header{.timestamp = 0},  // TODO(strager)
+                          Trace_Event_Init{
+                              .version = QUICK_LINT_JS_VERSION_STRING_U8_SV,
+                          });
   writer.write_event_process_id(
-      Trace_Event_Header{
-          .timestamp = 0,  // TODO(strager)
-      },
+      Trace_Event_Header{.timestamp = 0},  // TODO(strager)
       Trace_Event_Process_ID{
           .process_id = get_current_process_id(),
       });

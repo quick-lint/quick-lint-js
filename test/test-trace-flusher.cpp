@@ -540,13 +540,10 @@ TEST_F(Test_Trace_Flusher, write_events_from_multiple_threads) {
 
     Trace_Writer* writer = flusher.trace_writer_for_current_thread();
     ASSERT_TRUE(writer);
-    writer->write_event_init(
-        Trace_Event_Header{
-            .timestamp = 0x5678,
-        },
-        Trace_Event_Init{
-            .version = u8"other thread"_sv,
-        });
+    writer->write_event_init(Trace_Event_Header{.timestamp = 0x5678},
+                             Trace_Event_Init{
+                                 .version = u8"other thread"_sv,
+                             });
     writer->commit();
 
     flusher.unregister_current_thread();
@@ -554,13 +551,10 @@ TEST_F(Test_Trace_Flusher, write_events_from_multiple_threads) {
 
   Trace_Writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
-  writer->write_event_init(
-      Trace_Event_Header{
-          .timestamp = 0x5678,
-      },
-      Trace_Event_Init{
-          .version = u8"main thread"_sv,
-      });
+  writer->write_event_init(Trace_Event_Header{.timestamp = 0x5678},
+                           Trace_Event_Init{
+                               .version = u8"main thread"_sv,
+                           });
   writer->commit();
 
   other_thread.join();
@@ -670,13 +664,10 @@ TEST_F(Test_Trace_Flusher, unregistering_thread_flushes_committed_data) {
 
   Trace_Writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
-  writer->write_event_init(
-      Trace_Event_Header{
-          .timestamp = 0x5678,
-      },
-      Trace_Event_Init{
-          .version = u8"testing"_sv,
-      });
+  writer->write_event_init(Trace_Event_Header{.timestamp = 0x5678},
+                           Trace_Event_Init{
+                               .version = u8"testing"_sv,
+                           });
   writer->commit();
 
   flusher.unregister_current_thread();
@@ -697,13 +688,10 @@ TEST_F(Test_Trace_Flusher, flush_async_does_not_flush_on_current_thread) {
 
   Trace_Writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
-  writer->write_event_init(
-      Trace_Event_Header{
-          .timestamp = 0x5678,
-      },
-      Trace_Event_Init{
-          .version = u8"testing"_sv,
-      });
+  writer->write_event_init(Trace_Event_Header{.timestamp = 0x5678},
+                           Trace_Event_Init{
+                               .version = u8"testing"_sv,
+                           });
   writer->commit();
   flusher.flush_async();  // Flush the testing init event, but not now.
 
@@ -726,13 +714,10 @@ TEST_F(Test_Trace_Flusher, flush_async_flushes_on_flusher_thread) {
 
   Trace_Writer* writer = flusher.trace_writer_for_current_thread();
   ASSERT_TRUE(writer);
-  writer->write_event_init(
-      Trace_Event_Header{
-          .timestamp = 0x5678,
-      },
-      Trace_Event_Init{
-          .version = u8"testing"_sv,
-      });
+  writer->write_event_init(Trace_Event_Header{.timestamp = 0x5678},
+                           Trace_Event_Init{
+                               .version = u8"testing"_sv,
+                           });
   writer->commit();
   flusher
       .flush_async();  // Flush the testing init event, but not on this thread.

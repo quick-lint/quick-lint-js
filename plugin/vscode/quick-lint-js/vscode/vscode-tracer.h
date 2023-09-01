@@ -94,9 +94,7 @@ class VSCode_Tracer {
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_opened(
-          Trace_Event_Header{
-              .timestamp = this->timestamp(),
-          },
+          Trace_Event_Header{.timestamp = this->timestamp()},
           Trace_Event_VSCode_Document_Opened<::Napi::Value>{
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = uri.Get("toString").As<::Napi::Function>().Call(uri, {}),
@@ -141,9 +139,7 @@ class VSCode_Tracer {
         };
       }
       tw->write_event_vscode_document_changed(
-          Trace_Event_Header{
-              .timestamp = this->timestamp(),
-          },
+          Trace_Event_Header{.timestamp = this->timestamp()},
           Trace_Event_VSCode_Document_Changed<::Napi::Value>{
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .changes =
@@ -162,9 +158,7 @@ class VSCode_Tracer {
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_closed(
-          Trace_Event_Header{
-              .timestamp = this->timestamp(),
-          },
+          Trace_Event_Header{.timestamp = this->timestamp()},
           Trace_Event_VSCode_Document_Closed<::Napi::Value>{
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = uri.Get("toString").As<::Napi::Function>().Call(uri, {}),
@@ -182,9 +176,7 @@ class VSCode_Tracer {
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
       tw->write_event_vscode_document_sync(
-          Trace_Event_Header{
-              .timestamp = this->timestamp(),
-          },
+          Trace_Event_Header{.timestamp = this->timestamp()},
           Trace_Event_VSCode_Document_Sync<::Napi::Value>{
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
               .uri = uri.Get("toString").As<::Napi::Function>().Call(uri, {}),
