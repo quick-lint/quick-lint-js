@@ -406,8 +406,8 @@ void Variable_Analyzer::visit_variable_assignment(Identifier name) {
     this->report_error_if_assignment_is_illegal(
         var, name, /*is_assigned_before_declaration=*/false);
   } else {
-    current_scope.variables_used.emplace_back(name,
-                                              Used_Variable_Kind::assignment);
+    this->add_variable_use_to_current_scope(
+        Used_Variable(name, Used_Variable_Kind::assignment));
   }
 }
 
@@ -427,7 +427,7 @@ void Variable_Analyzer::visit_variable_delete_use(
       this->report_errors_for_variable_use(used_var, *already_declared,
                                            /*use_is_before_declaration=*/false);
     } else {
-      current_scope.variables_used.push_back(std::move(used_var));
+      this->add_variable_use_to_current_scope(std::move(used_var));
     }
   } else {
     this->diag_reporter_->report(Diag_TypeScript_Delete_Cannot_Delete_Variables{
@@ -487,11 +487,15 @@ void Variable_Analyzer::visit_variable_use(Identifier name,
   if (var) {
     var->is_used = true;
   } else {
-    current_scope.variables_used.emplace_back(name, use_kind);
+    this->add_variable_use_to_current_scope(Used_Variable(name, use_kind));
     if (name.normalized_name() == u8"eval"_sv) {
       current_scope.used_eval_in_this_scope = true;
     }
   }
+}
+
+void Variable_Analyzer::add_variable_use_to_current_scope(Used_Variable &&var) {
+  this->current_scope().variables_used.push_back(std::move(var));
 }
 
 void Variable_Analyzer::visit_end_of_module() {

@@ -259,6 +259,8 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
                         Variable_Declaration_Flags flags);
   void visit_variable_use(Identifier name, Used_Variable_Kind);
 
+  void add_variable_use_to_current_scope(Used_Variable &&);
+
   void propagate_variable_uses_to_parent_scope(
       bool allow_variable_use_before_declaration, bool consume_arguments);
   template <class Parent_Scope>
