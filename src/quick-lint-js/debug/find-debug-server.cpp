@@ -15,9 +15,11 @@
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/logging/log.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-16.h>
 #include <string_view>
 #include <vector>
 
@@ -130,18 +132,18 @@ namespace {
 // vice versa).
 #if defined(__linux__)
 // Thread names are short on Linux, so keep this prefix short.
-constexpr std::string_view thread_name_prefix = "quick-lint"sv;
+constexpr String8_View thread_name_prefix = u8"quick-lint"_sv;
 constexpr std::size_t max_thread_name_length = 15;
 #define QLJS_CAN_FIND_DEBUG_SERVERS 1
 #endif
 #if defined(__APPLE__)
-constexpr std::string_view thread_name_prefix =
-    "quick-lint-js debug server port="sv;
+constexpr String8_View thread_name_prefix =
+    u8"quick-lint-js debug server port="_sv;
 constexpr std::size_t max_thread_name_length = MAXTHREADNAMESIZE - 1;
 #define QLJS_CAN_FIND_DEBUG_SERVERS 1
 #endif
 #if defined(__FreeBSD__)
-constexpr std::string_view thread_name_prefix = "quick-lint"sv;
+constexpr String8_View thread_name_prefix = u8"quick-lint"_sv;
 // NOTE(Nico): This seems to be the limit defined in the kernel. It is extremely
 //             small so we choose a very short prefix like on Linux. (see
 //             sys/sys/proc.h:300, struct thread). Then we find another limit
@@ -155,8 +157,8 @@ static_assert(max_thread_name_length >= TDNAMLEN,
 #define QLJS_CAN_FIND_DEBUG_SERVERS 1
 #endif
 #if defined(_WIN32)
-constexpr std::wstring_view thread_name_prefix =
-    L"quick-lint-js debug server port="sv;
+constexpr String8_View thread_name_prefix =
+    u8"quick-lint-js debug server port="_sv;
 // Thread names on Windows can seemingly be any length. Pick a reasonable limit
 // for ourselves.
 constexpr std::size_t max_thread_name_length = 256;
@@ -168,20 +170,17 @@ constexpr std::size_t max_thread_name_length = 256;
 #endif
 
 #if QLJS_CAN_FIND_DEBUG_SERVERS
-using Thread_Name_Char_Type = decltype(thread_name_prefix)::value_type;
-
 static_assert(thread_name_prefix.size() +
                       integer_string_length<std::uint16_t> <=
                   max_thread_name_length,
               "thread_name_prefix is too long");
 
 std::optional<std::uint16_t> parse_port_number_from_thread_name(
-    std::basic_string_view<Thread_Name_Char_Type> thread_name) {
+    String8_View thread_name) {
   if (!starts_with(thread_name, thread_name_prefix)) {
     return std::nullopt;
   }
-  std::basic_string_view<Thread_Name_Char_Type> port_string =
-      thread_name.substr(thread_name_prefix.size());
+  String8_View port_string = thread_name.substr(thread_name_prefix.size());
   std::uint16_t port;
   if (parse_integer_exact(port_string, port) != Parse_Integer_Exact_Error::ok) {
     return std::nullopt;
@@ -193,16 +192,18 @@ std::optional<std::uint16_t> parse_port_number_from_thread_name(
 
 #if QLJS_FEATURE_DEBUG_SERVER
 void register_current_thread_as_debug_server_thread(std::uint16_t port_number) {
-  std::array<Thread_Name_Char_Type, max_thread_name_length + 1> name;
-  Thread_Name_Char_Type* out = std::copy(thread_name_prefix.begin(),
-                                         thread_name_prefix.end(), name.data());
+  std::array<Char8, max_thread_name_length + 1> name;
+  Char8* out = std::copy(thread_name_prefix.begin(), thread_name_prefix.end(),
+                         name.data());
   out = write_integer(port_number, out);
   *out++ = '\0';
   QLJS_ASSERT((out - name.data()) <= narrow_cast<std::ptrdiff_t>(name.size()));
 
+  const char* name_cstr = reinterpret_cast<const char*>(name.data());
+
 #if defined(__linux__)
-  int rc = ::prctl(PR_SET_NAME, reinterpret_cast<std::uintptr_t>(name.data()),
-                   0, 0, 0);
+  int rc = ::prctl(PR_SET_NAME, reinterpret_cast<std::uintptr_t>(name_cstr), 0,
+                   0, 0);
   if (rc != 0) {
     QLJS_DEBUG_LOG(
         "%s: ignoring failure to set thread name for debug server thread: %s\n",
@@ -211,7 +212,7 @@ void register_current_thread_as_debug_server_thread(std::uint16_t port_number) {
   }
 #endif
 #if defined(__APPLE__)
-  int rc = ::pthread_setname_np(name.data());
+  int rc = ::pthread_setname_np(name_cstr);
   if (rc != 0) {
     QLJS_DEBUG_LOG(
         "%s: ignoring failure to set thread name for debug server thread: %s\n",
@@ -220,7 +221,7 @@ void register_current_thread_as_debug_server_thread(std::uint16_t port_number) {
   }
 #endif
 #if defined(__FreeBSD__)
-  int rc = ::pthread_setname_np(::pthread_self(), name.data());
+  int rc = ::pthread_setname_np(::pthread_self(), name_cstr);
   if (rc != 0) {
     QLJS_DEBUG_LOG(
         "%s: ignoring failure to set thread name for debug server thread: %s\n",
@@ -229,7 +230,14 @@ void register_current_thread_as_debug_server_thread(std::uint16_t port_number) {
   }
 #endif
 #if defined(_WIN32)
-  ::HRESULT rc = ::SetThreadDescription(::GetCurrentThread(), name.data());
+  std::optional<std::wstring> name_unicode = mbstring_to_wstring(name_cstr);
+  if (!name_unicode.has_value()) {
+    QLJS_DEBUG_LOG("%s: ignoring failure to convert thread name to UTF-16\n",
+                   __func__);
+    return;
+  }
+  ::HRESULT rc =
+      ::SetThreadDescription(::GetCurrentThread(), name_unicode->c_str());
   if (FAILED(rc)) {
     QLJS_DEBUG_LOG(
         "%s: ignoring failure to set thread name for debug server thread: "
@@ -321,22 +329,22 @@ void enumerate_all_process_thread_names(Callback&& callback) {
 std::vector<Found_Debug_Server> find_debug_servers() {
   std::vector<Found_Debug_Server> debug_servers;
 
-  enumerate_all_process_thread_names(
-      [&](std::string_view process_id_string, std::string_view thread_name) {
-        if (std::optional<std::uint16_t> port_number =
-                parse_port_number_from_thread_name(thread_name)) {
-          std::uint64_t process_id;
-          Parse_Integer_Exact_Error parse_error =
-              parse_integer_exact(process_id_string, process_id);
-          QLJS_ASSERT(parse_error == Parse_Integer_Exact_Error::ok);
-          if (parse_error == Parse_Integer_Exact_Error::ok) {
-            debug_servers.push_back(Found_Debug_Server{
-                .process_id = process_id,
-                .port_number = *port_number,
-            });
-          }
-        }
-      });
+  enumerate_all_process_thread_names([&](std::string_view process_id_string,
+                                         std::string_view thread_name) {
+    if (std::optional<std::uint16_t> port_number =
+            parse_port_number_from_thread_name(to_string8_view(thread_name))) {
+      std::uint64_t process_id;
+      Parse_Integer_Exact_Error parse_error =
+          parse_integer_exact(process_id_string, process_id);
+      QLJS_ASSERT(parse_error == Parse_Integer_Exact_Error::ok);
+      if (parse_error == Parse_Integer_Exact_Error::ok) {
+        debug_servers.push_back(Found_Debug_Server{
+            .process_id = process_id,
+            .port_number = *port_number,
+        });
+      }
+    }
+  });
 
   return debug_servers;
 }
@@ -436,7 +444,7 @@ std::vector<Found_Debug_Server> find_debug_servers() {
         thread_info.pth_name,
         ::strnlen(thread_info.pth_name, MAXTHREADNAMESIZE));
     if (std::optional<std::uint16_t> port_number =
-            parse_port_number_from_thread_name(thread_name)) {
+            parse_port_number_from_thread_name(to_string8_view(thread_name))) {
       debug_servers.push_back(Found_Debug_Server{
           .process_id = narrow_cast<std::uint64_t>(process_id),
           .port_number = *port_number,
@@ -508,7 +516,7 @@ std::vector<Found_Debug_Server> find_debug_servers() {
         p[ti].ki_tdname,
         ::strnlen(p[ti].ki_tdname, max_thread_name_length - 1));
     if (std::optional<std::uint16_t> port_number =
-            parse_port_number_from_thread_name(thread_name)) {
+            parse_port_number_from_thread_name(to_string8_view(thread_name))) {
       debug_servers.push_back(Found_Debug_Server{
           .process_id = narrow_cast<std::uint64_t>(p[ti].ki_pid),
           .port_number = *port_number,
@@ -604,10 +612,19 @@ std::vector<Found_Debug_Server> find_debug_servers() {
           func, thread_id, process_id, rc);
       return;
     }
+    std::optional<std::string> thread_name_utf8 =
+        wstring_to_mbstring(std::wstring_view(thread_name));
+    if (!thread_name_utf8.has_value()) {
+      QLJS_DEBUG_LOG(
+          "%s: ignoring failure to convert thread name of thread %lu of "
+          "process %lu to UTF-8\n" func,
+          thread_id, process_id);
+      return;
+    }
 
     if (std::optional<std::uint16_t> port_number =
             parse_port_number_from_thread_name(
-                std::wstring_view(thread_name))) {
+                to_string8_view(*thread_name_utf8))) {
       debug_servers.push_back(Found_Debug_Server{
           .process_id = process_id,
           .port_number = *port_number,
