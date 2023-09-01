@@ -29,12 +29,13 @@ struct Diag_Collector : public Diag_Reporter {
     friend void PrintTo(const Diag &, std::ostream *);
 
    private:
+    explicit Diag(Diag_Type type, const void *data);
+
     Diag_Type type_;
-    union {
-#define QLJS_DIAG_TYPE_NAME(name) name variant_##name##_;
-      QLJS_X_DIAG_TYPE_NAMES
-#undef QLJS_DIAG_TYPE_NAME
-    };
+    alignas(std::uint64_t) std::uint8_t storage_[48];
+
+    friend void diag_collector_static_assertions();
+    friend Diag_Collector;
   };
 
   std::vector<Diag> errors;

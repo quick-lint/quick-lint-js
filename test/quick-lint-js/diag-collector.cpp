@@ -7,29 +7,39 @@
 #include <quick-lint-js/port/unreachable.h>
 
 namespace quick_lint_js {
-void Diag_Collector::report_impl(Diag_Type type, void *diag) {
-  switch (type) {
-    // NOTE(strager): Avoid emplace_back as it leads to many template
-    // instantiations, slowing down compilation.
-#define QLJS_DIAG_TYPE_NAME(name)                                        \
-  case Diag_Type::name:                                                  \
-    this->errors.push_back(Diag(*reinterpret_cast<const name *>(diag))); \
-    break;
-    QLJS_X_DIAG_TYPE_NAMES
+void diag_collector_static_assertions() {
+#define QLJS_DIAG_TYPE_NAME(Diag_Type)                                       \
+  static_assert(sizeof(Diag_Collector::Diag::storage_) >= sizeof(Diag_Type), \
+                "storage should be big enough to fit " #Diag_Type);          \
+  static_assert(std::is_trivially_copyable_v<Diag_Type>,                     \
+                #Diag_Type " should be trivially copyable");
+  QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
-  }
 }
 
-#define QLJS_DIAG_TYPE_NAME(name)              \
-  Diag_Collector::Diag::Diag(const name &data) \
-      : type_(Diag_Type::name), variant_##name##_(std::move(data)) {}
+void Diag_Collector::report_impl(Diag_Type type, void *diag) {
+  this->errors.push_back(Diag(type, diag));
+}
+
+#define QLJS_DIAG_TYPE_NAME(Type) \
+  Diag_Collector::Diag::Diag(const Type &data) : Diag(Diag_Type::Type, &data) {}
 QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
 
 Diag_Type Diag_Collector::Diag::type() const { return this->type_; }
 
-const void *Diag_Collector::Diag::data() const {
-  return &this->variant_Diag_Unexpected_Token_;  // Arbitrary member.
+const void *Diag_Collector::Diag::data() const { return &this->storage_; }
+
+Diag_Collector::Diag::Diag(Diag_Type type, const void *data) {
+  static constexpr unsigned char diag_sizes[] = {
+#define QLJS_DIAG_TYPE_NAME(Diag_Type) sizeof(Diag_Type),
+      QLJS_X_DIAG_TYPE_NAMES
+#undef QLJS_DIAG_TYPE_NAME
+  };
+
+  this->type_ = type;
+  std::memcpy(&this->storage_, data,
+              diag_sizes[static_cast<std::ptrdiff_t>(type)]);
 }
 
 void PrintTo(const Diag_Collector::Diag &e, std::ostream *out) {
