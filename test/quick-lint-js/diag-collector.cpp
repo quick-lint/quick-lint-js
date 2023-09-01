@@ -32,28 +32,9 @@ const void *Diag_Collector::Diag::data() const {
   return &this->variant_Diag_Unexpected_Token_;  // Arbitrary member.
 }
 
-#define QLJS_DIAG_TYPE_NAME(name)                               \
-  template <>                                                   \
-  bool holds_alternative<name>(const Diag_Collector::Diag &e) { \
-    return e.type_ == Diag_Type::name;                          \
-  }                                                             \
-                                                                \
-  template <>                                                   \
-  const name &get<name>(const Diag_Collector::Diag &e) {        \
-    QLJS_ASSERT(holds_alternative<name>(e));                    \
-    return e.variant_##name##_;                                 \
-  }
-QLJS_X_DIAG_TYPE_NAMES
-#undef QLJS_DIAG_TYPE_NAME
-
 void PrintTo(const Diag_Collector::Diag &e, std::ostream *out) {
   *out << e.type_;
 }
-
-#define QLJS_DIAG_TYPE_NAME(name) \
-  void PrintTo(const name &, std::ostream *out) { *out << #name; }
-QLJS_X_DIAG_TYPE_NAMES
-#undef QLJS_DIAG_TYPE_NAME
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
