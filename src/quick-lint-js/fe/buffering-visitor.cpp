@@ -40,6 +40,9 @@ void Buffering_Visitor::copy_into(Parse_Visitor_Base &target) const {
     case Visit_Kind::enter_conditional_type_scope:
       target.visit_enter_conditional_type_scope();
       break;
+    case Visit_Kind::enter_declare_scope:
+      target.visit_enter_declare_scope();
+      break;
     case Visit_Kind::enter_enum_scope:
       target.visit_enter_enum_scope();
       break;
@@ -81,6 +84,9 @@ void Buffering_Visitor::copy_into(Parse_Visitor_Base &target) const {
       break;
     case Visit_Kind::exit_conditional_type_scope:
       target.visit_exit_conditional_type_scope();
+      break;
+    case Visit_Kind::exit_declare_scope:
+      target.visit_exit_declare_scope();
       break;
     case Visit_Kind::exit_enum_scope:
       target.visit_exit_enum_scope();
@@ -177,6 +183,10 @@ void Buffering_Visitor::visit_enter_conditional_type_scope() {
   this->add(Visit_Kind::enter_conditional_type_scope);
 }
 
+void Buffering_Visitor::visit_enter_declare_scope() {
+  this->add(Visit_Kind::enter_declare_scope);
+}
+
 void Buffering_Visitor::visit_enter_enum_scope() {
   this->add(Visit_Kind::enter_enum_scope);
 }
@@ -231,6 +241,10 @@ void Buffering_Visitor::visit_exit_class_scope() {
 
 void Buffering_Visitor::visit_exit_conditional_type_scope() {
   this->add(Visit_Kind::exit_conditional_type_scope);
+}
+
+void Buffering_Visitor::visit_exit_declare_scope() {
+  this->add(Visit_Kind::exit_declare_scope);
 }
 
 void Buffering_Visitor::visit_exit_enum_scope() {

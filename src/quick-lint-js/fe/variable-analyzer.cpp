@@ -137,6 +137,8 @@ void Variable_Analyzer::visit_enter_conditional_type_scope() {
   this->scopes_.push();
 }
 
+void Variable_Analyzer::visit_enter_declare_scope() {}
+
 void Variable_Analyzer::visit_enter_enum_scope() { this->scopes_.push(); }
 
 void Variable_Analyzer::visit_enter_for_scope() { this->scopes_.push(); }
@@ -210,6 +212,8 @@ void Variable_Analyzer::visit_exit_conditional_type_scope() {
       /*consume_arguments=*/false);
   this->scopes_.pop();
 }
+
+void Variable_Analyzer::visit_exit_declare_scope() {}
 
 void Variable_Analyzer::visit_exit_enum_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
