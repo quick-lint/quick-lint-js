@@ -19,11 +19,11 @@ namespace quick_lint_js {
 // max_thread_name_length is the number of UTF-8 code units of the thread name,
 // excluding the null terminator.
 #if defined(__linux__)
-constexpr std::size_t max_thread_name_length = 15;
+inline constexpr std::size_t max_thread_name_length = 15;
 #define QLJS_CAN_SET_THREAD_NAMES 1
 #endif
 #if defined(__APPLE__)
-constexpr std::size_t max_thread_name_length = MAXTHREADNAMESIZE - 1;
+inline constexpr std::size_t max_thread_name_length = MAXTHREADNAMESIZE - 1;
 #define QLJS_CAN_SET_THREAD_NAMES 1
 #endif
 #if defined(__FreeBSD__)
@@ -33,7 +33,7 @@ constexpr std::size_t max_thread_name_length = MAXTHREADNAMESIZE - 1;
 //             TDNAMLEN which is defined in sys/user.h and using the struct
 //             kinfo_proc. The following assert assures that TDNAMLEN isn't
 //             bigger than what we use here.
-constexpr std::size_t max_thread_name_length = MAXCOMLEN;
+inline constexpr std::size_t max_thread_name_length = MAXCOMLEN;
 static_assert(max_thread_name_length >= TDNAMLEN,
               "sys/user.h defines TDNAMLEN to be bigger than MAXCOMLEN. "
               "Your headers are broken.");
@@ -42,7 +42,7 @@ static_assert(max_thread_name_length >= TDNAMLEN,
 #if defined(_WIN32)
 // Thread names on Windows can seemingly be any length. Pick a reasonable limit
 // for ourselves.
-constexpr std::size_t max_thread_name_length = 256;
+inline constexpr std::size_t max_thread_name_length = 256;
 #define QLJS_CAN_SET_THREAD_NAMES 1
 #endif
 

@@ -8,10 +8,12 @@
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/span.h>
+#include <quick-lint-js/port/thread-name.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <vector>
@@ -108,6 +110,16 @@ class Event_Loop_Windows::Registered_Pipe_Read {
 
  private:
   void thread_routine() {
+    {
+      Memory_Output_Stream thread_name;
+      thread_name.append_literal(
+          u8"Event_Loop_Windows::Registered_Pipe_Read pipe="_sv);
+      thread_name.append_fixed_hexadecimal_integer(
+          reinterpret_cast<std::uintptr_t>(this->pipe_.get()), 16);
+      thread_name.flush();
+      set_current_thread_name(thread_name.get_flushed_string8().c_str());
+    }
+
     QLJS_SLOW_ASSERT(!this->pipe_.is_pipe_non_blocking());
     while (!this->is_stop_requested()) {
       std::array<Char8, 65536> buffer;

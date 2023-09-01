@@ -287,6 +287,8 @@ Char8 *write_integer_fixed_hexadecimal(T value, int width, Char8 *out) {
 
 template Char8 *write_integer_fixed_hexadecimal<int>(int, int width,
                                                      Char8 *out);
+template Char8 *write_integer_fixed_hexadecimal<unsigned>(unsigned, int width,
+                                                          Char8 *out);
 template Char8 *write_integer_fixed_hexadecimal<unsigned long>(unsigned long,
                                                                int width,
                                                                Char8 *out);

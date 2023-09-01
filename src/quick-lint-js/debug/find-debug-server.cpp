@@ -134,7 +134,6 @@ namespace {
 #if defined(__FreeBSD__) || defined(__linux__)
 // Thread names are short on FreeBSD and Linux, so keep this prefix short.
 constexpr String8_View thread_name_prefix = u8"quick-lint"_sv;
-#endif
 #define QLJS_CAN_FIND_DEBUG_SERVERS 1
 #endif
 #if defined(__APPLE__) || defined(_WIN32)
@@ -549,8 +548,8 @@ std::vector<Found_Debug_Server> find_debug_servers() {
     if (!thread_name_utf8.has_value()) {
       QLJS_DEBUG_LOG(
           "%s: ignoring failure to convert thread name of thread %lu of "
-          "process %lu to UTF-8\n" func,
-          thread_id, process_id);
+          "process %lu to UTF-8\n",
+          func, thread_id, process_id);
       return;
     }
 

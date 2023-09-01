@@ -24,6 +24,7 @@
 #include <quick-lint-js/lsp/lsp-document-text.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/thread-name.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/vscode/addon.h>
@@ -385,6 +386,11 @@ void QLJS_Workspace::check_for_config_file_changes(::Napi::Env env) {
 void QLJS_Workspace::run_fs_change_detection_thread() {
   QLJS_DEBUG_LOG("Workspace %p: starting run_fs_change_detection_thread\n",
                  this);
+  if constexpr (max_thread_name_length < 16) {
+    set_current_thread_name(u8"qljs-fs-change");
+  } else {
+    set_current_thread_name(u8"quick-lint-js fs_change_detection");
+  }
   this->fs_change_detection_event_loop_.run();
   this->check_for_config_file_changes_on_js_thread_.Release();
   QLJS_DEBUG_LOG("Workspace %p: stopping run_fs_change_detection_thread\n",

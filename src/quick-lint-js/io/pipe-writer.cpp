@@ -11,9 +11,11 @@
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/io/pipe-writer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/thread-name.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -80,6 +82,23 @@ void Background_Thread_Pipe_Writer::write_all_now_blocking(
 }
 
 void Background_Thread_Pipe_Writer::run_flushing_thread() {
+  {
+    Memory_Output_Stream thread_name;
+    if constexpr (max_thread_name_length < 16) {
+      thread_name.append_literal(u8"pipewrite"_sv);
+    } else {
+      thread_name.append_literal(u8"Background_Thread_Pipe_Writer pipe="_sv);
+    }
+#if defined(_WIN32)
+    thread_name.append_fixed_hexadecimal_integer(
+        reinterpret_cast<std::uintptr_t>(this->pipe_.get()), 16);
+#else
+    thread_name.append_decimal_integer(this->pipe_.get());
+#endif
+    thread_name.flush();
+    set_current_thread_name(thread_name.get_flushed_string8().c_str());
+  }
+
   std::unique_lock<Mutex> lock(this->mutex_);
   for (;;) {
     this->data_is_pending_.wait(

@@ -10,6 +10,7 @@
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/port/child-process.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/thread-name.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/windows-error.h>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -374,6 +375,7 @@ void handle_process_io(const Run_Program_Options& options,
     program_input.writer.close();
   } else {
     input_writer_thread = Thread([&]() -> void {
+      set_current_thread_name(u8"childwriter");
       program_input.writer.write_full(options.input.data(),
                                       options.input.size());
       program_input.writer.close();
