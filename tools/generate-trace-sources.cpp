@@ -1239,7 +1239,7 @@ namespace quick_lint_js {
  public:
   explicit Trace_Writer(Async_Byte_Queue*);
 
-  // Calls async_byte_queue::commit.
+  // Calls Async_Byte_Queue::commit.
   void commit();
 
   void write_header(const Trace_Context&);
