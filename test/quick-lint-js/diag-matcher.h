@@ -19,12 +19,6 @@
   ::testing::VariantWith<diag_type>(                \
       ::testing::Field(#member, &diag_type::member, matcher))
 
-#define DIAG_TYPE_2_FIELDS(diag_type, member_1, matcher_1, member_2, \
-                           matcher_2)                                \
-  ::testing::VariantWith<diag_type>(::testing::AllOf(                \
-      ::testing::Field(#member_1, &diag_type::member_1, matcher_1),  \
-      ::testing::Field(#member_2, &diag_type::member_2, matcher_2)))
-
 // Equivalent to ::testing::VariantWith<type>(::testing::_), but compiles much
 // more quickly.
 #define DIAG_TYPE(type) \

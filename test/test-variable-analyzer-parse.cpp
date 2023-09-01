@@ -68,20 +68,11 @@ TEST(
 
 TEST(Test_Variable_Analyzer_Parse,
      errors_for_variables_with_escape_sequences_cover_entire_variable_name) {
-  Padded_String input(u8R"(const immut\u{61}ble = 0; immut\u{61}ble = 1;)"_sv);
-  Diag_Collector v;
-
-  Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-  Parser p(&input, &v, javascript_options);
-  p.parse_and_visit_module(l);
-
-  EXPECT_THAT(v.errors,
-              ElementsAreArray({
-                  DIAG_TYPE_2_FIELDS(
-                      Diag_Assignment_To_Const_Variable,                 //
-                      assignment, Offsets_Matcher(&input, 26, 26 + 14),  //
-                      declaration, Offsets_Matcher(&input, 6, 6 + 14)),
-              }));
+  test_parse_and_analyze(
+      u8"const immut\\u{61}ble = 0; immut\\u{61}ble = 1;"_sv,  //
+      u8"                           ^^^^^^^^^^^^^^^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"      ^^^^^^^^^^^^^^^ .declaration"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Parse,
@@ -123,22 +114,11 @@ TEST(Test_Variable_Analyzer_Parse, typeof_with_conditional_operator) {
 }
 
 TEST(Test_Variable_Analyzer_Parse, prefix_plusplus_on_const_variable) {
-  {
-    Padded_String input(u8"const x = 42; ++x;"_sv);
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    Parser p(&input, &v, javascript_options);
-    p.parse_and_visit_module(l);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(Diag_Assignment_To_Const_Variable, assignment,
-                               Offsets_Matcher(&input, 16, 16 + 1), declaration,
-                               Offsets_Matcher(&input, 6, 6 + 1)),
-        }));
-  }
+  test_parse_and_analyze(
+      u8"const x = 42; ++x;"_sv,  //
+      u8"                ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"      ^ .declaration"_diag,
+      javascript_analyze_options, default_globals);
 
   {
     Padded_String input(u8"const x = {y : 10};\n ++x.y;"_sv);
@@ -164,22 +144,11 @@ TEST(Test_Variable_Analyzer_Parse, prefix_plusplus_plus_operand) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
-  {
-    Padded_String input(u8"const x = 42;\n const y =10;\n ++x + y;"_sv);
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    Parser p(&input, &v, javascript_options);
-    p.parse_and_visit_module(l);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_2_FIELDS(Diag_Assignment_To_Const_Variable, assignment,
-                               Offsets_Matcher(&input, 31, 31 + 1), declaration,
-                               Offsets_Matcher(&input, 6, 6 + 1)),
-        }));
-  }
+  test_parse_and_analyze(
+      u8"const x = 42;\n const y =10;\n ++x + y;"_sv,  //
+      u8"                                 ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"      ^ .declaration"_diag,
+      javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Parse, use_await_label_in_non_async_function) {
