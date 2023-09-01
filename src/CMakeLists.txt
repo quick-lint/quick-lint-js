@@ -417,6 +417,8 @@ quick_lint_js_add_library(
   quick-lint-js/port/pty.h
   quick-lint-js/port/simd.h
   quick-lint-js/port/span.h
+  quick-lint-js/port/thread-name.cpp
+  quick-lint-js/port/thread-name.h
   quick-lint-js/port/thread.cpp
   quick-lint-js/port/thread.h
   quick-lint-js/port/unreachable.h

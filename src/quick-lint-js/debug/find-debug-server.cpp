@@ -16,6 +16,7 @@
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/thread-name.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -50,10 +51,10 @@
 #endif
 
 #if defined(_WIN32)
-#include <psapi.h>
 #include <quick-lint-js/port/windows-error.h>
 #include <quick-lint-js/port/windows.h>
 #include <tlhelp32.h>
+#include <psapi.h>
 #endif
 
 #if defined(__APPLE__) && !defined(PROC_PIDLISTTHREADIDS)
@@ -130,38 +131,15 @@ namespace {
 // quick-lint-js processes. As such, it should not be changed between
 // quick-lint-js versions, else newer versions cannot find older versions (or
 // vice versa).
-#if defined(__linux__)
-// Thread names are short on Linux, so keep this prefix short.
+#if defined(__FreeBSD__) || defined(__linux__)
+// Thread names are short on FreeBSD and Linux, so keep this prefix short.
 constexpr String8_View thread_name_prefix = u8"quick-lint"_sv;
-constexpr std::size_t max_thread_name_length = 15;
+#endif
 #define QLJS_CAN_FIND_DEBUG_SERVERS 1
 #endif
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(_WIN32)
 constexpr String8_View thread_name_prefix =
     u8"quick-lint-js debug server port="_sv;
-constexpr std::size_t max_thread_name_length = MAXTHREADNAMESIZE - 1;
-#define QLJS_CAN_FIND_DEBUG_SERVERS 1
-#endif
-#if defined(__FreeBSD__)
-constexpr String8_View thread_name_prefix = u8"quick-lint"_sv;
-// NOTE(Nico): This seems to be the limit defined in the kernel. It is extremely
-//             small so we choose a very short prefix like on Linux. (see
-//             sys/sys/proc.h:300, struct thread). Then we find another limit
-//             TDNAMLEN which is defined in sys/user.h and using the struct
-//             kinfo_proc. The following assert assures that TDNAMLEN isn't
-//             bigger than what we use here.
-constexpr std::size_t max_thread_name_length = MAXCOMLEN;
-static_assert(max_thread_name_length >= TDNAMLEN,
-              "sys/user.h defines TDNAMLEN to be bigger than MAXCOMLEN. "
-              "Your headers are broken.");
-#define QLJS_CAN_FIND_DEBUG_SERVERS 1
-#endif
-#if defined(_WIN32)
-constexpr String8_View thread_name_prefix =
-    u8"quick-lint-js debug server port="_sv;
-// Thread names on Windows can seemingly be any length. Pick a reasonable limit
-// for ourselves.
-constexpr std::size_t max_thread_name_length = 256;
 #define QLJS_CAN_FIND_DEBUG_SERVERS 1
 #endif
 
@@ -199,53 +177,7 @@ void register_current_thread_as_debug_server_thread(std::uint16_t port_number) {
   *out++ = '\0';
   QLJS_ASSERT((out - name.data()) <= narrow_cast<std::ptrdiff_t>(name.size()));
 
-  const char* name_cstr = reinterpret_cast<const char*>(name.data());
-
-#if defined(__linux__)
-  int rc = ::prctl(PR_SET_NAME, reinterpret_cast<std::uintptr_t>(name_cstr), 0,
-                   0, 0);
-  if (rc != 0) {
-    QLJS_DEBUG_LOG(
-        "%s: ignoring failure to set thread name for debug server thread: %s\n",
-        __func__, std::strerror(errno));
-    return;
-  }
-#endif
-#if defined(__APPLE__)
-  int rc = ::pthread_setname_np(name_cstr);
-  if (rc != 0) {
-    QLJS_DEBUG_LOG(
-        "%s: ignoring failure to set thread name for debug server thread: %s\n",
-        __func__, std::strerror(errno));
-    return;
-  }
-#endif
-#if defined(__FreeBSD__)
-  int rc = ::pthread_setname_np(::pthread_self(), name_cstr);
-  if (rc != 0) {
-    QLJS_DEBUG_LOG(
-        "%s: ignoring failure to set thread name for debug server thread: %s\n",
-        __func__, std::strerror(rc));
-    return;
-  }
-#endif
-#if defined(_WIN32)
-  std::optional<std::wstring> name_unicode = mbstring_to_wstring(name_cstr);
-  if (!name_unicode.has_value()) {
-    QLJS_DEBUG_LOG("%s: ignoring failure to convert thread name to UTF-16\n",
-                   __func__);
-    return;
-  }
-  ::HRESULT rc =
-      ::SetThreadDescription(::GetCurrentThread(), name_unicode->c_str());
-  if (FAILED(rc)) {
-    QLJS_DEBUG_LOG(
-        "%s: ignoring failure to set thread name for debug server thread: "
-        "%#08lx\n",
-        __func__, rc);
-    return;
-  }
-#endif
+  set_current_thread_name(name.data());
 }
 #endif
 

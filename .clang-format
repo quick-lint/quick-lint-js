@@ -8,7 +8,7 @@ Standard: Cpp11  # TODO(strager): c++20
 IncludeBlocks: Merge
 IncludeCategories: [
 	# These headers must be included after <Windows.h>:
-	{Regex: '<delayimp\.h|pathcch\.h>', Priority: 1},
+	{Regex: '<delayimp\.h|pathcch\.h|psapi\.h>', Priority: 1},
 	{Regex: '.*', Priority: 0}
 ]
 SortIncludes: true
