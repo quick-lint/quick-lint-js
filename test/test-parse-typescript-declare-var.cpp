@@ -34,7 +34,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Var,
         u8"        ^^^ .declaring_token"_diag,  //
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
+                              "visit_exit_declare_scope",    //
                           }));
   }
 
@@ -45,7 +47,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Var,
         u8"        ^^^^^ .declaring_token"_diag,  //
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
+                              "visit_exit_declare_scope",    //
                           }));
   }
 
@@ -56,7 +60,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Var,
         u8"        ^^^ .declaring_token"_diag,  //
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
+                              "visit_exit_declare_scope",    //
                           }));
   }
 }
@@ -66,7 +72,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var) {
     Test_Parser p(u8"declare var x;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
+                              "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({var_noinit_decl(u8"x"_sv)}));
@@ -76,7 +84,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var) {
     Test_Parser p(u8"declare const x;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
+                              "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({const_noinit_decl(u8"x"_sv)}));
@@ -86,7 +96,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var) {
     Test_Parser p(u8"declare let x;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
+                              "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({let_noinit_decl(u8"x"_sv)}));
@@ -99,9 +111,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Var,
     Test_Parser p(u8"declare var [x, y, z];"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
                               "visit_variable_declaration",  // y
                               "visit_variable_declaration",  // z
+                              "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(
         p.variable_declarations,

@@ -42,9 +42,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Function, basic_declare_function) {
     Test_Parser p(u8"declare function f();"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // f
                               "visit_enter_function_scope",  // f
                               "visit_exit_function_scope",   // f
+                              "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({function_decl(u8"f"_sv)}));
@@ -60,10 +62,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         u8"^^^^^^^ .declare_keyword"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",        //
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
+                              "visit_exit_declare_scope",         //
                           }));
   }
 
@@ -74,10 +78,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         u8"Diag_Declare_Function_Cannot_Have_Body"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",        //
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
+                              "visit_exit_declare_scope",         //
                               "visit_variable_use",               // foo
                               "visit_end_of_module",              //
                           }));
@@ -92,18 +98,29 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         u8"                 ` Diag_Missing_Name_In_Function_Statement"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_enter_function_scope",  // (function)
                               "visit_exit_function_scope",   // (function)
+                              "visit_exit_declare_scope",    //
                           }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_function_cannot_be_async_or_generator) {
-  test_parse_and_visit_statement(
-      u8"declare async function f();"_sv,                            //
-      u8"        ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
-      typescript_options);
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare async function f();"_sv,                            //
+        u8"        ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
+                              "visit_variable_declaration",  // f
+                              "visit_enter_function_scope",  // f
+                              "visit_exit_function_scope",   // f
+                              "visit_exit_declare_scope",    //
+                          }));
+  }
 
   test_parse_and_visit_statement(
       u8"declare function* f();"_sv,                                         //
@@ -154,9 +171,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
     Test_Parser p(code.string_view(), typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // (function_name)
                               "visit_enter_function_scope",  // (function_name)
                               "visit_exit_function_scope",   // (function_name)
+                              "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({function_decl(function_name)}));
@@ -188,9 +207,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         u8"                    ` Diag_Missing_Semicolon_After_Statement"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // f
                               "visit_enter_function_scope",  // f
                               "visit_exit_function_scope",   // f
+                              "visit_exit_declare_scope",    //
                               "visit_variable_use",          // foo
                               "visit_end_of_module",         //
                           }));
@@ -202,9 +223,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Function, declare_function_performs_asi) {
     Test_Parser p(u8"declare function f()\nfoo"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // f
                               "visit_enter_function_scope",  // f
                               "visit_exit_function_scope",   // f
+                              "visit_exit_declare_scope",    //
                               "visit_variable_use",          // foo
                               "visit_end_of_module",         //
                           }));

@@ -33,9 +33,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
       u8"        ^^^^^^^^^ Diag_TypeScript_Namespaces_Not_Allowed_In_JavaScript"_diag,  //
       javascript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_enter_declare_scope",    //
                             "visit_enter_namespace_scope",  // {
                             "visit_exit_namespace_scope",   // }
                             "visit_variable_declaration",   // ns
+                            "visit_exit_declare_scope",     //
                             "visit_end_of_module",
                         }));
 }
@@ -45,9 +47,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace, declare_empty_namespace) {
     Test_Parser p(u8"declare namespace ns {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -58,9 +62,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace, declare_empty_namespace) {
     Test_Parser p(u8"declare module ns {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -78,8 +84,10 @@ TEST_F(
 
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",
                           }));
   }
@@ -92,7 +100,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace, missing_body) {
         u8"                    ` Diag_Missing_Body_For_TypeScript_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // ns
+                              "visit_exit_declare_scope",    //
                               "visit_end_of_module",         //
                           }));
   }
@@ -104,7 +114,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace, missing_body) {
 
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // ns
+                              "visit_exit_declare_scope",    //
                               "visit_variable_use",          // console
                               "visit_end_of_module",         //
                           }));
@@ -119,9 +131,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace, incomplete_body) {
         u8"                     ^ Diag_Unclosed_Code_Block"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // implicit }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //
                           }));
   }
@@ -134,9 +148,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
       u8"        ^^^^^^^^^ Diag_Newline_Not_Allowed_After_Namespace_Keyword"_diag,  //
       typescript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
+                            "visit_enter_declare_scope",    //
                             "visit_enter_namespace_scope",  // {
                             "visit_exit_namespace_scope",   // }
                             "visit_variable_declaration",   // ns
+                            "visit_exit_declare_scope",     //
                             "visit_end_of_module",
                         }));
 }
@@ -150,12 +166,16 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"^^^^^^^ .declare_namespace_declare_keyword"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
+                              "visit_enter_declare_scope",    //
                               "visit_variable_declaration",   // E
                               "visit_enter_enum_scope",       // {
                               "visit_exit_enum_scope",        // }
+                              "visit_exit_declare_scope",     //
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                           }));
   }
 
@@ -165,12 +185,16 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
+                              "visit_enter_declare_scope",    //
                               "visit_variable_declaration",   // E
                               "visit_enter_enum_scope",       // {
                               "visit_exit_enum_scope",        // }
+                              "visit_exit_declare_scope",     //
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                           }));
   }
 
@@ -180,10 +204,14 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
+                              "visit_enter_declare_scope",    //
                               "visit_variable_declaration",   // myVariable
+                              "visit_exit_declare_scope",     //
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                           }));
   }
 
@@ -193,10 +221,14 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
+                              "visit_enter_declare_scope",    //
                               "visit_variable_declaration",   // myVariable
+                              "visit_exit_declare_scope",     //
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                           }));
   }
 
@@ -206,10 +238,14 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
+                              "visit_enter_declare_scope",    //
                               "visit_variable_declaration",   // myVariable
+                              "visit_exit_declare_scope",     //
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                           }));
   }
 
@@ -219,7 +255,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_namespace_scope",   // {
+                              "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
                               "visit_property_declaration",    // myMethod
@@ -227,8 +265,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_exit_function_scope",     // myMethod
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_exit_declare_scope",      //
                               "visit_exit_namespace_scope",    // }
                               "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
                           }));
   }
 
@@ -238,13 +278,17 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_namespace_scope",   // {
+                              "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_exit_declare_scope",      //
                               "visit_exit_namespace_scope",    // }
                               "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
                           }));
   }
 
@@ -254,12 +298,14 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // {
                               "visit_exit_interface_scope",   // }
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                           }));
   }
 
@@ -269,6 +315,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_namespace_scope",   // {
                               "visit_variable_declaration",    // T
                               "visit_enter_type_alias_scope",  //
@@ -276,6 +323,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_exit_type_alias_scope",   //
                               "visit_exit_namespace_scope",    // }
                               "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
                           }));
   }
 
@@ -285,12 +333,16 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
+                              "visit_enter_declare_scope",    //
                               "visit_variable_declaration",   // f
                               "visit_enter_function_scope",   //
                               "visit_exit_function_scope",    //
+                              "visit_exit_declare_scope",     //
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                           }));
   }
 
@@ -300,12 +352,16 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns2
+                              "visit_exit_declare_scope",     //
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns1
+                              "visit_exit_declare_scope",     //
                           }));
   }
 }
@@ -317,12 +373,14 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"declare namespace ns { interface I { } }"_sv, no_diags,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // {
                               "visit_exit_interface_scope",   // }
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //
                           }));
   }
@@ -332,12 +390,14 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"declare namespace ns { export interface I { } }"_sv, no_diags,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // {
                               "visit_exit_interface_scope",   // }
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //
                           }));
   }
@@ -350,6 +410,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         test_parse_and_visit_module(u8"declare namespace ns { type T = U; }"_sv,
                                     no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_namespace_scope",   // {
                               "visit_variable_declaration",    // T
                               "visit_enter_type_alias_scope",  // {
@@ -357,6 +418,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_exit_type_alias_scope",   // }
                               "visit_exit_namespace_scope",    // }
                               "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
                               "visit_end_of_module",           //
                           }));
   }
@@ -366,6 +428,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"declare namespace ns { export type T = U; }"_sv, no_diags,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_namespace_scope",   // {
                               "visit_variable_declaration",    // T
                               "visit_enter_type_alias_scope",  // {
@@ -373,6 +436,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_exit_type_alias_scope",   // }
                               "visit_exit_namespace_scope",    // }
                               "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
                               "visit_end_of_module",           //
                           }));
   }
@@ -385,11 +449,13 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_namespace_scope",   // {
                               "visit_variable_declaration",    // a
                               "visit_variable_namespace_use",  // b
                               "visit_exit_namespace_scope",    // }
                               "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
                               "visit_end_of_module",           //
                           }));
   }
@@ -399,11 +465,13 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_namespace_scope",   // {
                               "visit_variable_declaration",    // a
                               "visit_variable_namespace_use",  // b
                               "visit_exit_namespace_scope",    // }
                               "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
                               "visit_end_of_module",           //
                           }));
   }
@@ -419,10 +487,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
 
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_declaration",   // fs
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //
                           }));
   }
@@ -441,10 +511,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
 
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_declaration",   // fs
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //
                           }));
   }
@@ -480,10 +552,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_export_use",    // Z
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //
                           }));
   }
@@ -493,10 +567,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_type_use",      // T
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //
                           }));
   }
@@ -506,10 +582,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_export_use",    // Z
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //
                           }))
         << "'default' is treated as the exported name, not as a keyword (see "
@@ -527,10 +605,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
 
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_use",           // Z
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //
                           }));
   }
@@ -563,6 +643,38 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
        enum_inside_declare_namespace_acts_like_declare_enum) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare namespace ns { enum E {} }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // E
+                              "visit_enter_enum_scope",       // {
+                              "visit_exit_enum_scope",        // }
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare namespace ns { const enum E {} }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // E
+                              "visit_enter_enum_scope",       // {
+                              "visit_exit_enum_scope",        // }
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
+                          }));
+  }
+
   // Diag_TypeScript_Enum_Value_Must_Be_Constant should not be reported for
   // normal enums but should be reported for declare enums.
   test_parse_and_visit_module(
@@ -597,42 +709,100 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
   {
     // Diag_Missing_Initializer_In_Const_Declaration is not reported for declare
     // consts.
-    Test_Parser p(u8"declare namespace ns { const myVariable; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare namespace ns { const myVariable; }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // myVariable
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
+                              "visit_end_of_module",          //
+                          }));
   }
 
   {
     // Diag_Missing_Initializer_In_Const_Declaration is not reported for declare
     // consts.
-    Test_Parser p(u8"declare namespace ns { export const myVariable; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare namespace ns { export const myVariable; }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // myVariable
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
+                              "visit_end_of_module",          //
+                          }));
   }
 
-  test_parse_and_visit_module(
-      u8"declare namespace ns { let myVariable = null; }"_sv,  //
-      u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,       //
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare namespace ns { let myVariable = null; }"_sv,  //
+        u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,       //
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // myVariable
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
+                              "visit_end_of_module",          //
+                          }));
+  }
 
-      typescript_options);
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare namespace ns { export let myVariable = null; }"_sv,  //
+        u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,              //
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // myVariable
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
+                              "visit_end_of_module",          //
+                          }));
+  }
 
-  test_parse_and_visit_module(
-      u8"declare namespace ns { export let myVariable = null; }"_sv,  //
-      u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,              //
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare namespace ns { var myVariable = null; }"_sv,  //
+        u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,       //
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // myVariable
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
+                              "visit_end_of_module",          //
+                          }));
+  }
 
-      typescript_options);
-
-  test_parse_and_visit_module(
-      u8"declare namespace ns { var myVariable = null; }"_sv,  //
-      u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,       //
-
-      typescript_options);
-
-  test_parse_and_visit_module(
-      u8"declare namespace ns { export var myVariable = null; }"_sv,  //
-      u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,              //
-
-      typescript_options);
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare namespace ns { export var myVariable = null; }"_sv,  //
+        u8"Diag_Declare_Var_Cannot_Have_Initializer"_diag,              //
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
+                              "visit_enter_namespace_scope",  // {
+                              "visit_variable_declaration",   // myVariable
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns
+                              "visit_exit_declare_scope",     //
+                              "visit_end_of_module",          //
+                          }));
+  }
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
@@ -670,57 +840,127 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
        class_inside_declare_namespace_acts_like_declare_class) {
   {
     // Diag_Missing_Function_Body is not reported in declare classes.
-    Test_Parser p(u8"declare namespace ns { class C { myMethod(); } }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare namespace ns { class C { myMethod(); } }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
+                              "visit_enter_namespace_scope",   // {
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_property_declaration",    // myMethod
+                              "visit_enter_function_scope",    // (
+                              "visit_exit_function_scope",     // )
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_exit_namespace_scope",    // }
+                              "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
+                              "visit_end_of_module",           //
+                          }));
   }
 
   {
     // Diag_Missing_Function_Body is not reported in declare classes.
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8"declare namespace ns { export class C { myMethod(); } }"_sv,
-        typescript_options);
-    p.parse_and_visit_module();
+        no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
+                              "visit_enter_namespace_scope",   // {
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_property_declaration",    // myMethod
+                              "visit_enter_function_scope",    // (
+                              "visit_exit_function_scope",     // )
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_exit_namespace_scope",    // }
+                              "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
+                              "visit_end_of_module",           //
+                          }));
   }
 
   {
     // Diag_Missing_Function_Body is not reported in declare classes.
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8"declare namespace ns { abstract class C { myMethod(); } }"_sv,
-        typescript_options);
-    p.parse_and_visit_module();
+        no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
+                              "visit_enter_namespace_scope",   // {
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_property_declaration",    // myMethod
+                              "visit_enter_function_scope",    // (
+                              "visit_exit_function_scope",     // )
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_exit_namespace_scope",    // }
+                              "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
+                              "visit_end_of_module",           //
+                          }));
   }
 
   {
     // Diag_Missing_Function_Body is not reported in declare classes.
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8"declare namespace ns { export abstract class C { myMethod(); } }"_sv,
-        typescript_options);
-    p.parse_and_visit_module();
+        no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
+                              "visit_enter_namespace_scope",   // {
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_property_declaration",    // myMethod
+                              "visit_enter_function_scope",    // (
+                              "visit_exit_function_scope",     // )
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_exit_namespace_scope",    // }
+                              "visit_variable_declaration",    // ns
+                              "visit_exit_declare_scope",      //
+                              "visit_end_of_module",           //
+                          }));
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Namespace,
        namespace_inside_declare_namespace_acts_like_declare_namespace) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare namespace ns1 { namespace ns2 { } }"_sv,  //
+        no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",    //
+                              "visit_enter_namespace_scope",  // {
+                              "visit_enter_namespace_scope",  // {
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns2
+                              "visit_exit_namespace_scope",   // }
+                              "visit_variable_declaration",   // ns1
+                              "visit_exit_declare_scope",     //
+                          }));
+  }
+
   test_parse_and_visit_module(
       u8"declare namespace ns1 { namespace ns2 { if (true) {} } }"_sv,  //
       u8"                                        ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token\n"_diag
       u8"^^^^^^^ .declare_keyword"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare namespace ns1 { export namespace ns2 { if (true) {} } }"_sv,  //
       u8"                                               ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token\n"_diag
       u8"^^^^^^^ .declare_keyword"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare namespace ns1 { module ns2 { if (true) {} } }"_sv,  //
       u8"                                     ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token\n"_diag
       u8"^^^^^^^ .declare_keyword"_diag,  //
-
       typescript_options);
 }
 

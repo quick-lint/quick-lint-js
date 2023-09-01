@@ -39,10 +39,12 @@ TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_class) {
     Test_Parser p(u8"export declare class C { }"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_exit_declare_scope",      //
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -56,10 +58,12 @@ TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_abstract_class) {
                   typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_exit_declare_scope",      //
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -89,10 +93,12 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
     Test_Parser p(u8"export\ndeclare class C { }"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_exit_declare_scope",      //
                               "visit_end_of_module",
                           }));
   }
@@ -107,10 +113,12 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
         u8"^^^^^^ .export_keyword"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_exit_declare_scope",      //
                               "visit_end_of_module",
                           }));
   }

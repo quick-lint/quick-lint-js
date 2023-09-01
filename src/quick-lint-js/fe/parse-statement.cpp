@@ -5328,6 +5328,17 @@ void Parser::parse_and_visit_declare_statement(
   QLJS_ASSERT(declare_context.declare_namespace_declare_keyword.has_value() ||
               declare_context.direct_declare_keyword.has_value());
 
+  auto maybe_visit_enter_declare_scope = [&]() -> void {
+    if (declare_context.direct_declare_keyword.has_value()) {
+      v.visit_enter_declare_scope();
+    }
+  };
+  auto maybe_visit_exit_declare_scope = [&]() -> void {
+    if (declare_context.direct_declare_keyword.has_value()) {
+      v.visit_exit_declare_scope();
+    }
+  };
+
   Function_Attributes func_attributes = Function_Attributes::normal;
   std::optional<Source_Code_Span> async_keyword = std::nullopt;
 
@@ -5337,7 +5348,9 @@ void Parser::parse_and_visit_declare_statement(
     // declare enum E {}
     // is_current_typescript_namespace_non_empty_ is set by
     // parse_and_visit_typescript_enum.
+    maybe_visit_enter_declare_scope();
     this->parse_and_visit_typescript_enum(v, Enum_Kind::declare_enum);
+    maybe_visit_exit_declare_scope();
     break;
 
   // declare const enum E {}
@@ -5348,7 +5361,9 @@ void Parser::parse_and_visit_declare_statement(
     if (this->peek().type == Token_Type::kw_enum) {
       // declare const enum E {}
       // Do not set is_current_typescript_namespace_non_empty_.
+      maybe_visit_enter_declare_scope();
       this->parse_and_visit_typescript_enum(v, Enum_Kind::declare_const_enum);
+      maybe_visit_exit_declare_scope();
     } else {
       // declare const myVariable: any;
       this->is_current_typescript_namespace_non_empty_ = true;
@@ -5358,11 +5373,13 @@ void Parser::parse_and_visit_declare_statement(
             .declaring_token = const_keyword.span(),
         });
       }
+      maybe_visit_enter_declare_scope();
       this->parse_and_visit_let_bindings(
           v, Parse_Let_Bindings_Options{
                  .declaring_token = const_keyword,
                  .declare_keyword = declare_context.declare_keyword_span(),
              });
+      maybe_visit_exit_declare_scope();
       this->consume_semicolon_after_statement();
     }
     break;
@@ -5371,12 +5388,14 @@ void Parser::parse_and_visit_declare_statement(
   // declare class C {}
   case Token_Type::kw_class:
     this->is_current_typescript_namespace_non_empty_ = true;
+    maybe_visit_enter_declare_scope();
     this->parse_and_visit_class(
         v, Parse_Class_Options{
                .require_name = Name_Requirement::required_for_statement,
                .abstract_keyword_span = std::nullopt,
                .declare_keyword_span = declare_context.declare_keyword_span(),
            });
+    maybe_visit_exit_declare_scope();
     break;
 
   // declare abstract class C {}
@@ -5394,12 +5413,14 @@ void Parser::parse_and_visit_declare_statement(
               .abstract_keyword = abstract_token,
           });
     }
+    maybe_visit_enter_declare_scope();
     this->parse_and_visit_class(
         v, Parse_Class_Options{
                .require_name = Name_Requirement::required_for_statement,
                .abstract_keyword_span = abstract_token,
                .declare_keyword_span = declare_context.declare_keyword_span(),
            });
+    maybe_visit_exit_declare_scope();
     break;
   }
 
@@ -5416,11 +5437,13 @@ void Parser::parse_and_visit_declare_statement(
     }
     Token declaring_token = this->peek();
     this->skip();
+    maybe_visit_enter_declare_scope();
     this->parse_and_visit_let_bindings(
         v, Parse_Let_Bindings_Options{
                .declaring_token = declaring_token,
                .declare_keyword = declare_context.declare_keyword_span(),
            });
+    maybe_visit_exit_declare_scope();
     this->consume_semicolon_after_statement();
     break;
   }
@@ -5459,6 +5482,7 @@ void Parser::parse_and_visit_declare_statement(
   parse_declare_function:
   case Token_Type::kw_function:
     this->is_current_typescript_namespace_non_empty_ = true;
+    maybe_visit_enter_declare_scope();
     this->parse_and_visit_function_declaration(
         v, Function_Declaration_Options{
                .attributes = func_attributes,
@@ -5468,6 +5492,7 @@ void Parser::parse_and_visit_declare_statement(
                .async_keyword = async_keyword,
                .declare_keyword = declare_context.declare_keyword_span(),
            });
+    maybe_visit_exit_declare_scope();
     break;
 
   // declare namespace ns {}
@@ -5475,8 +5500,10 @@ void Parser::parse_and_visit_declare_statement(
   case Token_Type::kw_namespace:
     // is_current_typescript_namespace_non_empty_ is set by
     // parse_and_visit_typescript_declare_namespace_or_module if necessary.
+    maybe_visit_enter_declare_scope();
     this->parse_and_visit_typescript_declare_namespace_or_module(
         v, declare_context.declare_keyword_span());
+    maybe_visit_exit_declare_scope();
     break;
 
   // export declare import a = b;                 // Invalid.

@@ -58,9 +58,11 @@ TEST_F(Test_Parse_TypeScript_Enum, enum_is_not_allowed_in_javascript) {
         u8"declare enum E {}"_sv,  //
         u8"        ^^^^ Diag_TypeScript_Enum_Is_Not_Allowed_In_JavaScript"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // E
                               "visit_enter_enum_scope",      // {
                               "visit_exit_enum_scope",       // }
+                              "visit_exit_declare_scope",    //
                               "visit_end_of_module",
                           }));
   }
@@ -70,9 +72,11 @@ TEST_F(Test_Parse_TypeScript_Enum, enum_is_not_allowed_in_javascript) {
         u8"declare const enum E {}"_sv,  //
         u8"              ^^^^ Diag_TypeScript_Enum_Is_Not_Allowed_In_JavaScript"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // E
                               "visit_enter_enum_scope",      // {
                               "visit_exit_enum_scope",       // }
+                              "visit_exit_declare_scope",    //
                               "visit_end_of_module",
                           }));
   }
@@ -107,9 +111,11 @@ TEST_F(Test_Parse_TypeScript_Enum, empty_enum) {
     Test_Parser p(u8"declare enum E {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // E
                               "visit_enter_enum_scope",      // {
                               "visit_exit_enum_scope",       // }
+                              "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({enum_decl(u8"E"_sv)}));
@@ -119,9 +125,11 @@ TEST_F(Test_Parse_TypeScript_Enum, empty_enum) {
     Test_Parser p(u8"declare const enum E {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // E
                               "visit_enter_enum_scope",      // {
                               "visit_exit_enum_scope",       // }
+                              "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({enum_decl(u8"E"_sv)}));
