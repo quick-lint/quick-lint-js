@@ -226,9 +226,9 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
           this->expect_skip(u8"const"_sv);
         }
         if (!member.type_is_array && !member.ctf_size_name.empty()) {
-          this->fatal_at(member.ctf_size_name.data(),
-                         "error: trace_ctf_size_name is only allowed "
-                         "with Span");
+          this->fatal_at(
+              member.ctf_size_name.data(),
+              "error: trace_ctf_size_name is only allowed with Span");
         }
 
         member.cxx_type = this->parse_simple_type_name();
@@ -236,9 +236,9 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
         if (member.type_is_zero_terminated &&
             !(member.cxx_type == u8"String8_View" ||
               member.cxx_type == u8"String16"_sv)) {
-          this->fatal_at(member.cxx_type.data(),
-                         "error: trace_zero_terminated is only allowed "
-                         "with string types");
+          this->fatal_at(
+              member.cxx_type.data(),
+              "error: trace_zero_terminated is only allowed with string types");
         }
 
         if (this->peek_is(CXX_Token_Type::less)) {
