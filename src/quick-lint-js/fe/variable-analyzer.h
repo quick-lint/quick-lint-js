@@ -307,6 +307,10 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   Scope &current_scope() { return this->scopes_.current_scope(); }
   Scope &parent_scope() { return this->scopes_.parent_scope(); }
 
+  // Returns true if this is a TypeScript ambient context introduced with the
+  // 'declare' keyword.
+  bool in_typescript_ambient_context() const;
+
   Scopes scopes_;
 
   // The scope which holds properties of the globalThis object.
@@ -315,6 +319,10 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   // declared with 'let', 'class', etc. at the top level of the program are
   // declared in the module scope, not the global scope.
   Global_Scope global_scope_;
+
+  // If greater than zero, this is a TypeScript ambient context introduced
+  // with the 'declare' keyword.
+  unsigned typescript_ambient_context_depth_ = 0;
 
   Diag_Reporter *diag_reporter_;
 

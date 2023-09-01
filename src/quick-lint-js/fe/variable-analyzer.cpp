@@ -137,7 +137,9 @@ void Variable_Analyzer::visit_enter_conditional_type_scope() {
   this->scopes_.push();
 }
 
-void Variable_Analyzer::visit_enter_declare_scope() {}
+void Variable_Analyzer::visit_enter_declare_scope() {
+  this->typescript_ambient_context_depth_ += 1;
+}
 
 void Variable_Analyzer::visit_enter_enum_scope() { this->scopes_.push(); }
 
@@ -213,7 +215,10 @@ void Variable_Analyzer::visit_exit_conditional_type_scope() {
   this->scopes_.pop();
 }
 
-void Variable_Analyzer::visit_exit_declare_scope() {}
+void Variable_Analyzer::visit_exit_declare_scope() {
+  QLJS_ASSERT(this->typescript_ambient_context_depth_ > 0);
+  this->typescript_ambient_context_depth_ -= 1;
+}
 
 void Variable_Analyzer::visit_exit_enum_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
@@ -329,34 +334,41 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
         used_var, *declared,
         /*use_is_before_declaration=*/kind == Variable_Kind::_class ||
             kind == Variable_Kind::_const || kind == Variable_Kind::_let);
-    switch (used_var.kind) {
-    case Used_Variable_Kind::assignment:
-      break;
-    case Used_Variable_Kind::_typeof:
-    case Used_Variable_Kind::use:
-      if (kind == Variable_Kind::_class || kind == Variable_Kind::_const ||
-          kind == Variable_Kind::_let) {
-        this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
-            .use = used_var.name.span(),
-            .declaration = name.span(),
-        });
+    if (this->in_typescript_ambient_context()) {
+      // Use before declaration is allowed in ambient contexts. For example:
+      //
+      //   new C();            // OK
+      //   declare class C {}  // OK (we are here)
+    } else {
+      switch (used_var.kind) {
+      case Used_Variable_Kind::assignment:
+        break;
+      case Used_Variable_Kind::_typeof:
+      case Used_Variable_Kind::use:
+        if (kind == Variable_Kind::_class || kind == Variable_Kind::_const ||
+            kind == Variable_Kind::_let) {
+          this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
+              .use = used_var.name.span(),
+              .declaration = name.span(),
+          });
+        }
+        break;
+      case Used_Variable_Kind::_delete:
+        // Use before declaration is legal for delete.
+        break;
+      case Used_Variable_Kind::_export:
+        // Use before declaration is legal for variable exports.
+        break;
+      case Used_Variable_Kind::type:
+        if (kind == Variable_Kind::_generic_parameter) {
+          this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
+              .use = used_var.name.span(),
+              .declaration = name.span(),
+          });
+        }
+        // Use before declaration is normally legal for types.
+        break;
       }
-      break;
-    case Used_Variable_Kind::_delete:
-      // Use before declaration is legal for delete.
-      break;
-    case Used_Variable_Kind::_export:
-      // Use before declaration is legal for variable exports.
-      break;
-    case Used_Variable_Kind::type:
-      if (kind == Variable_Kind::_generic_parameter) {
-        this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
-            .use = used_var.name.span(),
-            .declaration = name.span(),
-        });
-      }
-      // Use before declaration is normally legal for types.
-      break;
     }
     return true;
   });
@@ -495,7 +507,13 @@ void Variable_Analyzer::visit_variable_use(Identifier name,
 }
 
 void Variable_Analyzer::add_variable_use_to_current_scope(Used_Variable &&var) {
-  this->current_scope().variables_used.push_back(std::move(var));
+  Scope &scope = this->current_scope();
+  bool forcefully_allow_use_before_declaration =
+      this->in_typescript_ambient_context();
+  (forcefully_allow_use_before_declaration
+       ? scope.variables_used_in_descendant_scope
+       : scope.variables_used)
+      .push_back(std::move(var));
 }
 
 void Variable_Analyzer::visit_end_of_module() {
@@ -633,6 +651,16 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
 
   if (!(this->options_.eval_can_declare_variables &&
         current_scope.used_eval_in_this_scope)) {
+    if (this->in_typescript_ambient_context()) {
+      // Inside of a TypeScript ambient context,
+      // this->add_variable_use_to_current_scope does not put uses in
+      // variables_used. For example:
+      //
+      //   // 'B' is in variables_used_in_descendant_scope, not in
+      //   // variables_used.
+      //   declare A extends B {}
+      QLJS_ASSERT(current_scope.variables_used.empty());
+    }
     for (const Used_Variable &used_var : current_scope.variables_used) {
       Found_Variable_Type var = {};
       switch (used_var.kind) {
@@ -1070,6 +1098,10 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       });
     }
   }
+}
+
+bool Variable_Analyzer::in_typescript_ambient_context() const {
+  return this->typescript_ambient_context_depth_ > 0;
 }
 
 bool Variable_Analyzer::Declared_Variable::is_runtime() const {

@@ -39,6 +39,11 @@ Semantic Versioning.
     longer reports [E0357][] ("'declare namespace' cannot contain statements,
     only declarations").
   * `const enum E {}` no longer causes [E0150][].
+  * Using a `declare`-ed variable prior to its declaration is now allowed.
+    Example: `new C(); declare class C { }`
+  * Using a variable in a `declare class`'s `extends` clause prior to the
+    variable's declaration is now allowed.
+    Example: `declare class Derived extends Base { } class Base { }`
   * VS Code: The extension now loads when only opening a TypeScript file.
     (Previously, the extension would only load when you opened a JavaScript or
     JSON file.) The `quick-lint-js.experimental-typescript` setting is still
