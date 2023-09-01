@@ -80,7 +80,7 @@ void Configuration::load_from_json(Padded_String_View json,
                    narrow_cast<std::size_t>(json.size()),
                    narrow_cast<std::size_t>(json.padded_size()))
           .get(document);
-  if (parse_error != ::simdjson::error_code::SUCCESS) {
+  if (parse_error != ::simdjson::SUCCESS) {
     this->report_json_error(json, reporter);
     return;
   }

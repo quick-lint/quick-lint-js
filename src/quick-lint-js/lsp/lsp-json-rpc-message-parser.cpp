@@ -56,20 +56,19 @@ void LSP_JSON_RPC_Message_Parser::message_parsed(String8_View message) {
   ::simdjson::error_code parse_error;
   this->json_parser_->iterate(padded_message)
       .tie(message_document, parse_error);
-  if (parse_error != ::simdjson::error_code::SUCCESS) {
+  if (parse_error != ::simdjson::SUCCESS) {
     this->write_json_parse_error_response();
     return;
   }
 
   ::simdjson::ondemand::array batched_messages;
   bool is_batch_message =
-      message_document.get(batched_messages) == ::simdjson::error_code::SUCCESS;
+      message_document.get(batched_messages) == ::simdjson::SUCCESS;
   if (is_batch_message) {
     this->write_json_batch_messages_not_supported_error();
   } else {
     ::simdjson::ondemand::object message_object;
-    if (message_document.get(message_object) ==
-        ::simdjson::error_code::SUCCESS) {
+    if (message_document.get(message_object) == ::simdjson::SUCCESS) {
       this->handle_message(message_object);
     } else {
       this->write_json_parse_error_response();
@@ -95,7 +94,7 @@ void LSP_JSON_RPC_Message_Parser::handle_message(
   switch (message["id"].get(id)) {
   case ::simdjson::error_code::SUCCESS: {
     ::simdjson::ondemand::json_type id_type;
-    if (id.type().get(id_type) != ::simdjson::error_code::SUCCESS) {
+    if (id.type().get(id_type) != ::simdjson::SUCCESS) {
       this->write_json_parse_error_response();
       return;
     }

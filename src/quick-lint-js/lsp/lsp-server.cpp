@@ -792,7 +792,7 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 std::optional<String_JSON_Token> maybe_get_string_token(
     ::simdjson::ondemand::value& string) {
   std::string_view s;
-  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
+  if (string.get(s) != ::simdjson::SUCCESS) {
     return std::nullopt;
   }
   String8_View data(reinterpret_cast<const Char8*>(s.data()), s.size());
@@ -806,7 +806,7 @@ QLJS_WARNING_POP
 std::optional<String_JSON_Token> maybe_get_string_token(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string) {
   ::simdjson::ondemand::value s;
-  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
+  if (string.get(s) != ::simdjson::SUCCESS) {
     return std::nullopt;
   }
   return maybe_get_string_token(s);
