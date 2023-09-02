@@ -20,6 +20,9 @@ String8_View uri_base_name(String8_View uri);
 // [1]
 // https://github.com/microsoft/TypeScript/blob/daa7e985f5adc972aa241e5b0761c7dc433e94bf/src/compiler/parser.ts#L10408
 bool uri_looks_like_typescript_definition(String8_View uri);
+
+// Returns true if the URI's base name ends with '.tsx'.
+bool uri_looks_like_typescript_jsx(String8_View uri);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

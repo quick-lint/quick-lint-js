@@ -48,6 +48,7 @@ Semantic Versioning.
     (Previously, the extension would only load when you opened a JavaScript or
     JSON file.) The `quick-lint-js.experimental-typescript` setting is still
     required.
+  * Vim ALE: JSX syntax is now recognized inside `.tsx` files.
 
 ### Changed
 

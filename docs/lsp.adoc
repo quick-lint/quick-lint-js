@@ -109,6 +109,7 @@ command-line option
 If the `languageId` is equal to `typescript`, then quick-lint-js inspects the base name of that document's URI to determine the language of that document:
 
 * If the base name contains ".d.", then quick-lint-js interprets the document as if `languageId` was instead `typescriptdefinition`.
+* Otherwise, if the base name ends with ".tsx", then quick-lint-js interprets the document as if `languageId` was instead `typescriptreact`.
 * Otherwise, quick-lint-js interprets the document as if `languageId` was instead `typescriptsource`.
 
 quick-lint-js interprets documents with a base name of `quick-lint-js.config` as a JSON config file.

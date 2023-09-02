@@ -91,7 +91,7 @@ TEST(Test_LSP_Language, language_aliases) {
   }
 }
 
-TEST(Test_LSP_Language, typescript_file_without_d_is_source) {
+TEST(Test_LSP_Language, typescript_file_without_d_or_tsx_is_source) {
   {
     const LSP_Language* language =
         LSP_Language::find("typescript"sv, u8"file:///test.ts"_sv);
@@ -114,6 +114,7 @@ TEST(Test_LSP_Language, typescript_file_without_d_is_source) {
 TEST(Test_LSP_Language, typescript_file_with_d_is_definition) {
   for (String8_View uri : {
            u8"file:///test.d.ts"_sv,       //
+           u8"file:///test.d.tsx"_sv,      //
            u8"file:///test.d.json.ts"_sv,  //
            u8"file:///test.d.mts"_sv,      //
            u8"file:///test.d.cts"_sv,      //
@@ -123,7 +124,16 @@ TEST(Test_LSP_Language, typescript_file_with_d_is_definition) {
     const LSP_Language* language = LSP_Language::find("typescript"sv, uri);
     ASSERT_NE(language, nullptr);
     EXPECT_TRUE(language->lint_options.typescript_definition);
+    EXPECT_FALSE(language->lint_options.jsx);
   }
+}
+
+TEST(Test_LSP_Language, typescript_file_with_tsx_is_typescript_jsx) {
+  const LSP_Language* language =
+      LSP_Language::find("typescript"sv, u8"file:///test.tsx"_sv);
+  ASSERT_NE(language, nullptr);
+  EXPECT_TRUE(language->lint_options.jsx);
+  EXPECT_TRUE(language->lint_options.typescript);
 }
 
 TEST(Test_LSP_Language, typescriptsource_ignores_d_in_uri) {
@@ -133,11 +143,25 @@ TEST(Test_LSP_Language, typescriptsource_ignores_d_in_uri) {
   EXPECT_FALSE(language->lint_options.typescript_definition);
 }
 
+TEST(Test_LSP_Language, typescriptsource_ignores_tsx_in_uri) {
+  const LSP_Language* language =
+      LSP_Language::find("typescriptsource"sv, u8"file:///test.tsx"_sv);
+  ASSERT_NE(language, nullptr);
+  EXPECT_FALSE(language->lint_options.jsx);
+}
+
 TEST(Test_LSP_Language, typescriptdefinition_does_not_require_d_in_uri) {
   const LSP_Language* language =
       LSP_Language::find("typescriptdefinition"sv, u8"file:///test.ts"_sv);
   ASSERT_NE(language, nullptr);
   EXPECT_TRUE(language->lint_options.typescript_definition);
+}
+
+TEST(Test_LSP_Language, typescriptreact_does_not_require_tsx_in_uri) {
+  const LSP_Language* language =
+      LSP_Language::find("typescriptreact"sv, u8"file:///test.ts"_sv);
+  ASSERT_NE(language, nullptr);
+  EXPECT_TRUE(language->lint_options.jsx);
 }
 }
 }

@@ -85,7 +85,10 @@ struct LSP_Language {
     }
     if (lang->typescript_autodetect) {
       if (uri_looks_like_typescript_definition(uri)) {
-        lang = &languages[5];
+        return &languages[5];
+      }
+      if (uri_looks_like_typescript_jsx(uri)) {
+        return &languages[8];
       }
     }
     return lang;
