@@ -60,7 +60,7 @@ class List_Directory_Visitor {
   virtual void on_error(const Platform_File_IO_Error& error, int depth) = 0;
 };
 
-// Call visit_file for each regular file of the given directory and its
+// Call visit_file for each (non-directory) file of the given directory and its
 // descendant directories and their descendants, etc.
 void list_directory_recursively(const char* directory, List_Directory_Visitor&);
 
