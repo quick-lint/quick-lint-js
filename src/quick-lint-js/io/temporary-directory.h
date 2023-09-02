@@ -57,6 +57,12 @@ class List_Directory_Visitor {
   // visit_file is not called for '.' or '..' entries.
   virtual void visit_file(const std::string& path) = 0;
 
+  // Called before descending into a directory.
+  virtual void visit_directory_pre(const std::string& path);
+
+  // Called after visiting all entries within a directory.
+  virtual void visit_directory_post(const std::string& path);
+
   virtual void on_error(const Platform_File_IO_Error& error, int depth) = 0;
 };
 

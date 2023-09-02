@@ -210,6 +210,14 @@ TEST_F(Test_Directory, list_directory_recursively) {
       this->visited_files.push_back(path);
     }
 
+    void visit_directory_pre(const std::string& path) override {
+      this->visited_files.push_back(path + " (pre)");
+    }
+
+    void visit_directory_post(const std::string& path) override {
+      this->visited_files.push_back(path + " (post)");
+    }
+
     void on_error(const Platform_File_IO_Error& error,
                   [[maybe_unused]] int depth) override {
       ADD_FAILURE() << error.to_string();
@@ -223,10 +231,20 @@ TEST_F(Test_Directory, list_directory_recursively) {
 #define SEP QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR
   EXPECT_THAT(visitor.visited_files,
               ::testing::UnorderedElementsAreArray({
+                  temp_dir + " (pre)",
+                  temp_dir + SEP "dir-a (pre)",
                   temp_dir + SEP "dir-a" SEP "file-1",
                   temp_dir + SEP "dir-a" SEP "file-2",
+                  temp_dir + SEP "dir-a" SEP "subdir (pre)",
                   temp_dir + SEP "dir-a" SEP "subdir" SEP "file-3",
+                  temp_dir + SEP "dir-a" SEP "subdir (post)",
+                  temp_dir + SEP "dir-a (post)",
+                  temp_dir + SEP "dir-b (pre)",
                   temp_dir + SEP "dir-b" SEP "file-4",
+                  temp_dir + SEP "dir-b (post)",
+                  temp_dir + SEP "dir-c (pre)",
+                  temp_dir + SEP "dir-c (post)",
+                  temp_dir + " (post)",
               }));
 #undef SEP
 }

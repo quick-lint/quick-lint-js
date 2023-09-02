@@ -401,6 +401,14 @@ Result<void, Platform_File_IO_Error> list_directory(
 #endif
 }
 
+void List_Directory_Visitor::visit_directory_pre(const std::string &) {
+  // Do nothing by default.
+}
+
+void List_Directory_Visitor::visit_directory_post(const std::string &) {
+  // Do nothing by default.
+}
+
 void list_directory_recursively(const char *directory,
                                 List_Directory_Visitor &visitor) {
   struct Finder {
@@ -421,6 +429,10 @@ void list_directory_recursively(const char *directory,
           this->visitor.visit_file(path);
         }
       };
+
+      this->path.resize(path_length);
+      this->visitor.visit_directory_pre(this->path);
+
       // TODO(strager): Reduce allocations on Windows. Windows uses wchar_t
       // paths and also needs a "\*" suffix.
       Result<void, Platform_File_IO_Error> list =
@@ -428,6 +440,9 @@ void list_directory_recursively(const char *directory,
       if (!list.ok()) {
         this->visitor.on_error(list.error(), depth);
       }
+
+      this->path.resize(path_length);
+      this->visitor.visit_directory_post(this->path);
     }
   };
   Finder f = {directory, visitor};
