@@ -12,6 +12,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/io-error.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <string>
@@ -64,10 +65,10 @@ void write_file_or_exit(const std::string &path, String8_View content);
 void write_file_or_exit(const char *path, String8_View content);
 
 // Returns true if the file was different.
-Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
-    const std::string &path, String8_View content);
-Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
-    const char *path, String8_View content);
+Result<bool, Generic_IO_Error> write_file_if_different(const std::string &path,
+                                                       String8_View content);
+Result<bool, Generic_IO_Error> write_file_if_different(const char *path,
+                                                       String8_View content);
 
 // Truncates the file if it exists.
 Result<Platform_File, Write_File_IO_Error> open_file_for_writing(

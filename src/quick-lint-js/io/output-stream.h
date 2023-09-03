@@ -134,8 +134,7 @@ class Memory_Output_Stream final : public Output_Stream {
 #if !defined(__EMSCRIPTEN__)
   // Performs this->flush() then
   // quick_lint_js::write_file_if_different(path, this->get_flushed_string8()).
-  Result<void, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
-      const char* path);
+  Result<void, Generic_IO_Error> write_file_if_different(const char* path);
   void write_file_if_different_or_exit(const char* path);
 #endif
 

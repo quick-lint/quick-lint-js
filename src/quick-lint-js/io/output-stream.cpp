@@ -10,6 +10,7 @@
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/io-error.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
@@ -134,12 +135,12 @@ void Memory_Output_Stream::clear() {
 }
 
 #if !defined(__EMSCRIPTEN__)
-Result<void, Read_File_IO_Error, Write_File_IO_Error>
-Memory_Output_Stream::write_file_if_different(const char* path) {
+Result<void, Generic_IO_Error> Memory_Output_Stream::write_file_if_different(
+    const char* path) {
   this->flush();
   auto result = quick_lint_js::write_file_if_different(path, this->data_);
   if (!result.ok()) {
-    return result.propagate();
+    return failed_result<Generic_IO_Error>(result.error_to_string());
   }
   return {};
 }

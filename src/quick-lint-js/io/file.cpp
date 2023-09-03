@@ -375,13 +375,13 @@ void write_file_or_exit(const char *path, String8_View content) {
   }
 }
 
-Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
-    const std::string &path, String8_View content) {
+Result<bool, Generic_IO_Error> write_file_if_different(const std::string &path,
+                                                       String8_View content) {
   return write_file_if_different(path.c_str(), content);
 }
 
-Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
-    const char *path, String8_View content) {
+Result<bool, Generic_IO_Error> write_file_if_different(const char *path,
+                                                       String8_View content) {
   Result<Padded_String, Read_File_IO_Error> read_result = read_file(path);
   bool file_is_different;
   if (read_result.ok()) {
@@ -390,7 +390,8 @@ Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
     file_is_different = true;
   } else {
     // FIXME(strager): Should we try to write the file anyway?
-    return read_result.propagate();
+    // TODO(strager): Use Result<>::propagate.
+    return failed_result(Generic_IO_Error(read_result.error_to_string()));
   }
   if (!file_is_different) {
     return false;
@@ -398,7 +399,8 @@ Result<bool, Read_File_IO_Error, Write_File_IO_Error> write_file_if_different(
 
   Result<void, Write_File_IO_Error> write_result = write_file(path, content);
   if (!write_result.ok()) {
-    return write_result.propagate();
+    // TODO(strager): Use Result<>::propagate.
+    return failed_result(Generic_IO_Error(read_result.error_to_string()));
   }
   return true;
 }

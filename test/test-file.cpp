@@ -286,7 +286,7 @@ TEST_F(
   std::string temp_file = temp_dir + "/file";
   write_file_or_exit(temp_file, u8"hello world"_sv);
 
-  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+  Result<bool, Generic_IO_Error> result =
       write_file_if_different(temp_file, u8"hello,world"_sv);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
   EXPECT_TRUE(*result);
@@ -300,7 +300,7 @@ TEST_F(Test_File,
   std::string temp_file = temp_dir + "/file";
   write_file_or_exit(temp_file, u8"hello"_sv);
 
-  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+  Result<bool, Generic_IO_Error> result =
       write_file_if_different(temp_file, u8"hello world"_sv);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
   EXPECT_TRUE(*result);
@@ -314,7 +314,7 @@ TEST_F(Test_File,
   std::string temp_file = temp_dir + "/file";
   write_file_or_exit(temp_file, u8"hello world"_sv);
 
-  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+  Result<bool, Generic_IO_Error> result =
       write_file_if_different(temp_file, u8"hello"_sv);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
   EXPECT_TRUE(*result);
@@ -345,7 +345,7 @@ TEST_F(Test_File, write_file_if_different_does_not_touch_file_if_same_SLOW) {
   std::this_thread::sleep_for(10ms);
 #endif
 
-  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+  Result<bool, Generic_IO_Error> result =
       write_file_if_different(temp_file, u8"hello world"_sv);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
   EXPECT_FALSE(*result);
@@ -393,7 +393,7 @@ TEST_F(Test_File, write_file_if_different_creates_file_if_missing) {
   std::string temp_dir = this->make_temporary_directory();
   std::string temp_file = temp_dir + "/file";
 
-  Result<bool, Read_File_IO_Error, Write_File_IO_Error> result =
+  Result<bool, Generic_IO_Error> result =
       write_file_if_different(temp_file, u8"hello"_sv);
   ASSERT_TRUE(result.ok()) << result.error_to_string();
   EXPECT_TRUE(*result);

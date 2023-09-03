@@ -208,6 +208,7 @@ quick_lint_js_add_library(
   quick-lint-js/io/file-path.h
   quick-lint-js/io/file.cpp
   quick-lint-js/io/file.h
+  quick-lint-js/io/io-error.h
   quick-lint-js/io/output-stream.cpp
   quick-lint-js/io/output-stream.h
   quick-lint-js/port/char8.cpp
