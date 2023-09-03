@@ -56,9 +56,6 @@
 #include <unistd.h>
 #endif
 
-QLJS_WARNING_IGNORE_CLANG("-Wnon-virtual-dtor")
-QLJS_WARNING_IGNORE_GCC("-Wnon-virtual-dtor")
-
 namespace quick_lint_js {
 namespace {
 bool stderr_supports_terminal_escapes() {

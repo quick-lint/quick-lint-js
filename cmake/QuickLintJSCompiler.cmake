@@ -252,6 +252,29 @@ function (quick_lint_js_enable_dead_code_stripping)
   quick_lint_js_add_cxx_linker_flag_if_supported(-Wl,--gc-sections QUICK_LINT_JS_HAVE_GC_SECTIONS)
 endfunction ()
 
+function (quick_lint_js_disable_unwanted_warnings)
+  quick_lint_js_get_supported_warning_options(
+    "-Wno-non-virtual-dtor"
+    WARNING_OPTIONS_TO_ADD
+  )
+  if (WARNING_OPTIONS_TO_ADD)
+    # HACK(strager): CMake likes to deduplicate options. This can change
+    # semantics. For example:
+    #
+    #   # NOTE: -Weffc++ implies -Wnon-virtual-dtor
+    #   -Wno-non-virtual-dtor -Weffc++ -Wno-non-virtual-dtor
+    #
+    #   # Deduplication by CMake:
+    #   -Wno-non-virtual-dtor -Weffc++
+    #   # Now -Wnon-virtual-dtor is enabled!
+    #
+    # Prevent deduplication by prefixing options with "SHELL:".
+    foreach (WARNING_OPTION IN LISTS WARNING_OPTIONS_TO_ADD)
+      add_compile_options("SHELL:${WARNING_OPTION}")
+    endforeach ()
+  endif ()
+endfunction ()
+
 function (quick_lint_js_optimize_target_for_code_size TARGET)
   quick_lint_js_target_add_c_cxx_flag_if_supported("${TARGET}" -Oz QUICK_LINT_JS_HAVE_OPTIMIZE_GNU_OZ)
   if (QUICK_LINT_JS_HAVE_OPTIMIZE_GNU_OZ_C OR QUICK_LINT_JS_HAVE_OPTIMIZE_GNU_OZ_CXX)

@@ -17,7 +17,6 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/kqueue.h>
 #include <quick-lint-js/port/thread.h>
-#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <thread>
 #include <vector>
@@ -31,9 +30,6 @@
 #include <mswsock.h>
 #include <quick-lint-js/port/windows-error.h>
 #endif
-
-QLJS_WARNING_IGNORE_CLANG("-Wnon-virtual-dtor")
-QLJS_WARNING_IGNORE_GCC("-Wnon-virtual-dtor")
 
 using ::testing::ElementsAreArray;
 using namespace std::literals::chrono_literals;

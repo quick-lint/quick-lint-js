@@ -14,7 +14,6 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/span.h>
-#include <quick-lint-js/port/warning.h>
 
 #if QLJS_HAVE_KQUEUE
 struct kevent;
@@ -39,10 +38,6 @@ struct kevent;
 #else
 #define QLJS_EVENT_LOOP2_PIPE_WRITE 1
 #endif
-
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_CLANG("-Wnon-virtual-dtor")
-QLJS_WARNING_IGNORE_GCC("-Wnon-virtual-dtor")
 
 namespace quick_lint_js {
 class Event_Loop_Base;
@@ -518,8 +513,6 @@ using Event_Loop =
 #endif
     ;
 }
-
-QLJS_WARNING_POP
 
 #endif
 
