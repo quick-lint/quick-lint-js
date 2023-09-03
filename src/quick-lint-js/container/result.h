@@ -129,6 +129,15 @@ class Result_Base {
     return get<Error>(this->data_);
   }
 
+  template <class Error>
+  Error&& error() && {
+    QLJS_ASSERT(!this->ok());
+    QLJS_ASSERT(this->has_error<Error>());
+    // TODO(strager): If std::is_same_v<Error, value_type>, then get<Error>
+    // is incorrect.
+    return get<Error>(std::move(this->data_));
+  }
+
   std::string error_to_string() const {
     QLJS_ASSERT(!this->ok());
     // TODO(strager): If std::is_same_v<Error, value_type>, then visit is

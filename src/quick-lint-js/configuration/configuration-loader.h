@@ -46,6 +46,30 @@ struct Loaded_Config_File {
   const Canonical_Path* config_path;
 };
 
+struct Configuration_Load_IO_Error {
+  /*implicit*/ Configuration_Load_IO_Error(Canonicalize_Path_IO_Error&&);
+  /*implicit*/ Configuration_Load_IO_Error(const Canonicalize_Path_IO_Error&);
+
+  /*implicit*/ Configuration_Load_IO_Error(Read_File_IO_Error&&);
+  /*implicit*/ Configuration_Load_IO_Error(const Read_File_IO_Error&);
+
+  std::string message;
+  Platform_File_IO_Error io_error;
+
+  // Read_File_IO_Error::path or Canonicalize_Path_IO_Error::input_path
+  std::string path;
+
+  // Empty if Read_File_IO_Error.
+  std::string canonicalizing_path;
+
+  const std::string& to_string() const;
+
+  friend bool operator==(const Configuration_Load_IO_Error&,
+                         const Configuration_Load_IO_Error&);
+  friend bool operator!=(const Configuration_Load_IO_Error&,
+                         const Configuration_Load_IO_Error&);
+};
+
 // Returned by configuration_loader::refresh.
 struct Configuration_Change {
   // The path given to configuration_loader::watch_and_load_for_file or
@@ -60,8 +84,7 @@ struct Configuration_Change {
   //
   // Invariant: (error == nullptr) || (config_file == nullptr)
   // Invariant: (error == nullptr) || !error->ok()
-  Result<void, Canonicalize_Path_IO_Error, Read_File_IO_Error>*
-      error;  // Sometimes nullptr.
+  Result<void, Configuration_Load_IO_Error>* error;  // Sometimes nullptr.
 
   // token is the pointer given to
   // configuration_loader::watch_and_load_for_file or
@@ -84,20 +107,20 @@ class Configuration_Loader {
   Configuration_Filesystem* fs() { return this->fs_; }
 
   // Returns nullptr if there is no config file.
-  Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
+  Result<Loaded_Config_File*, Configuration_Load_IO_Error>
   watch_and_load_for_file(const std::string& file_path, const void* token);
 
   // Fails if the config file does not exist.
-  Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
+  Result<Loaded_Config_File*, Configuration_Load_IO_Error>
   watch_and_load_config_file(const std::string& file_path, const void* token);
 
   // Returns nullptr if there is no config file.
-  Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
-  load_for_file(const std::string& file_path);
+  Result<Loaded_Config_File*, Configuration_Load_IO_Error> load_for_file(
+      const std::string& file_path);
 
   // Returns nullptr if there is no config file.
-  Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
-  load_for_file(const File_To_Lint&);
+  Result<Loaded_Config_File*, Configuration_Load_IO_Error> load_for_file(
+      const File_To_Lint&);
 
   // Undo a call to watch_and_load_for_file or watch_and_load_config_file.
   void unwatch_file(const std::string& file_path);
@@ -134,14 +157,14 @@ class Configuration_Loader {
   struct Watched_Config_Path {
     std::string input_config_path;
     std::optional<Canonical_Path> actual_config_path;
-    Result<void, Canonicalize_Path_IO_Error, Read_File_IO_Error> error;
+    Result<void, Configuration_Load_IO_Error> error;
     void* token;
   };
 
   struct Watched_Input_Path {
     std::string input_path;
     std::optional<Canonical_Path> config_path;
-    Result<void, Canonicalize_Path_IO_Error, Read_File_IO_Error> error;
+    Result<void, Configuration_Load_IO_Error> error;
     void* token;
   };
 

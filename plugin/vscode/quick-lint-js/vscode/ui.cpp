@@ -47,8 +47,7 @@ void VSCode_UI::show_associated_config_file_errors(
 
 void VSCode_UI::show_config_file_load_errors(
     ::Napi::Env env, std::string_view document_path,
-    const Result<Loaded_Config_File*, Canonicalize_Path_IO_Error,
-                 Read_File_IO_Error>& error) {
+    const Result<Loaded_Config_File*, Configuration_Load_IO_Error>& error) {
   QLJS_ASSERT(!error.ok());
   std::string message =
       concat("Failed to load configuration file for "sv, document_path,

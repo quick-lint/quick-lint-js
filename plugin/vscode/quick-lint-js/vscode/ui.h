@@ -9,10 +9,9 @@
 
 namespace quick_lint_js {
 class QLJS_Workspace;
-struct Canonicalize_Path_IO_Error;
+struct Configuration_Load_IO_Error;
 struct Loaded_Config_File;
 struct Watch_IO_Error;
-struct Read_File_IO_Error;
 
 class VSCode_UI {
  public:
@@ -28,8 +27,7 @@ class VSCode_UI {
 
   void show_config_file_load_errors(
       ::Napi::Env env, std::string_view document_path,
-      const Result<Loaded_Config_File*, Canonicalize_Path_IO_Error,
-                   Read_File_IO_Error>& error);
+      const Result<Loaded_Config_File*, Configuration_Load_IO_Error>& error);
 
  private:
   VSCode_Module& vscode();
