@@ -25,30 +25,6 @@ using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-namespace {
-// TODO(strager): Get rid of the need for this function.
-template <class T>
-Result<T, Configuration_Load_IO_Error> map_error(
-    Result<T, Canonicalize_Path_IO_Error>&& result) {
-  if (!result.ok()) {
-    return failed_result<Configuration_Load_IO_Error>(
-        std::move(result).error());
-  }
-  return *result;
-}
-
-// TODO(strager): Get rid of the need for this function.
-template <class T>
-Result<T, Configuration_Load_IO_Error> map_error(
-    Result<T, Read_File_IO_Error>&& result) {
-  if (!result.ok()) {
-    return failed_result<Configuration_Load_IO_Error>(
-        std::move(result).error());
-  }
-  return *result;
-}
-}
-
 Loaded_Config_File::Loaded_Config_File() : errors(new_delete_resource()) {}
 
 Configuration_Load_IO_Error::Configuration_Load_IO_Error(
@@ -112,7 +88,7 @@ Configuration_Loader::watch_and_load_for_file(const std::string& file_path,
   Result<Loaded_Config_File*, Configuration_Load_IO_Error> r =
       this->find_and_load_config_file_for_input(file_path.c_str());
   if (!r.ok()) {
-    watch.error = r.copy_errors<Configuration_Load_IO_Error>();
+    watch.error = r.error();
     return r.propagate();
   }
   return *r;
@@ -131,7 +107,7 @@ Configuration_Loader::watch_and_load_config_file(const std::string& file_path,
   Result<Loaded_Config_File*, Configuration_Load_IO_Error> r =
       this->load_config_file(file_path.c_str());
   if (!r.ok()) {
-    watch.error = r.copy_errors<Configuration_Load_IO_Error>();
+    watch.error = r.error();
     return r.propagate();
   }
   watch.actual_config_path = *(*r)->config_path;
@@ -358,14 +334,13 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
         canonical_config_path =
             this->fs_->canonicalize_path(watch.input_config_path);
     if (!canonical_config_path.ok()) {
-      auto new_error = map_error(
-          canonical_config_path.copy_errors<Canonicalize_Path_IO_Error>());
+      Canonicalize_Path_IO_Error new_error = canonical_config_path.error();
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(Configuration_Change{
             .watched_path = &watch.input_config_path,
             .config_file = nullptr,
-            .error = &watch.error,
+            .error = &*watch.error,
             .token = watch.token,
         });
       }
@@ -375,13 +350,13 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
     Result<Padded_String, Read_File_IO_Error> latest_json =
         this->fs_->read_file(canonical_config_path->canonical());
     if (!latest_json.ok()) {
-      auto new_error = map_error(latest_json.copy_errors<Read_File_IO_Error>());
+      Configuration_Load_IO_Error new_error = latest_json.error();
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(Configuration_Change{
             .watched_path = &watch.input_config_path,
             .config_file = nullptr,
-            .error = &watch.error,
+            .error = &*watch.error,
             .token = watch.token,
         });
       }
@@ -389,7 +364,7 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
     }
 
     if (canonical_config_path->canonical() != watch.actual_config_path ||
-        !watch.error.ok()) {
+        watch.error.has_value()) {
       Loaded_Config_File* config_file;
       auto loaded_config_it =
           loaded_config_files.find(canonical_config_path->canonical());
@@ -417,7 +392,7 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
           .token = watch.token,
       });
       watch.actual_config_path = canonical_config_path->canonical();
-      watch.error = Result<void, Configuration_Load_IO_Error>();
+      watch.error = std::nullopt;
     }
   }
 
@@ -426,14 +401,13 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
     Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> parent_directory =
         this->get_parent_directory(input_path.c_str());
     if (!parent_directory.ok()) {
-      auto new_error =
-          map_error(parent_directory.copy_errors<Canonicalize_Path_IO_Error>());
+      Canonicalize_Path_IO_Error new_error = parent_directory.error();
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(Configuration_Change{
             .watched_path = &input_path,
             .config_file = nullptr,
-            .error = &watch.error,
+            .error = &*watch.error,
             .token = watch.token,
         });
       }
@@ -444,20 +418,20 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
         this->find_config_file_in_directory_and_ancestors(
             std::move(*parent_directory).canonical());
     if (!latest.ok()) {
-      auto new_error = map_error(latest.copy_errors<Read_File_IO_Error>());
+      Read_File_IO_Error new_error = latest.error();
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(Configuration_Change{
             .watched_path = &input_path,
             .config_file = nullptr,
-            .error = &watch.error,
+            .error = &*watch.error,
             .token = watch.token,
         });
       }
       continue;
     }
 
-    if (latest->path != watch.config_path || !watch.error.ok()) {
+    if (latest->path != watch.config_path || watch.error.has_value()) {
       Loaded_Config_File* config_file;
       if (latest->path.has_value()) {
         auto loaded_config_it = loaded_config_files.find(*latest->path);
@@ -487,7 +461,7 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
           .token = watch.token,
       });
       watch.config_path = latest->path;
-      watch.error = Result<void, Configuration_Load_IO_Error>();
+      watch.error = std::nullopt;
     }
   }
 

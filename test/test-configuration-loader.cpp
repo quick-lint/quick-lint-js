@@ -1413,9 +1413,8 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
   ASSERT_NE(changes[0].error, nullptr);
-  EXPECT_EQ(changes[0].error->error().path,
-            canonicalize_path(config_file)->c_str());
-  EXPECT_EQ(changes[0].error->error().io_error.error, EACCES);
+  EXPECT_EQ(changes[0].error->path, canonicalize_path(config_file)->c_str());
+  EXPECT_EQ(changes[0].error->io_error.error, EACCES);
 }
 
 TEST_F(Test_Configuration_Loader,
@@ -1446,9 +1445,8 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
   ASSERT_NE(changes[0].error, nullptr);
-  EXPECT_EQ(changes[0].error->error().path,
-            canonicalize_path(config_file)->c_str());
-  EXPECT_EQ(changes[0].error->error().io_error.error, EACCES);
+  EXPECT_EQ(changes[0].error->path, canonicalize_path(config_file)->c_str());
+  EXPECT_EQ(changes[0].error->io_error.error, EACCES);
 }
 
 #if QLJS_HAVE_KQUEUE
@@ -1717,8 +1715,8 @@ TEST_F(
   EXPECT_EQ(changes_2[0].token, &js_file);
   EXPECT_EQ(changes_2[0].config_file, nullptr);
   ASSERT_NE(changes_2[0].error, nullptr);
-  EXPECT_EQ(changes_2[0].error->error().path, config_file_canonical_path);
-  EXPECT_EQ(changes_2[0].error->error().io_error.error, EACCES);
+  EXPECT_EQ(changes_2[0].error->path, config_file_canonical_path);
+  EXPECT_EQ(changes_2[0].error->io_error.error, EACCES);
 }
 
 #if QLJS_HAVE_KQUEUE
@@ -1767,8 +1765,8 @@ TEST_F(
   EXPECT_EQ(changes_2[0].token, &config_file);
   EXPECT_EQ(changes_2[0].config_file, nullptr);
   ASSERT_NE(changes_2[0].error, nullptr);
-  EXPECT_EQ(changes_2[0].error->error().path, config_file_canonical_path);
-  EXPECT_EQ(changes_2[0].error->error().io_error.error, EACCES);
+  EXPECT_EQ(changes_2[0].error->path, config_file_canonical_path);
+  EXPECT_EQ(changes_2[0].error->io_error.error, EACCES);
 }
 
 TEST_F(Test_Configuration_Loader,
@@ -1882,10 +1880,9 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
   ASSERT_NE(changes[0].error, nullptr);
-  EXPECT_EQ(changes[0].error->error().path, js_file);
-  EXPECT_EQ(changes[0].error->error().canonicalizing_path,
-            js_file_canonical_path);
-  EXPECT_EQ(changes[0].error->error().io_error.error, EACCES);
+  EXPECT_EQ(changes[0].error->path, js_file);
+  EXPECT_EQ(changes[0].error->canonicalizing_path, js_file_canonical_path);
+  EXPECT_EQ(changes[0].error->io_error.error, EACCES);
 }
 
 TEST_F(
@@ -1921,10 +1918,9 @@ TEST_F(
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
   ASSERT_NE(changes[0].error, nullptr);
-  EXPECT_EQ(changes[0].error->error().path, config_file);
-  EXPECT_EQ(changes[0].error->error().canonicalizing_path,
-            config_file_canonical_path);
-  EXPECT_EQ(changes[0].error->error().io_error.error, EACCES);
+  EXPECT_EQ(changes[0].error->path, config_file);
+  EXPECT_EQ(changes[0].error->canonicalizing_path, config_file_canonical_path);
+  EXPECT_EQ(changes[0].error->io_error.error, EACCES);
 }
 
 TEST_F(Test_Configuration_Loader,

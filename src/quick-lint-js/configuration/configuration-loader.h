@@ -83,8 +83,7 @@ struct Configuration_Change {
   // a configuration file from being determined at all.
   //
   // Invariant: (error == nullptr) || (config_file == nullptr)
-  // Invariant: (error == nullptr) || !error->ok()
-  Result<void, Configuration_Load_IO_Error>* error;  // Sometimes nullptr.
+  Configuration_Load_IO_Error* error;  // Sometimes nullptr.
 
   // token is the pointer given to
   // configuration_loader::watch_and_load_for_file or
@@ -157,14 +156,14 @@ class Configuration_Loader {
   struct Watched_Config_Path {
     std::string input_config_path;
     std::optional<Canonical_Path> actual_config_path;
-    Result<void, Configuration_Load_IO_Error> error;
+    std::optional<Configuration_Load_IO_Error> error;
     void* token;
   };
 
   struct Watched_Input_Path {
     std::string input_path;
     std::optional<Canonical_Path> config_path;
-    Result<void, Configuration_Load_IO_Error> error;
+    std::optional<Configuration_Load_IO_Error> error;
     void* token;
   };
 

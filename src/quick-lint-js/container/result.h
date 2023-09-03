@@ -4,6 +4,7 @@
 #pragma once
 
 #include <new>
+#include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/variant.h>
 #include <quick-lint-js/port/unreachable.h>

@@ -588,10 +588,10 @@ void LSP_Documents::Lintable_Document::on_config_file_changed(
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
   }
-  if (change.error) {
+  if (change.error != nullptr) {
     Byte_Buffer& message_json = handler.outgoing_messages_.new_message();
     handler.write_configuration_loader_error_notification(
-        document_path, change.error->error_to_string(), message_json);
+        document_path, change.error->to_string(), message_json);
   }
   Configuration* config = change.config_file ? &change.config_file->config
                                              : &handler.default_config_;
