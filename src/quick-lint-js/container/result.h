@@ -140,13 +140,6 @@ class Result_Base {
 
   Result_Propagation<T, Error> propagate() && = delete;
 
-  template <class New_Error>
-  quick_lint_js::Result<void, New_Error> copy_errors() {
-    // TODO(strager): If any of New_Error equals value_type, then visit is
-    // incorrect.
-    return visit(Copy_Errors_Visitor<New_Error>(), this->data_);
-  }
-
   // For tests.
   template <class U>
   friend bool holds_alternative(const Result_Base<T, Error>& r) {
@@ -207,18 +200,6 @@ class Result_Base {
     std::string operator()(const Error& error) { return error.to_string(); }
   };
 
-  template <class New_Error>
-  struct Copy_Errors_Visitor {
-    quick_lint_js::Result<void, New_Error> operator()(const Value_Type&) {
-      return {};
-    }
-
-    quick_lint_js::Result<void, New_Error> operator()(const Error& error) {
-      return quick_lint_js::Result<void, New_Error>(
-          failed_result<const Error&>(error));
-    }
-  };
-
   Variant<Value_Type, Error> data_;
 
   template <class, class>
@@ -233,7 +214,6 @@ class Result : public Result_Base<T, Error> {
 
  public:
   using Base::Base;
-  using Base::copy_errors;
   using Base::error;
   using Base::error_to_string;
   using Base::ok;
@@ -255,7 +235,6 @@ class Result<void, Error> : public Result_Base<void, Error> {
 
  public:
   using Base::Base;
-  using Base::copy_errors;
   using Base::error;
   using Base::error_to_string;
   using Base::ok;

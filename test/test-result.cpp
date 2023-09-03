@@ -166,16 +166,6 @@ TYPED_TEST(Test_Result_Error, error_to_string) {
   Result<TypeParam, E_A> error = failed_result(E_A{.data = "hello"});
   EXPECT_EQ(error.error_to_string(), "data = hello");
 }
-
-TYPED_TEST(Test_Result_Error, copy_errors) {
-  struct E_A {
-    std::string data;
-  };
-  Result<TypeParam, E_A> r = failed_result(E_A{.data = "hello"});
-  Result<void, E_A> v = r.template copy_errors<E_A>();
-  EXPECT_FALSE(v.ok());
-  EXPECT_EQ(v.error().data, "hello");
-}
 }
 }
 
