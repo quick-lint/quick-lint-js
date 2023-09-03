@@ -158,6 +158,23 @@ TYPED_TEST(Test_Result_Error, propagate_error_to_void_value_type) {
   EXPECT_EQ(copy.error().data, 42);
 }
 
+TYPED_TEST(Test_Result_Error,
+           propagate_error_with_implicitly_convertible_error_type) {
+  struct E_A {
+    int data;
+  };
+  struct E_B {
+    /*implicit*/ E_B(E_A&& other) : data(other.data * 10) { other.data = 0; }
+    int data;
+  };
+  Result<TypeParam, E_A> original = failed_result(E_A{.data = 42});
+  ASSERT_FALSE(original.ok());
+
+  Result<TypeParam, E_B> copy = original.propagate();
+  EXPECT_FALSE(copy.ok());
+  EXPECT_EQ(copy.error().data, 420);
+}
+
 TYPED_TEST(Test_Result_Error, error_to_string) {
   struct E_A {
     std::string data;

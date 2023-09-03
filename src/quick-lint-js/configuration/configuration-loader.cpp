@@ -139,10 +139,7 @@ Result<Loaded_Config_File*, Configuration_Load_IO_Error>
 Configuration_Loader::load_config_file(const char* config_path) {
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error>
       canonical_config_path = this->fs_->canonicalize_path(config_path);
-  if (!canonical_config_path.ok()) {
-    return failed_result<Configuration_Load_IO_Error>(
-        std::move(canonical_config_path).error());
-  }
+  if (!canonical_config_path.ok()) return canonical_config_path.propagate();
 
   if (Loaded_Config_File* config_file =
           this->get_loaded_config(canonical_config_path->canonical())) {
@@ -150,10 +147,8 @@ Configuration_Loader::load_config_file(const char* config_path) {
   }
   Result<Padded_String, Read_File_IO_Error> config_json =
       this->fs_->read_file(canonical_config_path->canonical());
-  if (!config_json.ok()) {
-    return failed_result<Configuration_Load_IO_Error>(
-        std::move(config_json).error());
-  }
+  if (!config_json.ok()) return config_json.propagate();
+
   auto [config_it, inserted] = this->loaded_config_files_.emplace(
       std::piecewise_construct,
       std::forward_as_tuple(canonical_config_path->canonical()),
@@ -175,17 +170,14 @@ Configuration_Loader::find_and_load_config_file_for_input(
     const char* input_path) {
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> parent_directory =
       this->get_parent_directory(input_path);
-  if (!parent_directory.ok()) {
-    return failed_result<Configuration_Load_IO_Error>(
-        std::move(parent_directory).error());
-  }
+  if (!parent_directory.ok()) return parent_directory.propagate();
+
   Result<Loaded_Config_File*, Read_File_IO_Error> r =
       this->find_and_load_config_file_in_directory_and_ancestors(
           std::move(*parent_directory).canonical(),
           /*input_path=*/input_path);
-  if (!r.ok()) {
-    return failed_result<Configuration_Load_IO_Error>(std::move(r).error());
-  }
+  if (!r.ok()) return r.propagate();
+
   return *r;
 }
 
