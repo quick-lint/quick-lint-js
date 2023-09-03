@@ -168,9 +168,9 @@ class Configuration_Loader {
     void* token;
   };
 
-  Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
-  load_config_file(const char* config_path);
-  Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
+  Result<Loaded_Config_File*, Configuration_Load_IO_Error> load_config_file(
+      const char* config_path);
+  Result<Loaded_Config_File*, Configuration_Load_IO_Error>
   find_and_load_config_file_for_input(const char* input_path);
 
   Result<Loaded_Config_File*, Read_File_IO_Error>

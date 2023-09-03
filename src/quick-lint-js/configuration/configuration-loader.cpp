@@ -26,20 +26,24 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-// TODO(strager): Refactor internals to avoid this function.
+// TODO(strager): Get rid of the need for this function.
 template <class T>
 Result<T, Configuration_Load_IO_Error> map_error(
-    Result<T, Canonicalize_Path_IO_Error, Read_File_IO_Error>&& result) {
+    Result<T, Canonicalize_Path_IO_Error>&& result) {
   if (!result.ok()) {
-    if (result.template has_error<Canonicalize_Path_IO_Error>()) {
-      return failed_result<Configuration_Load_IO_Error>(
-          Configuration_Load_IO_Error(
-              std::move(result).template error<Canonicalize_Path_IO_Error>()));
-    } else {
-      return failed_result<Configuration_Load_IO_Error>(
-          Configuration_Load_IO_Error(
-              std::move(result).template error<Read_File_IO_Error>()));
-    }
+    return failed_result<Configuration_Load_IO_Error>(
+        std::move(result).error());
+  }
+  return *result;
+}
+
+// TODO(strager): Get rid of the need for this function.
+template <class T>
+Result<T, Configuration_Load_IO_Error> map_error(
+    Result<T, Read_File_IO_Error>&& result) {
+  if (!result.ok()) {
+    return failed_result<Configuration_Load_IO_Error>(
+        std::move(result).error());
   }
   return *result;
 }
@@ -105,12 +109,11 @@ Configuration_Loader::watch_and_load_for_file(const std::string& file_path,
           .error = {},
           .token = const_cast<void*>(token),
       });
-  Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
-      r = this->find_and_load_config_file_for_input(file_path.c_str());
+  Result<Loaded_Config_File*, Configuration_Load_IO_Error> r =
+      this->find_and_load_config_file_for_input(file_path.c_str());
   if (!r.ok()) {
-    watch.error = map_error(
-        r.copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>());
-    return map_error(std::move(r));
+    watch.error = r.copy_errors<Configuration_Load_IO_Error>();
+    return r.propagate();
   }
   return *r;
 }
@@ -125,12 +128,11 @@ Configuration_Loader::watch_and_load_config_file(const std::string& file_path,
           .error = {},
           .token = const_cast<void*>(token),
       });
-  Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
-      r = this->load_config_file(file_path.c_str());
+  Result<Loaded_Config_File*, Configuration_Load_IO_Error> r =
+      this->load_config_file(file_path.c_str());
   if (!r.ok()) {
-    watch.error = map_error(
-        r.copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>());
-    return map_error(std::move(r));
+    watch.error = r.copy_errors<Configuration_Load_IO_Error>();
+    return r.propagate();
   }
   watch.actual_config_path = *(*r)->config_path;
   return *r;
@@ -138,31 +140,33 @@ Configuration_Loader::watch_and_load_config_file(const std::string& file_path,
 
 Result<Loaded_Config_File*, Configuration_Load_IO_Error>
 Configuration_Loader::load_for_file(const std::string& file_path) {
-  return map_error(
-      this->find_and_load_config_file_for_input(file_path.c_str()));
+  return this->find_and_load_config_file_for_input(file_path.c_str());
 }
 
 Result<Loaded_Config_File*, Configuration_Load_IO_Error>
 Configuration_Loader::load_for_file(const File_To_Lint& file) {
   if (file.config_file) {
-    return map_error(this->load_config_file(file.config_file));
+    return this->load_config_file(file.config_file);
   }
   if (file.path_for_config_search) {
-    return map_error(
-        this->find_and_load_config_file_for_input(file.path_for_config_search));
+    return this->find_and_load_config_file_for_input(
+        file.path_for_config_search);
   }
   if (file.is_stdin) {
     return nullptr;
   }
   QLJS_ASSERT(file.path);
-  return map_error(this->find_and_load_config_file_for_input(file.path));
+  return this->find_and_load_config_file_for_input(file.path);
 }
 
-Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
+Result<Loaded_Config_File*, Configuration_Load_IO_Error>
 Configuration_Loader::load_config_file(const char* config_path) {
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error>
       canonical_config_path = this->fs_->canonicalize_path(config_path);
-  if (!canonical_config_path.ok()) return canonical_config_path.propagate();
+  if (!canonical_config_path.ok()) {
+    return failed_result<Configuration_Load_IO_Error>(
+        std::move(canonical_config_path).error());
+  }
 
   if (Loaded_Config_File* config_file =
           this->get_loaded_config(canonical_config_path->canonical())) {
@@ -170,7 +174,10 @@ Configuration_Loader::load_config_file(const char* config_path) {
   }
   Result<Padded_String, Read_File_IO_Error> config_json =
       this->fs_->read_file(canonical_config_path->canonical());
-  if (!config_json.ok()) return config_json.propagate();
+  if (!config_json.ok()) {
+    return failed_result<Configuration_Load_IO_Error>(
+        std::move(config_json).error());
+  }
   auto [config_it, inserted] = this->loaded_config_files_.emplace(
       std::piecewise_construct,
       std::forward_as_tuple(canonical_config_path->canonical()),
@@ -187,17 +194,22 @@ Configuration_Loader::load_config_file(const char* config_path) {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
-Result<Loaded_Config_File*, Canonicalize_Path_IO_Error, Read_File_IO_Error>
+Result<Loaded_Config_File*, Configuration_Load_IO_Error>
 Configuration_Loader::find_and_load_config_file_for_input(
     const char* input_path) {
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> parent_directory =
       this->get_parent_directory(input_path);
-  if (!parent_directory.ok()) return parent_directory.propagate();
+  if (!parent_directory.ok()) {
+    return failed_result<Configuration_Load_IO_Error>(
+        std::move(parent_directory).error());
+  }
   Result<Loaded_Config_File*, Read_File_IO_Error> r =
       this->find_and_load_config_file_in_directory_and_ancestors(
           std::move(*parent_directory).canonical(),
           /*input_path=*/input_path);
-  if (!r.ok()) return r.propagate();
+  if (!r.ok()) {
+    return failed_result<Configuration_Load_IO_Error>(std::move(r).error());
+  }
   return *r;
 }
 
@@ -347,8 +359,7 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
             this->fs_->canonicalize_path(watch.input_config_path);
     if (!canonical_config_path.ok()) {
       auto new_error = map_error(
-          canonical_config_path
-              .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>());
+          canonical_config_path.copy_errors<Canonicalize_Path_IO_Error>());
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(Configuration_Change{
@@ -364,9 +375,7 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
     Result<Padded_String, Read_File_IO_Error> latest_json =
         this->fs_->read_file(canonical_config_path->canonical());
     if (!latest_json.ok()) {
-      auto new_error = map_error(
-          latest_json
-              .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>());
+      auto new_error = map_error(latest_json.copy_errors<Read_File_IO_Error>());
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(Configuration_Change{
@@ -417,9 +426,8 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
     Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> parent_directory =
         this->get_parent_directory(input_path.c_str());
     if (!parent_directory.ok()) {
-      auto new_error = map_error(
-          parent_directory
-              .copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>());
+      auto new_error =
+          map_error(parent_directory.copy_errors<Canonicalize_Path_IO_Error>());
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(Configuration_Change{
@@ -436,8 +444,7 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
         this->find_config_file_in_directory_and_ancestors(
             std::move(*parent_directory).canonical());
     if (!latest.ok()) {
-      auto new_error = map_error(
-          latest.copy_errors<Canonicalize_Path_IO_Error, Read_File_IO_Error>());
+      auto new_error = map_error(latest.copy_errors<Read_File_IO_Error>());
       if (watch.error != new_error) {
         watch.error = std::move(new_error);
         changes.emplace_back(Configuration_Change{
