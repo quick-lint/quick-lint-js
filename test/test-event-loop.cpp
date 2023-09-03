@@ -22,7 +22,7 @@
 #include <vector>
 
 #if QLJS_HAVE_POLL
-#include <sys/poll.h>
+#include <poll.h>
 #endif
 
 #if defined(_WIN32)
