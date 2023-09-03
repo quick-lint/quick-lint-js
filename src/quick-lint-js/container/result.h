@@ -242,53 +242,6 @@ class Result_Base {
   friend class Result_Base;
 };
 
-// Like variant<T, Errors...>, but more ergonomic.
-//
-// Errors must be unique. For example, Result<int, char, char> is illegal.
-template <class T, class... Errors>
-class Result : public Result_Base<T, Errors...> {
- private:
-  using Base = Result_Base<T, Errors...>;
-
- public:
-  using Base::Base;
-  using Base::copy_errors;
-  using Base::error;
-  using Base::error_to_string;
-  using Base::has_error;
-  using Base::ok;
-  using Base::operator*;
-  using Base::operator->;
-  using Base::operator=;
-  using Base::propagate;
-  using Base::value;
-
-  template <class, class...>
-  friend class Result_Base;
-};
-
-// Like variant<monostate, Errors...>, but more ergonomic.
-//
-// Errors must be unique. For example, Result<void, char, char> is illegal.
-template <class... Errors>
-class Result<void, Errors...> : public Result_Base<void, Errors...> {
- private:
-  using Base = Result_Base<void, Errors...>;
-
- public:
-  using Base::Base;
-  using Base::copy_errors;
-  using Base::error;
-  using Base::error_to_string;
-  using Base::has_error;
-  using Base::ok;
-  using Base::operator=;
-  using Base::propagate;
-
-  template <class, class...>
-  friend class Result_Base;
-};
-
 // Like variant<T, Error>, but more ergonomic.
 template <class T, class Error>
 class Result<T, Error> : public Result_Base<T, Error> {
