@@ -48,15 +48,21 @@ Result<void, Platform_File_IO_Error> list_directory(
     const char* directory,
     Function_Ref<void(const char*, bool is_directory)> visit_file);
 
+// See list_directory_recursively.
+class List_Directory_Visitor {
+ public:
+  // visit_file is called with the full path of the file, including
+  // 'directory' given to list_directory_recursively.
+  //
+  // visit_file is not called for '.' or '..' entries.
+  virtual void visit_file(const std::string& path) = 0;
+
+  virtual void on_error(const Platform_File_IO_Error& error, int depth) = 0;
+};
+
 // Call visit_file for each regular file of the given directory and its
 // descendant directories and their descendants, etc.
-//
-// '.' and '..' entries are excluded.
-//
-// visit_file is called with the full path of the file, including 'directory'.
-void list_directory_recursively(
-    const char* directory, Function_Ref<void(const std::string&)> visit_file,
-    Function_Ref<void(const Platform_File_IO_Error&, int depth)> on_error);
+void list_directory_recursively(const char* directory, List_Directory_Visitor&);
 
 Result<std::string, Platform_File_IO_Error> get_current_working_directory();
 Result<void, Platform_File_IO_Error> get_current_working_directory(

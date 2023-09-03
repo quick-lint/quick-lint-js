@@ -205,18 +205,23 @@ TEST_F(Test_Directory, list_directory_recursively) {
 
   create_directory_or_exit(temp_dir + "/dir-c");
 
-  std::vector<std::string> visited_files;
-  auto visit_file = [&](const std::string& path) -> void {
-    visited_files.push_back(path);
+  struct Test_Visitor final : public List_Directory_Visitor {
+    void visit_file(const std::string& path) override {
+      this->visited_files.push_back(path);
+    }
+
+    void on_error(const Platform_File_IO_Error& error,
+                  [[maybe_unused]] int depth) override {
+      ADD_FAILURE() << error.to_string();
+    }
+
+    std::vector<std::string> visited_files;
   };
-  auto on_error = [&](const Platform_File_IO_Error& error,
-                      [[maybe_unused]] int depth) -> void {
-    ADD_FAILURE() << error.to_string();
-  };
-  list_directory_recursively(temp_dir.c_str(), visit_file, on_error);
+  Test_Visitor visitor;
+  list_directory_recursively(temp_dir.c_str(), visitor);
 
 #define SEP QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR
-  EXPECT_THAT(visited_files,
+  EXPECT_THAT(visitor.visited_files,
               ::testing::UnorderedElementsAreArray({
                   temp_dir + SEP "dir-a" SEP "file-1",
                   temp_dir + SEP "dir-a" SEP "file-2",
@@ -230,28 +235,30 @@ TEST_F(Test_Directory, list_directory_recursively_on_regular_file_fails) {
   std::string temp_dir = this->make_temporary_directory();
   write_file_or_exit(temp_dir + "/testfile", u8""_sv);
 
-  auto visit_file = [&](const std::string& path) -> void {
-    ADD_FAILURE() << path;
-  };
-  bool did_error = false;
-  auto on_error = [&](const Platform_File_IO_Error& error, int depth) -> void {
-    SCOPED_TRACE(error.to_string());
-    EXPECT_FALSE(did_error) << "on_error should only be called once";
-    did_error = true;
-    EXPECT_TRUE(error.is_not_a_directory_error());
+  struct Test_Visitor final : public List_Directory_Visitor {
+    void visit_file(const std::string& path) override { ADD_FAILURE() << path; }
+
+    void on_error(const Platform_File_IO_Error& error, int depth) override {
+      SCOPED_TRACE(error.to_string());
+      EXPECT_FALSE(this->did_error) << "on_error should only be called once";
+      this->did_error = true;
+      EXPECT_TRUE(error.is_not_a_directory_error());
 #if QLJS_HAVE_UNISTD_H
-    EXPECT_EQ(error.error, ENOTDIR);
+      EXPECT_EQ(error.error, ENOTDIR);
 #elif QLJS_HAVE_WINDOWS_H
-    EXPECT_EQ(error.error, ERROR_DIRECTORY);
+      EXPECT_EQ(error.error, ERROR_DIRECTORY);
 #else
 #error "Unknown platform"
 #endif
-    EXPECT_EQ(depth, 0);
-  };
-  list_directory_recursively((temp_dir + "/testfile").c_str(), visit_file,
-                             on_error);
+      EXPECT_EQ(depth, 0);
+    }
 
-  EXPECT_TRUE(did_error);
+    bool did_error = false;
+  };
+  Test_Visitor visitor;
+  list_directory_recursively((temp_dir + "/testfile").c_str(), visitor);
+
+  EXPECT_TRUE(visitor.did_error);
 }
 }
 }

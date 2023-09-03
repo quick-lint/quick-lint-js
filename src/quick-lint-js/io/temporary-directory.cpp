@@ -401,13 +401,11 @@ Result<void, Platform_File_IO_Error> list_directory(
 #endif
 }
 
-void list_directory_recursively(
-    const char *directory, Function_Ref<void(const std::string &)> visit_file,
-    Function_Ref<void(const Platform_File_IO_Error &, int depth)> on_error) {
+void list_directory_recursively(const char *directory,
+                                List_Directory_Visitor &visitor) {
   struct Finder {
     std::string path;
-    Function_Ref<void(const std::string &)> visit_file;
-    Function_Ref<void(const Platform_File_IO_Error &, int depth)> on_error;
+    List_Directory_Visitor &visitor;
 
     void recurse(int depth) {
       std::size_t path_length = this->path.size();
@@ -420,7 +418,7 @@ void list_directory_recursively(
         if (is_directory) {
           this->recurse(depth + 1);
         } else {
-          this->visit_file(path);
+          this->visitor.visit_file(path);
         }
       };
       // TODO(strager): Reduce allocations on Windows. Windows uses wchar_t
@@ -428,11 +426,11 @@ void list_directory_recursively(
       Result<void, Platform_File_IO_Error> list =
           list_directory(this->path.c_str(), visit_child);
       if (!list.ok()) {
-        this->on_error(list.error(), depth);
+        this->visitor.on_error(list.error(), depth);
       }
     }
   };
-  Finder f = {directory, visit_file, on_error};
+  Finder f = {directory, visitor};
   f.recurse(0);
 }
 

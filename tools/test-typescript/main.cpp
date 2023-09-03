@@ -174,21 +174,32 @@ void process_test_case_file(Expected_Test_Results& expected_results,
 
 void process_test_case_directory_or_file(
     Expected_Test_Results& expected_results, const char* path) {
-  auto visit_file = [&](const std::string& file_path) -> void {
-    if (ends_with(file_path, ".ts"sv) || ends_with(file_path, ".tsx"sv)) {
-      process_test_case_file(expected_results, file_path.c_str());
+  struct Test_Case_Visitor final : public List_Directory_Visitor {
+    Expected_Test_Results& expected_results;
+    const char* root_path;
+
+    explicit Test_Case_Visitor(Expected_Test_Results& expected_results,
+                               const char* root_path)
+        : expected_results(expected_results), root_path(root_path) {}
+
+    void visit_file(const std::string& file_path) override {
+      if (ends_with(file_path, ".ts"sv) || ends_with(file_path, ".tsx"sv)) {
+        process_test_case_file(this->expected_results, file_path.c_str());
+      }
+    }
+
+    void on_error(const Platform_File_IO_Error& error, int depth) override {
+      if (depth == 0 && error.is_not_a_directory_error()) {
+        process_test_case_file(this->expected_results, this->root_path);
+        return;
+      }
+      std::fprintf(stderr, "fatal: error while traversing directory: %s\n",
+                   error.to_string().c_str());
+      std::exit(1);
     }
   };
-  auto on_error = [&](const Platform_File_IO_Error& error, int depth) -> void {
-    if (depth == 0 && error.is_not_a_directory_error()) {
-      process_test_case_file(expected_results, path);
-      return;
-    }
-    std::fprintf(stderr, "fatal: error while traversing directory: %s\n",
-                 error.to_string().c_str());
-    std::exit(1);
-  };
-  list_directory_recursively(path, visit_file, on_error);
+  Test_Case_Visitor visitor(expected_results, path);
+  list_directory_recursively(path, visitor);
 }
 
 std::string find_typescript_tests_directory(const char* descendant_path) {
