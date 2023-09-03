@@ -12,15 +12,15 @@
 #include <utility>
 
 namespace quick_lint_js {
-template <class T, class... Errors>
+template <class T, class Error>
 class Result;
-template <class T, class... Errors>
+template <class T, class Error>
 class Result_Base;
 
 // Do not use result_propagation directly. Call Result<>::propagate instead.
-template <class T, class... Errors>
+template <class T, class Error>
 struct Result_Propagation {
-  Result_Base<T, Errors...>& to_propagate;
+  Result_Base<T, Error>& to_propagate;
 };
 
 // Do not use result_error directly. Call failed_result instead.
@@ -38,14 +38,14 @@ Result_Error<Error&&> failed_result(Error&& e) {
 }
 
 // Do not use result_base directly. Use result instead.
-template <class T, class... Errors>
+template <class T, class Error>
 class Result_Base {
  private:
   template <class U>
   using To_Value_Type =
       std::conditional_t<std::is_same_v<U, void>, Monostate, U>;
 
-  using Result = quick_lint_js::Result<T, Errors...>;
+  using Result = quick_lint_js::Result<T, Error>;
   using Value_Type = To_Value_Type<T>;
 
  public:
@@ -55,20 +55,19 @@ class Result_Base {
   /*implicit*/ Result_Base(Args&&... args)
       : data_(std::in_place_index<0>, std::forward<Args>(args)...) {}
 
-  template <class Error>
-  /*implicit*/ Result_Base(Result_Error<Error>&& error)
-      // TODO(strager): If std::is_same_v<Error, value_type>, then
+  template <class E>
+  /*implicit*/ Result_Base(Result_Error<E>&& error)
+      // TODO(strager): If std::is_same_v<E, value_type>, then
       // std::in_place_type is incorrect.
-      : data_(std::in_place_type<std::decay_t<Error>>,
-              std::forward<Error>(error.e)) {}
+      : data_(std::in_place_type<std::decay_t<E>>, std::forward<E>(error.e)) {}
 
   // Private constructor used by propagate. Do not call directly.
-  /*implicit*/ Result_Base(Result_Propagation<T, Errors...>&& propagation)
+  /*implicit*/ Result_Base(Result_Propagation<T, Error>&& propagation)
       : data_(std::move(propagation.to_propagate).data_) {}
 
   // Private constructor used by propagate. Do not call directly.
-  template <class U, class... OtherErrors>
-  /*implicit*/ Result_Base(Result_Propagation<U, OtherErrors...>&& propagation)
+  template <class U, class Other_E>
+  /*implicit*/ Result_Base(Result_Propagation<U, Other_E>&& propagation)
       : data_(quick_lint_js::visit(Propagate_Visitor<U>(),
                                    std::move(propagation.to_propagate).data_)) {
   }
@@ -80,19 +79,18 @@ class Result_Base {
   Result_Base(Result_Base&&) = default;
   Result_Base& operator=(Result_Base&&) = default;
 
-  template <class... OtherErrors>
-  /*implicit*/ Result_Base(quick_lint_js::Result<T, OtherErrors...>&& other)
+  template <class Other_E>
+  /*implicit*/ Result_Base(quick_lint_js::Result<T, Other_E>&& other)
       : data_(visit(Move_Data_Visitor(), std::move(other).data_)) {}
 
   // FIXME(strager): The following code is a landmine:
   //
   //   r = failed_result(std::move(r.error()));
-  template <class Error>
-  Result_Base& operator=(Result_Error<Error>&& error) {
-    // TODO(strager): If std::is_same_v<Error, value_type>, then the emplace
+  template <class E>
+  Result_Base& operator=(Result_Error<E>&& error) {
+    // TODO(strager): If std::is_same_v<E, value_type>, then the emplace
     // template parameter is incorrect.
-    this->data_.template emplace<std::decay_t<Error>>(
-        std::forward<Error>(error.e));
+    this->data_.template emplace<std::decay_t<E>>(std::forward<E>(error.e));
     return *this;
   }
 
@@ -113,26 +111,15 @@ class Result_Base {
     return get<0>(this->data_);
   }
 
-  template <class Error>
-  bool has_error() const {
-    // TODO(strager): If std::is_same_v<Error, value_type>, then
-    // holds_alternative is incorrect.
-    return holds_alternative<Error>(this->data_);
-  }
-
-  template <class Error>
-  const Error& error() const {
+  const Error& error() const& {
     QLJS_ASSERT(!this->ok());
-    QLJS_ASSERT(this->has_error<Error>());
-    // TODO(strager): If std::is_same_v<Error, value_type>, then get<Error>
+    // TODO(strager): If std::is_same_v<E, value_type>, then get<Error>
     // is incorrect.
     return get<Error>(this->data_);
   }
 
-  template <class Error>
   Error&& error() && {
     QLJS_ASSERT(!this->ok());
-    QLJS_ASSERT(this->has_error<Error>());
     // TODO(strager): If std::is_same_v<Error, value_type>, then get<Error>
     // is incorrect.
     return get<Error>(std::move(this->data_));
@@ -145,30 +132,30 @@ class Result_Base {
     return visit(To_String_Visitor(), this->data_);
   }
 
-  Result_Propagation<T, Errors...> propagate() & {
+  Result_Propagation<T, Error> propagate() & {
     QLJS_ASSERT(!this->ok());
-    return Result_Propagation<T, Errors...>{*this};
+    return Result_Propagation<T, Error>{*this};
   }
 
-  Result_Propagation<T, Errors...> propagate() && = delete;
+  Result_Propagation<T, Error> propagate() && = delete;
 
-  template <class... NewErrors>
-  quick_lint_js::Result<void, NewErrors...> copy_errors() {
-    // TODO(strager): If any of NewErrors equals value_type, then visit is
+  template <class New_Error>
+  quick_lint_js::Result<void, New_Error> copy_errors() {
+    // TODO(strager): If any of New_Error equals value_type, then visit is
     // incorrect.
-    return visit(Copy_Errors_Visitor<NewErrors...>(), this->data_);
+    return visit(Copy_Errors_Visitor<New_Error>(), this->data_);
   }
 
   // For tests.
   template <class U>
-  friend bool holds_alternative(const Result_Base<T, Errors...>& r) {
+  friend bool holds_alternative(const Result_Base<T, Error>& r) {
     // TODO(strager): Make this work properly if T is void.
     return holds_alternative<U>(r.data_);
   }
 
   // For tests.
   template <class U>
-  friend const U& get(const Result_Base<T, Errors...>& r) {
+  friend const U& get(const Result_Base<T, Error>& r) {
     // TODO(strager): Make this work properly if T is void.
     return get<U>(r.data_);
   }
@@ -194,63 +181,59 @@ class Result_Base {
     auto operator()(TOrError&& datum) {
       // TODO(strager): If (std::is_same_v<Errors, value_type> || ...),
       // then std::in_place_type is incorrect.
-      return Variant<Value_Type, Errors...>(
+      return Variant<Value_Type, Error>(
           std::in_place_type<std::decay_t<TOrError>>, std::move(datum));
     }
   };
 
   template <class U>
   struct Propagate_Visitor {
-    Variant<Value_Type, Errors...> operator()(To_Value_Type<U>&&) {
+    Variant<Value_Type, Error> operator()(To_Value_Type<U>&&) {
       QLJS_UNREACHABLE();
     }
 
-    template <class Error>
-    Variant<Value_Type, Errors...> operator()(Error&& error) {
-      // TODO(strager): If (std::is_same_v<Errors, value_type> || ...), then
+    Variant<Value_Type, Error> operator()(Error&& error) {
+      // TODO(strager): If (std::is_same_v<Error, value_type> || ...), then
       // std::in_place_type is incorrect.
-      return Variant<Value_Type, Errors...>(
-          std::in_place_type<std::decay_t<Error>>, std::move(error));
+      return Variant<Value_Type, Error>(std::in_place_type<std::decay_t<Error>>,
+                                        std::move(error));
     }
   };
 
   struct To_String_Visitor {
     std::string operator()(const Value_Type&) { QLJS_UNREACHABLE(); }
 
-    template <class Error>
-    std::string operator()(const Error& error) {
-      return error.to_string();
-    }
+    std::string operator()(const Error& error) { return error.to_string(); }
   };
 
-  template <class... NewErrors>
+  template <class New_Error>
   struct Copy_Errors_Visitor {
-    quick_lint_js::Result<void, NewErrors...> operator()(const Value_Type&) {
+    quick_lint_js::Result<void, New_Error> operator()(const Value_Type&) {
       return {};
     }
 
-    template <class Error>
-    quick_lint_js::Result<void, NewErrors...> operator()(const Error& error) {
-      return quick_lint_js::Result<void, NewErrors...>(
+    quick_lint_js::Result<void, New_Error> operator()(const Error& error) {
+      return quick_lint_js::Result<void, New_Error>(
           failed_result<const Error&>(error));
     }
   };
 
-  Variant<Value_Type, Errors...> data_;
+  Variant<Value_Type, Error> data_;
 
-  template <class, class...>
+  template <class, class>
   friend class Result_Base;
 };
 
 // Like variant<T, Error>, but more ergonomic.
 template <class T, class Error>
-class Result<T, Error> : public Result_Base<T, Error> {
+class Result : public Result_Base<T, Error> {
  private:
   using Base = Result_Base<T, Error>;
 
  public:
   using Base::Base;
   using Base::copy_errors;
+  using Base::error;
   using Base::error_to_string;
   using Base::ok;
   using Base::operator*;
@@ -259,9 +242,7 @@ class Result<T, Error> : public Result_Base<T, Error> {
   using Base::propagate;
   using Base::value;
 
-  const Error& error() const { return Base::template error<Error>(); }
-
-  template <class, class...>
+  template <class, class>
   friend class Result_Base;
 };
 
@@ -274,14 +255,13 @@ class Result<void, Error> : public Result_Base<void, Error> {
  public:
   using Base::Base;
   using Base::copy_errors;
+  using Base::error;
   using Base::error_to_string;
   using Base::ok;
   using Base::operator=;
   using Base::propagate;
 
-  const Error& error() const { return Base::template error<Error>(); }
-
-  template <class, class...>
+  template <class, class>
   friend class Result_Base;
 };
 }
