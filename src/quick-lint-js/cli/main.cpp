@@ -19,7 +19,6 @@
 #include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/container/variant.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/debug/find-debug-server.h>
@@ -79,88 +78,116 @@ bool get_escape_errors(Option_When escape_errors) {
   QLJS_UNREACHABLE();
 }
 
-class Any_Diag_Reporter {
+class Main_Diag_Reporter {
+ private:
+  class Emacs_Lisp_Main_Diag_Reporter;
+  class GNU_Like_Main_Diag_Reporter;
+  class Vim_QFList_JSON_Main_Diag_Reporter;
+
  public:
-  static Any_Diag_Reporter make(Output_Format format, Option_When escape_errors,
-                                Compiled_Diag_Code_List *exit_fail_on) {
-    switch (format) {
-    case Output_Format::default_format:
-    case Output_Format::gnu_like:
-      return Any_Diag_Reporter(Reported_Diag_Statistics<Text_Diag_Reporter>(
-          Text_Diag_Reporter(
-              qljs_messages, File_Output_Stream::get_stderr(),
-              /*escape_errors=*/get_escape_errors(escape_errors)),
-          exit_fail_on));
-    case Output_Format::vim_qflist_json:
-      return Any_Diag_Reporter(
-          Reported_Diag_Statistics<Vim_QFList_JSON_Diag_Reporter>(
-              Vim_QFList_JSON_Diag_Reporter(qljs_messages,
-                                            File_Output_Stream::get_stdout()),
-              exit_fail_on));
-    case Output_Format::emacs_lisp:
-      return Any_Diag_Reporter(
-          Reported_Diag_Statistics<Emacs_Lisp_Diag_Reporter>(
-              Emacs_Lisp_Diag_Reporter(qljs_messages,
-                                       File_Output_Stream::get_stdout()),
-              exit_fail_on));
-    }
-    QLJS_UNREACHABLE();
+  static std::unique_ptr<Main_Diag_Reporter> make(
+      Output_Format format, Option_When escape_errors,
+      Compiled_Diag_Code_List *exit_fail_on);
+
+  virtual ~Main_Diag_Reporter() = default;
+
+  virtual void set_source(Padded_String_View input,
+                          const File_To_Lint &file) = 0;
+  virtual Diag_Reporter *get() = 0;
+  virtual bool get_error() = 0;
+  virtual void finish() = 0;
+};
+
+class Main_Diag_Reporter::Emacs_Lisp_Main_Diag_Reporter final
+    : public Main_Diag_Reporter {
+ public:
+  explicit Emacs_Lisp_Main_Diag_Reporter(Compiled_Diag_Code_List *exit_fail_on)
+      : reporter_(Emacs_Lisp_Diag_Reporter(qljs_messages,
+                                           File_Output_Stream::get_stdout()),
+                  exit_fail_on) {}
+
+  void set_source(Padded_String_View input,
+                  [[maybe_unused]] const File_To_Lint &file) override {
+    this->reporter_.get_reporter()->set_source(input);
   }
 
-  void set_source(Padded_String_View input, const File_To_Lint &file) {
-    visit(
-        [&](auto &r) {
-          using Reporter_Type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<Reported_Diag_Statistics<
-                                              Vim_QFList_JSON_Diag_Reporter>,
-                                          Reporter_Type>) {
-            r.get_reporter()->set_source(input, file.path, file.vim_bufnr);
-          } else if constexpr (std::is_base_of_v<Reported_Diag_Statistics<
-                                                     Emacs_Lisp_Diag_Reporter>,
-                                                 Reporter_Type>) {
-            r.get_reporter()->set_source(input);
-          } else {
-            r.get_reporter()->set_source(input, file.path);
-          }
-        },
-        this->tape_);
+  Diag_Reporter *get() override { return &this->reporter_; }
+
+  bool get_error() override { return this->reporter_.found_matching_diag(); }
+
+  void finish() override { this->reporter_.get_reporter()->finish(); }
+
+ private:
+  Reported_Diag_Statistics<Emacs_Lisp_Diag_Reporter> reporter_;
+};
+
+class Main_Diag_Reporter::GNU_Like_Main_Diag_Reporter final
+    : public Main_Diag_Reporter {
+ public:
+  explicit GNU_Like_Main_Diag_Reporter(Option_When escape_errors,
+                                       Compiled_Diag_Code_List *exit_fail_on)
+      : reporter_(Text_Diag_Reporter(
+                      qljs_messages, File_Output_Stream::get_stderr(),
+                      /*escape_errors=*/get_escape_errors(escape_errors)),
+                  exit_fail_on) {}
+
+  void set_source(Padded_String_View input, const File_To_Lint &file) override {
+    this->reporter_.get_reporter()->set_source(input, file.path);
   }
 
-  Diag_Reporter *get() {
-    return visit([](Diag_Reporter &r) { return &r; }, this->tape_);
-  }
+  Diag_Reporter *get() override { return &this->reporter_; }
 
-  bool get_error() {
-    return visit([](auto &r) { return r.found_matching_diag(); }, this->tape_);
-  }
+  bool get_error() override { return this->reporter_.found_matching_diag(); }
 
-  void finish() {
-    visit(
-        [&](auto &r) {
-          using Reporter_Type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<Reported_Diag_Statistics<
-                                              Vim_QFList_JSON_Diag_Reporter>,
-                                          Reporter_Type>) {
-            r.get_reporter()->finish();
-          } else if constexpr (std::is_base_of_v<Reported_Diag_Statistics<
-                                                     Emacs_Lisp_Diag_Reporter>,
-                                                 Reporter_Type>) {
-            r.get_reporter()->finish();
-          }
-        },
-        this->tape_);
+  void finish() override {
+    // Do nothing.
   }
 
  private:
-  using Tape_Variant =
-      Variant<Reported_Diag_Statistics<Text_Diag_Reporter>,
-              Reported_Diag_Statistics<Vim_QFList_JSON_Diag_Reporter>,
-              Reported_Diag_Statistics<Emacs_Lisp_Diag_Reporter>>;
-
-  explicit Any_Diag_Reporter(Tape_Variant &&tape) : tape_(tape) {}
-
-  Tape_Variant tape_;
+  Reported_Diag_Statistics<Text_Diag_Reporter> reporter_;
 };
+
+class Main_Diag_Reporter::Vim_QFList_JSON_Main_Diag_Reporter final
+    : public Main_Diag_Reporter {
+ public:
+  explicit Vim_QFList_JSON_Main_Diag_Reporter(
+      Compiled_Diag_Code_List *exit_fail_on)
+      : reporter_(Vim_QFList_JSON_Diag_Reporter(
+                      qljs_messages, File_Output_Stream::get_stdout()),
+                  exit_fail_on) {}
+
+  void set_source(Padded_String_View input, const File_To_Lint &file) override {
+    this->reporter_.get_reporter()->set_source(input, file.path,
+                                               file.vim_bufnr);
+  }
+
+  Diag_Reporter *get() override { return &this->reporter_; }
+
+  bool get_error() override { return this->reporter_.found_matching_diag(); }
+
+  void finish() override { this->reporter_.get_reporter()->finish(); }
+
+ private:
+  Reported_Diag_Statistics<Vim_QFList_JSON_Diag_Reporter> reporter_;
+};
+
+std::unique_ptr<Main_Diag_Reporter> Main_Diag_Reporter::make(
+    Output_Format format, Option_When escape_errors,
+    Compiled_Diag_Code_List *exit_fail_on) {
+  switch (format) {
+  case Output_Format::default_format:
+  case Output_Format::gnu_like:
+    return std::unique_ptr<Main_Diag_Reporter>(
+        new GNU_Like_Main_Diag_Reporter(escape_errors, exit_fail_on));
+  case Output_Format::vim_qflist_json:
+    return std::unique_ptr<Main_Diag_Reporter>(
+        new Vim_QFList_JSON_Main_Diag_Reporter(exit_fail_on));
+  case Output_Format::emacs_lisp:
+    return std::unique_ptr<Main_Diag_Reporter>(
+        new Emacs_Lisp_Main_Diag_Reporter(exit_fail_on));
+  }
+  QLJS_UNREACHABLE();
+}
 
 void init();
 [[noreturn]] void run(int argc, char **argv);
@@ -231,7 +258,7 @@ void run(Options o) {
     std::exit(EXIT_FAILURE);
   }
 
-  Any_Diag_Reporter reporter = Any_Diag_Reporter::make(
+  std::unique_ptr<Main_Diag_Reporter> reporter = Main_Diag_Reporter::make(
       o.output_format, o.diagnostic_hyperlinks, &o.exit_fail_on);
 
   Configuration default_config;
@@ -247,22 +274,22 @@ void run(Options o) {
     }
     Loaded_Config_File *config_file = *config_result;
     if (config_file && !loaded_config_files.contains(config_file)) {
-      reporter.set_source(&config_file->file_content,
-                          File_To_Lint{
-                              .path = config_file->config_path->c_str(),
-                              .config_file = nullptr,
-                              .language = std::nullopt,
-                              .is_stdin = false,
-                              .vim_bufnr = std::nullopt,
-                          });
-      config_file->errors.copy_into(reporter.get());
+      reporter->set_source(&config_file->file_content,
+                           File_To_Lint{
+                               .path = config_file->config_path->c_str(),
+                               .config_file = nullptr,
+                               .language = std::nullopt,
+                               .is_stdin = false,
+                               .vim_bufnr = std::nullopt,
+                           });
+      config_file->errors.copy_into(reporter->get());
       // To avoid repeating errors for a given config file, remember that we
       // already reported errors for this config file.
       loaded_config_files.insert(config_file);
     }
   }
 
-  if (!reporter.get_error()) {
+  if (!reporter->get_error()) {
     for (const File_To_Lint &file : o.files_to_lint) {
       auto config_result = config_loader.load_for_file(file);
       QLJS_ASSERT(config_result.ok());
@@ -276,14 +303,14 @@ void run(Options o) {
       Linter_Options lint_options =
           get_linter_options_from_language(file.get_language());
       lint_options.print_parser_visits = o.print_parser_visits;
-      reporter.set_source(&*source, file);
-      parse_and_lint(&*source, *reporter.get(), config->globals(),
+      reporter->set_source(&*source, file);
+      parse_and_lint(&*source, *reporter->get(), config->globals(),
                      lint_options);
     }
   }
-  reporter.finish();
+  reporter->finish();
 
-  if (reporter.get_error() == true &&
+  if (reporter->get_error() == true &&
       o.output_format != Output_Format::emacs_lisp) {
     std::exit(EXIT_FAILURE);
   }
