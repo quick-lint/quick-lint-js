@@ -12,6 +12,7 @@ Semantic Versioning.
 
 * `2 ^ 8` now reports [E0710][] ("'^' is the XOR operator; to exponentiate, use
   '\*\*' instead"). (Implemented by [pedrobl1718][].)
+* quick-lint-js now builds on Alpine Linux and other musl-based distributions.
 * TypeScript support (still experimental):
   * Invalid recursive type definitions such as `type T = T;` now report
     [E0384][] ("cannot use type directly in its own definition").

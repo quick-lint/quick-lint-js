@@ -11,6 +11,7 @@
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/port/function-ref.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 #include <string_view>
 
@@ -48,6 +49,10 @@ Result<void, Platform_File_IO_Error> list_directory(
     const char* directory,
     Function_Ref<void(const char*, bool is_directory)> visit_file);
 
+QLJS_WARNING_PUSH
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69210
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-final-types")
+
 // See list_directory_recursively.
 class List_Directory_Visitor {
  public:
@@ -65,6 +70,8 @@ class List_Directory_Visitor {
 
   virtual void on_error(const Platform_File_IO_Error& error, int depth) = 0;
 };
+
+QLJS_WARNING_POP
 
 // Call visit_file for each (non-directory) file of the given directory and its
 // descendant directories and their descendants, etc.

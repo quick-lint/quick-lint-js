@@ -48,6 +48,8 @@
 #include <quick-lint-js/port/windows.h>
 #endif
 
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-final-methods")
+
 namespace quick_lint_js {
 #if QLJS_HAVE_WINDOWS_H
 namespace {

@@ -32,6 +32,16 @@
 #define QLJS_HAVE_CRT_EXTERNS_H 0
 #endif
 
+#if defined(QLJS_HAVE_DIRECT_H) && QLJS_HAVE_DIRECT_H
+#elif defined(__has_include)
+#if __has_include(<direct.h>)
+#define QLJS_HAVE_DIRECT_H 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_DIRECT_H)
+#define QLJS_HAVE_DIRECT_H 0
+#endif
+
 #if defined(QLJS_HAVE_FCNTL_H) && QLJS_HAVE_FCNTL_H
 #elif defined(__has_include)
 #if __has_include(<fcntl.h>) && !defined(__MINGW32__)
@@ -412,15 +422,6 @@
 #else
 #define QLJS_HAVE_BUILTIN_FILE_FUNCTION_LINE 0
 #endif
-#endif
-
-#if !defined(QLJS_HAVE_FTS_H) && defined(__has_include)
-#if __has_include(<fts.h>)
-#define QLJS_HAVE_FTS_H 1
-#endif
-#endif
-#if !defined(QLJS_HAVE_FTS_H)
-#define QLJS_HAVE_FTS_H 0
 #endif
 
 #if !defined(QLJS_HAVE_MACH) && defined(__has_include)

@@ -1,16 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <algorithm>
 #include <cerrno>
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
-#include <exception>
-#include <limits.h>
-#include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/io/file-handle.h>
@@ -20,30 +14,18 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/windows-error.h>
 #include <quick-lint-js/util/math-overflow.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
-#include <string_view>
 
-#if QLJS_HAVE_DIRENT_H
-#include <dirent.h>
+#if QLJS_HAVE_DIRECT_H
+#include <direct.h>
 #endif
 
-#if QLJS_HAVE_FTS_H
-#include <fts.h>
-#endif
-
-#if QLJS_HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-
-#if QLJS_HAVE_MKDTEMP
+#if QLJS_HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#endif
-
-#if QLJS_HAVE_STD_FILESYSTEM
-#include <filesystem>
 #endif
 
 #if QLJS_HAVE_UNISTD_H
@@ -51,75 +33,82 @@
 #endif
 
 namespace quick_lint_js {
-#if QLJS_HAVE_FTS_H
-void delete_directory_recursive(const std::string &path) {
-  char *paths[] = {const_cast<char *>(path.c_str()), nullptr};
-  ::FTS *fts = ::fts_open(paths, FTS_PHYSICAL | FTS_XDEV, nullptr);
-  if (!fts) {
-    std::fprintf(stderr, "fatal: fts_open failed to open %s: %s\n",
-                 path.c_str(), std::strerror(errno));
-    std::abort();
-  }
-  while (::FTSENT *entry = ::fts_read(fts)) {
-    switch (entry->fts_info) {
-    case FTS_D: {
+void delete_directory_recursive(const std::string& path) {
+  struct Delete_Visitor : public List_Directory_Visitor {
+    void visit_file(const std::string& path) override {
+#if QLJS_HAVE_UNISTD_H
+      int rc = std::remove(path.c_str());
+      if (rc != 0) {
+        std::fprintf(stderr, "warning: failed to delete %s: %s\n", path.c_str(),
+                     std::strerror(errno));
+      }
+#elif defined(_WIN32)
+      std::optional<std::wstring> wpath = mbstring_to_wstring(path.c_str());
+      if (!wpath.has_value()) {
+        std::fprintf(stderr,
+                     "warning: failed to delete %s: cannot convert to UTF-16\n",
+                     path.c_str());
+        return;
+      }
+      if (!::DeleteFileW(wpath->c_str())) {
+        std::fprintf(stderr, "warning: failed to delete %s: %s\n", path.c_str(),
+                     windows_error_message(::GetLastError()).c_str());
+      }
+#else
+#error "Unsupported platform"
+#endif
+    }
+
+    void visit_directory_pre([
+        [maybe_unused]] const std::string& path) override {
+#if QLJS_HAVE_UNISTD_H
       // Make sure the directory is traversable before traversing.
-      int rc = ::chmod(entry->fts_accpath, 0700);
+      int rc = ::chmod(path.c_str(), 0700);
       if (rc != 0) {
         std::fprintf(stderr,
                      "warning: failed to change permissions for %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
+                     path.c_str(), std::strerror(errno));
       }
-      break;
-    }
-
-    case FTS_DP: {
-      int rc = ::rmdir(entry->fts_accpath);
-      if (rc != 0) {
-        std::fprintf(stderr, "warning: failed to delete %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
-      }
-      break;
-    }
-
-    case FTS_F:
-    case FTS_SL:
-    case FTS_SLNONE:
-    case FTS_DEFAULT: {
-      int rc = ::unlink(entry->fts_accpath);
-      if (rc != 0) {
-        std::fprintf(stderr, "warning: failed to delete %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
-      }
-      break;
-    }
-
-    case FTS_DNR:
-    case FTS_ERR:
-    case FTS_NS:
-      std::fprintf(stderr, "fatal: fts_read failed to read %s: %s\n",
-                   entry->fts_accpath, std::strerror(entry->fts_errno));
-      std::abort();
-      break;
-
-    case FTS_DC:
-    case FTS_DOT:
-    case FTS_NSOK:
-      QLJS_UNREACHABLE();
-      break;
-    }
-  }
-  ::fts_close(fts);
-}
-#elif QLJS_HAVE_STD_FILESYSTEM
-void delete_directory_recursive(const std::string &path) {
-  std::filesystem::remove_all(std::filesystem::path(path));
-}
 #endif
+    }
 
-std::vector<std::string> list_files_in_directory(const std::string &directory) {
+    void visit_directory_post(const std::string& path) override {
+#if QLJS_HAVE_UNISTD_H
+      int rc = ::rmdir(path.c_str());
+      if (rc != 0) {
+        std::fprintf(stderr, "warning: failed to delete %s: %s\n", path.c_str(),
+                     std::strerror(errno));
+      }
+#elif defined(_WIN32)
+      std::optional<std::wstring> wpath = mbstring_to_wstring(path.c_str());
+      if (!wpath.has_value()) {
+        std::fprintf(stderr,
+                     "warning: failed to delete %s: cannot convert to UTF-16\n",
+                     path.c_str());
+        return;
+      }
+      if (!::RemoveDirectoryW(wpath->c_str())) {
+        std::fprintf(stderr, "warning: failed to delete %s: %s\n", path.c_str(),
+                     windows_error_message(::GetLastError()).c_str());
+      }
+#else
+#error "Unsupported platform"
+#endif
+    }
+
+    void on_error(const Platform_File_IO_Error& error,
+                  [[maybe_unused]] int depth) override {
+      std::fprintf(stderr, "fatal: %s\n", error.to_string().c_str());
+      std::abort();
+    }
+  };
+  Delete_Visitor visitor;
+  list_directory_recursively(path.c_str(), visitor);
+}
+
+std::vector<std::string> list_files_in_directory(const std::string& directory) {
   std::vector<std::string> files;
-  auto visit_file = [&](const char *name) -> void { files.push_back(name); };
+  auto visit_file = [&](const char* name) -> void { files.push_back(name); };
   Result<void, Platform_File_IO_Error> error =
       list_directory(directory.c_str(), visit_file);
   if (!error.ok()) {
