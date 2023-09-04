@@ -39,11 +39,10 @@ void LSP_JSON_RPC_Message_Parser::message_parsed(String8_View message) {
   Trace_Writer* tw =
       Trace_Flusher::instance()->trace_writer_for_current_thread();
   if (tw) {
-    tw->write_event_lsp_client_to_server_message(
-        Trace_Event_Header{.timestamp = 0},  // TODO(strager)
-        Trace_Event_LSP_Client_To_Server_Message{
-            .body = message,
-        });
+    tw->write_event(Trace_Event_Header{.timestamp = 0},  // TODO(strager)
+                    Trace_Event_LSP_Client_To_Server_Message{
+                        .body = message,
+                    });
     tw->commit();
   }
 

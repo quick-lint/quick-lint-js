@@ -360,11 +360,10 @@ void Debug_Server::wakeup_pipe_callback(::mg_connection *c, int ev, void *) {
         Monotonic_Allocator memory("Debug_Server publish vector profile");
         auto histogram = this->max_size_histogram_.histogram(&memory);
 
-        tw->write_event_vector_max_size_histogram_by_owner(
-            Trace_Event_Header{.timestamp = 0},  // TODO(strager)
-            Trace_Event_Vector_Max_Size_Histogram_By_Owner{
-                .entries = histogram,
-            });
+        tw->write_event(Trace_Event_Header{.timestamp = 0},  // TODO(strager)
+                        Trace_Event_Vector_Max_Size_Histogram_By_Owner{
+                            .entries = histogram,
+                        });
         tw->commit();
       }
       Trace_Flusher::instance()->flush_sync();
@@ -413,7 +412,7 @@ void Debug_Server::publish_lsp_documents_if_needed() {
       });
     }
 
-    tw->write_event_lsp_documents(
+    tw->write_event(
         Trace_Event_Header{.timestamp = 0},  // TODO(strager)
         Trace_Event_LSP_Documents{
             .documents = Span<const Trace_LSP_Document_State>(document_states),

@@ -25,35 +25,35 @@ class Trace_Writer {
 
   void write_header(const Trace_Context&);
 
-  void write_event_init(
+  void write_event(
       const Trace_Event_Header&,
       const Trace_Event_Init&);
   template <class String16>
-  void write_event_vscode_document_opened(
+  void write_event(
       const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Opened<String16>&);
   template <class String16>
-  void write_event_vscode_document_closed(
+  void write_event(
       const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Closed<String16>&);
   template <class String16>
-  void write_event_vscode_document_changed(
+  void write_event(
       const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Changed<String16>&);
   template <class String16>
-  void write_event_vscode_document_sync(
+  void write_event(
       const Trace_Event_Header&,
       const Trace_Event_VSCode_Document_Sync<String16>&);
-  void write_event_lsp_client_to_server_message(
+  void write_event(
       const Trace_Event_Header&,
       const Trace_Event_LSP_Client_To_Server_Message&);
-  void write_event_vector_max_size_histogram_by_owner(
+  void write_event(
       const Trace_Event_Header&,
       const Trace_Event_Vector_Max_Size_Histogram_By_Owner&);
-  void write_event_process_id(
+  void write_event(
       const Trace_Event_Header&,
       const Trace_Event_Process_ID&);
-  void write_event_lsp_documents(
+  void write_event(
       const Trace_Event_Header&,
       const Trace_Event_LSP_Documents&);
 
@@ -84,7 +84,7 @@ class Trace_Writer {
   Async_Byte_Queue* out_;
 };
 
-inline void Trace_Writer::write_event_init(
+inline void Trace_Writer::write_event(
       const Trace_Event_Header& header,
       const Trace_Event_Init& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(9)));
@@ -95,7 +95,7 @@ inline void Trace_Writer::write_event_init(
 }
 
 template <class String16>
-inline void Trace_Writer::write_event_vscode_document_opened(
+inline void Trace_Writer::write_event(
       const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Opened<String16>& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
@@ -109,7 +109,7 @@ inline void Trace_Writer::write_event_vscode_document_opened(
 }
 
 template <class String16>
-inline void Trace_Writer::write_event_vscode_document_closed(
+inline void Trace_Writer::write_event(
       const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Closed<String16>& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
@@ -147,7 +147,7 @@ inline void Trace_Writer::write_Trace_VSCode_Document_Change(
 }
 
 template <class String16>
-inline void Trace_Writer::write_event_vscode_document_changed(
+inline void Trace_Writer::write_event(
       const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Changed<String16>& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(25)));
@@ -162,7 +162,7 @@ for (const Trace_VSCode_Document_Change<String16>& item : s.changes) {
 }
 
 template <class String16>
-inline void Trace_Writer::write_event_vscode_document_sync(
+inline void Trace_Writer::write_event(
       const Trace_Event_Header& header,
       const Trace_Event_VSCode_Document_Sync<String16>& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
@@ -175,7 +175,7 @@ inline void Trace_Writer::write_event_vscode_document_sync(
   this->write_utf16le_string(s.content);
 }
 
-inline void Trace_Writer::write_event_lsp_client_to_server_message(
+inline void Trace_Writer::write_event(
       const Trace_Event_Header& header,
       const Trace_Event_LSP_Client_To_Server_Message& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(9)));
@@ -204,7 +204,7 @@ for (const Trace_Vector_Max_Size_Histogram_Entry& item : s.max_size_entries) {
 }
 }
 
-inline void Trace_Writer::write_event_vector_max_size_histogram_by_owner(
+inline void Trace_Writer::write_event(
       const Trace_Event_Header& header,
       const Trace_Event_Vector_Max_Size_Histogram_By_Owner& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
@@ -217,7 +217,7 @@ for (const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& item : s.entries) {
 }
 }
 
-inline void Trace_Writer::write_event_process_id(
+inline void Trace_Writer::write_event(
       const Trace_Event_Header& header,
       const Trace_Event_Process_ID& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));
@@ -237,7 +237,7 @@ inline void Trace_Writer::write_Trace_LSP_Document_State(
   this->write_utf8_string(s.language_id);
 }
 
-inline void Trace_Writer::write_event_lsp_documents(
+inline void Trace_Writer::write_event(
       const Trace_Event_Header& header,
       const Trace_Event_LSP_Documents& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(17)));

@@ -93,7 +93,7 @@ class VSCode_Tracer {
         Trace_Flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
-      tw->write_event_vscode_document_opened(
+      tw->write_event(
           Trace_Event_Header{.timestamp = this->timestamp()},
           Trace_Event_VSCode_Document_Opened<::Napi::Value>{
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
@@ -138,7 +138,7 @@ class VSCode_Tracer {
             .text = change.Get("text"),
         };
       }
-      tw->write_event_vscode_document_changed(
+      tw->write_event(
           Trace_Event_Header{.timestamp = this->timestamp()},
           Trace_Event_VSCode_Document_Changed<::Napi::Value>{
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
@@ -157,7 +157,7 @@ class VSCode_Tracer {
         Trace_Flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
-      tw->write_event_vscode_document_closed(
+      tw->write_event(
           Trace_Event_Header{.timestamp = this->timestamp()},
           Trace_Event_VSCode_Document_Closed<::Napi::Value>{
               .document_id = reinterpret_cast<std::uintptr_t>(doc),
@@ -175,7 +175,7 @@ class VSCode_Tracer {
         Trace_Flusher::instance()->trace_writer_for_current_thread();
     if (tw) {
       ::Napi::Object uri = vscode_doc.uri();
-      tw->write_event_vscode_document_sync(
+      tw->write_event(
           Trace_Event_Header{.timestamp = this->timestamp()},
           Trace_Event_VSCode_Document_Sync<::Napi::Value>{
               .document_id = reinterpret_cast<std::uintptr_t>(doc),

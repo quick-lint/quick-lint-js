@@ -21,7 +21,7 @@ namespace quick_lint_js {
 QLJS_FORCE_INLINE inline int Bool_Vector_16_NEON::find_first_false() const {
   // You might expect a magic pattern to look like the following:
   //
-  //   { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x08, [repeat] }
+  //   { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, [repeat] }
   //
   // However, the above magic pattern requires mixing cells 3 times
   // (16x8 -> 8x16 -> 4x32 -> 2x64). Our magic pattern requires mixing cells

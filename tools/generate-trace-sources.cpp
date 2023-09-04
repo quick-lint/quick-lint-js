@@ -1250,9 +1250,7 @@ namespace quick_lint_js {
       const Parsed_Struct& s = declaration._struct;
       if (s.id.has_value()) {
         write_template_head(s.template_parameters, u8"  "_sv);
-        out.append_literal(u8"  void write_event_"_sv);
-        out.append_copy(s.ctf_name);
-        out.append_literal(u8"(\n"_sv);
+        out.append_literal(u8"  void write_event(\n"_sv);
         out.append_literal(u8"      const Trace_Event_Header&,\n"_sv);
         out.append_literal(u8"      const "_sv);
         write_struct_reference_for_cxx_writer(out, s, types);
@@ -1309,11 +1307,11 @@ namespace quick_lint_js {
     } else if (declaration.kind == Declaration_Kind::_struct) {
       const Parsed_Struct& s = declaration._struct;
       write_template_head(s.template_parameters, u8""_sv);
-      out.append_literal(u8"inline void Trace_Writer::write_"_sv);
+      out.append_literal(u8"inline void Trace_Writer::"_sv);
       if (s.id.has_value()) {
-        out.append_literal(u8"event_"_sv);
-        out.append_copy(s.ctf_name);
+        out.append_literal(u8"write_event"_sv);
       } else {
+        out.append_literal(u8"write_"_sv);
         out.append_copy(s.cxx_name);
       }
       out.append_literal(u8"(\n"_sv);
