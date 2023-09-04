@@ -7,7 +7,9 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/gtest.h>
 #include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/port/source-location.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/binary-writer.h>
 
@@ -16,6 +18,18 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+template <class Event>
+void check_write_event(const Trace_Event_Header& header, const Event& event,
+                       std::initializer_list<std::uint8_t> expected_bytes,
+                       Source_Location caller = Source_Location::current()) {
+  Async_Byte_Queue data;
+  Trace_Writer w(&data);
+  w.write_event(header, event);
+  data.commit();
+  EXPECT_THAT_AT_CALLER(data.take_committed_string8(),
+                        ElementsAreArray<std::uint8_t>(expected_bytes));
+}
+
 TEST(Test_Trace_Writer, write_header) {
   Async_Byte_Queue data;
   Trace_Writer w(&data);
@@ -44,108 +58,88 @@ TEST(Test_Trace_Writer, write_header) {
 }
 
 TEST(Test_Trace_Writer, write_event_init) {
-  Async_Byte_Queue data;
-  Trace_Writer w(&data);
-  w.write_event(Trace_Event_Header{.timestamp = 0x5678},
-                Trace_Event_Init{
-                    .version = u8"1.0.0"_sv,
-                });
+  check_write_event(Trace_Event_Header{.timestamp = 0x5678},
+                    Trace_Event_Init{
+                        .version = u8"1.0.0"_sv,
+                    },
+                    {
+                        // clang-format off
+                        // Timestamp
+                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-  data.commit();
-  EXPECT_THAT(data.take_committed_string8(),
-              ElementsAreArray<std::uint8_t>({
-                  // clang-format off
-                  // Timestamp
-                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        // Event ID
+                        0x01,
 
-                  // Event ID
-                  0x01,
-
-                  // Version
-                  u8'1', u8'.', u8'0', u8'.', u8'0', u8'\0',
-                  // clang-format on
-              }));
+                        // Version
+                        u8'1', u8'.', u8'0', u8'.', u8'0', u8'\0',
+                        // clang-format on
+                    });
 }
 
 TEST(Test_Trace_Writer, write_event_vscode_document_opened) {
-  Async_Byte_Queue data;
-  Trace_Writer w(&data);
+  check_write_event(Trace_Event_Header{.timestamp = 0x5678},
+                    Trace_Event_VSCode_Document_Opened<std::u16string_view>{
+                        .document_id = 0x1234,
+                        .uri = u"test.js",
+                        .language_id = u"js",
+                        .content = u"hi",
+                    },
+                    {
+                        // clang-format off
+                        // Timestamp
+                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-  w.write_event(Trace_Event_Header{.timestamp = 0x5678},
-                Trace_Event_VSCode_Document_Opened<std::u16string_view>{
-                    .document_id = 0x1234,
-                    .uri = u"test.js",
-                    .language_id = u"js",
-                    .content = u"hi",
-                });
+                        // Event ID
+                        0x02,
 
-  data.commit();
-  EXPECT_THAT(data.take_committed_string8(),
-              ElementsAreArray<std::uint8_t>({
-                  // clang-format off
-                  // Timestamp
-                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        // Document ID
+                        0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                  // Event ID
-                  0x02,
+                        // URI
+                        0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                        't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
 
-                  // Document ID
-                  0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        // Language ID
+                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                        'j', 0, 's', 0,
 
-                  // URI
-                  0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
-
-                  // Language ID
-                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'j', 0, 's', 0,
-
-                  // Content
-                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'h', 0, 'i', 0,
-                  // clang-format on
-              }));
+                        // Content
+                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                        'h', 0, 'i', 0,
+                        // clang-format on
+                    });
 }
 
 TEST(Test_Trace_Writer, write_event_vscode_document_closed) {
-  Async_Byte_Queue data;
-  Trace_Writer w(&data);
+  check_write_event(Trace_Event_Header{.timestamp = 0x5678},
+                    Trace_Event_VSCode_Document_Closed<std::u16string_view>{
+                        .document_id = 0x1234,
+                        .uri = u"test.js",
+                        .language_id = u"js",
+                    },
+                    {
+                        // clang-format off
+                        // Timestamp
+                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-  w.write_event(Trace_Event_Header{.timestamp = 0x5678},
-                Trace_Event_VSCode_Document_Closed<std::u16string_view>{
-                    .document_id = 0x1234,
-                    .uri = u"test.js",
-                    .language_id = u"js",
-                });
+                        // Event ID
+                        0x03,
 
-  data.commit();
-  EXPECT_THAT(data.take_committed_string8(),
-              ElementsAreArray<std::uint8_t>({
-                  // clang-format off
-                  // Timestamp
-                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        // Document ID
+                        0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                  // Event ID
-                  0x03,
+                        // URI
+                        0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                        't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
 
-                  // Document ID
-                  0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-                  // URI
-                  0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
-
-                  // Language ID
-                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'j', 0, 's', 0,
-                  // clang-format on
-              }));
+                        // Language ID
+                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                        'j', 0, 's', 0,
+                        // clang-format on
+                    });
 }
 
 TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
-  Async_Byte_Queue data;
-  Trace_Writer w(&data);
-
   std::array changes{
       Trace_VSCode_Document_Change<std::u16string_view>{
           .range =
@@ -169,19 +163,15 @@ TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
       },
   };
 
-  w.write_event(
+  check_write_event(
       Trace_Event_Header{.timestamp = 0x5678},
       Trace_Event_VSCode_Document_Changed<std::u16string_view>{
           .document_id = 0x1234,
           .changes =
               Span<const Trace_VSCode_Document_Change<std::u16string_view>>(
                   changes),
-      });
-
-  data.commit();
-  EXPECT_THAT(
-      data.take_committed_string8(),
-      ElementsAreArray<std::uint8_t>({
+      },
+      {
           // clang-format off
           // Timestamp
           0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -221,79 +211,64 @@ TEST(Test_Trace_Writer, write_event_vscode_document_changed) {
           0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
           'b', 0, 'y', 0, 'e', 0,
           // clang-format on
-      }));
+      });
 }
 
 TEST(Test_Trace_Writer, write_event_vscode_document_sync) {
-  Async_Byte_Queue data;
-  Trace_Writer w(&data);
+  check_write_event(Trace_Event_Header{.timestamp = 0x5678},
+                    Trace_Event_VSCode_Document_Sync<std::u16string_view>{
+                        .document_id = 0x1234,
+                        .uri = u"test.js",
+                        .language_id = u"js",
+                        .content = u"hi",
+                    },
+                    {
+                        // clang-format off
+                        // Timestamp
+                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-  w.write_event(Trace_Event_Header{.timestamp = 0x5678},
-                Trace_Event_VSCode_Document_Sync<std::u16string_view>{
-                    .document_id = 0x1234,
-                    .uri = u"test.js",
-                    .language_id = u"js",
-                    .content = u"hi",
-                });
+                        // Event ID
+                        0x05,
 
-  data.commit();
-  EXPECT_THAT(data.take_committed_string8(),
-              ElementsAreArray<std::uint8_t>({
-                  // clang-format off
-                  // Timestamp
-                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        // Document ID
+                        0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                  // Event ID
-                  0x05,
+                        // URI
+                        0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                        't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
 
-                  // Document ID
-                  0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        // Language ID
+                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                        'j', 0, 's', 0,
 
-                  // URI
-                  0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
-
-                  // Language ID
-                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'j', 0, 's', 0,
-
-                  // Content
-                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'h', 0, 'i', 0,
-                  // clang-format on
-              }));
+                        // Content
+                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                        'h', 0, 'i', 0,
+                        // clang-format on
+                    });
 }
 
 TEST(Test_Trace_Writer, write_event_lsp_client_to_server_message) {
-  Async_Byte_Queue data;
-  Trace_Writer w(&data);
+  check_write_event(Trace_Event_Header{.timestamp = 0x5678},
+                    Trace_Event_LSP_Client_To_Server_Message{
+                        .body = u8"{ }"_sv,
+                    },
+                    {
+                        // clang-format off
+                        // Timestamp
+                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-  w.write_event(Trace_Event_Header{.timestamp = 0x5678},
-                Trace_Event_LSP_Client_To_Server_Message{
-                    .body = u8"{ }"_sv,
-                });
+                        // Event ID
+                        0x06,
 
-  data.commit();
-  EXPECT_THAT(data.take_committed_string8(),
-              ElementsAreArray<std::uint8_t>({
-                  // clang-format off
-                  // Timestamp
-                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-                  // Event ID
-                  0x06,
-
-                  // Body
-                  3, 0, 0, 0, 0, 0, 0, 0,  // Size
-                  '{', ' ', '}',
-                  // clang-format on
-              }));
+                        // Body
+                        3, 0, 0, 0, 0, 0, 0, 0,  // Size
+                        '{', ' ', '}',
+                        // clang-format on
+                    });
 }
 
 TEST(Test_Trace_Writer, write_event_vector_max_size_histogram_by_owner) {
-  Async_Byte_Queue data;
-  Trace_Writer w(&data);
-
   Trace_Vector_Max_Size_Histogram_Entry o1_entries[] = {
       {.max_size = 0, .count = 4},
       {.max_size = 1, .count = 3},
@@ -313,74 +288,62 @@ TEST(Test_Trace_Writer, write_event_vector_max_size_histogram_by_owner) {
               Span<const Trace_Vector_Max_Size_Histogram_Entry>(o2_entries),
       },
   };
-  w.write_event(
+  check_write_event(
       Trace_Event_Header{.timestamp = 0x5678},
       Trace_Event_Vector_Max_Size_Histogram_By_Owner{
           .entries = Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>(
               entries),
+      },
+      {
+          // clang-format off
+          // Timestamp
+          0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+          // Event ID
+          0x07,
+
+          // Entry count
+          2, 0, 0, 0, 0, 0, 0, 0,
+
+          // Entry 0 owner
+          'o', '1', 0,
+          // Entry 0 max size entries
+          2, 0, 0, 0, 0, 0, 0, 0,  // Count
+          0, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
+          4, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 count
+          1, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 max size
+          3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 count
+
+          // Entry 1 owner
+          'o', '2', 0,
+          // Entry 1 max size entries
+          1, 0, 0, 0, 0, 0, 0, 0,  // Count
+          3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
+          7, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 count
+                                   // clang-format on
       });
-
-  data.commit();
-  EXPECT_THAT(data.take_committed_string8(),
-              ElementsAreArray<std::uint8_t>({
-                  // clang-format off
-                  // Timestamp
-                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-                  // Event ID
-                  0x07,
-
-                  // Entry count
-                  2, 0, 0, 0, 0, 0, 0, 0,
-
-                  // Entry 0 owner
-                  'o', '1', 0,
-                  // Entry 0 max size entries
-                  2, 0, 0, 0, 0, 0, 0, 0,  // Count
-                  0, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
-                  4, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 count
-                  1, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 max size
-                  3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 1 count
-
-                  // Entry 1 owner
-                  'o', '2', 0,
-                  // Entry 1 max size entries
-                  1, 0, 0, 0, 0, 0, 0, 0,    // Count
-                  3, 0, 0, 0, 0, 0, 0, 0,    // Max size entry 0 max size
-                  7, 0, 0, 0, 0, 0, 0, 0,
-                  // clang-format on
-              }));  // Max size entry 0 count
 }
 
 TEST(Test_Trace_Writer, write_event_process_id) {
-  Async_Byte_Queue data;
-  Trace_Writer w(&data);
+  check_write_event(Trace_Event_Header{.timestamp = 0x5678},
+                    Trace_Event_Process_ID{
+                        .process_id = 0x0123,
+                    },
+                    {
+                        // clang-format off
+                        // Timestamp
+                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-  w.write_event(Trace_Event_Header{.timestamp = 0x5678},
-                Trace_Event_Process_ID{
-                    .process_id = 0x0123,
-                });
+                        // Event ID
+                        0x08,
 
-  data.commit();
-  EXPECT_THAT(data.take_committed_string8(),
-              ElementsAreArray<std::uint8_t>({
-                  // clang-format off
-                  // Timestamp
-                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-                  // Event ID
-                  0x08,
-
-                  // Process ID
-                  0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                  // clang-format on
-              }));
+                        // Process ID
+                        0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        // clang-format on
+                    });
 }
 
 TEST(Test_Trace_Writer, write_event_lsp_documents) {
-  Async_Byte_Queue data;
-  Trace_Writer w(&data);
-
   std::array<Trace_LSP_Document_State, 1> documents = {
       Trace_LSP_Document_State{
           .type = Trace_LSP_Document_Type::lintable,
@@ -389,41 +352,38 @@ TEST(Test_Trace_Writer, write_event_lsp_documents) {
           .language_id = u8"js"_sv,
       },
   };
-  w.write_event(
+  check_write_event(
       Trace_Event_Header{.timestamp = 0x5678},
       Trace_Event_LSP_Documents{
           .documents = Span<const Trace_LSP_Document_State>(documents),
+      },
+      {
+          // clang-format off
+          // Timestamp
+          0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+          // Event ID
+          0x09,
+
+          // Document count
+          0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+          // Document 0: type
+          0x02,
+
+          // Document 0: URI
+          0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+          'f', 'i', 'l', 'e', ':', '/', '/', '/', 'f',
+
+          // Document 0: text
+          0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+          'h', 'e', 'l', 'l', 'o',
+
+          // Document 0: langauge ID
+          0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+          'j', 's',
+          // clang-format on
       });
-
-  data.commit();
-  EXPECT_THAT(data.take_committed_string8(),
-              ElementsAreArray<std::uint8_t>({
-                  // clang-format off
-                  // Timestamp
-                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-                  // Event ID
-                  0x09,
-
-                  // Document count
-                  0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-
-                  // Document 0: type
-                  0x02,
-
-                  // Document 0: URI
-                  0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'f', 'i', 'l', 'e', ':', '/', '/', '/', 'f',
-
-                  // Document 0: text
-                  0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'h', 'e', 'l', 'l', 'o',
-
-                  // Document 0: langauge ID
-                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                  'j', 's',
-                  // clang-format on
-              }));
 }
 }
 }
