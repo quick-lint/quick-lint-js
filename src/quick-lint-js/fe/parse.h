@@ -586,7 +586,7 @@ class Parser {
   void visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
                              const Binding_Element_Info &);
 
-  // FIXME(strager): This should be an enum class, but that causes GCC 8.3.0 to
+  // TODO(#1069): This should be an enum class, but that causes GCC 8.3.0 to
   // fail compilation:
   //
   // > error: cannot convert 'quick_lint_js::parser::allow_type_annotations' to

@@ -839,6 +839,7 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
     break;
   case Variable_Kind::_import:
     // Avoid false positive when building GCC 8 Release
+    // TODO(#1069): Remove when we upgrade to a working GCC.
     QLJS_WARNING_PUSH
     QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 

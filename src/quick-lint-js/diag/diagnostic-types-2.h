@@ -14,6 +14,7 @@ QLJS_WARNING_IGNORE_GCC("-Wattributes")
 
 // HACK(strager): Stringify arg names in attributes to work around bugs in
 // GCC 8.3 and GCC 9.2.
+// TODO(#1069): Remove when we upgrade to a working GCC.
 #define ARG(arg_name) #arg_name
 
 #define QLJS_RESERVED_DIAG(code) \
