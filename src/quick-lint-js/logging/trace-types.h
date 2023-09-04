@@ -19,6 +19,9 @@ struct Trace_Context {
 
 struct Trace_Event_Header {
   std::uint64_t timestamp;
+
+  friend bool operator==(const Trace_Event_Header&, const Trace_Event_Header&);
+  friend bool operator!=(const Trace_Event_Header&, const Trace_Event_Header&);
 };
 
 // 0 is a sentinal value meaning no document ID.
@@ -29,6 +32,9 @@ struct Trace_Event_Init {
 
   [[qljs::trace_zero_terminated]]  //
   String8_View version;
+
+  friend bool operator==(const Trace_Event_Init&, const Trace_Event_Init&);
+  friend bool operator!=(const Trace_Event_Init&, const Trace_Event_Init&);
 };
 
 template <class String16>
@@ -39,6 +45,17 @@ struct Trace_Event_VSCode_Document_Opened {
   String16 uri;
   String16 language_id;
   String16 content;
+
+  friend bool operator==(const Trace_Event_VSCode_Document_Opened& lhs,
+                         const Trace_Event_VSCode_Document_Opened& rhs) {
+    return lhs.document_id == rhs.document_id && lhs.uri == rhs.uri &&
+           lhs.language_id == rhs.language_id && lhs.content == rhs.content;
+  }
+
+  friend bool operator!=(const Trace_Event_VSCode_Document_Opened& lhs,
+                         const Trace_Event_VSCode_Document_Opened& rhs) {
+    return !(lhs == rhs);
+  }
 };
 
 template <class String16>
@@ -48,6 +65,17 @@ struct Trace_Event_VSCode_Document_Closed {
   Trace_Document_ID document_id;
   String16 uri;
   String16 language_id;
+
+  friend bool operator==(const Trace_Event_VSCode_Document_Closed& lhs,
+                         const Trace_Event_VSCode_Document_Closed& rhs) {
+    return lhs.document_id == rhs.document_id && lhs.uri == rhs.uri &&
+           lhs.language_id == rhs.language_id;
+  }
+
+  friend bool operator!=(const Trace_Event_VSCode_Document_Closed& lhs,
+                         const Trace_Event_VSCode_Document_Closed& rhs) {
+    return !(lhs == rhs);
+  }
 };
 
 // vscode.Position
@@ -70,7 +98,6 @@ struct Trace_VSCode_Document_Change {
   std::uint64_t range_length;
   String16 text;
 
-  // For testing.
   friend bool operator==(const Trace_VSCode_Document_Change& lhs,
                          const Trace_VSCode_Document_Change& rhs) {
     return lhs.range.start.line == rhs.range.start.line &&
@@ -96,6 +123,16 @@ struct Trace_Event_VSCode_Document_Changed {
   [[qljs::trace_ctf_size_name("change_count")]]  //
   Span<const Trace_VSCode_Document_Change<String16>>
       changes;
+
+  friend bool operator==(const Trace_Event_VSCode_Document_Changed& lhs,
+                         const Trace_Event_VSCode_Document_Changed& rhs) {
+    return lhs.document_id == rhs.document_id && lhs.changes == rhs.changes;
+  }
+
+  friend bool operator!=(const Trace_Event_VSCode_Document_Changed& lhs,
+                         const Trace_Event_VSCode_Document_Changed& rhs) {
+    return !(lhs == rhs);
+  }
 };
 
 // Not related to any particular Visual Studio Code event.
@@ -107,6 +144,17 @@ struct Trace_Event_VSCode_Document_Sync {
   String16 uri;
   String16 language_id;
   String16 content;
+
+  friend bool operator==(const Trace_Event_VSCode_Document_Sync& lhs,
+                         const Trace_Event_VSCode_Document_Sync& rhs) {
+    return lhs.document_id == rhs.document_id && lhs.uri == rhs.uri &&
+           lhs.language_id == rhs.language_id && lhs.content == rhs.content;
+  }
+
+  friend bool operator!=(const Trace_Event_VSCode_Document_Sync& lhs,
+                         const Trace_Event_VSCode_Document_Sync& rhs) {
+    return !(lhs == rhs);
+  }
 };
 
 // An LSP message received by quick-lint-js.
@@ -115,6 +163,11 @@ struct Trace_Event_LSP_Client_To_Server_Message {
 
   // body is the JSON content only, excluding the header.
   String8_View body;
+
+  friend bool operator==(const Trace_Event_LSP_Client_To_Server_Message&,
+                         const Trace_Event_LSP_Client_To_Server_Message&);
+  friend bool operator!=(const Trace_Event_LSP_Client_To_Server_Message&,
+                         const Trace_Event_LSP_Client_To_Server_Message&);
 };
 
 struct Trace_Vector_Max_Size_Histogram_Entry {
@@ -146,12 +199,22 @@ struct Trace_Event_Vector_Max_Size_Histogram_By_Owner {
   [[qljs::trace_ctf_size_name("entry_count")]]  //
   Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>
       entries;
+
+  friend bool operator==(const Trace_Event_Vector_Max_Size_Histogram_By_Owner&,
+                         const Trace_Event_Vector_Max_Size_Histogram_By_Owner&);
+  friend bool operator!=(const Trace_Event_Vector_Max_Size_Histogram_By_Owner&,
+                         const Trace_Event_Vector_Max_Size_Histogram_By_Owner&);
 };
 
 struct Trace_Event_Process_ID {
   static constexpr std::uint8_t id = 0x08;
 
   std::uint64_t process_id;
+
+  friend bool operator==(const Trace_Event_Process_ID&,
+                         const Trace_Event_Process_ID&);
+  friend bool operator!=(const Trace_Event_Process_ID&,
+                         const Trace_Event_Process_ID&);
 };
 
 enum class Trace_LSP_Document_Type : std::uint8_t {
@@ -169,6 +232,11 @@ struct Trace_LSP_Document_State {
   String8_View language_id;
   // TODO(strager): String8_View version_json;
   // TODO(strager): Lint settings.
+
+  friend bool operator==(const Trace_LSP_Document_State&,
+                         const Trace_LSP_Document_State&);
+  friend bool operator!=(const Trace_LSP_Document_State&,
+                         const Trace_LSP_Document_State&);
 };
 
 struct Trace_Event_LSP_Documents {
@@ -177,6 +245,11 @@ struct Trace_Event_LSP_Documents {
   [[qljs::trace_ctf_size_name("document_count")]]  //
   Span<const Trace_LSP_Document_State>
       documents;
+
+  friend bool operator==(const Trace_Event_LSP_Documents&,
+                         const Trace_Event_LSP_Documents&);
+  friend bool operator!=(const Trace_Event_LSP_Documents&,
+                         const Trace_Event_LSP_Documents&);
 };
 }
 

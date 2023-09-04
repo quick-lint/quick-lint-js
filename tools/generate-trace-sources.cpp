@@ -1013,9 +1013,34 @@ struct Parsed_Trace_Event {
   out.append_literal(
       u8R"(    // clang-format on
   };
+
+  // For testing:
+  template <class Event>
+  Event& get_event();
 };
+
+// clang-format off
 )"_sv);
 
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_struct) {
+      const Parsed_Struct& s = declaration._struct;
+      if (s.id.has_value()) {
+        out.append_literal(u8"template <>\n"_sv);
+        out.append_literal(u8"inline "_sv);
+        write_struct_reference_for_cxx_parser(out, s, types);
+        out.append_literal(u8"& Parsed_Trace_Event::get_event<"_sv);
+        write_struct_reference_for_cxx_parser(out, s, types);
+        out.append_literal(u8">() {\n"_sv);
+        out.append_literal(u8"  return this->"_sv);
+        out.append_copy(s.ctf_name);
+        out.append_literal(u8"_event;\n"_sv);
+        out.append_literal(u8"}\n"_sv);
+      }
+    }
+  }
+
+  out.append_literal(u8"// clang-format on\n"_sv);
   out.append_literal(u8"}\n"_sv);
   write_file_copyright_end(out);
 }

@@ -4,6 +4,32 @@
 #include <quick-lint-js/logging/trace-types.h>
 
 namespace quick_lint_js {
+bool operator==(const Trace_Event_Header& lhs, const Trace_Event_Header& rhs) {
+  return lhs.timestamp == rhs.timestamp;
+}
+
+bool operator!=(const Trace_Event_Header& lhs, const Trace_Event_Header& rhs) {
+  return !(lhs == rhs);
+}
+
+bool operator==(const Trace_Event_Init& lhs, const Trace_Event_Init& rhs) {
+  return lhs.version == rhs.version;
+}
+
+bool operator!=(const Trace_Event_Init& lhs, const Trace_Event_Init& rhs) {
+  return !(lhs == rhs);
+}
+
+bool operator==(const Trace_Event_LSP_Client_To_Server_Message& lhs,
+                const Trace_Event_LSP_Client_To_Server_Message& rhs) {
+  return lhs.body == rhs.body;
+}
+
+bool operator!=(const Trace_Event_LSP_Client_To_Server_Message& lhs,
+                const Trace_Event_LSP_Client_To_Server_Message& rhs) {
+  return !(lhs == rhs);
+}
+
 bool operator==(Trace_Vector_Max_Size_Histogram_Entry lhs,
                 Trace_Vector_Max_Size_Histogram_Entry rhs) {
   return lhs.max_size == rhs.max_size && lhs.count == rhs.count;
@@ -21,6 +47,47 @@ bool operator==(const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& lhs,
 
 bool operator!=(const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& lhs,
                 const Trace_Vector_Max_Size_Histogram_By_Owner_Entry& rhs) {
+  return !(lhs == rhs);
+}
+
+bool operator==(const Trace_Event_Vector_Max_Size_Histogram_By_Owner& lhs,
+                const Trace_Event_Vector_Max_Size_Histogram_By_Owner& rhs) {
+  return lhs.entries == rhs.entries;
+}
+
+bool operator!=(const Trace_Event_Vector_Max_Size_Histogram_By_Owner& lhs,
+                const Trace_Event_Vector_Max_Size_Histogram_By_Owner& rhs) {
+  return !(lhs == rhs);
+}
+
+bool operator==(const Trace_Event_Process_ID& lhs,
+                const Trace_Event_Process_ID& rhs) {
+  return lhs.process_id == rhs.process_id;
+}
+
+bool operator!=(const Trace_Event_Process_ID& lhs,
+                const Trace_Event_Process_ID& rhs) {
+  return !(lhs == rhs);
+}
+
+bool operator==(const Trace_LSP_Document_State& lhs,
+                const Trace_LSP_Document_State& rhs) {
+  return lhs.type == rhs.type && lhs.uri == rhs.uri && lhs.text == rhs.text &&
+         lhs.language_id == rhs.language_id;
+}
+
+bool operator!=(const Trace_LSP_Document_State& lhs,
+                const Trace_LSP_Document_State& rhs) {
+  return !(lhs == rhs);
+}
+
+bool operator==(const Trace_Event_LSP_Documents& lhs,
+                const Trace_Event_LSP_Documents& rhs) {
+  return lhs.documents == rhs.documents;
+}
+
+bool operator!=(const Trace_Event_LSP_Documents& lhs,
+                const Trace_Event_LSP_Documents& rhs) {
   return !(lhs == rhs);
 }
 }

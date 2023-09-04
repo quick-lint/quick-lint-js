@@ -53,7 +53,50 @@ struct Parsed_Trace_Event {
     Trace_Event_LSP_Documents lsp_documents_event;
     // clang-format on
   };
+
+  // For testing:
+  template <class Event>
+  Event& get_event();
 };
+
+// clang-format off
+template <>
+inline Trace_Event_Init& Parsed_Trace_Event::get_event<Trace_Event_Init>() {
+  return this->init_event;
+}
+template <>
+inline Trace_Event_VSCode_Document_Opened<std::u16string_view>& Parsed_Trace_Event::get_event<Trace_Event_VSCode_Document_Opened<std::u16string_view>>() {
+  return this->vscode_document_opened_event;
+}
+template <>
+inline Trace_Event_VSCode_Document_Closed<std::u16string_view>& Parsed_Trace_Event::get_event<Trace_Event_VSCode_Document_Closed<std::u16string_view>>() {
+  return this->vscode_document_closed_event;
+}
+template <>
+inline Trace_Event_VSCode_Document_Changed<std::u16string_view>& Parsed_Trace_Event::get_event<Trace_Event_VSCode_Document_Changed<std::u16string_view>>() {
+  return this->vscode_document_changed_event;
+}
+template <>
+inline Trace_Event_VSCode_Document_Sync<std::u16string_view>& Parsed_Trace_Event::get_event<Trace_Event_VSCode_Document_Sync<std::u16string_view>>() {
+  return this->vscode_document_sync_event;
+}
+template <>
+inline Trace_Event_LSP_Client_To_Server_Message& Parsed_Trace_Event::get_event<Trace_Event_LSP_Client_To_Server_Message>() {
+  return this->lsp_client_to_server_message_event;
+}
+template <>
+inline Trace_Event_Vector_Max_Size_Histogram_By_Owner& Parsed_Trace_Event::get_event<Trace_Event_Vector_Max_Size_Histogram_By_Owner>() {
+  return this->vector_max_size_histogram_by_owner_event;
+}
+template <>
+inline Trace_Event_Process_ID& Parsed_Trace_Event::get_event<Trace_Event_Process_ID>() {
+  return this->process_id_event;
+}
+template <>
+inline Trace_Event_LSP_Documents& Parsed_Trace_Event::get_event<Trace_Event_LSP_Documents>() {
+  return this->lsp_documents_event;
+}
+// clang-format on
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

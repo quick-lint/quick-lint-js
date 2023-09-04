@@ -183,6 +183,7 @@ quick_lint_js_add_executable(
   test-thread.cpp
   test-tjson.cpp
   test-trace-flusher.cpp
+  test-trace-reader-writer.cpp
   test-trace-reader.cpp
   test-trace-writer.cpp
   test-tracking-memory-resource.cpp
