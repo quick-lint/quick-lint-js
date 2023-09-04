@@ -78,7 +78,9 @@ void write_type_list_h(Span<const CXX_Diagnostic_Type> types,
   write_file_begin(out);
 
   out.append_literal(
-      u8R"(#include <quick-lint-js/diag/diagnostic.h>
+      u8R"(#pragma once
+
+#include <quick-lint-js/diag/diagnostic.h>
 
 namespace quick_lint_js {
 // clang-format off
