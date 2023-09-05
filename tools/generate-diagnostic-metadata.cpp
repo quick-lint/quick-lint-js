@@ -108,7 +108,8 @@ namespace quick_lint_js {
   write_file_copyright_end(out);
 }
 
-void write_info_cpp(Span<const CXX_Diagnostic_Type> types, Output_Stream& out) {
+void write_info_cpp(CXX_Diagnostic_Types_Parser& parser,
+                    Span<const CXX_Diagnostic_Type> types, Output_Stream& out) {
   write_file_begin(out);
 
   out.append_literal(
@@ -163,10 +164,9 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         out.append_literal(u8"), Diagnostic_Arg_Type::"_sv);
         const CXX_Diagnostic_Variable* var = type.variable_from_name(arg);
         if (var == nullptr) {
-          out.append_literal(u8"(error: type not found)"_sv);
-        } else {
-          out.append_copy(diagnostic_arg_type_code_from_type(var->type));
+          parser.fatal_at(arg.data(), "could not find variable");
         }
+        out.append_copy(diagnostic_arg_type_code_from_type(var->type));
         out.append_literal(u8"),\n"_sv);
       }
       out.append_literal(u8"        },\n"_sv);
@@ -250,7 +250,8 @@ int main(int argc, char** argv) {
 
   {
     Memory_Output_Stream out;
-    write_info_cpp(Span<const CXX_Diagnostic_Type>(cxx_parser.parsed_types),
+    write_info_cpp(cxx_parser,
+                   Span<const CXX_Diagnostic_Type>(cxx_parser.parsed_types),
                    out);
     out.write_file_if_different_or_exit(output_info_cpp_path);
   }

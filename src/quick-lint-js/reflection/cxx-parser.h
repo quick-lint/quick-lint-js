@@ -171,8 +171,11 @@ class CXX_Parser_Base {
 
 // Parses <quick-lint-js/diag/diagnostic-types-2.h>.
 class CXX_Diagnostic_Types_Parser : private CXX_Parser_Base {
+ private:
+  using Base = CXX_Parser_Base;
+
  public:
-  using CXX_Parser_Base::CXX_Parser_Base;
+  using Base::Base;
 
   void parse_file();
 
@@ -183,6 +186,8 @@ class CXX_Diagnostic_Types_Parser : private CXX_Parser_Base {
   bool is_valid_code_string(String8_View code_string);
 
   String8 next_unused_diag_code_string();
+
+  using Base::fatal_at;
 
   std::vector<CXX_Diagnostic_Type> parsed_types;
   std::vector<String8_View> reserved_code_strings;
