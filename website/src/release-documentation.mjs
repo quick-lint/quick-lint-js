@@ -105,6 +105,7 @@ function linkifyVersions(markdownTokens) {
       {
         type: "link_close",
         tag: "a",
+        nesting: -1,
       },
       headingCloseToken,
     ];

@@ -30,6 +30,12 @@ describe("release documentation releasesMarkdownToHTML", () => {
     expect(html).not.toContain("<h3>");
     expect(html).not.toContain("<h5>");
   });
+
+  it("linkifies versioned heading", () => {
+    let html = releasesMarkdownToHTML("## 2.15.0 (2023-07-18)\n\nhello");
+    expect(html).toContain('<h2 id="2.15.0">');
+    expect(html).toContain('<a href="#2.15.0">2.15.0 (2023-07-18)</a>');
+  });
 });
 
 // quick-lint-js finds bugs in JavaScript programs.
