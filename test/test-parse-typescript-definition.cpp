@@ -1,6 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+// These tests ensure that the parser implements the correct rules for .d.ts
+// TypeScript definition files.
+
 #include <gtest/gtest.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/parse-support.h>
@@ -11,6 +14,35 @@ namespace {
 TEST(Test_Parse_TypeScript_Definition, const_without_initializer_is_allowed) {
   test_parse_and_visit_statement(u8"export const c;"_sv, no_diags,
                                  typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, variables_must_have_no_initializer) {
+  test_parse_and_visit_module(u8"export const x;"_sv,  //
+                              no_diags, typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"export const x = null;"_sv,  //
+      u8"               ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
+      u8"       ^^^^^ .declaring_token"_diag,
+      typescript_definition_options);
+
+  test_parse_and_visit_module(u8"declare const x;"_sv,  //
+                              no_diags, typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"declare const x = null;"_sv,  //
+      u8"                ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
+      u8"        ^^^^^ .declaring_token"_diag,
+      typescript_definition_options);
+
+  test_parse_and_visit_module(
+      u8"export let x = null;"_sv,  //
+      u8"             ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
+      u8"       ^^^ .declaring_token"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"export var x = null;"_sv,  //
+      u8"             ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
+      u8"       ^^^ .declaring_token"_diag,
+      typescript_definition_options);
 }
 }
 }

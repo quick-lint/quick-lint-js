@@ -476,7 +476,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 43, 0, 42},                //
         {47, 55, 72, 36, 48, 35},            //
         {0, 0, 0, 17, 0, 21},                //
-        {0, 15, 0, 72, 0, 53},               //
+        {0, 0, 0, 0, 0, 53},                 //
+        {0, 15, 0, 72, 0, 47},               //
     }}),
 
     // clang-format off
@@ -2219,6 +2220,7 @@ const Translation_Table translation_data = {
         u8"{0} is not the name of a parameter\0"
         u8"{0} with no bindings\0"
         u8"{1:headlinese} value must be a compile-time constant\0"
+        u8"{1} cannot have an initializer is a .d.ts file\0"
         u8"~~~ invalid string, do not use outside benchmark ~~~",
     // clang-format on
 

@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[466] = {
+inline const Translated_String test_translation_table[467] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -5141,6 +5141,17 @@ inline const Translated_String test_translation_table[466] = {
             u8"{1:headlinese} value must be a compile-time constant",
             u8"valor {1:headlinese} precisa ser uma constante em tempo de compila\u00e7\u00e3o",
             u8"{1:headlinese} value must be a compile-time constant",
+        },
+    },
+    {
+        "{1} cannot have an initializer is a .d.ts file"_translatable,
+        u8"{1} cannot have an initializer is a .d.ts file",
+        {
+            u8"{1} cannot have an initializer is a .d.ts file",
+            u8"{1} cannot have an initializer is a .d.ts file",
+            u8"{1} cannot have an initializer is a .d.ts file",
+            u8"{1} cannot have an initializer is a .d.ts file",
+            u8"{1} cannot have an initializer is a .d.ts file",
         },
     },
     {

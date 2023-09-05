@@ -206,6 +206,10 @@ msgid "type {1} is being defined here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "{1} cannot have an initializer is a .d.ts file"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare class' fields cannot be initalized"
 msgstr ""
 

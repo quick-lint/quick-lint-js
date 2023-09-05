@@ -202,6 +202,14 @@ struct Diag_Cyclic_TypeScript_Type_Definition {
   Variable_Kind kind;
 };
 
+struct Diag_DTS_Var_Cannot_Have_Initializer {
+  [[qljs::diag("E0385", Diagnostic_Severity::error)]]  //
+  [[qljs::message("{1} cannot have an initializer is a .d.ts file", ARG(equal),
+                  ARG(declaring_token))]]  //
+  Source_Code_Span equal;
+  Source_Code_Span declaring_token;
+};
+
 struct Diag_Declare_Class_Fields_Cannot_Have_Initializers {
   [[qljs::diag("E0335", Diagnostic_Severity::error)]]  //
   [[qljs::message("'declare class' fields cannot be initalized",

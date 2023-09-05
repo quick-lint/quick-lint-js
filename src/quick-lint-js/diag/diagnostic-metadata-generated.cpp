@@ -344,6 +344,21 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_DTS_Var_Cannot_Have_Initializer
+    {
+      .code = 385,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("{1} cannot have an initializer is a .d.ts file"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_DTS_Var_Cannot_Have_Initializer, equal), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_DTS_Var_Cannot_Have_Initializer, declaring_token), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Declare_Class_Fields_Cannot_Have_Initializers
     {
       .code = 335,

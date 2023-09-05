@@ -4707,12 +4707,20 @@ void Parser::parse_and_visit_let_bindings(
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       case Token_Type::equal: {
         Token equal_token = this->peek();
-        if (options.declare_keyword.has_value()) {
-          this->diag_reporter_->report(Diag_Declare_Var_Cannot_Have_Initializer{
-              .equal = equal_token.span(),
-              .declare_keyword = *options.declare_keyword,
-              .declaring_token = options.declaring_token.span(),
-          });
+        if (options.is_declare(this)) {
+          if (this->options_.typescript_definition_file) {
+            this->diag_reporter_->report(Diag_DTS_Var_Cannot_Have_Initializer{
+                .equal = equal_token.span(),
+                .declaring_token = options.declaring_token.span(),
+            });
+          } else {
+            this->diag_reporter_->report(
+                Diag_Declare_Var_Cannot_Have_Initializer{
+                    .equal = equal_token.span(),
+                    .declare_keyword = *options.declare_keyword,
+                    .declaring_token = options.declaring_token.span(),
+                });
+          }
         }
 
         auto *assignment_ast = static_cast<Expression::Assignment *>(
