@@ -155,10 +155,10 @@ Vector_Max_Size_Histogram_By_Owner::histogram(
     histogram[owner_and_object_id.first][size] += 1;
   }
 
-  // Convert hash_map into std::map.
+  // Convert Hash_Map into std::map.
   // TODO(strager): Avoid this conversion. Convert straight into vectors.
   // NOTE(strager): We might need to merge some inner maps because we built the
-  // hash_map with pointer comparison but we're building the std::map with
+  // Hash_Map with pointer comparison but we're building the std::map with
   // string comparison.
   std::map<std::string_view, std::map<std::size_t, int>> stable_histogram;
   for (auto &[owner, counts] : histogram) {

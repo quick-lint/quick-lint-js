@@ -239,7 +239,7 @@ enum class Token_Type {
   // is `if`.
   //
   // Such identifiers are sometimes legal and sometimes illegal depending on the
-  // parser's context, hence we distinguish them from token_type::identifier.
+  // parser's context, hence we distinguish them from Token_Type::identifier.
   reserved_keyword_with_escape_sequence,
 
   // Symbols:
@@ -297,7 +297,7 @@ struct Token {
   // sequence in the most recently parsed keyword-looking identifier.
   //
   // Precondition:
-  //   this->type == token_type::reserved_keyword_with_escape_sequence
+  //   this->type == Token_Type::reserved_keyword_with_escape_sequence
   // Precondition: This function was not previously called for the same token.
   void report_errors_for_escape_sequences_in_keyword(Diag_Reporter*) const;
 
@@ -305,8 +305,8 @@ struct Token {
   // template.
   //
   // Precondition:
-  //   this->type == token_type::complete_template ||
-  //   this->type == token_type::incomplete_template
+  //   this->type == Token_Type::complete_template ||
+  //   this->type == Token_Type::incomplete_template
   // Precondition: This function was not previously called for the same token.
   void report_errors_for_escape_sequences_in_template(Diag_Reporter*) const;
 

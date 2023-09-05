@@ -543,7 +543,7 @@ class Parser {
     std::optional<Source_Code_Span> declaring_token;
     Variable_Declaration_Flags flags;
 
-    // Valid only if declaration_kind == variable_kind::_function_parameter.
+    // Valid only if declaration_kind == Variable_Kind::_function_parameter.
     const Char8 *first_parameter_begin;
 
     bool is_destructuring = false;
@@ -589,9 +589,9 @@ class Parser {
   // TODO(#1069): This should be an enum class, but that causes GCC 8.3.0 to
   // fail compilation:
   //
-  // > error: cannot convert 'quick_lint_js::parser::allow_type_annotations' to
+  // > error: cannot convert 'quick_lint_js::Parser::Allow_Type_Annotations' to
   // > 'unsigned char:2' in initialization
-  enum allow_type_annotations : std::uint8_t {
+  enum Allow_Type_Annotations : std::uint8_t {
     typescript_only,
     always,
     never,
@@ -603,8 +603,8 @@ class Parser {
     bool equals_assignment : 1 = true;
     bool commas : 1 = true;
     bool in_operator : 1 = true;
-    allow_type_annotations colon_type_annotation : 2 =
-        allow_type_annotations::typescript_only;
+    Allow_Type_Annotations colon_type_annotation : 2 =
+        Allow_Type_Annotations::typescript_only;
 
     // If true, parse unexpected trailing identifiers as part of the
     // expression (and emit an error).
@@ -641,7 +641,7 @@ class Parser {
   };
 
   // binary_expression_builder helps in the creation of a
-  // expression::binary_operator.
+  // Expression::Binary_Operator.
   //
   // Upon construction, binary_expression_builder stores a single expression*.
   // As a binary expression is parsed, other expression*-s are added to the
@@ -1004,7 +1004,7 @@ class Parser {
   // NOTE[non-empty-namespace]: The rules for what makes a namespace empty or
   // not are not obvious. See tests.
   //
-  // See also variable_declaration_flags::non_empty_namespace.
+  // See also Variable_Declaration_Flags::non_empty_namespace.
   bool is_current_typescript_namespace_non_empty_ = false;
 
   // When parsing TypeScript 'infer', store visit_variable_declaration calls

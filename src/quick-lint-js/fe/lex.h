@@ -48,7 +48,7 @@ class Lexer {
   //
   // This function ignores leading and trailing whitespace and comments.
   //
-  // Precondition: this->peek().type != token_type::end_of_file.
+  // Precondition: this->peek().type != Token_Type::end_of_file.
   void skip() { this->parse_current_token(); }
 
   // After parsing a '}' (right_curly) token, call this function to interpret
@@ -65,7 +65,7 @@ class Lexer {
   //
   // The given template_begin is used for diagnostic reporting.
   //
-  // Precondition: this->peek().type == token_type::right_curly
+  // Precondition: this->peek().type == Token_Type::right_curly
   void skip_in_template(const Char8* template_begin);
 
   // Like this->skip(), except:
@@ -93,8 +93,8 @@ class Lexer {
   // this->skip_in_jsx_children() so '!!!' is interpreted as text (instead of
   // three '!' tokens).
   //
-  // Precondition: this->peek().type == token_type::right_curly ||
-  //               this->peek().type == token_type::greater
+  // Precondition: this->peek().type == Token_Type::right_curly ||
+  //               this->peek().type == Token_Type::greater
   void skip_in_jsx_children();
 
   // After the current token, look for for first occurrence of any one of the
@@ -114,24 +114,24 @@ class Lexer {
   // After parsing a '<<' (less_less) token, call this function to reinterpret
   // the token as two '<' (less) tokens, then skip the first token.
   //
-  // Precondition:  this->peek().type == token_type::less_less
-  // Postcondition: this->peek().type == token_type::less
+  // Precondition:  this->peek().type == Token_Type::less_less
+  // Postcondition: this->peek().type == Token_Type::less
   void skip_less_less_as_less();
 
   // After parsing a '>>', or '>>>' token, call this function to
   // reinterpret the token as a '>' (greater) token followed by another token,
   // then skip the first token.
   //
-  // Precondition:  this->peek().type == token_type::greater_greater ||
-  //                this->peek().type == token_type::greater_greater_greater
-  // Postcondition: this->peek().type == token_type::greater
+  // Precondition:  this->peek().type == Token_Type::greater_greater ||
+  //                this->peek().type == Token_Type::greater_greater_greater
+  // Postcondition: this->peek().type == Token_Type::greater
   void skip_as_greater();
 
   // Reparse a '/' or '/=' token as a regular expression literal.
   //
-  // Precondition: this->peek().type == token_type::slash or
-  //               token_type::slash_equal.
-  // Postcondition: this->peek().type == token_type::regexp.
+  // Precondition: this->peek().type == Token_Type::slash or
+  //               Token_Type::slash_equal.
+  // Postcondition: this->peek().type == Token_Type::regexp.
   void reparse_as_regexp();
 
   // Returns true if a valid regexp literal is found

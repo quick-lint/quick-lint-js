@@ -14,7 +14,7 @@ struct LSP_Documents;
 // opened browsers.
 void debug_probe_publish_lsp_documents();
 
-// Call this occasionally after using quick_lint_js::vector.
+// Call this occasionally after using quick_lint_js::Vector.
 //
 // If the debug server is enabled, this function will push vector profiling
 // statistics to opened browsers.

@@ -184,10 +184,10 @@ void qljs_web_demo_set_locale(QLJS_Web_Demo_Document* document,
 // config [3], and return a list of diagnostics according to document's
 // locale [4].
 //
-// The returned pointer refers to an array of qljs_web_demo_diagnostic objects.
+// The returned pointer refers to an array of QLJS_Web_Demo_Diagnostic objects.
 // The array is terminated by an item where:
-// * qljs_web_demo_diagnostic::message is null, and
-// * qljs_web_demo_diagnostic::code is an empty string.
+// * QLJS_Web_Demo_Diagnostic::message is null, and
+// * QLJS_Web_Demo_Diagnostic::code is an empty string.
 //
 // The returned pointer is valid until either the next call to
 // qljs_web_demo_lint(document) or a call to

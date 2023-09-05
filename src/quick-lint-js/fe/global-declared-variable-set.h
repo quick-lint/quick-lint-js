@@ -45,10 +45,10 @@ class Global_Declared_Variable_Set {
   std::optional<Global_Declared_Variable> find(Identifier name) const;
   std::optional<Global_Declared_Variable> find(String8_View name) const;
 
-  // See variable_analyzer::declared_variable_set::find_runtime.
+  // See Variable_Analyzer::Declared_Variable_Set::find_runtime.
   std::optional<Global_Declared_Variable> find_runtime(Identifier name) const;
 
-  // See variable_analyzer::declared_variable_set::find_type.
+  // See Variable_Analyzer::Declared_Variable_Set::find_type.
   std::optional<Global_Declared_Variable> find_type(Identifier name) const;
 
   // Return this Global_Declared_Variable_Set to its default-constructed state.
@@ -59,11 +59,11 @@ class Global_Declared_Variable_Set {
 
  private:
   struct Variable_Options {
-    // See global_declared_variable::is_writable.
+    // See Global_Declared_Variable::is_writable.
     bool is_writable;
-    // See global_declared_variable::is_shadowable.
+    // See Global_Declared_Variable::is_shadowable.
     bool is_shadowable;
-    // See global_declared_variable::is_type_only.
+    // See Global_Declared_Variable::is_type_only.
     bool is_type_only;
   };
 

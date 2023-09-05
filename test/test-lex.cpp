@@ -98,7 +98,7 @@ class Test_Lex : public ::testing::Test {
   }
 
   // If true, tell check_tokens_with_errors, lex_to_eof, etc. to call
-  // lexer::skip_in_jsx instead of lexer::skip. This has no effect on the first
+  // Lexer::skip_in_jsx instead of Lexer::skip. This has no effect on the first
   // token.
   bool lex_jsx_tokens = false;
 

@@ -16,7 +16,7 @@ QLJS_WARNING_IGNORE_CLANG("-Wcast-qual")
 QLJS_WARNING_IGNORE_CLANG("-Wold-style-cast")
 QLJS_WARNING_IGNORE_GCC("-Wconditionally-supported")
 QLJS_WARNING_IGNORE_GCC("-Wold-style-cast")
-// function_ref is like std::function_ref
+// Function_Ref is like std::function_ref
 // (https://www.open-std.org/JTC1/SC22/WG21/docs/papers/2022/p0792r10.html).
 //
 // Deviations from the specification:

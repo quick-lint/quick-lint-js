@@ -24,7 +24,7 @@ struct Keyword_Lexer {
   static constexpr std::size_t minimum_key_length = 2;
   static constexpr std::size_t maximum_key_length = 16;
 
-  // Step 1 of the hash function for lexer::identifier_token_type().
+  // Step 1 of the hash function for Lexer::identifier_token_type().
   //
   // Precondition: key[0] can be read.
   // Precondition: key[minimum_key_length - 1] can be read.
@@ -70,7 +70,7 @@ struct Keyword_Lexer {
   }
 #endif
 
-  // Step 2 of the hash function for lexer::identifier_token_type().
+  // Step 2 of the hash function for Lexer::identifier_token_type().
   static Hash_Type mix(Selection_Type selection, Seed_Type seed) {
     // This hash function executes quickly, but might produce a lot of
     // collisions. Collisions are fine, though; collisions just slow down table

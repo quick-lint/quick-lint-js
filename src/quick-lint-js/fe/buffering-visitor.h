@@ -126,7 +126,7 @@ class Buffering_Visitor final : public Parse_Visitor_Base {
   };
 
   // These 'add' functions significantly reduces code size by discouraging the
-  // inlining of visit::visit and Linked_Vector<>::emplace_back.
+  // inlining of Visit::visit and Linked_Vector<>::emplace_back.
   [[gnu::noinline]] void add(Visit_Kind kind) {
     this->visits_.emplace_back(kind);
   }

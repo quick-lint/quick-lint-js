@@ -50,12 +50,12 @@ namespace quick_lint_js {
 // QLJS_OPTION-s.
 #define QLJS_ARGUMENT(variable) if (variable = _arg_parser.match_argument())
 
-// QLJS_FLAG takes the same arguments as arg_parser::match_flag_option.
+// QLJS_FLAG takes the same arguments as Arg_Parser::match_flag_option.
 #define QLJS_FLAG(...)                                                         \
   /* 'if' is implied from a prior QLJS_ARGUMENT, QLJS_FLAG, or QLJS_OPTION. */ \
   else if (_arg_parser.match_flag_option(__VA_ARGS__))
 
-// QLJS_OPTION takes the same arguments as arg_parser::match_option_with_value.
+// QLJS_OPTION takes the same arguments as Arg_Parser::match_option_with_value.
 #define QLJS_OPTION(variable, ...)                                             \
   /* 'if' is implied from a prior QLJS_ARGUMENT, QLJS_FLAG, or QLJS_OPTION. */ \
   else if (variable = _arg_parser.match_option_with_value(__VA_ARGS__))

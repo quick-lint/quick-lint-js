@@ -27,7 +27,7 @@
 #include <quick-lint-js/util/algorithm.h>
 #include <utility>
 
-// For parser::binding_element_info.
+// For Parser::binding_element_info.
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 namespace quick_lint_js {
@@ -485,7 +485,7 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
                .math_or_logical_or_assignment = false,
                .commas = false,
                .in_operator = prec.in_operator,
-               .colon_type_annotation = allow_type_annotations::never,
+               .colon_type_annotation = Allow_Type_Annotations::never,
                .conditional_operator = false,
            });
     if (child->kind() == Expression_Kind::Missing) {
@@ -546,7 +546,7 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
     // (x + y * z)
     Expression* child = this->parse_expression(
         v, Precedence{
-               .colon_type_annotation = allow_type_annotations::always,
+               .colon_type_annotation = Allow_Type_Annotations::always,
                .trailing_identifiers = true,
                .colon_question_is_typescript_optional_with_type_annotation =
                    this->options_.typescript,
@@ -1164,7 +1164,7 @@ Expression* Parser::parse_async_expression_only(
                  .equals_assignment = false,
                  .commas = false,
                  .in_operator = false,
-                 .colon_type_annotation = allow_type_annotations::never,
+                 .colon_type_annotation = Allow_Type_Annotations::never,
                  .trailing_curly_is_arrow_body = false,
                  .conditional_operator = false,
              });
@@ -1921,7 +1921,7 @@ next:
     } else {
       true_expression = this->parse_expression(
           v, Precedence{
-                 .colon_type_annotation = allow_type_annotations::never,
+                 .colon_type_annotation = Allow_Type_Annotations::never,
              });
     }
 
@@ -2104,13 +2104,13 @@ next:
   case Token_Type::colon: {
     bool should_parse_annotation;
     switch (prec.colon_type_annotation) {
-    case allow_type_annotations::typescript_only:
+    case Allow_Type_Annotations::typescript_only:
       should_parse_annotation = this->options_.typescript;
       break;
-    case allow_type_annotations::always:
+    case Allow_Type_Annotations::always:
       should_parse_annotation = true;
       break;
-    case allow_type_annotations::never:
+    case Allow_Type_Annotations::never:
       should_parse_annotation = false;
       break;
     }

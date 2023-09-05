@@ -70,10 +70,10 @@ struct Configuration_Load_IO_Error {
                          const Configuration_Load_IO_Error&);
 };
 
-// Returned by configuration_loader::refresh.
+// Returned by Configuration_Loader::refresh.
 struct Configuration_Change {
-  // The path given to configuration_loader::watch_and_load_for_file or
-  // configuration_loader::watch_and_load_config_file. Never nullptr.
+  // The path given to Configuration_Loader::watch_and_load_for_file or
+  // Configuration_Loader::watch_and_load_config_file. Never nullptr.
   const std::string* watched_path;
 
   // If config_file is nullptr, then no configuration file exists.
@@ -86,12 +86,12 @@ struct Configuration_Change {
   Configuration_Load_IO_Error* error;  // Sometimes nullptr.
 
   // token is the pointer given to
-  // configuration_loader::watch_and_load_for_file or
-  // configuration_loader::watch_and_load_config_file.
+  // Configuration_Loader::watch_and_load_for_file or
+  // Configuration_Loader::watch_and_load_config_file.
   void* token;
 };
 
-// A configuration_loader has a few responsibilities:
+// A Configuration_Loader has a few responsibilities:
 //
 // * Load the configuration file for a .js file (watch_and_load_for_file(),
 //   watch_and_load_config_file(), load_for_file()).

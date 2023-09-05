@@ -104,7 +104,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     // used or assigned to after declaration. If true, this variable was used or
     // assigned (or both) after its declaration.
     bool is_used;
-    // If variable_init_kind::initialized_with_equals is set, the programmer
+    // If Variable_Init_Kind::initialized_with_equals is set, the programmer
     // might have intended the variable declaration to be an assignment to an
     // existing variable instead. This happens iff the variable has an
     // initializer with '='.
@@ -138,7 +138,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
       QLJS_ASSERT(kind != Used_Variable_Kind::_delete);
     }
 
-    // kind must be used_variable_kind::_delete.
+    // kind must be Used_Variable_Kind::_delete.
     explicit Used_Variable(Identifier name, Used_Variable_Kind kind,
                            const Char8 *delete_keyword_begin)
         : name(name), delete_keyword_begin(delete_keyword_begin), kind(kind) {
@@ -157,7 +157,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     bool is_type() const;
 
     Identifier name;
-    const Char8 *delete_keyword_begin;  // used_variable_kind::_delete only
+    const Char8 *delete_keyword_begin;  // Used_Variable_Kind::_delete only
     Used_Variable_Kind kind;
   };
 

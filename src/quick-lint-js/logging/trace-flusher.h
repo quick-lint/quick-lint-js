@@ -181,7 +181,7 @@ class Trace_Flusher {
                                       Registered_Thread&,
                                       Trace_Flusher_Backend*);
 
-  // If tracing is enabled, this points to a registered_thread::stream_writer
+  // If tracing is enabled, this points to a Registered_Thread::stream_writer
   // from this->registered_threads_.
   //
   // If tracing is disabled, this points to nullptr.

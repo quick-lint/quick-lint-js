@@ -79,7 +79,7 @@ enum Variable_Declaration_Flags : unsigned char {
   //   module ns { namespace subns {} }
   //
   // See also NOTE[non-empty-namespace] and
-  // parser::is_current_typescript_namespace_non_empty_.
+  // Parser::is_current_typescript_namespace_non_empty_.
   non_empty_namespace = 1 << 1,
 };
 

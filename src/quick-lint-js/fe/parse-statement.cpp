@@ -24,7 +24,7 @@
 #include <quick-lint-js/port/warning.h>
 #include <utility>
 
-// For parser::binding_element_info.
+// For Parser::binding_element_info.
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 namespace quick_lint_js {
@@ -634,7 +634,7 @@ parse_statement:
     this->skip();
     this->parse_and_visit_expression(
         v, Precedence{
-               .colon_type_annotation = allow_type_annotations::never,
+               .colon_type_annotation = Allow_Type_Annotations::never,
            });
     if (this->peek().type == Token_Type::colon) {
       this->skip();
@@ -2276,7 +2276,7 @@ void Parser::parse_and_visit_function_parameters(
           v, Precedence{
                  .commas = false,
                  .in_operator = true,
-                 .colon_type_annotation = allow_type_annotations::always,
+                 .colon_type_annotation = Allow_Type_Annotations::always,
                  .colon_question_is_typescript_optional_with_type_annotation =
                      true,
              });
@@ -2531,7 +2531,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
       } else {
         Expression *ast = this->parse_expression(
             v, Precedence{
-                   .colon_type_annotation = allow_type_annotations::never,
+                   .colon_type_annotation = Allow_Type_Annotations::never,
                });
 
         Source_Code_Span expression_case_span = ast->span();

@@ -2193,7 +2193,7 @@ bool Lexer::is_hex_digit(Char8 c) {
 }
 
 bool Lexer::is_initial_identifier_byte(Char8 byte) {
-  // TODO(strager): Reuse lex_tables::initial_character_class?
+  // TODO(strager): Reuse Lex_Tables::initial_character_class?
   switch (static_cast<std::uint8_t>(byte)) {
   QLJS_CASE_IDENTIFIER_START:
     // clang-format off
