@@ -111,7 +111,7 @@ function linkifyVersions(markdownTokens) {
     ];
     markdownTokens.splice(
       headingBeginIndex,
-      headingEndIndex - headingBeginIndex,
+      headingEndIndex - headingBeginIndex + 1,
       ...newTokens
     );
   }
