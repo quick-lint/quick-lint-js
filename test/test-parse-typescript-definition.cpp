@@ -172,6 +172,19 @@ TEST(Test_Parse_TypeScript_Definition, named_module_require_declare) {
                               typescript_definition_options);
 }
 
+TEST(Test_Parse_TypeScript_Definition, function_requires_declare_or_export) {
+  test_parse_and_visit_module(
+      u8"function f();"_sv,  //
+      u8"^^^^^^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+
+  test_parse_and_visit_module(u8"declare function f();"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export function f();"_sv, no_diags,
+                              typescript_definition_options);
+}
+
 TEST(Test_Parse_TypeScript_Definition, function_must_have_no_body) {
   test_parse_and_visit_module(
       u8"declare function f() {}"_sv,  //
@@ -195,6 +208,7 @@ TEST(Test_Parse_TypeScript_Definition,
            u8"var x;"_sv,
            u8"interface I {}"_sv,
            u8"type T = null;"_sv,
+           u8"function f();"_sv,
        }) {
     test_parse_and_visit_module(
         concat(u8"declare namespace ns { "_sv, statement, u8" }"_sv), no_diags,

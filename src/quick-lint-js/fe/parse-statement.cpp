@@ -87,6 +87,12 @@ parse_statement:
     // function f() {}
   case Token_Type::kw_function:
     this->is_current_typescript_namespace_non_empty_ = true;
+    if (options.top_level_typescript_definition) {
+      this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+          .expected = Source_Code_Span::unit(this->peek().begin),
+          .declaring_token = this->peek().span(),
+      });
+    }
     this->parse_and_visit_function_declaration(
         v, Function_Declaration_Options{
                .attributes = Function_Attributes::normal,
