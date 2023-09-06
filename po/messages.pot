@@ -206,6 +206,14 @@ msgid "type {1} is being defined here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "functions in .d.ts files cannot be async; return a Promise type"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "functions in .d.ts files cannot be generators; return a Generator type"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "functions in .d.ts files cannot have a body"
 msgstr ""
 

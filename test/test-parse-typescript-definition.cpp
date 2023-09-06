@@ -196,6 +196,28 @@ TEST(Test_Parse_TypeScript_Definition, function_must_have_no_body) {
       typescript_definition_options);
 }
 
+TEST(Test_Parse_TypeScript_Definition, function_cannot_be_async) {
+  test_parse_and_visit_module(
+      u8"declare async function f();"_sv,  //
+      u8"        ^^^^^ Diag_DTS_Function_Cannot_Be_Async"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"export async function f();"_sv,  //
+      u8"       ^^^^^ Diag_DTS_Function_Cannot_Be_Async"_diag,
+      typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, function_cannot_be_generator) {
+  test_parse_and_visit_module(
+      u8"declare function* f();"_sv,  //
+      u8"                ^ Diag_DTS_Function_Cannot_Be_Generator"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"export function* f();"_sv,  //
+      u8"               ^ Diag_DTS_Function_Cannot_Be_Generator"_diag,
+      typescript_definition_options);
+}
+
 TEST(Test_Parse_TypeScript_Definition,
      statements_inside_namespace_do_not_require_export_or_declare) {
   for (String8_View statement : {

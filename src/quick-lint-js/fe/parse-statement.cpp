@@ -1193,10 +1193,16 @@ void Parser::parse_and_visit_export(
 
     std::optional<Source_Code_Span> declare_keyword =
         declare_context.maybe_declare_keyword_span();
-    if (declare_keyword.has_value()) {
-      this->diag_reporter_->report(Diag_Declare_Function_Cannot_Be_Async{
+    if (this->options_.typescript_definition_file) {
+      this->diag_reporter_->report(Diag_DTS_Function_Cannot_Be_Async{
           .async_keyword = async_token_span,
       });
+    } else {
+      if (declare_keyword.has_value()) {
+        this->diag_reporter_->report(Diag_Declare_Function_Cannot_Be_Async{
+            .async_keyword = async_token_span,
+        });
+      }
     }
     this->parse_and_visit_function_declaration(
         v, Function_Declaration_Options{
@@ -1723,11 +1729,17 @@ void Parser::parse_and_visit_function_declaration(
   // NOTE(strager): This potentially updates options.attributes.
   std::optional<Source_Code_Span> generator_star =
       this->parse_generator_star(&options.attributes);
-  if (options.declare_keyword.has_value() && generator_star.has_value()) {
-    // declare function *f();  // Invalid.
-    this->diag_reporter_->report(Diag_Declare_Function_Cannot_Be_Generator{
-        .star = *generator_star,
-    });
+  if (generator_star.has_value()) {
+    if (this->options_.typescript_definition_file) {
+      this->diag_reporter_->report(Diag_DTS_Function_Cannot_Be_Generator{
+          .star = *generator_star,
+      });
+    } else if (options.declare_keyword.has_value()) {
+      // declare function *f();  // Invalid.
+      this->diag_reporter_->report(Diag_Declare_Function_Cannot_Be_Generator{
+          .star = *generator_star,
+      });
+    }
   }
 
   switch (this->peek().type) {
@@ -5557,9 +5569,15 @@ void Parser::parse_and_visit_declare_statement(
   case Token_Type::kw_async:
     this->is_current_typescript_namespace_non_empty_ = true;
     async_keyword = this->peek().span();
-    this->diag_reporter_->report(Diag_Declare_Function_Cannot_Be_Async{
-        .async_keyword = *async_keyword,
-    });
+    if (this->options_.typescript_definition_file) {
+      this->diag_reporter_->report(Diag_DTS_Function_Cannot_Be_Async{
+          .async_keyword = *async_keyword,
+      });
+    } else {
+      this->diag_reporter_->report(Diag_Declare_Function_Cannot_Be_Async{
+          .async_keyword = *async_keyword,
+      });
+    }
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_function);
     func_attributes = Function_Attributes::async;

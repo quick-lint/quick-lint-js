@@ -202,6 +202,22 @@ struct Diag_Cyclic_TypeScript_Type_Definition {
   Variable_Kind kind;
 };
 
+struct Diag_DTS_Function_Cannot_Be_Async {
+  [[qljs::diag("E0388", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "functions in .d.ts files cannot be async; return a Promise type",
+      ARG(async_keyword))]]  //
+  Source_Code_Span async_keyword;
+};
+
+struct Diag_DTS_Function_Cannot_Be_Generator {
+  [[qljs::diag("E0389", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "functions in .d.ts files cannot be generators; return a Generator type",
+      ARG(star))]]  //
+  Source_Code_Span star;
+};
+
 struct Diag_DTS_Function_Cannot_Have_Body {
   [[qljs::diag("E0387", Diagnostic_Severity::error)]]  //
   [[qljs::message("functions in .d.ts files cannot have a body",

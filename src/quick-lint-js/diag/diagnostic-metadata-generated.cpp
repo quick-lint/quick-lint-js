@@ -344,6 +344,34 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_DTS_Function_Cannot_Be_Async
+    {
+      .code = 388,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("functions in .d.ts files cannot be async; return a Promise type"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_DTS_Function_Cannot_Be_Async, async_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_DTS_Function_Cannot_Be_Generator
+    {
+      .code = 389,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("functions in .d.ts files cannot be generators; return a Generator type"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_DTS_Function_Cannot_Be_Generator, star), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_DTS_Function_Cannot_Have_Body
     {
       .code = 387,
