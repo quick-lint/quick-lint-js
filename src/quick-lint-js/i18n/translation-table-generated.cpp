@@ -249,7 +249,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 53, 0, 54},                //
         {0, 0, 0, 0, 0, 48},                 //
         {30, 18, 0, 59, 0, 43},              //
-        {29, 18, 24, 21, 0, 21},             //
+        {0, 0, 0, 0, 0, 21},                 //
+        {29, 18, 24, 21, 0, 44},             //
         {44, 18, 49, 39, 0, 39},             //
         {84, 28, 66, 75, 25, 54},            //
         {0, 0, 0, 70, 0, 52},                //
@@ -1994,6 +1995,7 @@ const Translation_Table translation_data = {
         u8"function overload signature must be named '{1}'\0"
         u8"function parameter cannot be parenthesized\0"
         u8"function starts here\0"
+        u8"functions in .d.ts files cannot have a body\0"
         u8"functions/methods should not have '=>'\0"
         u8"generator function '*' belongs after keyword function\0"
         u8"generator function '*' belongs before function name\0"

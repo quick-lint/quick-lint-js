@@ -172,6 +172,17 @@ TEST(Test_Parse_TypeScript_Definition, named_module_require_declare) {
                               typescript_definition_options);
 }
 
+TEST(Test_Parse_TypeScript_Definition, function_must_have_no_body) {
+  test_parse_and_visit_module(
+      u8"declare function f() {}"_sv,  //
+      u8"                     ^ Diag_DTS_Function_Cannot_Have_Body"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"export function f() {}"_sv,  //
+      u8"                    ^ Diag_DTS_Function_Cannot_Have_Body"_diag,
+      typescript_definition_options);
+}
+
 TEST(Test_Parse_TypeScript_Definition,
      statements_inside_namespace_do_not_require_export_or_declare) {
   for (String8_View statement : {

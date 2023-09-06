@@ -344,6 +344,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_DTS_Function_Cannot_Have_Body
+    {
+      .code = 387,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("functions in .d.ts files cannot have a body"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_DTS_Function_Cannot_Have_Body, body_start), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_DTS_Missing_Declare_Or_Export
     {
       .code = 386,

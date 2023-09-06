@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[468] = {
+inline const Translated_String test_translation_table[469] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -2644,6 +2644,17 @@ inline const Translated_String test_translation_table[468] = {
             u8"function starts here",
             u8"fun\u00e7\u00e3o inicia aqui",
             u8"function starts here",
+        },
+    },
+    {
+        "functions in .d.ts files cannot have a body"_translatable,
+        u8"functions in .d.ts files cannot have a body",
+        {
+            u8"functions in .d.ts files cannot have a body",
+            u8"functions in .d.ts files cannot have a body",
+            u8"functions in .d.ts files cannot have a body",
+            u8"functions in .d.ts files cannot have a body",
+            u8"functions in .d.ts files cannot have a body",
         },
     },
     {

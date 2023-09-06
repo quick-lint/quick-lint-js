@@ -1678,10 +1678,17 @@ void Parser::parse_and_visit_function_declaration(
     switch (result) {
     case Function_Parameter_Parse_Result::parsed_parameters:
     case Function_Parameter_Parse_Result::missing_parameters:
-      this->diag_reporter_->report(Diag_Declare_Function_Cannot_Have_Body{
-          .body_start = this->peek().span(),
-          .declare_keyword = *options.declare_keyword,
-      });
+      if (this->options_.typescript_definition_file) {
+        this->diag_reporter_->report(Diag_DTS_Function_Cannot_Have_Body{
+            .body_start = this->peek().span(),
+        });
+      } else {
+        QLJS_ASSERT(options.declare_keyword.has_value());
+        this->diag_reporter_->report(Diag_Declare_Function_Cannot_Have_Body{
+            .body_start = this->peek().span(),
+            .declare_keyword = *options.declare_keyword,
+        });
+      }
       v.visit_enter_function_scope_body();
       this->parse_and_visit_statement_block_no_scope(v);
       break;
@@ -1761,7 +1768,8 @@ void Parser::parse_and_visit_function_declaration(
         &this->temporary_memory_);
 
   next_overload:
-    if (options.declare_keyword.has_value()) {
+    if (options.declare_keyword.has_value() ||
+        this->options_.typescript_definition_file) {
       // declare function f();  // TypeScript only
       parse_and_visit_declare_function_parameters_and_body(
           function_name.span());

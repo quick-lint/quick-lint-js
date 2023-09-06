@@ -202,6 +202,13 @@ struct Diag_Cyclic_TypeScript_Type_Definition {
   Variable_Kind kind;
 };
 
+struct Diag_DTS_Function_Cannot_Have_Body {
+  [[qljs::diag("E0387", Diagnostic_Severity::error)]]  //
+  [[qljs::message("functions in .d.ts files cannot have a body",
+                  ARG(body_start))]]  //
+  Source_Code_Span body_start;
+};
+
 struct Diag_DTS_Missing_Declare_Or_Export {
   [[qljs::diag("E0386", Diagnostic_Severity::error)]]  //
   [[qljs::message("'declare' or 'export' is required for {1} in .d.ts files",
