@@ -38,7 +38,9 @@ void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
   bool done = false;
   while (!done) {
     bool parsed_statement = this->parse_and_visit_statement(
-        v, Parse_Statement_Type::any_statement_in_block);
+        v, Parse_Statement_Options{
+               .possibly_followed_by_another_statement = true,
+           });
     if (!parsed_statement) {
       switch (this->peek().type) {
       case Token_Type::end_of_file:
@@ -61,8 +63,8 @@ void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
   v.visit_end_of_module();
 }
 
-bool Parser::parse_and_visit_statement(
-    Parse_Visitor_Base &v, Parser::Parse_Statement_Type statement_type) {
+bool Parser::parse_and_visit_statement(Parse_Visitor_Base &v,
+                                       Parse_Statement_Options options) {
   Depth_Guard d_guard(this);
 parse_statement:
   switch (this->peek().type) {
@@ -116,8 +118,8 @@ parse_statement:
       this->check_body_after_label();
       goto parse_statement;
     } else if (this->is_let_token_a_variable_reference(
-                   this->peek(), /*allow_declarations=*/statement_type !=
-                                     Parse_Statement_Type::no_declarations)) {
+                   this->peek(),
+                   /*allow_declarations=*/options.allow_let_declaration)) {
       // Expression.
       this->lexer_.roll_back_transaction(std::move(transaction));
       Expression *ast =
@@ -512,7 +514,9 @@ parse_statement:
     // return 42;
   case Token_Type::kw_return:
     this->is_current_typescript_namespace_non_empty_ = true;
-    this->parse_and_visit_return_statement(v, statement_type);
+    this->parse_and_visit_return_statement(
+        v, /*possibly_followed_by_another_statement=*/options
+               .possibly_followed_by_another_statement);
     break;
 
     // throw fit;
@@ -830,7 +834,7 @@ void Parser::parse_and_visit_throw_statement(Parse_Visitor_Base &v) {
 }
 
 void Parser::parse_and_visit_return_statement(
-    Parse_Visitor_Base &v, const Parser::Parse_Statement_Type &statement_type) {
+    Parse_Visitor_Base &v, bool possibly_followed_by_another_statement) {
   Source_Code_Span return_span = this->peek().span();
   this->skip();
   switch (this->peek().type) {
@@ -869,7 +873,7 @@ void Parser::parse_and_visit_return_statement(
       case Token_Type::slash_equal:  // Regular expression.
       case Token_Type::string:
       case Token_Type::tilde:
-        if (statement_type == Parse_Statement_Type::any_statement_in_block) {
+        if (possibly_followed_by_another_statement) {
           this->diag_reporter_->report(Diag_Return_Statement_Returns_Nothing{
               .return_keyword = return_span,
           });
@@ -1618,7 +1622,9 @@ void Parser::parse_and_visit_statement_block_after_left_curly(
     Parse_Visitor_Base &v, Source_Code_Span left_curly_span) {
   for (;;) {
     bool parsed_statement = this->parse_and_visit_statement(
-        v, Parse_Statement_Type::any_statement_in_block);
+        v, Parse_Statement_Options{
+               .possibly_followed_by_another_statement = true,
+           });
     if (!parsed_statement) {
       switch (this->peek().type) {
       case Token_Type::right_curly:
@@ -2564,7 +2570,9 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
         });
       }
       bool parsed_statement = this->parse_and_visit_statement(
-          v, Parse_Statement_Type::any_statement_in_block);
+          v, Parse_Statement_Options{
+                 .possibly_followed_by_another_statement = true,
+             });
       if (!parsed_statement) {
         QLJS_PARSER_UNIMPLEMENTED();
       }
@@ -2768,7 +2776,9 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
                 .declare_namespace_declare_keyword = declare_keyword_span,
             });
         bool parsed_statement = this->parse_and_visit_statement(
-            v, Parse_Statement_Type::any_statement_in_block);
+            v, Parse_Statement_Options{
+                   .possibly_followed_by_another_statement = true,
+               });
         QLJS_ASSERT(parsed_statement);
         break;
       }
@@ -2781,7 +2791,9 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
                 .declare_keyword = declare_keyword_span,
             });
         bool parsed_statement = this->parse_and_visit_statement(
-            v, Parse_Statement_Type::any_statement_in_block);
+            v, Parse_Statement_Options{
+                   .possibly_followed_by_another_statement = true,
+               });
         QLJS_ASSERT(parsed_statement);
         break;
       }
@@ -3742,7 +3754,9 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
   this->error_on_function_statement(Statement_Kind::for_loop);
   this->error_on_lexical_declaration(Statement_Kind::for_loop);
   bool parsed_body =
-      this->parse_and_visit_statement(v, Parse_Statement_Type::no_declarations);
+      this->parse_and_visit_statement(v, Parse_Statement_Options{
+                                             .allow_let_declaration = false,
+                                         });
   if (!parsed_body) {
     this->diag_reporter_->report(Diag_Missing_Body_For_For_Statement{
         .for_and_header =
@@ -3782,7 +3796,9 @@ void Parser::parse_and_visit_while(Parse_Visitor_Base &v) {
   this->error_on_function_statement(Statement_Kind::while_loop);
   this->error_on_lexical_declaration(Statement_Kind::while_loop);
   bool parsed_body =
-      this->parse_and_visit_statement(v, Parse_Statement_Type::no_declarations);
+      this->parse_and_visit_statement(v, Parse_Statement_Options{
+                                             .allow_let_declaration = false,
+                                         });
   if (!parsed_body) {
     this->diag_reporter_->report(Diag_Missing_Body_For_While_Statement{
         .while_and_condition =
@@ -3808,7 +3824,9 @@ void Parser::parse_and_visit_with(Parse_Visitor_Base &v) {
 
   v.visit_enter_with_scope();
   bool parsed_body =
-      this->parse_and_visit_statement(v, Parse_Statement_Type::no_declarations);
+      this->parse_and_visit_statement(v, Parse_Statement_Options{
+                                             .allow_let_declaration = false,
+                                         });
   if (!parsed_body) {
     QLJS_PARSER_UNIMPLEMENTED();
   }
@@ -3843,8 +3861,10 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
       entered_block_scope = true;
     }
 
-    bool parsed_if_body = this->parse_and_visit_statement(
-        v, Parse_Statement_Type::no_declarations);
+    bool parsed_if_body =
+        this->parse_and_visit_statement(v, Parse_Statement_Options{
+                                               .allow_let_declaration = false,
+                                           });
     if (!parsed_if_body) {
       QLJS_PARSER_UNIMPLEMENTED();
     }

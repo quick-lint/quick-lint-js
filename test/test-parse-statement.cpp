@@ -90,8 +90,9 @@ TEST_F(Test_Parse_Statement, return_statement_disallows_newline) {
     Test_Parser p(u8"return\nx"_sv, capture_diags);
 
     // Parse 'return'.
-    p.parse_and_visit_statement(
-        Parser::Parse_Statement_Type::any_statement_in_block);
+    p.parse_and_visit_statement(Parser::Parse_Statement_Options{
+        .possibly_followed_by_another_statement = true,
+    });
     EXPECT_THAT(p.variable_uses, IsEmpty());
 
     // Parse 'x' (separate statement from 'return')
@@ -109,7 +110,9 @@ TEST_F(Test_Parse_Statement, return_statement_disallows_newline) {
     Test_Parser p(u8"if (true) return\nx"_sv);
 
     // Parse 'if (true) return'.
-    p.parse_and_visit_statement(Parser::Parse_Statement_Type::any_statement);
+    p.parse_and_visit_statement(Parser::Parse_Statement_Options{
+        .possibly_followed_by_another_statement = false,
+    });
     EXPECT_THAT(p.variable_uses, IsEmpty());
 
     // Parse 'x' (separate statement from 'return')

@@ -155,10 +155,12 @@ class Parser {
 
   void parse_and_visit_module(Parse_Visitor_Base &v);
 
-  enum class Parse_Statement_Type {
-    any_statement,
-    any_statement_in_block,
-    no_declarations,
+  struct Parse_Statement_Options {
+    // If false, 'let' can be a loop label or a variable reference, but not a
+    // variable declaration.
+    bool allow_let_declaration : 1 = true;
+
+    bool possibly_followed_by_another_statement : 1 = false;
   };
 
   // If a statement was parsed, this function returns true.
@@ -167,9 +169,11 @@ class Parser {
   // * no tokens are consumed
   // * no diagnostic is reported
   // * this function returns false
-  [[nodiscard]] bool parse_and_visit_statement(
-      Parse_Visitor_Base &v, Parse_Statement_Type statement_type =
-                                 Parse_Statement_Type::any_statement);
+  [[nodiscard]] bool parse_and_visit_statement(Parse_Visitor_Base &v) {
+    return this->parse_and_visit_statement(v, Parse_Statement_Options());
+  }
+  [[nodiscard]] bool parse_and_visit_statement(Parse_Visitor_Base &v,
+                                               Parse_Statement_Options options);
 
   void parse_and_visit_expression(Parse_Visitor_Base &v) {
     this->parse_and_visit_expression(v, Precedence{});
@@ -1062,7 +1066,7 @@ class Parser {
 
   void parse_end_of_expression_statement();
   void parse_and_visit_return_statement(
-      Parse_Visitor_Base &v, const Parse_Statement_Type &statement_type);
+      Parse_Visitor_Base &v, bool possibly_followed_by_another_statement);
   void parse_and_visit_throw_statement(Parse_Visitor_Base &v);
   void parse_and_visit_break_or_continue();
 

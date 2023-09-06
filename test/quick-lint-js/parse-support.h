@@ -108,9 +108,9 @@ class Test_Parser {
     EXPECT_TRUE(this->parser_.parse_and_visit_statement(this->errors_));
   }
 
-  void parse_and_visit_statement(Parser::Parse_Statement_Type statement_type) {
+  void parse_and_visit_statement(Parser::Parse_Statement_Options options) {
     EXPECT_TRUE(
-        this->parser_.parse_and_visit_statement(this->errors_, statement_type));
+        this->parser_.parse_and_visit_statement(this->errors_, options));
   }
 
   void parse_and_visit_module() {
