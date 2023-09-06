@@ -36,6 +36,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_DTS_Function_Cannot_Be_Generator) \
   QLJS_DIAG_TYPE_NAME(Diag_DTS_Function_Cannot_Have_Body) \
   QLJS_DIAG_TYPE_NAME(Diag_DTS_Missing_Declare_Or_Export) \
+  QLJS_DIAG_TYPE_NAME(Diag_DTS_Non_Declaring_Statement) \
   QLJS_DIAG_TYPE_NAME(Diag_DTS_Var_Cannot_Have_Initializer) \
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Class_Fields_Cannot_Have_Initializers) \
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Class_Methods_Cannot_Be_Async) \
@@ -407,7 +408,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 393;
+inline constexpr int Diag_Type_Count = 394;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

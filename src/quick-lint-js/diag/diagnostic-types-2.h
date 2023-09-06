@@ -233,6 +233,13 @@ struct Diag_DTS_Missing_Declare_Or_Export {
   Source_Code_Span declaring_token;
 };
 
+struct Diag_DTS_Non_Declaring_Statement {
+  [[qljs::diag("E0390", Diagnostic_Severity::error)]]  //
+  [[qljs::message(".d.ts files cannot contain statements, only declarations",
+                  ARG(first_statement_token))]]  //
+  Source_Code_Span first_statement_token;
+};
+
 struct Diag_DTS_Var_Cannot_Have_Initializer {
   [[qljs::diag("E0385", Diagnostic_Severity::error)]]  //
   [[qljs::message("{1} cannot have an initializer is a .d.ts file", ARG(equal),

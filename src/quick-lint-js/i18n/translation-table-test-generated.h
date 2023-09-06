@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[471] = {
+inline const Translated_String test_translation_table[472] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -884,6 +884,17 @@ inline const Translated_String test_translation_table[471] = {
             u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
             u8"'}' n\u00e3o \u00e9 permitido diretamente em um texto JSX; use {{'}'}",
             u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
+        },
+    },
+    {
+        ".d.ts files cannot contain statements, only declarations"_translatable,
+        u8".d.ts files cannot contain statements, only declarations",
+        {
+            u8".d.ts files cannot contain statements, only declarations",
+            u8".d.ts files cannot contain statements, only declarations",
+            u8".d.ts files cannot contain statements, only declarations",
+            u8".d.ts files cannot contain statements, only declarations",
+            u8".d.ts files cannot contain statements, only declarations",
         },
     },
     {

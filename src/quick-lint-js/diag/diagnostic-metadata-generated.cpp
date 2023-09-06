@@ -401,6 +401,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_DTS_Non_Declaring_Statement
+    {
+      .code = 390,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE(".d.ts files cannot contain statements, only declarations"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_DTS_Non_Declaring_Statement, first_statement_token), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_DTS_Var_Cannot_Have_Initializer
     {
       .code = 385,

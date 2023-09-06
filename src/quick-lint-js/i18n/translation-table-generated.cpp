@@ -89,7 +89,8 @@ const Translation_Table translation_data = {
         {69, 48, 0, 36, 0, 32},              //
         {0, 0, 0, 0, 0, 62},                 //
         {68, 25, 0, 65, 0, 28},              //
-        {83, 55, 66, 62, 49, 62},            //
+        {0, 0, 0, 0, 0, 62},                 //
+        {83, 55, 66, 62, 49, 57},            //
         {32, 32, 57, 34, 45, 38},            //
         {30, 33, 40, 30, 44, 33},            //
         {48, 16, 55, 35, 45, 48},            //
@@ -1837,6 +1838,7 @@ const Translation_Table translation_data = {
         u8"'{0}' operator cannot be used before '**' without parentheses\0"
         u8"'{1}' statement starts here\0"
         u8"'}' is not allowed directly in JSX text; write {{'}'} instead\0"
+        u8".d.ts files cannot contain statements, only declarations\0"
         u8"BigInt literal contains decimal point\0"
         u8"BigInt literal contains exponent\0"
         u8"C-style for loop is missing its third component\0"

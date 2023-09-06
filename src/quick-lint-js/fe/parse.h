@@ -165,6 +165,12 @@ class Parser {
     // If true, this is a .d.ts file (Parse_Options::typescript_definition_file
     // is true) and we are parsing a top-level statement.
     bool top_level_typescript_definition : 1 = false;
+
+    // If true, this is a .d.ts file (Parse_Options::typescript_definition_file
+    // is true) and we require that the statement declares something (e.g. a
+    // variable or interface). The statement does not necessarily need to use
+    // the 'declare' keyword.
+    bool require_declaration_in_typescript_definition_file : 1 = false;
   };
 
   // If a statement was parsed, this function returns true.
@@ -251,9 +257,14 @@ class Parser {
 
  private:
   void parse_and_visit_statement_block_no_scope(Parse_Visitor_Base &v);
+  void parse_and_visit_statement_block_no_scope(
+      Parse_Visitor_Base &v, Parse_Statement_Options statement_options);
   // Parses the closing '}', if present.
   void parse_and_visit_statement_block_after_left_curly(
       Parse_Visitor_Base &v, Source_Code_Span left_curly_span);
+  void parse_and_visit_statement_block_after_left_curly(
+      Parse_Visitor_Base &v, Source_Code_Span left_curly_span,
+      Parse_Statement_Options statement_options);
 
   enum class Name_Requirement {
     optional,

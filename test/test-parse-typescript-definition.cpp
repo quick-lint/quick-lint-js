@@ -246,6 +246,22 @@ TEST(Test_Parse_TypeScript_Definition,
         typescript_definition_options);
   }
 }
+
+TEST(Test_Parse_TypeScript_Definition,
+     non_declaring_statements_are_not_allowed) {
+  test_parse_and_visit_module(u8";"_sv,
+                              u8"^ Diag_DTS_Non_Declaring_Statement"_diag,
+                              typescript_definition_options);
+
+  test_parse_and_visit_module(
+      u8"declare namespace ns { ; }"_sv,
+      u8"                       ^ Diag_DTS_Non_Declaring_Statement"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"export namespace ns { ; }"_sv,
+      u8"                      ^ Diag_DTS_Non_Declaring_Statement"_diag,
+      typescript_definition_options);
+}
 }
 }
 

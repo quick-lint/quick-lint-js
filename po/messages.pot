@@ -222,6 +222,10 @@ msgid "'declare' or 'export' is required for {1} in .d.ts files"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid ".d.ts files cannot contain statements, only declarations"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "{1} cannot have an initializer is a .d.ts file"
 msgstr ""
 
