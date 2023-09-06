@@ -2836,6 +2836,17 @@ TEST_F(Test_Parse_Expression, function_with_destructuring_parameters) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "function");
   }
+  
+  {
+    Test_Parser p(u8"function({ a ) { c }"_sv, capture_diags);
+    p.parse_expression();
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8"         ^ Diag_Unclosed_Object_Literal.object_open\n"_diag
+            u8"            ` .expected_object_close"_diag,
+        });
+  }
 }
 
 TEST_F(Test_Parse_Expression, function_with_spread_and_comma) {
@@ -3026,6 +3037,17 @@ TEST_F(Test_Parse_Expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "spread(var args)");
+  } 
+  
+  {
+    Test_Parser p(u8"({ a, b ) => c"_sv, capture_diags);
+    p.parse_expression();
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            u8" ^ Diag_Unclosed_Object_Literal.object_open\n"_diag
+            u8"       ` .expected_object_close"_diag,
+        });
   }
 }
 
