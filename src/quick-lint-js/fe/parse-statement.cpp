@@ -36,11 +36,14 @@ bool Parser::parse_and_visit_module_catching_fatal_parse_errors(
 
 void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
   bool done = false;
+  Parse_Statement_Options statement_options = {
+      .possibly_followed_by_another_statement = true,
+      .top_level_typescript_definition =
+          this->options_.typescript_definition_file,
+  };
   while (!done) {
-    bool parsed_statement = this->parse_and_visit_statement(
-        v, Parse_Statement_Options{
-               .possibly_followed_by_another_statement = true,
-           });
+    bool parsed_statement =
+        this->parse_and_visit_statement(v, statement_options);
     if (!parsed_statement) {
       switch (this->peek().type) {
       case Token_Type::end_of_file:
@@ -100,7 +103,10 @@ parse_statement:
   case Token_Type::kw_var:
     // is_current_typescript_namespace_non_empty_ is possibly set by
     // parse_and_visit_variable_declaration_statement.
-    this->parse_and_visit_variable_declaration_statement(v);
+    this->parse_and_visit_variable_declaration_statement(
+        v,
+        /*is_top_level_typescript_definition_without_declare_or_export=*/options
+            .top_level_typescript_definition);
     break;
 
     // let x = 42;
@@ -129,9 +135,12 @@ parse_statement:
     } else {
       // Variable declaration.
       this->lexer_.commit_transaction(std::move(transaction));
-      this->parse_and_visit_let_bindings(v, Parse_Let_Bindings_Options{
-                                                .declaring_token = let_token,
-                                            });
+      this->parse_and_visit_let_bindings(
+          v, Parse_Let_Bindings_Options{
+                 .declaring_token = let_token,
+                 .is_top_level_typescript_definition_without_declare_or_export =
+                     options.top_level_typescript_definition,
+             });
       this->consume_semicolon_after_statement();
     }
     break;
@@ -163,6 +172,8 @@ parse_statement:
           v, Parse_Class_Options{
                  .require_name = Name_Requirement::required_for_statement,
                  .abstract_keyword_span = abstract_token,
+                 .is_top_level_typescript_definition_without_declare_or_export =
+                     options.top_level_typescript_definition,
              });
       break;
 
@@ -501,6 +512,8 @@ parse_statement:
         v, Parse_Class_Options{
                .require_name = Name_Requirement::required_for_statement,
                .abstract_keyword_span = std::nullopt,
+               .is_top_level_typescript_definition_without_declare_or_export =
+                   options.top_level_typescript_definition,
            });
     break;
 
@@ -618,6 +631,12 @@ parse_statement:
   case Token_Type::kw_enum:
     // is_current_typescript_namespace_non_empty_ is set by
     // parse_and_visit_typescript_enum.
+    if (options.top_level_typescript_definition) {
+      this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+          .expected = Source_Code_Span::unit(this->peek().begin),
+          .declaring_token = this->peek().span(),
+      });
+    }
     this->parse_and_visit_typescript_enum(v, Enum_Kind::normal);
     break;
 
@@ -2656,6 +2675,16 @@ Parser::parse_and_visit_typescript_namespace_or_module_head(
   // namespace ns { }
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case Token_Type::identifier: {
+    if (this->options_.typescript_definition_file &&
+        !this->in_typescript_namespace_or_module_ &&
+        !declare_keyword_span.has_value() && !export_keyword_span.has_value()) {
+      this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+          .expected =
+              Source_Code_Span::unit(namespace_or_module_keyword_span.begin()),
+          .declaring_token = namespace_or_module_keyword_span,
+      });
+    }
+
     Identifier namespace_identifier = this->peek().identifier_name();
     this->skip();
     while (this->peek().type == Token_Type::dot) {
@@ -4601,7 +4630,8 @@ done:
 }
 
 void Parser::parse_and_visit_variable_declaration_statement(
-    Parse_Visitor_Base &v) {
+    Parse_Visitor_Base &v,
+    bool is_top_level_typescript_definition_without_declare_or_export) {
   Token declaring_token = this->peek();
   QLJS_ASSERT(declaring_token.type == Token_Type::kw_const ||
               declaring_token.type == Token_Type::kw_let ||
@@ -4609,13 +4639,21 @@ void Parser::parse_and_visit_variable_declaration_statement(
   this->skip();
   if (this->peek().type == Token_Type::kw_enum &&
       declaring_token.type == Token_Type::kw_const) {
+    if (is_top_level_typescript_definition_without_declare_or_export) {
+      this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+          .expected = Source_Code_Span::unit(declaring_token.begin),
+          .declaring_token = this->peek().span(),
+      });
+    }
     this->parse_and_visit_typescript_enum(v, Enum_Kind::const_enum);
   } else {
     this->is_current_typescript_namespace_non_empty_ = true;
-    this->parse_and_visit_let_bindings(v,
-                                       Parse_Let_Bindings_Options{
-                                           .declaring_token = declaring_token,
-                                       });
+    this->parse_and_visit_let_bindings(
+        v, Parse_Let_Bindings_Options{
+               .declaring_token = declaring_token,
+               .is_top_level_typescript_definition_without_declare_or_export =
+                   is_top_level_typescript_definition_without_declare_or_export,
+           });
     this->consume_semicolon_after_statement();
   }
 }
@@ -4639,6 +4677,13 @@ void Parser::parse_and_visit_let_bindings(
     QLJS_ASSERT(false);
     declaration_kind = Variable_Kind::_let;
     break;
+  }
+
+  if (options.is_top_level_typescript_definition_without_declare_or_export) {
+    this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+        .expected = Source_Code_Span::unit(options.declaring_token.begin),
+        .declaring_token = options.declaring_token.span(),
+    });
   }
 
   Source_Code_Span let_span = options.declaring_token.span();

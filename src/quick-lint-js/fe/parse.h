@@ -161,6 +161,10 @@ class Parser {
     bool allow_let_declaration : 1 = true;
 
     bool possibly_followed_by_another_statement : 1 = false;
+
+    // If true, this is a .d.ts file (Parse_Options::typescript_definition_file
+    // is true) and we are parsing a top-level statement.
+    bool top_level_typescript_definition : 1 = false;
   };
 
   // If a statement was parsed, this function returns true.
@@ -365,6 +369,7 @@ class Parser {
     Name_Requirement require_name;
     std::optional<Source_Code_Span> abstract_keyword_span;
     std::optional<Source_Code_Span> declare_keyword_span;
+    bool is_top_level_typescript_definition_without_declare_or_export = false;
   };
 
   struct Parse_Class_Body_Options {
@@ -520,12 +525,16 @@ class Parser {
       std::optional<Source_Code_Span> typescript_type_only_keyword,
       Bump_Vector<Token, Monotonic_Allocator> *out_exported_bad_tokens);
 
-  void parse_and_visit_variable_declaration_statement(Parse_Visitor_Base &v);
+  void parse_and_visit_variable_declaration_statement(
+      Parse_Visitor_Base &v,
+      bool is_top_level_typescript_definition_without_declare_or_export =
+          false);
   struct Parse_Let_Bindings_Options {
     const Token &declaring_token;
     bool allow_in_operator = true;
     bool allow_const_without_initializer = false;
     bool is_in_for_initializer = false;
+    bool is_top_level_typescript_definition_without_declare_or_export = false;
 
     // If set, refers to the TypeScript 'declare' keyword in 'declare var x;'
     // for example.
@@ -1053,7 +1062,7 @@ class Parser {
   int depth_ = 0;
 
   // FIXME(#735): We should make this higher.
-  static constexpr const int stack_limit = 130;
+  static constexpr const int stack_limit = 125;
 
   // For testing and internal use only.
   [[nodiscard]] Loop_Guard enter_loop();

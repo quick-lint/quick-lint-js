@@ -27,6 +27,16 @@ void Parser::parse_and_visit_class(Parse_Visitor_Base &v,
   QLJS_ASSERT(this->peek().type == Token_Type::kw_class);
   Source_Code_Span class_keyword_span = this->peek().span();
 
+  if (options.is_top_level_typescript_definition_without_declare_or_export) {
+    this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+        .expected =
+            Source_Code_Span::unit(options.abstract_keyword_span.has_value()
+                                       ? options.abstract_keyword_span->begin()
+                                       : class_keyword_span.begin()),
+        .declaring_token = class_keyword_span,
+    });
+  }
+
   bool is_abstract_in_javascript =
       options.abstract_keyword_span.has_value() && !this->options_.typescript;
   bool is_declare_in_javascript =

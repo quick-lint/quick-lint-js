@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[467] = {
+inline const Translated_String test_translation_table[468] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -488,6 +488,17 @@ inline const Translated_String test_translation_table[467] = {
             u8"'declare' here",
             u8"'declare' here",
             u8"'declare' here",
+        },
+    },
+    {
+        "'declare' or 'export' is required for {1} in .d.ts files"_translatable,
+        u8"'declare' or 'export' is required for {1} in .d.ts files",
+        {
+            u8"'declare' or 'export' is required for {1} in .d.ts files",
+            u8"'declare' or 'export' is required for {1} in .d.ts files",
+            u8"'declare' or 'export' is required for {1} in .d.ts files",
+            u8"'declare' or 'export' is required for {1} in .d.ts files",
+            u8"'declare' or 'export' is required for {1} in .d.ts files",
         },
     },
     {

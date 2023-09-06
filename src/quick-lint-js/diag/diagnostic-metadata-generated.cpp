@@ -344,6 +344,21 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_DTS_Missing_Declare_Or_Export
+    {
+      .code = 386,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'declare' or 'export' is required for {1} in .d.ts files"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_DTS_Missing_Declare_Or_Export, expected), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_DTS_Missing_Declare_Or_Export, declaring_token), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_DTS_Var_Cannot_Have_Initializer
     {
       .code = 385,

@@ -54,6 +54,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 38},                 //
         {0, 0, 0, 0, 0, 27},                 //
         {0, 0, 0, 0, 0, 15},                 //
+        {0, 0, 0, 0, 0, 57},                 //
         {0, 0, 0, 0, 0, 61},                 //
         {71, 48, 0, 44, 0, 25},              //
         {18, 13, 53, 16, 51, 16},            //
@@ -1797,6 +1798,7 @@ const Translation_Table translation_data = {
         u8"'declare {1}' cannot have initializer\0"
         u8"'declare {1}' started here\0"
         u8"'declare' here\0"
+        u8"'declare' or 'export' is required for {1} in .d.ts files\0"
         u8"'declare' should not be written inside a 'declare namespace'\0"
         u8"'declare' specified here\0"
         u8"'do-while' loop\0"

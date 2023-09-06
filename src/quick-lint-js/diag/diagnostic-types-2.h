@@ -202,6 +202,14 @@ struct Diag_Cyclic_TypeScript_Type_Definition {
   Variable_Kind kind;
 };
 
+struct Diag_DTS_Missing_Declare_Or_Export {
+  [[qljs::diag("E0386", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'declare' or 'export' is required for {1} in .d.ts files",
+                  ARG(expected), ARG(declaring_token))]]  //
+  Source_Code_Span expected;
+  Source_Code_Span declaring_token;
+};
+
 struct Diag_DTS_Var_Cannot_Have_Initializer {
   [[qljs::diag("E0385", Diagnostic_Severity::error)]]  //
   [[qljs::message("{1} cannot have an initializer is a .d.ts file", ARG(equal),

@@ -5,6 +5,7 @@
 // TypeScript definition files.
 
 #include <gtest/gtest.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/port/char8.h>
@@ -14,6 +15,21 @@ namespace {
 TEST(Test_Parse_TypeScript_Definition, const_without_initializer_is_allowed) {
   test_parse_and_visit_statement(u8"export const c;"_sv, no_diags,
                                  typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, import_is_allowed) {
+  test_parse_and_visit_module(u8"import {A, B, C} from 'mod';"_sv, no_diags,
+                              typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, type_alias_is_allowed) {
+  test_parse_and_visit_module(u8"type T = null;"_sv, no_diags,
+                              typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, interface_is_allowed) {
+  test_parse_and_visit_module(u8"interface I { }"_sv, no_diags,
+                              typescript_definition_options);
 }
 
 TEST(Test_Parse_TypeScript_Definition, variables_must_have_no_initializer) {
@@ -43,6 +59,145 @@ TEST(Test_Parse_TypeScript_Definition, variables_must_have_no_initializer) {
       u8"             ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
       u8"       ^^^ .declaring_token"_diag,
       typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, variables_require_export_or_declare) {
+  test_parse_and_visit_module(
+      u8"const x;"_sv,  //
+      u8"^^^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"let x;"_sv,  //
+      u8"^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"var x;"_sv,  //
+      u8"^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+
+  test_parse_and_visit_module(u8"declare const x;"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export const x;"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"declare let x;"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export let x;"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"declare var x;"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export var x;"_sv, no_diags,
+                              typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, enums_require_export_or_declare) {
+  test_parse_and_visit_module(
+      u8"enum E {}"_sv,  //
+      u8"^^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"const enum E {}"_sv,  //
+      u8"      ^^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+
+  test_parse_and_visit_module(u8"declare enum E {}"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export enum E {}"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"declare const enum E {}"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export const enum E {}"_sv, no_diags,
+                              typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, classes_require_export_or_declare) {
+  test_parse_and_visit_module(
+      u8"class C {}"_sv,  //
+      u8"^^^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"abstract class C {}"_sv,  //
+      u8"         ^^^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+
+  test_parse_and_visit_module(u8"declare class C {}"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export class C {}"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"declare abstract class C {}"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export abstract class C {}"_sv, no_diags,
+                              typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, namespaces_require_export_or_declare) {
+  test_parse_and_visit_module(
+      u8"namespace ns {}"_sv,  //
+      u8"^^^^^^^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"module ns {}"_sv,  //
+      u8"^^^^^^ Diag_DTS_Missing_Declare_Or_Export.declaring_token\n"_diag
+      u8"` .expected"_diag,
+      typescript_definition_options);
+
+  test_parse_and_visit_module(u8"declare namespace ns {}"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export namespace ns {}"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"declare module ns {}"_sv, no_diags,
+                              typescript_definition_options);
+  test_parse_and_visit_module(u8"export module ns {}"_sv, no_diags,
+                              typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, named_module_require_declare) {
+  test_parse_and_visit_module(
+      u8"module 'mymod' {}"_sv,  //
+      u8"       ^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"export module 'mymod' {}"_sv,  //
+      u8"              ^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module"_diag,
+      typescript_definition_options);
+
+  test_parse_and_visit_module(u8"declare module 'mymod' {}"_sv, no_diags,
+                              typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition,
+     statements_inside_namespace_do_not_require_export_or_declare) {
+  for (String8_View statement : {
+           u8"const enum E {}"_sv,
+           u8"enum E {}"_sv,
+           u8"namespace ns {}"_sv,
+           u8"module ns {}"_sv,
+           u8"const x;"_sv,
+           u8"let x;"_sv,
+           u8"var x;"_sv,
+           u8"interface I {}"_sv,
+           u8"type T = null;"_sv,
+       }) {
+    test_parse_and_visit_module(
+        concat(u8"declare namespace ns { "_sv, statement, u8" }"_sv), no_diags,
+        typescript_definition_options);
+    test_parse_and_visit_module(
+        concat(u8"export namespace ns { "_sv, statement, u8" }"_sv), no_diags,
+        typescript_definition_options);
+    test_parse_and_visit_module(
+        concat(u8"declare module ns { "_sv, statement, u8" }"_sv), no_diags,
+        typescript_definition_options);
+    test_parse_and_visit_module(
+        concat(u8"export module ns { "_sv, statement, u8" }"_sv), no_diags,
+        typescript_definition_options);
+  }
 }
 }
 }
