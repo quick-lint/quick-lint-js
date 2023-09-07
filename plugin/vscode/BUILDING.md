@@ -15,7 +15,7 @@ CMake][build-quick-lint-js] with `-DQUICK_LINT_JS_ENABLE_VSCODE=YES
     $ # Copy files into the VS Code extension:
     $ cmake --install build --component vscode-node --prefix plugin/vscode
 
-Finally, run the following commands to create `quick-lint-js-2.15.0.vsix`:
+Finally, run the following commands to create `quick-lint-js-2.16.0.vsix`:
 
     $ cd plugin/vscode/  # Navigate to this directory.
     $ yarn
