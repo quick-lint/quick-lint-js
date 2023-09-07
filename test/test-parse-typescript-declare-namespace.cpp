@@ -1029,6 +1029,7 @@ TEST_F(
       u8"switch (true) { default: declare namespace ns { break; } }"_sv,  //
       u8"                                                ^^^^^ Diag_Invalid_Break"_diag,
       typescript_options);
+
   test_parse_and_visit_module(
       u8"declare namespace ns { continue; }"_sv,  //
       u8"                       ^^^^^^^^ Diag_Invalid_Continue"_diag,
@@ -1036,6 +1037,19 @@ TEST_F(
   test_parse_and_visit_module(
       u8"for (;;) { declare namespace ns { continue; } }"_sv,  //
       u8"                                  ^^^^^^^^ Diag_Invalid_Continue"_diag,
+      typescript_options);
+
+  test_parse_and_visit_module(
+      u8"declare namespace ns { else { } }"_sv,  //
+      u8"                       ^^^^ Diag_Else_Has_No_If"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"declare namespace ns { catch { } }"_sv,  //
+      u8"                       ^^^^^ Diag_Catch_Without_Try"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"declare namespace ns { finally { } }"_sv,  //
+      u8"                       ^^^^^^^ Diag_Finally_Without_Try"_diag,
       typescript_options);
 }
 

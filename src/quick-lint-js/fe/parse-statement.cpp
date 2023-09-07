@@ -2910,37 +2910,6 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
       case Token_Type::regexp:
         QLJS_UNREACHABLE();
         break;
-
-      case Token_Type::colon:
-      case Token_Type::dot_dot_dot:
-      case Token_Type::kw_case:
-      case Token_Type::kw_catch:
-      case Token_Type::kw_default:
-      case Token_Type::kw_else:
-      case Token_Type::kw_extends:
-      case Token_Type::kw_finally:
-      case Token_Type::question:
-      case Token_Type::question_dot:
-      case Token_Type::right_square: {
-        this->is_current_typescript_namespace_non_empty_ = true;
-        if (this->options_.typescript_definition_file) {
-          this->diag_reporter_->report(Diag_DTS_Non_Declaring_Statement{
-              .first_statement_token = this->peek().span(),
-          });
-        } else {
-          this->diag_reporter_->report(
-              Diag_Declare_Namespace_Cannot_Contain_Statement{
-                  .first_statement_token = this->peek().span(),
-                  .declare_keyword = declare_keyword_span,
-              });
-        }
-        bool parsed_statement = this->parse_and_visit_statement(
-            v, Parse_Statement_Options{
-                   .possibly_followed_by_another_statement = true,
-               });
-        QLJS_ASSERT(parsed_statement);
-        break;
-      }
       }
     }
   stop_parsing_body:
