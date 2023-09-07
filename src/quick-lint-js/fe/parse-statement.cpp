@@ -2845,25 +2845,6 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
     v.visit_enter_namespace_scope();
     for (;;) {
       switch (this->peek().type) {
-      // TODO(strager): Deduplicate list with
-      // parse_and_visit_possible_declare_statement.
-      case Token_Type::kw_abstract:
-      case Token_Type::kw_async:
-      case Token_Type::kw_class:
-      case Token_Type::kw_const:
-      case Token_Type::kw_enum:
-      case Token_Type::kw_function:
-      case Token_Type::kw_import:
-      case Token_Type::kw_interface:
-      case Token_Type::kw_let:
-      case Token_Type::kw_module:
-      case Token_Type::kw_namespace:
-      case Token_Type::kw_type:
-      case Token_Type::kw_var:
-        this->is_current_typescript_namespace_non_empty_ = true;
-        this->parse_and_visit_declare_statement(v, declare_context);
-        break;
-
       case Token_Type::kw_export:
         this->is_current_typescript_namespace_non_empty_ = true;
         this->parse_and_visit_export(v, declare_context);
@@ -2894,18 +2875,22 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
         break;
       }
 
-      default: {
-        // require_declaration will cause parse_and_visit_statement to report
-        // Diag_Declare_Namespace_Cannot_Contain_Statement.
-        bool parsed_statement = this->parse_and_visit_statement(
-            v, Parse_Statement_Options{
-                   .possibly_followed_by_another_statement = true,
-                   .require_declaration = true,
-                   .declare_keyword = declare_keyword_span,
-               });
-        QLJS_ASSERT(parsed_statement);
+      default:
+        if (this->is_declare_statement_start_token(this->peek().type)) {
+          this->is_current_typescript_namespace_non_empty_ = true;
+          this->parse_and_visit_declare_statement(v, declare_context);
+        } else {
+          // require_declaration will cause parse_and_visit_statement to report
+          // Diag_Declare_Namespace_Cannot_Contain_Statement.
+          bool parsed_statement = this->parse_and_visit_statement(
+              v, Parse_Statement_Options{
+                     .possibly_followed_by_another_statement = true,
+                     .require_declaration = true,
+                     .declare_keyword = declare_keyword_span,
+                 });
+          QLJS_ASSERT(parsed_statement);
+        }
         break;
-      }
 
       case Token_Type::regexp:
         QLJS_UNREACHABLE();
@@ -5447,34 +5432,19 @@ Parser::parse_and_visit_possible_declare_statement(Parse_Visitor_Base &v) {
     return Parse_Possible_Declare_Result::declare_is_expression_or_loop_label;
   }
 
-  switch (this->peek().type) {
-  // declare class C { }
-  // declare import fs from 'fs';  // Invalid.
-  // declare import ns = otherns;  // Invalid.
-  case Token_Type::kw_abstract:
-  case Token_Type::kw_async:
-  case Token_Type::kw_class:
-  case Token_Type::kw_const:
-  case Token_Type::kw_enum:
-  case Token_Type::kw_function:
-  case Token_Type::kw_import:
-  case Token_Type::kw_interface:
-  case Token_Type::kw_let:
-  case Token_Type::kw_module:
-  case Token_Type::kw_namespace:
-  case Token_Type::kw_type:
-  case Token_Type::kw_var:
+  if (this->is_declare_statement_start_token(this->peek().type)) {
+    // declare class C { }
+    // declare import fs from 'fs';  // Invalid.
+    // declare import ns = otherns;  // Invalid.
     this->lexer_.commit_transaction(std::move(transaction));
     this->parse_and_visit_declare_statement(
         v, TypeScript_Declare_Context{
                .direct_declare_keyword = declare_keyword_span,
            });
     return Parse_Possible_Declare_Result::parsed;
-
-  // declare:  // Label.
-  // declare();
-  case Token_Type::colon:
-  default:
+  } else {
+    // declare:  // Label.
+    // declare();
     this->lexer_.roll_back_transaction(std::move(transaction));
     return Parse_Possible_Declare_Result::declare_is_expression_or_loop_label;
   }
@@ -5704,6 +5674,27 @@ void Parser::parse_and_visit_declare_statement(
   default:
     QLJS_ASSERT(false);
     break;
+  }
+}
+
+bool Parser::is_declare_statement_start_token(Token_Type token_type) {
+  switch (token_type) {
+  case Token_Type::kw_abstract:
+  case Token_Type::kw_async:
+  case Token_Type::kw_class:
+  case Token_Type::kw_const:
+  case Token_Type::kw_enum:
+  case Token_Type::kw_function:
+  case Token_Type::kw_import:
+  case Token_Type::kw_interface:
+  case Token_Type::kw_let:
+  case Token_Type::kw_module:
+  case Token_Type::kw_namespace:
+  case Token_Type::kw_type:
+  case Token_Type::kw_var:
+    return true;
+  default:
+    return false;
   }
 }
 }

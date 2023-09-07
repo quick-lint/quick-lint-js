@@ -1118,8 +1118,10 @@ class Parser {
 
   // Precondition: declare_context.declare_namespace_declare_keyword.has_value()
   //               || declare_context.direct_declare_keyword.has_value()
+  // Precondition: is_declare_statement_start_token(this->peek().type)
   void parse_and_visit_declare_statement(
       Parse_Visitor_Base &v, const TypeScript_Declare_Context &declare_context);
+  bool is_declare_statement_start_token(Token_Type);
 };
 
 template <class Expected_Parentheses_Error, class Expected_Parenthesis_Error,
