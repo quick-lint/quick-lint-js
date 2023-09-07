@@ -290,6 +290,15 @@ var Steps []Step = []Step{
 	},
 
 	Step{
+		Title: "Announce release in IRC",
+		Run: func() {
+			fmt.Printf("Write the following message in IRC:\n")
+			fmt.Printf("Version %s released: https://quick-lint-js.com/releases/#%s\n", ReleaseVersion, ReleaseVersion)
+			WaitForDone()
+		},
+	},
+
+	Step{
 		Title: "Push to master",
 		Run: func() {
 			fmt.Printf("Push the commit to the `master` branch on GitHub.\n")
