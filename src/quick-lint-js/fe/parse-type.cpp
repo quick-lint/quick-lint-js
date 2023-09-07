@@ -64,6 +64,27 @@ void Parser::parse_and_visit_typescript_type_expression(
     this->skip();
   }
 
+  auto maybe_parse_dots_after_generic_arguments = [this]() -> void {
+    while (this->peek().type == Token_Type::dot) {
+      Source_Code_Span dot_span = this->peek().span();
+      this->skip();
+      switch (this->peek().type) {
+      QLJS_CASE_KEYWORD:
+      case Token_Type::identifier:
+        this->diag_reporter_->report(
+            Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type{
+                .dot = dot_span,
+                .property_name = this->peek().span(),
+            });
+        this->skip();
+        break;
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+    }
+  };
+
 again:
   std::optional<Source_Code_Span> readonly_keyword;
   if (this->peek().type == Token_Type::kw_readonly) {
@@ -439,24 +460,7 @@ again:
     if (this->peek().type == Token_Type::less) {
       this->parse_and_visit_typescript_generic_arguments(v);
     }
-    while (this->peek().type == Token_Type::dot) {
-      Source_Code_Span dot_span = this->peek().span();
-      this->skip();
-      switch (this->peek().type) {
-      QLJS_CASE_KEYWORD:
-      case Token_Type::identifier:
-        this->diag_reporter_->report(
-            Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type{
-                .dot = dot_span,
-                .property_name = this->peek().span(),
-            });
-        this->skip();
-        break;
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
-        break;
-      }
-    }
+    maybe_parse_dots_after_generic_arguments();
     break;
 
   // keyof Type
@@ -464,6 +468,43 @@ again:
     this->skip();
     this->parse_and_visit_typescript_type_expression(v, parse_options);
     break;
+
+  // import("module").Name
+  case Token_Type::kw_import: {
+    Source_Code_Span import_keyword_span = this->peek().span();
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::left_paren);
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::string);
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
+    const Char8 *right_paren_end = this->peek().end;
+    this->skip();
+    if (this->peek().type != Token_Type::dot) {
+      this->diag_reporter_->report(
+          Diag_TypeScript_Import_Type_Missing_Export_Name{
+              .expected_export_name = Source_Code_Span::unit(right_paren_end),
+              .import_keyword = import_keyword_span,
+          });
+    }
+    while (this->peek().type == Token_Type::dot) {
+      this->skip();
+      switch (this->peek().type) {
+      QLJS_CASE_KEYWORD:
+      case Token_Type::identifier:
+        this->skip();
+        break;
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+    }
+    if (this->peek().type == Token_Type::less) {
+      this->parse_and_visit_typescript_generic_arguments(v);
+    }
+    maybe_parse_dots_after_generic_arguments();
+    break;
+  }
 
   case Token_Type::comma:
   case Token_Type::end_of_file:

@@ -1991,6 +1991,14 @@ struct Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript {
   Source_Code_Span export_keyword;
 };
 
+struct Diag_TypeScript_Import_Type_Missing_Export_Name {
+  [[qljs::diag("E0391", Diagnostic_Severity::error)]]  //
+  [[qljs::message("missing exported name in import type",
+                  ARG(expected_export_name))]]  //
+  Source_Code_Span expected_export_name;
+  Source_Code_Span import_keyword;
+};
+
 struct Diag_TypeScript_Implements_Must_Be_After_Extends {
   [[qljs::diag("E0246", Diagnostic_Severity::error)]]  //
   [[qljs::message("'extends' must be before 'implements'",

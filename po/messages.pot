@@ -1294,6 +1294,10 @@ msgid "'export' keyword here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "missing exported name in import type"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'extends' must be before 'implements'"
 msgstr ""
 

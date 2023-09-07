@@ -18,6 +18,7 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * Invalid recursive type definitions such as `type T = T;` now report
     [E0384][] ("cannot use type directly in its own definition").
+  * quick-lint-js now recognizes `import` types.
   * quick-lint-js now recognizes `.d.ts` files:
     * CLI: `--language=experimental-typescript-definition`
     * LSP server: `typescriptdefinition`; `typescript` will detect from the URI,
