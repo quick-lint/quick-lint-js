@@ -12,6 +12,8 @@ Semantic Versioning.
 
 * `2 ^ 8` now reports [E0710][] ("'^' is the XOR operator; to exponentiate, use
   '\*\*' instead"). (Implemented by [pedrobl1718][].)
+* A missing `}` in a function parameter list now reports [E0161][] ("unclosed
+  object literal; expected '}'"). (Implemented by [Yash Masani][].)
 * quick-lint-js now builds on Alpine Linux and other musl-based distributions.
 * TypeScript support (still experimental):
   * Invalid recursive type definitions such as `type T = T;` now report
@@ -1032,6 +1034,7 @@ Beta release.
 [Shivam Mehta]: https://github.com/maniac-en
 [Tom Binford]: https://github.com/TomBinford
 [Tony Sathre]: https://github.com/tonysathre
+[Yash Masani]: https://github.com/yashmasani
 [Yunus]: https://github.com/yunusey
 [clegoz]: https://github.com/clegoz
 [daethtech]: https://github.com/daethtech
@@ -1159,3 +1162,4 @@ Beta release.
 [E0708]: https://quick-lint-js.com/errors/E0708/
 [E0709]: https://quick-lint-js.com/errors/E0709/
 [E0710]: https://quick-lint-js.com/errors/E0710/
+[E0161]: https://quick-lint-js.com/errors/E0161/
