@@ -2895,93 +2895,9 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
         break;
       }
 
-      QLJS_CASE_BINARY_ONLY_OPERATOR:
-      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL:
-      QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
-      case Token_Type::bang:
-      case Token_Type::comma:
-      case Token_Type::complete_template:
-      case Token_Type::dot:
-      case Token_Type::equal:
-      case Token_Type::equal_greater:
-      case Token_Type::identifier:
-      case Token_Type::incomplete_template:
-      case Token_Type::kw_any:
-      case Token_Type::kw_as:
-      case Token_Type::kw_assert:
-      case Token_Type::kw_asserts:
-      case Token_Type::kw_await:
-      case Token_Type::kw_bigint:
-      case Token_Type::kw_boolean:
-      case Token_Type::kw_break:
-      case Token_Type::kw_constructor:
-      case Token_Type::kw_continue:
-      case Token_Type::kw_debugger:
-      case Token_Type::kw_delete:
-      case Token_Type::kw_do:
-      case Token_Type::kw_false:
-      case Token_Type::kw_for:
-      case Token_Type::kw_from:
-      case Token_Type::kw_get:
-      case Token_Type::kw_global:
-      case Token_Type::kw_if:
-      case Token_Type::kw_implements:
-      case Token_Type::kw_in:
-      case Token_Type::kw_infer:
-      case Token_Type::kw_intrinsic:
-      case Token_Type::kw_is:
-      case Token_Type::kw_keyof:
-      case Token_Type::kw_never:
-      case Token_Type::kw_new:
-      case Token_Type::kw_null:
-      case Token_Type::kw_number:
-      case Token_Type::kw_object:
-      case Token_Type::kw_of:
-      case Token_Type::kw_out:
-      case Token_Type::kw_override:
-      case Token_Type::kw_package:
-      case Token_Type::kw_private:
-      case Token_Type::kw_protected:
-      case Token_Type::kw_public:
-      case Token_Type::kw_readonly:
-      case Token_Type::kw_require:
-      case Token_Type::kw_return:
-      case Token_Type::kw_satisfies:
-      case Token_Type::kw_set:
-      case Token_Type::kw_static:
-      case Token_Type::kw_string:
-      case Token_Type::kw_super:
-      case Token_Type::kw_switch:
-      case Token_Type::kw_symbol:
-      case Token_Type::kw_this:
-      case Token_Type::kw_throw:
-      case Token_Type::kw_true:
-      case Token_Type::kw_try:
-      case Token_Type::kw_typeof:
-      case Token_Type::kw_undefined:
-      case Token_Type::kw_unique:
-      case Token_Type::kw_unknown:
-      case Token_Type::kw_void:
-      case Token_Type::kw_while:
-      case Token_Type::kw_with:
-      case Token_Type::kw_yield:
-      case Token_Type::left_curly:
-      case Token_Type::left_paren:
-      case Token_Type::left_square:
-      case Token_Type::less:
-      case Token_Type::minus:
-      case Token_Type::minus_minus:
-      case Token_Type::number:
-      case Token_Type::plus:
-      case Token_Type::plus_plus:
-      case Token_Type::private_identifier:
-      case Token_Type::reserved_keyword_with_escape_sequence:
-      case Token_Type::right_paren:
-      case Token_Type::semicolon:
-      case Token_Type::slash:
-      case Token_Type::slash_equal:
-      case Token_Type::string:
-      case Token_Type::tilde: {
+      default: {
+        // require_declaration will cause parse_and_visit_statement to report
+        // Diag_Declare_Namespace_Cannot_Contain_Statement.
         bool parsed_statement = this->parse_and_visit_statement(
             v, Parse_Statement_Options{
                    .possibly_followed_by_another_statement = true,
