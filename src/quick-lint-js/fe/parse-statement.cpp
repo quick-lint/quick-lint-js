@@ -370,6 +370,7 @@ parse_statement:
   case Token_Type::string:
   case Token_Type::tilde: {
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     if (this->peek().type == Token_Type::star) {
       // * 42; // Invalid (missing operand).
       // *function f() {} // Invalid (misplaced '*').
@@ -398,6 +399,7 @@ parse_statement:
     // await: for(;;);
   case Token_Type::kw_await: {
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     Token await_token = this->peek();
     this->skip();
     if (this->peek().type == Token_Type::colon) {
@@ -425,6 +427,7 @@ parse_statement:
     // yield: for(;;);
   case Token_Type::kw_yield:
     if (this->in_generator_function_) {
+      on_non_declaring_statement();
       this->parse_and_visit_expression(v);
       this->parse_end_of_expression_statement();
       break;
@@ -468,6 +471,7 @@ parse_statement:
   case Token_Type::kw_undefined:
   case Token_Type::kw_unique:
   case Token_Type::kw_unknown: {
+    on_non_declaring_statement();
     Token_Type ident_token_type = this->peek().type;
     Identifier ident = this->peek().identifier_name();
     this->skip();
@@ -546,6 +550,7 @@ parse_statement:
     // switch (x) { default: ; }
   case Token_Type::kw_switch:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_switch(v);
     break;
 
@@ -553,6 +558,7 @@ parse_statement:
     // return 42;
   case Token_Type::kw_return:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_return_statement(
         v, /*possibly_followed_by_another_statement=*/options
                .possibly_followed_by_another_statement);
@@ -561,12 +567,14 @@ parse_statement:
     // throw fit;
   case Token_Type::kw_throw:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_throw_statement(v);
     break;
 
     // try { hard(); } catch (exhaustion) {}
   case Token_Type::kw_try:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_try_maybe_catch_maybe_finally(v);
     break;
 
@@ -595,6 +603,7 @@ parse_statement:
     // do { } while (can);
   case Token_Type::kw_do:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_do_while(v);
     break;
 
@@ -602,24 +611,28 @@ parse_statement:
     // for (let x of xs) {}
   case Token_Type::kw_for:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_for(v);
     break;
 
     // while (cond) {}
   case Token_Type::kw_while:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_while(v);
     break;
 
     // with (o) { eek(); }
   case Token_Type::kw_with:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_with(v);
     break;
 
     // if (cond) { yay; } else { nay; }
   case Token_Type::kw_if:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_if(v);
     break;
 
@@ -643,12 +656,14 @@ parse_statement:
   case Token_Type::kw_break:
   case Token_Type::kw_continue:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->parse_and_visit_break_or_continue();
     break;
 
     // debugger;
   case Token_Type::kw_debugger:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->skip();
     this->consume_semicolon_after_statement();
     break;
@@ -669,6 +684,7 @@ parse_statement:
     // { statement; statement; }
   case Token_Type::left_curly:
     this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     v.visit_enter_block_scope();
     this->parse_and_visit_statement_block_no_scope(v);
     v.visit_exit_block_scope();
@@ -2879,7 +2895,93 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
         break;
       }
 
-      case Token_Type::semicolon: {
+      QLJS_CASE_BINARY_ONLY_OPERATOR:
+      QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL:
+      QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
+      case Token_Type::bang:
+      case Token_Type::comma:
+      case Token_Type::complete_template:
+      case Token_Type::dot:
+      case Token_Type::equal:
+      case Token_Type::equal_greater:
+      case Token_Type::identifier:
+      case Token_Type::incomplete_template:
+      case Token_Type::kw_any:
+      case Token_Type::kw_as:
+      case Token_Type::kw_assert:
+      case Token_Type::kw_asserts:
+      case Token_Type::kw_await:
+      case Token_Type::kw_bigint:
+      case Token_Type::kw_boolean:
+      case Token_Type::kw_break:
+      case Token_Type::kw_constructor:
+      case Token_Type::kw_continue:
+      case Token_Type::kw_debugger:
+      case Token_Type::kw_delete:
+      case Token_Type::kw_do:
+      case Token_Type::kw_false:
+      case Token_Type::kw_for:
+      case Token_Type::kw_from:
+      case Token_Type::kw_get:
+      case Token_Type::kw_global:
+      case Token_Type::kw_if:
+      case Token_Type::kw_implements:
+      case Token_Type::kw_in:
+      case Token_Type::kw_infer:
+      case Token_Type::kw_intrinsic:
+      case Token_Type::kw_is:
+      case Token_Type::kw_keyof:
+      case Token_Type::kw_never:
+      case Token_Type::kw_new:
+      case Token_Type::kw_null:
+      case Token_Type::kw_number:
+      case Token_Type::kw_object:
+      case Token_Type::kw_of:
+      case Token_Type::kw_out:
+      case Token_Type::kw_override:
+      case Token_Type::kw_package:
+      case Token_Type::kw_private:
+      case Token_Type::kw_protected:
+      case Token_Type::kw_public:
+      case Token_Type::kw_readonly:
+      case Token_Type::kw_require:
+      case Token_Type::kw_return:
+      case Token_Type::kw_satisfies:
+      case Token_Type::kw_set:
+      case Token_Type::kw_static:
+      case Token_Type::kw_string:
+      case Token_Type::kw_super:
+      case Token_Type::kw_switch:
+      case Token_Type::kw_symbol:
+      case Token_Type::kw_this:
+      case Token_Type::kw_throw:
+      case Token_Type::kw_true:
+      case Token_Type::kw_try:
+      case Token_Type::kw_typeof:
+      case Token_Type::kw_undefined:
+      case Token_Type::kw_unique:
+      case Token_Type::kw_unknown:
+      case Token_Type::kw_void:
+      case Token_Type::kw_while:
+      case Token_Type::kw_with:
+      case Token_Type::kw_yield:
+      case Token_Type::left_curly:
+      case Token_Type::left_paren:
+      case Token_Type::left_square:
+      case Token_Type::less:
+      case Token_Type::minus:
+      case Token_Type::minus_minus:
+      case Token_Type::number:
+      case Token_Type::plus:
+      case Token_Type::plus_plus:
+      case Token_Type::private_identifier:
+      case Token_Type::reserved_keyword_with_escape_sequence:
+      case Token_Type::right_paren:
+      case Token_Type::semicolon:
+      case Token_Type::slash:
+      case Token_Type::slash_equal:
+      case Token_Type::string:
+      case Token_Type::tilde: {
         bool parsed_statement = this->parse_and_visit_statement(
             v, Parse_Statement_Options{
                    .possibly_followed_by_another_statement = true,
@@ -2890,6 +2992,7 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
         break;
       }
 
+      // TODO(strager): Don't use 'default'.
       default: {
         this->is_current_typescript_namespace_non_empty_ = true;
         if (this->options_.typescript_definition_file) {

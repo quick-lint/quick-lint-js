@@ -976,9 +976,54 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
       u8"                       ^^^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
       typescript_options);
 
+  for (String8_View statement : {
+           // Expressions:
+           u8"!true;"_sv,
+           u8"false;"_sv,
+           u8"this.method();"_sv,
+           u8"void [];"_sv,
+           u8"[].map(f);"_sv,
+           u8"'use strict';"_sv,
+           u8"await myPromise;"_sv,
+           u8"yield (null);"_sv,
+           u8"implements;"_sv,
+
+           u8";"_sv,
+           u8"switch (true) {}"_sv,
+           u8"return;"_sv,
+           u8"throw null;"_sv,
+           u8"try {} catch {}"_sv,
+           u8"do {} while (false);"_sv,
+           u8"for (;;);"_sv,
+           u8"while (true);"_sv,
+           u8"with ({}) {}"_sv,
+           u8"if (true) {}"_sv,
+           u8"debugger;"_sv,
+           u8"{ }"_sv,
+       }) {
+    test_parse_and_visit_module(
+        concat(u8"declare namespace ns { "_sv, statement, u8" }"_sv),  //
+        u8"Diag_Declare_Namespace_Cannot_Contain_Statement"_diag,      //
+        typescript_options);
+  }
+
   test_parse_and_visit_module(
-      u8"declare namespace ns { ; }"_sv,  //
-      u8"                       ^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
+      u8"declare namespace ns { \\u{69}f; }"_sv,  //
+      u8"                       ^^^^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
+      u8"                       ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
+      typescript_options);
+
+  // TODO(strager): Perhaps we should only emit
+  // Diag_Invalid_Break/Diag_Invalid_Continue.
+  test_parse_and_visit_module(
+      u8"declare namespace ns { break; }"_sv,  //
+      u8"                       ^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
+      u8"                       ^^^^^ Diag_Invalid_Break"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"declare namespace ns { continue; }"_sv,  //
+      u8"                       ^^^^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
+      u8"                       ^^^^^^^^ Diag_Invalid_Continue"_diag,
       typescript_options);
 }
 
