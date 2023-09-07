@@ -70,18 +70,8 @@ void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
 bool Parser::parse_and_visit_statement(Parse_Visitor_Base &v,
                                        Parse_Statement_Options options) {
   Depth_Guard d_guard(this);
-parse_statement:
-  switch (this->peek().type) {
-    // export class C {}
-    // export {taco} from "taco-stand";
-  case Token_Type::kw_export:
-    // is_current_typescript_namespace_non_empty_ is possibly set by
-    // parse_and_visit_export.
-    this->parse_and_visit_export(v);
-    break;
 
-  case Token_Type::semicolon:
-    this->is_current_typescript_namespace_non_empty_ = true;
+  auto on_non_declaring_statement = [&]() -> void {
     if (options.require_declaration) {
       if (this->options_.typescript_definition_file) {
         this->diag_reporter_->report(Diag_DTS_Non_Declaring_Statement{
@@ -96,6 +86,21 @@ parse_statement:
             });
       }
     }
+  };
+
+parse_statement:
+  switch (this->peek().type) {
+    // export class C {}
+    // export {taco} from "taco-stand";
+  case Token_Type::kw_export:
+    // is_current_typescript_namespace_non_empty_ is possibly set by
+    // parse_and_visit_export.
+    this->parse_and_visit_export(v);
+    break;
+
+  case Token_Type::semicolon:
+    this->is_current_typescript_namespace_non_empty_ = true;
+    on_non_declaring_statement();
     this->skip();
     break;
 
