@@ -370,7 +370,7 @@ var Steps []Step = []Step{
 			// 'brew bump-formula-pr' command?
 			// https://github.com/Homebrew/homebrew-core/blob/b617c112ea50e4943de6b4ed9f218a4d805ed2eb/CONTRIBUTING.md#to-submit-a-version-upgrade-for-the-foo-formula
 			fmt.Printf("1. Run: brew update\n")
-			fmt.Printf("2. Copy Formula/quick-lint-js.rb to $(brew --prefix)/Library/Taps/homebrew/homebrew-core/Formula/quick-lint-js.rb\n")
+			fmt.Printf("2. Copy Formula/quick-lint-js.rb to $(brew --prefix)/Library/Taps/homebrew/homebrew-core/Formula/q/quick-lint-js.rb\n")
 			fmt.Printf("3. Remove the copyright header from the formula file.\n")
 			fmt.Printf("4. Re-add the bottle directives.\n")
 			fmt.Printf("5. Run: HOMEBREW_NO_INSTALL_FROM_API=1 brew install --build-from-source quick-lint-js\n")
