@@ -656,7 +656,6 @@ parse_statement:
   case Token_Type::kw_break:
   case Token_Type::kw_continue:
     this->is_current_typescript_namespace_non_empty_ = true;
-    on_non_declaring_statement();
     this->parse_and_visit_break_or_continue();
     break;
 

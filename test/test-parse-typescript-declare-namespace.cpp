@@ -1012,18 +1012,30 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
       u8"                       ^^^^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
       u8"                       ^^^^^^^ Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
       typescript_options);
+}
 
-  // TODO(strager): Perhaps we should only emit
-  // Diag_Invalid_Break/Diag_Invalid_Continue.
+TEST_F(
+    Test_Parse_TypeScript_Declare_Namespace,
+    declare_namespace_does_not_report_double_diagnostic_for_certain_statements) {
   test_parse_and_visit_module(
       u8"declare namespace ns { break; }"_sv,  //
-      u8"                       ^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
       u8"                       ^^^^^ Diag_Invalid_Break"_diag,
       typescript_options);
   test_parse_and_visit_module(
+      u8"for (;;) { declare namespace ns { break; } }"_sv,  //
+      u8"                                  ^^^^^ Diag_Invalid_Break"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"switch (true) { default: declare namespace ns { break; } }"_sv,  //
+      u8"                                                ^^^^^ Diag_Invalid_Break"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
       u8"declare namespace ns { continue; }"_sv,  //
-      u8"                       ^^^^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
       u8"                       ^^^^^^^^ Diag_Invalid_Continue"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"for (;;) { declare namespace ns { continue; } }"_sv,  //
+      u8"                                  ^^^^^^^^ Diag_Invalid_Continue"_diag,
       typescript_options);
 }
 

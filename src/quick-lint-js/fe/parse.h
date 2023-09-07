@@ -982,7 +982,8 @@ class Parser {
     explicit TypeScript_Namespace_Or_Module_Guard(
         Parser *,
         std::optional<Source_Code_Span> old_in_typescript_namespace_or_module,
-        bool old_in_typescript_module);
+        bool old_in_typescript_module, bool old_in_loop_statement,
+        bool old_in_switch_statement);
 
     TypeScript_Namespace_Or_Module_Guard(
         const TypeScript_Namespace_Or_Module_Guard &) = delete;
@@ -995,6 +996,8 @@ class Parser {
     Parser *parser_;
     std::optional<Source_Code_Span> old_in_typescript_namespace_or_module_;
     bool old_in_typescript_module_;
+    bool old_in_loop_statement_;
+    bool old_in_switch_statement_;
   };
   // Sets in_typescript_namespace_or_module_ and in_typescript_module_.
   [[nodiscard]] TypeScript_Namespace_Or_Module_Guard

@@ -955,24 +955,31 @@ Parser::enter_typescript_namespace_or_module(
       this,
       std::exchange(this->in_typescript_namespace_or_module_,
                     namespace_or_module_keyword_span),
-      std::exchange(this->in_typescript_module_, entering_module));
+      std::exchange(this->in_typescript_module_, entering_module),
+      std::exchange(this->in_loop_statement_, false),
+      std::exchange(this->in_switch_statement_, false));
 }
 
 Parser::TypeScript_Namespace_Or_Module_Guard::
     TypeScript_Namespace_Or_Module_Guard(
         Parser* parser,
         std::optional<Source_Code_Span> old_in_typescript_namespace_or_module,
-        bool old_in_typescript_module)
+        bool old_in_typescript_module, bool old_in_loop_statement,
+        bool old_in_switch_statement)
     : parser_(parser),
       old_in_typescript_namespace_or_module_(
           old_in_typescript_namespace_or_module),
-      old_in_typescript_module_(old_in_typescript_module) {}
+      old_in_typescript_module_(old_in_typescript_module),
+      old_in_loop_statement_(old_in_loop_statement),
+      old_in_switch_statement_(old_in_switch_statement) {}
 
 Parser::TypeScript_Namespace_Or_Module_Guard::
     ~TypeScript_Namespace_Or_Module_Guard() {
   this->parser_->in_typescript_namespace_or_module_ =
       this->old_in_typescript_namespace_or_module_;
   this->parser_->in_typescript_module_ = this->old_in_typescript_module_;
+  this->parser_->in_loop_statement_ = this->old_in_loop_statement_;
+  this->parser_->in_switch_statement_ = this->old_in_switch_statement_;
 }
 
 bool Parser::Parse_Expression_Cache_Key::operator==(
