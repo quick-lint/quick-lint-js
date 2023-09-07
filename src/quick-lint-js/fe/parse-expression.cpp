@@ -3020,6 +3020,7 @@ Expression* Parser::parse_object_literal(Parse_Visitor_Base& v) {
         }
         break;
 
+      case Token_Type::right_paren:
       // {x  // Invalid.
       case Token_Type::end_of_file:
         // We'll report Diag_Unclosed_Object_Literal later when we look for the
