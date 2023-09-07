@@ -166,11 +166,17 @@ class Parser {
     // is true) and we are parsing a top-level statement.
     bool top_level_typescript_definition : 1 = false;
 
-    // If true, this is a .d.ts file (Parse_Options::typescript_definition_file
-    // is true) and we require that the statement declares something (e.g. a
+    // If true, we require that the statement declares something (e.g. a
     // variable or interface). The statement does not necessarily need to use
     // the 'declare' keyword.
-    bool require_declaration_in_typescript_definition_file : 1 = false;
+    //
+    // If true and Parse_Options::typescript_definition_file is false, then
+    // declare_keyword must be non-null.
+    bool require_declaration : 1 = false;
+
+    // Must be non-null if require_declaration is true and
+    // Parse_Options::typescript_definition_file is false
+    std::optional<Source_Code_Span> declare_keyword = std::nullopt;
   };
 
   // If a statement was parsed, this function returns true.
@@ -1073,7 +1079,7 @@ class Parser {
   int depth_ = 0;
 
   // FIXME(#735): We should make this higher.
-  static constexpr const int stack_limit = 125;
+  static constexpr const int stack_limit = 120;
 
   // For testing and internal use only.
   [[nodiscard]] Loop_Guard enter_loop();

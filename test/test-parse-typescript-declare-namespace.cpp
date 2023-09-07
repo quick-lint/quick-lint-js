@@ -969,13 +969,16 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
   test_parse_and_visit_module(
       u8"declare namespace ns { if (true) { } }"_sv,  //
       u8"                       ^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare namespace ns { console.log('hello'); }"_sv,  //
       u8"                       ^^^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
+      typescript_options);
 
+  test_parse_and_visit_module(
+      u8"declare namespace ns { ; }"_sv,  //
+      u8"                       ^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,  //
       typescript_options);
 }
 

@@ -40,8 +40,7 @@ void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
       .possibly_followed_by_another_statement = true,
       .top_level_typescript_definition =
           this->options_.typescript_definition_file,
-      .require_declaration_in_typescript_definition_file =
-          this->options_.typescript_definition_file,
+      .require_declaration = this->options_.typescript_definition_file,
   };
   while (!done) {
     bool parsed_statement =
@@ -83,10 +82,19 @@ parse_statement:
 
   case Token_Type::semicolon:
     this->is_current_typescript_namespace_non_empty_ = true;
-    if (options.require_declaration_in_typescript_definition_file) {
-      this->diag_reporter_->report(Diag_DTS_Non_Declaring_Statement{
-          .first_statement_token = this->peek().span(),
-      });
+    if (options.require_declaration) {
+      if (this->options_.typescript_definition_file) {
+        this->diag_reporter_->report(Diag_DTS_Non_Declaring_Statement{
+            .first_statement_token = this->peek().span(),
+        });
+      } else {
+        QLJS_ASSERT(options.declare_keyword.has_value());
+        this->diag_reporter_->report(
+            Diag_Declare_Namespace_Cannot_Contain_Statement{
+                .first_statement_token = this->peek().span(),
+                .declare_keyword = *options.declare_keyword,
+            });
+      }
     }
     this->skip();
     break;
@@ -2687,8 +2695,7 @@ void Parser::parse_and_visit_typescript_namespace(
     this->parse_and_visit_statement_block_no_scope(
         v, Parse_Statement_Options{
                .possibly_followed_by_another_statement = true,
-               .require_declaration_in_typescript_definition_file =
-                   this->options_.typescript_definition_file,
+               .require_declaration = this->options_.typescript_definition_file,
            });
     v.visit_exit_namespace_scope();
   }
@@ -2862,6 +2869,17 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
         bool parsed_statement = this->parse_and_visit_statement(
             v, Parse_Statement_Options{
                    .possibly_followed_by_another_statement = true,
+               });
+        QLJS_ASSERT(parsed_statement);
+        break;
+      }
+
+      case Token_Type::semicolon: {
+        bool parsed_statement = this->parse_and_visit_statement(
+            v, Parse_Statement_Options{
+                   .possibly_followed_by_another_statement = true,
+                   .require_declaration = true,
+                   .declare_keyword = declare_keyword_span,
                });
         QLJS_ASSERT(parsed_statement);
         break;
