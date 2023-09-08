@@ -78,6 +78,16 @@ async function mainAsync() {
     }
   }
 
+  let dailyVSCodeDownloads = db.countDailyVSCodeDownloads();
+  dailyWebDownloadersLabels.push("VS Code");
+  dailyWebDownloadersKeys.push(dailyVSCodeDownloads.dates);
+  dailyWebDownloadersValues.push(dailyVSCodeDownloads.counts);
+
+  let weeklyVSCodeDownloads = db.countWeeklyVSCodeDownloads();
+  weeklyWebDownloadersLabels.push("VS Code");
+  weeklyWebDownloadersKeys.push(weeklyVSCodeDownloads.dates);
+  weeklyWebDownloadersValues.push(weeklyVSCodeDownloads.counts);
+
   let data = {
     dailyWebDownloaders: {
       labels: dailyWebDownloadersLabels,

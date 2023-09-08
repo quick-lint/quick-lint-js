@@ -64,6 +64,111 @@ export class AnalyticsDB {
       )
       .run();
 
+    this.#sqlite3DB
+      .prepare(
+        sql`
+          CREATE TABLE IF NOT EXISTS vscode_stats (
+            id INTEGER PRIMARY KEY NOT NULL,
+
+            -- UNIX timestamp in seconds.
+            timestamp NOT NULL,
+            -- Cache: Start of the day containing 'timestamp'.
+            timestamp_day NOT NULL,
+            -- Cache: Start of the week containing 'timestamp'.
+            timestamp_week NOT NULL,
+
+            -- Version of quick-lint-js, e.g. "2.16.0".
+            version NOT NULL,
+
+            average_rating NOT NULL,
+            install_count NOT NULL,
+            uninstall_count NOT NULL,
+            web_download_count NOT NULL,
+            web_page_views NOT NULL
+          )
+        `
+      )
+      .run();
+    this.#sqlite3DB
+      .prepare(
+        sql`
+          CREATE UNIQUE INDEX IF NOT EXISTS vscode_stats_uniqueness ON vscode_stats (
+            timestamp,
+            version
+          )
+        `
+      )
+      .run();
+
+    this.#sqlite3DB
+      .prepare(
+        sql`
+          CREATE TABLE IF NOT EXISTS vscode_stats_archive (
+            id INTEGER PRIMARY KEY NOT NULL,
+
+            archive_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+            -- See vscode_stats.
+            timestamp,
+            timestamp_day,
+            timestamp_week,
+            version,
+            average_rating,
+            install_count,
+            uninstall_count,
+            web_download_count,
+            web_page_views
+          )
+        `
+      )
+      .run();
+    this.#sqlite3DB
+      .prepare(
+        sql`
+          CREATE TRIGGER IF NOT EXISTS vscode_stats_archive_trigger
+          BEFORE UPDATE OF
+            average_rating,
+            install_count,
+            uninstall_count,
+            web_download_count,
+            web_page_views
+          ON vscode_stats
+          WHEN
+            old.average_rating != new.average_rating
+            OR old.install_count != new.install_count
+            OR old.uninstall_count != new.uninstall_count
+            OR old.web_download_count != new.web_download_count
+            OR old.web_page_views != new.web_page_views
+          BEGIN
+          INSERT INTO vscode_stats_archive (
+            timestamp,
+            timestamp_day,
+            timestamp_week,
+            version,
+
+            average_rating,
+            install_count,
+            uninstall_count,
+            web_download_count,
+            web_page_views
+          )
+          VALUES (
+            old.timestamp,
+            old.timestamp_day,
+            old.timestamp_week,
+            old.version,
+
+            old.average_rating,
+            old.install_count,
+            old.uninstall_count,
+            old.web_download_count,
+            old.web_page_views
+          );
+          END
+        `
+      )
+      .run();
+
     this.#checkDownloadConflictQuery = this.#sqlite3DB.prepare(
       sql`
         SELECT
@@ -159,6 +264,7 @@ export class AnalyticsDB {
               )
               VALUES (
                 @timestamp,
+                -- TODO(strager): Deduplicate.
                 STRFTIME('%s', DATETIME(@timestamp, 'unixepoch'), 'start of day'),
                 STRFTIME('%s', DATETIME(@timestamp, 'unixepoch'), 'start of day', '-6 days', 'weekday 1'),
                 @downloader_ip,
@@ -291,6 +397,103 @@ export class AnalyticsDB {
       counts.push(count);
     }
     return { dates, counts };
+  }
+
+  addVSCodeDownloadStats(vscodeDownloadStats) {
+    for (let statsForOneDay of vscodeDownloadStats) {
+      this.#sqlite3DB
+        .prepare(
+          sql`
+            INSERT INTO vscode_stats (
+              timestamp,
+              timestamp_day,
+              timestamp_week,
+              version,
+              average_rating,
+              install_count,
+              uninstall_count,
+              web_download_count,
+              web_page_views
+            )
+            VALUES (
+              STRFTIME('%s', @timestamp),
+              -- TODO(strager): Deduplicate.
+              STRFTIME('%s', @timestamp, 'start of day'),
+              STRFTIME('%s', @timestamp, 'start of day', '-6 days', 'weekday 1'),
+              @version,
+              @average_rating,
+              @install_count,
+              @uninstall_count,
+              @web_download_count,
+              @web_page_views
+            )
+            ON CONFLICT (timestamp, version)
+            DO UPDATE SET
+              average_rating = @average_rating,
+              install_count = @install_count,
+              uninstall_count = @uninstall_count,
+              web_download_count = @web_download_count,
+              web_page_views = @web_page_views
+          `
+        )
+        .run({
+          timestamp: statsForOneDay.statisticDate,
+          version: statsForOneDay.version,
+          average_rating: statsForOneDay.counts.averageRating ?? -1,
+          install_count: statsForOneDay.counts.installCount ?? 0,
+          uninstall_count: statsForOneDay.counts.uninstallCount ?? 0,
+          web_download_count: statsForOneDay.counts.webDownloadCount ?? 0,
+          web_page_views: statsForOneDay.counts.webPageViews ?? 0,
+        });
+    }
+  }
+
+  countDailyVSCodeDownloads() {
+    let rows = this.#sqlite3DB
+      .prepare(
+        sql`
+          SELECT
+            vscode_stats.timestamp_day AS timestamp_day,
+            SUM(install_count) + SUM(web_download_count) AS count
+          FROM vscode_stats
+          GROUP BY vscode_stats.timestamp_day
+        `
+      )
+      .raw()
+      .all();
+    let dates = [];
+    let counts = [];
+    for (let [timestamp, count] of rows) {
+      dates.push(timestamp * 1000);
+      counts.push(count);
+    }
+    return { dates, counts };
+  }
+
+  countWeeklyVSCodeDownloads() {
+    let rows = this.#sqlite3DB
+      .prepare(
+        sql`
+          SELECT
+            vscode_stats.timestamp_week AS timestamp_week,
+            SUM(install_count) + SUM(web_download_count) AS count
+          FROM vscode_stats
+          GROUP BY vscode_stats.timestamp_week
+        `
+      )
+      .raw()
+      .all();
+    let dates = [];
+    let counts = [];
+    for (let [timestamp, count] of rows) {
+      dates.push(timestamp * 1000);
+      counts.push(count);
+    }
+    return { dates, counts };
+  }
+
+  _querySQLForTesting(sqlQuery) {
+    return this.#sqlite3DB.prepare(sqlQuery).all();
   }
 }
 

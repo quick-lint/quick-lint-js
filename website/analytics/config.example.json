@@ -8,5 +8,7 @@
   "matomo_analytics.db_socket": null,
   "matomo_analytics.db_user": "root",
   "matomo_analytics.db_password": "",
-  "matomo_analytics.db_database": "matomo_analytics"
+  "matomo_analytics.db_database": "matomo_analytics",
+
+  "vscode.marketplace-personal-access-token": ""
 }

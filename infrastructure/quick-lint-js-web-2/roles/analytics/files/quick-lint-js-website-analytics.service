@@ -9,6 +9,7 @@ Type = oneshot
 
 ExecStart = node src/import-apache-logs.mjs
 ExecStart = node src/import-matomo-logs.mjs
+ExecStart = node src/import-vscode-stats.mjs
 ExecStart = node src/make-charts.mjs
 
 WorkingDirectory = /home/qljs-analytics/quick-lint-js-website-analytics/

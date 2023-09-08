@@ -572,6 +572,200 @@ describe("AnalyticsDB", () => {
       });
     });
   });
+
+  describe("addVSCodeDownloadStats", () => {
+    it("downloads includes installs and web downloads", () => {
+      let db = AnalyticsDB.newInMemory();
+      db.addVSCodeDownloadStats([
+        {
+          version: "2.16.0",
+          statisticDate: "2023-09-08T00:00:00Z",
+          counts: {
+            webPageViews: 33,
+            installCount: 6,
+            webDownloadCount: 2,
+            averageRating: 5,
+          },
+        },
+      ]);
+      expect(db.countDailyVSCodeDownloads()).toEqual({
+        dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
+        counts: [6 + 2],
+      });
+    });
+
+    it("no downloads for day counts as 0", () => {
+      let db = AnalyticsDB.newInMemory();
+      db.addVSCodeDownloadStats([
+        {
+          version: "2.16.0",
+          statisticDate: "2023-09-08T00:00:00Z",
+          counts: {
+            webPageViews: 33,
+            averageRating: 5,
+          },
+        },
+      ]);
+      expect(db.countDailyVSCodeDownloads()).toEqual({
+        dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
+        counts: [0],
+      });
+    });
+
+    it("downloads includes all versions", () => {
+      let db = AnalyticsDB.newInMemory();
+      db.addVSCodeDownloadStats([
+        {
+          version: "2.16.0",
+          statisticDate: "2023-09-08T00:00:00Z",
+          counts: {
+            installCount: 2,
+          },
+        },
+        {
+          version: "2.15.0",
+          statisticDate: "2023-09-08T00:00:00Z",
+          counts: {
+            installCount: 1,
+          },
+        },
+      ]);
+      expect(db.countDailyVSCodeDownloads()).toEqual({
+        dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
+        counts: [2 + 1],
+      });
+    });
+
+    it("weekly downloads groups by week", () => {
+      let db = AnalyticsDB.newInMemory();
+      db.addVSCodeDownloadStats([
+        // First week:
+        {
+          version: "2.16.0",
+          statisticDate: "2020-01-06T00:00:00Z",
+          counts: {
+            installCount: 3,
+          },
+        },
+        {
+          version: "2.16.0",
+          statisticDate: "2020-01-07T00:00:00Z",
+          counts: {
+            installCount: 5,
+          },
+        },
+
+        // Second week:
+        {
+          version: "2.16.0",
+          statisticDate: "2020-01-14T00:00:00Z",
+          counts: {
+            installCount: 2,
+          },
+        },
+      ]);
+      expect(db.countWeeklyVSCodeDownloads()).toEqual({
+        dates: [Date.UTC(2020, 0, 6, 0, 0, 0), Date.UTC(2020, 0, 13, 0, 0, 0)],
+        counts: [3 + 5, 2],
+      });
+    });
+
+    it("updating stats archives old stats", () => {
+      let db = AnalyticsDB.newInMemory();
+      db.addVSCodeDownloadStats([
+        {
+          version: "2.16.0",
+          statisticDate: "2023-09-08T00:00:00Z",
+          counts: {
+            installCount: 2,
+          },
+        },
+      ]);
+
+      let beforeArchiveTimestamp = Date.now() / 1000;
+      db.addVSCodeDownloadStats([
+        {
+          version: "2.16.0",
+          statisticDate: "2023-09-08T00:00:00Z",
+          counts: {
+            installCount: 1,
+          },
+        },
+      ]);
+      let afterArchiveTimestamp = Date.now() / 1000;
+
+      expect(db.countDailyVSCodeDownloads()).toEqual({
+        dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
+        counts: [1],
+      });
+
+      let archived = db._querySQLForTesting(
+        `
+          SELECT
+            UNIXEPOCH(archive_timestamp) AS archive_timestamp,
+            timestamp,
+            install_count,
+            version
+          FROM vscode_stats_archive
+        `
+      );
+      expect(archived.length).toEqual(1);
+      // TODO(strager): Don't store string timestamp numbers in the database.
+      expect(Number(archived[0].timestamp)).toEqual(
+        Date.UTC(2023, 8, 8, 0, 0, 0) / 1000
+      );
+      expect(archived[0].version).toEqual("2.16.0");
+      expect(archived[0].install_count).toEqual(2);
+      // NOTE(strager): SQLite timestamp has second resolution.
+      expect(archived[0].archive_timestamp).toBeGreaterThanOrEqual(
+        Math.floor(beforeArchiveTimestamp)
+      );
+      expect(archived[0].archive_timestamp).toBeLessThanOrEqual(
+        Math.ceil(afterArchiveTimestamp)
+      );
+    });
+
+    it("updating stats does not archive identical stats", () => {
+      let db = AnalyticsDB.newInMemory();
+      db.addVSCodeDownloadStats([
+        {
+          version: "2.16.0",
+          statisticDate: "2023-09-08T00:00:00Z",
+          counts: {
+            webDownloadCount: 3,
+          },
+        },
+      ]);
+      db.addVSCodeDownloadStats([
+        {
+          version: "2.16.0",
+          statisticDate: "2023-09-08T00:00:00Z",
+          counts: {
+            installCount: 0,
+            webDownloadCount: 3,
+          },
+        },
+      ]);
+
+      expect(db.countDailyVSCodeDownloads()).toEqual({
+        dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
+        counts: [3],
+      });
+
+      expect(
+        db._querySQLForTesting(
+          `
+            SELECT
+              UNIXEPOCH(archive_timestamp) AS archive_timestamp,
+              timestamp,
+              install_count,
+              version
+            FROM vscode_stats_archive
+          `
+        )
+      ).toEqual([]);
+    });
+  });
 });
 
 // quick-lint-js finds bugs in JavaScript programs.
