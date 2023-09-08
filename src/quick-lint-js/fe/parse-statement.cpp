@@ -1030,6 +1030,7 @@ void Parser::parse_and_visit_export(
     }
 
     // export default class C {}
+    parse_class:
     case Token_Type::kw_class:
       this->parse_and_visit_class(
           v, Parse_Class_Options{
@@ -1039,6 +1040,11 @@ void Parser::parse_and_visit_export(
                      declare_context.maybe_declare_keyword_span(),
              });
       break;
+
+    // export default @myDecorator class C {}
+    case Token_Type::at:
+      this->parse_and_visit_decorator(v);
+      goto parse_class;
 
     // export default abstract class C {}
     // export default abstract
@@ -2576,7 +2582,7 @@ Parser::parse_end_of_typescript_overload_signature(
   };
 }
 
-void Parser::parse_and_visit_decorator_statement(Parse_Visitor_Base &v) {
+void Parser::parse_and_visit_decorator(Parse_Visitor_Base &v) {
   QLJS_ASSERT(this->peek().type == Token_Type::at);
   this->skip();
 
@@ -2631,13 +2637,28 @@ void Parser::parse_and_visit_decorator_statement(Parse_Visitor_Base &v) {
     QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
+}
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_class);
-  this->parse_and_visit_class(
-      v, Parse_Class_Options{
-             .require_name = Name_Requirement::required_for_statement,
-             .abstract_keyword_span = std::nullopt,
-         });
+void Parser::parse_and_visit_decorator_statement(Parse_Visitor_Base &v) {
+  this->parse_and_visit_decorator(v);
+
+  switch (this->peek().type) {
+  case Token_Type::kw_class:
+    this->parse_and_visit_class(
+        v, Parse_Class_Options{
+               .require_name = Name_Requirement::required_for_statement,
+               .abstract_keyword_span = std::nullopt,
+           });
+    break;
+
+  case Token_Type::kw_export:
+    this->parse_and_visit_export(v);
+    break;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
 }
 
 void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {

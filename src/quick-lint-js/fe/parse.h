@@ -382,6 +382,9 @@ class Parser {
   Overload_Signature_Parse_Result parse_end_of_typescript_overload_signature(
       const Identifier &function_name);
 
+  // Parse just the '@decorator' syntax.
+  void parse_and_visit_decorator(Parse_Visitor_Base &v);
+  // Parse '@decorator' followed by a class statement.
   void parse_and_visit_decorator_statement(Parse_Visitor_Base &v);
 
   struct Parse_Class_Options {

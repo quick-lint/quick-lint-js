@@ -53,6 +53,48 @@ TEST_F(Test_Parse_Decorator, class_statement_decorator) {
   }
 }
 
+TEST_F(Test_Parse_Decorator, export_default_class_decorator) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export default @myDecorator class C {}"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",            // myDecorator
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export default @myDecorator class {}"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",            // myDecorator
+                              "visit_enter_class_scope",       // class
+                              "visit_enter_class_scope_body",  // {
+                              "visit_exit_class_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"@myDecorator export default class {}"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",            // myDecorator
+                              "visit_enter_class_scope",       // class
+                              "visit_enter_class_scope_body",  // {
+                              "visit_exit_class_scope",        // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
+  }
+}
+
 TEST_F(Test_Parse_Decorator,
        private_identifiers_are_allowed_as_property_names) {
   Spy_Visitor p = test_parse_and_visit_statement(
