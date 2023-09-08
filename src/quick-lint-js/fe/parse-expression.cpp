@@ -633,10 +633,17 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
   }
 
   // class {}
+  parse_class:
   case Token_Type::kw_class: {
     Expression* class_expression = this->parse_class_expression(v);
     return class_expression;
   }
+
+  // @myDecorator class {}
+  case Token_Type::at:
+    // TODO(strager): Should we make a Decorated expression type?
+    this->parse_and_visit_decorator(v);
+    goto parse_class;
 
   // new XMLHttpRequest()
   // new.target
