@@ -1030,7 +1030,7 @@ void Parser::parse_and_visit_export(
     }
 
     // export default class C {}
-    parse_class:
+    parse_default_class:
     case Token_Type::kw_class:
       this->parse_and_visit_class(
           v, Parse_Class_Options{
@@ -1044,7 +1044,7 @@ void Parser::parse_and_visit_export(
     // export default @myDecorator class C {}
     case Token_Type::at:
       this->parse_and_visit_decorator(v);
-      goto parse_class;
+      goto parse_default_class;
 
     // export default abstract class C {}
     // export default abstract
@@ -1276,6 +1276,7 @@ void Parser::parse_and_visit_export(
     break;
 
   // export class C {}
+  parse_class:
   case Token_Type::kw_class:
     this->is_current_typescript_namespace_non_empty_ = true;
     this->parse_and_visit_class(
@@ -1286,6 +1287,11 @@ void Parser::parse_and_visit_export(
                    declare_context.declare_namespace_declare_keyword,
            });
     break;
+
+  // export @myDecorator class C {}
+  case Token_Type::at:
+    this->parse_and_visit_decorator(v);
+    goto parse_class;
 
   // export abstract class C {}
   case Token_Type::kw_abstract: {
