@@ -958,6 +958,7 @@ void Parser::parse_and_visit_class_or_interface_member(
       error_if_readonly_in_not_typescript();
       error_if_accessor_in_interface();
       error_if_static_in_interface();
+      error_if_static_abstract();
       error_if_optional_in_not_typescript();
       error_if_optional_accessor();
       error_if_abstract_not_in_abstract_class();
@@ -970,6 +971,7 @@ void Parser::parse_and_visit_class_or_interface_member(
       error_if_invalid_access_specifier();
       error_if_access_specifier_not_first_in_method();
       error_if_static_in_interface();
+      error_if_static_abstract();
       error_if_optional_in_not_typescript();
       error_if_abstract_not_in_abstract_class();
     }
@@ -1304,6 +1306,19 @@ void Parser::parse_and_visit_class_or_interface_member(
         if (const Modifier *static_modifier =
                 find_modifier(Token_Type::kw_static)) {
           p->diag_reporter_->report(Diag_Interface_Properties_Cannot_Be_Static{
+              .static_keyword = static_modifier->span,
+          });
+        }
+      }
+    }
+
+    void error_if_static_abstract() {
+      if (const Modifier *abstract_modifier =
+              find_modifier(Token_Type::kw_abstract)) {
+        if (const Modifier *static_modifier =
+                find_modifier(Token_Type::kw_static)) {
+          p->diag_reporter_->report(Diag_TypeScript_Abstract_Static_Property{
+              .abstract_keyword = abstract_modifier->span,
               .static_keyword = static_modifier->span,
           });
         }

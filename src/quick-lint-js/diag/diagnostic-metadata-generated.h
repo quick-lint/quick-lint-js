@@ -257,6 +257,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_This_Parameter_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_This_Parameter_Not_Allowed_When_Destructuring) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Abstract_Static_Property) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Accessor_Cannot_Be_Optional) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_As_Const_With_Non_Literal_Typeable) \
@@ -414,7 +415,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 400;
+inline constexpr int Diag_Type_Count = 401;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

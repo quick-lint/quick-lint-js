@@ -1876,6 +1876,16 @@ struct Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript {
   Source_Code_Span abstract_keyword;
 };
 
+struct Diag_TypeScript_Abstract_Static_Property {
+  [[qljs::diag("E0398", Diagnostic_Severity::error)]]  //
+  [[qljs::message("abstract properties cannot be static",
+                  ARG(abstract_keyword))]]  //
+  [[qljs::message("property declared static here",
+                  ARG(static_keyword))]]  //
+  Source_Code_Span abstract_keyword;
+  Source_Code_Span static_keyword;
+};
+
 struct Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx {
   [[qljs::diag("E0283", Diagnostic_Severity::error)]]  //
   [[qljs::message(

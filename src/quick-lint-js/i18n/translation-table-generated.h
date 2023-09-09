@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 482;
-constexpr std::size_t translation_table_string_table_size = 78045;
+constexpr std::uint16_t translation_table_mapping_table_size = 484;
+constexpr std::size_t translation_table_string_table_size = 78112;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -171,6 +171,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "abstract methods cannot contain a body"sv,
           "abstract properties are not allowed in interfaces"sv,
           "abstract properties are only allowed in abstract classes"sv,
+          "abstract properties cannot be static"sv,
           "accessors cannot be optional"sv,
           "an 'if' statement"sv,
           "another invalid string, do not use outside benchmark"sv,
@@ -417,6 +418,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "parentheses are required around 'infer {1}'"sv,
           "prior spread element is here"sv,
           "private properties are not allowed in object literals"sv,
+          "property declared static here"sv,
           "property declared using '{0}' here"sv,
           "redeclaration of global variable"sv,
           "redeclaration of variable: {0}"sv,

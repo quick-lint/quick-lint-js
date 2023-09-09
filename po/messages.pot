@@ -1222,6 +1222,14 @@ msgid "{0} classes are not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "abstract properties cannot be static"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "property declared static here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript <Type> type assertions are not allowed in JSX mode"
 msgstr ""
 

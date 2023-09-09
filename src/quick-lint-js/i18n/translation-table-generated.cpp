@@ -157,6 +157,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 44, 0, 39},                //
         {0, 0, 0, 58, 0, 50},                //
         {0, 0, 0, 0, 0, 57},                 //
+        {0, 0, 0, 0, 0, 37},                 //
         {14, 14, 0, 64, 0, 29},              //
         {0, 26, 0, 21, 0, 18},               //
         {18, 53, 70, 52, 76, 53},            //
@@ -403,6 +404,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 44},                 //
         {32, 13, 50, 41, 38, 29},            //
         {0, 0, 0, 0, 0, 54},                 //
+        {0, 0, 0, 0, 0, 30},                 //
         {66, 33, 76, 54, 58, 35},            //
         {40, 29, 35, 35, 33, 33},            //
         {0, 0, 0, 33, 0, 31},                //
@@ -1909,6 +1911,7 @@ const Translation_Table translation_data = {
         u8"abstract methods cannot contain a body\0"
         u8"abstract properties are not allowed in interfaces\0"
         u8"abstract properties are only allowed in abstract classes\0"
+        u8"abstract properties cannot be static\0"
         u8"accessors cannot be optional\0"
         u8"an 'if' statement\0"
         u8"another invalid string, do not use outside benchmark\0"
@@ -2155,6 +2158,7 @@ const Translation_Table translation_data = {
         u8"parentheses are required around 'infer {1}'\0"
         u8"prior spread element is here\0"
         u8"private properties are not allowed in object literals\0"
+        u8"property declared static here\0"
         u8"property declared using '{0}' here\0"
         u8"redeclaration of global variable\0"
         u8"redeclaration of variable: {0}\0"

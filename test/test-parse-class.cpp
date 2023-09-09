@@ -853,7 +853,8 @@ TEST_F(Test_Parse_Class, class_methods_should_not_use_function_keyword) {
 TEST_F(Test_Parse_Class, newline_after_function_is_asi) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { function\n myMethod() {} }"_sv, no_diags, javascript_options);
+        u8"class C { function\n myMethod() {} }"_sv, no_diags,
+        javascript_options);
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"function"_sv, u8"myMethod"_sv}));
   }

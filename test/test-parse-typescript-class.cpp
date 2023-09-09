@@ -1288,6 +1288,14 @@ TEST_F(Test_Parse_TypeScript_Class,
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Class, abstract_properties_cannot_be_static) {
+  test_parse_and_visit_statement(
+      u8"abstract class C { static abstract method(); }"_sv,  //
+      u8"                          ^^^^^^^^ Diag_TypeScript_Abstract_Static_Property.abstract_keyword\n"_diag
+      u8"                   ^^^^^^ .static_keyword"_diag,
+      typescript_options);
+}
+
 TEST_F(Test_Parse_TypeScript_Class,
        newline_before_class_causes_abstract_to_be_identifier) {
   {

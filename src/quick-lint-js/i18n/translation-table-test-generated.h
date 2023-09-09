@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[481] = {
+inline const Translated_String test_translation_table[483] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1621,6 +1621,17 @@ inline const Translated_String test_translation_table[481] = {
             u8"abstract properties are only allowed in abstract classes",
             u8"propriedades abstratas s\u00f3 s\u00e3o permitidas em classes abstratas",
             u8"abstract properties are only allowed in abstract classes",
+        },
+    },
+    {
+        "abstract properties cannot be static"_translatable,
+        u8"abstract properties cannot be static",
+        {
+            u8"abstract properties cannot be static",
+            u8"abstract properties cannot be static",
+            u8"abstract properties cannot be static",
+            u8"abstract properties cannot be static",
+            u8"abstract properties cannot be static",
         },
     },
     {
@@ -4327,6 +4338,17 @@ inline const Translated_String test_translation_table[481] = {
             u8"les propri\u00e9t\u00e9s priv\u00e9es ne sont pas autoris\u00e9es dans les litt\u00e9raux objet",
             u8"propriedades privadas n\u00e3o s\u00e3o permitidas em objetos",
             u8"privata egenskaper \u00e4r inte till\u00e5tna i objektlitter\u00e4ler",
+        },
+    },
+    {
+        "property declared static here"_translatable,
+        u8"property declared static here",
+        {
+            u8"property declared static here",
+            u8"property declared static here",
+            u8"property declared static here",
+            u8"property declared static here",
+            u8"property declared static here",
         },
     },
     {

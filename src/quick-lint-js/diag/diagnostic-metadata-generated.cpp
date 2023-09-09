@@ -3667,6 +3667,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Abstract_Static_Property
+    {
+      .code = 398,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("abstract properties cannot be static"),
+        QLJS_TRANSLATABLE("property declared static here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Abstract_Static_Property, abstract_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Abstract_Static_Property, static_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx
     {
       .code = 283,
