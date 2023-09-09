@@ -6,15 +6,6 @@
             "compilerPath": "/usr/bin/clang",
             "cppStandard": "c++20",
             "intelliSenseMode": "linux-clang-x64",
-            "includePath": [
-                "${workspaceFolder}/tools/quick-lint-js/*",
-                "${workspaceFolder}/tools/test-typescript/quick-lint-js/*",
-                "${workspaceFolder}/test/quick-lint-js/*",
-                "${workspaceFolder}/benchmark/quick-lint-js/*",
-                "${workspaceFolder}/benchmark/benchmark-lsp/quick-lint-js/*",
-                "${workspaceFolder}/plugin/vscode/quick-lint-js/*",
-                "${workspaceFolder}/src/quick-lint-js/*"
-            ],
             "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
