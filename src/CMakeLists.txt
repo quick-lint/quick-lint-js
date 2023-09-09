@@ -71,6 +71,11 @@ quick_lint_js_target_add_cxx_flag_if_supported(
   /constexpr:steps9999999
   QUICK_LINT_JS_HAVE_CONSTEXPR_STEPS
 )
+quick_lint_js_target_add_cxx_flag_if_supported(
+  quick-lint-js-diagnostic-metadata
+  -fconstexpr-steps=9999999
+  QUICK_LINT_JS_HAVE_FCONSTEXPR_STEPS
+)
 
 if (TARGET quick-lint-js-generate-lex-keyword)
   add_custom_command(
