@@ -15,7 +15,7 @@
 namespace quick_lint_js {
 namespace {
 constexpr std::size_t hash_table_size = 512LLU;
-constexpr std::size_t string_table_size = 446LLU;
+constexpr std::size_t string_table_size = 454LLU;
 
 constexpr Keyword_Lexer::Seed_Type hash_seed = 2166215926LLU;
 
@@ -98,7 +98,7 @@ constexpr Tables_Type tables = {
             {0, 0, Token_Type::identifier},
             {0, 0, Token_Type::identifier},
             {0, 0, Token_Type::identifier},
-            {421, 8, Token_Type::kw_abstract},
+            {429, 8, Token_Type::kw_abstract},
             {167, 6, Token_Type::kw_object},
             {0, 0, Token_Type::identifier},
             {0, 0, Token_Type::identifier},
@@ -471,7 +471,7 @@ constexpr Tables_Type tables = {
             {0, 0, Token_Type::identifier},
             {0, 0, Token_Type::identifier},
             {0, 0, Token_Type::identifier},
-            {0, 0, Token_Type::identifier},
+            {421, 8, Token_Type::kw_accessor},
             {0, 0, Token_Type::identifier},
             {106, 6, Token_Type::kw_return},
             {371, 2, Token_Type::kw_as},
@@ -624,6 +624,7 @@ constexpr Tables_Type tables = {
         u8"async"
         u8"asserts"
         u8"any"
+        u8"accessor"
         u8"abstract"
         u8"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
 };

@@ -441,6 +441,7 @@ parse_statement:
     // label: for(;;);
   parse_loop_label_or_expression_starting_with_identifier:
   case Token_Type::identifier:
+  case Token_Type::kw_accessor:
   case Token_Type::kw_any:
   case Token_Type::kw_as:
   case Token_Type::kw_assert:
@@ -1570,6 +1571,7 @@ next_parameter:
   switch (this->peek().type) {
   case Token_Type::identifier:
   case Token_Type::kw_abstract:
+  case Token_Type::kw_accessor:
   case Token_Type::kw_as:
   case Token_Type::kw_assert:
   case Token_Type::kw_asserts:
@@ -3065,6 +3067,7 @@ void Parser::parse_and_visit_typescript_enum(Parse_Visitor_Base &v,
 
   switch (this->peek().type) {
   case Token_Type::kw_abstract:
+  case Token_Type::kw_accessor:
   case Token_Type::kw_as:
   case Token_Type::kw_assert:
   case Token_Type::kw_asserts:
@@ -4241,6 +4244,7 @@ void Parser::parse_and_visit_import(
     // import type T, {U} from "module";  // Invalid.
     QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD_EXCEPT_TYPE:
     case Token_Type::identifier:
+    case Token_Type::kw_accessor:
     case Token_Type::kw_as:
     case Token_Type::kw_async:
     case Token_Type::kw_get:
@@ -4670,6 +4674,7 @@ void Parser::parse_and_visit_named_exports(
       // import {type as} from "other";    // TypeScript only
       QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD_EXCEPT_TYPE:
       case Token_Type::identifier:
+      case Token_Type::kw_accessor:
       case Token_Type::kw_async:
       case Token_Type::kw_from:
       case Token_Type::kw_get:
@@ -4915,6 +4920,7 @@ void Parser::parse_and_visit_let_bindings(
     variable_name:
     case Token_Type::identifier:
     case Token_Type::kw_as:
+    case Token_Type::kw_accessor:
     case Token_Type::kw_async:
     case Token_Type::kw_from:
     case Token_Type::kw_get:

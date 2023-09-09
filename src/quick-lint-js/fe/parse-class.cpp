@@ -1331,6 +1331,7 @@ void Parser::parse_and_visit_typescript_interface(
 
   case Token_Type::identifier:
   case Token_Type::kw_abstract:
+  case Token_Type::kw_accessor:
   case Token_Type::kw_as:
   case Token_Type::kw_assert:
   case Token_Type::kw_asserts:

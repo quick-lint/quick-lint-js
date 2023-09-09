@@ -114,6 +114,7 @@
 
 #define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC_AND_TYPE \
   QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD_EXCEPT_TYPE:                           \
+  case ::quick_lint_js::Token_Type::kw_accessor:                                      \
   case ::quick_lint_js::Token_Type::kw_as:                                            \
   case ::quick_lint_js::Token_Type::kw_from:                                          \
   case ::quick_lint_js::Token_Type::kw_let:                                           \

@@ -333,6 +333,7 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
   QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
   identifier:
   case Token_Type::identifier:
+  case Token_Type::kw_accessor:
   case Token_Type::kw_as:
   case Token_Type::kw_from:
   case Token_Type::kw_get:
@@ -2217,6 +2218,7 @@ next:
 
   QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
   case Token_Type::end_of_file:
+  case Token_Type::kw_accessor:
   case Token_Type::kw_async:
   case Token_Type::kw_await:
   case Token_Type::kw_break:

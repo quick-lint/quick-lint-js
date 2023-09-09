@@ -135,6 +135,7 @@ again:
   // Type
   // ns.Type<T>
   case Token_Type::kw_abstract:
+  case Token_Type::kw_accessor:
   case Token_Type::kw_as:
   case Token_Type::kw_assert:
   case Token_Type::kw_asserts:
@@ -209,6 +210,7 @@ again:
     switch (this->peek().type) {
     case Token_Type::identifier:
     case Token_Type::kw_abstract:
+    case Token_Type::kw_accessor:
     case Token_Type::kw_as:
     case Token_Type::kw_assert:
     case Token_Type::kw_asserts:
@@ -355,6 +357,7 @@ again:
     switch (this->peek().type) {
     case Token_Type::identifier:
     case Token_Type::kw_abstract:
+    case Token_Type::kw_accessor:
     case Token_Type::kw_as:
     case Token_Type::kw_assert:
     case Token_Type::kw_asserts:

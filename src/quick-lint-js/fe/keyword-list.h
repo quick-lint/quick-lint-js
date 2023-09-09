@@ -11,6 +11,7 @@
 // #define QLJS_KEYWORD(keyword) ...
 #define QLJS_X_KEYWORDS     \
   QLJS_KEYWORD(abstract)    \
+  QLJS_KEYWORD(accessor)    \
   QLJS_KEYWORD(any)         \
   QLJS_KEYWORD(as)          \
   QLJS_KEYWORD(assert)      \
