@@ -1590,10 +1590,6 @@ msgid "unclosed template"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "unexpected '@'"
-msgstr ""
-
-#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected '{0}'"
 msgstr ""
 

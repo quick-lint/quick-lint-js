@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[473] = {
+inline const Translated_String test_translation_table[472] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4635,17 +4635,6 @@ inline const Translated_String test_translation_table[473] = {
             u8"unexpected '?' when destructuring",
             u8"'?' inesperado ao desestruturar",
             u8"unexpected '?' when destructuring",
-        },
-    },
-    {
-        "unexpected '@'"_translatable,
-        u8"unexpected '@'",
-        {
-            u8"Unerwartetes '@'",
-            u8"unexp@cted",
-            u8"'@' inattendu",
-            u8"'@' inesperado",
-            u8"of\u00f6rv\u00e4ntad '@'",
         },
     },
     {

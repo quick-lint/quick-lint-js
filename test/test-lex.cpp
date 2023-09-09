@@ -1881,30 +1881,31 @@ TEST_F(
 }
 
 TEST_F(Test_Lex, lex_single_character_symbols) {
-  this->check_tokens(u8"+"_sv, {Token_Type::plus});
-  this->check_tokens(u8"-"_sv, {Token_Type::minus});
-  this->check_tokens(u8"*"_sv, {Token_Type::star});
-  this->check_tokens(u8"/"_sv, {Token_Type::slash});
-  this->check_tokens(u8"<"_sv, {Token_Type::less});
-  this->check_tokens(u8">"_sv, {Token_Type::greater});
-  this->check_tokens(u8"="_sv, {Token_Type::equal});
-  this->check_tokens(u8"&"_sv, {Token_Type::ampersand});
-  this->check_tokens(u8"^"_sv, {Token_Type::circumflex});
   this->check_tokens(u8"!"_sv, {Token_Type::bang});
-  this->check_tokens(u8"."_sv, {Token_Type::dot});
-  this->check_tokens(u8","_sv, {Token_Type::comma});
-  this->check_tokens(u8"~"_sv, {Token_Type::tilde});
   this->check_tokens(u8"%"_sv, {Token_Type::percent});
+  this->check_tokens(u8"&"_sv, {Token_Type::ampersand});
   this->check_tokens(u8"("_sv, {Token_Type::left_paren});
   this->check_tokens(u8")"_sv, {Token_Type::right_paren});
-  this->check_tokens(u8"["_sv, {Token_Type::left_square});
-  this->check_tokens(u8"]"_sv, {Token_Type::right_square});
-  this->check_tokens(u8"{"_sv, {Token_Type::left_curly});
-  this->check_tokens(u8"}"_sv, {Token_Type::right_curly});
+  this->check_tokens(u8"*"_sv, {Token_Type::star});
+  this->check_tokens(u8"+"_sv, {Token_Type::plus});
+  this->check_tokens(u8","_sv, {Token_Type::comma});
+  this->check_tokens(u8"-"_sv, {Token_Type::minus});
+  this->check_tokens(u8"."_sv, {Token_Type::dot});
+  this->check_tokens(u8"/"_sv, {Token_Type::slash});
   this->check_tokens(u8":"_sv, {Token_Type::colon});
   this->check_tokens(u8";"_sv, {Token_Type::semicolon});
+  this->check_tokens(u8"<"_sv, {Token_Type::less});
+  this->check_tokens(u8"="_sv, {Token_Type::equal});
+  this->check_tokens(u8">"_sv, {Token_Type::greater});
   this->check_tokens(u8"?"_sv, {Token_Type::question});
+  this->check_tokens(u8"@"_sv, {Token_Type::at});
+  this->check_tokens(u8"["_sv, {Token_Type::left_square});
+  this->check_tokens(u8"]"_sv, {Token_Type::right_square});
+  this->check_tokens(u8"^"_sv, {Token_Type::circumflex});
+  this->check_tokens(u8"{"_sv, {Token_Type::left_curly});
   this->check_tokens(u8"|"_sv, {Token_Type::pipe});
+  this->check_tokens(u8"}"_sv, {Token_Type::right_curly});
+  this->check_tokens(u8"~"_sv, {Token_Type::tilde});
 }
 
 TEST_F(Test_Lex, lex_multi_character_symbols) {
@@ -2088,22 +2089,6 @@ TEST_F(Test_Lex, lex_unexpected_bom_before_shebang) {
     auto error = /*  */ u8"^^^^^^ Diag_Unexpected_Bom_Before_Shebang"_diag;
     Lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file) << "# should be skipped";
-
-    assert_diagnostics(&input, v.errors, {error});
-  }
-}
-
-TEST_F(Test_Lex, lex_invalid_common_characters_are_disallowed) {
-  {
-    Diag_Collector v;
-    Padded_String input(u8"hello @ world"_sv);
-    auto error = /*  */ u8"      ^ Diag_Unexpected_At_Character"_diag;
-    Lexer l(&input, &v);
-    EXPECT_EQ(l.peek().type, Token_Type::identifier);
-    l.skip();
-    EXPECT_EQ(l.peek().type, Token_Type::identifier) << "@ should be skipped";
-    l.skip();
-    EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
 
     assert_diagnostics(&input, v.errors, {error});
   }

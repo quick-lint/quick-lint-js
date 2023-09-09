@@ -689,6 +689,12 @@ parse_statement:
     v.visit_exit_block_scope();
     break;
 
+  case Token_Type::at:
+    // TODO(#690): Are decorators allowed inside declare namespaces or .d.ts
+    // files? Do they make namespaces non-empty?
+    this->parse_and_visit_decorator_statement(v);
+    break;
+
     // case 3:  // Invalid.
   case Token_Type::kw_case:
     this->is_current_typescript_namespace_non_empty_ = true;
@@ -2568,6 +2574,70 @@ Parser::parse_end_of_typescript_overload_signature(
       .second_function_attributes = second_function_attributes,
       .second_function_generator_star = second_function_generator_star,
   };
+}
+
+void Parser::parse_and_visit_decorator_statement(Parse_Visitor_Base &v) {
+  QLJS_ASSERT(this->peek().type == Token_Type::at);
+  this->skip();
+
+  switch (this->peek().type) {
+  // @myDecorator
+  // @myDecorator()
+  // @myNamespace.myDecorator
+  // TODO(strager): Only allow 'await' in non-async functions.
+  // TODO(strager): Only allow 'yield' in non-generator functions.
+  case Token_Type::kw_await:
+  case Token_Type::kw_yield:
+  QLJS_CASE_CONTEXTUAL_KEYWORD:
+  case Token_Type::identifier: {
+    Expression *ast = this->make_expression<Expression::Variable>(
+        this->peek().identifier_name(), this->peek().type);
+    this->skip();
+
+    while (this->peek().type == Token_Type::dot) {
+      this->skip();
+      switch (this->peek().type) {
+      // @myNamespace.myDecorator
+      QLJS_CASE_KEYWORD:
+      case Token_Type::identifier:
+      case Token_Type::private_identifier:
+        ast = this->make_expression<Expression::Dot>(
+            ast, this->peek().identifier_name());
+        this->skip();
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+    }
+
+    if (this->peek().type == Token_Type::left_paren) {
+      // @decorator()
+      // @decorator(arg1, arg2)
+      ast = this->parse_call_expression_remainder(v, ast);
+    }
+
+    this->visit_expression(ast, v, Variable_Context::rhs);
+    break;
+  }
+
+  // @(myDecorator)
+  case Token_Type::left_paren:
+    this->parse_and_visit_expression(v);
+    break;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_class);
+  this->parse_and_visit_class(
+      v, Parse_Class_Options{
+             .require_name = Name_Requirement::required_for_statement,
+             .abstract_keyword_span = std::nullopt,
+         });
 }
 
 void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {

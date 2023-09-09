@@ -25,6 +25,7 @@ namespace quick_lint_js {
 // anything.
 //
 // When removing a diagnostic, mark its code as reserved here.
+QLJS_RESERVED_DIAG("E0042")
 QLJS_RESERVED_DIAG("E0242")
 QLJS_RESERVED_DIAG("E0271")
 QLJS_RESERVED_DIAG("E0279")
@@ -2483,12 +2484,6 @@ struct Diag_Unclosed_Template {
   [[qljs::diag("E0041", Diagnostic_Severity::error)]]               //
   [[qljs::message("unclosed template", ARG(incomplete_template))]]  //
   Source_Code_Span incomplete_template;
-};
-
-struct Diag_Unexpected_At_Character {
-  [[qljs::diag("E0042", Diagnostic_Severity::error)]]  //
-  [[qljs::message("unexpected '@'", ARG(character))]]  //
-  Source_Code_Span character;
 };
 
 struct Diag_Unexpected_Arrow_After_Expression {

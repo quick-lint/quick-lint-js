@@ -239,6 +239,7 @@ bool Lexer::try_parse_current_token() {
   case ',':
   case ':':
   case ';':
+  case '@':
   case '[':
   case ']':
   case '{':
@@ -618,15 +619,6 @@ bool Lexer::try_parse_current_token() {
   case u8'\x7f': {  // DEL Delete
     const Char8* end = this->input_ + 1;
     this->diag_reporter_->report(Diag_Unexpected_Control_Character{
-        .character = Source_Code_Span(this->input_, end)});
-    this->input_ = end;
-    this->skip_whitespace();
-    return false;
-  }
-
-  case u8'@': {
-    const Char8* end = this->input_ + 1;
-    this->diag_reporter_->report(Diag_Unexpected_At_Character{
         .character = Source_Code_Span(this->input_, end)});
     this->input_ = end;
     this->skip_whitespace();

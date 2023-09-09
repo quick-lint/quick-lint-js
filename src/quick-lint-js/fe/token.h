@@ -201,6 +201,7 @@ class Source_Code_Span;
 enum class Token_Type {
   // Single-character symbols:
   ampersand = '&',
+  at = '@',
   bang = '!',
   circumflex = '^',
   colon = ':',

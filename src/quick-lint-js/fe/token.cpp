@@ -62,6 +62,7 @@ bool Token::contains_escape_sequence() const {
     QLJS_CASE(ampersand_ampersand)
     QLJS_CASE(ampersand_ampersand_equal)
     QLJS_CASE(ampersand_equal)
+    QLJS_CASE(at)
     QLJS_CASE(bang)
     QLJS_CASE(bang_equal)
     QLJS_CASE(bang_equal_equal)

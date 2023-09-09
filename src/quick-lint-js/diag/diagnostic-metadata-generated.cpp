@@ -4818,20 +4818,6 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
-    // Diag_Unexpected_At_Character
-    {
-      .code = 42,
-      .severity = Diagnostic_Severity::error,
-      .message_formats = {
-        QLJS_TRANSLATABLE("unexpected '@'"),
-      },
-      .message_args = {
-        {
-          Diagnostic_Message_Arg_Info(offsetof(Diag_Unexpected_At_Character, character), Diagnostic_Arg_Type::source_code_span),
-        },
-      },
-    },
-
     // Diag_Unexpected_Arrow_After_Expression
     {
       .code = 160,

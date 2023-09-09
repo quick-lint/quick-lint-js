@@ -382,6 +382,8 @@ class Parser {
   Overload_Signature_Parse_Result parse_end_of_typescript_overload_signature(
       const Identifier &function_name);
 
+  void parse_and_visit_decorator_statement(Parse_Visitor_Base &v);
+
   struct Parse_Class_Options {
     Name_Requirement require_name;
     std::optional<Source_Code_Span> abstract_keyword_span;

@@ -134,6 +134,7 @@ quick_lint_js_add_executable(
   test-padded-string.cpp
   test-parse-class.cpp
   test-parse-conditional-expression.cpp
+  test-parse-decorator.cpp
   test-parse-expression-jsx.cpp
   test-parse-expression-statement.cpp
   test-parse-expression-typescript.cpp

@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const Translation_Table translation_data = {
     .mapping_table = Translation_Table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0, 0},                  //
-        {1, 11639, 20705, 31370, 0, 57225},  //
+        {1, 11622, 20677, 31328, 0, 57151},  //
         {50, 61, 79, 49, 0, 40},             //
         {62, 74, 53, 53, 0, 46},             //
         {76, 89, 80, 58, 0, 61},             //
@@ -21,7 +21,7 @@ const Translation_Table translation_data = {
         {31, 56, 0, 32, 0, 63},              //
         {0, 0, 0, 0, 0, 67},                 //
         {0, 0, 0, 70, 0, 26},                //
-        {79, 25, 30, 63, 49650, 66},         //
+        {79, 25, 30, 63, 49593, 66},         //
         {0, 0, 0, 0, 0, 97},                 //
         {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 0, 0, 75},                 //
@@ -431,7 +431,6 @@ const Translation_Table translation_data = {
         {0, 0, 0, 53, 0, 49},                //
         {0, 0, 0, 15, 0, 15},                //
         {16, 12, 14, 32, 17, 34},            //
-        {17, 11, 14, 15, 17, 15},            //
         {31, 12, 34, 35, 33, 29},            //
         {53, 46, 52, 49, 41, 43},            //
         {45, 43, 53, 32, 39, 33},            //
@@ -703,7 +702,6 @@ const Translation_Table translation_data = {
         u8"Zeichenkette ohne Ende\0"
         u8"Template ohne Ende\0"
         u8"Unerwartete '#'\0"
-        u8"Unerwartetes '@'\0"
         u8"Unerwartetes '\\' in Bezeichner\0"
         u8"Unerwartetes 'case' au\u00dferhalb des switch-Statements\0"
         u8"Unerwartetes 'catch' ohne zugeh\u00f6riges 'try'\0"
@@ -964,7 +962,6 @@ const Translation_Table translation_data = {
         u8"\"unclosed string literal\0"
         u8"`unclosed template\0"
         u8"#unexpected\0"
-        u8"unexp@cted\0"
         u8"unex\\pected\0"
         u8"your 'case' fell out of your switch statement\0"
         u8"you'll never catch anything without trying\0"
@@ -1172,7 +1169,6 @@ const Translation_Table translation_data = {
         u8"litt\u00e9ral string non ferm\u00e9\0"
         u8"template non ferm\u00e9\0"
         u8"'#' inattendu\0"
-        u8"'@' inattendu\0"
         u8"'\\' inattendu dans un identifiant\0"
         u8"'case' inattendu en dehors d'une instruction switch\0"
         u8"instruction 'catch' inattendue en l'absence de 'try'\0"
@@ -1536,7 +1532,6 @@ const Translation_Table translation_data = {
         u8"':' inesperado na express\u00e3o; voc\u00ea quis dizer 'as'?\0"
         u8"'?' inesperado\0"
         u8"'?' inesperado ao desestruturar\0"
-        u8"'@' inesperado\0"
         u8"'\\' inesperado em um identificador\0"
         u8"'case' inesperado fora de uma instru\u00e7\u00e3o switch\0"
         u8"'catch' inesperado sem um 'try'\0"
@@ -1728,7 +1723,6 @@ const Translation_Table translation_data = {
         u8"oavslutad str\u00e4nglitteral\0"
         u8"oavslutad mall\0"
         u8"of\u00f6rv\u00e4ntad '#'\0"
-        u8"of\u00f6rv\u00e4ntad '@'\0"
         u8"of\u00f6rv\u00e4ntad '\\' i identifierare\0"
         u8"of\u00f6rv\u00e4ntad 'case' utanf\u00f6r switch sats\0"
         u8"of\u00f6rv\u00e4ntad 'catch' utan n\u00e5gon 'try'\0"
@@ -2180,7 +2174,6 @@ const Translation_Table translation_data = {
         u8"unexpected ':' in expression; did you mean 'as'?\0"
         u8"unexpected '?'\0"
         u8"unexpected '?' when destructuring\0"
-        u8"unexpected '@'\0"
         u8"unexpected '\\' in identifier\0"
         u8"unexpected 'case' outside switch statement\0"
         u8"unexpected 'catch' without 'try'\0"
