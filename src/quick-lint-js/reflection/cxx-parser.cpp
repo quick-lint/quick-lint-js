@@ -520,7 +520,11 @@ void CXX_Diagnostic_Types_Parser::parse_file() {
       this->expect_skip(CXX_Token_Type::left_paren);
 
       this->expect(CXX_Token_Type::string_literal);
-      this->reserved_code_strings.push_back(this->peek().decoded_string);
+      this->reserved_codes.push_back(Diag_Code_Definition{
+          .location = this->lexer_.input_,
+          .diag_type = u8"(reserved)"_sv,
+          .code = this->peek().decoded_string,
+      });
       this->skip();
 
       this->expect_skip(CXX_Token_Type::right_paren);
@@ -550,6 +554,7 @@ void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
         this->expect_skip(CXX_Token_Type::left_paren);
 
         this->expect(CXX_Token_Type::string_literal);
+        type.code_string_location = this->lexer_.input_;
         type.code_string = this->peek().decoded_string;
         this->skip();
 
@@ -616,32 +621,39 @@ void CXX_Diagnostic_Types_Parser::parse_diagnostic_struct_body(
 
 bool CXX_Diagnostic_Types_Parser::check_diag_codes() {
   bool ok = true;
-  Hash_Map<String8_View, String8_View> code_to_diag_name;
-  for (String8_View reserved_code_string : this->reserved_code_strings) {
-    code_to_diag_name[reserved_code_string] = u8"(reserved)"_sv;
+
+  Hash_Map<String8_View, Diag_Code_Definition> code_to_definition;
+  for (const Diag_Code_Definition& reserved_code : this->reserved_codes) {
+    code_to_definition[reserved_code.code] = reserved_code;
   }
 
   for (const CXX_Diagnostic_Type& type : this->parsed_types) {
-    auto existing_it = code_to_diag_name.find(type.code_string);
-    if (existing_it == code_to_diag_name.end()) {
-      code_to_diag_name.emplace(type.code_string, type.name);
+    auto existing_it = code_to_definition.find(type.code_string);
+    if (existing_it == code_to_definition.end()) {
+      code_to_definition.emplace(type.code_string,
+                                 Diag_Code_Definition{
+                                     .location = type.code_string_location,
+                                     .diag_type = type.name,
+                                     .code = type.code_string,
+                                 });
     } else {
       this->error_at(
-          type.code_string.data(),
+          type.code_string_location,
           "error: diag code %s already in use; try this "
           "unused diag code: %s",
           quick_lint_js::to_string(type.code_string).c_str(),
           quick_lint_js::to_string(this->next_unused_diag_code_string())
               .c_str());
-      this->error_at(existing_it->first.data(), "note: %s used code %s here",
-                     quick_lint_js::to_string(existing_it->second).c_str(),
-                     quick_lint_js::to_string(existing_it->first).c_str());
+      this->error_at(
+          existing_it->second.location, "note: %s used code %s here",
+          quick_lint_js::to_string(existing_it->second.diag_type).c_str(),
+          quick_lint_js::to_string(existing_it->first).c_str());
       ok = false;
     }
 
     if (!this->is_valid_code_string(type.code_string)) {
       this->error_at(
-          type.code_string.data(),
+          type.code_string_location,
           "error: diag code %s is malformed; expected a code like "
           "\"E1234\"; try this diag code instead: %s",
           quick_lint_js::to_string(type.code_string).c_str(),
@@ -671,9 +683,9 @@ String8 CXX_Diagnostic_Types_Parser::next_unused_diag_code_string() {
                          [&](const CXX_Diagnostic_Type& type) {
                            return code_string == type.code_string;
                          }) ||
-                  any_of(this->reserved_code_strings,
-                         [&](const String8_View& reserved_code_string) {
-                           return code_string == reserved_code_string;
+                  any_of(this->reserved_codes,
+                         [&](const Diag_Code_Definition& reserved_code) {
+                           return code_string == reserved_code.code;
                          });
     if (!in_use) {
       return String8(code_string);

@@ -122,6 +122,7 @@ struct CXX_Diagnostic_Variable {
 struct CXX_Diagnostic_Type {
   String8_View name;
   String8_View code_string;
+  const Char8* code_string_location;
   String8_View severity;
   Fixed_Vector<CXX_Diagnostic_Message, 4> messages;
   Fixed_Vector<CXX_Diagnostic_Variable, 4> variables;
@@ -177,6 +178,13 @@ class CXX_Diagnostic_Types_Parser : private CXX_Parser_Base {
  public:
   using Base::Base;
 
+  struct Diag_Code_Definition {
+    const Char8* location;
+    // Name of the class starting with "Diag_", or "(reserved)".
+    String8_View diag_type;
+    String8_View code;
+  };
+
   void parse_file();
 
   void parse_diagnostic_struct_body(String8_View diagnostic_struct_name);
@@ -190,7 +198,7 @@ class CXX_Diagnostic_Types_Parser : private CXX_Parser_Base {
   using Base::fatal_at;
 
   std::vector<CXX_Diagnostic_Type> parsed_types;
-  std::vector<String8_View> reserved_code_strings;
+  std::vector<Diag_Code_Definition> reserved_codes;
 };
 
 // Precondition: variables.size() <= 4
