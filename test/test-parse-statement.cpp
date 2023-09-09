@@ -1248,13 +1248,23 @@ TEST_F(Test_Parse_Statement, disallow_label_named_yield_in_generator_function) {
 TEST_F(Test_Parse_Statement, if_body_with_semicolon_typescript) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (a);\nelse e;"_sv,  //
+        u8"if (a)\n; else e;"_sv,  //
         u8"      ` Diag_Missing_Body_For_If_Statement"_diag,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use", //a
                           }));
   }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (a);\n else e;"_sv,  //
+        u8"      ` Diag_Missing_Body_For_If_Statement"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use", //a
+                          }));
+  }  
 
   {
     Test_Parser p(u8"{\nif (a);\n} b;"_sv, typescript_options, capture_diags);
