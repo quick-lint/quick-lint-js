@@ -47,6 +47,10 @@ async function mainAsync() {
         workspacePath,
         "--user-data-dir",
         userDataDir,
+
+        // HACK(#1055): I do not understand why, but this makes the macOS
+        // AArch64 CI testing more stable when the VM's screen is locked.
+        "--disable-gpu",
       ],
       extensionTestsEnv: {
         [testFilterEnvironmentVariable]: args[0],
