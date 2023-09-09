@@ -697,6 +697,129 @@ TEST_F(Test_Parse_Class,
   }
 }
 
+TEST_F(Test_Parse_Class, accessor_field) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor myField; }"_sv, no_diags, javascript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  //
+                              "visit_property_declaration",    // myField
+                              "visit_exit_class_scope",        // C
+                              "visit_variable_declaration",    // C
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myField"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor myField = null; }"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myField"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor #myField; }"_sv, no_diags, javascript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"#myField"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor [computedName]; }"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"computedName"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor 42; }"_sv, no_diags, javascript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor 'fieldName'; }"_sv, no_diags, javascript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { static accessor myField; }"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myField"}));
+  }
+
+  test_parse_and_visit_statement(
+      u8"class C { accessor static myField; }"_sv,  //
+      u8"                   ^^^^^^ Diag_Class_Modifier_Must_Preceed_Other_Modifier.expected_first_modifier\n"_diag
+      u8"          ^^^^^^^^ .expected_second_modifier"_diag,
+      javascript_options);
+}
+
+TEST_F(Test_Parse_Class, accessor_cannot_be_method) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor myMethod() { } }"_sv,  //
+        u8"                           ^ Diag_Class_Accessor_On_Method.method_start\n"_diag
+        u8"          ^^^^^^^^ .accessor_keyword"_diag,
+        javascript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",          // C
+                              "visit_enter_class_scope_body",     // {
+                              "visit_property_declaration",       // myMethod
+                              "visit_enter_function_scope",       // myMethod
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_exit_class_scope",           // }
+                              "visit_variable_declaration",       // C
+                          }))
+        << "should be parsed as a method";
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myMethod"}));
+  }
+
+  test_parse_and_visit_statement(
+      u8"class C { get accessor myMethod() { } }"_sv,  //
+      u8"                               ^ Diag_Class_Accessor_On_Getter_Or_Setter.method_start\n"_diag
+      u8"              ^^^^^^^^ .accessor_keyword\n"_diag
+      u8"          ^^^ .getter_setter_keyword"_diag,
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { set accessor myMethod() { } }"_sv,  //
+      u8"                               ^ Diag_Class_Accessor_On_Getter_Or_Setter.method_start\n"_diag
+      u8"              ^^^^^^^^ .accessor_keyword\n"_diag
+      u8"          ^^^ .getter_setter_keyword"_diag,
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { accessor get myMethod() { } }"_sv,  //
+      u8"                               ^ Diag_Class_Accessor_On_Getter_Or_Setter.method_start\n"_diag
+      u8"                   ^^^ .getter_setter_keyword\n"_diag
+      u8"          ^^^^^^^^ .accessor_keyword"_diag,
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { accessor set myMethod() { } }"_sv,  //
+      u8"                               ^ Diag_Class_Accessor_On_Getter_Or_Setter.method_start\n"_diag
+      u8"                   ^^^ .getter_setter_keyword\n"_diag
+      u8"          ^^^^^^^^ .accessor_keyword"_diag,
+      javascript_options);
+
+  test_parse_and_visit_statement(u8"class C { get accessor myField; }"_sv,  //
+                                 u8"          ^^^ Diag_Unexpected_Token"_diag,
+                                 javascript_options);
+  test_parse_and_visit_statement(u8"class C { set accessor myField; }"_sv,  //
+                                 u8"          ^^^ Diag_Unexpected_Token"_diag,
+                                 javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { accessor get myField; }"_sv,  //
+      u8"                   ^^^ Diag_Unexpected_Token"_diag,
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { accessor set myField; }"_sv,  //
+      u8"                   ^^^ Diag_Unexpected_Token"_diag,
+      javascript_options);
+}
+
 TEST_F(Test_Parse_Class, class_methods_should_not_use_function_keyword) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
@@ -769,6 +892,13 @@ TEST_F(Test_Parse_Class, class_statement_with_keyword_property) {
 
     {
       Test_Parser p(concat(u8"class C { "_sv, keyword, u8" = init; }"_sv));
+      SCOPED_TRACE(p.code);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
+    }
+
+    {
+      Test_Parser p(concat(u8"class C { accessor "_sv, keyword, u8"; }"_sv));
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
@@ -1285,6 +1415,15 @@ TEST_F(Test_Parse_Class, async_method_prohibits_newline_after_async_keyword) {
     Test_Parser p(u8"class C { async\n = 42 }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"async"}));
+  }
+}
+
+TEST_F(Test_Parse_Class, newline_after_accessor_is_asi) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor\n myField; }"_sv, no_diags, javascript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"accessor"_sv, u8"myField"_sv}));
   }
 }
 

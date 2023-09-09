@@ -398,6 +398,30 @@ msgid "unexpected 'catch' without 'try'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'accessor' keyword is not allowed on getters or setters"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'{0}' here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'accessor' keyword is not allowed on methods"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "method starts here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'{0}' is not allowed with '{1}'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'{0}' must precede '{1}'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing body for {1:headlinese}"
 msgstr ""
 
@@ -1206,6 +1230,14 @@ msgid "write the type assertion with 'as' here instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "accessors cannot be optional"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "field was declared as an accessor here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'as const' is only allowed on literals (array, object, string, boolean) and enum members"
 msgstr ""
 
@@ -1755,6 +1787,10 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "cannot use 'declare' keyword with 'import'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'accessor' is not allowed for TypeScript interface fields"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

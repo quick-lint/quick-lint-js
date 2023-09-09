@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[472] = {
+inline const Translated_String test_translation_table[481] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -268,6 +268,39 @@ inline const Translated_String test_translation_table[472] = {
             u8"'^' is the XOR operator; to exponentiate, use '**' instead",
             u8"'^' is the XOR operator; to exponentiate, use '**' instead",
             u8"'^' is the XOR operator; to exponentiate, use '**' instead",
+        },
+    },
+    {
+        "'accessor' is not allowed for TypeScript interface fields"_translatable,
+        u8"'accessor' is not allowed for TypeScript interface fields",
+        {
+            u8"'accessor' is not allowed for TypeScript interface fields",
+            u8"'accessor' is not allowed for TypeScript interface fields",
+            u8"'accessor' is not allowed for TypeScript interface fields",
+            u8"'accessor' is not allowed for TypeScript interface fields",
+            u8"'accessor' is not allowed for TypeScript interface fields",
+        },
+    },
+    {
+        "'accessor' keyword is not allowed on getters or setters"_translatable,
+        u8"'accessor' keyword is not allowed on getters or setters",
+        {
+            u8"'accessor' keyword is not allowed on getters or setters",
+            u8"'accessor' keyword is not allowed on getters or setters",
+            u8"'accessor' keyword is not allowed on getters or setters",
+            u8"'accessor' keyword is not allowed on getters or setters",
+            u8"'accessor' keyword is not allowed on getters or setters",
+        },
+    },
+    {
+        "'accessor' keyword is not allowed on methods"_translatable,
+        u8"'accessor' keyword is not allowed on methods",
+        {
+            u8"'accessor' keyword is not allowed on methods",
+            u8"'accessor' keyword is not allowed on methods",
+            u8"'accessor' keyword is not allowed on methods",
+            u8"'accessor' keyword is not allowed on methods",
+            u8"'accessor' keyword is not allowed on methods",
         },
     },
     {
@@ -832,6 +865,17 @@ inline const Translated_String test_translation_table[472] = {
         },
     },
     {
+        "'{0}' here"_translatable,
+        u8"'{0}' here",
+        {
+            u8"'{0}' here",
+            u8"'{0}' here",
+            u8"'{0}' here",
+            u8"'{0}' here",
+            u8"'{0}' here",
+        },
+    },
+    {
         "'{0}' is not allowed for strings; use {1} instead"_translatable,
         u8"'{0}' is not allowed for strings; use {1} instead",
         {
@@ -851,6 +895,28 @@ inline const Translated_String test_translation_table[472] = {
             u8"'{0}' is not allowed on methods",
             u8"'{0}' n\u00e3o \u00e9 permitido em m\u00e9todos",
             u8"'{0}' is not allowed on methods",
+        },
+    },
+    {
+        "'{0}' is not allowed with '{1}'"_translatable,
+        u8"'{0}' is not allowed with '{1}'",
+        {
+            u8"'{0}' is not allowed with '{1}'",
+            u8"'{0}' is not allowed with '{1}'",
+            u8"'{0}' is not allowed with '{1}'",
+            u8"'{0}' is not allowed with '{1}'",
+            u8"'{0}' is not allowed with '{1}'",
+        },
+    },
+    {
+        "'{0}' must precede '{1}'"_translatable,
+        u8"'{0}' must precede '{1}'",
+        {
+            u8"'{0}' must precede '{1}'",
+            u8"'{0}' must precede '{1}'",
+            u8"'{0}' must precede '{1}'",
+            u8"'{0}' must precede '{1}'",
+            u8"'{0}' must precede '{1}'",
         },
     },
     {
@@ -1555,6 +1621,17 @@ inline const Translated_String test_translation_table[472] = {
             u8"abstract properties are only allowed in abstract classes",
             u8"propriedades abstratas s\u00f3 s\u00e3o permitidas em classes abstratas",
             u8"abstract properties are only allowed in abstract classes",
+        },
+    },
+    {
+        "accessors cannot be optional"_translatable,
+        u8"accessors cannot be optional",
+        {
+            u8"accessors cannot be optional",
+            u8"accessors cannot be optional",
+            u8"accessors cannot be optional",
+            u8"accessors cannot be optional",
+            u8"accessors cannot be optional",
         },
     },
     {
@@ -2515,6 +2592,17 @@ inline const Translated_String test_translation_table[472] = {
         },
     },
     {
+        "field was declared as an accessor here"_translatable,
+        u8"field was declared as an accessor here",
+        {
+            u8"field was declared as an accessor here",
+            u8"field was declared as an accessor here",
+            u8"field was declared as an accessor here",
+            u8"field was declared as an accessor here",
+            u8"field was declared as an accessor here",
+        },
+    },
+    {
         "first parameter starts here"_translatable,
         u8"first parameter starts here",
         {
@@ -3062,6 +3150,17 @@ inline const Translated_String test_translation_table[472] = {
             u8"lower case letters compared with toUpperCase",
             u8"letras min\u00fasculas comparadas com toUpperCase",
             u8"lower case letters compared with toUpperCase",
+        },
+    },
+    {
+        "method starts here"_translatable,
+        u8"method starts here",
+        {
+            u8"method starts here",
+            u8"method starts here",
+            u8"method starts here",
+            u8"method starts here",
+            u8"method starts here",
         },
     },
     {

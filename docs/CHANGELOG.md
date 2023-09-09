@@ -11,6 +11,7 @@ Semantic Versioning.
 ### Added
 
 * quick-lint-js now understands decorators.
+* quick-lint-js now understands `accessor` fields.
 
 ## 2.16.0 (2023-09-06)
 

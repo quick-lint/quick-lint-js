@@ -961,6 +961,76 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Class_Accessor_On_Getter_Or_Setter
+    {
+      .code = 393,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'accessor' keyword is not allowed on getters or setters"),
+        QLJS_TRANSLATABLE("'{0}' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Accessor_On_Getter_Or_Setter, accessor_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Accessor_On_Getter_Or_Setter, getter_setter_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Class_Accessor_On_Method
+    {
+      .code = 392,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'accessor' keyword is not allowed on methods"),
+        QLJS_TRANSLATABLE("method starts here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Accessor_On_Method, accessor_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Accessor_On_Method, method_start), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Class_Conflicting_Modifiers
+    {
+      .code = 394,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'{0}' is not allowed with '{1}'"),
+        QLJS_TRANSLATABLE("'{0}' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Conflicting_Modifiers, second_modifier), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Conflicting_Modifiers, first_modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Conflicting_Modifiers, first_modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Class_Modifier_Must_Preceed_Other_Modifier
+    {
+      .code = 395,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'{0}' must precede '{1}'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Must_Preceed_Other_Modifier, expected_first_modifier), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Must_Preceed_Other_Modifier, expected_second_modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Class_Statement_Not_Allowed_In_Body
     {
       .code = 149,
@@ -3615,6 +3685,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Accessor_Cannot_Be_Optional
+    {
+      .code = 396,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("accessors cannot be optional"),
+        QLJS_TRANSLATABLE("field was declared as an accessor here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Accessor_Cannot_Be_Optional, optional_question), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Accessor_Cannot_Be_Optional, accessor_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_As_Const_With_Non_Literal_Typeable
     {
       .code = 291,
@@ -5380,6 +5468,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Import_Cannot_Have_Declare_Keyword, declare_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Interface_Field_Cannot_Be_Accessor
+    {
+      .code = 397,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'accessor' is not allowed for TypeScript interface fields"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Interface_Field_Cannot_Be_Accessor, accessor_keyword), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

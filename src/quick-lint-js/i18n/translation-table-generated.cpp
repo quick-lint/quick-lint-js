@@ -33,7 +33,10 @@ const Translation_Table translation_data = {
         {93, 63, 151, 70, 130, 71},          //
         {0, 0, 0, 0, 0, 37},                 //
         {0, 0, 0, 0, 0, 14},                 //
-        {0, 0, 0, 36, 0, 59},                //
+        {0, 0, 0, 0, 0, 59},                 //
+        {0, 0, 0, 0, 0, 58},                 //
+        {0, 0, 0, 0, 0, 56},                 //
+        {0, 0, 0, 36, 0, 45},                //
         {0, 0, 0, 100, 0, 89},               //
         {0, 0, 0, 0, 0, 24},                 //
         {50, 77, 41, 27, 0, 60},             //
@@ -84,9 +87,12 @@ const Translation_Table translation_data = {
         {0, 0, 0, 19, 0, 17},                //
         {0, 0, 0, 0, 0, 25},                 //
         {15, 38, 0, 25, 0, 42},              //
-        {15, 17, 0, 22, 0, 17},              //
+        {0, 0, 0, 0, 0, 17},                 //
+        {15, 17, 0, 22, 0, 11},              //
         {0, 0, 0, 46, 0, 50},                //
-        {69, 48, 0, 36, 0, 32},              //
+        {0, 0, 0, 0, 0, 32},                 //
+        {0, 0, 0, 0, 0, 32},                 //
+        {69, 48, 0, 36, 0, 25},              //
         {0, 0, 0, 0, 0, 62},                 //
         {68, 25, 0, 65, 0, 28},              //
         {0, 0, 0, 0, 0, 62},                 //
@@ -150,7 +156,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 59, 0, 49},                //
         {0, 0, 0, 44, 0, 39},                //
         {0, 0, 0, 58, 0, 50},                //
-        {14, 14, 0, 64, 0, 57},              //
+        {0, 0, 0, 0, 0, 57},                 //
+        {14, 14, 0, 64, 0, 29},              //
         {0, 26, 0, 21, 0, 18},               //
         {18, 53, 70, 52, 76, 53},            //
         {19, 30, 21, 19, 19, 19},            //
@@ -237,7 +244,8 @@ const Translation_Table translation_data = {
         {35, 45, 38, 53, 33, 46},            //
         {0, 0, 0, 73, 0, 57},                //
         {0, 0, 0, 21, 0, 20},                //
-        {0, 0, 0, 33, 0, 27},                //
+        {0, 0, 0, 0, 0, 27},                 //
+        {0, 0, 0, 33, 0, 39},                //
         {77, 32, 77, 32, 63, 28},            //
         {85, 29, 86, 78, 70, 60},            //
         {61, 59, 69, 43, 41, 46},            //
@@ -287,7 +295,8 @@ const Translation_Table translation_data = {
         {54, 5, 62, 42, 52, 39},             //
         {61, 50, 75, 49, 64, 50},            //
         {50, 22, 0, 63, 0, 51},              //
-        {0, 0, 0, 46, 0, 45},                //
+        {0, 0, 0, 0, 0, 45},                 //
+        {0, 0, 0, 46, 0, 19},                //
         {50, 47, 66, 33, 53, 27},            //
         {0, 0, 0, 0, 0, 46},                 //
         {0, 0, 0, 0, 0, 56},                 //
@@ -1777,6 +1786,9 @@ const Translation_Table translation_data = {
         u8"'?' creates a conditional expression\0"
         u8"'?' goes here\0"
         u8"'^' is the XOR operator; to exponentiate, use '**' instead\0"
+        u8"'accessor' is not allowed for TypeScript interface fields\0"
+        u8"'accessor' keyword is not allowed on getters or setters\0"
+        u8"'accessor' keyword is not allowed on methods\0"
         u8"'as const' is only allowed on literals (array, object, string, boolean) and enum members\0"
         u8"'as const' located here\0"
         u8"'async export' is not allowed; write 'export async' instead\0"
@@ -1828,8 +1840,11 @@ const Translation_Table translation_data = {
         u8"'{0} []' is always '{1}'\0"
         u8"'{0}' access specifier must precede '{1}'\0"
         u8"'{0}' found here\0"
+        u8"'{0}' here\0"
         u8"'{0}' is not allowed for strings; use {1} instead\0"
         u8"'{0}' is not allowed on methods\0"
+        u8"'{0}' is not allowed with '{1}'\0"
+        u8"'{0}' must precede '{1}'\0"
         u8"'{0}' operator cannot be used before '**' without parentheses\0"
         u8"'{1}' statement starts here\0"
         u8"'}' is not allowed directly in JSX text; write {{'}'} instead\0"
@@ -1894,6 +1909,7 @@ const Translation_Table translation_data = {
         u8"abstract methods cannot contain a body\0"
         u8"abstract properties are not allowed in interfaces\0"
         u8"abstract properties are only allowed in abstract classes\0"
+        u8"accessors cannot be optional\0"
         u8"an 'if' statement\0"
         u8"another invalid string, do not use outside benchmark\0"
         u8"array started here\0"
@@ -1981,6 +1997,7 @@ const Translation_Table translation_data = {
         u8"extra ',' is not allowed between function call arguments\0"
         u8"field declared here\0"
         u8"field marked abstract here\0"
+        u8"field was declared as an accessor here\0"
         u8"first parameter starts here\0"
         u8"for loop needs an iterable, or condition and update clauses\0"
         u8"for-in loop expression cannot have semicolons\0"
@@ -2031,6 +2048,7 @@ const Translation_Table translation_data = {
         u8"legacy octal literals may not contain underscores\0"
         u8"let statement cannot declare variables named 'let'\0"
         u8"lower case letters compared with toUpperCase\0"
+        u8"method starts here\0"
         u8"methods cannot be readonly\0"
         u8"methods should not use the 'function' keyword\0"
         u8"misleading use of ',' operator in conditional statement\0"

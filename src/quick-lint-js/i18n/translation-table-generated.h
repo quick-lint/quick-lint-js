@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 473;
-constexpr std::size_t translation_table_string_table_size = 77731;
+constexpr std::uint16_t translation_table_mapping_table_size = 482;
+constexpr std::size_t translation_table_string_table_size = 78045;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -48,6 +48,9 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'?' creates a conditional expression"sv,
           "'?' goes here"sv,
           "'^' is the XOR operator; to exponentiate, use '**' instead"sv,
+          "'accessor' is not allowed for TypeScript interface fields"sv,
+          "'accessor' keyword is not allowed on getters or setters"sv,
+          "'accessor' keyword is not allowed on methods"sv,
           "'as const' is only allowed on literals (array, object, string, boolean) and enum members"sv,
           "'as const' located here"sv,
           "'async export' is not allowed; write 'export async' instead"sv,
@@ -99,8 +102,11 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'{0} []' is always '{1}'"sv,
           "'{0}' access specifier must precede '{1}'"sv,
           "'{0}' found here"sv,
+          "'{0}' here"sv,
           "'{0}' is not allowed for strings; use {1} instead"sv,
           "'{0}' is not allowed on methods"sv,
+          "'{0}' is not allowed with '{1}'"sv,
+          "'{0}' must precede '{1}'"sv,
           "'{0}' operator cannot be used before '**' without parentheses"sv,
           "'{1}' statement starts here"sv,
           "'}' is not allowed directly in JSX text; write {{'}'} instead"sv,
@@ -165,6 +171,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "abstract methods cannot contain a body"sv,
           "abstract properties are not allowed in interfaces"sv,
           "abstract properties are only allowed in abstract classes"sv,
+          "accessors cannot be optional"sv,
           "an 'if' statement"sv,
           "another invalid string, do not use outside benchmark"sv,
           "array started here"sv,
@@ -252,6 +259,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "extra ',' is not allowed between function call arguments"sv,
           "field declared here"sv,
           "field marked abstract here"sv,
+          "field was declared as an accessor here"sv,
           "first parameter starts here"sv,
           "for loop needs an iterable, or condition and update clauses"sv,
           "for-in loop expression cannot have semicolons"sv,
@@ -302,6 +310,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "legacy octal literals may not contain underscores"sv,
           "let statement cannot declare variables named 'let'"sv,
           "lower case letters compared with toUpperCase"sv,
+          "method starts here"sv,
           "methods cannot be readonly"sv,
           "methods should not use the 'function' keyword"sv,
           "misleading use of ',' operator in conditional statement"sv,

@@ -19,6 +19,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <utility>
 
 namespace quick_lint_js {
@@ -295,13 +296,15 @@ void Parser::parse_and_visit_class_or_interface_member(
                                                    &p->temporary_memory_);
 
     // Returns true if an entire property was parsed.
-    // Returns false if nothing was parsed or if only modifiers were parser.
+    // Returns false if nothing was parsed or if only modifiers were parsed.
     bool parse_modifiers() {
       for (;;) {
         switch (p->peek().type) {
-        // async f() {}
         // abstract f();
+        // accessor myField = null;
+        // async f() {}
         case Token_Type::kw_abstract:
+        case Token_Type::kw_accessor:
         case Token_Type::kw_async:
           last_ident = p->peek().identifier_name();
           modifiers.push_back(Modifier{
@@ -972,14 +975,20 @@ void Parser::parse_and_visit_class_or_interface_member(
 
     void check_modifiers_for_field() {
       error_if_invalid_access_specifier();
+      error_if_getter_setter_field();
       error_if_access_specifier_not_first_in_field();
+      error_if_abstract_or_static_after_accessor();
+      error_if_conflicting_modifiers();
       error_if_readonly_in_not_typescript();
+      error_if_accessor_in_interface();
       error_if_static_in_interface();
       error_if_optional_in_not_typescript();
+      error_if_optional_accessor();
       error_if_abstract_not_in_abstract_class();
     }
 
     void check_modifiers_for_method() {
+      error_if_accessor_method();
       error_if_readonly_method();
       error_if_async_or_generator_without_method_body();
       error_if_invalid_access_specifier();
@@ -997,6 +1006,19 @@ void Parser::parse_and_visit_class_or_interface_member(
               Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript{
                   .question = optional_modifier->span,
               });
+        }
+      }
+    }
+
+    void error_if_optional_accessor() {
+      if (const Modifier *accessor_modifier =
+              find_modifier(Token_Type::kw_accessor)) {
+        if (const Modifier *optional_modifier =
+                find_modifier(Token_Type::question)) {
+          p->diag_reporter_->report(Diag_TypeScript_Accessor_Cannot_Be_Optional{
+              .optional_question = optional_modifier->span,
+              .accessor_keyword = accessor_modifier->span,
+          });
         }
       }
     }
@@ -1090,6 +1112,32 @@ void Parser::parse_and_visit_class_or_interface_member(
       }
     }
 
+    void error_if_accessor_method() {
+      if (const Modifier *accessor_modifier =
+              find_modifier(Token_Type::kw_accessor)) {
+        Source_Code_Span method_start = p->peek().span();
+        if (const Modifier *get_modifier = find_modifier(Token_Type::kw_get)) {
+          p->diag_reporter_->report(Diag_Class_Accessor_On_Getter_Or_Setter{
+              .method_start = method_start,
+              .accessor_keyword = accessor_modifier->span,
+              .getter_setter_keyword = get_modifier->span,
+          });
+        } else if (const Modifier *set_modifier =
+                       find_modifier(Token_Type::kw_set)) {
+          p->diag_reporter_->report(Diag_Class_Accessor_On_Getter_Or_Setter{
+              .method_start = method_start,
+              .accessor_keyword = accessor_modifier->span,
+              .getter_setter_keyword = set_modifier->span,
+          });
+        } else {
+          p->diag_reporter_->report(Diag_Class_Accessor_On_Method{
+              .method_start = method_start,
+              .accessor_keyword = accessor_modifier->span,
+          });
+        }
+      }
+    }
+
     void error_if_readonly_method() {
       if (const Modifier *readonly_modifier =
               find_modifier(Token_Type::kw_readonly)) {
@@ -1171,12 +1219,26 @@ void Parser::parse_and_visit_class_or_interface_member(
       }
     }
 
+    void error_if_getter_setter_field() {
+      if (const Modifier *get_modifier = find_modifier(Token_Type::kw_get)) {
+        p->diag_reporter_->report(Diag_Unexpected_Token{
+            .token = get_modifier->span,
+        });
+      }
+      if (const Modifier *set_modifier = find_modifier(Token_Type::kw_set)) {
+        p->diag_reporter_->report(Diag_Unexpected_Token{
+            .token = set_modifier->span,
+        });
+      }
+    }
+
     void error_if_access_specifier_not_first_in_field() {
       if (p->options_.typescript && !modifiers.empty()) {
         check_if_access_specifier_precedes_given_modifiers(
             Span<const Token_Type>({
-                Token_Type::kw_static,
+                Token_Type::kw_accessor,
                 Token_Type::kw_readonly,
+                Token_Type::kw_static,
             }));
       }
     }
@@ -1188,6 +1250,48 @@ void Parser::parse_and_visit_class_or_interface_member(
                 Token_Type::kw_static,
                 Token_Type::kw_async,
             }));
+      }
+    }
+
+    void error_if_abstract_or_static_after_accessor() {
+      if (const Modifier *accessor_modifier =
+              this->find_modifier(Token_Type::kw_accessor)) {
+        if (const Modifier *abstract_modifier =
+                this->find_modifier(Token_Type::kw_abstract)) {
+          if (abstract_modifier > accessor_modifier) {
+            p->diag_reporter_->report(
+                Diag_Class_Modifier_Must_Preceed_Other_Modifier{
+                    .expected_first_modifier = abstract_modifier->span,
+                    .expected_second_modifier = accessor_modifier->span,
+                });
+          }
+        }
+
+        if (const Modifier *static_modifier =
+                this->find_modifier(Token_Type::kw_static)) {
+          if (static_modifier > accessor_modifier) {
+            p->diag_reporter_->report(
+                Diag_Class_Modifier_Must_Preceed_Other_Modifier{
+                    .expected_first_modifier = static_modifier->span,
+                    .expected_second_modifier = accessor_modifier->span,
+                });
+          }
+        }
+      }
+    }
+
+    void error_if_conflicting_modifiers() {
+      if (const Modifier *accessor_modifier =
+              this->find_modifier(Token_Type::kw_accessor)) {
+        if (const Modifier *readonly_modifier =
+                this->find_modifier(Token_Type::kw_readonly)) {
+          const Modifier *modifiers[2] = {accessor_modifier, readonly_modifier};
+          sort(modifiers);
+          p->diag_reporter_->report(Diag_Class_Conflicting_Modifiers{
+              .second_modifier = modifiers[1]->span,
+              .first_modifier = modifiers[0]->span,
+          });
+        }
       }
     }
 
@@ -1204,6 +1308,17 @@ void Parser::parse_and_visit_class_or_interface_member(
                   .second_modifier = access_specifier->span,
                   .first_modifier = m->span,
               });
+        }
+      }
+    }
+
+    void error_if_accessor_in_interface() {
+      if (is_interface) {
+        if (const Modifier *accessor_modifier =
+                find_modifier(Token_Type::kw_accessor)) {
+          p->diag_reporter_->report(Diag_Interface_Field_Cannot_Be_Accessor{
+              .accessor_keyword = accessor_modifier->span,
+          });
         }
       }
     }

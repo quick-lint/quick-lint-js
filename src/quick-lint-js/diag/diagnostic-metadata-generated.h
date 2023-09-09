@@ -74,6 +74,10 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Cannot_Refer_To_Private_Variable_Without_Object) \
   QLJS_DIAG_TYPE_NAME(Diag_Cannot_Update_Variable_During_Declaration) \
   QLJS_DIAG_TYPE_NAME(Diag_Catch_Without_Try) \
+  QLJS_DIAG_TYPE_NAME(Diag_Class_Accessor_On_Getter_Or_Setter) \
+  QLJS_DIAG_TYPE_NAME(Diag_Class_Accessor_On_Method) \
+  QLJS_DIAG_TYPE_NAME(Diag_Class_Conflicting_Modifiers) \
+  QLJS_DIAG_TYPE_NAME(Diag_Class_Modifier_Must_Preceed_Other_Modifier) \
   QLJS_DIAG_TYPE_NAME(Diag_Class_Statement_Not_Allowed_In_Body) \
   QLJS_DIAG_TYPE_NAME(Diag_Character_Disallowed_In_Identifiers) \
   QLJS_DIAG_TYPE_NAME(Diag_Comma_Not_Allowed_After_Spread_Parameter) \
@@ -254,6 +258,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_This_Parameter_Not_Allowed_When_Destructuring) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Abstract_Class_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Accessor_Cannot_Be_Optional) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_As_Const_With_Non_Literal_Typeable) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_As_Type_Assertion_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation) \
@@ -373,6 +378,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Variable_Used_Before_Declaration) \
   QLJS_DIAG_TYPE_NAME(Diag_Function_Call_Before_Declaration_In_Block_Scope) \
   QLJS_DIAG_TYPE_NAME(Diag_Import_Cannot_Have_Declare_Keyword) \
+  QLJS_DIAG_TYPE_NAME(Diag_Interface_Field_Cannot_Be_Accessor) \
   QLJS_DIAG_TYPE_NAME(Diag_Interface_Fields_Cannot_Have_Initializers) \
   QLJS_DIAG_TYPE_NAME(Diag_Interface_Methods_Cannot_Be_Async) \
   QLJS_DIAG_TYPE_NAME(Diag_Interface_Methods_Cannot_Be_Generators) \
@@ -408,7 +414,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 394;
+inline constexpr int Diag_Type_Count = 400;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

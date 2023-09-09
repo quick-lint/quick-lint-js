@@ -518,6 +518,42 @@ struct Diag_Catch_Without_Try {
   Source_Code_Span catch_token;
 };
 
+struct Diag_Class_Accessor_On_Getter_Or_Setter {
+  [[qljs::diag("E0393", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'accessor' keyword is not allowed on getters or setters",
+                  ARG(accessor_keyword))]]                     //
+  [[qljs::message("'{0}' here", ARG(getter_setter_keyword))]]  //
+  Source_Code_Span method_start;
+  Source_Code_Span accessor_keyword;
+  Source_Code_Span getter_setter_keyword;
+};
+
+struct Diag_Class_Accessor_On_Method {
+  [[qljs::diag("E0392", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'accessor' keyword is not allowed on methods",
+                  ARG(accessor_keyword))]]                    //
+  [[qljs::message("method starts here", ARG(method_start))]]  //
+  Source_Code_Span method_start;
+  Source_Code_Span accessor_keyword;
+};
+
+struct Diag_Class_Conflicting_Modifiers {
+  [[qljs::diag("E0394", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'{0}' is not allowed with '{1}'", ARG(second_modifier),
+                  ARG(first_modifier))]]                //
+  [[qljs::message("'{0}' here", ARG(first_modifier))]]  //
+  Source_Code_Span second_modifier;
+  Source_Code_Span first_modifier;
+};
+
+struct Diag_Class_Modifier_Must_Preceed_Other_Modifier {
+  [[qljs::diag("E0395", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'{0}' must precede '{1}'", ARG(expected_first_modifier),
+                  ARG(expected_second_modifier))]]  //
+  Source_Code_Span expected_first_modifier;
+  Source_Code_Span expected_second_modifier;
+};
+
 struct Diag_Class_Statement_Not_Allowed_In_Body {
   [[qljs::diag("E0149", Diagnostic_Severity::error)]]  //
   [[qljs::message("missing body for {1:headlinese}", ARG(expected_body),
@@ -1851,6 +1887,15 @@ struct Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx {
   Source_Code_Span expected_as;
 };
 
+struct Diag_TypeScript_Accessor_Cannot_Be_Optional {
+  [[qljs::diag("E0396", Diagnostic_Severity::error)]]                        //
+  [[qljs::message("accessors cannot be optional", ARG(optional_question))]]  //
+  [[qljs::message("field was declared as an accessor here",
+                  ARG(accessor_keyword))]]  //
+  Source_Code_Span optional_question;
+  Source_Code_Span accessor_keyword;
+};
+
 struct Diag_TypeScript_As_Const_With_Non_Literal_Typeable {
   [[qljs::diag("E0291", Diagnostic_Severity::error)]]  //
   // clang-format off
@@ -2765,6 +2810,13 @@ struct Diag_Import_Cannot_Have_Declare_Keyword {
   [[qljs::message("cannot use 'declare' keyword with 'import'",
                   ARG(declare_keyword))]]  //
   Source_Code_Span declare_keyword;
+};
+
+struct Diag_Interface_Field_Cannot_Be_Accessor {
+  [[qljs::diag("E0397", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'accessor' is not allowed for TypeScript interface fields",
+                  ARG(accessor_keyword))]]  //
+  Source_Code_Span accessor_keyword;
 };
 
 struct Diag_Interface_Fields_Cannot_Have_Initializers {

@@ -1035,6 +1035,13 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
       typescript_options);
 }
 
+TEST_F(Test_Parse_TypeScript_Interface, accessor_fields_are_not_allowed) {
+  test_parse_and_visit_module(
+      u8"interface I { accessor field; }"_sv,  //
+      u8"              ^^^^^^^^ Diag_Interface_Field_Cannot_Be_Accessor"_diag,
+      typescript_options);
+}
+
 TEST_F(Test_Parse_TypeScript_Interface, async_methods_are_not_allowed) {
   for (String8 method_name : Dirty_Set<String8>{u8"method"} | keywords) {
     SCOPED_TRACE(out_string8(method_name));

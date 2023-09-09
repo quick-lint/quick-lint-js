@@ -171,6 +171,14 @@ TEST_F(Test_Parse_TypeScript_Class, optional_fields_are_allowed_in_typescript) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Class, optional_accessors_are_not_allowed) {
+  test_parse_and_visit_statement(
+      u8"class C { accessor myField?; }"_sv,
+      u8"                          ^ Diag_TypeScript_Accessor_Cannot_Be_Optional.optional_question\n"_diag
+      u8"          ^^^^^^^^ .accessor_keyword"_diag,
+      typescript_options);
+}
+
 TEST_F(Test_Parse_TypeScript_Class,
        optional_methods_are_allowed_in_typescript_classes) {
   {
@@ -272,6 +280,18 @@ TEST_F(Test_Parse_TypeScript_Class,
   {
     Test_Parser p(u8"class C { field!: any; }"_sv, typescript_options);
     p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  //
+                              "visit_property_declaration",    // field
+                              "visit_exit_class_scope",        // C
+                              "visit_variable_declaration",    // C
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor field!: any; }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  //
@@ -817,29 +837,47 @@ TEST_F(Test_Parse_TypeScript_Class,
 TEST_F(Test_Parse_TypeScript_Class,
        access_specifiers_are_allowed_in_typescript) {
   for (String8 specifier : {u8"public", u8"protected", u8"private"}) {
-    Padded_String code(
-        concat(u8"class C { "_sv, specifier, u8" method() {} }"_sv));
-    SCOPED_TRACE(code);
-    Test_Parser p(code.string_view(), typescript_options);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",          // C
-                              "visit_enter_class_scope_body",     //
-                              "visit_property_declaration",       // method
-                              "visit_enter_function_scope",       // method
-                              "visit_enter_function_scope_body",  // method
-                              "visit_exit_function_scope",        // method
-                              "visit_exit_class_scope",           // C
-                              "visit_variable_declaration",       // C
-                          }));
-    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"}));
+    {
+      Padded_String code(
+          concat(u8"class C { "_sv, specifier, u8" method() {} }"_sv));
+      SCOPED_TRACE(code);
+      Test_Parser p(code.string_view(), typescript_options);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAreArray({
+                                "visit_enter_class_scope",          // C
+                                "visit_enter_class_scope_body",     //
+                                "visit_property_declaration",       // method
+                                "visit_enter_function_scope",       // method
+                                "visit_enter_function_scope_body",  // method
+                                "visit_exit_function_scope",        // method
+                                "visit_exit_class_scope",           // C
+                                "visit_variable_declaration",       // C
+                            }));
+      EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"}));
+    }
+
+    {
+      Padded_String code(
+          concat(u8"class C { "_sv, specifier, u8" field; }"_sv));
+      SCOPED_TRACE(code);
+      test_parse_and_visit_statement(code.string_view(), no_diags,
+                                     typescript_options);
+    }
+
+    {
+      Padded_String code(
+          concat(u8"class C { "_sv, specifier, u8" accessor field; }"_sv));
+      SCOPED_TRACE(code);
+      test_parse_and_visit_statement(code.string_view(), no_diags,
+                                     typescript_options);
+    }
   }
 }
 
 TEST_F(Test_Parse_TypeScript_Class,
        access_specifiers_must_precede_other_modifiers_in_typescript) {
   for (String8 access_specifier : {u8"public", u8"protected", u8"private"}) {
-    for (String8 other_modifier : {u8"static", u8"readonly"}) {
+    for (String8 other_modifier : {u8"static", u8"readonly", u8"accessor"}) {
       Padded_String code(concat(u8"class C { "_sv, other_modifier, u8" "_sv,
                                 access_specifier, u8" public; }"_sv));
       SCOPED_TRACE(code);
@@ -1140,6 +1178,27 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_field) {
                           }));
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myField"}));
   }
+
+  {
+    Test_Parser p(
+        u8"abstract class C { abstract accessor myField: string; }"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // {
+                              "visit_enter_class_scope_body",  // C
+                              "visit_property_declaration",    // myField
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myField"}));
+  }
+
+  test_parse_and_visit_statement(
+      u8"abstract class C { accessor abstract myField: string; }"_sv,
+      u8"                            ^^^^^^^^ Diag_Class_Modifier_Must_Preceed_Other_Modifier.expected_first_modifier\n"_diag
+      u8"                   ^^^^^^^^ .expected_second_modifier"_diag,
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Class, abstract_fields_cannot_have_initializers) {
@@ -1212,6 +1271,36 @@ TEST_F(Test_Parse_TypeScript_Class,
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"abstract"}));
   }
+}
+
+TEST_F(Test_Parse_TypeScript_Class, accessor_field) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { accessor f: MyType; }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_variable_type_use",       // MyType
+                              "visit_property_declaration",    // f
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType"_sv}));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"f"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Class, accessor_conflicts_with_readonly) {
+  test_parse_and_visit_statement(
+      u8"class C { accessor readonly f: MyType; }"_sv,  //
+      u8"                   ^^^^^^^^ Diag_Class_Conflicting_Modifiers.second_modifier\n"_diag
+      u8"          ^^^^^^^^ .first_modifier"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"class C { readonly accessor f: MyType; }"_sv,  //
+      u8"                   ^^^^^^^^ Diag_Class_Conflicting_Modifiers.second_modifier\n"_diag
+      u8"          ^^^^^^^^ .first_modifier"_diag,
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Class, implements_is_not_allowed_in_javascript) {
