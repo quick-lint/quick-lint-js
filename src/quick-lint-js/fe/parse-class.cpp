@@ -303,12 +303,15 @@ void Parser::parse_and_visit_class_or_interface_member(
         // abstract f();
         // accessor myField = null;
         // async f() {}
+        // function f() {}  // Invalid.
+        // function() {}
         // private f() {}
         // public static field = 42;
         // readonly field: number;
         case Token_Type::kw_abstract:
         case Token_Type::kw_accessor:
         case Token_Type::kw_async:
+        case Token_Type::kw_function:
         case Token_Type::kw_private:
         case Token_Type::kw_protected:
         case Token_Type::kw_public:
@@ -366,17 +369,6 @@ void Parser::parse_and_visit_class_or_interface_member(
 
         // static f() {}
         case Token_Type::kw_static:
-          last_ident = p->peek().identifier_name();
-          modifiers.push_back(Modifier{
-              .span = p->peek().span(),
-              .type = p->peek().type,
-          });
-          p->skip();
-          continue;
-
-        // function() {}
-        // function f() {}  // Invalid.
-        case Token_Type::kw_function:
           last_ident = p->peek().identifier_name();
           modifiers.push_back(Modifier{
               .span = p->peek().span(),

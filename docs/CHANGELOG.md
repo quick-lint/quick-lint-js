@@ -15,6 +15,7 @@ Semantic Versioning.
 
 ### Fixed
 
+* [E0072][] is no longer falsely reported if `function` has a newline after it.
 * TypeScript support (still experimental):
   * A newline after `public`, `protected`, `private`, or `readonly` inside a
     class is now interpreted correctly.
@@ -1086,6 +1087,7 @@ Beta release.
 [E0062]: https://quick-lint-js.com/errors/E0062/
 [E0065]: https://quick-lint-js.com/errors/E0065/
 [E0069]: https://quick-lint-js.com/errors/E0069/
+[E0072]: https://quick-lint-js.com/errors/E0072/
 [E0073]: https://quick-lint-js.com/errors/E0073/
 [E0086]: https://quick-lint-js.com/errors/E0086/
 [E0094]: https://quick-lint-js.com/errors/E0094/
@@ -1103,6 +1105,7 @@ Beta release.
 [E0150]: https://quick-lint-js.com/errors/E0150/
 [E0151]: https://quick-lint-js.com/errors/E0151/
 [E0155]: https://quick-lint-js.com/errors/E0155/
+[E0161]: https://quick-lint-js.com/errors/E0161/
 [E0173]: https://quick-lint-js.com/errors/E0173/
 [E0176]: https://quick-lint-js.com/errors/E0176/
 [E0177]: https://quick-lint-js.com/errors/E0177/
@@ -1178,4 +1181,3 @@ Beta release.
 [E0708]: https://quick-lint-js.com/errors/E0708/
 [E0709]: https://quick-lint-js.com/errors/E0709/
 [E0710]: https://quick-lint-js.com/errors/E0710/
-[E0161]: https://quick-lint-js.com/errors/E0161/
