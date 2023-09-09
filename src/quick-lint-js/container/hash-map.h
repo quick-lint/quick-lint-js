@@ -116,6 +116,13 @@ class Hash_Map {
     return this->map_.find(key);
   }
 
+  template <class K>
+  const Value& at(const K& key) const {
+    const_iterator it = this->find(key);
+    QLJS_ASSERT(it != this->end());
+    return it->second;
+  }
+
   iterator begin() { return this->map_.begin(); }
   const_iterator begin() const { return this->map_.begin(); }
 

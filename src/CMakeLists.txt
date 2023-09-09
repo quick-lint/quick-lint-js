@@ -92,12 +92,14 @@ if (TARGET quick-lint-js-generate-trace-sources)
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-reader-generated.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-reader-generated.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-writer-generated.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../tools/trace.bt"
     COMMAND
       $<TARGET_FILE:quick-lint-js-generate-trace-sources>
+      --output-010-editor-template "${CMAKE_CURRENT_SOURCE_DIR}/../tools/trace.bt"
       --output-metadata-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-metadata-generated.cpp"
-      --output-parser-js "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/debug/public/trace-generated.mjs"
       --output-parser-cpp "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-reader-generated.cpp"
       --output-parser-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-reader-generated.h"
+      --output-parser-js "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/debug/public/trace-generated.mjs"
       --output-writer-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-writer-generated.h"
       --trace-types-h "${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js/logging/trace-types.h"
     DEPENDS

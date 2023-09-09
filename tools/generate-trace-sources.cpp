@@ -398,6 +398,181 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
       "declarations", &this->memory_};
 };
 
+void write_010_editor_template(CXX_Trace_Types_Parser& types,
+                               Output_Stream& out) {
+  write_file_copyright_begin(out);
+  write_file_generated_comment(out);
+
+  out.append_literal(
+      u8"\n"_sv
+      u8"// This file is a template for the 010 Editor. Use it to inspect quick-lint-js\n"_sv
+      u8"// trace files. See docs/TRACING.md for more details.\n"_sv
+      u8"\n"_sv
+      u8"typedef struct {\n"_sv
+      u8"    uquad length;\n"_sv
+      u8"    if (length > 0) {\n"_sv
+      u8"        wchar_t data[length];\n"_sv
+      u8"    }\n"_sv
+      u8"} utf16le_string <read=read_utf16le_string>;\n"_sv
+      u8"\n"_sv
+      u8"wstring read_utf16le_string(utf16le_string &s) {\n"_sv
+      u8"    if (s.length == 0) {\n"_sv
+      u8"        return L\"(empty string)\";\n"_sv
+      u8"    } else {\n"_sv
+      u8"        return s.data;\n"_sv
+      u8"    }\n"_sv
+      u8"}\n"_sv
+      u8"\n"_sv
+      u8"typedef struct {\n"_sv
+      u8"    uquad length;\n"_sv
+      u8"    if (length > 0) {\n"_sv
+      u8"        char data[length];\n"_sv
+      u8"    }\n"_sv
+      u8"} utf8_string <read=read_utf8_string>;\n"_sv
+      u8"\n"_sv
+      u8"wstring read_utf8_string(utf8_string &s) {\n"_sv
+      u8"    if (s.length == 0) {\n"_sv
+      u8"        return \"(empty string)\";\n"_sv
+      u8"    } else {\n"_sv
+      u8"        return s.data;\n"_sv
+      u8"    }\n"_sv
+      u8"}\n"_sv
+      u8"\n"_sv
+      u8"struct Header {\n"_sv
+      u8"    uint magic; // 0xc1 0x1f 0xfc 0xc1\n"_sv
+      u8"    byte uuid[16];\n"_sv
+      u8"    uquad thread_id;\n"_sv
+      u8"    ubyte compression_mode;\n"_sv
+      u8"};\n"_sv
+      u8"\n"_sv);
+
+  Hash_Map<String8_View, String8_View> cxx_type_to_010_type(&types.memory_);
+  cxx_type_to_010_type[u8"uint8_t"_sv] = u8"ubyte"_sv;
+  cxx_type_to_010_type[u8"uint32_t"_sv] = u8"uint"_sv;
+  cxx_type_to_010_type[u8"uint64_t"_sv] = u8"uquad"_sv;
+  cxx_type_to_010_type[u8"String8_View"_sv] = u8"utf8_string"_sv;
+  cxx_type_to_010_type[u8"String16"_sv] = u8"utf16le_string"_sv;
+
+  out.append_literal(u8"enum <ubyte> Event_Type {\n"_sv);
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_struct) {
+      const Parsed_Struct& s = declaration._struct;
+      if (s.id.has_value()) {
+        out.append_literal(u8"    "_sv);
+        out.append_copy(s.ctf_name);
+        out.append_literal(u8" = 0x"_sv);
+        out.append_fixed_hexadecimal_integer(*s.id, 2);
+        out.append_literal(u8",\n"_sv);
+      }
+    }
+  }
+  out.append_literal(u8"};\n\n"_sv);
+
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    switch (declaration.kind) {
+    case Declaration_Kind::type_alias: {
+      const Parsed_Type_Alias& type_alias = declaration.type_alias;
+      out.append_literal(u8"typedef "_sv);
+      out.append_copy(cxx_type_to_010_type.at(type_alias.cxx_type));
+      out.append_literal(u8" "_sv);
+      out.append_copy(type_alias.cxx_name);
+      out.append_literal(u8" <format=hex>;\n\n"_sv);
+      break;
+    }
+
+    case Declaration_Kind::_struct: {
+      const Parsed_Struct& s = declaration._struct;
+      out.append_literal(u8"struct "_sv);
+      out.append_copy(s.cxx_name);
+      out.append_literal(u8" {\n"_sv);
+      for (const Parsed_Struct_Member& member : s.members) {
+        if (member.type_is_array) {
+          out.append_literal(u8"    uquad "_sv);
+          out.append_copy(member.ctf_size_name);
+          out.append_literal(u8";\n"_sv);
+        }
+
+        out.append_literal(u8"    "_sv);
+        if (member.type_is_zero_terminated) {
+          QLJS_ASSERT(member.cxx_type == u8"String8_View"_sv);
+          out.append_literal(u8"string"_sv);
+        } else {
+          auto type_it = cxx_type_to_010_type.find(member.cxx_type);
+          if (type_it == cxx_type_to_010_type.end()) {
+            out.append_copy(member.cxx_type);
+          } else {
+            out.append_copy(type_it->second);
+          }
+        }
+        out.append_literal(u8" "_sv);
+        out.append_copy(member.cxx_name);
+        if (member.type_is_array) {
+          out.append_literal(u8"["_sv);
+          out.append_copy(member.ctf_size_name);
+          out.append_literal(u8"] <optimize=false>"_sv);
+        }
+        out.append_literal(u8";\n"_sv);
+      }
+      out.append_literal(u8"};\n\n"_sv);
+      break;
+    }
+
+    case Declaration_Kind::_enum: {
+      const Parsed_Enum& e = declaration._enum;
+      out.append_literal(u8"enum <"_sv);
+      out.append_copy(cxx_type_to_010_type.at(e.underlying_cxx_type));
+      out.append_literal(u8"> "_sv);
+      out.append_copy(e.cxx_name);
+      out.append_literal(u8" {\n"_sv);
+      for (const Parsed_Enum_Member& member : e.members) {
+        out.append_literal(u8"    "_sv);
+        out.append_copy(member.cxx_name);
+        out.append_literal(u8" = "_sv);
+        out.append_decimal_integer(member.value);
+        out.append_literal(u8",\n"_sv);
+      }
+      out.append_literal(u8"};\n\n"_sv);
+      break;
+    }
+    }
+  }
+
+  out.append_literal(
+      u8"typedef struct {\n"_sv
+      u8"    uquad timestamp;\n"_sv
+      u8"    Event_Type event_id;\n"_sv);
+  for (const Parsed_Declaration& declaration : types.declarations) {
+    if (declaration.kind == Declaration_Kind::_struct) {
+      const Parsed_Struct& s = declaration._struct;
+      if (s.id.has_value()) {
+        out.append_literal(u8"    if (event_id == "_sv);
+        out.append_copy(s.ctf_name);
+        out.append_literal(u8") {\n"_sv);
+        out.append_literal(u8"        "_sv);
+        out.append_copy(s.cxx_name);
+        out.append_literal(u8" event <open=true, name=\""_sv);
+        out.append_copy(s.cxx_name);
+        out.append_literal(u8"\">;\n"_sv);
+        out.append_literal(u8"    }\n"_sv);
+      }
+    }
+  }
+  out.append_literal(u8"} Event <read=ReadEvent>;\n\n"_sv);
+
+  out.append_literal(
+      u8"string ReadEvent(Event &e) {\n"_sv
+      u8"    return EnumToString(e.event_id);\n"_sv
+      u8"}\n"_sv
+      u8"\n"_sv
+      u8"LittleEndian();\n"_sv
+      u8"Header header;\n"_sv
+      u8"while (!FEof()) {\n"_sv
+      u8"    Event event;\n"_sv
+      u8"}\n"_sv);
+
+  write_file_copyright_end(out);
+}
+
 void write_metadata_cpp(CXX_Trace_Types_Parser& types, Output_Stream& out) {
   write_file_generated_comment(out);
   out.append_literal(
@@ -1504,6 +1679,7 @@ int main(int argc, char** argv) {
   using namespace quick_lint_js;
 
   const char* trace_types_h_path = nullptr;
+  const char* output_010_editor_template_path = nullptr;
   const char* output_metadata_cpp_path = nullptr;
   const char* output_parser_cpp_path = nullptr;
   const char* output_parser_h_path = nullptr;
@@ -1518,6 +1694,10 @@ int main(int argc, char** argv) {
 
     QLJS_OPTION(const char* arg_value, "--trace-types-h"sv) {
       trace_types_h_path = arg_value;
+    }
+
+    QLJS_OPTION(const char* arg_value, "--output-010-editor-template"sv) {
+      output_010_editor_template_path = arg_value;
     }
 
     QLJS_OPTION(const char* arg_value, "--output-metadata-cpp"sv) {
@@ -1563,6 +1743,11 @@ int main(int argc, char** argv) {
                                     &locator);
   cxx_parser.parse_file();
 
+  if (output_010_editor_template_path != nullptr) {
+    Memory_Output_Stream out;
+    write_010_editor_template(cxx_parser, out);
+    out.write_file_if_different_or_exit(output_010_editor_template_path);
+  }
   if (output_metadata_cpp_path != nullptr) {
     Memory_Output_Stream out;
     write_metadata_cpp(cxx_parser, out);
