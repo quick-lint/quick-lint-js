@@ -13,6 +13,12 @@ Semantic Versioning.
 * quick-lint-js now understands decorators.
 * quick-lint-js now understands `accessor` fields.
 
+### Fixed
+
+* TypeScript support (still experimental):
+  * A newline after `public`, `protected`, `private`, or `readonly` inside a
+    class is now interpreted correctly.
+
 ## 2.16.0 (2023-09-06)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.16.0/)

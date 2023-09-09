@@ -503,6 +503,15 @@ TEST_F(Test_Parse_TypeScript_Class, readonly_fields_are_allowed_in_typescript) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Class, newline_after_readonly_is_asi) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { readonly\n myField; }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"readonly"_sv, u8"myField"_sv}));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Class, readonly_methods_are_invalid) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
@@ -916,6 +925,29 @@ TEST_F(Test_Parse_TypeScript_Class,
                   first_modifier, u8"class C { "_sv.size(), other_modifier),
           }));
     }
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Class, newline_after_access_specifier_is_asi) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { public\n myField; }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"public"_sv, u8"myField"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { protected\n myField; }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"protected"_sv, u8"myField"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { private\n myField; }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"private"_sv, u8"myField"_sv}));
   }
 }
 
