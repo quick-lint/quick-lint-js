@@ -309,7 +309,6 @@ TEST_F(Test_Parse_TypeScript_Enum,
   test_parse_and_visit_module(
       u8"enum E { [ 'mem' + 'ber' ] = init, }"_sv,  //
       u8"           ^^^^^^^^^^^^^ Diag_TypeScript_Enum_Computed_Name_Must_Be_Simple"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
@@ -320,7 +319,6 @@ TEST_F(Test_Parse_TypeScript_Enum,
   test_parse_and_visit_module(
       u8"enum E { [`template${withVariable}`] = init, }"_sv,  //
       u8"          ^^^^^^^^^^^^^^^^^^^^^^^^^ Diag_TypeScript_Enum_Computed_Name_Must_Be_Simple"_diag,  //
-
       typescript_options);
 }
 

@@ -138,7 +138,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         u8"declare async function f() { await(myPromise); }"_sv,  //
         u8"Diag_Declare_Function_Cannot_Be_Async"_diag,           //
         u8"Diag_Declare_Function_Cannot_Have_Body"_diag,          //
-
         typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"_sv}))
         << "'await' should be interpreted as an operator, not a function, "
@@ -151,7 +150,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         u8"declare function* f() { yield(myValue); }"_sv,    //
         u8"Diag_Declare_Function_Cannot_Be_Generator"_diag,  //
         u8"Diag_Declare_Function_Cannot_Have_Body"_diag,     //
-
         typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myValue"_sv}))
         << "'yield' should be interpreted as an operator, not a function, "

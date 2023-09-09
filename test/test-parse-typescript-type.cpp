@@ -1567,13 +1567,11 @@ TEST_F(Test_Parse_TypeScript_Type, no_question_in_type_expression) {
   test_parse_and_visit_statement(
       u8"fs.promises.writeFile(outputPath, result).then((err: Error?) => {if (err) throw err;});"_sv,  //
       u8"                                                          ^ Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_statement(
       u8"fs.promises.writeFile(outputPath, result).then((err: ?Error) => {if (err) throw err;});"_sv,  //
       u8"                                                     ^ Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_typescript_type_expression(

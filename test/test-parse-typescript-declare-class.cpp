@@ -458,7 +458,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
   test_parse_and_visit_module(
       u8"declare class C { async myMethod(); }"_sv,  //
       u8"                  ^^^^^ Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
@@ -470,7 +469,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
       u8"declare class C { async *myMethod(); }"_sv,             //
       u8"Diag_Declare_Class_Methods_Cannot_Be_Generators"_diag,  //
       u8"Diag_Declare_Class_Methods_Cannot_Be_Async"_diag,       //
-
       typescript_options);
 }
 

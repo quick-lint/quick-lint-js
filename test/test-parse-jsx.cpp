@@ -422,7 +422,6 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"c = <FirstComponent></FirstComponent>\n<SecondComponent></SecondComponent>;"_sv,  //
         u8"Diag_Adjacent_JSX_Without_Parent"_diag,  //
-
         jsx_options);
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"FirstComponent", u8"SecondComponent"}));
@@ -446,7 +445,6 @@ TEST_F(Test_Parse_JSX, adjacent_tags_without_outer_fragment) {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"c = <First></First><Second attr='value'></Second>;"_sv,  //
         u8"Diag_Adjacent_JSX_Without_Parent"_diag,                  //
-
         jsx_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"First", u8"Second"}));
   }
@@ -581,13 +579,11 @@ TEST_F(Test_Parse_JSX, prop_needs_an_expression) {
   test_parse_and_visit_module(
       u8"c = <MyComponent custom={}></MyComponent>;"_sv,  //
       u8"                        ^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
-
       jsx_options);
 
   test_parse_and_visit_module(
       u8"c = <MyComponent custom={ }></MyComponent>;"_sv,  //
       u8"                        ^^^ Diag_JSX_Prop_Is_Missing_Expression"_diag,  //
-
       jsx_options);
 }
 }

@@ -375,7 +375,6 @@ TEST_F(Test_Parse_TypeScript_Interface, optional_property) {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"interface I { fieldName? otherField }"_sv,  //
         u8"                        ` Diag_Missing_Semicolon_After_Field"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"fieldName", u8"otherField"}));
@@ -477,7 +476,6 @@ TEST_F(Test_Parse_TypeScript_Interface, field_with_type) {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"interface I { fieldName: FieldType otherField }"_sv,  //
         u8"                                  ` Diag_Missing_Semicolon_After_Field"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"fieldName", u8"otherField"}));
@@ -630,7 +628,6 @@ TEST_F(Test_Parse_TypeScript_Interface, index_signature_requires_type) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I { [key: KeyType]\n  method(); }"_sv,  //
         u8"                            ` Diag_TypeScript_Index_Signature_Needs_Type"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",         // I
@@ -652,7 +649,6 @@ TEST_F(Test_Parse_TypeScript_Interface, index_signature_cannot_be_a_method) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I { [key: KeyType](param); }"_sv,  //
         u8"                            ^ Diag_TypeScript_Index_Signature_Cannot_Be_Method"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits,
                 ElementsAreArray({
@@ -677,7 +673,6 @@ TEST_F(Test_Parse_TypeScript_Interface, index_signature_requires_semicolon) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I { [key: KeyType]: ValueType method(); }"_sv,  //
         u8"                                       ` Diag_Missing_Semicolon_After_Index_Signature"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",         // I
@@ -835,7 +830,6 @@ TEST_F(Test_Parse_TypeScript_Interface, private_properties_are_not_allowed) {
         u8"                           ^^^^^^^ Diag_Interface_Properties_Cannot_Be_Private"_diag,  //
         u8"Diag_Interface_Methods_Cannot_Be_Async"_diag,      //
         u8"Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
@@ -853,7 +847,6 @@ TEST_F(Test_Parse_TypeScript_Interface, private_properties_are_not_allowed) {
         u8"interface I { readonly static #field; }"_sv,  //
         u8"                              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Private"_diag,  //
         u8"Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
@@ -1018,20 +1011,17 @@ TEST_F(Test_Parse_TypeScript_Interface, static_properties_are_not_allowed) {
   test_parse_and_visit_module(
       u8"interface I { static field\n method(); }"_sv,  //
       u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"interface I { static field\n ['methodName'](); }"_sv,  //
       u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"interface I { static field? method(); }"_sv,  //
       u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
       u8"Diag_Missing_Semicolon_After_Field"_diag,  //
-
       typescript_options);
 }
 
@@ -1124,14 +1114,12 @@ TEST_F(Test_Parse_TypeScript_Interface,
       u8"interface I { static async method(); }"_sv,  //
       u8"                     ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
       u8"              ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"interface I { async static method(); }"_sv,  //
       u8"                    ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
       u8"              ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
@@ -1139,7 +1127,6 @@ TEST_F(Test_Parse_TypeScript_Interface,
       u8"                           ^ Diag_Interface_Methods_Cannot_Be_Generators"_diag,  //
       u8"                    ^^^^^^ Diag_Interface_Properties_Cannot_Be_Static"_diag,  //
       u8"              ^^^^^ Diag_Interface_Methods_Cannot_Be_Async"_diag,  //
-
       typescript_options);
 }
 
@@ -1192,13 +1179,11 @@ TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
   test_parse_and_visit_module(
       u8"interface I { 'fieldName' = init; }"_sv,  //
       u8"                          ^ Diag_Interface_Fields_Cannot_Have_Initializers"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"interface I { fieldName: typeName = init; }"_sv,  //
       u8"                                  ^ Diag_Interface_Fields_Cannot_Have_Initializers"_diag,  //
-
       typescript_options);
 }
 
@@ -1221,7 +1206,6 @@ TEST_F(Test_Parse_TypeScript_Interface,
   test_parse_and_visit_module(
       u8"async function g() { interface await {} }"_sv,  //
       u8"                               ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
-
       typescript_options);
 }
 
@@ -1364,7 +1348,6 @@ TEST_F(Test_Parse_TypeScript_Interface, access_specifiers_are_not_allowed) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I { protected method(); }"_sv,  //
         u8"              ^^^^^^^^^ Diag_Interface_Properties_Cannot_Be_Protected"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"}));
   }
@@ -1383,7 +1366,6 @@ TEST_F(Test_Parse_TypeScript_Interface, static_blocks_are_not_allowed) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I { static { console.log('hello'); } }"_sv,  //
         u8"              ^^^^^^ Diag_TypeScript_Interfaces_Cannot_Contain_Static_Blocks"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.property_declarations, IsEmpty());
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"console"}));
@@ -1459,7 +1441,6 @@ TEST_F(Test_Parse_TypeScript_Interface,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I { abstract myMethod(); }"_sv,  //
         u8"              ^^^^^^^^ Diag_Abstract_Property_Not_Allowed_In_Interface"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I

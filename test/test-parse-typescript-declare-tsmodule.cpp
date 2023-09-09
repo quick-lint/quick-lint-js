@@ -79,13 +79,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
   test_parse_and_visit_module(
       u8"namespace ns { declare module 'my name space' {} }"_sv,  //
       u8"                              ^^^^^^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare namespace ns { module 'inner ns' { } }"_sv,  //
       u8"                              ^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level"_diag,  //
-
       typescript_options);
 }
 

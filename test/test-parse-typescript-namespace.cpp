@@ -82,7 +82,6 @@ TEST_F(Test_Parse_TypeScript_Namespace, missing_body) {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"namespace ns\nconsole.log('hello');"_sv,                         //
         u8"            ` Diag_Missing_Body_For_TypeScript_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // ns
@@ -333,20 +332,17 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_disallows_exporting_default) {
   test_parse_and_visit_module(
       u8"namespace ns { export default 2+2; }"_sv,               //
       u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"namespace ns { export default class C {} }"_sv,  //
       u8"                      ^^^^^^^ Diag_TypeScript_Namespace_Cannot_Export_Default.default_keyword\n"_diag
       u8"^^^^^^^^^ .namespace_keyword"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"namespace ns { export default function f() {} }"_sv,    //
       u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
-
       typescript_options);
 }
 

@@ -81,7 +81,6 @@ TEST_F(
     Spy_Visitor p = test_parse_and_visit_module(
         u8"declare namespace 'my name space' {}"_sv,  //
         u8"                  ^^^^^^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",    //
@@ -111,7 +110,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace, missing_body) {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"declare namespace ns\nconsole.log('hello');"_sv,  //
         u8"                    ` Diag_Missing_Body_For_TypeScript_Namespace"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
@@ -484,7 +482,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"declare namespace ns { import fs from 'fs'; }"_sv,  //
         u8"                       ^^^^^^ Diag_Declare_Namespace_Cannot_Import_Module.importing_keyword\n"_diag
         u8"^^^^^^^ .declare_keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",    //
@@ -500,7 +497,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
   test_parse_and_visit_module(
       u8"declare module ns { import fs from 'fs'; }"_sv,     //
       u8"Diag_Declare_Namespace_Cannot_Import_Module"_diag,  //
-
       typescript_options);
 
   {
@@ -508,7 +504,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"declare namespace ns { import fs = require('fs'); }"_sv,  //
         u8"                       ^^^^^^ Diag_Declare_Namespace_Cannot_Import_Module.importing_keyword\n"_diag
         u8"^^^^^^^ .declare_keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",    //
@@ -528,20 +523,17 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
       u8"declare namespace ns { export * from 'module'; }"_sv,  //
       u8"                                ^^^^ Diag_Declare_Namespace_Cannot_Import_Module.importing_keyword\n"_diag
       u8"^^^^^^^ .declare_keyword"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare module ns { export * from 'module'; }"_sv,  //
       u8"Diag_Declare_Namespace_Cannot_Import_Module"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare namespace ns { export {Z} from 'module'; }"_sv,  //
       u8"                                  ^^^^ Diag_Declare_Namespace_Cannot_Import_Module.importing_keyword\n"_diag
       u8"^^^^^^^ .declare_keyword"_diag,  //
-
       typescript_options);
 }
 
@@ -602,7 +594,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"declare namespace ns { export default Z; }"_sv,  //
         u8"                              ^^^^^^^ Diag_TypeScript_Namespace_Cannot_Export_Default.default_keyword\n"_diag
         u8"        ^^^^^^^^^ .namespace_keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",    //
@@ -618,26 +609,22 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
   test_parse_and_visit_module(
       u8"declare namespace ns { export default 2+2; }"_sv,       //
       u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare namespace ns { export default class C { method(); } }"_sv,  //
       u8"                              ^^^^^^^ Diag_TypeScript_Namespace_Cannot_Export_Default.default_keyword\n"_diag
       u8"        ^^^^^^^^^ .namespace_keyword"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare namespace ns { export default abstract class C { method(); } }"_sv,  //
       u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare namespace ns { export default function f(); }"_sv,  //
       u8"Diag_TypeScript_Namespace_Cannot_Export_Default"_diag,      //
-
       typescript_options);
 }
 
@@ -826,13 +813,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
   test_parse_and_visit_module(
       u8"declare namespace ns { async function f(); }"_sv,  //
       u8"                       ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_module(
       u8"declare namespace ns { export async function f(); }"_sv,  //
       u8"                              ^^^^^ Diag_Declare_Function_Cannot_Be_Async"_diag,  //
-
       typescript_options);
 }
 

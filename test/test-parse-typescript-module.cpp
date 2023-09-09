@@ -540,7 +540,6 @@ TEST_F(Test_Parse_TypeScript_Module,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"export abstract\nclass C { abstract m(); }"_sv,  //
         u8"       ^^^^^^^^ Diag_Newline_Not_Allowed_After_Abstract_Keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({class_decl(u8"C"_sv)}));
@@ -550,7 +549,6 @@ TEST_F(Test_Parse_TypeScript_Module,
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"export abstract\nclass C { abstract m(); }"_sv,  //
         u8"       ^^^^^^^^ Diag_Newline_Not_Allowed_After_Abstract_Keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({class_decl(u8"C"_sv)}));
@@ -560,7 +558,6 @@ TEST_F(Test_Parse_TypeScript_Module,
     Spy_Visitor p = test_parse_and_visit_module(
         u8"export default abstract\nclass C { abstract m(); }"_sv,          //
         u8"Diag_Abstract_Property_Not_Allowed_In_Non_Abstract_Class"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"abstract"}))
         << "'abstract' should be treated as a variable name, not a keyword";
@@ -603,7 +600,6 @@ TEST_F(Test_Parse_TypeScript_Module,
     Spy_Visitor p = test_parse_and_visit_module(
         u8"export namespace 'my name space' {}"_sv,  //
         u8"                 ^^^^^^^^^^^^^^^ Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -739,7 +735,6 @@ TEST_F(Test_Parse_TypeScript_Module,
   test_parse_and_visit_module(
       u8"namespace ns { declare import fs from 'fs'; }"_sv,  //
       u8"Diag_Import_Cannot_Have_Declare_Keyword"_diag,      //
-
       typescript_options);
 }
 

@@ -1074,7 +1074,6 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_class_method_requires_semicolon) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"abstract class C { abstract f() abstract g(); }"_sv,  //
         u8"                               ` Diag_Missing_Semicolon_After_Abstract_Method"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {
@@ -1097,7 +1096,6 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_have_bodies) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"abstract class C { abstract f() { } }"_sv,  //
         u8"                                ^ Diag_Abstract_Methods_Cannot_Contain_Bodies"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          // {
@@ -1129,7 +1127,6 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_async) {
         u8"abstract class C { abstract async method(); }"_sv,  //
         u8"                            ^^^^^ Diag_Abstract_Methods_Cannot_Be_Async.async_keyword\n"_diag
         u8"                   ^^^^^^^^ .abstract_keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
@@ -1147,7 +1144,6 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_async) {
         u8"abstract class C { async abstract method(); }"_sv,  //
         u8"                   ^^^^^ Diag_Abstract_Methods_Cannot_Be_Async.async_keyword\n"_diag
         u8"                         ^^^^^^^^ .abstract_keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
@@ -1183,7 +1179,6 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_methods_cannot_be_generators) {
       u8"abstract class C { abstract *method(); }"_sv,  //
       u8"                            ^ Diag_Abstract_Methods_Cannot_Be_Generators.star\n"_diag
       u8"                   ^^^^^^^^ .abstract_keyword"_diag,  //
-
       typescript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_class_scope",       // C
@@ -1239,7 +1234,6 @@ TEST_F(Test_Parse_TypeScript_Class, abstract_fields_cannot_have_initializers) {
         u8"abstract class C { abstract myField: string = 'hello'; }"_sv,  //
         u8"                                            ^ Diag_Abstract_Field_Cannot_Have_Initializer.equal\n"_diag
         u8"                   ^^^^^^^^ .abstract_keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",            // {
@@ -1430,7 +1424,6 @@ TEST_F(Test_Parse_TypeScript_Class, implements_comes_after_extends) {
         u8"class C implements I extends Base {}"_sv,  //
         u8"        ^^^^^^^^^^ Diag_TypeScript_Implements_Must_Be_After_Extends.implements_keyword\n"_diag
         u8"                     ^^^^^^^ .extends_keyword"_diag,  //
-
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // {

@@ -772,14 +772,12 @@ TEST_F(Test_Parse_TypeScript_Function,
       u8"(param1?: number, param2: number) => ReturnType"_sv,  //
       u8" ^^^^^^^^^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
       u8"                  ^^^^^^^^^^^^^^ .required_parameter"_diag,  //
-
       typescript_options);
 
   test_parse_and_visit_typescript_type_expression(
       u8"(param1?: number, param2: number, param3: number) => ReturnType"_sv,  //
       u8" ^^^^^^^^^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
       u8"                  ^^^^^^^^^^^^^^ .required_parameter"_diag,  //
-
       typescript_options);
 }
 
