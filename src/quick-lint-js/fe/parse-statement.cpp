@@ -3977,6 +3977,11 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
     parse_and_visit_body();
     break;
 
+  case Token_Type::semicolon:
+    if (!this->options_.typescript) {
+      parse_and_visit_body();
+      break;
+    }
   case Token_Type::end_of_file:
   case Token_Type::kw_else:
   case Token_Type::right_curly:
