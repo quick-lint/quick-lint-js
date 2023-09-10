@@ -54,7 +54,7 @@ endif ()
 #
 # DEPENDS_EXPLICIT_ONLY (CMake 3.27) might fix this, removing the need for an
 # intermediate target.
-add_library(
+quick_lint_js_add_library(
   quick-lint-js-diagnostic-metadata
   STATIC
   quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -114,7 +114,7 @@ if (TARGET quick-lint-js-generate-trace-sources)
   )
 endif ()
 # See NOTE[generated-target].
-add_library(
+quick_lint_js_add_library(
   quick-lint-js-trace
   STATIC
   quick-lint-js/logging/trace-metadata-generated.cpp
@@ -180,7 +180,7 @@ if (TARGET quick-lint-js-compile-translations)
   )
 endif ()
 # See NOTE[generated-target].
-add_library(
+quick_lint_js_add_library(
   quick-lint-js-i18n
   STATIC
   quick-lint-js/i18n/translation-table-generated.cpp
