@@ -290,7 +290,7 @@ describe("check-links", () => {
 
     expect(crawler.brokenLinks).toEqual([]);
     // For performance reasons, we expect a HEAD request, not a GET request.
-    expect(externalHits, [{ url: "/", method: "HEAD" }]);
+    expect(externalHits).toEqual([{ url: "/", method: "HEAD" }]);
   });
 
   it("external link uses GET request if HEAD request fails", async () => {
@@ -323,7 +323,7 @@ describe("check-links", () => {
     await crawler.startCrawlAsync();
 
     expect(crawler.brokenLinks).toEqual([]);
-    expect(externalHits, [
+    expect(externalHits).toEqual([
       { url: "/", method: "HEAD" },
       { url: "/", method: "GET" },
     ]);
