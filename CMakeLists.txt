@@ -153,6 +153,32 @@ find_package(PythonInterp 3.7)
 
 find_package(PythonInterp 3)  # Force Python 3 (instead of Python 2).
 
+# quick-lint-js-precompiled-headers is used by quick_lint_js_add_executable and
+# quick_lint_js_add_library.
+include(QuickLintJSTarget)
+find_package(Threads REQUIRED)
+quick_lint_js_add_library(
+  quick-lint-js-precompiled-headers
+  STATIC
+  website/wasm/empty.cpp
+)
+target_link_libraries(
+  quick-lint-js-precompiled-headers
+  PUBLIC
+  Threads::Threads
+  simdjson
+)
+if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
+  target_precompile_headers(
+    quick-lint-js-precompiled-headers
+    PUBLIC
+    <cmath>
+    <cstring>
+    <simdjson.h>
+    <string>
+  )
+endif ()
+
 # 'tools' must come first because it optionally defines targets. Other
 # CMakeLists.txt files detect the presence of these targets.
 add_subdirectory(tools)

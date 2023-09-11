@@ -11,6 +11,12 @@ function (quick_lint_js_add_executable TARGET)
     PRIVATE
     "${QUICK_LINT_JS_CXX_COMPILER_OPTIONS}"
   )
+  if ("${TARGET}" STREQUAL quick-lint-js-test OR
+      "${TARGET}" STREQUAL quick-lint-js-test-lex-unicode)
+    # HACK(strager): Tests have their own precompiled headers.
+  else ()
+    quick_lint_js_use_default_precompiled_headers("${TARGET}")
+  endif ()
 endfunction ()
 
 function (quick_lint_js_add_library TARGET)
@@ -20,6 +26,22 @@ function (quick_lint_js_add_library TARGET)
     PRIVATE
     "${QUICK_LINT_JS_CXX_COMPILER_OPTIONS}"
   )
+  if ("${TARGET}" STREQUAL quick-lint-js-precompiled-headers)
+    # Don't use PCH when building PCH.
+  else ()
+    quick_lint_js_use_default_precompiled_headers("${TARGET}")
+  endif ()
+endfunction ()
+
+function (quick_lint_js_use_default_precompiled_headers TARGET)
+  if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
+    target_link_libraries("${TARGET}" PRIVATE quick-lint-js-precompiled-headers)
+    target_precompile_headers(
+      "${TARGET}"
+      REUSE_FROM
+      quick-lint-js-precompiled-headers
+    )
+  endif ()
 endfunction ()
 
 # quick-lint-js finds bugs in JavaScript programs.
