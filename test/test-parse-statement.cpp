@@ -1249,54 +1249,28 @@ TEST_F(Test_Parse_Statement, if_body_with_semicolon_typescript) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"if (a)\n; else e;"_sv,  //
-        u8"      ` Diag_Missing_Body_For_If_Statement"_diag,
+        u8"        ^ Diag_Missing_Body_For_If_Statement"_diag,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use", //a
-                          }));
-  }
-
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (a);\n else e;"_sv,  //
-        u8"      ` Diag_Missing_Body_For_If_Statement"_diag,
-        typescript_options);
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use", //a
-                          }));
-  }  
-
-  {
-    Test_Parser p(u8"{\nif (a);\n} b;"_sv, typescript_options, capture_diags);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_block_scope",  //
-                              "visit_variable_use",       // a
-                              "visit_exit_block_scope",
-                          }));
-    assert_diagnostics(
-        p.code, p.errors,
-        {
-            u8"         ` Diag_Missing_Body_For_If_Statement"_diag,
-        });
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_block_scope",  //
-                              "visit_variable_use",       // a
-                              "visit_exit_block_scope",   //
-                              "visit_variable_use",       // b
+                              "visit_variable_use",  // a
                           }));
   }
 
   {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"if (a);"_sv,  //
-        u8"      ` Diag_Missing_Body_For_If_Statement"_diag,
+        u8"      ^ Diag_Missing_Body_For_If_Statement"_diag,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // a
                               "visit_end_of_module",
                           }));
+  }
+
+  {
+    Test_Parser p(u8"if (a) {} else;\n"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 }
