@@ -774,25 +774,15 @@ void Parser::parse_and_visit_class_or_interface_member(
       // field;
       // class C { field }
       // class C { field  // Invalid.
+      // class C { field, }     // Invalid.
+      // interface I { field, }
+      case Token_Type::comma:
       case Token_Type::end_of_file:
       case Token_Type::right_curly:
       case Token_Type::semicolon:
         check_modifiers_for_field_without_type_annotation();
         v.visit_property_declaration(property_name);
-        p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
-        break;
-
-      // class C { field, }     // Invalid.
-      // interface I { field, }
-      case Token_Type::comma:
-        if (!this->is_interface) {
-          p->diag_reporter_->report(Diag_Unexpected_Comma_After_Class_Field{
-              .comma = p->peek().span(),
-          });
-        }
-        p->skip();
-        check_modifiers_for_field_without_type_annotation();
-        v.visit_property_declaration(property_name);
+        this->parse_field_terminator();
         break;
 
         // field = initialValue;
@@ -800,14 +790,7 @@ void Parser::parse_and_visit_class_or_interface_member(
         check_modifiers_for_field_without_type_annotation();
         this->parse_field_initializer();
         v.visit_property_declaration(property_name);
-        if (p->peek().type == Token_Type::comma) {
-          p->diag_reporter_->report(Diag_Unexpected_Comma_After_Class_Field{
-              .comma = p->peek().span(),
-          });
-          p->skip();
-        } else {
-          p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
-        }
+        this->parse_field_terminator();
         break;
 
       case Token_Type::identifier:
@@ -834,7 +817,7 @@ void Parser::parse_and_visit_class_or_interface_member(
             // }
             check_modifiers_for_field_without_type_annotation();
             v.visit_property_declaration(property_name);
-            p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
+            this->parse_field_terminator();
           } else {
             // class C {
             //   asyn method() {}  // Invalid.
@@ -877,18 +860,7 @@ void Parser::parse_and_visit_class_or_interface_member(
           this->parse_field_initializer();
         }
         v.visit_property_declaration(property_name);
-        if (p->peek().type == Token_Type::comma) {
-          // interface I { x: number, }
-          if (!this->is_interface) {
-            // class C { x: number, }  // Invalid.
-            p->diag_reporter_->report(Diag_Unexpected_Comma_After_Class_Field{
-                .comma = p->peek().span(),
-            });
-          }
-          p->skip();
-        } else {
-          p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
-        }
+        this->parse_field_terminator();
         break;
 
       default:
@@ -941,6 +913,26 @@ void Parser::parse_and_visit_class_or_interface_member(
       p->parse_and_visit_expression(v, Precedence{.commas = false});
       if (!static_modifier) {
         v.visit_exit_class_construct_scope();
+      }
+    }
+
+    void parse_field_terminator() {
+      if (p->peek().type == Token_Type::comma) {
+        // interface I { x: number, }
+        if (!this->is_interface) {
+          // class C { x: number, }  // Invalid.
+          p->diag_reporter_->report(Diag_Unexpected_Comma_After_Class_Field{
+              .comma = p->peek().span(),
+          });
+        }
+        p->skip();
+      } else {
+        // class C { x; }
+        // class C { x }
+        // class C {
+        //   x
+        // }
+        p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
       }
     }
 
