@@ -84,14 +84,14 @@ TEST(Test_Trace_Reader_Writer, event_init) {
               },
               {
                   // clang-format off
-                        // Timestamp
-                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                        // Event ID
-                        0x01,
+                  // Event ID
+                  0x01,
 
-                        // Version
-                        u8'1', u8'.', u8'0', u8'.', u8'0', u8'\0',
+                  // Version
+                  u8'1', u8'.', u8'0', u8'.', u8'0', u8'\0',
                   // clang-format on
               });
 }
@@ -106,26 +106,26 @@ TEST(Test_Trace_Reader_Writer, event_vscode_document_opened) {
               },
               {
                   // clang-format off
-                        // Timestamp
-                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                        // Event ID
-                        0x02,
+                  // Event ID
+                  0x02,
 
-                        // Document ID
-                        0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Document ID
+                  0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                        // URI
-                        0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                        't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
+                  // URI
+                  0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
 
-                        // Language ID
-                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                        'j', 0, 's', 0,
+                  // Language ID
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'j', 0, 's', 0,
 
-                        // Content
-                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                        'h', 0, 'i', 0,
+                  // Content
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'h', 0, 'i', 0,
                   // clang-format on
               });
 }
@@ -139,22 +139,22 @@ TEST(Test_Trace_Reader_Writer, event_vscode_document_closed) {
               },
               {
                   // clang-format off
-                        // Timestamp
-                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                        // Event ID
-                        0x03,
+                  // Event ID
+                  0x03,
 
-                        // Document ID
-                        0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Document ID
+                  0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                        // URI
-                        0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                        't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
+                  // URI
+                  0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
 
-                        // Language ID
-                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                        'j', 0, 's', 0,
+                  // Language ID
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'j', 0, 's', 0,
                   // clang-format on
               });
 }
@@ -244,26 +244,26 @@ TEST(Test_Trace_Reader_Writer, event_vscode_document_sync) {
               },
               {
                   // clang-format off
-                        // Timestamp
-                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                        // Event ID
-                        0x05,
+                  // Event ID
+                  0x05,
 
-                        // Document ID
-                        0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Document ID
+                  0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                        // URI
-                        0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                        't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
+                  // URI
+                  0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
 
-                        // Language ID
-                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                        'j', 0, 's', 0,
+                  // Language ID
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'j', 0, 's', 0,
 
-                        // Content
-                        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-                        'h', 0, 'i', 0,
+                  // Content
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'h', 0, 'i', 0,
                   // clang-format on
               });
 }
@@ -275,15 +275,15 @@ TEST(Test_Trace_Reader_Writer, event_lsp_client_to_server_message) {
               },
               {
                   // clang-format off
-                        // Timestamp
-                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                        // Event ID
-                        0x06,
+                  // Event ID
+                  0x06,
 
-                        // Body
-                        3, 0, 0, 0, 0, 0, 0, 0,  // Size
-                        '{', ' ', '}',
+                  // Body
+                  3, 0, 0, 0, 0, 0, 0, 0,  // Size
+                  '{', ' ', '}',
                   // clang-format on
               });
 }
@@ -351,14 +351,14 @@ TEST(Test_Trace_Reader_Writer, event_process_id) {
               },
               {
                   // clang-format off
-                        // Timestamp
-                        0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-                        // Event ID
-                        0x08,
+                  // Event ID
+                  0x08,
 
-                        // Process ID
-                        0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Process ID
+                  0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                   // clang-format on
               });
 }
@@ -378,29 +378,29 @@ TEST(Test_Trace_Reader_Writer, event_lsp_documents) {
               },
               {
                   // clang-format off
-          // Timestamp
-          0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-          // Event ID
-          0x09,
+                  // Event ID
+                  0x09,
 
-          // Document count
-          0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  // Document count
+                  0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-          // Document 0: type
-          0x02,
+                  // Document 0: type
+                  0x02,
 
-          // Document 0: URI
-          0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-          'f', 'i', 'l', 'e', ':', '/', '/', '/', 'f',
+                  // Document 0: URI
+                  0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'f', 'i', 'l', 'e', ':', '/', '/', '/', 'f',
 
-          // Document 0: text
-          0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-          'h', 'e', 'l', 'l', 'o',
+                  // Document 0: text
+                  0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'h', 'e', 'l', 'l', 'o',
 
-          // Document 0: langauge ID
-          0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
-          'j', 's',
+                  // Document 0: langauge ID
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'j', 's',
                   // clang-format on
               });
 }
