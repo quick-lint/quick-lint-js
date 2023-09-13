@@ -627,11 +627,11 @@ TEST_F(Test_Parse_Class, class_statement_with_fields) {
   // TODO(strager): 'set field=init' is an error.
 }
 
-TEST_F(Test_Parse_Class, class_fields_with_comma) {
+TEST_F(Test_Parse_Class, class_fields_with_comma_are_not_allowed) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"class C { a = 1, b = 2 }"_sv,  //
-        u8"               ^ Diag_Unexpected_Comma_After_Field_Initialization"_diag);
+        u8"               ^ Diag_Unexpected_Comma_After_Class_Field"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",            //
                               "visit_enter_class_scope_body",       //
@@ -645,6 +645,19 @@ TEST_F(Test_Parse_Class, class_fields_with_comma) {
                               "visit_variable_declaration",         // C
                           }));
   }
+
+  test_parse_and_visit_statement(
+      u8"class C { a, }"_sv,  //
+      u8"           ^ Diag_Unexpected_Comma_After_Class_Field"_diag,
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { a = null, }"_sv,  //
+      u8"                  ^ Diag_Unexpected_Comma_After_Class_Field"_diag,
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { a: any, }"_sv,  //
+      u8"                ^ Diag_Unexpected_Comma_After_Class_Field"_diag,
+      typescript_options);
 }
 
 TEST_F(Test_Parse_Class,

@@ -47,12 +47,12 @@ namespace quick_lint_js {
 // clang-format off
 //
 //   // Parse the code and assert that there is a
-//   // Diag_Unexpected_Comma_After_Field_Initialization diagnostic. The
+//   // Diag_Unexpected_Comma_After_Class_Field diagnostic. The
 //   // diagnostic's .comma is asserted to be a Source_Code_Span covering one
 //   // character: the ','. .comma starts at offset 15 and ends at offset 16.
 //   test_parse_and_visit_statement(
 //      u8"class C { a = 1, b = 2 }"_sv,  //
-//      u8"               ^ Diag_Unexpected_Comma_After_Field_Initialization"_diag);
+//      u8"               ^ Diag_Unexpected_Comma_After_Class_Field"_diag);
 //
 //   // Parse the code and assert that there is a
 //   // Diag_Missing_Function_Parameter_List diagnostic. The

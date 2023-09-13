@@ -2972,7 +2972,7 @@ struct Diag_Unexpected_Function_Parameter_Is_Parenthesized {
   Source_Code_Span left_paren_to_right_paren;
 };
 
-struct Diag_Unexpected_Comma_After_Field_Initialization {
+struct Diag_Unexpected_Comma_After_Class_Field {
   [[qljs::diag("E0330", Diagnostic_Severity::error)]]         //
   [[qljs::message("',' should be ';' instead", ARG(comma))]]  //
   Source_Code_Span comma;

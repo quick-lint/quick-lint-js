@@ -12,6 +12,7 @@ Semantic Versioning.
 
 * quick-lint-js now understands decorators.
 * quick-lint-js now understands `accessor` fields.
+* `class C { myField, }` now reports better diagnostics.
 * TypeScript support (still experimental):
   * [E0398][] is now reported when using both `abstract` and `static` on a
     single class property.

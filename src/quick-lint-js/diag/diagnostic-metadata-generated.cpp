@@ -5775,7 +5775,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
-    // Diag_Unexpected_Comma_After_Field_Initialization
+    // Diag_Unexpected_Comma_After_Class_Field
     {
       .code = 330,
       .severity = Diagnostic_Severity::error,
@@ -5784,7 +5784,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
       .message_args = {
         {
-          Diagnostic_Message_Arg_Info(offsetof(Diag_Unexpected_Comma_After_Field_Initialization, comma), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unexpected_Comma_After_Class_Field, comma), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

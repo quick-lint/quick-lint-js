@@ -786,7 +786,9 @@ void Parser::parse_and_visit_class_or_interface_member(
       // interface I { field, }
       case Token_Type::comma:
         if (!this->is_interface) {
-          QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
+          p->diag_reporter_->report(Diag_Unexpected_Comma_After_Class_Field{
+              .comma = p->peek().span(),
+          });
         }
         p->skip();
         check_modifiers_for_field_without_type_annotation();
@@ -799,10 +801,9 @@ void Parser::parse_and_visit_class_or_interface_member(
         this->parse_field_initializer();
         v.visit_property_declaration(property_name);
         if (p->peek().type == Token_Type::comma) {
-          p->diag_reporter_->report(
-              Diag_Unexpected_Comma_After_Field_Initialization{
-                  .comma = p->peek().span(),
-              });
+          p->diag_reporter_->report(Diag_Unexpected_Comma_After_Class_Field{
+              .comma = p->peek().span(),
+          });
           p->skip();
         } else {
           p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
@@ -877,14 +878,14 @@ void Parser::parse_and_visit_class_or_interface_member(
         }
         v.visit_property_declaration(property_name);
         if (p->peek().type == Token_Type::comma) {
-          if (this->is_interface) {
-            // interface I { x: number, }
-            p->skip();
-          } else {
+          // interface I { x: number, }
+          if (!this->is_interface) {
             // class C { x: number, }  // Invalid.
-            // TODO(strager): Better diagnostic.
-            p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
+            p->diag_reporter_->report(Diag_Unexpected_Comma_After_Class_Field{
+                .comma = p->peek().span(),
+            });
           }
+          p->skip();
         } else {
           p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
         }

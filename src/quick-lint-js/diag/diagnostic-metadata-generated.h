@@ -399,7 +399,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Pointless_Comp_Against_Object_Literal) \
   QLJS_DIAG_TYPE_NAME(Diag_Pointless_Comp_Against_Regular_Expression_Literal) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Function_Parameter_Is_Parenthesized) \
-  QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Comma_After_Field_Initialization) \
+  QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Comma_After_Class_Field) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Colon_After_Generic_Definition) \
   QLJS_DIAG_TYPE_NAME(Diag_Pointless_Nullish_Coalescing_Operator) \
   QLJS_DIAG_TYPE_NAME(Diag_Bang_Equal_Equal_Interpreted_As_Non_Null_Assertion) \
