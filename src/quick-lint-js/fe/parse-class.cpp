@@ -771,15 +771,26 @@ void Parser::parse_and_visit_class_or_interface_member(
         break;
       }
 
-        // field;
-        // class C { field }
-        // class C { field  // Invalid.
+      // field;
+      // class C { field }
+      // class C { field  // Invalid.
       case Token_Type::end_of_file:
       case Token_Type::right_curly:
       case Token_Type::semicolon:
         check_modifiers_for_field_without_type_annotation();
         v.visit_property_declaration(property_name);
         p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
+        break;
+
+      // class C { field, }     // Invalid.
+      // interface I { field, }
+      case Token_Type::comma:
+        if (!this->is_interface) {
+          QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
+        }
+        p->skip();
+        check_modifiers_for_field_without_type_annotation();
+        v.visit_property_declaration(property_name);
         break;
 
         // field = initialValue;
@@ -865,7 +876,18 @@ void Parser::parse_and_visit_class_or_interface_member(
           this->parse_field_initializer();
         }
         v.visit_property_declaration(property_name);
-        p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
+        if (p->peek().type == Token_Type::comma) {
+          if (this->is_interface) {
+            // interface I { x: number, }
+            p->skip();
+          } else {
+            // class C { x: number, }  // Invalid.
+            // TODO(strager): Better diagnostic.
+            p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
+          }
+        } else {
+          p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
+        }
         break;
 
       default:

@@ -427,6 +427,39 @@ TEST_F(Test_Parse_TypeScript_Interface, optional_property) {
 }
 
 TEST_F(Test_Parse_TypeScript_Interface,
+       field_requires_comma_or_semicolon_or_asi) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { myField1; myField2: any }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"myField1"_sv, u8"myField2"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { myField1, myField2: any, }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"myField1"_sv, u8"myField2"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { myField }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myField"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { myField1\n myField2: any\n }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"myField1"_sv, u8"myField2"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Interface,
        assignment_asserted_field_is_disallowed) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(

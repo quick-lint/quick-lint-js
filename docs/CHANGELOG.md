@@ -15,6 +15,8 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * [E0398][] is now reported when using both `abstract` and `static` on a
     single class property.
+  * `,` is now allowed after interface fields. (Previously only `;` or a newline
+    was allowed.)
 
 ### Fixed
 
