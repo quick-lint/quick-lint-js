@@ -2065,6 +2065,16 @@ next:
     break;
 
   case Token_Type::left_curly: {
+    auto has_comma_operator = [](Binary_Expression_Builder* binary_builder) -> bool {
+      Expression::Binary_Operator* expr = static_cast<Expression::Binary_Operator*>(binary_builder->last_expression()->without_paren());
+      bool comma = false;
+      for(int i=0; i < expr->children_.size()-1; i++){
+        if (expr->operator_spans_[i].string_view() == u8","_sv) {
+          comma = true;
+        }
+      }
+      return comma;
+    };                            
     bool looks_like_arrow_function_body =
         prec.trailing_curly_is_arrow_body &&
         !binary_builder.has_multiple_children() &&
@@ -2073,7 +2083,7 @@ next:
              // TODO(strager): Check for ',' operator explicitly, not any binary
              // operator.
              binary_builder.last_expression()->without_paren()->kind() ==
-                 Expression_Kind::Binary_Operator) ||
+                 Expression_Kind::Binary_Operator && has_comma_operator(&binary_builder)) ||
          (  // one identifier: (a)
              binary_builder.last_expression()->kind() ==
                  Expression_Kind::Paren &&
