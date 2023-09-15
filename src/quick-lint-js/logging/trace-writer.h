@@ -10,6 +10,7 @@
 #include <quick-lint-js/logging/trace-types.h>
 #include <quick-lint-js/logging/trace-writer-generated.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/endian.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/binary-writer.h>
 #include <string_view>
@@ -54,8 +55,11 @@ void Trace_Writer::write_utf16le_string(String string) {
   this->append_binary(8, [&](Binary_Writer& w) { w.u64_le(code_unit_count); });
   this->out_->append_aligned(
       capacity * sizeof(char16_t), alignof(char16_t), [&](void* data) {
-        String_Writer::copy_string_u16(
-            string, reinterpret_cast<char16_t*>(data), capacity);
+        Span<char16_t> buffer(reinterpret_cast<char16_t*>(data),
+                              narrow_cast<Span_Size>(capacity));
+        String_Writer::copy_string_u16(string, buffer.data(),
+                                       narrow_cast<std::size_t>(buffer.size()));
+        write_little_endian_in_place(buffer);
         return code_unit_count * sizeof(char16_t);
       });
 }
