@@ -661,7 +661,7 @@ TEST_F(Test_Parse_Statement, if_without_parens) {
                               "visit_exit_block_scope",
                           }));
   }
-  
+
   {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"if (!(cond_1 && cond_2) { body; }"_sv,  //
