@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/port/endian.h"
 #include <csetjmp>
 #include <cstddef>
 #include <quick-lint-js/container/monotonic-allocator.h>
@@ -117,10 +118,13 @@ void Trace_Reader::parse_header(Checked_Binary_Reader& r) {
 std::u16string_view Trace_Reader::parse_utf16le_string(
     Checked_Binary_Reader& r) {
   std::uint64_t length = r.u64_le();
-  const std::uint8_t* bytes = r.advance(length * 2);
+  std::uint8_t* bytes = const_cast<std::uint8_t*>(r.advance(length * 2));
   static_assert(sizeof(char16_t) == 2 * sizeof(std::uint8_t));
-  // TODO(strager): This assumes the native endian is little endian.
-  return std::u16string_view(reinterpret_cast<const char16_t*>(bytes), length);
+  Span<char16_t> string(reinterpret_cast<char16_t*>(bytes),
+                        narrow_cast<Span_Size>(length));
+  read_little_endian_in_place(string);
+  return std::u16string_view(string.data(),
+                             narrow_cast<std::size_t>(string.size()));
 }
 
 String8_View Trace_Reader::parse_utf8_string(Checked_Binary_Reader& r) {
