@@ -27,8 +27,8 @@ class Test_Parse_TypeScript_Ambiguous : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_Ambiguous, use_generic_variable_named_async) {
   {
-    Test_Parser p(u8"async<T>();"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(u8"async<T>();"_sv, no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
                               "visit_variable_use",       // async
@@ -37,8 +37,8 @@ TEST_F(Test_Parse_TypeScript_Ambiguous, use_generic_variable_named_async) {
   }
 
   {
-    Test_Parser p(u8"async<T>;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(u8"async<T>;"_sv, no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
                               "visit_variable_use",       // async
@@ -49,8 +49,8 @@ TEST_F(Test_Parse_TypeScript_Ambiguous, use_generic_variable_named_async) {
 
 TEST_F(Test_Parse_TypeScript_Ambiguous, async_variable_less_than_expression) {
   {
-    Test_Parser p(u8"async < someexpr;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"async < someexpr;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // async
                               "visit_variable_use",  // someexpr

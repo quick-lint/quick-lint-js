@@ -69,8 +69,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Var,
 
 TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var) {
   {
-    Test_Parser p(u8"declare var x;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare var x;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
@@ -81,8 +81,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var) {
   }
 
   {
-    Test_Parser p(u8"declare const x;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare const x;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
@@ -93,8 +93,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var) {
   }
 
   {
-    Test_Parser p(u8"declare let x;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare let x;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
@@ -108,8 +108,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var) {
 TEST_F(Test_Parse_TypeScript_Declare_Var,
        declare_var_allow_destructuring_without_initializer) {
   {
-    Test_Parser p(u8"declare var [x, y, z];"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare var [x, y, z];"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // x
@@ -161,8 +161,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var_cannot_have_initializer) {
 
 TEST_F(Test_Parse_TypeScript_Declare_Var, newline_before_var_triggers_asi) {
   {
-    Test_Parser p(u8"declare\nvar x = initializer;"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare\nvar x = initializer;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // declare
                               "visit_variable_use",          // initializer
@@ -176,8 +176,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, newline_before_var_triggers_asi) {
   }
 
   {
-    Test_Parser p(u8"declare\nconst x = initializer;"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare\nconst x = initializer;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // declare
                               "visit_variable_use",          // initializer
@@ -191,8 +191,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, newline_before_var_triggers_asi) {
   }
 
   {
-    Test_Parser p(u8"declare\nlet x = initializer;"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare\nlet x = initializer;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // declare
                               "visit_variable_use",          // initializer

@@ -30,8 +30,8 @@ class Test_Parse_TypeScript_Var : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_Var, let_can_have_type_annotation) {
   {
-    Test_Parser p(u8"let x: C;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(u8"let x: C;"_sv, no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // C
                               "visit_variable_declaration",  // x
@@ -42,8 +42,8 @@ TEST_F(Test_Parse_TypeScript_Var, let_can_have_type_annotation) {
   }
 
   {
-    Test_Parser p(u8"let x: C = init;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let x: C = init;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // C
                               "visit_variable_use",          // init
@@ -53,8 +53,8 @@ TEST_F(Test_Parse_TypeScript_Var, let_can_have_type_annotation) {
   }
 
   {
-    Test_Parser p(u8"let [x, y, z]: Array = init;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let [x, y, z]: Array = init;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // init
                               "visit_variable_type_use",     // Array
@@ -66,8 +66,8 @@ TEST_F(Test_Parse_TypeScript_Var, let_can_have_type_annotation) {
   }
 
   {
-    Test_Parser p(u8"let {p1, p2: x, p3 = y}: T;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let {p1, p2: x, p3 = y}: T;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // T
                               "visit_variable_declaration",  // p1
@@ -81,8 +81,8 @@ TEST_F(Test_Parse_TypeScript_Var, let_can_have_type_annotation) {
 
 TEST_F(Test_Parse_TypeScript_Var, for_loop_init_can_have_type_annotation) {
   {
-    Test_Parser p(u8"for (let i: N = 0; ;);"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (let i: N = 0; ;);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_type_use",     // N
@@ -95,8 +95,8 @@ TEST_F(Test_Parse_TypeScript_Var, for_loop_init_can_have_type_annotation) {
 TEST_F(Test_Parse_TypeScript_Var,
        for_of_loop_variable_can_have_type_annotation) {
   {
-    Test_Parser p(u8"for (let x: C of xs);"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (let x: C of xs);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // xs
@@ -107,8 +107,8 @@ TEST_F(Test_Parse_TypeScript_Var,
   }
 
   {
-    Test_Parser p(u8"for (const x: C of xs);"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (const x: C of xs);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // xs
@@ -122,8 +122,8 @@ TEST_F(Test_Parse_TypeScript_Var,
 TEST_F(Test_Parse_TypeScript_Var,
        for_in_loop_variable_can_have_type_annotation) {
   {
-    Test_Parser p(u8"for (let x: C in xs);"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (let x: C in xs);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // xs
@@ -134,8 +134,8 @@ TEST_F(Test_Parse_TypeScript_Var,
   }
 
   {
-    Test_Parser p(u8"for (const x: C in xs);"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"for (const x: C in xs);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // xs
@@ -151,8 +151,8 @@ TEST_F(Test_Parse_TypeScript_Var,
   for (String8 type : {u8"*", u8"any", u8"unknown"}) {
     Padded_String code(concat(u8"try { } catch (e: "_sv, type, u8") {} "_sv));
     SCOPED_TRACE(code);
-    Test_Parser p(code.string_view(), typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(code.string_view(), no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",     // try {
                               "visit_exit_block_scope",      // } try

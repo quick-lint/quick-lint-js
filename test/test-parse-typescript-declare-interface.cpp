@@ -31,8 +31,8 @@ class Test_Parse_TypeScript_Declare_Interface : public Test_Parse_Expression {};
 TEST_F(Test_Parse_TypeScript_Declare_Interface,
        declare_interface_acts_like_interface) {
   {
-    Test_Parser p(u8"declare interface I { }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare interface I { }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  //
@@ -46,8 +46,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Interface,
 TEST_F(Test_Parse_TypeScript_Declare_Interface,
        declare_before_interface_keyword_triggers_asi) {
   {
-    Test_Parser p(u8"declare\ninterface I { }"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"declare\ninterface I { }"_sv,
+                                                no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",           // declare
                               "visit_variable_declaration",   // I

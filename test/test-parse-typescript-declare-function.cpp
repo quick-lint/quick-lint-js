@@ -39,8 +39,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
 
 TEST_F(Test_Parse_TypeScript_Declare_Function, basic_declare_function) {
   {
-    Test_Parser p(u8"declare function f();"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare function f();"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // f
@@ -166,8 +166,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
     Padded_String code(
         concat(u8"declare function "_sv, function_name, u8"(): void;"_sv));
     SCOPED_TRACE(code);
-    Test_Parser p(code.string_view(), typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(code.string_view(), no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // (function_name)
@@ -183,8 +183,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
 TEST_F(Test_Parse_TypeScript_Declare_Function,
        declare_before_function_keyword_triggers_asi) {
   {
-    Test_Parser p(u8"declare\nfunction f() {}"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"declare\nfunction f() {}"_sv,
+                                                no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",               // declare
                               "visit_variable_declaration",       // f
@@ -218,8 +218,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
 
 TEST_F(Test_Parse_TypeScript_Declare_Function, declare_function_performs_asi) {
   {
-    Test_Parser p(u8"declare function f()\nfoo"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare function f()\nfoo"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
                               "visit_variable_declaration",  // f

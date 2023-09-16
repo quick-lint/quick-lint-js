@@ -24,8 +24,8 @@ using ::testing::ElementsAreArray;
 
 TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias) {
   {
-    Test_Parser p(u8"type T = U;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(u8"type T = U;"_sv, no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // T
                               "visit_enter_type_alias_scope",  // T
@@ -38,8 +38,8 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias) {
   }
 
   {
-    Test_Parser p(u8"type MyAlias<T> = U;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"type MyAlias<T> = U;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // MyAlias
                               "visit_enter_type_alias_scope",  // MyAlias
@@ -56,8 +56,8 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias) {
 
 TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_requires_semicolon_or_asi) {
   {
-    Test_Parser p(u8"type T = U"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(u8"type T = U"_sv, no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // T
                               "visit_enter_type_alias_scope",  // T
@@ -67,8 +67,8 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_requires_semicolon_or_asi) {
   }
 
   {
-    Test_Parser p(u8"type T = U\ntype V = W;"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"type T = U\ntype V = W;"_sv,
+                                                no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // T
                               "visit_enter_type_alias_scope",  // T
@@ -271,8 +271,8 @@ TEST_F(Test_Parse_TypeScript_Type_Alias,
 TEST_F(Test_Parse_TypeScript_Type_Alias,
        type_alias_cannot_have_newline_after_type_keyword) {
   {
-    Test_Parser p(u8"type\nT = U;"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"type\nT = U;"_sv, no_diags,
+                                                typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",         // type
                               "visit_variable_use",         // U

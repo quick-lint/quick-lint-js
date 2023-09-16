@@ -94,8 +94,8 @@ TEST_F(Test_Parse_Expression_TypeScript, non_null_assertion) {
   }
 
   {
-    Test_Parser p(u8"f(x!);"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(u8"f(x!);"_sv, no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // f
                               "visit_variable_use",  // x
@@ -104,8 +104,8 @@ TEST_F(Test_Parse_Expression_TypeScript, non_null_assertion) {
   }
 
   {
-    Test_Parser p(u8"x! = null;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(u8"x! = null;"_sv, no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_assignment",  // x
                           }));
@@ -160,8 +160,8 @@ TEST_F(Test_Parse_Expression_TypeScript,
 
 TEST_F(Test_Parse_Expression_TypeScript, as_type_assertion) {
   {
-    Test_Parser p(u8"f(x as T);"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(u8"f(x as T);"_sv, no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
                               "visit_variable_use",       // f
@@ -171,8 +171,8 @@ TEST_F(Test_Parse_Expression_TypeScript, as_type_assertion) {
   }
 
   {
-    Test_Parser p(u8"(lhs as T) = rhs;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"(lhs as T) = rhs;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",    // T
                               "visit_variable_use",         // rhs
@@ -214,8 +214,8 @@ TEST_F(Test_Parse_Expression_TypeScript, as_type_assertion) {
 
 TEST_F(Test_Parse_Expression_TypeScript, as_cannot_have_newline_before) {
   {
-    Test_Parser p(u8"f\nas(T);"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"f\nas(T);"_sv, no_diags,
+                                                typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",   // f
                               "visit_variable_use",   // as
@@ -340,8 +340,8 @@ TEST_F(Test_Parse_Expression_TypeScript,
 
 TEST_F(Test_Parse_Expression_TypeScript, satisfies) {
   {
-    Test_Parser p(u8"f(x satisfies T);"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"f(x satisfies T);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",  // T
                               "visit_variable_use",       // f
@@ -351,8 +351,8 @@ TEST_F(Test_Parse_Expression_TypeScript, satisfies) {
   }
 
   {
-    Test_Parser p(u8"(lhs satisfies T) = rhs;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"(lhs satisfies T) = rhs;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",    // T
                               "visit_variable_use",         // rhs
@@ -394,8 +394,8 @@ TEST_F(Test_Parse_Expression_TypeScript, satisfies) {
 
 TEST_F(Test_Parse_Expression_TypeScript, satisfies_cannot_have_newline_before) {
   {
-    Test_Parser p(u8"f\nsatisfies(T);"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"f\nsatisfies(T);"_sv,
+                                                no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",   // f
                               "visit_variable_use",   // satisfies

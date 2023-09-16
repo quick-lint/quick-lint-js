@@ -36,8 +36,8 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
 
 TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_class) {
   {
-    Test_Parser p(u8"export declare class C { }"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export declare class C { }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C
@@ -54,9 +54,9 @@ TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_class) {
 
 TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_abstract_class) {
   {
-    Test_Parser p(u8"export declare abstract class C { }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"export declare abstract class C { }"_sv,
+                                    no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C
@@ -90,8 +90,8 @@ TEST_F(Test_Parse_TypeScript_Export_Declare,
 TEST_F(Test_Parse_TypeScript_Export_Declare,
        newline_is_allowed_between_export_and_declare) {
   {
-    Test_Parser p(u8"export\ndeclare class C { }"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export\ndeclare class C { }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C

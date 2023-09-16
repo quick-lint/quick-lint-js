@@ -27,8 +27,8 @@ class Test_Parse_TypeScript_This_Parameters : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_normal_functions) {
   {
-    Test_Parser p(u8"function f(this) {}"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(this) {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
@@ -38,8 +38,8 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_normal_functions) {
   }
 
   {
-    Test_Parser p(u8"function f(this: MyType) {}"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(this: MyType) {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
@@ -50,8 +50,8 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_normal_functions) {
   }
 
   {
-    Test_Parser p(u8"function f(this, otherparam) {}"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(this, otherparam) {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
@@ -64,8 +64,8 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_normal_functions) {
 
 TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_class_methods) {
   {
-    Test_Parser p(u8"class C { f(this) {} }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { f(this) {} }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          // C
                               "visit_enter_class_scope_body",     // {
@@ -79,9 +79,9 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_class_methods) {
   }
 
   {
-    Test_Parser p(u8"abstract class C { abstract f(this); }"_sv,
-                  typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"abstract class C { abstract f(this); }"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
@@ -94,8 +94,8 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_class_methods) {
   }
 
   {
-    Test_Parser p(u8"class C { static f(this) {} }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { static f(this) {} }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          // C
                               "visit_enter_class_scope_body",     // {
@@ -111,8 +111,8 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_class_methods) {
 
 TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_interface_methods) {
   {
-    Test_Parser p(u8"interface I { f(this); }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { f(this); }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // {
@@ -127,8 +127,8 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_interface_methods) {
 TEST_F(Test_Parse_TypeScript_This_Parameters,
        allowed_in_object_literal_methods) {
   {
-    Test_Parser p(u8"{ method(this) {} }"_sv, typescript_options);
-    p.parse_and_visit_expression();
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"{ method(this) {} }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       // method
                               "visit_enter_function_scope_body",  // {
@@ -139,8 +139,8 @@ TEST_F(Test_Parse_TypeScript_This_Parameters,
 
 TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_function_types) {
   {
-    Test_Parser p(u8"(this) => ReturnType"_sv, typescript_options);
-    p.parse_and_visit_typescript_type_expression();
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"(this) => ReturnType"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
                               "visit_variable_type_use",     // ReturnType

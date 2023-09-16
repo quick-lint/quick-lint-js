@@ -31,8 +31,8 @@ class Test_Parse_TypeScript_Declare_Type_Alias : public Test_Parse_Expression {
 
 TEST_F(Test_Parse_TypeScript_Declare_Type_Alias, declare_type_acts_like_type) {
   {
-    Test_Parser p(u8"declare type MyType = OtherType;"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"declare type MyType = OtherType;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // MyType
                               "visit_enter_type_alias_scope",  //
@@ -48,8 +48,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Type_Alias, declare_type_acts_like_type) {
 TEST_F(Test_Parse_TypeScript_Declare_Type_Alias,
        declare_before_type_keyword_triggers_asi) {
   {
-    Test_Parser p(u8"declare\ntype MyType = OtherType;"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare\ntype MyType = OtherType;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",            // declare
                               "visit_variable_declaration",    // MyType

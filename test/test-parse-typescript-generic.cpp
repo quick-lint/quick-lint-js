@@ -375,8 +375,8 @@ TEST_F(Test_Parse_TypeScript_Generic, type_parameter_default_with_extends) {
 
 TEST_F(Test_Parse_TypeScript_Generic, variance_specifiers) {
   {
-    Test_Parser p(u8"<in T>"_sv, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<in T>"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                           }));
@@ -385,8 +385,8 @@ TEST_F(Test_Parse_TypeScript_Generic, variance_specifiers) {
   }
 
   {
-    Test_Parser p(u8"<out T>"_sv, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<out T>"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                           }));
@@ -395,8 +395,8 @@ TEST_F(Test_Parse_TypeScript_Generic, variance_specifiers) {
   }
 
   {
-    Test_Parser p(u8"<in out T>"_sv, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters();
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<in out T>"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
                           }));

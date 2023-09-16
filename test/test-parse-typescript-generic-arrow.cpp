@@ -28,8 +28,8 @@ class Test_Parse_TypeScript_Generic_Arrow : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_Generic_Arrow, generic_arrow_function) {
   {
-    Test_Parser p(u8"<Type>() => {}"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<Type>() => {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // Type
@@ -41,8 +41,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow, generic_arrow_function) {
   }
 
   {
-    Test_Parser p(u8"<Type>(param) => {}"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<Type>(param) => {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // Type
@@ -56,8 +56,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow, generic_arrow_function) {
   }
 
   {
-    Test_Parser p(u8"<Type>(param): ReturnType => {}"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<Type>(param): ReturnType => {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // Type
@@ -210,8 +210,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
 TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        generic_arrow_with_comma_is_allowed_in_tsx) {
   for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
-    Test_Parser p(u8"<T,>(param) => {}"_sv, o);
-    p.parse_and_visit_statement();
+    Spy_Visitor p =
+        test_parse_and_visit_statement(u8"<T,>(param) => {}"_sv, no_diags, o);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // T
@@ -225,8 +225,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
   }
 
   for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
-    Test_Parser p(u8"<T,>(): ReturnType => {}"_sv, o);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<T,>(): ReturnType => {}"_sv, no_diags, o);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // param
@@ -244,8 +244,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        generic_arrow_with_extends_is_allowed_in_tsx) {
   for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
     {
-      Test_Parser p(u8"<T extends U>(param) => {}"_sv, o);
-      p.parse_and_visit_statement();
+      Spy_Visitor p = test_parse_and_visit_statement(
+          u8"<T extends U>(param) => {}"_sv, no_diags, o);
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
                                 "visit_variable_declaration",       // T
@@ -261,8 +261,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
     }
 
     {
-      Test_Parser p(u8"async <T extends U>() => { await myPromise; }"_sv, o);
-      p.parse_and_visit_statement();
+      Spy_Visitor p = test_parse_and_visit_statement(
+          u8"async <T extends U>() => { await myPromise; }"_sv, no_diags, o);
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
                                 "visit_variable_declaration",       // T
@@ -282,8 +282,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
        generic_arrow_with_default_is_allowed_in_tsx) {
   for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
     {
-      Test_Parser p(u8"<T = U>(param) => {}"_sv, o);
-      p.parse_and_visit_statement();
+      Spy_Visitor p = test_parse_and_visit_statement(
+          u8"<T = U>(param) => {}"_sv, no_diags, o);
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
                                 "visit_variable_type_use",          // U
@@ -299,8 +299,8 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
     }
 
     {
-      Test_Parser p(u8"async <T = U>() => { await myPromise; }"_sv, o);
-      p.parse_and_visit_statement();
+      Spy_Visitor p = test_parse_and_visit_statement(
+          u8"async <T = U>() => { await myPromise; }"_sv, no_diags, o);
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
                                 "visit_variable_type_use",          // U

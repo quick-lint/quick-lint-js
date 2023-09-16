@@ -27,8 +27,8 @@ class Test_Parse_TypeScript_Declare_Tsmodule : public Test_Parse_Expression {};
 
 TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module) {
   {
-    Test_Parser p(u8"declare module 'my name space' {}"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare module 'my name space' {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
@@ -41,8 +41,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module) {
 
 TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module_permits_no_body) {
   {
-    Test_Parser p(u8"declare module 'my name space';"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare module 'my name space';"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",  //
                               "visit_exit_declare_scope",   //
@@ -51,8 +51,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module_permits_no_body) {
   }
 
   {
-    Test_Parser p(u8"declare module 'my name space'"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare module 'my name space'"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",  //
                               "visit_exit_declare_scope",   //
@@ -62,9 +62,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module_permits_no_body) {
 
   {
     // ASI
-    Test_Parser p(u8"declare module 'my name space'\nhello;"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare module 'my name space'\nhello;"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",  //
                               "visit_exit_declare_scope",   //
@@ -90,9 +90,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
 TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
        declare_module_allows_import_from_module) {
   {
-    Test_Parser p(u8"declare module 'mymod' { import fs from 'fs'; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare module 'mymod' { import fs from 'fs'; }"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
@@ -104,9 +104,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
   }
 
   {
-    Test_Parser p(u8"declare module 'mymod' { import fs = require('fs'); }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare module 'mymod' { import fs = require('fs'); }"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
@@ -120,33 +120,24 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
 
 TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
        declare_module_allows_import_from_module_with_export_keyword) {
-  {
-    Test_Parser p(u8"declare module 'mymod' { export * from 'module'; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
-  }
+  test_parse_and_visit_module(
+      u8"declare module 'mymod' { export * from 'module'; }"_sv, no_diags,
+      typescript_options);
 
-  {
-    Test_Parser p(u8"declare module 'mymod' { export {Z} from 'module'; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
-  }
+  test_parse_and_visit_module(
+      u8"declare module 'mymod' { export {Z} from 'module'; }"_sv, no_diags,
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
        declare_module_allows_exporting_default) {
-  {
-    Test_Parser p(u8"declare module 'mymod' { export default class C {} }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
-  }
+  test_parse_and_visit_module(
+      u8"declare module 'mymod' { export default class C {} }"_sv, no_diags,
+      typescript_options);
 
-  {
-    Test_Parser p(
-        u8"declare module 'mymod' { export default function f(); }"_sv,
-        typescript_options);
-    p.parse_and_visit_module();
-  }
+  test_parse_and_visit_module(
+      u8"declare module 'mymod' { export default function f(); }"_sv, no_diags,
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
@@ -163,9 +154,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
   // }
 
   {
-    Test_Parser p(u8"declare module 'mymod' { export default Z; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare module 'mymod' { export default Z; }"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
@@ -204,10 +195,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
   // See also Test_Parse_Module
   // export_default_async_function_with_newline_inserts_semicolon.
   {
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_module(
         u8"declare module 'mymod' { export default async\nfunction f(); }"_sv,
-        typescript_options);
-    p.parse_and_visit_module();
+        no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {

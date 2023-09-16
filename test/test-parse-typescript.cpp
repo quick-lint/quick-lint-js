@@ -65,18 +65,11 @@ TEST_F(Test_Parse_TypeScript, warn_on_mistyped_strict_inequality_operator) {
 
 TEST_F(Test_Parse_TypeScript,
        mistyped_strict_inequality_operator_is_suppressable) {
-  {
-    Test_Parser p(u8"(x!) == y"_sv, typescript_options);
-    p.parse_and_visit_statement();
-  }
-  {
-    Test_Parser p(u8"x! /**/ == y"_sv, typescript_options);
-    p.parse_and_visit_statement();
-  }
-  {
-    Test_Parser p(u8"x!\n== y"_sv, typescript_options);
-    p.parse_and_visit_statement();
-  }
+  test_parse_and_visit_statement(u8"(x!) == y"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"x! /**/ == y"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"x!\n== y"_sv, no_diags, typescript_options);
 }
 }
 }

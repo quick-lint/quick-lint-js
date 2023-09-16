@@ -116,8 +116,8 @@ TEST_F(Test_Parse_TypeScript_Interface, extends_interface_from_namespace) {
   }
 
   {
-    Test_Parser p(u8"interface I extends ns.subns.A {}"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"interface I extends ns.subns.A {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // I
                               "visit_enter_interface_scope",   // I
@@ -145,8 +145,8 @@ TEST_F(Test_Parse_TypeScript_Interface, extends_multiple_things) {
 }
 
 TEST_F(Test_Parse_TypeScript_Interface, extends_generic) {
-  Test_Parser p(u8"interface I extends A<B> {}"_sv, typescript_options);
-  p.parse_and_visit_module();
+  Spy_Visitor p = test_parse_and_visit_module(
+      u8"interface I extends A<B> {}"_sv, no_diags, typescript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_declaration",   // I
                             "visit_enter_interface_scope",  // I
@@ -214,8 +214,8 @@ TEST_F(Test_Parse_TypeScript_Interface,
                           }) {
     Padded_String code(concat(u8"interface "_sv, name, u8" {}"_sv));
     SCOPED_TRACE(code);
-    Test_Parser p(code.string_view(), typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(code.string_view(), no_diags,
+                                                   typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // (name)
                               "visit_enter_interface_scope",  //
@@ -274,8 +274,8 @@ TEST_F(Test_Parse_TypeScript_Interface,
 TEST_F(Test_Parse_TypeScript_Interface,
        interface_keyword_with_following_newline_is_variable_name) {
   {
-    Test_Parser p(u8"interface\nI\n{}"_sv, typescript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"interface\nI\n{}"_sv,
+                                                no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",       // interface
                               "visit_variable_use",       // I
@@ -289,8 +289,8 @@ TEST_F(Test_Parse_TypeScript_Interface,
   {
     // NOTE(strager): This example is interpreted differently in JavaScript than
     // in TypeScript.
-    Test_Parser p(u8"interface\nI<T> {}"_sv, javascript_options);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"interface\nI<T> {}"_sv,
+                                                no_diags, javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // interface
                               "visit_variable_use",  // I
@@ -318,8 +318,8 @@ TEST_F(Test_Parse_TypeScript_Interface, property_without_type) {
   }
 
   {
-    Test_Parser p(u8"interface I { 'fieldName'; }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { 'fieldName'; }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   //
                               "visit_enter_interface_scope",  //
@@ -330,8 +330,8 @@ TEST_F(Test_Parse_TypeScript_Interface, property_without_type) {
   }
 
   {
-    Test_Parser p(u8"interface I { 3.14; }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { 3.14; }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   //
                               "visit_enter_interface_scope",  //
@@ -342,8 +342,8 @@ TEST_F(Test_Parse_TypeScript_Interface, property_without_type) {
   }
 
   {
-    Test_Parser p(u8"interface I { [x + y]; }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { [x + y]; }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   //
                               "visit_enter_interface_scope",  //
@@ -359,8 +359,8 @@ TEST_F(Test_Parse_TypeScript_Interface, property_without_type) {
 
 TEST_F(Test_Parse_TypeScript_Interface, optional_property) {
   {
-    Test_Parser p(u8"interface I { fieldName?; }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { fieldName?; }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // I
@@ -382,28 +382,28 @@ TEST_F(Test_Parse_TypeScript_Interface, optional_property) {
 
   {
     // ASI
-    Test_Parser p(u8"interface I { fieldName?\notherField }"_sv,
-                  typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { fieldName?\notherField }"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"fieldName", u8"otherField"}));
   }
 
   {
-    Test_Parser p(u8"interface I { [2 + 2]?; }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { [2 + 2]?; }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
-    Test_Parser p(u8"interface I { 'prop'?; }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { 'prop'?; }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
-    Test_Parser p(u8"interface I { method?(param); }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { method?(param); }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // I
@@ -490,9 +490,9 @@ TEST_F(Test_Parse_TypeScript_Interface,
 
 TEST_F(Test_Parse_TypeScript_Interface, field_with_type) {
   {
-    Test_Parser p(u8"interface I { fieldName: FieldType; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { fieldName: FieldType; }"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // I
@@ -516,9 +516,9 @@ TEST_F(Test_Parse_TypeScript_Interface, field_with_type) {
 
   {
     // ASI
-    Test_Parser p(u8"interface I { fieldName: FieldType\notherField }"_sv,
-                  typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { fieldName: FieldType\notherField }"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"fieldName", u8"otherField"}));
   }
@@ -526,9 +526,9 @@ TEST_F(Test_Parse_TypeScript_Interface, field_with_type) {
 
 TEST_F(Test_Parse_TypeScript_Interface, interface_with_methods) {
   {
-    Test_Parser p(u8"interface Monster { eatMuffins(muffinCount); }"_sv,
-                  typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface Monster { eatMuffins(muffinCount); }"_sv, no_diags,
+        typescript_options);
     ASSERT_EQ(p.variable_declarations.size(), 2);
     EXPECT_EQ(p.variable_declarations[0].name, u8"Monster");
     EXPECT_EQ(p.variable_declarations[1].name, u8"muffinCount");
@@ -547,41 +547,41 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_methods) {
   }
 
   {
-    Test_Parser p(u8"interface I { get length(); }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { get length(); }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"length"}));
   }
 
   {
-    Test_Parser p(u8"interface I { set length(value); }"_sv,
-                  typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { set length(value); }"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"length"}));
   }
 
   {
-    Test_Parser p(u8"interface I { a(); b(); c(); }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { a(); b(); c(); }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.property_declarations,
                 ElementsAreArray({u8"a", u8"b", u8"c"}));
   }
 
   {
-    Test_Parser p(u8"interface I { \"stringKey\"(); }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { \"stringKey\"(); }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
-    Test_Parser p(u8"interface I { [x + y](); }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { [x + y](); }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x", u8"y"}));
     EXPECT_THAT(p.property_declarations, ElementsAreArray({std::nullopt}));
   }
 
   {
-    Test_Parser p(u8"interface Getter<T> { get(): T; }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface Getter<T> { get(): T; }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // Getter
                               "visit_enter_interface_scope",  // {
@@ -597,9 +597,9 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_methods) {
 
 TEST_F(Test_Parse_TypeScript_Interface, interface_with_index_signature) {
   {
-    Test_Parser p(u8"interface I { [key: KeyType]: ValueType; }"_sv,
-                  typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { [key: KeyType]: ValueType; }"_sv, no_diags,
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",         // I
                               "visit_enter_interface_scope",        // I
@@ -794,8 +794,8 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_keyword_property) {
         Padded_String code(concat(u8"interface I { "_sv, prefix, u8" "_sv,
                                   property, suffix, u8"(); }"_sv));
         SCOPED_TRACE(code);
-        Test_Parser p(code.string_view(), typescript_options);
-        p.parse_and_visit_statement();
+        Spy_Visitor p = test_parse_and_visit_statement(
+            code.string_view(), no_diags, typescript_options);
         EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
       }
     }
@@ -804,8 +804,8 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_keyword_property) {
 
 TEST_F(Test_Parse_TypeScript_Interface, interface_with_number_methods) {
   {
-    Test_Parser p(u8"interface Wat { 42.0(); }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface Wat { 42.0(); }"_sv, no_diags, typescript_options);
     ASSERT_EQ(p.variable_declarations.size(), 1);
     EXPECT_EQ(p.variable_declarations[0].name, u8"Wat");
 
@@ -821,8 +821,8 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_number_methods) {
 }
 
 TEST_F(Test_Parse_TypeScript_Interface, interface_allows_stray_semicolons) {
-  Test_Parser p(u8"interface I{ ; f() ; ; }"_sv, typescript_options);
-  p.parse_and_visit_statement();
+  Spy_Visitor p = test_parse_and_visit_statement(
+      u8"interface I{ ; f() ; ; }"_sv, no_diags, typescript_options);
   EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"f"}));
 }
 
@@ -1222,19 +1222,14 @@ TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
 
 TEST_F(Test_Parse_TypeScript_Interface,
        interface_named_await_in_async_function) {
-  {
-    Test_Parser p(u8"interface await {}"_sv, typescript_options);
-    p.parse_and_visit_statement();
-  }
+  test_parse_and_visit_statement(u8"interface await {}"_sv, no_diags,
+                                 typescript_options);
 
-  {
-    Test_Parser p(
-        u8"function f() {"
-        u8"interface await {}"
-        u8"}"_sv,
-        typescript_options);
-    p.parse_and_visit_statement();
-  }
+  test_parse_and_visit_statement(
+      u8"function f() {"
+      u8"interface await {}"
+      u8"}"_sv,
+      no_diags, typescript_options);
 
   test_parse_and_visit_module(
       u8"async function g() { interface await {} }"_sv,  //
@@ -1244,8 +1239,8 @@ TEST_F(Test_Parse_TypeScript_Interface,
 
 TEST_F(Test_Parse_TypeScript_Interface, call_signature) {
   {
-    Test_Parser p(u8"interface I { (param); }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { (param); }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // I
@@ -1313,8 +1308,8 @@ TEST_F(Test_Parse_TypeScript_Interface,
 
 TEST_F(Test_Parse_TypeScript_Interface, generic_call_signature) {
   {
-    Test_Parser p(u8"interface I { <T>(param); }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { <T>(param); }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // I
@@ -1336,8 +1331,8 @@ TEST_F(Test_Parse_TypeScript_Interface, generic_call_signature) {
 
 TEST_F(Test_Parse_TypeScript_Interface, generic_interface) {
   {
-    Test_Parser p(u8"interface I<T> { field: T; }"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I<T> { field: T; }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // I
@@ -1352,8 +1347,8 @@ TEST_F(Test_Parse_TypeScript_Interface, generic_interface) {
   }
 
   {
-    Test_Parser p(u8"interface I<T> extends T {}"_sv, typescript_options);
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I<T> extends T {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // I
@@ -1415,12 +1410,11 @@ TEST_F(Test_Parse_TypeScript_Interface,
 
 TEST_F(Test_Parse_TypeScript_Interface, method_requires_semicolon_or_asi) {
   {
-    Test_Parser p(
+    Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I {\n"
         u8"  f()\n"      // ASI
         u8"  g() }"_sv,  // ASI
-        typescript_options);
-    p.parse_and_visit_statement();
+        no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // {
@@ -1488,14 +1482,10 @@ TEST_F(Test_Parse_TypeScript_Interface,
 
 TEST_F(Test_Parse_TypeScript_Interface,
        interface_keyword_with_escape_sequence) {
-  {
-    Test_Parser p(
-        u8"interface A {\n"_sv
-        u8"  \\u{63}onstructor();}"_sv,
-        typescript_options);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
+  test_parse_and_visit_statement(
+      u8"interface A {\n"_sv
+      u8"  \\u{63}onstructor();}"_sv,
+      no_diags, typescript_options);
 }
 }
 }

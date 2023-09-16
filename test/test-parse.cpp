@@ -218,20 +218,14 @@ TEST_F(Test_Parse, asi_between_expression_statements) {
 
   test_parse_and_visit_module(u8"true\nvoid x;"_sv, no_diags);
 
-  {
-    Test_Parser p(u8"true\nnew Animal();"_sv);
-    p.parse_and_visit_module();
-  }
+  test_parse_and_visit_module(u8"true\nnew Animal();"_sv, no_diags,
+                              javascript_options);
 
-  {
-    Test_Parser p(u8"true\nsuper();"_sv);
-    p.parse_and_visit_module();
-  }
+  test_parse_and_visit_module(u8"true\nsuper();"_sv, no_diags,
+                              javascript_options);
 
-  {
-    Test_Parser p(u8"true\ntypeof x;"_sv);
-    p.parse_and_visit_module();
-  }
+  test_parse_and_visit_module(u8"true\ntypeof x;"_sv, no_diags,
+                              javascript_options);
 
   {
     Test_Parser p(u8"true\nawait myPromise;"_sv);
@@ -296,8 +290,8 @@ TEST_F(Test_Parse, asi_between_expression_statement_and_switch_label) {
 
 TEST_F(Test_Parse, asi_between_expression_statement_and_declaration) {
   {
-    Test_Parser p(u8"f()\nclass C {}"_sv);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(u8"f()\nclass C {}"_sv,
+                                                no_diags, javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",            // f
                               "visit_enter_class_scope",       // {
@@ -310,10 +304,8 @@ TEST_F(Test_Parse, asi_between_expression_statement_and_declaration) {
 }
 
 TEST_F(Test_Parse, asi_for_statement_at_end_of_file) {
-  {
-    Test_Parser p(u8"console.log(2+2)"_sv);
-    p.parse_and_visit_statement();
-  }
+  test_parse_and_visit_statement(u8"console.log(2+2)"_sv, no_diags,
+                                 javascript_options);
 }
 
 TEST_F(Test_Parse, utter_garbage) {
