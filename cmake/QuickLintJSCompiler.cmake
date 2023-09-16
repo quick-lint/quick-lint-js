@@ -299,6 +299,29 @@ function (quick_lint_js_enable_windows_unicode TARGET)
   endif ()
 endfunction ()
 
+function (quick_lint_js_work_around_precompiled_headers_pic_pie_conflict)
+  # HACK(strager):
+  #
+  # quick-lint-js-precompiled-headers is a library target, thus
+  # CMAKE_CXX_COMPILE_OPTIONS_PIC is applied when building the PCH file.
+  #
+  # When we target_precompile_headers(... REUSE_FROM
+  # quick-lint-js-precompiled-headers) with an executable target,
+  # CMAKE_CXX_COMPILE_OPTIONS_PIE is applied to that target.
+  #
+  # CMAKE_CXX_COMPILE_OPTIONS_PIC and CMAKE_CXX_COMPILE_OPTIONS_PIE can conflict
+  # for the purposes of PCH. This happens with Clang on Linux (-fPIC and -fPIE)
+  # leading to build failures.
+  #
+  # Others have encountered this issue too:
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/20289
+  #
+  # Resolve the conflict by avoiding -fPIE and only using -fPIC.
+  if ("${CMAKE_CXX_COMPILE_OPTIONS_PIE}" STREQUAL -fPIE)
+    set(CMAKE_CXX_COMPILE_OPTIONS_PIE -fPIC PARENT_SCOPE)
+  endif ()
+endfunction ()
+
 # Sets QUICK_LINT_JS_CXX_LINKER_TYPE to one of the following:
 # * "GNU ld" (binutils BFD ld; any target)
 # * "GNU gold" (binutils gold; ELF-only)

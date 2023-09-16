@@ -140,6 +140,7 @@ quick_lint_js_enable_char8_t_if_supported()
 quick_lint_js_configure_exception_handling()
 quick_lint_js_configure_rtti()
 quick_lint_js_work_around_implicit_link_directories()
+quick_lint_js_work_around_precompiled_headers_pic_pie_conflict()
 quick_lint_js_enable_dead_code_stripping()
 quick_lint_js_disable_unwanted_warnings()
 
