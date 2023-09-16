@@ -4077,6 +4077,16 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
     parse_and_visit_body();
     break;
 
+  // if (cond);  // Invalid TypeScript.
+  case Token_Type::semicolon:
+    if (this->options_.typescript) {
+      this->diag_reporter_->report(Diag_Missing_Body_For_If_Statement{
+          .expected_body = this->peek().span(),
+      });
+    } else {
+      parse_and_visit_body();
+    }
+    break;
   case Token_Type::end_of_file:
   case Token_Type::kw_else:
   case Token_Type::right_curly:
