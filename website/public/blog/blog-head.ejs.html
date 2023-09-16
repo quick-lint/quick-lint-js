@@ -1,7 +1,15 @@
 <%#
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
-%>
+%> <% if (typeof meta.blogDate !== 'undefined') { %>
+<meta property="og:type" content="article" />
+<meta property="article:section" content="Technology" />
+<meta property="article:published_time" content="<%= meta.blogDate %>" />
+<% } %> <% if (typeof meta.blogModifiedDate !== 'undefined') { %>
+<meta property="article:modified_time" content="<%= meta.blogModifiedDate %>" />
+<% } %> <% if (typeof meta.blogAuthor !== 'undefined') { %>
+<meta property="article:author" content="<%= meta.blogAuthor %>" />
+<% } %>
 
 <link
   rel="alternate"
