@@ -18,6 +18,8 @@ Semantic Versioning.
     single class property.
   * `,` is now allowed after interface fields. (Previously only `;` or a newline
     was allowed.)
+  * `if (cond);` now reports [E0064][] ("missing body for 'if' statement").
+    (Implemented by [Samir Hamud][].)
 
 ### Fixed
 
@@ -1053,6 +1055,7 @@ Beta release.
 [Rebraws]: https://github.com/Rebraws
 [Rob Miner]: https://github.com/robminer6
 [Roland Strasser]: https://github.com/rol1510
+[Samir Hamud]: https://github.com/samir-hamud
 [Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
 [Tom Binford]: https://github.com/TomBinford
@@ -1091,6 +1094,7 @@ Beta release.
 [E0060]: https://quick-lint-js.com/errors/E0060/
 [E0061]: https://quick-lint-js.com/errors/E0061/
 [E0062]: https://quick-lint-js.com/errors/E0062/
+[E0064]: https://quick-lint-js.com/errors/E0064/
 [E0065]: https://quick-lint-js.com/errors/E0065/
 [E0069]: https://quick-lint-js.com/errors/E0069/
 [E0072]: https://quick-lint-js.com/errors/E0072/
