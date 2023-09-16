@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import assert from "assert";
+import assert from "node:assert/strict";
 import {
   TraceEventType,
   TraceLSPDocumentType,
@@ -13,6 +13,7 @@ import {
   TraceReaderSizeTooLarge,
   TraceReaderUnknownEventType,
 } from "../public/trace.mjs";
+import { describe, it } from "node:test";
 
 // prettier-ignore
 let examplePacketHeader = new Uint8Array([
@@ -31,10 +32,10 @@ describe("trace", () => {
   it("read full header", () => {
     let reader = new TraceReader();
     reader.appendBytes(examplePacketHeader);
-    expect(reader.hasHeader).toBeTrue();
-    expect(reader.error).toBeNull();
-    expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.hasHeader);
+    assert.equal(reader.error, null);
+    assert.equal(reader.threadID, 0x1234n);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("read header in two parts", () => {
@@ -49,10 +50,10 @@ describe("trace", () => {
       reader.appendBytes(examplePacketHeader.slice(0, firstChunkSize));
       reader.appendBytes(examplePacketHeader.slice(firstChunkSize));
 
-      expect(reader.hasHeader).toBeTrue();
-      expect(reader.error).toBeNull();
-      expect(reader.threadID).toEqual(0x1234n);
-      expect(reader.pullNewEvents()).toEqual([]);
+      assert.ok(reader.hasHeader);
+      assert.equal(reader.error, null);
+      assert.equal(reader.threadID, 0x1234n);
+      assert.deepEqual(reader.pullNewEvents(), []);
     }
   });
 
@@ -60,10 +61,10 @@ describe("trace", () => {
     let reader = new TraceReader();
     // Cut the header off in the middle of the thread ID.
     reader.appendBytes(examplePacketHeader.slice(0, 4 + 16 + 3));
-    expect(reader.hasHeader).toBeFalse();
-    expect(reader.error).toBeNull();
-    expect(reader.threadID).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(!reader.hasHeader);
+    assert.equal(reader.error, null);
+    assert.equal(reader.threadID, null);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("read full header from bigger buffer with offset", () => {
@@ -76,10 +77,10 @@ describe("trace", () => {
 
     let reader = new TraceReader();
     reader.appendBytes(header, 4);
-    expect(reader.hasHeader).toBeTrue();
-    expect(reader.error).toBeNull();
-    expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.hasHeader);
+    assert.equal(reader.error, null);
+    assert.equal(reader.threadID, 0x1234n);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("invalid magic reports error", () => {
@@ -89,10 +90,10 @@ describe("trace", () => {
 
     let reader = new TraceReader();
     reader.appendBytes(header);
-    expect(reader.hasHeader).toBeTrue();
-    expect(reader.error).toBeInstanceOf(TraceReaderInvalidMagic);
-    expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.hasHeader);
+    assert.ok(reader.error instanceof TraceReaderInvalidMagic);
+    assert.equal(reader.threadID, 0x1234n);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("invalid UUID reports error", () => {
@@ -101,10 +102,10 @@ describe("trace", () => {
 
     let reader = new TraceReader();
     reader.appendBytes(header);
-    expect(reader.hasHeader).toBeTrue();
-    expect(reader.error).toBeInstanceOf(TraceReaderInvalidUUID);
-    expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.hasHeader);
+    assert.ok(reader.error instanceof TraceReaderInvalidUUID);
+    assert.equal(reader.threadID, 0x1234n);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("invalid compression mode reports error", () => {
@@ -113,10 +114,10 @@ describe("trace", () => {
 
     let reader = new TraceReader();
     reader.appendBytes(header);
-    expect(reader.hasHeader).toBeTrue();
-    expect(reader.error).toBeInstanceOf(TraceReaderInvalidCompressionMode);
-    expect(reader.threadID).toEqual(0x1234n);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.hasHeader);
+    assert.ok(reader.error instanceof TraceReaderInvalidCompressionMode);
+    assert.equal(reader.threadID, 0x1234n);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("init event", () => {
@@ -131,8 +132,8 @@ describe("trace", () => {
       // Version
       ord('1'), ord('.'), ord('0'), ord('.'), ord('0'), ord('\0'),
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       { timestamp: 0x5678n, eventType: TraceEventType.INIT, version: "1.0.0" },
     ]);
   });
@@ -158,8 +159,8 @@ describe("trace", () => {
       0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       ord('h'), 0, ord('i'), 0,
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.VSCODE_DOCUMENT_OPENED,
@@ -189,8 +190,8 @@ describe("trace", () => {
       0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       ord('j'), 0, ord('s'), 0,
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.VSCODE_DOCUMENT_CLOSED,
@@ -241,8 +242,8 @@ describe("trace", () => {
       0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       ord('b'), 0, ord('y'), 0, ord('e'), 0,
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.VSCODE_DOCUMENT_CHANGED,
@@ -292,8 +293,8 @@ describe("trace", () => {
       0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       ord('h'), 0, ord('i'), 0,
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.VSCODE_DOCUMENT_SYNC,
@@ -318,8 +319,8 @@ describe("trace", () => {
       2, 0, 0, 0, 0, 0, 0, 0,  // Size
       ord('{'), ord('}'),
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.LSP_CLIENT_TO_SERVER_MESSAGE,
@@ -352,8 +353,8 @@ describe("trace", () => {
       reader.appendBytes(message.slice(0, firstChunkSize));
       reader.appendBytes(message.slice(firstChunkSize));
 
-      expect(reader.error).toBeNull();
-      expect(reader.pullNewEvents()).toEqual([
+      assert.equal(reader.error, null);
+      assert.deepEqual(reader.pullNewEvents(), [
         {
           timestamp: 0x5678n,
           eventType: TraceEventType.LSP_CLIENT_TO_SERVER_MESSAGE,
@@ -393,8 +394,8 @@ describe("trace", () => {
       3, 0, 0, 0, 0, 0, 0, 0,  // Max size entry 0 max size
       7, 0, 0, 0, 0, 0, 0, 0,
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.VECTOR_MAX_SIZE_HISTOGRAM_BY_OWNER,
@@ -429,8 +430,8 @@ describe("trace", () => {
       // Process ID
       0x23, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.PROCESS_ID,
@@ -468,8 +469,8 @@ describe("trace", () => {
       0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
       ord('j'), ord('s'),
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       {
         timestamp: 0x5678n,
         eventType: TraceEventType.LSP_DOCUMENTS,
@@ -511,8 +512,8 @@ describe("trace", () => {
       // Document 0: language ID
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     ]));
-    expect(reader.error).toBeInstanceOf(TraceReaderInvalidLSPDocumentType);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.error instanceof TraceReaderInvalidLSPDocumentType);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("many messages", () => {
@@ -542,8 +543,8 @@ describe("trace", () => {
       // Version
       ord('1'), ord('.'), ord('0'), ord('.'), ord('0'), ord('\0'),
     ]));
-    expect(reader.error).toBeNull();
-    expect(reader.pullNewEvents()).toEqual([
+    assert.equal(reader.error, null);
+    assert.deepEqual(reader.pullNewEvents(), [
       { timestamp: 0x1111n, eventType: TraceEventType.INIT, version: "1.0.0" },
       {
         timestamp: 0x2222n,
@@ -571,8 +572,8 @@ describe("trace", () => {
       ord('1'), ord('.'), ord('0'), ord('.'), ord('0'), ord('\0'),
     ]));
 
-    expect(reader.error).toBeInstanceOf(TraceReaderInvalidMagic);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.error instanceof TraceReaderInvalidMagic);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("huge string size stops all message parsing", () => {
@@ -588,16 +589,16 @@ describe("trace", () => {
       0xff, 0, 0, 0, 0, 0, 0, 0xff,  // Size (huge)
     ]));
 
-    expect(reader.error).toBeInstanceOf(TraceReaderSizeTooLarge);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.error instanceof TraceReaderSizeTooLarge);
+    assert.deepEqual(reader.pullNewEvents(), []);
 
     let data = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
     for (let i = 0; i < 100; ++i) {
       reader.appendBytes(data);
     }
 
-    expect(reader.error).toBeInstanceOf(TraceReaderSizeTooLarge);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.error instanceof TraceReaderSizeTooLarge);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("invalid event stops all message parsing", () => {
@@ -618,8 +619,8 @@ describe("trace", () => {
       ord('1'), ord('.'), ord('0'), ord('.'), ord('0'), ord('\0'),
     ]));
 
-    expect(reader.error).toBeInstanceOf(TraceReaderUnknownEventType);
-    expect(reader.pullNewEvents()).toEqual([]);
+    assert.ok(reader.error instanceof TraceReaderUnknownEventType);
+    assert.deepEqual(reader.pullNewEvents(), []);
   });
 
   it("pulling events removes from queue", () => {
@@ -637,10 +638,10 @@ describe("trace", () => {
     ]));
 
     let events0 = reader.pullNewEvents();
-    expect(events0.length).toEqual(1);
+    assert.equal(events0.length, 1);
 
     let events1 = reader.pullNewEvents();
-    expect(events1).toEqual([]);
+    assert.deepEqual(events1, []);
 
     // prettier-ignore
     reader.appendBytes(new Uint8Array([
@@ -653,10 +654,10 @@ describe("trace", () => {
     ]));
 
     let events2 = reader.pullNewEvents();
-    expect(events2.length).toEqual(1);
+    assert.equal(events2.length, 1);
 
     let events3 = reader.pullNewEvents();
-    expect(events3).toEqual([]);
+    assert.deepEqual(events3, []);
   });
 });
 

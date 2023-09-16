@@ -1,17 +1,18 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import assert from "node:assert";
+import assert from "node:assert/strict";
 import {
   LSPReplayer,
   indexFromLSPLocation,
   updateLSPDocumentText,
 } from "../public/lsp-replay.mjs";
+import { describe, it } from "node:test";
 
 describe("LSP replay", () => {
   it("initial state has no documents", () => {
     let replayer = new LSPReplayer();
-    assert.deepStrictEqual(
+    assert.deepEqual(
       replayer.getOpenedDocumentsBeforeMessageIndex(0),
       []
     );
@@ -40,7 +41,7 @@ describe("LSP replay", () => {
         },
       },
     });
-    assert.deepStrictEqual(replayer.getOpenedDocumentsBeforeMessageIndex(1), [
+    assert.deepEqual(replayer.getOpenedDocumentsBeforeMessageIndex(1), [
       {
         uri: "file:///hello.js",
         version: 2,
@@ -78,7 +79,7 @@ describe("LSP replay", () => {
       },
     });
 
-    assert.deepStrictEqual(replayer.getOpenedDocumentsBeforeMessageIndex(2), [
+    assert.deepEqual(replayer.getOpenedDocumentsBeforeMessageIndex(2), [
       {
         uri: "file:///hello.js",
         version: 3,
@@ -88,11 +89,11 @@ describe("LSP replay", () => {
     ]);
 
     // Older versions should be correct too:
-    assert.deepStrictEqual(
+    assert.deepEqual(
       replayer.getOpenedDocumentsBeforeMessageIndex(0),
       []
     );
-    assert.deepStrictEqual(replayer.getOpenedDocumentsBeforeMessageIndex(1), [
+    assert.deepEqual(replayer.getOpenedDocumentsBeforeMessageIndex(1), [
       {
         uri: "file:///hello.js",
         version: 2,
@@ -134,7 +135,7 @@ describe("LSP replay", () => {
       },
     });
 
-    assert.deepStrictEqual(replayer.getOpenedDocumentsBeforeMessageIndex(2), [
+    assert.deepEqual(replayer.getOpenedDocumentsBeforeMessageIndex(2), [
       {
         uri: "file:///hello.js",
         version: 3,
@@ -165,7 +166,7 @@ describe("LSP replay", () => {
       },
     });
 
-    assert.deepStrictEqual(replayer.getOpenedDocumentsBeforeMessageIndex(1), [
+    assert.deepEqual(replayer.getOpenedDocumentsBeforeMessageIndex(1), [
       {
         uri: "file:///hello.js",
         version: 3,
@@ -214,7 +215,7 @@ describe("LSP replay", () => {
       },
     });
 
-    assert.deepStrictEqual(replayer.getOpenedDocumentsBeforeMessageIndex(2), [
+    assert.deepEqual(replayer.getOpenedDocumentsBeforeMessageIndex(2), [
       {
         uri: "file:///hello.js",
         version: 4,
@@ -241,7 +242,7 @@ describe("LSP replay", () => {
       },
     });
 
-    assert.deepStrictEqual(replayer.getOpenedDocumentsBeforeMessageIndex(1), [
+    assert.deepEqual(replayer.getOpenedDocumentsBeforeMessageIndex(1), [
       {
         uri: "file:///hello.js",
         version: 3,
@@ -273,7 +274,7 @@ describe("LSP replay", () => {
       },
     });
 
-    assert.deepStrictEqual(
+    assert.deepEqual(
       replayer.getOpenedDocumentsBeforeMessageIndex(2),
       []
     );
@@ -285,16 +286,16 @@ describe("updateLSPDocumentText", () => {
   it("set text", () => {
     let text = "";
     text = updateLSPDocumentText(text, { text: "content goes here" });
-    assert.strictEqual(text, "content goes here");
+    assert.equal(text, "content goes here");
   });
 
   it("set text multiple times", () => {
     let text = "";
     text = updateLSPDocumentText(text, { text: "content goes here" });
     text = updateLSPDocumentText(text, { text: "newer content goes here" });
-    assert.strictEqual(text, "newer content goes here");
+    assert.equal(text, "newer content goes here");
     text = updateLSPDocumentText(text, { text: "finally" });
-    assert.strictEqual(text, "finally");
+    assert.equal(text, "finally");
   });
 
   it("set text range single line in middle of document same length", () => {
@@ -307,7 +308,7 @@ describe("updateLSPDocumentText", () => {
         end: { line: 0, character: 12 },
       },
     });
-    assert.strictEqual(text, "content were here");
+    assert.equal(text, "content were here");
   });
 
   it("set text range single line in middle of document smaller length", () => {
@@ -320,7 +321,7 @@ describe("updateLSPDocumentText", () => {
       },
       text: "was",
     });
-    assert.strictEqual(text, "content was here");
+    assert.equal(text, "content was here");
   });
 
   it("set text range single line in middle of document larger length", () => {
@@ -333,7 +334,7 @@ describe("updateLSPDocumentText", () => {
       },
       text: "might go somewhere",
     });
-    assert.strictEqual(text, "content might go somewhere here");
+    assert.equal(text, "content might go somewhere here");
   });
 
   it("set text range delete line excluding line terminator", () => {
@@ -346,7 +347,7 @@ describe("updateLSPDocumentText", () => {
       },
       text: "",
     });
-    assert.strictEqual(text, "\nworld\n");
+    assert.equal(text, "\nworld\n");
   });
 
   it("set text range delete line including line terminator", () => {
@@ -359,7 +360,7 @@ describe("updateLSPDocumentText", () => {
       },
       text: "",
     });
-    assert.strictEqual(text, "world\n");
+    assert.equal(text, "world\n");
   });
 
   it("replace text multiple times", () => {
@@ -386,7 +387,7 @@ describe("updateLSPDocumentText", () => {
       },
       text: "",
     });
-    assert.strictEqual(text, "I was\nsomewhere");
+    assert.equal(text, "I was\nsomewhere");
   });
 });
 
@@ -397,38 +398,38 @@ describe("indexFromLSPLocation", () => {
   it("offset from first line position", () => {
     let code = "hello\nworld";
     let o = indexFromLSPLocation(code, 0, 4);
-    assert.strictEqual(o, 4);
+    assert.equal(o, 4);
   });
 
   it("offset from second line position", () => {
     let code = "hello\nworld";
     let r = indexFromLSPLocation(code, 1, 2);
-    assert.strictEqual(r, 8);
+    assert.equal(r, 8);
   });
 
   it("offset from out of range line is end of file", () => {
     let code = "hello\nworld";
     let c = indexFromLSPLocation(code, 2, 2);
-    assert.strictEqual(c, code.length);
+    assert.equal(c, code.length);
   });
 
   it("offset from beginning of line", () => {
     let code = "hello\nworld";
     let w = indexFromLSPLocation(code, 1, 0);
-    assert.strictEqual(w, 6);
+    assert.equal(w, 6);
   });
 
   it("offset from end of line", () => {
     let code = "hello\nworld";
     let terminator = indexFromLSPLocation(code, 0, 5);
-    assert.strictEqual(terminator, 5);
+    assert.equal(terminator, 5);
   });
 
   it("offset from empty line", () => {
     let code = "hello\n\nworld";
     for (let character of [0, 1, 2, 3, 4]) {
       let terminator = indexFromLSPLocation(code, 1, character);
-      assert.strictEqual(terminator, 6);
+      assert.equal(terminator, 6);
     }
   });
 
@@ -436,7 +437,7 @@ describe("indexFromLSPLocation", () => {
     for (let lineTerminator of lineTerminatorsExceptLSPS) {
       let code = `hello${lineTerminator}world`;
       let o = indexFromLSPLocation(code, 0, 4);
-      assert.strictEqual(o, 4);
+      assert.equal(o, 4);
     }
   });
 
@@ -444,7 +445,7 @@ describe("indexFromLSPLocation", () => {
     for (let lineTerminator of lineTerminatorsExceptLSPS) {
       let code = `hello${lineTerminator}world`;
       let terminator = indexFromLSPLocation(code, 0, 6);
-      assert.strictEqual(terminator, 5);
+      assert.equal(terminator, 5);
     }
   });
 
@@ -452,7 +453,7 @@ describe("indexFromLSPLocation", () => {
     for (let lineTerminator of lineTerminatorsExceptLSPS) {
       let code = `hello \u{2603}!${lineTerminator}world`;
       let terminator = indexFromLSPLocation(code, 0, 9);
-      assert.strictEqual(terminator, "hello \u{2603}!".length);
+      assert.equal(terminator, "hello \u{2603}!".length);
     }
   });
 
@@ -460,7 +461,7 @@ describe("indexFromLSPLocation", () => {
     let code = "hello";
     for (let character of [5, 6, 10]) {
       let terminator = indexFromLSPLocation(code, 0, character);
-      assert.strictEqual(terminator, 5);
+      assert.equal(terminator, 5);
     }
   });
 
@@ -468,34 +469,34 @@ describe("indexFromLSPLocation", () => {
     let code = "hello \u2603!";
     for (let character of [8, 9, 15]) {
       let terminator = indexFromLSPLocation(code, 0, character);
-      assert.strictEqual(terminator, code.length);
+      assert.equal(terminator, code.length);
     }
   });
 
   it("offset of inside cr lf gives beginning of cr lf", () => {
     let code = "hello\r\nworld";
     let terminator = indexFromLSPLocation(code, 0, "hello\r".length);
-    assert.strictEqual(terminator, "hello".length);
+    assert.equal(terminator, "hello".length);
   });
 
   it("offset from empty input", () => {
     let code = "";
     for (let character of [0, 1, 10]) {
       let terminator = indexFromLSPLocation(code, 0, character);
-      assert.strictEqual(terminator, 0);
+      assert.equal(terminator, 0);
     }
   });
 
   it("offset from negative line", () => {
     let code = "hello\nworld";
     let c = indexFromLSPLocation(code, -2, 0);
-    assert.strictEqual(c, null);
+    assert.equal(c, null);
   });
 
   it("offset from negative character", () => {
     let code = "hello\nworld";
     let c = indexFromLSPLocation(code, 1, -2);
-    assert.strictEqual(c, null);
+    assert.equal(c, null);
   });
 
   it("offset after multi byte character", () => {
@@ -503,7 +504,7 @@ describe("indexFromLSPLocation", () => {
     // U+2603 has one UTF-16 code unit: 2603
     let code = "\u{2603} x";
     let x = indexFromLSPLocation(code, 0, 2);
-    assert.strictEqual(x, "\u{2603} ".length);
+    assert.equal(x, "\u{2603} ".length);
   });
 
   it("offset after wide multi byte character", () => {
@@ -511,7 +512,7 @@ describe("indexFromLSPLocation", () => {
     // U+1f496 has two UTF-16 code units: D83D DC96
     let code = "\u{0001f496} x";
     let x = indexFromLSPLocation(code, 0, 3);
-    assert.strictEqual(x, "\u{0001f496} ".length);
+    assert.equal(x, "\u{0001f496} ".length);
   });
 
   it("offset after multi byte character on middle line", () => {
@@ -519,7 +520,7 @@ describe("indexFromLSPLocation", () => {
     // U+2603 has one UTF-16 code unit: 2603
     let code = "A\u{2603}a\nB\u{2603}b\nC\u{2603}c";
     let b = indexFromLSPLocation(code, 1, 2);
-    assert.strictEqual(b, "A\u{2603}a\nB\u{2603}".length);
+    assert.equal(b, "A\u{2603}a\nB\u{2603}".length);
   });
 });
 
