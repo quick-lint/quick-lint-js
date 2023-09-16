@@ -7,7 +7,7 @@ RUN \
       gnupg \
       software-properties-common && \
     curl 'https://deb.nodesource.com/gpgkey/nodesource.gpg.key' | apt-key add - && \
-    apt-add-repository 'deb https://deb.nodesource.com/node_14.x focal main' && \
+    apt-add-repository 'deb https://deb.nodesource.com/node_20.x focal main' && \
     sed -n -e 's/^deb /deb-src /p' /etc/apt/sources.list >/etc/apt/sources.list.d/quick-lint-js-sources.list
 
 RUN \
