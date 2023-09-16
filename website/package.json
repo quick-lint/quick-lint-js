@@ -27,6 +27,7 @@
     "prettier": "2.8.4"
   },
   "resolutions": {
+    "@types/triple-beam": "link:./null-package",
     "yargs": "link:./null-package"
   }
 }
