@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import assert from "node:assert/strict";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -10,20 +11,24 @@ import {
   flattenDiagnostics,
 } from "../src/error-documentation.mjs";
 import { DiagnosticSeverity } from "../wasm/quick-lint-js.js";
+import { describe, it } from "node:test";
 
 describe("error documentation", () => {
   it("error code from file path", () => {
-    expect(
-      ErrorDocumentation.parseString("E0123.md", "").filePathErrorCode
-    ).toBe("E0123");
-    expect(
-      ErrorDocumentation.parseString("path/to/E0666.md", "").filePathErrorCode
-    ).toBe("E0666");
+    assert.equal(
+      ErrorDocumentation.parseString("E0123.md", "").filePathErrorCode,
+      "E0123"
+    );
+    assert.equal(
+      ErrorDocumentation.parseString("path/to/E0666.md", "").filePathErrorCode,
+      "E0666"
+    );
     if (path === path.win32) {
-      expect(
+      assert.equal(
         ErrorDocumentation.parseString("path\\to\\E0666.md", "")
-          .filePathErrorCode
-      ).toBe("E0666");
+          .filePathErrorCode,
+        "E0666"
+      );
     }
   });
 
@@ -32,8 +37,8 @@ describe("error documentation", () => {
       "file.md",
       "# E0123: title goes here\n"
     );
-    expect(doc.titleErrorCode).toBe("E0123");
-    expect(doc.titleErrorDescriptionHTML).toBe("title goes here");
+    assert.equal(doc.titleErrorCode, "E0123");
+    assert.equal(doc.titleErrorDescriptionHTML, "title goes here");
   });
 
   it("title with HTML entity", () => {
@@ -41,8 +46,8 @@ describe("error documentation", () => {
       "file.md",
       "# E0123: title &#x67;oes here\n"
     );
-    expect(doc.titleErrorCode).toBe("E0123");
-    expect(doc.titleErrorDescriptionHTML).toBe("title goes here");
+    assert.equal(doc.titleErrorCode, "E0123");
+    assert.equal(doc.titleErrorDescriptionHTML, "title goes here");
   });
 
   it("title with < HTML entity", () => {
@@ -50,7 +55,7 @@ describe("error documentation", () => {
       "file.md",
       "# E0123: test &lt; test\n"
     );
-    expect(doc.titleErrorDescriptionHTML).toBe("test &lt; test");
+    assert.equal(doc.titleErrorDescriptionHTML, "test &lt; test");
   });
 
   it("title with inline code", () => {
@@ -58,7 +63,7 @@ describe("error documentation", () => {
       "file.md",
       "# E0123: title goes `here`\n"
     );
-    expect(doc.titleErrorDescriptionHTML).toBe("title goes <code>here</code>");
+    assert.equal(doc.titleErrorDescriptionHTML, "title goes <code>here</code>");
   });
 
   it("title with extra colon", () => {
@@ -66,8 +71,8 @@ describe("error documentation", () => {
       "file.md",
       "# E0123: banana: strawberry: apple\n"
     );
-    expect(doc.titleErrorCode).toBe("E0123");
-    expect(doc.titleErrorDescriptionHTML).toBe("banana: strawberry: apple");
+    assert.equal(doc.titleErrorCode, "E0123");
+    assert.equal(doc.titleErrorDescriptionHTML, "banana: strawberry: apple");
   });
 
   it("level 2 heading is not title", () => {
@@ -75,8 +80,8 @@ describe("error documentation", () => {
       "file.md",
       "## E0123: title goes here\n"
     );
-    expect(doc.titleErrorCode).toBe("");
-    expect(doc.titleErrorDescriptionHTML).toBe("");
+    assert.equal(doc.titleErrorCode, "");
+    assert.equal(doc.titleErrorDescriptionHTML, "");
   });
 
   it("no code blocks", () => {
@@ -84,8 +89,8 @@ describe("error documentation", () => {
       "file.md",
       "paragraph goes here\n"
     );
-    expect(doc.codeBlocks).toEqual([]);
-    expect(doc.shouldCheckCodeBlocks).toBeTrue();
+    assert.deepEqual(doc.codeBlocks, []);
+    assert.ok(doc.shouldCheckCodeBlocks);
   });
 
   it("indented code blocks are ignored", () => {
@@ -102,7 +107,7 @@ describe("error documentation", () => {
 wasn't that neat?
 `
     );
-    expect(doc.codeBlocks).toEqual([]);
+    assert.deepEqual(doc.codeBlocks, []);
   });
 
   it("one bracketed code block", () => {
@@ -121,7 +126,7 @@ and a blank line
 wasn't that neat?
 `
     );
-    expect(doc.codeBlocks).toEqual([
+    assert.deepEqual(doc.codeBlocks, [
       {
         language: "javascript",
         text: "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
@@ -145,7 +150,7 @@ and a blank line
 wasn't that neat?
 `
     );
-    expect(doc.codeBlocks).toEqual([
+    assert.deepEqual(doc.codeBlocks, [
       {
         language: "testscript",
         text: "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
@@ -173,7 +178,7 @@ third
 wasn't that neat?
 `
     );
-    expect(doc.codeBlocks).toEqual([
+    assert.deepEqual(doc.codeBlocks, [
       { language: "javascript", text: "first\n" },
       { language: "typescript", text: "second\n" },
       { language: "javascript", text: "third\n" },
@@ -185,8 +190,9 @@ wasn't that neat?
       "file.md",
       "code:\n\n```\n\ufeff--BOM\n```\n"
     );
-    expect(doc.toHTML()).toContain(
-      "<span class='unicode-bom'>\u{feff}</span>--BOM"
+    assert.match(
+      doc.toHTML(),
+      /<span class='unicode-bom'>\u{feff}<\/span>--BOM/u
     );
   });
 
@@ -195,7 +201,7 @@ wasn't that neat?
       "file.md",
       "code:\n\n```\n&#xfeff;--BOM\n```\n"
     );
-    expect(doc.toHTML()).toContain("&amp;#xfeff;--BOM");
+    assert.match(doc.toHTML(), /&amp;#xfeff;--BOM/);
   });
 
   it("html wraps <mark>-d byte order mark", () => {
@@ -204,8 +210,9 @@ wasn't that neat?
       "code:\n\n```\n\ufeff--BOM\n```\n"
     );
     doc.diagnostics = [[{ begin: 0, end: 1 }]];
-    expect(doc.toHTML()).toContain(
-      "<mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
+    assert.match(
+      doc.toHTML(),
+      /<mark><span class='unicode-bom'>\u{feff}<\/span><\/mark>--BOM/u
     );
   });
 
@@ -214,7 +221,7 @@ wasn't that neat?
       "file.md",
       "code:\n\n```\nhello\ufeffworld\n```\n"
     );
-    expect(doc.toHTML()).toContain("hello\ufeffworld");
+    assert.match(doc.toHTML(), /hello\ufeffworld/u);
   });
 
   it("html wraps weird control characters", () => {
@@ -223,9 +230,9 @@ wasn't that neat?
       "code:\n\n```\n" + "BEL:\u0007\n" + "BS:\u0008\n" + "DEL:\u007f\n" + "```"
     );
     let html = doc.toHTML();
-    expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
-    expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
-    expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
+    assert.match(html, /BEL:<span class='unicode-bel'>\u0007<\/span>/u);
+    assert.match(html, /BS:<span class='unicode-bs'>\u0008<\/span>/u);
+    assert.match(html, /DEL:<span class='unicode-del'>\u007f<\/span>/u);
   });
 
   it("html has javascript class", () => {
@@ -233,7 +240,7 @@ wasn't that neat?
       "file.md",
       "code:\n\n```\nhello\n```\n"
     );
-    expect(doc.toHTML()).toContain('<code class="javascript">');
+    assert.match(doc.toHTML(), /<code class="javascript">/);
   });
 
   it("lint JavaScript", async () => {
@@ -242,7 +249,7 @@ wasn't that neat?
       "```javascript\nlet x;\nlet x;\n```\n"
     );
     await doc.findDiagnosticsAsync();
-    expect(doc.diagnostics).toEqual([
+    assert.deepEqual(doc.diagnostics, [
       [
         {
           code: "E0034",
@@ -261,7 +268,7 @@ wasn't that neat?
       "```typescript\nabstract class C { }\nclass C { }\n```\n"
     );
     await doc.findDiagnosticsAsync();
-    expect(doc.diagnostics).toEqual([
+    assert.deepEqual(doc.diagnostics, [
       [
         {
           code: "E0034",
@@ -280,7 +287,7 @@ wasn't that neat?
       '```quick-lint-js.config\n{"globals": false}\n```\n'
     );
     await doc.findDiagnosticsAsync();
-    expect(doc.diagnostics).toEqual([
+    assert.deepEqual(doc.diagnostics, [
       [
         {
           code: "E0168",
@@ -298,9 +305,9 @@ wasn't that neat?
       "file.md",
       "```\nconsole.log();\n```"
     );
-    expect(doc.configForExamples).toBeNull();
+    assert.equal(doc.configForExamples, null);
     await doc.findDiagnosticsAsync();
-    expect(doc.diagnostics).toEqual([[]]);
+    assert.deepEqual(doc.diagnostics, [[]]);
   });
 
   it("config file for examples", async () => {
@@ -308,15 +315,15 @@ wasn't that neat?
       "file.md",
       '```config-for-examples\n{"global-groups": false}\n```\n\n```\nconsole.log();\n```\n'
     );
-    expect(doc.configForExamples).toEqual('{"global-groups": false}\n');
-    expect(doc.codeBlocks).toEqual([
+    assert.equal(doc.configForExamples, '{"global-groups": false}\n');
+    assert.deepEqual(doc.codeBlocks, [
       {
         language: "javascript",
         text: "console.log();\n",
       },
     ]);
     await doc.findDiagnosticsAsync();
-    expect(doc.diagnostics).toEqual([
+    assert.deepEqual(doc.diagnostics, [
       [
         {
           code: "E0057",
@@ -327,7 +334,7 @@ wasn't that neat?
         },
       ],
     ]);
-    expect(doc.toHTML()).not.toContain("global-groups");
+    assert.doesNotMatch(doc.toHTML(), /global-groups/);
   });
 
   it("QLJS_NO_CHECK_CODE disables all code block checks", async () => {
@@ -335,64 +342,66 @@ wasn't that neat?
       "E9999.md",
       "# E9999: test\n\n<!-- QLJS_NO_CHECK_CODE -->\n\ndocs go here"
     );
-    expect(doc.shouldCheckCodeBlocks).toBeFalse();
+    assert.ok(!doc.shouldCheckCodeBlocks);
   });
 });
 
 describe("flattenDiagnostics", () => {
   it("flattens nothing to nothing", () => {
-    expect(flattenDiagnostics([])).toEqual([]);
+    assert.deepEqual(flattenDiagnostics([]), []);
   });
 
   it("one diag flattens to two points", () => {
-    expect(flattenDiagnostics([{ begin: 0, end: 5 }])).toEqual([
+    assert.deepEqual(flattenDiagnostics([{ begin: 0, end: 5 }]), [
       { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
       { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
     ]);
   });
 
   it("one diag point diag flattens to one point", () => {
-    expect(flattenDiagnostics([{ begin: 1, end: 1 }])).toEqual([
+    assert.deepEqual(flattenDiagnostics([{ begin: 1, end: 1 }]), [
       { offset: 1, type: "point", diagnostic: { begin: 1, end: 1 } },
     ]);
   });
 
   it("two unrelated diags flatten to two points each", () => {
-    expect(
+    assert.deepEqual(
       flattenDiagnostics([
         { begin: 0, end: 5 },
         { begin: 10, end: 15 },
-      ])
-    ).toEqual([
-      { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
-      { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
-      { offset: 10, type: "begin", diagnostic: { begin: 10, end: 15 } },
-      { offset: 15, type: "end", diagnostic: { begin: 10, end: 15 } },
-    ]);
+      ]),
+      [
+        { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
+        { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
+        { offset: 10, type: "begin", diagnostic: { begin: 10, end: 15 } },
+        { offset: 15, type: "end", diagnostic: { begin: 10, end: 15 } },
+      ]
+    );
 
-    expect(
+    assert.deepEqual(
       flattenDiagnostics([
         { begin: 10, end: 15 },
         { begin: 0, end: 5 },
-      ])
-    ).toEqual([
-      { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
-      { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
-      { offset: 10, type: "begin", diagnostic: { begin: 10, end: 15 } },
-      { offset: 15, type: "end", diagnostic: { begin: 10, end: 15 } },
-    ]);
+      ]),
+      [
+        { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
+        { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
+        { offset: 10, type: "begin", diagnostic: { begin: 10, end: 15 } },
+        { offset: 15, type: "end", diagnostic: { begin: 10, end: 15 } },
+      ]
+    );
   });
 
   it("two fully overlapping diags", () => {
     let a = { begin: 0, end: 5, message: "a" };
     let b = { begin: 0, end: 5, message: "b" };
-    expect(flattenDiagnostics([a, b])).toEqual([
+    assert.deepEqual(flattenDiagnostics([a, b]), [
       { offset: 0, type: "begin", diagnostic: a },
       { offset: 0, type: "begin", diagnostic: b },
       { offset: 5, type: "end", diagnostic: b },
       { offset: 5, type: "end", diagnostic: a },
     ]);
-    expect(flattenDiagnostics([b, a])).toEqual([
+    assert.deepEqual(flattenDiagnostics([b, a]), [
       { offset: 0, type: "begin", diagnostic: b },
       { offset: 0, type: "begin", diagnostic: a },
       { offset: 5, type: "end", diagnostic: a },
@@ -405,7 +414,7 @@ describe("flattenDiagnostics", () => {
     //   i
     let outer = { begin: 0, end: 5 };
     let inner = { begin: 2, end: 3 };
-    expect(flattenDiagnostics([outer, inner])).toEqual([
+    assert.deepEqual(flattenDiagnostics([outer, inner]), [
       { offset: 0, type: "begin", diagnostic: outer },
       { offset: 2, type: "begin", diagnostic: inner },
       { offset: 3, type: "end", diagnostic: inner },
@@ -423,8 +432,8 @@ describe("flattenDiagnostics", () => {
       { offset: 2, type: "point", diagnostic: inner },
       { offset: 5, type: "end", diagnostic: outer },
     ];
-    expect(flattenDiagnostics([outer, inner])).toEqual(expectedPoints);
-    expect(flattenDiagnostics([inner, outer])).toEqual(expectedPoints);
+    assert.deepEqual(flattenDiagnostics([outer, inner]), expectedPoints);
+    assert.deepEqual(flattenDiagnostics([inner, outer]), expectedPoints);
   });
 
   it("one diag inside another touching end", () => {
@@ -438,8 +447,8 @@ describe("flattenDiagnostics", () => {
       { offset: 5, type: "end", diagnostic: inner },
       { offset: 5, type: "end", diagnostic: outer },
     ];
-    expect(flattenDiagnostics([outer, inner])).toEqual(expectedPoints);
-    expect(flattenDiagnostics([inner, outer])).toEqual(expectedPoints);
+    assert.deepEqual(flattenDiagnostics([outer, inner]), expectedPoints);
+    assert.deepEqual(flattenDiagnostics([inner, outer]), expectedPoints);
   });
 
   it("one diag inside another touching begin", () => {
@@ -453,8 +462,8 @@ describe("flattenDiagnostics", () => {
       { offset: 3, type: "end", diagnostic: inner },
       { offset: 5, type: "end", diagnostic: outer },
     ];
-    expect(flattenDiagnostics([outer, inner])).toEqual(expectedPoints);
-    expect(flattenDiagnostics([inner, outer])).toEqual(expectedPoints);
+    assert.deepEqual(flattenDiagnostics([outer, inner]), expectedPoints);
+    assert.deepEqual(flattenDiagnostics([inner, outer]), expectedPoints);
   });
 
   it("two overlapping non-nested diags", () => {
@@ -462,7 +471,7 @@ describe("flattenDiagnostics", () => {
     //    RRRR
     let left = { begin: 0, end: 5, message: "left" };
     let right = { begin: 3, end: 8, message: "right" };
-    expect(flattenDiagnostics([left, right])).toEqual([
+    assert.deepEqual(flattenDiagnostics([left, right]), [
       { offset: 0, type: "begin", diagnostic: left },
       { offset: 3, type: "begin", diagnostic: right },
       { offset: 5, type: "end", diagnostic: right },
@@ -478,7 +487,7 @@ describe("flattenDiagnostics", () => {
     let left = { begin: 0, end: 10, message: "left" };
     let middle = { begin: 5, end: 15, message: "middle" };
     let right = { begin: 10, end: 20, message: "right" };
-    expect(flattenDiagnostics([left, middle, right])).toEqual([
+    assert.deepEqual(flattenDiagnostics([left, middle, right]), [
       { offset: 0, type: "begin", diagnostic: left },
       { offset: 5, type: "begin", diagnostic: middle },
       { offset: 10, type: "end", diagnostic: middle },
@@ -497,7 +506,7 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "a < b > c & d \u00a0 e",
       diagnostics: [],
     });
-    expect(html).toBe("a &lt; b &gt; c &amp; d &nbsp; e");
+    assert.equal(html, "a &lt; b &gt; c &amp; d &nbsp; e");
   });
 
   it("mark first word on line", () => {
@@ -505,7 +514,7 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "hello world",
       diagnostics: [{ begin: 0, end: 5 }],
     });
-    expect(html).toBe("<mark>hello</mark> world");
+    assert.equal(html, "<mark>hello</mark> world");
   });
 
   it("mark last word on line", () => {
@@ -513,7 +522,7 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "hello world",
       diagnostics: [{ begin: 6, end: 11 }],
     });
-    expect(html).toBe("hello <mark>world</mark>");
+    assert.equal(html, "hello <mark>world</mark>");
   });
 
   it("multiple marks", () => {
@@ -524,7 +533,7 @@ describe("errorDocumentationExampleToHTML", () => {
         { begin: 6, end: 11 },
       ],
     });
-    expect(html).toBe("<mark>hello</mark> <mark>world</mark>");
+    assert.equal(html, "<mark>hello</mark> <mark>world</mark>");
   });
 
   it("multiple marks backwards", () => {
@@ -535,7 +544,7 @@ describe("errorDocumentationExampleToHTML", () => {
         { begin: 0, end: 5 },
       ],
     });
-    expect(html).toBe("<mark>hello</mark> <mark>world</mark>");
+    assert.equal(html, "<mark>hello</mark> <mark>world</mark>");
   });
 
   it("empty mark at beginning", () => {
@@ -543,7 +552,7 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "helloworld",
       diagnostics: [{ begin: 0, end: 0 }],
     });
-    expect(html).toBe("<mark></mark>helloworld");
+    assert.equal(html, "<mark></mark>helloworld");
   });
 
   it("empty mark in middle", () => {
@@ -551,7 +560,7 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "helloworld",
       diagnostics: [{ begin: 5, end: 5 }],
     });
-    expect(html).toBe("hello<mark></mark>world");
+    assert.equal(html, "hello<mark></mark>world");
   });
 
   it("empty mark at end", () => {
@@ -559,7 +568,7 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "helloworld",
       diagnostics: [{ begin: 10, end: 10 }],
     });
-    expect(html).toBe("helloworld<mark></mark>");
+    assert.equal(html, "helloworld<mark></mark>");
   });
 
   it("empty mark immediately after non-empty mark", () => {
@@ -570,7 +579,7 @@ describe("errorDocumentationExampleToHTML", () => {
         { begin: 5, end: 5 },
       ],
     });
-    expect(html).toBe("<mark>hello</mark><mark></mark>world");
+    assert.equal(html, "<mark>hello</mark><mark></mark>world");
   });
 
   it("identical marks are nested", () => {
@@ -581,7 +590,7 @@ describe("errorDocumentationExampleToHTML", () => {
         { begin: 0, end: 5 },
       ],
     });
-    expect(html).toBe("<mark><mark>hello</mark></mark>world");
+    assert.equal(html, "<mark><mark>hello</mark></mark>world");
   });
 
   it("overlapping marks with same begin are nested", () => {
@@ -592,7 +601,7 @@ describe("errorDocumentationExampleToHTML", () => {
         { begin: 4, end: 17 }, // "errors please"
       ],
     });
-    expect(html).toBe("two <mark><mark>errors</mark> please</mark> thanks");
+    assert.equal(html, "two <mark><mark>errors</mark> please</mark> thanks");
   });
 
   it("wraps byte order mark", () => {
@@ -600,7 +609,7 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "\ufeff--BOM",
       diagnostics: [],
     });
-    expect(html).toBe("<span class='unicode-bom'>\u{feff}</span>--BOM");
+    assert.equal(html, "<span class='unicode-bom'>\u{feff}</span>--BOM");
   });
 
   it("does not wrap fake byte order mark", () => {
@@ -608,7 +617,7 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "&#xfeff;--BOM",
       diagnostics: [],
     });
-    expect(html).toBe("&amp;#xfeff;--BOM");
+    assert.equal(html, "&amp;#xfeff;--BOM");
   });
 
   it("wraps <mark>-d byte order mark", () => {
@@ -616,7 +625,8 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "\ufeff--BOM",
       diagnostics: [{ begin: 0, end: 1 }],
     });
-    expect(html).toBe(
+    assert.equal(
+      html,
       "<mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
     );
   });
@@ -626,7 +636,7 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "hello\ufeffworld",
       diagnostics: [],
     });
-    expect(html).toBe("hello\ufeffworld");
+    assert.equal(html, "hello\ufeffworld");
   });
 
   it("wraps weird control characters", () => {
@@ -634,9 +644,9 @@ describe("errorDocumentationExampleToHTML", () => {
       code: "BEL:\u0007\n" + "BS:\u0008\n" + "DEL:\u007f\n",
       diagnostics: [],
     });
-    expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
-    expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
-    expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
+    assert.match(html, /BEL:<span class='unicode-bel'>\u0007<\/span>/u);
+    assert.match(html, /BS:<span class='unicode-bs'>\u0008<\/span>/u);
+    assert.match(html, /DEL:<span class='unicode-del'>\u007f<\/span>/u);
   });
 
   it("mark includes diagnostic code, message, and severity", () => {
@@ -652,7 +662,8 @@ describe("errorDocumentationExampleToHTML", () => {
         },
       ],
     });
-    expect(html).toBe(
+    assert.equal(
+      html,
       '<mark data-code="E0002" data-message="assignment to const global variable" data-severity="error">NaN</mark> = 0'
     );
   });
@@ -668,7 +679,7 @@ describe("errorDocumentationExampleToHTML", () => {
         },
       ],
     });
-    expect(html).toBe('<mark data-severity="warning">hi</mark>');
+    assert.equal(html, '<mark data-severity="warning">hi</mark>');
   });
 });
 

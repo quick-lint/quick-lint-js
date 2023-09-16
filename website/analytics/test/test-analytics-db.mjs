@@ -1,9 +1,11 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import { AnalyticsDB } from "../src/analytics-db.mjs";
 
 describe("AnalyticsDB", () => {
@@ -35,12 +37,12 @@ describe("AnalyticsDB", () => {
         downloaderIP: "192.168.1.1",
         downloaderUserAgent: "CoolBrowser version 1.0",
       });
-      expect(db.getWebDownloadedURLs()).toEqual(["https://example.com/"]);
-      expect(db.countDailyWebDownloaders(["https://example.com/"])).toEqual({
+      assert.deepEqual(db.getWebDownloadedURLs(), ["https://example.com/"]);
+      assert.deepEqual(db.countDailyWebDownloaders(["https://example.com/"]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
         counts: [1],
       });
-      expect(db.countDailyWebDownloads(["https://example.com/"])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloads(["https://example.com/"]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
         counts: [1],
       });
@@ -56,8 +58,8 @@ describe("AnalyticsDB", () => {
           downloaderUserAgent: "CoolBrowser version 1.0",
         });
       }
-      expect(db.getWebDownloadedURLs()).toEqual(["https://example.com/"]);
-      expect(db.countDailyWebDownloads(["https://example.com/"])).toEqual({
+      assert.deepEqual(db.getWebDownloadedURLs(), ["https://example.com/"]);
+      assert.deepEqual(db.countDailyWebDownloads(["https://example.com/"]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
         counts: [1],
       });
@@ -79,7 +81,7 @@ describe("AnalyticsDB", () => {
         downloaderIP: "192.168.1.1",
         downloaderUserAgent: null,
       });
-      expect(db.countDailyWebDownloads(["https://example.com/"])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloads(["https://example.com/"]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
         counts: [3],
       });
@@ -101,7 +103,7 @@ describe("AnalyticsDB", () => {
           downloaderUserAgent: `ua${i}`,
         });
       }
-      expect(db.countDailyWebDownloads(["https://example.com/"])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloads(["https://example.com/"]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
         counts: [3],
       });
@@ -133,7 +135,7 @@ describe("AnalyticsDB", () => {
         downloaderIP: "192.168.1.4",
         downloaderUserAgent: "CoolBrowser version 4.0",
       });
-      expect(db.getWebDownloadedURLs()).toEqual([
+      assert.deepEqual(db.getWebDownloadedURLs(), [
         "https://example.com/",
         "https://example.com/other/",
       ]);
@@ -168,7 +170,7 @@ describe("AnalyticsDB", () => {
             downloaderUserAgent: "CoolBrowser version 4.0",
           },
         ]);
-        expect(db.getWebDownloadedURLs()).toEqual([
+        assert.deepEqual(db.getWebDownloadedURLs(), [
           "https://example.com/",
           "https://example.com/other/",
         ]);
@@ -216,7 +218,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua3",
       });
 
-      expect(db.countDailyWebDownloaders([url])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloaders([url]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0), Date.UTC(2020, 0, 2, 0, 0, 0)],
         counts: [3, 2],
       });
@@ -238,15 +240,16 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua3",
       });
 
-      expect(
+      assert.deepEqual(
         db.countDailyWebDownloaders([
           "https://example.com/a/",
           "https://example.com/b/",
-        ])
-      ).toEqual({
-        dates: [Date.UTC(2020, 0, 2, 0, 0, 0)],
-        counts: [2],
-      });
+        ]),
+        {
+          dates: [Date.UTC(2020, 0, 2, 0, 0, 0)],
+          counts: [2],
+        }
+      );
     });
 
     it("ignores other URLs", () => {
@@ -265,10 +268,13 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "",
       });
 
-      expect(db.countDailyWebDownloaders(["https://example.com/a/"])).toEqual({
-        dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
-        counts: [1],
-      });
+      assert.deepEqual(
+        db.countDailyWebDownloaders(["https://example.com/a/"]),
+        {
+          dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
+          counts: [1],
+        }
+      );
     });
 
     it("identical downloaders for a URL are deduplicated", () => {
@@ -298,7 +304,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua",
       });
 
-      expect(db.countDailyWebDownloaders([url])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloaders([url]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0), Date.UTC(2020, 0, 2, 0, 0, 0)],
         counts: [1, 1],
       });
@@ -320,15 +326,16 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua",
       });
 
-      expect(
+      assert.deepEqual(
         db.countDailyWebDownloaders([
           "https://example.com/a/",
           "https://example.com/b/",
-        ])
-      ).toEqual({
-        dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
-        counts: [1],
-      });
+        ]),
+        {
+          dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
+          counts: [1],
+        }
+      );
     });
 
     it("downloaders with same IP but different user agents are not deduplicated", () => {
@@ -350,7 +357,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua2",
       });
 
-      expect(db.countDailyWebDownloaders([url])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloaders([url]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
         counts: [2],
       });
@@ -375,7 +382,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: userAgent,
       });
 
-      expect(db.countDailyWebDownloaders([url])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloaders([url]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
         counts: [2],
       });
@@ -391,7 +398,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua1",
       });
 
-      expect(db.countDailyWebDownloaders([])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloaders([]), {
         dates: [],
         counts: [],
       });
@@ -448,7 +455,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua1",
       });
 
-      expect(db.countWeeklyWebDownloaders([url])).toEqual({
+      assert.deepEqual(db.countWeeklyWebDownloaders([url]), {
         dates: [Date.UTC(2020, 0, 6, 0, 0, 0), Date.UTC(2020, 0, 13, 0, 0, 0)],
         counts: [3, 1],
       });
@@ -495,7 +502,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua3",
       });
 
-      expect(db.countDailyWebDownloads([url])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloads([url]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0), Date.UTC(2020, 0, 2, 0, 0, 0)],
         counts: [3, 2],
       });
@@ -517,7 +524,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "",
       });
 
-      expect(db.countDailyWebDownloads(["https://example.com/a/"])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloads(["https://example.com/a/"]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
         counts: [1],
       });
@@ -550,7 +557,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua",
       });
 
-      expect(db.countDailyWebDownloads([url])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloads([url]), {
         dates: [Date.UTC(2020, 0, 1, 0, 0, 0), Date.UTC(2020, 0, 2, 0, 0, 0)],
         counts: [2, 1],
       });
@@ -566,7 +573,7 @@ describe("AnalyticsDB", () => {
         downloaderUserAgent: "ua1",
       });
 
-      expect(db.countDailyWebDownloads([])).toEqual({
+      assert.deepEqual(db.countDailyWebDownloads([]), {
         dates: [],
         counts: [],
       });
@@ -588,7 +595,7 @@ describe("AnalyticsDB", () => {
           },
         },
       ]);
-      expect(db.countDailyVSCodeDownloads()).toEqual({
+      assert.deepEqual(db.countDailyVSCodeDownloads(), {
         dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
         counts: [6 + 2],
       });
@@ -606,7 +613,7 @@ describe("AnalyticsDB", () => {
           },
         },
       ]);
-      expect(db.countDailyVSCodeDownloads()).toEqual({
+      assert.deepEqual(db.countDailyVSCodeDownloads(), {
         dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
         counts: [0],
       });
@@ -630,7 +637,7 @@ describe("AnalyticsDB", () => {
           },
         },
       ]);
-      expect(db.countDailyVSCodeDownloads()).toEqual({
+      assert.deepEqual(db.countDailyVSCodeDownloads(), {
         dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
         counts: [2 + 1],
       });
@@ -664,7 +671,7 @@ describe("AnalyticsDB", () => {
           },
         },
       ]);
-      expect(db.countWeeklyVSCodeDownloads()).toEqual({
+      assert.deepEqual(db.countWeeklyVSCodeDownloads(), {
         dates: [Date.UTC(2020, 0, 6, 0, 0, 0), Date.UTC(2020, 0, 13, 0, 0, 0)],
         counts: [3 + 5, 2],
       });
@@ -694,7 +701,7 @@ describe("AnalyticsDB", () => {
       ]);
       let afterArchiveTimestamp = Date.now() / 1000;
 
-      expect(db.countDailyVSCodeDownloads()).toEqual({
+      assert.deepEqual(db.countDailyVSCodeDownloads(), {
         dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
         counts: [1],
       });
@@ -709,19 +716,20 @@ describe("AnalyticsDB", () => {
           FROM vscode_stats_archive
         `
       );
-      expect(archived.length).toEqual(1);
+      assert.equal(archived.length, 1);
       // TODO(strager): Don't store string timestamp numbers in the database.
-      expect(Number(archived[0].timestamp)).toEqual(
+      assert.equal(
+        Number(archived[0].timestamp),
         Date.UTC(2023, 8, 8, 0, 0, 0) / 1000
       );
-      expect(archived[0].version).toEqual("2.16.0");
-      expect(archived[0].install_count).toEqual(2);
+      assert.equal(archived[0].version, "2.16.0");
+      assert.equal(archived[0].install_count, 2);
       // NOTE(strager): SQLite timestamp has second resolution.
-      expect(archived[0].archive_timestamp).toBeGreaterThanOrEqual(
-        Math.floor(beforeArchiveTimestamp)
+      assert.ok(
+        archived[0].archive_timestamp >= Math.floor(beforeArchiveTimestamp)
       );
-      expect(archived[0].archive_timestamp).toBeLessThanOrEqual(
-        Math.ceil(afterArchiveTimestamp)
+      assert.ok(
+        archived[0].archive_timestamp <= Math.ceil(afterArchiveTimestamp)
       );
     });
 
@@ -747,12 +755,12 @@ describe("AnalyticsDB", () => {
         },
       ]);
 
-      expect(db.countDailyVSCodeDownloads()).toEqual({
+      assert.deepEqual(db.countDailyVSCodeDownloads(), {
         dates: [Date.UTC(2023, 8, 8, 0, 0, 0)],
         counts: [3],
       });
 
-      expect(
+      assert.deepEqual(
         db._querySQLForTesting(
           `
             SELECT
@@ -762,8 +770,9 @@ describe("AnalyticsDB", () => {
               version
             FROM vscode_stats_archive
           `
-        )
-      ).toEqual([]);
+        ),
+        []
+      );
     });
   });
 });

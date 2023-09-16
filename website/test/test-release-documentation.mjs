@@ -1,40 +1,42 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { releasesMarkdownToHTML } from "../src/release-documentation.mjs";
 
 describe("release documentation releasesMarkdownToHTML", () => {
   it("removes title", () => {
     let html = releasesMarkdownToHTML("# titlegoeshere\nbodygoeshere");
-    expect(html).not.toContain("titlegoeshere");
-    expect(html).toContain("bodygoeshere");
+    assert.doesNotMatch(html, /titlegoeshere/);
+    assert.match(html, /bodygoeshere/);
   });
 
   it("## heading is <h3>", () => {
     let html = releasesMarkdownToHTML("## heading3\nbodygoeshere");
-    expect(html).toContain("<h2>");
-    expect(html).not.toContain("<h1>");
-    expect(html).not.toContain("<h3>");
+    assert.match(html, /<h2>/);
+    assert.doesNotMatch(html, /<h1>/);
+    assert.doesNotMatch(html, /<h3>/);
   });
 
   it("### heading is <h3>", () => {
     let html = releasesMarkdownToHTML("### heading4\nbodygoeshere");
-    expect(html).toContain("<h3>");
-    expect(html).not.toContain("<h2>");
-    expect(html).not.toContain("<h4>");
+    assert.match(html, /<h3>/);
+    assert.doesNotMatch(html, /<h2>/);
+    assert.doesNotMatch(html, /<h4>/);
   });
 
   it("#### heading is <h4>", () => {
     let html = releasesMarkdownToHTML("#### heading5\nbodygoeshere");
-    expect(html).toContain("<h4>");
-    expect(html).not.toContain("<h3>");
-    expect(html).not.toContain("<h5>");
+    assert.match(html, /<h4>/);
+    assert.doesNotMatch(html, /<h3>/);
+    assert.doesNotMatch(html, /<h5>/);
   });
 
   it("linkifies versioned heading", () => {
     let html = releasesMarkdownToHTML("## 2.15.0 (2023-07-18)\n\nhello");
-    expect(html).toContain('<h2 id="2.15.0">');
-    expect(html).toContain('<a href="#2.15.0">2.15.0 (2023-07-18)</a>');
+    assert.match(html, /<h2 id="2\.15\.0">/);
+    assert.match(html, /<a href="#2\.15\.0">2\.15\.0 \(2023-07-18\)<\/a>/);
   });
 });
 

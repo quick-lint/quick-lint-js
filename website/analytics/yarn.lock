@@ -2,11 +2,6 @@
 # yarn lockfile v1
 
 
-"@colors/colors@^1.5.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
-  integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
-
 "@types/geojson@^7946.0.10":
   version "0.0.0"
   uid ""
@@ -17,6 +12,7 @@
 
 "@types/node@^17.0.45":
   version "0.0.0"
+  uid ""
 
 "@types/node@link:../null-package":
   version "0.0.0"
@@ -148,7 +144,7 @@ github-from-package@0.0.0:
   resolved "https://registry.yarnpkg.com/github-from-package/-/github-from-package-0.0.0.tgz#97fb5d96bfde8973313f20e8288ef9a167fa64ce"
   integrity sha512-SyHy3T1v2NUXn29OsWdxmK6RwHD+vkj3v8en8AOBZ1wBQ/hCAQ5bAQTD02kW4W9tUp/3Qh6J8r9EvntiyCmOOw==
 
-glob@7.2.3, glob@^7.1.6:
+glob@7.2.3:
   version "7.2.3"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.2.3.tgz#b8df0fb802bbfa8e89bd1d938b4e16578ed44f2b"
   integrity sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==
@@ -194,24 +190,6 @@ isbot@3.6.13:
   version "3.6.13"
   resolved "https://registry.yarnpkg.com/isbot/-/isbot-3.6.13.tgz#e060f727cb53475a4dab1569321ced0f84633d63"
   integrity sha512-uoP4uK5Dc2CrabmK+Gue1jTL+scHiCc1c9rblRpJwG8CPxjLIv8jmGyyGRGkbPOweayhkskdZsEQXG6p+QCQrg==
-
-jasmine-core@4.5.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-4.5.0.tgz#1a6bd0bde3f60996164311c88a0995d67ceda7c3"
-  integrity sha512-9PMzyvhtocxb3aXJVOPqBDswdgyAeSB81QnLop4npOpbqnheaTEwPc9ZloQeVswugPManznQBjD8kWDTjlnHuw==
-
-jasmine-core@^4.5.0:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-4.6.0.tgz#6884fc3d5b66bf293e422751eed6d6da217c38f5"
-  integrity sha512-O236+gd0ZXS8YAjFx8xKaJ94/erqUliEkJTDedyE7iHvv4ZVqi+q+8acJxu05/WJDKm512EUNn809In37nWlAQ==
-
-jasmine@4.5.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/jasmine/-/jasmine-4.5.0.tgz#8d3c0d0a33a61e4d05c9f9747ee5dfaf6f7b5d3d"
-  integrity sha512-9olGRvNZyADIwYL9XBNBst5BTU/YaePzuddK+YRslc7rI9MdTIE4r3xaBKbv2GEmzYYUfMOdTR8/i6JfLZaxSQ==
-  dependencies:
-    glob "^7.1.6"
-    jasmine-core "^4.5.0"
 
 lru-cache@^6.0.0:
   version "6.0.0"
@@ -337,13 +315,6 @@ pump@^3.0.0:
   dependencies:
     end-of-stream "^1.1.0"
     once "^1.3.1"
-
-quick-lint-js-node-test-runner@../../tools/quick-lint-js-node-test-runner/:
-  version "0.1.0"
-  dependencies:
-    "@colors/colors" "^1.5.0"
-    jasmine "4.5.0"
-    jasmine-core "4.5.0"
 
 rc@^1.2.7:
   version "1.2.8"

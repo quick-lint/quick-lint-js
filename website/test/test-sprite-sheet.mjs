@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import assert from "assert";
+import assert from "node:assert/strict";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -9,11 +9,12 @@ import {
   ExternalSpriteSheet,
   InlineSpriteSheet,
 } from "../src/sprite-sheet.mjs";
+import { describe, it, beforeEach, afterEach } from "node:test";
 
 describe("InlineSpriteSheet", () => {
   it("empty has empty inline data", async () => {
     let sheet = new InlineSpriteSheet({ symbolIDPrefix: "sym" });
-    expect(await sheet.makeInlineHTMLAsync()).toEqual("");
+    assert.equal(await sheet.makeInlineHTMLAsync(), "");
   });
 
   let tempDir;
@@ -44,8 +45,8 @@ describe("InlineSpriteSheet", () => {
 
     it("appears in inline HTML", async () => {
       let inlineHTML = await sheet.makeInlineHTMLAsync();
-      expect(inlineHTML).toContain(`id="${testSVG.symbolID}"`);
-      expect(inlineHTML).toContain('<path d="M0 0h8v8H0z"');
+      assert.ok(inlineHTML.includes(`id="${testSVG.symbolID}"`));
+      assert.match(inlineHTML, /<path d="M0 0h8v8H0z"/);
     });
 
     it("reference", async () => {
@@ -55,13 +56,13 @@ describe("InlineSpriteSheet", () => {
         width: 10,
         height: 12,
       });
-      expect(referenceHTML).toContain(`xlink:href="#${testSVG.symbolID}"`);
-      expect(referenceHTML).toContain("<svg");
-      expect(referenceHTML).toContain('role="img"');
-      expect(referenceHTML).toContain('aria-label="alt text goes here"');
-      expect(referenceHTML).toContain('width="10"');
-      expect(referenceHTML).toContain('height="12"');
-      expect(referenceHTML).toContain("<title>title goes here</title>");
+      assert.ok(referenceHTML.includes(`xlink:href="#${testSVG.symbolID}"`));
+      assert.match(referenceHTML, /<svg/);
+      assert.match(referenceHTML, /role="img"/);
+      assert.match(referenceHTML, /aria-label="alt text goes here"/);
+      assert.match(referenceHTML, /width="10"/);
+      assert.match(referenceHTML, /height="12"/);
+      assert.match(referenceHTML, /<title>title goes here<\/title>/);
     });
   });
 });
@@ -70,8 +71,8 @@ describe("ExternalSpriteSheet", () => {
   it("empty has blank SVG external data", async () => {
     let sheet = new ExternalSpriteSheet();
     let external = await sheet.makeExternalFileAsync();
-    expect(external).toContain("<svg");
-    expect(external).toContain("></svg>");
+    assert.match(external, /<svg/);
+    assert.match(external, /><\/svg>/);
   });
 
   let tempDir;
@@ -102,8 +103,8 @@ describe("ExternalSpriteSheet", () => {
 
     it("appears in external file", async () => {
       let external = await sheet.makeExternalFileAsync();
-      expect(external).toContain(`id="${testSVG.symbolID}"`);
-      expect(external).toContain('<path d="M0 0h8v8H0z"');
+      assert.ok(external.includes(`id="${testSVG.symbolID}"`));
+      assert.match(external, /<path d="M0 0h8v8H0z"/);
     });
 
     it("reference", async () => {
@@ -117,16 +118,18 @@ describe("ExternalSpriteSheet", () => {
           class: "banana",
         },
       });
-      expect(referenceHTML).toContain(
-        `xlink:href="myspritesheet.svg#${testSVG.symbolID}"`
+      assert.ok(
+        referenceHTML.includes(
+          `xlink:href="myspritesheet.svg#${testSVG.symbolID}"`
+        )
       );
-      expect(referenceHTML).toContain("<svg");
-      expect(referenceHTML).toContain('role="img"');
-      expect(referenceHTML).toContain('class="banana"');
-      expect(referenceHTML).toContain('aria-label="alt text goes here"');
-      expect(referenceHTML).toContain('width="10"');
-      expect(referenceHTML).toContain('height="12"');
-      expect(referenceHTML).toContain("<title>title goes here</title>");
+      assert.match(referenceHTML, /<svg/);
+      assert.match(referenceHTML, /role="img"/);
+      assert.match(referenceHTML, /class="banana"/);
+      assert.match(referenceHTML, /aria-label="alt text goes here"/);
+      assert.match(referenceHTML, /width="10"/);
+      assert.match(referenceHTML, /height="12"/);
+      assert.match(referenceHTML, /<title>title goes here<\/title>/);
     });
   });
 });

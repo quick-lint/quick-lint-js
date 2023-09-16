@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { substituteCustomHTMLComponentsAsync } from "../src/custom-component.mjs";
 
 describe("custom HTML component", () => {
@@ -14,7 +16,8 @@ describe("custom HTML component", () => {
       "<!-- hello world -->",
     ]) {
       it(testHTML, async () => {
-        expect(await substituteCustomHTMLComponentsAsync(testHTML, {})).toEqual(
+        assert.equal(
+          await substituteCustomHTMLComponentsAsync(testHTML, {}),
           testHTML
         );
       });
@@ -27,9 +30,10 @@ describe("custom HTML component", () => {
         return "<h1>hello, world</h1>";
       },
     };
-    expect(
-      await substituteCustomHTMLComponentsAsync("<x-hello/>", components)
-    ).toEqual("<h1>hello, world</h1>");
+    assert.equal(
+      await substituteCustomHTMLComponentsAsync("<x-hello/>", components),
+      "<h1>hello, world</h1>"
+    );
   });
 
   it("not substituted recursively", async () => {
@@ -38,17 +42,18 @@ describe("custom HTML component", () => {
         return "<x-hello>gottem</x-hello>";
       },
     };
-    expect(
-      await substituteCustomHTMLComponentsAsync("<x-hello/>", components)
-    ).toEqual("<x-hello>gottem</x-hello>");
+    assert.equal(
+      await substituteCustomHTMLComponentsAsync("<x-hello/>", components),
+      "<x-hello>gottem</x-hello>"
+    );
   });
 
   it("attributes", async () => {
     let components = {
       "x-example": (attributes) => {
-        expect(Object.keys(attributes)).toContain("a");
-        expect(attributes.b).toBe("");
-        expect(attributes.c).toBe("value");
+        assert.ok("a" in attributes);
+        assert.equal(attributes.b, "");
+        assert.equal(attributes.c, "value");
         return "";
       },
     };
@@ -64,12 +69,13 @@ describe("custom HTML component", () => {
         return `[${attributes.id}]`;
       },
     };
-    expect(
+    assert.equal(
       await substituteCustomHTMLComponentsAsync(
         "<x-example id=a /> then <x-example id=b />",
         components
-      )
-    ).toEqual("[a] then [b]");
+      ),
+      "[a] then [b]"
+    );
   });
 
   it("children are not supported", async () => {
@@ -78,12 +84,12 @@ describe("custom HTML component", () => {
         return "";
       },
     };
-    await expectAsync(
+    await assert.rejects(() =>
       substituteCustomHTMLComponentsAsync(
         "<x-example>child</x-example>",
         components
       )
-    ).toBeRejectedWithError();
+    );
   });
 });
 

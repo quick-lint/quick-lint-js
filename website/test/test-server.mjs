@@ -1,10 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import assert from "node:assert/strict";
 import fs from "fs";
 import http from "http";
 import os from "os";
 import path from "path";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import { listenAsync, urlFromServerAddress } from "../src/net.mjs";
 import { makeServer } from "../src/server.mjs";
 
@@ -44,8 +46,8 @@ describe("server", () => {
       fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
       let response = await request("GET", "/");
-      expect(response.data).toBe("hello world");
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.data, "hello world");
+      assert.equal(response.headers["content-type"], "text/html");
     });
 
     it("serves index.ejs.html", async () => {
@@ -55,8 +57,8 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/");
-      expect(response.data).toBe("hello 4");
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.data, "hello 4");
+      assert.equal(response.headers["content-type"], "text/html");
     });
 
     it("fails if both index.html and index.ejs.html exist", async () => {
@@ -67,14 +69,14 @@ describe("server", () => {
       fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
       let response = await request("GET", "/");
-      expect(response.status).toBe(409);
+      assert.equal(response.status, 409);
     });
 
     it("fails if neither index.html nor index.ejs.html exist", async () => {
       // Don't create any files in wwwRootPath.
 
       let response = await request("GET", "/");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -87,8 +89,8 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/testdir/");
-      expect(response.data).toBe("hello world");
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.data, "hello world");
+      assert.equal(response.headers["content-type"], "text/html");
     });
 
     it("serves index.ejs.html", async () => {
@@ -99,8 +101,8 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/testdir/");
-      expect(response.data).toBe("hello 4");
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.data, "hello 4");
+      assert.equal(response.headers["content-type"], "text/html");
     });
 
     it("fails if both index.html and index.ejs.html exist", async () => {
@@ -115,7 +117,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/testdir/");
-      expect(response.status).toBe(409);
+      assert.equal(response.status, 409);
     });
 
     it("fails if neither index.html nor index.ejs.html exist", async () => {
@@ -123,14 +125,14 @@ describe("server", () => {
       // Don't create any files in ${wwwRootPath}/testdir.
 
       let response = await request("GET", "/testdir/");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
 
     it("fails if directory does not exist", async () => {
       // Don't create ${wwwRootPath}/testdir.
 
       let response = await request("GET", "/testdir/");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -145,8 +147,8 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/outer/inner/nested/");
-      expect(response.data).toBe("hello world");
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.data, "hello world");
+      assert.equal(response.headers["content-type"], "text/html");
     });
   });
 
@@ -162,7 +164,7 @@ describe("server", () => {
     );
 
     let response = await request("GET", "/testdir");
-    expect(response.status).toBe(404);
+    assert.equal(response.status, 404);
   });
 
   // index.html should only be served through its containing directory.
@@ -172,7 +174,7 @@ describe("server", () => {
         fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
         let response = await request("GET", testPath);
-        expect(response.status).toBe(404);
+        assert.equal(response.status, 404);
       });
 
       it("fails despite presence of index.ejs.html", async () => {
@@ -182,7 +184,7 @@ describe("server", () => {
         );
 
         let response = await request("GET", testPath);
-        expect(response.status).toBe(404);
+        assert.equal(response.status, 404);
       });
     });
   }
@@ -194,7 +196,7 @@ describe("server", () => {
         "hello <%= 2+2 %>"
       );
       let response = await request("GET", "/test.ejs.html");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -211,8 +213,8 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/generated/");
-      expect(response.data).toBe("hello 4");
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.data, "hello 4");
+      assert.equal(response.headers["content-type"], "text/html");
     });
 
     it("doesn't serve index.mjs", async () => {
@@ -227,7 +229,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/generated/index.mjs");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
 
     it("loads .ejs.html route mentioned in /generated/index.mjs", async () => {
@@ -242,9 +244,9 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/generated/subdir/");
-      expect(response.status).toBe(200);
-      expect(response.data).toBe("current URI is /generated/subdir/");
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.status, 200);
+      assert.equal(response.data, "current URI is /generated/subdir/");
+      assert.equal(response.headers["content-type"], "text/html");
     });
 
     it("serves /generated/subdir/ if index.ejs.html exists and not routed by /generated/index.mjs", async () => {
@@ -264,8 +266,8 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/generated/subdir/");
-      expect(response.status).toBe(200);
-      expect(response.data).toBe("filesystem page should load");
+      assert.equal(response.status, 200);
+      assert.equal(response.data, "filesystem page should load");
     });
 
     it("fails if both /generated/subdir/index.ejs.html exists, and /generated/subdir/ is routed by /generated/index.mjs", async () => {
@@ -285,7 +287,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/generated/subdir/");
-      expect(response.status).toBe(409);
+      assert.equal(response.status, 409);
     });
 
     it("fails if /generated/index.mjs does not mention route", async () => {
@@ -300,7 +302,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/generated/subdir/");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -325,9 +327,9 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/generated/app.bundle.js");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("application/javascript");
-      expect(response.data).toContain('console.log("hello world")');
+      assert.equal(response.status, 200);
+      assert.equal(response.headers["content-type"], "application/javascript");
+      assert.match(response.data, /console\.log\("hello world"\)/);
     });
 
     it("should bundle imported files", async () => {
@@ -354,11 +356,11 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/generated/app.bundle.js");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("application/javascript");
-      expect(response.data).toContain('console.log("hello world")');
-      expect(response.data).toContain("greet");
-      expect(response.data).not.toContain("import");
+      assert.equal(response.status, 200);
+      assert.equal(response.headers["content-type"], "application/javascript");
+      assert.match(response.data, /console\.log\("hello world"\)/);
+      assert.match(response.data, /greet/);
+      assert.doesNotMatch(response.data, /import/);
     });
 
     it("syntax error causes 500 error", async () => {
@@ -381,8 +383,8 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/generated/app.bundle.js");
-      expect(response.status).toBe(500);
-      expect(response.data).toContain("Build failed with 1 error");
+      assert.equal(response.status, 500);
+      assert.match(response.data, /Build failed with 1 error/);
     });
   });
 
@@ -391,9 +393,9 @@ describe("server", () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.png"), "hello PNG");
 
       let response = await request("GET", "/test.png");
-      expect(response.status).toBe(200);
-      expect(response.data).toBe("hello PNG");
-      expect(response.headers["content-type"]).toBe("image/png");
+      assert.equal(response.status, 200);
+      assert.equal(response.data, "hello PNG");
+      assert.equal(response.headers["content-type"], "image/png");
     });
 
     it("/test.js", async () => {
@@ -403,34 +405,34 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/test.js");
-      expect(response.status).toBe(200);
-      expect(response.data).toBe("console.log('hello')");
-      expect(response.headers["content-type"]).toBe("application/javascript");
+      assert.equal(response.status, 200);
+      assert.equal(response.data, "console.log('hello')");
+      assert.equal(response.headers["content-type"], "application/javascript");
     });
 
     it("/test.html", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.html"), "<h1>hello</h1>");
 
       let response = await request("GET", "/test.html");
-      expect(response.status).toBe(200);
-      expect(response.data).toBe("<h1>hello</h1>");
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.status, 200);
+      assert.equal(response.data, "<h1>hello</h1>");
+      assert.equal(response.headers["content-type"], "text/html");
     });
 
     it("/test.tar.bz2 (multiple file extensions)", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.tar.bz2"), "cmprssd dt");
 
       let response = await request("GET", "/test.tar.bz2");
-      expect(response.status).toBe(200);
-      expect(response.data).toBe("cmprssd dt");
-      expect(response.headers["content-type"]).toBe("application/x-bzip2");
+      assert.equal(response.status, 200);
+      assert.equal(response.data, "cmprssd dt");
+      assert.equal(response.headers["content-type"], "application/x-bzip2");
     });
 
     it("/doesnotexist.js gives 404 Not Found", async () => {
       // Do not create /doesnotexist.js.
 
       let response = await request("GET", "/doesnotexist.js");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -439,7 +441,7 @@ describe("server", () => {
       fs.writeFileSync(path.join(wwwRootPath, "testfile"), "hello world");
 
       let response = await request("GET", "/testfile");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -455,7 +457,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/.test.js");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -467,7 +469,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/.htaccess");
-      expect(response.status).toBe(403);
+      assert.equal(response.status, 403);
     });
   });
 
@@ -476,14 +478,14 @@ describe("server", () => {
       fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
       let response = await request("GET", "/./");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
 
     it("/./test.js should 404 even if /test.js works", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.js"), "hello()");
 
       let response = await request("GET", "/./test.js");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -492,14 +494,14 @@ describe("server", () => {
       fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");
 
       let response = await request("GET", "/../");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
 
     it("/../test.js should 404 even if /test.js works", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.js"), "hello()");
 
       let response = await request("GET", "/../test.js");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
 
     it("/subdir/../test.js should 404 even if /subdir/ and /test.js both work", async () => {
@@ -512,7 +514,7 @@ describe("server", () => {
       fs.writeFileSync(path.join(wwwRootPath, "subdir", "test.js"), "hello()");
 
       let response = await request("GET", "/subdir/../test.js");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -525,7 +527,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/node_modules/");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
 
     it("/node_modules/test.js should 404 even if node_modules/test.js exists", async () => {
@@ -536,7 +538,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/node_modules/test.js");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 
@@ -548,8 +550,8 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/");
-      expect(response.status).toBe(500);
-      expect(response.data).toContain("variableDoesNotExist");
+      assert.equal(response.status, 500);
+      assert.match(response.data, /variableDoesNotExist/);
     });
 
     it("currentURI refers to relative URI", async () => {
@@ -564,10 +566,10 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/");
-      expect(response.data).toBe("/");
+      assert.equal(response.data, "/");
 
       response = await request("GET", "/subdir/");
-      expect(response.data).toBe("/subdir/");
+      assert.equal(response.data, "/subdir/");
     });
 
     it("currentURI ignores query parameters", async () => {
@@ -577,7 +579,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/?key=value");
-      expect(response.data).toBe("/");
+      assert.equal(response.data, "/");
     });
 
     it("included template can import relative paths using importFileAsync", async () => {
@@ -600,7 +602,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/");
-      expect(response.data).toBe("hi");
+      assert.equal(response.data, "hi");
     });
 
     it("including does not affect later imports", async () => {
@@ -634,7 +636,7 @@ describe("server", () => {
       );
 
       let response = await request("GET", "/");
-      expect(response.data).toBe("hi-a hi-b");
+      assert.equal(response.data, "hi-a hi-b");
     });
   });
 
@@ -646,15 +648,15 @@ describe("server", () => {
       );
 
       let response = await request("HEAD", "/");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.status, 200);
+      assert.equal(response.headers["content-type"], "text/html");
     });
 
     it("fails for missing index.html and index.ejs.html", async () => {
       // Don't create index.html or index.ejs.html
 
       let response = await request("HEAD", "/");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
 
     it("does not run page.ejs.html routed by index.mjs", async () => {
@@ -668,8 +670,8 @@ describe("server", () => {
       );
 
       let response = await request("HEAD", "/generated-page/");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("text/html");
+      assert.equal(response.status, 200);
+      assert.equal(response.headers["content-type"], "text/html");
     });
 
     it("returns 404 for URI not routed by index.mjs", async () => {
@@ -683,7 +685,7 @@ describe("server", () => {
       );
 
       let response = await request("HEAD", "/other-page/");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
 
     it("serves PNG file", async () => {
@@ -693,15 +695,15 @@ describe("server", () => {
       );
 
       let response = await request("HEAD", "/file.png");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("image/png");
+      assert.equal(response.status, 200);
+      assert.equal(response.headers["content-type"], "image/png");
     });
 
     it("fails for missing PNG file", async () => {
       // Don't create file.png.
 
       let response = await request("HEAD", "/file.png");
-      expect(response.status).toBe(404);
+      assert.equal(response.status, 404);
     });
   });
 });

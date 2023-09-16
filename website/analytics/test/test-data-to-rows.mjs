@@ -1,11 +1,13 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import assert from "node:assert/strict";
 import { dataToRows } from "../src/data-to-rows.mjs";
+import { describe, it } from "node:test";
 
 describe("dataToRows", () => {
   it("two inputs with same key arrays", () => {
-    expect(
+    assert.deepEqual(
       dataToRows(
         [
           [1, 2, 3],
@@ -15,16 +17,17 @@ describe("dataToRows", () => {
           [100, 200, 300],
           [11, 22, 33],
         ]
-      )
-    ).toEqual([
-      [1, 100, 11],
-      [2, 200, 22],
-      [3, 300, 33],
-    ]);
+      ),
+      [
+        [1, 100, 11],
+        [2, 200, 22],
+        [3, 300, 33],
+      ]
+    );
   });
 
   it("three inputs with same key arrays", () => {
-    expect(
+    assert.deepEqual(
       dataToRows(
         [
           [1, 2, 3],
@@ -36,16 +39,17 @@ describe("dataToRows", () => {
           [11, 22, 33],
           [9, 8, 7],
         ]
-      )
-    ).toEqual([
-      [1, 100, 11, 9],
-      [2, 200, 22, 8],
-      [3, 300, 33, 7],
-    ]);
+      ),
+      [
+        [1, 100, 11, 9],
+        [2, 200, 22, 8],
+        [3, 300, 33, 7],
+      ]
+    );
   });
 
   it("one input with more keys at end", () => {
-    expect(
+    assert.deepEqual(
       dataToRows(
         [
           [1, 2, 3],
@@ -55,16 +59,17 @@ describe("dataToRows", () => {
           [100, 200, 300],
           [11, 22, 33, 44, 55],
         ]
-      )
-    ).toEqual([
-      [1, 100, 11],
-      [2, 200, 22],
-      [3, 300, 33],
-      [4, 0, 44],
-      [5, 0, 55],
-    ]);
+      ),
+      [
+        [1, 100, 11],
+        [2, 200, 22],
+        [3, 300, 33],
+        [4, 0, 44],
+        [5, 0, 55],
+      ]
+    );
 
-    expect(
+    assert.deepEqual(
       dataToRows(
         [
           [1, 2, 3, 4, 5],
@@ -74,18 +79,19 @@ describe("dataToRows", () => {
           [100, 200, 300, 400, 500],
           [11, 22, 33],
         ]
-      )
-    ).toEqual([
-      [1, 100, 11],
-      [2, 200, 22],
-      [3, 300, 33],
-      [4, 400, 0],
-      [5, 500, 0],
-    ]);
+      ),
+      [
+        [1, 100, 11],
+        [2, 200, 22],
+        [3, 300, 33],
+        [4, 400, 0],
+        [5, 500, 0],
+      ]
+    );
   });
 
   it("no common keys, interleaved", () => {
-    expect(
+    assert.deepEqual(
       dataToRows(
         [
           [1, 3, 5],
@@ -95,15 +101,16 @@ describe("dataToRows", () => {
           [100, 300, 500],
           [22, 44, 66],
         ]
-      )
-    ).toEqual([
-      [1, 100, 0],
-      [2, 0, 22],
-      [3, 300, 0],
-      [4, 0, 44],
-      [5, 500, 0],
-      [6, 0, 66],
-    ]);
+      ),
+      [
+        [1, 100, 0],
+        [2, 0, 22],
+        [3, 300, 0],
+        [4, 0, 44],
+        [5, 500, 0],
+        [6, 0, 66],
+      ]
+    );
   });
 });
 

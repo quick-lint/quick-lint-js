@@ -3,10 +3,10 @@
     "build": "node --experimental-modules run-build.mjs www",
     "fmt": "prettier --write \"**/*.cjs\" \"**/*.css\" \"**/*.html\" \"**/*.js\" \"**/*.mjs\"",
     "start": "node --experimental-modules run-server.mjs",
-    "test": "node --experimental-modules run-tests.mjs"
+    "test": "node --test test/"
   },
   "engines": {
-    "node": ">=14.14.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@asciidoctor/core": "2.2.6",
@@ -17,7 +17,6 @@
     "mime": "3.0.0",
     "parse5-sax-parser": "^7.0.0",
     "promise-limit": "^2.7.0",
-    "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/",
     "svg-sprite": "^2.0.2",
     "vinyl": "^3.0.0",
     "yargs": "link:./null-package"

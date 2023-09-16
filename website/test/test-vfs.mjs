@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import assert from "node:assert/strict";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -16,11 +17,12 @@ import {
   VFSDirectory,
   uriAncestry,
 } from "../src/vfs.mjs";
+import { describe, it, beforeEach, afterEach } from "node:test";
 
 it("uriAncestry", () => {
-  expect(uriAncestry("/")).toEqual(["/"]);
-  expect(uriAncestry("/dir/")).toEqual(["/dir/", "/"]);
-  expect(uriAncestry("/dir/subdir/")).toEqual(["/dir/subdir/", "/dir/", "/"]);
+  assert.deepEqual(uriAncestry("/"), ["/"]);
+  assert.deepEqual(uriAncestry("/dir/"), ["/dir/", "/"]);
+  assert.deepEqual(uriAncestry("/dir/subdir/"), ["/dir/subdir/", "/dir/", "/"]);
 });
 
 describe("VFS", () => {
@@ -44,9 +46,9 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual([""]);
+      assert.deepEqual(children.names(), [""]);
       let index = children.get("");
-      expect(index).toBeInstanceOf(StaticVFSFile);
+      assert.ok(index instanceof StaticVFSFile);
       await assertSameFileAsync(index.path, path.join(rootPath, "index.html"));
     });
 
@@ -55,9 +57,9 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual([""]);
+      assert.deepEqual(children.names(), [""]);
       let index = children.get("");
-      expect(index).toBeInstanceOf(EJSVFSFile);
+      assert.ok(index instanceof EJSVFSFile);
       await assertSameFileAsync(
         index.path,
         path.join(rootPath, "index.ejs.html")
@@ -70,12 +72,13 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual([""]);
+      assert.deepEqual(children.names(), [""]);
       let index = children.get("");
-      expect(index).toBeInstanceOf(IndexConflictVFSError);
-      await expect(
-        index.conflictingPaths.map((p) => path.basename(p)).sort()
-      ).toEqual(["index.ejs.html", "index.html"]);
+      assert.ok(index instanceof IndexConflictVFSError);
+      await assert.deepEqual(
+        index.conflictingPaths.map((p) => path.basename(p)).sort(),
+        ["index.ejs.html", "index.html"]
+      );
     });
 
     it("subdirectory with index.ejs.html", async () => {
@@ -84,9 +87,9 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/subdir/");
 
-      expect(children.names()).toEqual([""]);
+      assert.deepEqual(children.names(), [""]);
       let index = children.get("");
-      expect(index).toBeInstanceOf(EJSVFSFile);
+      assert.ok(index instanceof EJSVFSFile);
       await assertSameFileAsync(
         index.path,
         path.join(rootPath, "subdir", "index.ejs.html")
@@ -96,13 +99,13 @@ describe("VFS", () => {
 
   it("lists nothing if the directory does not exist", async () => {
     let children = await vfs.listDirectoryAsync("/doesnotexist/");
-    expect(children.names()).toEqual([]);
+    assert.deepEqual(children.names(), []);
   });
 
   it("lists nothing if the directory is actually a file", async () => {
     fs.writeFileSync(path.join(rootPath, "somefile"), "");
     let children = await vfs.listDirectoryAsync("/somefile/");
-    expect(children.names()).toEqual([]);
+    assert.deepEqual(children.names(), []);
   });
 
   describe("subdirectory", () => {
@@ -116,15 +119,14 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual(["dir1", "dir2", "dir3"]);
+      assert.deepEqual(children.names(), ["dir1", "dir2", "dir3"]);
       for (let name of children.names()) {
-        expect(children.get(name)).toBeInstanceOf(VFSDirectory);
+        assert.ok(children.get(name) instanceof VFSDirectory);
       }
-      expect(children.names().map((name) => children.get(name).uri)).toEqual([
-        "/dir1/",
-        "/dir2/",
-        "/dir3/",
-      ]);
+      assert.deepEqual(
+        children.names().map((name) => children.get(name).uri),
+        ["/dir1/", "/dir2/", "/dir3/"]
+      );
     });
 
     it("listed shows index and static files and subsubdirectories", async () => {
@@ -135,21 +137,21 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/dir/");
 
-      expect(children.names()).toEqual(["", "subdir", "test.js"]);
+      assert.deepEqual(children.names(), ["", "subdir", "test.js"]);
 
       let index = children.get("");
-      expect(index).toBeInstanceOf(StaticVFSFile);
+      assert.ok(index instanceof StaticVFSFile);
       await assertSameFileAsync(
         index.path,
         path.join(rootPath, "dir", "index.html")
       );
 
       let subdir = children.get("subdir");
-      expect(subdir).toBeInstanceOf(VFSDirectory);
-      expect(subdir.uri).toEqual("/dir/subdir/");
+      assert.ok(subdir instanceof VFSDirectory);
+      assert.equal(subdir.uri, "/dir/subdir/");
 
       let testJS = children.get("test.js");
-      expect(testJS).toBeInstanceOf(StaticVFSFile);
+      assert.ok(testJS instanceof StaticVFSFile);
       await assertSameFileAsync(
         testJS.path,
         path.join(rootPath, "dir", "test.js")
@@ -163,9 +165,9 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual(["test.js"]);
+      assert.deepEqual(children.names(), ["test.js"]);
       let testJS = children.get("test.js");
-      expect(testJS).toBeInstanceOf(StaticVFSFile);
+      assert.ok(testJS instanceof StaticVFSFile);
       await assertSameFileAsync(testJS.path, path.join(rootPath, "test.js"));
     });
   });
@@ -174,25 +176,25 @@ describe("VFS", () => {
     it("extensionless file", async () => {
       fs.writeFileSync(path.join(rootPath, "testfile"), "");
       let children = await vfs.listDirectoryAsync("/");
-      expect(children.names()).toEqual([]);
+      assert.deepEqual(children.names(), []);
     });
 
     it("something.ejs.html file", async () => {
       fs.writeFileSync(path.join(rootPath, "something.ejs.html"), "");
       let children = await vfs.listDirectoryAsync("/");
-      expect(children.names()).toEqual([]);
+      assert.deepEqual(children.names(), []);
     });
 
     it("Markdown file", async () => {
       fs.writeFileSync(path.join(rootPath, "readme.md"), "");
       let children = await vfs.listDirectoryAsync("/");
-      expect(children.names()).toEqual([]);
+      assert.deepEqual(children.names(), []);
     });
 
     it("dotfile", async () => {
       fs.writeFileSync(path.join(rootPath, ".test.js"), "");
       let children = await vfs.listDirectoryAsync("/");
-      expect(children.names()).toEqual([]);
+      assert.deepEqual(children.names(), []);
     });
 
     it("dotdirectory", async () => {
@@ -200,10 +202,10 @@ describe("VFS", () => {
       fs.writeFileSync(path.join(rootPath, ".dir", "test.js"), "");
 
       let children = await vfs.listDirectoryAsync("/");
-      expect(children.names()).toEqual([]);
+      assert.deepEqual(children.names(), []);
 
       children = await vfs.listDirectoryAsync("/.dir/");
-      expect(children.names()).toEqual([]);
+      assert.deepEqual(children.names(), []);
     });
 
     it("node_modules", async () => {
@@ -211,10 +213,10 @@ describe("VFS", () => {
       fs.writeFileSync(path.join(rootPath, "node_modules", "test.js"), "");
 
       let children = await vfs.listDirectoryAsync("/");
-      expect(children.names()).toEqual([]);
+      assert.deepEqual(children.names(), []);
 
       children = await vfs.listDirectoryAsync("/node_modules/");
-      expect(children.names()).toEqual([]);
+      assert.deepEqual(children.names(), []);
     });
   });
 
@@ -224,9 +226,9 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual([".htaccess"]);
+      assert.deepEqual(children.names(), [".htaccess"]);
       let htaccess = children.get(".htaccess");
-      expect(htaccess).toBeInstanceOf(ServerConfigVFSFile);
+      assert.ok(htaccess instanceof ServerConfigVFSFile);
       await assertSameFileAsync(
         htaccess.path,
         path.join(rootPath, ".htaccess")
@@ -237,49 +239,59 @@ describe("VFS", () => {
   describe("listed URI", () => {
     it("requires leading slash", async () => {
       fs.mkdirSync(path.join(rootPath, "dir"));
-      await expectAsync(vfs.listDirectoryAsync("dir/")).toBeRejectedWithError(
+      await assert.rejects(
+        () => vfs.listDirectoryAsync("dir/"),
         MalformedDirectoryURIError
       );
-      await expectAsync(vfs.listDirectoryAsync("")).toBeRejectedWithError(
+      await assert.rejects(
+        () => vfs.listDirectoryAsync(""),
         MalformedDirectoryURIError
       );
     });
 
     it("requires trailing slash", async () => {
       fs.mkdirSync(path.join(rootPath, "dir"));
-      await expectAsync(vfs.listDirectoryAsync("/dir")).toBeRejectedWithError(
+      await assert.rejects(
+        () => vfs.listDirectoryAsync("/dir"),
         MalformedDirectoryURIError
       );
-      await expectAsync(vfs.listDirectoryAsync("")).toBeRejectedWithError(
+      await assert.rejects(
+        () => vfs.listDirectoryAsync(""),
         MalformedDirectoryURIError
       );
     });
 
     it("disallows '.' components", async () => {
       fs.mkdirSync(path.join(rootPath, "dir"));
-      await expectAsync(vfs.listDirectoryAsync("/./")).toBeRejectedWithError(
+      await assert.rejects(
+        () => vfs.listDirectoryAsync("/./"),
         MalformedDirectoryURIError
       );
-      await expectAsync(
-        vfs.listDirectoryAsync("/dir/./")
-      ).toBeRejectedWithError(MalformedDirectoryURIError);
-      await expectAsync(
-        vfs.listDirectoryAsync("/./dir/")
-      ).toBeRejectedWithError(MalformedDirectoryURIError);
+      await assert.rejects(
+        () => vfs.listDirectoryAsync("/dir/./"),
+        MalformedDirectoryURIError
+      );
+      await assert.rejects(
+        () => vfs.listDirectoryAsync("/./dir/"),
+        MalformedDirectoryURIError
+      );
     });
 
     it("disallows '..' components", async () => {
       fs.mkdirSync(path.join(rootPath, "dir"));
       fs.mkdirSync(path.join(rootPath, "otherdir"));
-      await expectAsync(vfs.listDirectoryAsync("/../")).toBeRejectedWithError(
+      await assert.rejects(
+        () => vfs.listDirectoryAsync("/../"),
         MalformedDirectoryURIError
       );
-      await expectAsync(
-        vfs.listDirectoryAsync("/dir/../")
-      ).toBeRejectedWithError(MalformedDirectoryURIError);
-      await expectAsync(
-        vfs.listDirectoryAsync("/dir/../otherdir/")
-      ).toBeRejectedWithError(MalformedDirectoryURIError);
+      await assert.rejects(
+        () => vfs.listDirectoryAsync("/dir/../"),
+        MalformedDirectoryURIError
+      );
+      await assert.rejects(
+        () => vfs.listDirectoryAsync("/dir/../otherdir/"),
+        MalformedDirectoryURIError
+      );
     });
   });
 
@@ -295,11 +307,11 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual(["dir", "file"]);
+      assert.deepEqual(children.names(), ["dir", "file"]);
       let dir = children.get("dir");
-      expect(dir).toBeInstanceOf(VFSDirectory);
-      expect(dir.uri).toEqual("/dir/");
-      expect(children.get("file")).toEqual("test file route");
+      assert.ok(dir instanceof VFSDirectory);
+      assert.equal(dir.uri, "/dir/");
+      assert.equal(children.get("file"), "test file route");
     });
 
     it("has no conflict if directory exists and is routed by index.mjs", async () => {
@@ -313,10 +325,10 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual(["dir"]);
+      assert.deepEqual(children.names(), ["dir"]);
       let dir = children.get("dir");
-      expect(dir).toBeInstanceOf(VFSDirectory);
-      expect(dir.uri).toEqual("/dir/");
+      assert.ok(dir instanceof VFSDirectory);
+      assert.equal(dir.uri, "/dir/");
     });
 
     it("creates single directory route for multiple ancestor routes", async () => {
@@ -332,10 +344,10 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual(["dir"]);
+      assert.deepEqual(children.names(), ["dir"]);
       let dir = children.get("dir");
-      expect(dir).toBeInstanceOf(VFSDirectory);
-      expect(dir.uri).toEqual("/dir/");
+      assert.ok(dir instanceof VFSDirectory);
+      assert.equal(dir.uri, "/dir/");
     });
 
     it("synthetic directory route sets index", async () => {
@@ -348,8 +360,8 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/dir/");
 
-      expect(children.names()).toEqual([""]);
-      expect(children.get("")).toEqual("test dir route");
+      assert.deepEqual(children.names(), [""]);
+      assert.equal(children.get(""), "test dir route");
     });
 
     it("index.mjs without routes export is ignored", async () => {
@@ -364,8 +376,8 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/dir/subdir/");
 
-      expect(children.names()).toEqual([""]);
-      expect(children.get("")).toEqual("route from /index.mjs");
+      assert.deepEqual(children.names(), [""]);
+      assert.equal(children.get(""), "route from /index.mjs");
     });
 
     it("type=build-ejs route is translated into EJSVFSFile", async () => {
@@ -379,14 +391,14 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual(["testfile"]);
+      assert.deepEqual(children.names(), ["testfile"]);
       let testfile = children.get("testfile");
-      expect(testfile).toBeInstanceOf(EJSVFSFile);
+      assert.ok(testfile instanceof EJSVFSFile);
       await assertSameFileAsync(
         testfile.path,
         path.join(rootPath, ".hello.ejs")
       );
-      expect(testfile.getContentType()).toEqual("text/html");
+      assert.equal(testfile.getContentType(), "text/html");
     });
 
     it("type=build-ejs with explicit content type", async () => {
@@ -407,8 +419,8 @@ describe("VFS", () => {
       let children = await vfs.listDirectoryAsync("/");
       let testfile = children.get("testfile");
 
-      expect(testfile).toBeInstanceOf(EJSVFSFile);
-      expect(testfile.getContentType()).toEqual("application/json");
+      assert.ok(testfile instanceof EJSVFSFile);
+      assert.equal(testfile.getContentType(), "application/json");
     });
 
     it("type=esbuild route is translated into ESBuildVFSFile", async () => {
@@ -427,9 +439,9 @@ describe("VFS", () => {
 
       let children = await vfs.listDirectoryAsync("/");
 
-      expect(children.names()).toEqual(["testfile"]);
+      assert.deepEqual(children.names(), ["testfile"]);
       let testfile = children.get("testfile");
-      expect(testfile).toBeInstanceOf(ESBuildVFSFile);
+      assert.ok(testfile instanceof ESBuildVFSFile);
       await assertSameFileAsync(
         testfile.config.entryPoints[0],
         path.join(rootPath, ".hello.js")
@@ -452,8 +464,8 @@ describe("VFS", () => {
       let children = await vfs.listDirectoryAsync("/");
 
       let index = children.get("");
-      expect(index).toBeInstanceOf(EJSVFSFile);
-      expect(Object.keys(index.customComponents)).toEqual(["x-example"]);
+      assert.ok(index instanceof EJSVFSFile);
+      assert.deepEqual(Object.keys(index.customComponents), ["x-example"]);
     });
 
     it("are combined from multiple index.mjs scripts", async () => {
@@ -478,8 +490,8 @@ describe("VFS", () => {
       let children = await vfs.listDirectoryAsync("/dir/");
 
       let index = children.get("");
-      expect(index).toBeInstanceOf(EJSVFSFile);
-      expect(Object.keys(index.customComponents).sort()).toEqual([
+      assert.ok(index instanceof EJSVFSFile);
+      assert.deepEqual(Object.keys(index.customComponents).sort(), [
         "x-from-dir",
         "x-from-root",
       ]);
@@ -504,7 +516,8 @@ describe("VFS", () => {
         "hello world"
       );
 
-      await expectAsync(vfs.listDirectoryAsync("/dir/")).toBeRejectedWithError(
+      await assert.rejects(
+        () => vfs.listDirectoryAsync("/dir/"),
         /duplicate|multiple/
       );
     });
@@ -523,10 +536,11 @@ describe("StaticVFSFile", () => {
     fs.writeFileSync(p, "<!DOCTYPE html><h1>hello</h1>");
 
     let f = new StaticVFSFile(p);
-    expect(await f.getContentsAsync()).toEqual(
+    assert.deepEqual(
+      await f.getContentsAsync(),
       Buffer.from("<!DOCTYPE html><h1>hello</h1>")
     );
-    expect(f.getContentType()).toEqual("text/html");
+    assert.equal(f.getContentType(), "text/html");
   });
 
   it("JavaScript file", async () => {
@@ -534,10 +548,11 @@ describe("StaticVFSFile", () => {
     fs.writeFileSync(p, "console.log('hi')");
 
     let f = new StaticVFSFile(p);
-    expect(await f.getContentsAsync()).toEqual(
+    assert.deepEqual(
+      await f.getContentsAsync(),
       Buffer.from("console.log('hi')")
     );
-    expect(f.getContentType()).toEqual("application/javascript");
+    assert.equal(f.getContentType(), "application/javascript");
   });
 });
 
@@ -553,7 +568,7 @@ describe("ServerConfigVFSFile", () => {
     fs.writeFileSync(p, "# hello");
 
     let f = new ServerConfigVFSFile(p);
-    expect(await f.getContentsAsync()).toEqual(Buffer.from("# hello"));
+    assert.deepEqual(await f.getContentsAsync(), Buffer.from("# hello"));
   });
 });
 
@@ -569,7 +584,7 @@ describe("EJSVFSFile", () => {
     fs.writeFileSync(p, "");
 
     let f = new EJSVFSFile({ path: p, uri: "/" });
-    expect(f.getContentType()).toEqual("text/html");
+    assert.equal(f.getContentType(), "text/html");
   });
 
   it("explicit content type", async () => {
@@ -581,7 +596,7 @@ describe("EJSVFSFile", () => {
       uri: "/",
       contentType: "application/json",
     });
-    expect(f.getContentType()).toEqual("application/json");
+    assert.equal(f.getContentType(), "application/json");
   });
 
   it("resolves basic EJS", async () => {
@@ -589,7 +604,7 @@ describe("EJSVFSFile", () => {
     fs.writeFileSync(p, "hello <%= 2+2 %>");
 
     let f = new EJSVFSFile({ path: p, uri: "/" });
-    expect(await f.getContentsAsync()).toEqual(Buffer.from("hello 4"));
+    assert.deepEqual(await f.getContentsAsync(), Buffer.from("hello 4"));
   });
 
   it("included template can import relative paths using importFileAsync", async () => {
@@ -615,7 +630,7 @@ describe("EJSVFSFile", () => {
       path: path.join(temporaryDirectory, "index.ejs.html"),
       uri: "/",
     });
-    expect(await f.getContentsAsync()).toEqual(Buffer.from("hi"));
+    assert.deepEqual(await f.getContentsAsync(), Buffer.from("hi"));
   });
 
   it("including does not affect later imports", async () => {
@@ -652,7 +667,7 @@ describe("EJSVFSFile", () => {
       path: path.join(temporaryDirectory, "index.ejs.html"),
       uri: "/",
     });
-    expect(await f.getContentsAsync()).toEqual(Buffer.from("hi-a hi-b"));
+    assert.deepEqual(await f.getContentsAsync(), Buffer.from("hi-a hi-b"));
   });
 
   it("expands custom components with attributes and current URI", async () => {
@@ -665,7 +680,8 @@ describe("EJSVFSFile", () => {
     fs.writeFileSync(p, "<x-test myattr=myvalue />");
 
     let f = new EJSVFSFile({ path: p, uri: "/", customComponents: components });
-    expect(await f.getContentsAsync()).toEqual(
+    assert.deepEqual(
+      await f.getContentsAsync(),
       Buffer.from("myattr:myvalue, currentURI:/")
     );
   });
@@ -675,9 +691,7 @@ describe("EJSVFSFile", () => {
     fs.writeFileSync(p, '<!---{\n"key": "value"\n}--->\n\nhello world');
 
     let f = new EJSVFSFile({ path: p, uri: "/" });
-    expect((await f.getContentsAsync()).toString("utf-8")).toEqual(
-      "hello world"
-    );
+    assert.equal((await f.getContentsAsync()).toString("utf-8"), "hello world");
   });
 
   it("front matter declares meta variables", async () => {
@@ -688,7 +702,7 @@ describe("EJSVFSFile", () => {
     );
 
     let f = new EJSVFSFile({ path: p, uri: "/" });
-    expect((await f.getContentsAsync()).toString("utf-8")).toContain("VALUE");
+    assert.match((await f.getContentsAsync()).toString("utf-8"), /VALUE/);
   });
 
   it("front matter meta data is accessible by included EJS", async () => {
@@ -706,9 +720,7 @@ describe("EJSVFSFile", () => {
       path: path.join(temporaryDirectory, "index.ejs.html"),
       uri: "/",
     });
-    expect((await f.getContentsAsync()).toString("utf-8")).toContain(
-      "MYMETAVALUE"
-    );
+    assert.match((await f.getContentsAsync()).toString("utf-8"), /MYMETAVALUE/);
   });
 });
 
@@ -721,7 +733,7 @@ describe("ESBuildVFSFile", () => {
 
   it("content type", async () => {
     let f = new ESBuildVFSFile({});
-    expect(f.getContentType()).toEqual("application/javascript");
+    assert.equal(f.getContentType(), "application/javascript");
   });
 
   it("should preserve simple script", async () => {
@@ -734,7 +746,7 @@ describe("ESBuildVFSFile", () => {
       entryPoints: [path.join(temporaryDirectory, "app.js")],
     });
     let data = await f.getContentsAsync();
-    expect(data.toString()).toContain('console.log("hello world")');
+    assert.match(data.toString(), /console\.log\("hello world"\)/);
   });
 
   it("should bundle imported files", async () => {
@@ -751,9 +763,9 @@ describe("ESBuildVFSFile", () => {
       entryPoints: [path.join(temporaryDirectory, "app.js")],
     });
     let data = (await f.getContentsAsync()).toString("utf-8");
-    expect(data).toContain('console.log("hello world")');
-    expect(data).toContain("greet");
-    expect(data).not.toContain("import");
+    assert.match(data, /console\.log\("hello world"\)/);
+    assert.match(data, /greet/);
+    assert.doesNotMatch(data, /import/);
   });
 
   it("syntax error causes exception", async () => {
@@ -765,8 +777,8 @@ describe("ESBuildVFSFile", () => {
     let f = new ESBuildVFSFile({
       entryPoints: [path.join(temporaryDirectory, "bad-app.js")],
     });
-    await expectAsync(f.getContentsAsync()).toBeRejectedWithError(
-      Error,
+    await assert.rejects(
+      () => f.getContentsAsync(),
       /Build failed with 1 error/
     );
   });

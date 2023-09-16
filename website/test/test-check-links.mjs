@@ -1,12 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import assert from "node:assert/strict";
 import fs from "fs";
 import http from "http";
 import os from "os";
 import path from "path";
-import { listenAsync, urlFromServerAddress } from "../src/net.mjs";
 import { Crawler } from "../tools/check-links.mjs";
+import { describe, it, afterEach } from "node:test";
+import { listenAsync, urlFromServerAddress } from "../src/net.mjs";
 
 describe("check-links", () => {
   let createdServers = [];
@@ -42,7 +44,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([`${url}doesnotexist`]);
+    assert.deepEqual(crawler.brokenLinks, [`${url}doesnotexist`]);
   });
 
   it("finds broken <a> link on sub page page", async () => {
@@ -61,7 +63,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([`${url}doesnotexist`]);
+    assert.deepEqual(crawler.brokenLinks, [`${url}doesnotexist`]);
   });
 
   it("reports broken <a> link once if repeated on page", async () => {
@@ -81,7 +83,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([`${url}broken`]);
+    assert.deepEqual(crawler.brokenLinks, [`${url}broken`]);
   });
 
   it("reports broken <a> link for each linking page if linked from multiple pages", async () => {
@@ -104,7 +106,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([`${url}broken`, `${url}broken`]);
+    assert.deepEqual(crawler.brokenLinks, [`${url}broken`, `${url}broken`]);
   });
 
   it("finds broken <script> link", async () => {
@@ -120,7 +122,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([`${url}doesnotexist`]);
+    assert.deepEqual(crawler.brokenLinks, [`${url}doesnotexist`]);
   });
 
   it("does not report working <a> link with fragment", async () => {
@@ -140,7 +142,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([]);
+    assert.deepEqual(crawler.brokenLinks, []);
   });
 
   it("finds broken <a> link with fragment", async () => {
@@ -160,7 +162,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([`${url}subpage#frag`]);
+    assert.deepEqual(crawler.brokenLinks, [`${url}subpage#frag`]);
   });
 
   it("does not request pages multiple times in cycle", async () => {
@@ -183,9 +185,9 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([]);
-    expect(rootHits).toEqual(1);
-    expect(subpageHits).toEqual(1);
+    assert.deepEqual(crawler.brokenLinks, []);
+    assert.equal(rootHits, 1);
+    assert.equal(subpageHits, 1);
   });
 
   it("does not request pages multiple times with different fragments", async () => {
@@ -210,7 +212,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(subpageHits).toEqual(1);
+    assert.equal(subpageHits, 1);
   });
 
   it("finds broken <a> link with multiple fragments on same page", async () => {
@@ -234,8 +236,8 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(subpageHits).toEqual(1);
-    expect(crawler.brokenLinks.sort()).toEqual([
+    assert.equal(subpageHits, 1);
+    assert.deepEqual(crawler.brokenLinks.sort(), [
       `${url}subpage#frag1`,
       `${url}subpage#frag2`,
     ]);
@@ -260,8 +262,8 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([]);
-    expect(externalHits).toEqual([]);
+    assert.deepEqual(crawler.brokenLinks, []);
+    assert.deepEqual(externalHits, []);
   });
 
   it("fetches external links if opted in", async () => {
@@ -288,9 +290,9 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([]);
+    assert.deepEqual(crawler.brokenLinks, []);
     // For performance reasons, we expect a HEAD request, not a GET request.
-    expect(externalHits).toEqual([{ url: "/", method: "HEAD" }]);
+    assert.deepEqual(externalHits, [{ url: "/", method: "HEAD" }]);
   });
 
   it("external link uses GET request if HEAD request fails", async () => {
@@ -322,8 +324,8 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([]);
-    expect(externalHits).toEqual([
+    assert.deepEqual(crawler.brokenLinks, []);
+    assert.deepEqual(externalHits, [
       { url: "/", method: "HEAD" },
       { url: "/", method: "GET" },
     ]);
@@ -346,7 +348,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([externalURL]);
+    assert.deepEqual(crawler.brokenLinks, [externalURL]);
   });
 
   it("finds broken external links after redirect if opted in", async () => {
@@ -378,8 +380,8 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([externalURL]);
-    expect(externalRedirectedHits).toEqual(1);
+    assert.deepEqual(crawler.brokenLinks, [externalURL]);
+    assert.equal(externalRedirectedHits, 1);
   });
 
   it("user agent for external links is Google Chrome-like", async () => {
@@ -398,8 +400,8 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: true });
     await crawler.startCrawlAsync();
 
-    expect(externalUserAgents).not.toEqual([]);
-    expect(externalUserAgents[0]).toMatch(/Chrome/);
+    assert.notDeepEqual(externalUserAgents, []);
+    assert.match(externalUserAgents[0], /Chrome/);
   });
 
   it("allows good email links", async () => {
@@ -417,7 +419,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual([]);
+    assert.deepEqual(crawler.brokenLinks, []);
   });
 
   it("reports bad email links", async () => {
@@ -435,7 +437,7 @@ describe("check-links", () => {
     let crawler = new Crawler({ initialURL: url, checkExternal: false });
     await crawler.startCrawlAsync();
 
-    expect(crawler.brokenLinks).toEqual(["mailto:bademail@example.com"]);
+    assert.deepEqual(crawler.brokenLinks, ["mailto:bademail@example.com"]);
   });
 });
 

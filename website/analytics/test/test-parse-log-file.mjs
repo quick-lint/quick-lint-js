@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import path from "node:path";
 import url from "node:url";
 import {
@@ -30,7 +32,7 @@ describe("parseLogFileAsync", () => {
         format: '%v %h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
       }
     );
-    expect(logEntries).toEqual([
+    assert.deepEqual(logEntries, [
       {
         serverName: "c.quick-lint-js.com",
         remoteHostName: "114.119.132.159",
@@ -91,8 +93,8 @@ describe("parseLogFileAsync", () => {
         format: '%v %h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
       }
     );
-    expect(logEntries[0]["Apache_Referer"]).toEqual("'escape\\test\"");
-    expect(logEntries[0]["Apache_User-Agent"]).toEqual("escape\ttest");
+    assert.equal(logEntries[0]["Apache_Referer"], "'escape\\test\"");
+    assert.equal(logEntries[0]["Apache_User-Agent"], "escape\ttest");
   });
 
   it("apache-malicious.log malicious request is ignored", async () => {
@@ -103,11 +105,14 @@ describe("parseLogFileAsync", () => {
         format: '%v %h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
       }
     );
-    expect(logEntries.map((entry) => entry.remoteHostName)).toEqual([
-      "51.222.253.5",
-      // "43.158.214.10",  // Malicious entry dropped.
-      "114.119.132.38",
-    ]);
+    assert.deepEqual(
+      logEntries.map((entry) => entry.remoteHostName),
+      [
+        "51.222.253.5",
+        // "43.158.214.10",  // Malicious entry dropped.
+        "114.119.132.38",
+      ]
+    );
   });
 
   it("apache-junk.log broken log lines are ignored", async () => {
@@ -118,10 +123,13 @@ describe("parseLogFileAsync", () => {
         format: '%v %h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
       }
     );
-    expect(logEntries.map((entry) => entry.remoteHostName)).toEqual([
-      // 51.222.253.3 entries should be ignored.
-      "114.119.132.159",
-    ]);
+    assert.deepEqual(
+      logEntries.map((entry) => entry.remoteHostName),
+      [
+        // 51.222.253.3 entries should be ignored.
+        "114.119.132.159",
+      ]
+    );
   });
 
   it("example-apache.log.gz", async () => {
@@ -139,7 +147,7 @@ describe("parseLogFileAsync", () => {
       path.join(__dirname, "example-apache.log"),
       logFormat
     );
-    expect(logEntries).toEqual(expectedLogEntries);
+    assert.deepEqual(logEntries, expectedLogEntries);
   });
 });
 
@@ -151,7 +159,7 @@ describe("parseApacheTimestamp", () => {
     ["25/Aug/2023:03:05:22 +0000", Date.UTC(2023, 7, 25, 3, 5, 22)],
   ]) {
     it(input, () => {
-      expect(parseApacheTimestamp(input)).toEqual(expected);
+      assert.equal(parseApacheTimestamp(input), expected);
     });
   }
 });
