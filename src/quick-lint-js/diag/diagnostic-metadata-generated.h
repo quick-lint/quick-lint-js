@@ -412,10 +412,11 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Variable_Assigned_To_Self_Is_Noop) \
   QLJS_DIAG_TYPE_NAME(Diag_Xor_Used_As_Exponentiation) \
   QLJS_DIAG_TYPE_NAME(Diag_Expected_Expression_In_Template_Literal) \
+  QLJS_DIAG_TYPE_NAME(Diag_Missing_Comma_Between_Array_Elements) \
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 401;
+inline constexpr int Diag_Type_Count = 402;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

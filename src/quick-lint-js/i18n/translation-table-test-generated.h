@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[483] = {
+inline const Translated_String test_translation_table[484] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -3227,6 +3227,17 @@ inline const Translated_String test_translation_table[483] = {
             u8"mismatched JSX tags; expected '</{1}>'",
             u8"tags JSX sem correspond\u00eancia; esperado '</{1}>'",
             u8"mismatched JSX tags; expected '</{1}>'",
+        },
+    },
+    {
+        "missing ',' between array elements"_translatable,
+        u8"missing ',' between array elements",
+        {
+            u8"missing ',' between array elements",
+            u8"missing ',' between array elements",
+            u8"missing ',' between array elements",
+            u8"missing ',' between array elements",
+            u8"missing ',' between array elements",
         },
     },
     {
