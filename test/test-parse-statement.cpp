@@ -666,6 +666,19 @@ TEST_F(Test_Parse_Statement, if_without_parens) {
 
   {
     Spy_Visitor p = test_parse_and_visit_statement(
+        u8"if (!(cond_1 && cond_2) { body; }"_sv,  //
+        u8"                       ` Diag_Expected_Parenthesis_Around_If_Condition.where{.token=)}"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",       // cond_1
+                              "visit_variable_use",       // cond_2
+                              "visit_enter_block_scope",  //
+                              "visit_variable_use",       // body
+                              "visit_exit_block_scope",
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
         u8"if cond) { body; }"_sv,  //
         u8"   ` Diag_Expected_Parenthesis_Around_If_Condition.where{.token=(}"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
