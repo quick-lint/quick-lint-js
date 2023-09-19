@@ -383,7 +383,7 @@ void Parser::parse_and_visit_class_or_interface_member(
       }
     }
 
-    void parse_stuff() {
+    void parse_class_member() {
       if (bool done = parse_modifiers(); done) {
         return;
       }
@@ -1426,7 +1426,7 @@ void Parser::parse_and_visit_class_or_interface_member(
   };
   Class_Parser state(this, v, options.class_or_interface_keyword_span,
                      options.is_interface, options.is_abstract, options);
-  state.parse_stuff();
+  state.parse_class_member();
 }
 
 void Parser::parse_and_visit_typescript_interface(
