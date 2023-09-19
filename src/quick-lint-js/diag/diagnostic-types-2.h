@@ -3072,13 +3072,6 @@ struct Diag_Missing_Comma_Between_Array_Elements {
                   ARG(expected_comma))]]  //
   Source_Code_Span expected_comma;
 };
-
-// struct Diag_Comma_In_Middle_Of_Array {
-//   [[qljs::diag("E0713", Diagnostic_Severity::warning)]]  //
-//   [[qljs::message("unexpected comma in middle of array",
-//                   ARG(unexpected_comma))]]              //
-//   Source_Code_Span unexpected_comma;
-// };
 }
 QLJS_WARNING_POP
 

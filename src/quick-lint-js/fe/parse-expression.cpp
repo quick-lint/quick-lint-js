@@ -497,11 +497,10 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
     Expression* ast =
         type == Token_Type::kw_delete
             ? this->make_expression<Expression::Delete>(child, operator_span)
-            : type == Token_Type::kw_typeof
-                  ? this->make_expression<Expression::Typeof>(child,
-                                                              operator_span)
-                  : this->make_expression<Expression::Unary_Operator>(
-                        child, operator_span);
+        : type == Token_Type::kw_typeof
+            ? this->make_expression<Expression::Typeof>(child, operator_span)
+            : this->make_expression<Expression::Unary_Operator>(child,
+                                                                operator_span);
     return ast;
   }
 
@@ -591,16 +590,12 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
       }
 
       if (this->peek().type == Token_Type::comma) {
-        // if(!met_expression) {
-        //   this->diag_reporter_->report(Diag_Comma_In_Middle_Of_Array{
-        //     .unexpected_comma = Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
-        //   });
-        // }
         met_expression = false;
         this->skip();
         continue;
       }
-      const Char8* previous_expession_end = this->lexer_.end_of_previous_token();
+      const Char8* previous_expession_end =
+          this->lexer_.end_of_previous_token();
       const Char8* child_begin = this->peek().begin;
       Expression* child =
           this->parse_expression(v, Precedence{.commas = false});
@@ -619,8 +614,8 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
         });
         right_square_end = expected_right_square;
         break;
-      } 
-      if(met_expression) {
+      }
+      if (met_expression) {
         this->diag_reporter_->report(Diag_Missing_Comma_Between_Array_Elements{
             .expected_comma = Source_Code_Span::unit(previous_expession_end),
         });
@@ -3739,10 +3734,11 @@ next:
             .opening_tag_name =
                 tag_namespace
                     ? Source_Code_Span(tag_namespace->span().begin(), tag_end)
-                    : !tag_members.empty()
-                          ? Source_Code_Span(tag_members.front().span().begin(),
-                                             tag_end)
-                          : tag ? tag->span() : Source_Code_Span::unit(tag_end),
+                : !tag_members.empty()
+                    ? Source_Code_Span(tag_members.front().span().begin(),
+                                       tag_end)
+                : tag ? tag->span()
+                      : Source_Code_Span::unit(tag_end),
             .closing_tag_name =
                 closing_tag_begin <= closing_tag_end
                     ? Source_Code_Span(closing_tag_begin, closing_tag_end)
