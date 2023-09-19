@@ -2870,7 +2870,6 @@ Expression* Parser::parse_object_literal(Parse_Visitor_Base& v) {
 
       single_token_key_and_value:
       case Token_Type::comma:
-      case Token_Type::less:
       case Token_Type::right_curly:
       case Token_Type::semicolon: {
         // Name and value are the same: {keyandvalue}
@@ -2934,6 +2933,7 @@ Expression* Parser::parse_object_literal(Parse_Visitor_Base& v) {
         }
         break;
       }
+
       case Token_Type::colon:
         this->skip();
         parse_value_expression(key);
@@ -2975,6 +2975,24 @@ Expression* Parser::parse_object_literal(Parse_Visitor_Base& v) {
         break;
       }
 
+      // { myVar< }          // Invalid.
+      // { method<T>() {} }  // TypeScript only.
+      case Token_Type::less:
+        if (this->options_.typescript) {
+          // { method<T>() {} }
+          // TODO(strager): Recognize '<' as ',' sometimes in TypeScript. See
+          // NOTE[fat-finger-comma].
+          goto method;
+        }
+        // Treat '<' as if it was ','. We will report
+        // Diag_Expected_Comma_To_Separate_Object_Literal_Entries later. See
+        // NOTE[fat-finger-comma].
+        // TODO[JavaScript-generic-method-in-object]: Report
+        // Diag_TypeScript_Generics_Not_Allowed_In_JavaScript if this looks like
+        // a generic method.
+        goto single_token_key_and_value;
+
+      method:
       case Token_Type::left_paren:
         parse_method_entry(key_token.begin, key, Function_Attributes::normal);
         break;
@@ -3146,6 +3164,7 @@ Expression* Parser::parse_object_literal(Parse_Visitor_Base& v) {
       }
 
       // { get() {} }
+      method_named_async_get_set:
       case Token_Type::left_paren: {
         Expression* key =
             this->make_expression<Expression::Literal>(keyword_span);
@@ -3155,8 +3174,8 @@ Expression* Parser::parse_object_literal(Parse_Visitor_Base& v) {
       }
 
       // { get }
+      end_after_async_get_set:
       case Token_Type::comma:
-      case Token_Type::less:
       case Token_Type::right_curly:
       case Token_Type::semicolon: {
         Expression* key =
@@ -3166,6 +3185,20 @@ Expression* Parser::parse_object_literal(Parse_Visitor_Base& v) {
         entries.emplace_back(key, value);
         break;
       }
+
+      // { get< }         // Invalid.
+      // { get<T>() {} }  // TypeScript only.
+      case Token_Type::less:
+        if (this->options_.typescript) {
+          // { get<T>() {} }
+          // TODO(strager): Recognize '<' as ',' sometimes in TypeScript. See
+          // NOTE[fat-finger-comma].
+          goto method_named_async_get_set;
+        }
+        // Treat '<' as if it was ','. We will report
+        // Diag_Expected_Comma_To_Separate_Object_Literal_Entries later. See
+        // NOTE[fat-finger-comma].
+        goto end_after_async_get_set;
 
       default:
         QLJS_PARSER_UNIMPLEMENTED();

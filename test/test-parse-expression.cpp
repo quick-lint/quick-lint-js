@@ -2616,7 +2616,8 @@ TEST_F(Test_Parse_Expression,
   }
 }
 
-// On some keyboards, '<' is input by pressing ',' while holding the SHIFT key.
+// NOTE[fat-finger-comma]: On some keyboards, '<' is input by pressing ',' while
+// holding the SHIFT key.
 TEST_F(Test_Parse_Expression,
        object_literal_entries_are_not_separated_by_less_than_symbol) {
   {
