@@ -68,7 +68,6 @@ TEST_F(Test_Parse, comma_not_allowed_between_class_methods) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          //
                               "visit_enter_class_scope_body",     //
-                              "visit_property_declaration",       //
                               "visit_enter_function_scope",       //
                               "visit_enter_function_scope_body",  //
                               "visit_exit_function_scope",        //
@@ -81,6 +80,7 @@ TEST_F(Test_Parse, comma_not_allowed_between_class_methods) {
                               "visit_variable_use",               //
                               "visit_exit_block_scope",           //
                               "visit_exit_function_scope",        //
+                              "visit_property_declaration",       //
                               "visit_exit_class_scope",           //
                               "visit_variable_declaration",       // f
                           }));
@@ -103,11 +103,10 @@ TEST_F(Test_Parse, commas_not_allowed_between_class_methods) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",          // {
                               "visit_enter_class_scope_body",     //
-                              "visit_property_declaration",       // constructor
                               "visit_enter_function_scope",       // ()
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
-                              "visit_property_declaration",       // ontext
+                              "visit_property_declaration",       // constructor
                               "visit_enter_function_scope",       // (
                               "visit_variable_declaration",       // text)
                               "visit_enter_function_scope_body",  // { if
@@ -116,6 +115,7 @@ TEST_F(Test_Parse, commas_not_allowed_between_class_methods) {
                               "visit_variable_use",               // text
                               "visit_exit_block_scope",           // }
                               "visit_exit_function_scope",        // }
+                              "visit_property_declaration",       // ontext
                               "visit_exit_class_scope",           // }
                               "visit_variable_declaration",       // class f
                           }));
@@ -539,10 +539,10 @@ TEST_F(Test_Parse,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_class_scope",          //
                                 "visit_enter_class_scope_body",     //
-                                "visit_property_declaration",       //
                                 "visit_enter_function_scope",       //
                                 "visit_enter_function_scope_body",  //
                                 "visit_exit_function_scope",        //
+                                "visit_property_declaration",       //
                                 "visit_exit_class_scope",           //
                                 "visit_variable_declaration",       // C
                                 "visit_end_of_module",

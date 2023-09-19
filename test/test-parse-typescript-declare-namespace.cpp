@@ -258,9 +258,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_enter_declare_scope",     //
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
-                              "visit_property_declaration",    // myMethod
                               "visit_enter_function_scope",    // myMethod
                               "visit_exit_function_scope",     // myMethod
+                              "visit_property_declaration",    // myMethod
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                               "visit_exit_declare_scope",      //
@@ -828,9 +828,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_enter_namespace_scope",   // {
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
-                              "visit_property_declaration",    // myMethod
                               "visit_enter_function_scope",    // (
                               "visit_exit_function_scope",     // )
+                              "visit_property_declaration",    // myMethod
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                               "visit_exit_namespace_scope",    // }
@@ -850,9 +850,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_enter_namespace_scope",   // {
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
-                              "visit_property_declaration",    // myMethod
                               "visit_enter_function_scope",    // (
                               "visit_exit_function_scope",     // )
+                              "visit_property_declaration",    // myMethod
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                               "visit_exit_namespace_scope",    // }
@@ -872,9 +872,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_enter_namespace_scope",   // {
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
-                              "visit_property_declaration",    // myMethod
                               "visit_enter_function_scope",    // (
                               "visit_exit_function_scope",     // )
+                              "visit_property_declaration",    // myMethod
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                               "visit_exit_namespace_scope",    // }
@@ -894,9 +894,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_enter_namespace_scope",   // {
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
-                              "visit_property_declaration",    // myMethod
                               "visit_enter_function_scope",    // (
                               "visit_exit_function_scope",     // )
+                              "visit_property_declaration",    // myMethod
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                               "visit_exit_namespace_scope",    // }

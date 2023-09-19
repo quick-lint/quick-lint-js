@@ -792,9 +792,9 @@ TEST_F(Test_Parse_Function, named_function_statement_without_body) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
                               "visit_enter_class_scope_body",  //
-                              "visit_property_declaration",    // m
                               "visit_enter_function_scope",    //
                               "visit_exit_function_scope",     //
+                              "visit_property_declaration",    // m
                               "visit_exit_class_scope",        //
                               "visit_variable_declaration",    // f
                           }));
@@ -807,10 +807,10 @@ TEST_F(Test_Parse_Function, named_function_statement_without_body) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       //
                               "visit_enter_class_scope_body",  //
-                              "visit_property_declaration",    // m
                               "visit_enter_function_scope",    //
                               "visit_variable_declaration",    // x
                               "visit_exit_function_scope",     //
+                              "visit_property_declaration",    // m
                               "visit_exit_class_scope",        //
                               "visit_variable_declaration",    // f
                           }));

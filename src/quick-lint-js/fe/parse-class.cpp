@@ -510,7 +510,6 @@ void Parser::parse_and_visit_class_or_interface_member(
           // <T>(param: T): void;
           Source_Code_Span property_name_span(p->peek().begin, p->peek().begin);
 
-          v.visit_property_declaration(std::nullopt);
           v.visit_enter_function_scope();
           {
             Function_Attributes attributes =
@@ -528,6 +527,7 @@ void Parser::parse_and_visit_class_or_interface_member(
             }
           }
           v.visit_exit_function_scope();
+          v.visit_property_declaration(std::nullopt);
         }
         break;
 
@@ -719,8 +719,6 @@ void Parser::parse_and_visit_class_or_interface_member(
       case Token_Type::left_curly:
       case Token_Type::left_paren:
       case Token_Type::less: {
-        v.visit_property_declaration(property_name);
-
         if (p->options_.typescript) {
           if (const Modifier *assignment_assertion_modifier =
                   find_modifier(Token_Type::bang)) {
@@ -730,6 +728,7 @@ void Parser::parse_and_visit_class_or_interface_member(
 
               // Stop parsing the field. We will report
               // Diag_Missing_Class_Method_Name later if needed.
+              v.visit_property_declaration(property_name);
               break;
             } else {
               // method!() {}  // Invalid.
@@ -768,6 +767,7 @@ void Parser::parse_and_visit_class_or_interface_member(
           p->parse_and_visit_function_parameters_and_body(
               v, /*name=*/property_name_span, attributes, param_options);
         }
+        v.visit_property_declaration(property_name);
         break;
       }
 

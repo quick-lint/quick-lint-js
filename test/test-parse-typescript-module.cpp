@@ -492,9 +492,9 @@ TEST_F(Test_Parse_TypeScript_Module, export_abstract_class) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
-                              "visit_property_declaration",    // m
                               "visit_enter_function_scope",    //
                               "visit_exit_function_scope",     //
+                              "visit_property_declaration",    // m
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
@@ -509,9 +509,9 @@ TEST_F(Test_Parse_TypeScript_Module, export_abstract_class) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
-                              "visit_property_declaration",    // m
                               "visit_enter_function_scope",    //
                               "visit_exit_function_scope",     //
+                              "visit_property_declaration",    // m
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
                           }));
@@ -526,9 +526,9 @@ TEST_F(Test_Parse_TypeScript_Module, export_abstract_class) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
-                              "visit_property_declaration",    // m
                               "visit_enter_function_scope",    //
                               "visit_exit_function_scope",     //
+                              "visit_property_declaration",    // m
                               "visit_exit_class_scope",        // }
                           }));
   }
