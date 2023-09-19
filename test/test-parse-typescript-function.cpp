@@ -1150,7 +1150,7 @@ TEST_F(Test_Parse_TypeScript_Function,
                           }));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({function_decl(u8"g"_sv), function_decl(u8"f"_sv)}));
+        ElementsAreArray({function_decl(u8"f"_sv), function_decl(u8"g"_sv)}));
     assert_diagnostics(
         p.code, p.errors,
         {
@@ -1179,7 +1179,7 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_variable_declaration",       // h
                               "visit_end_of_module",
                           }));
-    EXPECT_THAT(p.variable_declarations, UnorderedElementsAreArray({
+    EXPECT_THAT(p.variable_declarations, ElementsAreArray({
                                              function_decl(u8"f"_sv),
                                              function_decl(u8"g"_sv),
                                              function_decl(u8"h"_sv),
@@ -1221,7 +1221,7 @@ TEST_F(Test_Parse_TypeScript_Function,
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({function_decl(u8"g"_sv), function_decl(u8"f"_sv)}));
+        ElementsAreArray({function_decl(u8"f"_sv), function_decl(u8"g"_sv)}));
     assert_diagnostics(
         p.code, p.errors,
         {

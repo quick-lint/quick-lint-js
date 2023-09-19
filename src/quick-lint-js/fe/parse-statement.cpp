@@ -1932,16 +1932,7 @@ void Parser::parse_and_visit_function_declaration(
           Identifier &overload_name = overload_names[i];
           if (overload_name.normalized_name() !=
               real_function_name.normalized_name()) {
-            // If this is the first overload:
-            // We will declare the first overload's function name below. If it
-            // turns out the first overload had the wrong name, then we don't
-            // want to declare it twice. Instead, declare the real function's
-            // name here.
-            //
-            // If this is the second, third, or other overload, declare it.
-            const Identifier &variable_to_declare =
-                i == 0 ? real_function_name : overload_name;
-            v.visit_variable_declaration(variable_to_declare,
+            v.visit_variable_declaration(overload_name,
                                          Variable_Kind::_function,
                                          Variable_Declaration_Flags::none);
 
@@ -1952,6 +1943,7 @@ void Parser::parse_and_visit_function_declaration(
                 });
           }
         }
+        function_name = overload_names[overload_names.size() - 1];
       }
     }
 
