@@ -255,7 +255,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
         typescript_options);
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({function_decl(u8"f"_sv), func_param_decl(u8"x"_sv)}));
+        ElementsAreArray({func_param_decl(u8"x"_sv), function_decl(u8"f"_sv)}));
   }
 
   {

@@ -259,10 +259,10 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_can_contain_exports) {
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",      // {
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
                               "visit_exit_namespace_scope",       // }
                               "visit_variable_declaration",       // ns
                               "visit_end_of_module",

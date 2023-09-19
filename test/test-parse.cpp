@@ -431,15 +431,15 @@ TEST_F(
         u8"function g(\\u{69}f) {}"_sv,  //
         u8"Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",       // g
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // if
                               "visit_enter_function_scope_body",  //
                               "visit_exit_function_scope",
+                              "visit_variable_declaration",  // g
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray(
-                    {function_decl(u8"g"_sv), func_param_decl(u8"if"_sv)}));
+                    {func_param_decl(u8"if"_sv), function_decl(u8"g"_sv)}));
   }
 
   {

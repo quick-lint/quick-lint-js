@@ -1243,10 +1243,10 @@ TEST_F(Test_Parse_Statement, disallow_label_named_await_in_async_function) {
       u8"                    ^^^^^ Diag_Label_Named_Await_Not_Allowed_In_Async_Function.await\n"_diag
       u8"                         ^ .colon"_diag);
   EXPECT_THAT(p.visits, ElementsAreArray({
-                            "visit_variable_declaration",       // f
                             "visit_enter_function_scope",       //
                             "visit_enter_function_scope_body",  //
                             "visit_exit_function_scope",
+                            "visit_variable_declaration",  // f
                         }));
 }
 
@@ -1256,10 +1256,10 @@ TEST_F(Test_Parse_Statement, disallow_label_named_yield_in_generator_function) {
       u8"                    ` Diag_Missing_Semicolon_After_Statement"_diag,  //
       u8"                    ^ Diag_Unexpected_Token"_diag);
   EXPECT_THAT(p.visits, ElementsAreArray({
-                            "visit_variable_declaration",       // f
                             "visit_enter_function_scope",       //
                             "visit_enter_function_scope_body",  //
                             "visit_exit_function_scope",
+                            "visit_variable_declaration",  // f
                         }));
 }
 

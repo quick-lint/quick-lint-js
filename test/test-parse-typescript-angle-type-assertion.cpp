@@ -213,7 +213,7 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
         typescript_options);
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({function_decl(u8"f"_sv), func_param_decl(u8"x"_sv)}));
+        ElementsAreArray({func_param_decl(u8"x"_sv), function_decl(u8"f"_sv)}));
   }
 }
 }

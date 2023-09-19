@@ -91,10 +91,10 @@ TEST_F(Test_Parse_Module, export_default) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"export default function f() {}"_sv, no_diags, javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       //
                               "visit_enter_function_scope_body",  //
                               "visit_exit_function_scope",
+                              "visit_variable_declaration",  // f
                           }));
   }
 
@@ -113,10 +113,10 @@ TEST_F(Test_Parse_Module, export_default) {
         u8"export default async function f() {}"_sv, no_diags,
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       //
                               "visit_enter_function_scope_body",  //
                               "visit_exit_function_scope",
+                              "visit_variable_declaration",  // f
                           }));
   }
 
@@ -269,10 +269,10 @@ TEST_F(Test_Parse_Module, export_sometimes_does_not_require_semicolon) {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"export default async function f() {} console.log();"_sv, no_diags);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       //
                               "visit_enter_function_scope_body",  //
                               "visit_exit_function_scope",        //
+                              "visit_variable_declaration",       // f
                               "visit_variable_use",               // console
                               "visit_end_of_module",
                           }));
@@ -298,11 +298,11 @@ TEST_F(Test_Parse_Module,
       javascript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_variable_use",               // async
-                            "visit_variable_declaration",       // f
                             "visit_enter_function_scope",       // f
                             "visit_enter_function_scope_body",  // {
                             "visit_variable_use",  // await (not an operator)
-                            "visit_exit_function_scope",  // }
+                            "visit_exit_function_scope",   // }
+                            "visit_variable_declaration",  // f
                             "visit_end_of_module",
                         }));
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"async", u8"await"}))

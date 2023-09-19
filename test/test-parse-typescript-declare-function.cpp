@@ -43,9 +43,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Function, basic_declare_function) {
         u8"declare function f();"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
-                              "visit_variable_declaration",  // f
                               "visit_enter_function_scope",  // f
                               "visit_exit_function_scope",   // f
+                              "visit_variable_declaration",  // f
                               "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -63,10 +63,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",        //
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
                               "visit_exit_declare_scope",         //
                           }));
   }
@@ -79,10 +79,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",        //
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
                               "visit_exit_declare_scope",         //
                               "visit_variable_use",               // foo
                               "visit_end_of_module",              //
@@ -115,9 +115,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
-                              "visit_variable_declaration",  // f
                               "visit_enter_function_scope",  // f
                               "visit_exit_function_scope",   // f
+                              "visit_variable_declaration",  // f
                               "visit_exit_declare_scope",    //
                           }));
   }
@@ -170,9 +170,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
                                                    typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
-                              "visit_variable_declaration",  // (function_name)
                               "visit_enter_function_scope",  // (function_name)
                               "visit_exit_function_scope",   // (function_name)
+                              "visit_variable_declaration",  // (function_name)
                               "visit_exit_declare_scope",    //
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -187,10 +187,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
                                                 no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",               // declare
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
                               "visit_end_of_module",              //
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"declare"_sv}));
@@ -206,9 +206,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
-                              "visit_variable_declaration",  // f
                               "visit_enter_function_scope",  // f
                               "visit_exit_function_scope",   // f
+                              "visit_variable_declaration",  // f
                               "visit_exit_declare_scope",    //
                               "visit_variable_use",          // foo
                               "visit_end_of_module",         //
@@ -222,9 +222,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Function, declare_function_performs_asi) {
         u8"declare function f()\nfoo"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
-                              "visit_variable_declaration",  // f
                               "visit_enter_function_scope",  // f
                               "visit_exit_function_scope",   // f
+                              "visit_variable_declaration",  // f
                               "visit_exit_declare_scope",    //
                               "visit_variable_use",          // foo
                               "visit_end_of_module",         //

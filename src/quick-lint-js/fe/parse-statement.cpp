@@ -1849,8 +1849,6 @@ void Parser::parse_and_visit_function_declaration(
       });
     }
     Identifier function_name = this->peek().identifier_name();
-    v.visit_variable_declaration(function_name, Variable_Kind::_function,
-                                 Variable_Declaration_Flags::none);
     this->skip();
 
     Bump_Vector<Identifier, Monotonic_Allocator> overload_names(
@@ -1957,6 +1955,8 @@ void Parser::parse_and_visit_function_declaration(
       }
     }
 
+    v.visit_variable_declaration(function_name, Variable_Kind::_function,
+                                 Variable_Declaration_Flags::none);
     break;
   }
 

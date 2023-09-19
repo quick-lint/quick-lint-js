@@ -605,10 +605,10 @@ TEST_F(Test_Parse_Var, parse_let_with_missing_equal) {
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       //
                               "visit_enter_function_scope_body",  //
                               "visit_exit_function_scope",        //
+                              "visit_variable_declaration",       // f
                               "visit_variable_use",               // f
                               "visit_variable_declaration",       // x
                               "visit_end_of_module",
@@ -694,10 +694,10 @@ TEST_F(Test_Parse_Var, parse_let_with_missing_equal) {
                   capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       //
                               "visit_enter_function_scope_body",  //
                               "visit_exit_function_scope",        //
+                              "visit_variable_declaration",       // f
                               "visit_variable_use",               // f
                               "visit_variable_declaration",       // x
                               "visit_variable_use",               // x
@@ -855,15 +855,15 @@ TEST_F(Test_Parse_Var, old_style_variables_can_be_named_let) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"function let(let) {}"_sv, no_diags, javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",  // let (function)
                               "visit_enter_function_scope",
                               "visit_variable_declaration",  // let (parameter)
                               "visit_enter_function_scope_body",
                               "visit_exit_function_scope",
+                              "visit_variable_declaration",  // let (function)
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray(
-                    {function_decl(u8"let"_sv), func_param_decl(u8"let"_sv)}));
+                    {func_param_decl(u8"let"_sv), function_decl(u8"let"_sv)}));
   }
 
   {
@@ -1216,8 +1216,8 @@ TEST_F(Test_Parse_Var, declare_await_in_async_function) {
         u8"                 ^^^^^ Diag_Cannot_Declare_Await_In_Async_Function"_diag,  //
         u8"Diag_Missing_Operand_For_Operator"_diag);
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({function_decl(u8"f"_sv),  //
-                                  func_param_decl(u8"await"_sv)}));
+                ElementsAreArray(
+                    {func_param_decl(u8"await"_sv), function_decl(u8"f"_sv)}));
   }
 }
 
@@ -1594,8 +1594,8 @@ TEST_F(Test_Parse_Var, declare_yield_in_generator_function) {
         u8"function* f(yield) {}"_sv,  //
         u8"            ^^^^^ Diag_Cannot_Declare_Yield_In_Generator_Function"_diag);
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({function_decl(u8"f"_sv),  //
-                                  func_param_decl(u8"yield"_sv)}));
+                ElementsAreArray(
+                    {func_param_decl(u8"yield"_sv), function_decl(u8"f"_sv)}));
   }
 }
 
@@ -1665,15 +1665,15 @@ TEST_F(Test_Parse_Var, variables_can_be_named_contextual_keywords) {
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAreArray({
-                      "visit_variable_declaration",       // (name) (function)
                       "visit_enter_function_scope",       //
                       "visit_variable_declaration",       // (name) (parameter)
                       "visit_enter_function_scope_body",  //
                       "visit_exit_function_scope",
+                      "visit_variable_declaration",  // (name) (function)
                   }));
       EXPECT_THAT(
           p.variable_declarations,
-          ElementsAreArray({function_decl(name), func_param_decl(name)}));
+          ElementsAreArray({func_param_decl(name), function_decl(name)}));
     }
 
     {
@@ -1683,16 +1683,16 @@ TEST_F(Test_Parse_Var, variables_can_be_named_contextual_keywords) {
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAreArray({
-                      "visit_variable_declaration",       // f
                       "visit_enter_function_scope",       //
                       "visit_variable_type_use",          // ParamType
                       "visit_variable_declaration",       // (name)
                       "visit_enter_function_scope_body",  // {
                       "visit_exit_function_scope",        // }
+                      "visit_variable_declaration",       // f
                   }));
       EXPECT_THAT(
           p.variable_declarations,
-          ElementsAreArray({function_decl(u8"f"_sv), func_param_decl(name)}));
+          ElementsAreArray({func_param_decl(name), function_decl(u8"f"_sv)}));
     }
 
     {

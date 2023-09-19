@@ -30,10 +30,10 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_normal_functions) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"function f(this) {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
                           }));
   }
 
@@ -41,11 +41,11 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_normal_functions) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"function f(this: MyType) {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_variable_type_use",          // MyType
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
                           }));
   }
 
@@ -53,11 +53,11 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_normal_functions) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"function f(this, otherparam) {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",       // f
                               "visit_enter_function_scope",       // f
                               "visit_variable_declaration",       // otherparam
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
                           }));
   }
 }

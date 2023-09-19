@@ -202,9 +202,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
                               "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_variable_export_use",    // async
-                              "visit_variable_declaration",   // f
                               "visit_enter_function_scope",   // f
                               "visit_exit_function_scope",    // f
+                              "visit_variable_declaration",   // f
                               "visit_exit_namespace_scope",   // {
                               "visit_exit_declare_scope",     //
                               "visit_end_of_module",          //

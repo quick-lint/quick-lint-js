@@ -334,9 +334,9 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                               "visit_enter_declare_scope",    //
                               "visit_enter_namespace_scope",  // {
                               "visit_enter_declare_scope",    //
-                              "visit_variable_declaration",   // f
                               "visit_enter_function_scope",   //
                               "visit_exit_function_scope",    //
+                              "visit_variable_declaration",   // f
                               "visit_exit_declare_scope",     //
                               "visit_exit_namespace_scope",   // }
                               "visit_variable_declaration",   // ns
