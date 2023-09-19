@@ -1927,16 +1927,16 @@ void Parser::parse_and_visit_function_declaration(
         //     function f(a, b);    // #2
         //     function f(a, b) {}  // #3
         //
-        // We already declared the first overload (#0 above).
         // The last overload (#3 above) is the real function.
         for (Bump_Vector_Size i = 0; i < overload_names.size() - 1; ++i) {
           Identifier &overload_name = overload_names[i];
           if (overload_name.normalized_name() !=
               real_function_name.normalized_name()) {
             // If this is the first overload:
-            // We already declared the first overload's function name. If it
-            // turns out it had the wrong name, then we don't want to redeclare
-            // it. Instead, declare the real function's name.
+            // We will declare the first overload's function name below. If it
+            // turns out the first overload had the wrong name, then we don't
+            // want to declare it twice. Instead, declare the real function's
+            // name here.
             //
             // If this is the second, third, or other overload, declare it.
             const Identifier &variable_to_declare =
