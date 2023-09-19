@@ -279,8 +279,8 @@ void Parser::parse_and_visit_class_or_interface_member(
 
     std::optional<Identifier> last_ident;
 
-    // *, !, ?, async, function, get, private, protected, public, readonly, set,
-    // static
+    // *, !, ?, accessor, async, function, get, private, protected, public,
+    // readonly, set, static
     struct Modifier {
       Source_Code_Span span;
       Token_Type type;
