@@ -985,6 +985,21 @@ TEST_F(Test_Parse_TypeScript_Function, type_predicate_on_generator_function) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Function, type_predicate_in_type) {
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"(param) => param is SomeType"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",         //
+                              "visit_variable_declaration",         // param
+                              "visit_variable_type_predicate_use",  // param
+                              "visit_variable_type_use",            // SomeType
+                              "visit_exit_function_scope",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"param", u8"SomeType"}));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Function,
        type_predicate_parameter_name_can_be_contextual_keyword) {
   for (String8_View parameter_name :

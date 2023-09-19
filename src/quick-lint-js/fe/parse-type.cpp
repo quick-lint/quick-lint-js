@@ -684,7 +684,8 @@ void Parser::
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
   this->skip();
-  this->parse_and_visit_typescript_type_expression(v);
+  this->parse_and_visit_typescript_type_expression_or_type_predicate(
+      v, /*allow_parenthesized_type=*/false);
 }
 
 Parser::TypeScript_Type_Arrow_Or_Paren

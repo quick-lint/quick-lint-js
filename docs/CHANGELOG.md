@@ -22,6 +22,8 @@ Semantic Versioning.
     was allowed.)
   * `if (cond);` now reports [E0064][] ("missing body for 'if' statement").
     (Implemented by [Samir Hamud][].)
+  * Type predicates are now supported in function types (e.g.
+    `(param) => param is Type`).
 
 ### Fixed
 
