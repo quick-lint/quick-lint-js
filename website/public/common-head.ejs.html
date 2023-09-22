@@ -41,7 +41,10 @@
   content="<%= locals.image ?? meta.image ?? '/vscode-demo-small.gif' %>"
 />
 <meta name="theme-color" content="#a76851" />
+<% if (typeof meta.blogDate === 'undefined') { %>
 <meta property="og:type" content="website" />
+<% } %> <%# NOTE: See /website/public/blog/blog-head.ejs.html for blog article related tags %>
+
 <meta name="twitter:card" content="summary_large_image" />
 <%#
 <!--
