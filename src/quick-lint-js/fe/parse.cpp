@@ -840,6 +840,8 @@ template void
 Parser::consume_semicolon<Diag_Missing_Semicolon_After_Interface_Method>();
 template void
 Parser::consume_semicolon<Diag_Missing_Semicolon_After_Index_Signature>();
+template void Parser::consume_semicolon<
+    Diag_Missing_Semicolon_After_TypeScript_Method_Overload_Signature>();
 template void
 Parser::consume_semicolon<Diag_Missing_Semicolon_After_Statement>();
 

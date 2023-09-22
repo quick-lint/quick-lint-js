@@ -411,6 +411,7 @@ Spy_Visitor test_parse_and_visit_statement(
 Spy_Visitor test_parse_and_visit_statement(
     String8_View input, Span<const Diagnostic_Assertion> diags,
     Parser_Options options, Source_Location caller) {
+  SCOPED_TRACE(out_string8(input));
   Test_Parser p(input, options, capture_diags);
   p.parse_and_visit_statement();
   p.assert_diagnostics(diags, caller);

@@ -546,12 +546,41 @@ struct Diag_Class_Conflicting_Modifiers {
   Source_Code_Span first_modifier;
 };
 
+struct
+    Diag_Class_Modifier_Missing_On_Method_With_TypeScript_Overload_Signature {
+  [[qljs::diag("E0403", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'{0}' is missing on overloaded method",
+                  ARG(signature_modifier))]]  //
+  [[qljs::message("write '{1}' here or remove it from the overload signature",
+                  ARG(missing_method_modifier), ARG(signature_modifier))]]  //
+  Source_Code_Span signature_modifier;
+  Source_Code_Span missing_method_modifier;
+};
+
+struct Diag_Class_Modifier_Missing_On_TypeScript_Overload_Signature {
+  [[qljs::diag("E0404", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'{1}' is missing on overload signature",
+                  ARG(missing_signature_modifier), ARG(method_modifier))]]  //
+  [[qljs::message(
+      "overload signature must match modifiers on this overload method",
+      ARG(method_modifier))]]  //
+  Source_Code_Span missing_signature_modifier;
+  Source_Code_Span method_modifier;
+};
+
 struct Diag_Class_Modifier_Must_Preceed_Other_Modifier {
   [[qljs::diag("E0395", Diagnostic_Severity::error)]]  //
   [[qljs::message("'{0}' must precede '{1}'", ARG(expected_first_modifier),
                   ARG(expected_second_modifier))]]  //
   Source_Code_Span expected_first_modifier;
   Source_Code_Span expected_second_modifier;
+};
+
+struct Diag_Class_Modifier_Not_Allowed_On_TypeScript_Overload_Signature {
+  [[qljs::diag("E0402", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'{0}' is not allowed in TypeScript overload signatures",
+                  ARG(modifier))]]  //
+  Source_Code_Span modifier;
 };
 
 struct Diag_Class_Statement_Not_Allowed_In_Body {
@@ -965,6 +994,13 @@ struct Diag_Generator_Function_Star_Belongs_Before_Name {
                   ARG(star))]]  //
   Source_Code_Span function_name;
   Source_Code_Span star;
+};
+
+struct Diag_Getter_Or_Setter_Cannot_Have_TypeScript_Overload_Signature {
+  [[qljs::diag("E0401", Diagnostic_Severity::error)]]  //
+  [[qljs::message("getters and setters cannot have overload signatures",
+                  ARG(get_or_set_token))]]  //
+  Source_Code_Span get_or_set_token;
 };
 
 struct Diag_Multiple_Commas_In_Generic_Parameter_List {
@@ -1513,6 +1549,13 @@ struct Diag_Missing_Semicolon_After_Statement {
   Source_Code_Span where;
 };
 
+struct Diag_Missing_Semicolon_After_TypeScript_Method_Overload_Signature {
+  [[qljs::diag("E0406", Diagnostic_Severity::error)]]  //
+  [[qljs::message("missing semicolon after method overload signature",
+                  ARG(expected_semicolon))]]  //
+  Source_Code_Span expected_semicolon;
+};
+
 struct Diag_Missing_Semicolon_After_Field {
   [[qljs::diag("E0223", Diagnostic_Severity::error)]]  //
   [[qljs::message("missing semicolon after field",
@@ -1615,6 +1658,13 @@ struct Diag_Newline_Not_Allowed_Between_Async_And_Function_Keyword {
   [[qljs::message("'function' is here", ARG(function_keyword))]]  //
   Source_Code_Span async_keyword;
   Source_Code_Span function_keyword;
+};
+
+struct Diag_Newline_Not_Allowed_Between_Modifier_And_Method_Name {
+  [[qljs::diag("E0399", Diagnostic_Severity::error)]]  //
+  [[qljs::message("newline is not allowed between '{0}' and the method name",
+                  ARG(modifier))]]  //
+  Source_Code_Span modifier;
 };
 
 struct Diag_Newline_Not_Allowed_After_Abstract_Keyword {
@@ -2300,6 +2350,17 @@ struct Diag_TypeScript_Optional_Tuple_Element_Cannot_Follow_Spread_Element {
   Source_Code_Span previous_spread;
 };
 
+struct Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch {
+  [[qljs::diag("E0405", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "overload signature must have the correct access specifier ('{1}')",
+      ARG(signature_access_specifier), ARG(method_access_specifier))]]  //
+  [[qljs::message("overloaded method is marked '{0}'",
+                  ARG(method_access_specifier))]]  //
+  Source_Code_Span method_access_specifier;
+  Source_Code_Span signature_access_specifier;
+};
+
 struct Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured {
   [[qljs::diag("E0372", Diagnostic_Severity::error)]]  //
   [[qljs::message("parameter properties cannot be destructured",
@@ -2648,6 +2709,16 @@ struct Diag_Unexpected_Question_When_Destructuring {
   [[qljs::diag("E0309", Diagnostic_Severity::error)]]                    //
   [[qljs::message("unexpected '?' when destructuring", ARG(question))]]  //
   Source_Code_Span question;
+};
+
+struct Diag_Unexpected_Semicolon_After_Overload_Signature {
+  [[qljs::diag("E0400", Diagnostic_Severity::error)]]  //
+  [[qljs::message("TypeScript overload signature can only have one semicolon",
+                  ARG(extra_semicolon))]]  //
+  [[qljs::message("original semicolon is here",
+                  ARG(original_semicolon))]]  //
+  Source_Code_Span extra_semicolon;
+  Source_Code_Span original_semicolon;
 };
 
 struct Diag_Unexpected_Semicolon_In_C_Style_For_Loop {

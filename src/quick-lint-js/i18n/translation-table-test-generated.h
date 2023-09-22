@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[483] = {
+inline const Translated_String test_translation_table[495] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -876,6 +876,17 @@ inline const Translated_String test_translation_table[483] = {
         },
     },
     {
+        "'{0}' is missing on overloaded method"_translatable,
+        u8"'{0}' is missing on overloaded method",
+        {
+            u8"'{0}' is missing on overloaded method",
+            u8"'{0}' is missing on overloaded method",
+            u8"'{0}' is missing on overloaded method",
+            u8"'{0}' is missing on overloaded method",
+            u8"'{0}' is missing on overloaded method",
+        },
+    },
+    {
         "'{0}' is not allowed for strings; use {1} instead"_translatable,
         u8"'{0}' is not allowed for strings; use {1} instead",
         {
@@ -884,6 +895,17 @@ inline const Translated_String test_translation_table[483] = {
             u8"'{0}' is not allowed for strings; use {1} instead",
             u8"'{0}' n\u00e3o \u00e9 permitido para strings; use {1}",
             u8"'{0}' is not allowed for strings; use {1} instead",
+        },
+    },
+    {
+        "'{0}' is not allowed in TypeScript overload signatures"_translatable,
+        u8"'{0}' is not allowed in TypeScript overload signatures",
+        {
+            u8"'{0}' is not allowed in TypeScript overload signatures",
+            u8"'{0}' is not allowed in TypeScript overload signatures",
+            u8"'{0}' is not allowed in TypeScript overload signatures",
+            u8"'{0}' is not allowed in TypeScript overload signatures",
+            u8"'{0}' is not allowed in TypeScript overload signatures",
         },
     },
     {
@@ -928,6 +950,17 @@ inline const Translated_String test_translation_table[483] = {
             u8"'{0}' operator cannot be used before '**' without parentheses",
             u8"operador '{0}' n\u00e3o pode ser usado antes de '**' sem par\u00eanteses",
             u8"'{0}' operator cannot be used before '**' without parentheses",
+        },
+    },
+    {
+        "'{1}' is missing on overload signature"_translatable,
+        u8"'{1}' is missing on overload signature",
+        {
+            u8"'{1}' is missing on overload signature",
+            u8"'{1}' is missing on overload signature",
+            u8"'{1}' is missing on overload signature",
+            u8"'{1}' is missing on overload signature",
+            u8"'{1}' is missing on overload signature",
         },
     },
     {
@@ -1335,6 +1368,17 @@ inline const Translated_String test_translation_table[483] = {
             u8"TypeScript optional properties are not allowed in JavaScript code",
             u8"propriedades opcionais do TypeScript n\u00e3o s\u00e3o permitidas em c\u00f3digo JavaScript",
             u8"TypeScript optional properties are not allowed in JavaScript code",
+        },
+    },
+    {
+        "TypeScript overload signature can only have one semicolon"_translatable,
+        u8"TypeScript overload signature can only have one semicolon",
+        {
+            u8"TypeScript overload signature can only have one semicolon",
+            u8"TypeScript overload signature can only have one semicolon",
+            u8"TypeScript overload signature can only have one semicolon",
+            u8"TypeScript overload signature can only have one semicolon",
+            u8"TypeScript overload signature can only have one semicolon",
         },
     },
     {
@@ -2834,6 +2878,17 @@ inline const Translated_String test_translation_table[483] = {
         },
     },
     {
+        "getters and setters cannot have overload signatures"_translatable,
+        u8"getters and setters cannot have overload signatures",
+        {
+            u8"getters and setters cannot have overload signatures",
+            u8"getters and setters cannot have overload signatures",
+            u8"getters and setters cannot have overload signatures",
+            u8"getters and setters cannot have overload signatures",
+            u8"getters and setters cannot have overload signatures",
+        },
+    },
+    {
         "here"_translatable,
         u8"here",
         {
@@ -3901,6 +3956,17 @@ inline const Translated_String test_translation_table[483] = {
         },
     },
     {
+        "missing semicolon after method overload signature"_translatable,
+        u8"missing semicolon after method overload signature",
+        {
+            u8"missing semicolon after method overload signature",
+            u8"missing semicolon after method overload signature",
+            u8"missing semicolon after method overload signature",
+            u8"missing semicolon after method overload signature",
+            u8"missing semicolon after method overload signature",
+        },
+    },
+    {
         "missing semicolon after statement"_translatable,
         u8"missing semicolon after statement",
         {
@@ -4099,6 +4165,17 @@ inline const Translated_String test_translation_table[483] = {
         },
     },
     {
+        "newline is not allowed between '{0}' and the method name"_translatable,
+        u8"newline is not allowed between '{0}' and the method name",
+        {
+            u8"newline is not allowed between '{0}' and the method name",
+            u8"newline is not allowed between '{0}' and the method name",
+            u8"newline is not allowed between '{0}' and the method name",
+            u8"newline is not allowed between '{0}' and the method name",
+            u8"newline is not allowed between '{0}' and the method name",
+        },
+    },
+    {
         "newline is not allowed between field name and '!'"_translatable,
         u8"newline is not allowed between field name and '!'",
         {
@@ -4253,6 +4330,39 @@ inline const Translated_String test_translation_table[483] = {
         },
     },
     {
+        "original semicolon is here"_translatable,
+        u8"original semicolon is here",
+        {
+            u8"original semicolon is here",
+            u8"original semicolon is here",
+            u8"original semicolon is here",
+            u8"original semicolon is here",
+            u8"original semicolon is here",
+        },
+    },
+    {
+        "overload signature must have the correct access specifier ('{1}')"_translatable,
+        u8"overload signature must have the correct access specifier ('{1}')",
+        {
+            u8"overload signature must have the correct access specifier ('{1}')",
+            u8"overload signature must have the correct access specifier ('{1}')",
+            u8"overload signature must have the correct access specifier ('{1}')",
+            u8"overload signature must have the correct access specifier ('{1}')",
+            u8"overload signature must have the correct access specifier ('{1}')",
+        },
+    },
+    {
+        "overload signature must match modifiers on this overload method"_translatable,
+        u8"overload signature must match modifiers on this overload method",
+        {
+            u8"overload signature must match modifiers on this overload method",
+            u8"overload signature must match modifiers on this overload method",
+            u8"overload signature must match modifiers on this overload method",
+            u8"overload signature must match modifiers on this overload method",
+            u8"overload signature must match modifiers on this overload method",
+        },
+    },
+    {
         "overloaded function '{0}' declared here"_translatable,
         u8"overloaded function '{0}' declared here",
         {
@@ -4261,6 +4371,17 @@ inline const Translated_String test_translation_table[483] = {
             u8"overloaded function '{0}' declared here",
             u8"fun\u00e7\u00e3o overloaded '{0}' declarada aqui",
             u8"overloaded function '{0}' declared here",
+        },
+    },
+    {
+        "overloaded method is marked '{0}'"_translatable,
+        u8"overloaded method is marked '{0}'",
+        {
+            u8"overloaded method is marked '{0}'",
+            u8"overloaded method is marked '{0}'",
+            u8"overloaded method is marked '{0}'",
+            u8"overloaded method is marked '{0}'",
+            u8"overloaded method is marked '{0}'",
         },
     },
     {
@@ -5262,6 +5383,17 @@ inline const Translated_String test_translation_table[483] = {
             u8"write 'const' instead of '{0}' here",
             u8"use 'const' em vez de '{0}' aqui",
             u8"write 'const' instead of '{0}' here",
+        },
+    },
+    {
+        "write '{1}' here or remove it from the overload signature"_translatable,
+        u8"write '{1}' here or remove it from the overload signature",
+        {
+            u8"write '{1}' here or remove it from the overload signature",
+            u8"write '{1}' here or remove it from the overload signature",
+            u8"write '{1}' here or remove it from the overload signature",
+            u8"write '{1}' here or remove it from the overload signature",
+            u8"write '{1}' here or remove it from the overload signature",
         },
     },
     {

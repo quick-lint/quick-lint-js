@@ -1016,6 +1016,44 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Class_Modifier_Missing_On_Method_With_TypeScript_Overload_Signature
+    {
+      .code = 403,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'{0}' is missing on overloaded method"),
+        QLJS_TRANSLATABLE("write '{1}' here or remove it from the overload signature"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Missing_On_Method_With_TypeScript_Overload_Signature, signature_modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Missing_On_Method_With_TypeScript_Overload_Signature, missing_method_modifier), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Missing_On_Method_With_TypeScript_Overload_Signature, signature_modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Class_Modifier_Missing_On_TypeScript_Overload_Signature
+    {
+      .code = 404,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'{1}' is missing on overload signature"),
+        QLJS_TRANSLATABLE("overload signature must match modifiers on this overload method"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Missing_On_TypeScript_Overload_Signature, missing_signature_modifier), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Missing_On_TypeScript_Overload_Signature, method_modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Missing_On_TypeScript_Overload_Signature, method_modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Class_Modifier_Must_Preceed_Other_Modifier
     {
       .code = 395,
@@ -1027,6 +1065,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Must_Preceed_Other_Modifier, expected_first_modifier), Diagnostic_Arg_Type::source_code_span),
           Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Must_Preceed_Other_Modifier, expected_second_modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Class_Modifier_Not_Allowed_On_TypeScript_Overload_Signature
+    {
+      .code = 402,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'{0}' is not allowed in TypeScript overload signatures"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Modifier_Not_Allowed_On_TypeScript_Overload_Signature, modifier), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },
@@ -1853,6 +1905,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Generator_Function_Star_Belongs_Before_Name, star), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Getter_Or_Setter_Cannot_Have_TypeScript_Overload_Signature
+    {
+      .code = 401,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("getters and setters cannot have overload signatures"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Getter_Or_Setter_Cannot_Have_TypeScript_Overload_Signature, get_or_set_token), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },
@@ -2966,6 +3032,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Missing_Semicolon_After_TypeScript_Method_Overload_Signature
+    {
+      .code = 406,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("missing semicolon after method overload signature"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_Semicolon_After_TypeScript_Method_Overload_Signature, expected_semicolon), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Missing_Semicolon_After_Field
     {
       .code = 223,
@@ -3157,6 +3237,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Newline_Not_Allowed_Between_Async_And_Function_Keyword, function_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Newline_Not_Allowed_Between_Modifier_And_Method_Name
+    {
+      .code = 399,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("newline is not allowed between '{0}' and the method name"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Newline_Not_Allowed_Between_Modifier_And_Method_Name, modifier), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },
@@ -4452,6 +4546,25 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch
+    {
+      .code = 405,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("overload signature must have the correct access specifier ('{1}')"),
+        QLJS_TRANSLATABLE("overloaded method is marked '{0}'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch, signature_access_specifier), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch, method_access_specifier), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch, method_access_specifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured
     {
       .code = 372,
@@ -5138,6 +5251,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Unexpected_Question_When_Destructuring, question), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Unexpected_Semicolon_After_Overload_Signature
+    {
+      .code = 400,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("TypeScript overload signature can only have one semicolon"),
+        QLJS_TRANSLATABLE("original semicolon is here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unexpected_Semicolon_After_Overload_Signature, extra_semicolon), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unexpected_Semicolon_After_Overload_Signature, original_semicolon), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

@@ -88,12 +88,15 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 25},                 //
         {15, 38, 0, 25, 0, 42},              //
         {0, 0, 0, 0, 0, 17},                 //
-        {15, 17, 0, 22, 0, 11},              //
-        {0, 0, 0, 46, 0, 50},                //
+        {0, 0, 0, 0, 0, 11},                 //
+        {15, 17, 0, 22, 0, 38},              //
+        {0, 0, 0, 0, 0, 50},                 //
+        {0, 0, 0, 46, 0, 55},                //
         {0, 0, 0, 0, 0, 32},                 //
         {0, 0, 0, 0, 0, 32},                 //
         {69, 48, 0, 36, 0, 25},              //
         {0, 0, 0, 0, 0, 62},                 //
+        {0, 0, 0, 0, 0, 39},                 //
         {68, 25, 0, 65, 0, 28},              //
         {0, 0, 0, 0, 0, 62},                 //
         {83, 55, 66, 62, 49, 57},            //
@@ -131,6 +134,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 80, 0, 72},                //
         {0, 0, 0, 71, 0, 61},                //
         {0, 0, 0, 0, 0, 66},                 //
+        {0, 0, 0, 0, 0, 58},                 //
         {0, 0, 0, 0, 0, 62},                 //
         {0, 0, 0, 80, 0, 56},                //
         {0, 0, 0, 58, 0, 48},                //
@@ -266,7 +270,8 @@ const Translation_Table translation_data = {
         {44, 18, 49, 39, 0, 39},             //
         {84, 28, 66, 75, 25, 54},            //
         {0, 0, 0, 70, 0, 52},                //
-        {70, 27, 0, 57, 0, 45},              //
+        {0, 0, 0, 0, 0, 45},                 //
+        {70, 27, 0, 57, 0, 52},              //
         {0, 0, 0, 5, 0, 5},                  //
         {5, 11, 66, 52, 54, 42},             //
         {41, 33, 48, 38, 36, 33},            //
@@ -363,7 +368,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 50, 0, 40},                //
         {0, 0, 0, 39, 0, 30},                //
         {0, 0, 0, 44, 0, 40},                //
-        {44, 4, 46, 54, 42, 41},             //
+        {0, 0, 0, 0, 0, 41},                 //
+        {44, 4, 46, 54, 42, 50},             //
         {31, 50, 44, 45, 35, 34},            //
         {73, 55, 78, 81, 66, 65},            //
         {0, 0, 0, 83, 0, 63},                //
@@ -381,7 +387,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 36},                 //
         {0, 0, 0, 47, 0, 35},                //
         {52, 31, 25, 61, 21, 54},            //
-        {0, 0, 0, 89, 0, 73},                //
+        {0, 0, 0, 0, 0, 73},                 //
+        {0, 0, 0, 89, 0, 57},                //
         {0, 0, 0, 0, 0, 50},                 //
         {63, 34, 103, 64, 73, 73},           //
         {69, 23, 79, 41, 51, 48},            //
@@ -395,8 +402,12 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 25},                 //
         {0, 0, 0, 29, 0, 62},                //
         {0, 0, 0, 0, 0, 68},                 //
-        {0, 0, 0, 68, 0, 58},                //
+        {0, 0, 0, 0, 0, 58},                 //
+        {0, 0, 0, 0, 0, 27},                 //
+        {0, 0, 0, 0, 0, 66},                 //
+        {0, 0, 0, 68, 0, 64},                //
         {0, 0, 0, 0, 0, 40},                 //
+        {0, 0, 0, 0, 0, 34},                 //
         {0, 0, 0, 0, 0, 56},                 //
         {0, 0, 0, 0, 0, 60},                 //
         {0, 0, 0, 0, 0, 48},                 //
@@ -487,7 +498,8 @@ const Translation_Table translation_data = {
         {48, 44, 68, 53, 45, 46},            //
         {43, 55, 61, 55, 43, 50},            //
         {0, 0, 0, 59, 0, 51},                //
-        {0, 0, 0, 33, 0, 36},                //
+        {0, 0, 0, 0, 0, 36},                 //
+        {0, 0, 0, 33, 0, 58},                //
         {0, 0, 0, 44, 0, 48},                //
         {0, 0, 0, 43, 0, 42},                //
         {47, 55, 72, 36, 48, 35},            //
@@ -1843,11 +1855,14 @@ const Translation_Table translation_data = {
         u8"'{0}' access specifier must precede '{1}'\0"
         u8"'{0}' found here\0"
         u8"'{0}' here\0"
+        u8"'{0}' is missing on overloaded method\0"
         u8"'{0}' is not allowed for strings; use {1} instead\0"
+        u8"'{0}' is not allowed in TypeScript overload signatures\0"
         u8"'{0}' is not allowed on methods\0"
         u8"'{0}' is not allowed with '{1}'\0"
         u8"'{0}' must precede '{1}'\0"
         u8"'{0}' operator cannot be used before '**' without parentheses\0"
+        u8"'{1}' is missing on overload signature\0"
         u8"'{1}' statement starts here\0"
         u8"'}' is not allowed directly in JSX text; write {{'}'} instead\0"
         u8".d.ts files cannot contain statements, only declarations\0"
@@ -1885,6 +1900,7 @@ const Translation_Table translation_data = {
         u8"TypeScript optional parameter with type annotation requires parentheses\0"
         u8"TypeScript optional parameters are not allowed in JavaScript\0"
         u8"TypeScript optional properties are not allowed in JavaScript code\0"
+        u8"TypeScript overload signature can only have one semicolon\0"
         u8"TypeScript parameter properties are not allowed in JavaScript\0"
         u8"TypeScript requires whitespace between '>' and '=' here\0"
         u8"TypeScript type annotation requires parentheses\0"
@@ -2021,6 +2037,7 @@ const Translation_Table translation_data = {
         u8"generator function '*' belongs after keyword function\0"
         u8"generator function '*' belongs before function name\0"
         u8"generic arrow function needs ',' here in TSX\0"
+        u8"getters and setters cannot have overload signatures\0"
         u8"here\0"
         u8"here is the assignment assertion operator\0"
         u8"hex number literal has no digits\0"
@@ -2118,6 +2135,7 @@ const Translation_Table translation_data = {
         u8"missing semicolon after field\0"
         u8"missing semicolon after index signature\0"
         u8"missing semicolon after interface method\0"
+        u8"missing semicolon after method overload signature\0"
         u8"missing semicolon after statement\0"
         u8"missing semicolon between condition and update parts of for loop\0"
         u8"missing semicolon between init and condition parts of for loop\0"
@@ -2136,6 +2154,7 @@ const Translation_Table translation_data = {
         u8"newline is not allowed after '{0}'\0"
         u8"newline is not allowed between 'async' and 'function'\0"
         u8"newline is not allowed between 'async' and arrow function parameter list\0"
+        u8"newline is not allowed between '{0}' and the method name\0"
         u8"newline is not allowed between field name and '!'\0"
         u8"nullish coalescing operator does nothing when left operand is never null\0"
         u8"number literal contains consecutive underscores\0"
@@ -2150,7 +2169,11 @@ const Translation_Table translation_data = {
         u8"optional parameter cannot be followed by a required parameter\0"
         u8"optional parameter cannot have both '?' and initializer; remove '?'\0"
         u8"optional tuple elements cannot come after spread elements\0"
+        u8"original semicolon is here\0"
+        u8"overload signature must have the correct access specifier ('{1}')\0"
+        u8"overload signature must match modifiers on this overload method\0"
         u8"overloaded function '{0}' declared here\0"
+        u8"overloaded method is marked '{0}'\0"
         u8"parameter properties are not allowed in 'declare class'\0"
         u8"parameter properties are only allowed in class constructors\0"
         u8"parameter properties cannot be a rest parameter\0"
@@ -2242,6 +2265,7 @@ const Translation_Table translation_data = {
         u8"with statement is missing '{1}' around expression\0"
         u8"with statement needs parentheses around expression\0"
         u8"write 'const' instead of '{0}' here\0"
+        u8"write '{1}' here or remove it from the overload signature\0"
         u8"write the type assertion with 'as' here instead\0"
         u8"{0} classes are not allowed in JavaScript\0"
         u8"{0} is not the name of a parameter\0"

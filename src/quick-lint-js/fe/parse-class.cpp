@@ -295,6 +295,39 @@ void Parser::parse_and_visit_class_or_interface_member(
         Bump_Vector<Modifier, Monotonic_Allocator>("class member modifiers",
                                                    &p->temporary_memory_);
 
+    // Example:
+    //
+    // class C {
+    //   f(x: number); // TypeScript_Overload_Signature
+    //   f(x: string); // TypeScript_Overload_Signature
+    //   f(x: number|string) {
+    //   }
+    // }
+    struct TypeScript_Overload_Signature {
+      Span<Modifier> modifiers;
+
+      // If empty, this overload signature ended with a newline.
+      Span<Source_Code_Span> semicolons;
+
+      // Where a function body would appear if this was not an overload
+      // signature.
+      const Char8 *expected_body;
+
+      // If nullopt, the property is a computed property.
+      //
+      // See TODO[TypeScript-overload-signature-with-computed-property].
+      std::optional<Identifier> name;
+
+      Source_Code_Span name_span;
+    };
+    Bump_Vector<TypeScript_Overload_Signature, Monotonic_Allocator>
+        overload_signatures{"class overload signatures", &p->temporary_memory_};
+
+    void reset_state_except_overload_signatures() {
+      this->last_ident = std::nullopt;
+      this->modifiers.clear();
+    }
+
     // Returns true if an entire property was parsed.
     // Returns false if nothing was parsed or if only modifiers were parsed.
     bool parse_modifiers() {
@@ -323,23 +356,36 @@ void Parser::parse_and_visit_class_or_interface_member(
           });
           p->skip();
           if (p->peek().has_leading_newline) {
-            switch (p->peek().type) {
-            // 'async' is a field name:
-            // class {
-            //   async
-            //   method() {}
-            // }
-            QLJS_CASE_KEYWORD:
-            case Token_Type::left_square:
-            case Token_Type::number:
-            case Token_Type::string:
-            case Token_Type::identifier:
-            case Token_Type::private_identifier:
-            case Token_Type::star:
-              check_modifiers_for_field_without_type_annotation();
-              v.visit_property_declaration(last_ident);
-              return true;
-            default:
+            if (this->overload_signatures.empty()) {
+              switch (p->peek().type) {
+              // 'async' is a field name:
+              // class {
+              //   async
+              //   method() {}
+              // }
+              QLJS_CASE_KEYWORD:
+              case Token_Type::left_square:
+              case Token_Type::number:
+              case Token_Type::string:
+              case Token_Type::identifier:
+              case Token_Type::private_identifier:
+              case Token_Type::star:
+                check_modifiers_for_field_without_type_annotation();
+                v.visit_property_declaration(last_ident);
+                return true;
+              default:
+                continue;
+              }
+            } else {
+              // class C {
+              //   f();     // TypeScript only.
+              //   async    // Invalid.
+              //   f() {}
+              // }
+              p->diag_reporter_->report(
+                  Diag_Newline_Not_Allowed_Between_Modifier_And_Method_Name{
+                      .modifier = last_ident->span(),
+                  });
               continue;
             }
           } else {
@@ -384,6 +430,9 @@ void Parser::parse_and_visit_class_or_interface_member(
     }
 
     void parse_class_member() {
+      // Reset state in case we come here after parsing an overload signature.
+      this->reset_state_except_overload_signatures();
+
       if (bool done = parse_modifiers(); done) {
         return;
       }
@@ -491,7 +540,10 @@ void Parser::parse_and_visit_class_or_interface_member(
       case Token_Type::equal:
       case Token_Type::question:
       case Token_Type::right_curly:
-        if (last_ident.has_value()) {
+        if (!this->overload_signatures.empty()) {
+          // class C { method(); }  // Invalid.
+          this->error_on_overload_signatures();
+        } else if (last_ident.has_value()) {
           modifiers.pop_back();
           parse_and_visit_field_or_method(*last_ident);
         } else {
@@ -764,8 +816,67 @@ void Parser::parse_and_visit_class_or_interface_member(
               v, property_name_span, attributes, param_options);
           v.visit_exit_function_scope();
         } else {
-          p->parse_and_visit_function_parameters_and_body(
-              v, /*name=*/property_name_span, attributes, param_options);
+          // class C { myMethod() {} }
+          bool is_possibly_typescript_overload = false;
+
+          v.visit_enter_function_scope();
+
+          Function_Guard guard = p->enter_function(attributes);
+          Function_Parameter_Parse_Result result =
+              p->parse_and_visit_function_parameter_list(v, property_name_span,
+                                                         param_options);
+          switch (result) {
+          case Function_Parameter_Parse_Result::parsed_parameters:
+          case Function_Parameter_Parse_Result::missing_parameters:
+            v.visit_enter_function_scope_body();
+            p->parse_and_visit_statement_block_no_scope(v);
+            property_name = this->check_overload_signatures(property_name,
+                                                            property_name_span);
+            break;
+
+          case Function_Parameter_Parse_Result::missing_parameters_ignore_body:
+            break;
+
+          case Function_Parameter_Parse_Result::parsed_parameters_missing_body:
+            if (p->options_.typescript) {
+              // class C { myMethod(x: number); myMethod(x: any) {} }
+              //
+              // This looks like an overload signature. We remember it in
+              // this->overload_signatures then parse the next member.
+              is_possibly_typescript_overload = true;
+              const Char8 *expected_body = p->lexer_.end_of_previous_token();
+              Bump_Vector<Source_Code_Span, Monotonic_Allocator> semicolons(
+                  "semicolons", &p->temporary_memory_);
+              while (p->peek().type == Token_Type::semicolon) {
+                semicolons.push_back(p->peek().span());
+                p->skip();
+              }
+              if (semicolons.empty()) {
+                // class C { f() f() {} }  // Invalid.
+                p->consume_semicolon<
+                    Diag_Missing_Semicolon_After_TypeScript_Method_Overload_Signature>();
+              }
+              this->overload_signatures.push_back(TypeScript_Overload_Signature{
+                  .modifiers = this->modifiers.release_to_span(),
+                  .semicolons = semicolons.release_to_span(),
+                  .expected_body = expected_body,
+                  .name = property_name,
+                  .name_span = property_name_span,
+              });
+            } else {
+              p->diag_reporter_->report(Diag_Missing_Function_Body{
+                  .expected_body = Source_Code_Span::unit(
+                      p->lexer_.end_of_previous_token())});
+            }
+            break;
+          }
+
+          v.visit_exit_function_scope();
+
+          if (is_possibly_typescript_overload) {
+            this->parse_class_member();
+            break;  // Skip v.visit_property_declaration(property_name).
+          }
         }
         v.visit_property_declaration(property_name);
         break;
@@ -977,6 +1088,7 @@ void Parser::parse_and_visit_class_or_interface_member(
       error_if_optional_in_not_typescript();
       error_if_optional_accessor();
       error_if_abstract_not_in_abstract_class();
+      error_on_overload_signatures();
     }
 
     void check_modifiers_for_method() {
@@ -1406,7 +1518,222 @@ void Parser::parse_and_visit_class_or_interface_member(
       }
     }
 
+    // If a better property name is discovered, the better name is returned.
+    // Otherwise, property_name is returned.
+    [[nodiscard]] std::optional<Identifier> check_overload_signatures(
+        std::optional<Identifier> property_name,
+        Source_Code_Span property_name_span) {
+      if (this->overload_signatures.empty()) {
+        return property_name;
+      }
+
+      // Given the following example, set property_name to 'a'.
+      //
+      //   class C { a(); "b"() {} }
+      //
+      // This shouldn't be necessary. See
+      // TODO[TypeScript-overload-signature-with-computed-property].
+      if (!property_name.has_value()) {
+        for (TypeScript_Overload_Signature &signature :
+             this->overload_signatures) {
+          if (signature.name.has_value()) {
+            property_name = signature.name;
+            break;
+          }
+        }
+      }
+
+      const Modifier *method_get_or_set_modifier = nullptr;
+      if (method_get_or_set_modifier == nullptr) {
+        method_get_or_set_modifier = this->find_modifier(Token_Type::kw_get);
+      }
+      if (method_get_or_set_modifier == nullptr) {
+        method_get_or_set_modifier = this->find_modifier(Token_Type::kw_set);
+      }
+
+      const Modifier *method_question_modifier =
+          this->find_modifier(Token_Type::question);
+      const Modifier *method_static_modifier =
+          this->find_modifier(Token_Type::kw_static);
+      const Modifier *method_access_specifier = this->find_access_specifier();
+
+      bool have_likely_overload_signature = false;
+      for (TypeScript_Overload_Signature &signature :
+           this->overload_signatures) {
+        if (const Modifier *star_modifier =
+                this->find_modifier(Token_Type::star, signature.modifiers)) {
+          p->diag_reporter_->report(
+              Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star{
+                  .generator_star = star_modifier->span,
+              });
+        }
+
+        const Modifier *signature_get_or_set_modifier = nullptr;
+        if (signature_get_or_set_modifier == nullptr) {
+          signature_get_or_set_modifier =
+              this->find_modifier(Token_Type::kw_get, signature.modifiers);
+        }
+        if (signature_get_or_set_modifier == nullptr) {
+          signature_get_or_set_modifier =
+              this->find_modifier(Token_Type::kw_set, signature.modifiers);
+        }
+
+        if (signature.name.has_value() && property_name.has_value() &&
+            signature.name->normalized_name() !=
+                property_name->normalized_name()) {
+          if (signature.semicolons.empty() ||
+              signature_get_or_set_modifier != nullptr) {
+            // class C {
+            //   f()      // Invalid; missing body.
+            //   g() {}
+            // }
+            //
+            // class C {
+            //   get f();  // Invalid; missing body
+            //   get g() {}
+            // }
+            p->diag_reporter_->report(Diag_Missing_Function_Body{
+                .expected_body =
+                    Source_Code_Span::unit(signature.expected_body),
+            });
+            v.visit_property_declaration(*signature.name);
+          } else {
+            // class C {
+            //   f();     // Invalid; mismatched names.
+            //   g() {}
+            // }
+            have_likely_overload_signature = true;
+            p->diag_reporter_->report(
+                Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name{
+                    .overload_name = signature.name->span(),
+                    .function_name = property_name->span(),
+                });
+          }
+        } else {
+          have_likely_overload_signature = true;
+
+          if (signature_get_or_set_modifier != nullptr &&
+              method_get_or_set_modifier == nullptr) {
+            // class C { get m(); m() {} }  // Invalid.
+            p->diag_reporter_->report(
+                Diag_Class_Modifier_Not_Allowed_On_TypeScript_Overload_Signature{
+                    .modifier = signature_get_or_set_modifier->span,
+                });
+          }
+
+          const Modifier *signature_question_modifier =
+              this->find_modifier(Token_Type::question, signature.modifiers);
+          this->error_if_signature_and_method_have_mismatched_modifier_presence(
+              signature_question_modifier, signature.name_span.end(),
+              method_question_modifier, property_name_span.end());
+
+          const Modifier *signature_static_modifier =
+              this->find_modifier(Token_Type::kw_static, signature.modifiers);
+          this->error_if_signature_and_method_have_mismatched_modifier_presence(
+              signature_static_modifier, signature.name_span.begin(),
+              method_static_modifier, property_name_span.begin());
+
+          const Modifier *signature_access_specifier =
+              this->find_access_specifier(signature.modifiers);
+          if (is_explicitly_or_implicitly_public(method_access_specifier) &&
+              is_explicitly_or_implicitly_public(signature_access_specifier)) {
+            // f(); public f() {}  // OK.
+            // public f(); f() {}  // OK.
+            // Emit no diagnostic.
+          } else {
+            this->error_if_signature_and_method_have_mismatched_modifier_presence(
+                signature_access_specifier, signature.name_span.begin(),
+                method_access_specifier, property_name_span.begin());
+          }
+
+          if (method_access_specifier != nullptr &&
+              signature_access_specifier != nullptr) {
+            if (method_access_specifier->type !=
+                signature_access_specifier->type) {
+              // class C { public f(); private f() {} }  // Invalid.
+              p->diag_reporter_->report(
+                  Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch{
+                      .method_access_specifier = method_access_specifier->span,
+                      .signature_access_specifier =
+                          signature_access_specifier->span,
+                  });
+            }
+          }
+
+          for (Span_Size i = 1; i < signature.semicolons.size(); ++i) {
+            // class C { m();; m() {} }  // Invalid.
+            p->diag_reporter_->report(
+                Diag_Unexpected_Semicolon_After_Overload_Signature{
+                    .extra_semicolon = signature.semicolons[i],
+                    .original_semicolon = signature.semicolons[0],
+                });
+          }
+        }
+      }
+
+      if (have_likely_overload_signature) {
+        if (method_get_or_set_modifier != nullptr) {
+          // class C { m(); get m() {} }  // Invalid.
+          p->diag_reporter_->report(
+              Diag_Getter_Or_Setter_Cannot_Have_TypeScript_Overload_Signature{
+                  .get_or_set_token = method_get_or_set_modifier->span,
+              });
+        }
+      }
+
+      return property_name;
+    }
+
+    void error_if_signature_and_method_have_mismatched_modifier_presence(
+        const Modifier *signature_modifier,
+        const Char8 *expected_signature_modifier_location,
+        const Modifier *method_modifier,
+        const Char8 *expected_method_modifier_location) {
+      if ((signature_modifier != nullptr) && (method_modifier == nullptr)) {
+        // class C { m?(); m() {} }  // Invalid.
+        p->diag_reporter_->report(
+            Diag_Class_Modifier_Missing_On_Method_With_TypeScript_Overload_Signature{
+                .signature_modifier = signature_modifier->span,
+                .missing_method_modifier =
+                    Source_Code_Span::unit(expected_method_modifier_location),
+            });
+      }
+      if ((signature_modifier == nullptr) && (method_modifier != nullptr)) {
+        // class C { m(); m?() {} }  // Invalid.
+        p->diag_reporter_->report(
+            Diag_Class_Modifier_Missing_On_TypeScript_Overload_Signature{
+                .missing_signature_modifier = Source_Code_Span::unit(
+                    expected_signature_modifier_location),
+                .method_modifier = method_modifier->span,
+            });
+      }
+    }
+
+    static bool is_explicitly_or_implicitly_public(
+        const Modifier *access_specifier) {
+      return access_specifier == nullptr ||
+             access_specifier->type == Token_Type::kw_public;
+    }
+
+    void error_on_overload_signatures() {
+      for (TypeScript_Overload_Signature &signature :
+           this->overload_signatures) {
+        if (signature.name.has_value()) {
+          v.visit_property_declaration(*signature.name);
+        }
+        p->diag_reporter_->report(Diag_Missing_Function_Body{
+            .expected_body = Source_Code_Span::unit(signature.expected_body),
+        });
+      }
+    }
+
     const Modifier *find_modifier(Token_Type modifier_type) const {
+      return this->find_modifier(modifier_type,
+                                 Span<const Modifier>(this->modifiers));
+    }
+
+    static const Modifier *find_modifier(Token_Type modifier_type,
+                                         Span<const Modifier> modifiers) {
       for (const Modifier &m : modifiers) {
         if (m.type == modifier_type) {
           return &m;
@@ -1416,6 +1743,11 @@ void Parser::parse_and_visit_class_or_interface_member(
     }
 
     const Modifier *find_access_specifier() const {
+      return this->find_access_specifier(Span<const Modifier>(this->modifiers));
+    }
+
+    static const Modifier *find_access_specifier(
+        Span<const Modifier> modifiers) {
       for (const Modifier &m : modifiers) {
         if (m.is_access_specifier()) {
           return &m;

@@ -1194,6 +1194,8 @@ extern template void
 Parser::consume_semicolon<Diag_Missing_Semicolon_After_Interface_Method>();
 extern template void
 Parser::consume_semicolon<Diag_Missing_Semicolon_After_Statement>();
+extern template void Parser::consume_semicolon<
+    Diag_Missing_Semicolon_After_TypeScript_Method_Overload_Signature>();
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

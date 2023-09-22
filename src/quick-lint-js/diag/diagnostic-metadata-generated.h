@@ -77,7 +77,10 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Class_Accessor_On_Getter_Or_Setter) \
   QLJS_DIAG_TYPE_NAME(Diag_Class_Accessor_On_Method) \
   QLJS_DIAG_TYPE_NAME(Diag_Class_Conflicting_Modifiers) \
+  QLJS_DIAG_TYPE_NAME(Diag_Class_Modifier_Missing_On_Method_With_TypeScript_Overload_Signature) \
+  QLJS_DIAG_TYPE_NAME(Diag_Class_Modifier_Missing_On_TypeScript_Overload_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Class_Modifier_Must_Preceed_Other_Modifier) \
+  QLJS_DIAG_TYPE_NAME(Diag_Class_Modifier_Not_Allowed_On_TypeScript_Overload_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Class_Statement_Not_Allowed_In_Body) \
   QLJS_DIAG_TYPE_NAME(Diag_Character_Disallowed_In_Identifiers) \
   QLJS_DIAG_TYPE_NAME(Diag_Comma_Not_Allowed_After_Spread_Parameter) \
@@ -134,6 +137,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Function_Statement_Not_Allowed_In_Body) \
   QLJS_DIAG_TYPE_NAME(Diag_Generator_Function_Star_Belongs_After_Keyword_Function) \
   QLJS_DIAG_TYPE_NAME(Diag_Generator_Function_Star_Belongs_Before_Name) \
+  QLJS_DIAG_TYPE_NAME(Diag_Getter_Or_Setter_Cannot_Have_TypeScript_Overload_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Multiple_Commas_In_Generic_Parameter_List) \
   QLJS_DIAG_TYPE_NAME(Diag_In_Disallowed_In_C_Style_For_Loop) \
   QLJS_DIAG_TYPE_NAME(Diag_Indexing_Requires_Expression) \
@@ -210,6 +214,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Semicolon_After_Abstract_Method) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Semicolon_After_Declare_Class_Method) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Semicolon_After_Statement) \
+  QLJS_DIAG_TYPE_NAME(Diag_Missing_Semicolon_After_TypeScript_Method_Overload_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Semicolon_After_Field) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Semicolon_After_Index_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Semicolon_After_Interface_Method) \
@@ -223,6 +228,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Missing_While_And_Condition_For_Do_While_Statement) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Between_Async_And_Parameter_List) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Between_Async_And_Function_Keyword) \
+  QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Between_Modifier_And_Method_Name) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Abstract_Keyword) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Export_Declare) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Interface_Keyword) \
@@ -308,6 +314,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Optional_Tuple_Element_Cannot_Follow_Spread_Element) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Parameter_Property_Cannot_Be_Rest) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Parameter_Property_Not_Allowed_In_Declare_Class) \
@@ -355,6 +362,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Right_Curly_In_JSX_Text) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Question_In_Expression) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Question_When_Destructuring) \
+  QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Semicolon_After_Overload_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Semicolon_In_C_Style_For_Loop) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Semicolon_In_For_In_Loop) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Semicolon_In_For_Of_Loop) \
@@ -415,7 +423,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 401;
+inline constexpr int Diag_Type_Count = 409;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

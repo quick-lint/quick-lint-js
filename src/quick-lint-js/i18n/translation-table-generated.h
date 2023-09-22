@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 484;
-constexpr std::size_t translation_table_string_table_size = 78112;
+constexpr std::uint16_t translation_table_mapping_table_size = 496;
+constexpr std::size_t translation_table_string_table_size = 78710;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -103,11 +103,14 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'{0}' access specifier must precede '{1}'"sv,
           "'{0}' found here"sv,
           "'{0}' here"sv,
+          "'{0}' is missing on overloaded method"sv,
           "'{0}' is not allowed for strings; use {1} instead"sv,
+          "'{0}' is not allowed in TypeScript overload signatures"sv,
           "'{0}' is not allowed on methods"sv,
           "'{0}' is not allowed with '{1}'"sv,
           "'{0}' must precede '{1}'"sv,
           "'{0}' operator cannot be used before '**' without parentheses"sv,
+          "'{1}' is missing on overload signature"sv,
           "'{1}' statement starts here"sv,
           "'}' is not allowed directly in JSX text; write {{'}'} instead"sv,
           ".d.ts files cannot contain statements, only declarations"sv,
@@ -145,6 +148,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript optional parameter with type annotation requires parentheses"sv,
           "TypeScript optional parameters are not allowed in JavaScript"sv,
           "TypeScript optional properties are not allowed in JavaScript code"sv,
+          "TypeScript overload signature can only have one semicolon"sv,
           "TypeScript parameter properties are not allowed in JavaScript"sv,
           "TypeScript requires whitespace between '>' and '=' here"sv,
           "TypeScript type annotation requires parentheses"sv,
@@ -281,6 +285,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "generator function '*' belongs after keyword function"sv,
           "generator function '*' belongs before function name"sv,
           "generic arrow function needs ',' here in TSX"sv,
+          "getters and setters cannot have overload signatures"sv,
           "here"sv,
           "here is the assignment assertion operator"sv,
           "hex number literal has no digits"sv,
@@ -378,6 +383,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing semicolon after field"sv,
           "missing semicolon after index signature"sv,
           "missing semicolon after interface method"sv,
+          "missing semicolon after method overload signature"sv,
           "missing semicolon after statement"sv,
           "missing semicolon between condition and update parts of for loop"sv,
           "missing semicolon between init and condition parts of for loop"sv,
@@ -396,6 +402,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "newline is not allowed after '{0}'"sv,
           "newline is not allowed between 'async' and 'function'"sv,
           "newline is not allowed between 'async' and arrow function parameter list"sv,
+          "newline is not allowed between '{0}' and the method name"sv,
           "newline is not allowed between field name and '!'"sv,
           "nullish coalescing operator does nothing when left operand is never null"sv,
           "number literal contains consecutive underscores"sv,
@@ -410,7 +417,11 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "optional parameter cannot be followed by a required parameter"sv,
           "optional parameter cannot have both '?' and initializer; remove '?'"sv,
           "optional tuple elements cannot come after spread elements"sv,
+          "original semicolon is here"sv,
+          "overload signature must have the correct access specifier ('{1}')"sv,
+          "overload signature must match modifiers on this overload method"sv,
           "overloaded function '{0}' declared here"sv,
+          "overloaded method is marked '{0}'"sv,
           "parameter properties are not allowed in 'declare class'"sv,
           "parameter properties are only allowed in class constructors"sv,
           "parameter properties cannot be a rest parameter"sv,
@@ -502,6 +513,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "with statement is missing '{1}' around expression"sv,
           "with statement needs parentheses around expression"sv,
           "write 'const' instead of '{0}' here"sv,
+          "write '{1}' here or remove it from the overload signature"sv,
           "write the type assertion with 'as' here instead"sv,
           "{0} classes are not allowed in JavaScript"sv,
           "{0} is not the name of a parameter"sv,

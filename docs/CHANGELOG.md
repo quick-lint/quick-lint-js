@@ -16,6 +16,7 @@ Semantic Versioning.
 * quick-lint-js now compiles correctly on big-endian architectures such as
   S/390 (Linux s390x).
 * TypeScript support (still experimental):
+  * Class method overload signatures are now parsed.
   * [E0398][] is now reported when using both `abstract` and `static` on a
     single class property.
   * `,` is now allowed after interface fields. (Previously only `;` or a newline
