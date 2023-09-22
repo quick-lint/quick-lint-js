@@ -578,6 +578,7 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
   case Token_Type::left_square: {
     const Char8* left_square_begin = this->peek().begin;
     const Char8* right_square_end;
+    bool met_expression = false;
     this->skip();
 
     Expression_Arena::Vector<Expression*> children(
@@ -588,11 +589,14 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
         this->skip();
         break;
       }
-      // TODO(strager): Require commas between expressions.
+
       if (this->peek().type == Token_Type::comma) {
+        met_expression = false;
         this->skip();
         continue;
       }
+      const Char8* previous_expession_end =
+          this->lexer_.end_of_previous_token();
       const Char8* child_begin = this->peek().begin;
       Expression* child =
           this->parse_expression(v, Precedence{.commas = false});
@@ -612,6 +616,12 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
         right_square_end = expected_right_square;
         break;
       }
+      if (met_expression) {
+        this->diag_reporter_->report(Diag_Missing_Comma_Between_Array_Elements{
+            .expected_comma = Source_Code_Span::unit(previous_expession_end),
+        });
+      }
+      met_expression = true;
       children.emplace_back(child);
     }
     Expression* ast = this->make_expression<Expression::Array>(

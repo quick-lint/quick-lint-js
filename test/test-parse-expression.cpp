@@ -1843,6 +1843,16 @@ TEST_F(Test_Parse_Expression, malformed_array_literal) {
                        });
     EXPECT_EQ(summarize(ast), "array()");
   }
+
+  {
+    Test_Parser p(u8"[a b]"_sv, capture_diags);
+    Expression* ast = p.parse_expression();
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           u8"Diag_Missing_Comma_Between_Array_Elements"_diag,
+                       });
+    EXPECT_EQ(summarize(ast), "array(var a, var b)");
+  }
 }
 
 TEST_F(Test_Parse_Expression, object_literal) {

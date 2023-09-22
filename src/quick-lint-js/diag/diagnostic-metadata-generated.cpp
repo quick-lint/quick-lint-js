@@ -6092,6 +6092,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_Missing_Comma_Between_Array_Elements
+    {
+      .code = 712,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("missing ',' between array elements"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_Comma_Between_Array_Elements, expected_comma), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 

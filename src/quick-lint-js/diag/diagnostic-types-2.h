@@ -3136,8 +3136,14 @@ struct Diag_Expected_Expression_In_Template_Literal {
                   ARG(placeholder))]]  //
   Source_Code_Span placeholder;
 };
-}
 
+struct Diag_Missing_Comma_Between_Array_Elements {
+  [[qljs::diag("E0712", Diagnostic_Severity::error)]]  //
+  [[qljs::message("missing ',' between array elements",
+                  ARG(expected_comma))]]  //
+  Source_Code_Span expected_comma;
+};
+}
 QLJS_WARNING_POP
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -307,7 +307,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 46},                 //
         {0, 0, 0, 0, 0, 56},                 //
         {68, 21, 0, 52, 0, 40},              //
-        {59, 43, 61, 49, 50, 39},            //
+        {0, 0, 0, 0, 0, 39},                 //
+        {59, 43, 61, 49, 50, 35},            //
         {0, 0, 0, 44, 0, 42},                //
         {44, 2, 0, 64, 0, 57},               //
         {35, 20, 49, 55, 39, 38},            //
@@ -2074,6 +2075,7 @@ const Translation_Table translation_data = {
         u8"misleading use of ',' operator in conditional statement\0"
         u8"misleading use of ',' operator in index\0"
         u8"mismatched JSX tags; expected '</{1}>'\0"
+        u8"missing ',' between array elements\0"
         u8"missing ',' between variable declarations\0"
         u8"missing ',', ';', or newline between object type entries\0"
         u8"missing '...' in JSX attribute spread\0"
