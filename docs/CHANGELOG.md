@@ -15,6 +15,8 @@ Semantic Versioning.
 * `class C { myField, }` now reports better diagnostics.
 * quick-lint-js now compiles correctly on big-endian architectures such as
   S/390 (Linux s390x).
+* Missing commas in array literals now reports [E0712][]. (Implemented by
+  [koopiehoop][].)
 * TypeScript support (still experimental):
   * Class method overload signatures are now parsed.
   * [E0398][] is now reported when using both `abstract` and `static` on a
@@ -1070,6 +1072,7 @@ Beta release.
 [clegoz]: https://github.com/clegoz
 [daethtech]: https://github.com/daethtech
 [david doroz]: https://github.com/DaviddHub
+[koopiehoop]: https://github.com/koopiehoop
 [mirabellier]: https://github.com/mirabellierr
 [ooblegork]: https://github.com/ooblegork
 [pedrobl1718]: https://github.com/pedrobl85
@@ -1197,3 +1200,4 @@ Beta release.
 [E0708]: https://quick-lint-js.com/errors/E0708/
 [E0709]: https://quick-lint-js.com/errors/E0709/
 [E0710]: https://quick-lint-js.com/errors/E0710/
+[E0712]: https://quick-lint-js.com/errors/E0712/
