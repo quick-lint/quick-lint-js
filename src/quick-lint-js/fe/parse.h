@@ -540,9 +540,12 @@ class Parser {
   void parse_and_visit_named_exports_for_typescript_type_only_import(
       Parse_Visitor_Base &v, Source_Code_Span type_keyword);
 
+  struct Parse_Export_Options {
+    TypeScript_Declare_Context declare_context;
+  };
   void parse_and_visit_export(Parse_Visitor_Base &v);
-  void parse_and_visit_export(
-      Parse_Visitor_Base &v, const TypeScript_Declare_Context &declare_context);
+  void parse_and_visit_export(Parse_Visitor_Base &v,
+                              const Parse_Export_Options &options);
   void parse_and_visit_named_exports(
       Parse_Visitor_Base &v,
       std::optional<Source_Code_Span> typescript_type_only_keyword,
