@@ -293,6 +293,19 @@ TEST(Test_TypeScript_Test, markdown_unit_is_ignored) {
   EXPECT_FALSE(units[1].get_linter_options().has_value());
   EXPECT_TRUE(units[2].get_linter_options().has_value());
 }
+
+TEST(Test_TypeScript_Test, files_in_node_modules_are_ignored) {
+  // compiler/moduleResolutionWithExtensions_unexpected2.ts has garbage files in
+  // node_modules. I think this means we should ignore anything in node_modules
+  // (unless explicitly imported?).
+  Padded_String file(
+      u8"// @filename: /node_modules/foo.js\n"_sv
+      u8"hello();\n"_sv);
+  TypeScript_Test_Units units =
+      extract_units_from_typescript_test(std::move(file), u8"hello.js");
+  ASSERT_EQ(units.size(), 1);
+  EXPECT_FALSE(units[0].get_linter_options().has_value());
+}
 }
 }
 

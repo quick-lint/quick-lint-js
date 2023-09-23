@@ -127,6 +127,9 @@ find_typescript_test_filename_metadata_directive(
 }
 
 std::optional<Linter_Options> TypeScript_Test_Unit::get_linter_options() const {
+  if (starts_with(String8_View(this->name), u8"/node_modules/"_sv)) {
+    return std::nullopt;
+  }
   if (ends_with(String8_View(this->name), u8".json"_sv)) {
     return std::nullopt;
   }
