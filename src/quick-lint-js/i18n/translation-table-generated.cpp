@@ -18,7 +18,8 @@ const Translation_Table translation_data = {
         {74, 87, 79, 56, 0, 59},             //
         {71, 80, 60, 58, 0, 52},             //
         {0, 0, 0, 0, 0, 28},                 //
-        {31, 56, 0, 32, 0, 63},              //
+        {0, 0, 0, 0, 0, 63},                 //
+        {31, 56, 0, 32, 0, 49},              //
         {0, 0, 0, 0, 0, 67},                 //
         {0, 0, 0, 70, 0, 26},                //
         {79, 25, 30, 63, 49593, 66},         //
@@ -40,7 +41,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 100, 0, 89},               //
         {0, 0, 0, 0, 0, 24},                 //
         {50, 77, 41, 27, 0, 60},             //
-        {70, 31, 69, 53, 0, 60},             //
+        {0, 0, 0, 0, 0, 60},                 //
+        {70, 31, 69, 53, 0, 53},             //
         {93, 15, 80, 68, 26, 69},            //
         {0, 0, 0, 0, 0, 43},                 //
         {0, 0, 0, 0, 0, 44},                 //
@@ -1805,6 +1807,7 @@ const Translation_Table translation_data = {
         u8"\"globals\" descriptor must be a boolean or an object\0"
         u8"\"globals\" must be an object\0"
         u8"'!' here treated as the TypeScript non-null assertion operator\0"
+        u8"'*' keyword is not allowed on getters or setters\0"
         u8"'**' operator cannot be used after unary '{1}' without parentheses\0"
         u8"',' should be ';' instead\0"
         u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead\0"
@@ -1827,6 +1830,7 @@ const Translation_Table translation_data = {
         u8"'as const' located here\0"
         u8"'async export' is not allowed; write 'export async' instead\0"
         u8"'async static' is not allowed; write 'static async' instead\0"
+        u8"'async' keyword is not allowed on getters or setters\0"
         u8"'await' cannot be followed by an arrow function; use 'async' instead\0"
         u8"'await' is only allowed in async functions\0"
         u8"'declare class' cannot contain static block\0"

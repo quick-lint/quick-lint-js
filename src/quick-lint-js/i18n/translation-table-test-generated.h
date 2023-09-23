@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[515] = {
+inline const Translated_String test_translation_table[517] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -103,6 +103,17 @@ inline const Translated_String test_translation_table[515] = {
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
+        },
+    },
+    {
+        "'*' keyword is not allowed on getters or setters"_translatable,
+        u8"'*' keyword is not allowed on getters or setters",
+        {
+            u8"'*' keyword is not allowed on getters or setters",
+            u8"'*' keyword is not allowed on getters or setters",
+            u8"'*' keyword is not allowed on getters or setters",
+            u8"'*' keyword is not allowed on getters or setters",
+            u8"'*' keyword is not allowed on getters or setters",
         },
     },
     {
@@ -345,6 +356,17 @@ inline const Translated_String test_translation_table[515] = {
             u8"'async static' n'est pas autoris\u00e9 ; utiliser plut\u00f4t 'static async'",
             u8"'async static' n\u00e3o \u00e9 permitido; use 'static async'",
             u8"'async static' is not allowed; write 'static async' instead",
+        },
+    },
+    {
+        "'async' keyword is not allowed on getters or setters"_translatable,
+        u8"'async' keyword is not allowed on getters or setters",
+        {
+            u8"'async' keyword is not allowed on getters or setters",
+            u8"'async' keyword is not allowed on getters or setters",
+            u8"'async' keyword is not allowed on getters or setters",
+            u8"'async' keyword is not allowed on getters or setters",
+            u8"'async' keyword is not allowed on getters or setters",
         },
     },
     {

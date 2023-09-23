@@ -2057,6 +2057,14 @@ msgstr ""
 msgid "missing ',' between array elements"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'*' keyword is not allowed on getters or setters"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'async' keyword is not allowed on getters or setters"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
