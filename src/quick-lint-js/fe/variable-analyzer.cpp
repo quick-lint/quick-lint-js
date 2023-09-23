@@ -754,7 +754,8 @@ void Variable_Analyzer::propagate_variable_declarations_to_parent_scope() {
     }
 
     bool declaration_possibly_looks_like_assignment =
-        (var.flags & Variable_Declaration_Flags::initialized_with_equals);
+        (var.flags & Variable_Declaration_Flags::initialized_with_equals) &&
+        !(var.flags & Variable_Declaration_Flags::inside_for_loop_head);
     if (declaration_possibly_looks_like_assignment && !var.is_used &&
         (var.kind == Variable_Kind::_const ||
          var.kind == Variable_Kind::_let) &&

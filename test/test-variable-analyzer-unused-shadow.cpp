@@ -241,6 +241,18 @@ TEST(Test_Variable_Analyzer_Unused_Shadow,
       u8"} "_sv,
       no_diags, javascript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Unused_Shadow,
+     shadowing_in_for_loop_head_is_not_a_warning) {
+  test_parse_and_analyze(
+      u8"let x = 5;"_sv
+      u8"for (let x = 42; ;) {}"_sv,  // no warning
+      no_diags, javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"let x = 5;"_sv
+      u8"for (const x = 42; ;) {}"_sv,  // no warning
+      no_diags, javascript_analyze_options, default_globals);
+}
 }
 }
 
