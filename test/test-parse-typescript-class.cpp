@@ -545,6 +545,87 @@ TEST_F(Test_Parse_TypeScript_Class, readonly_static_field_is_disallowed) {
 }
 
 TEST_F(Test_Parse_TypeScript_Class,
+       declare_fields_are_disallowed_in_javascript) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { declare field; }"_sv,  //
+        u8"          ^^^^^^^ Diag_TypeScript_Declare_Field_Not_Allowed_In_JavaScript"_diag);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Class, declare_fields_are_allowed_in_typescript) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { declare field; }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  //
+                              "visit_property_declaration",    // field
+                              "visit_exit_class_scope",        // C
+                              "visit_variable_declaration",    // C
+                          }));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { static declare field; }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { declare static field; }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"field"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Class, declare_fields_cannot_have_private_name) {
+  test_parse_and_visit_statement(
+      u8"class C { declare #field; }"_sv,  //
+      u8"                  ^ Diag_TypeScript_Declare_Field_Cannot_Use_Private_Identifier.private_identifier_hash\n"_diag
+      u8"          ^^^^^^^ .declare_keyword"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Class, newline_after_declare_is_asi) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { declare\n myField; }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"declare"_sv, u8"myField"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Class, declare_methods_are_invalid) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { declare method() {} }"_sv,  //
+        u8"          ^^^^^^^ Diag_TypeScript_Declare_Method"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",          // C
+                              "visit_enter_class_scope_body",     //
+                              "visit_enter_function_scope",       // method
+                              "visit_enter_function_scope_body",  // method
+                              "visit_exit_function_scope",        // method
+                              "visit_property_declaration",       // method
+                              "visit_exit_class_scope",           // C
+                              "visit_variable_declaration",       // C
+                          }));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Class,
+       declare_field_cannot_be_assignment_asserted) {
+  test_parse_and_visit_statement(
+      u8"class C { declare myField!: number; }"_sv,  //
+      u8"                         ^ Diag_TypeScript_Declare_Field_Cannot_Be_Assignment_Asserted.bang\n"_diag
+      u8"          ^^^^^^^ .declare_keyword"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Class,
        generic_classes_are_disallowed_in_javascript) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(

@@ -282,8 +282,8 @@ void Parser::parse_and_visit_class_or_interface_member(
     // first modifier or the beginning of the member's name.
     const Char8 *current_member_begin;
 
-    // *, !, ?, accessor, async, function, get, private, protected, public,
-    // readonly, set, static, @ (decorator)
+    // *, !, ?, accessor, async, declare, function, get, private, protected,
+    // public, readonly, set, static, @ (decorator)
     struct Modifier {
       Source_Code_Span span;
       Token_Type type;
@@ -345,9 +345,11 @@ void Parser::parse_and_visit_class_or_interface_member(
         // private f() {}
         // public static field = 42;
         // readonly field: number;
+        // declare field;
         case Token_Type::kw_abstract:
         case Token_Type::kw_accessor:
         case Token_Type::kw_async:
+        case Token_Type::kw_declare:
         case Token_Type::kw_function:
         case Token_Type::kw_private:
         case Token_Type::kw_protected:
@@ -374,7 +376,7 @@ void Parser::parse_and_visit_class_or_interface_member(
               case Token_Type::identifier:
               case Token_Type::private_identifier:
               case Token_Type::star:
-                check_modifiers_for_field_without_type_annotation();
+                check_modifiers_for_field_without_type_annotation(last_ident);
                 v.visit_property_declaration(last_ident);
                 return true;
               default:
@@ -941,14 +943,14 @@ void Parser::parse_and_visit_class_or_interface_member(
       case Token_Type::end_of_file:
       case Token_Type::right_curly:
       case Token_Type::semicolon:
-        check_modifiers_for_field_without_type_annotation();
+        check_modifiers_for_field_without_type_annotation(property_name);
         v.visit_property_declaration(property_name);
         this->parse_field_terminator();
         break;
 
         // field = initialValue;
       case Token_Type::equal:
-        check_modifiers_for_field_without_type_annotation();
+        check_modifiers_for_field_without_type_annotation(property_name);
         this->parse_field_initializer();
         v.visit_property_declaration(property_name);
         this->parse_field_terminator();
@@ -962,7 +964,7 @@ void Parser::parse_and_visit_class_or_interface_member(
           //   field        // ASI
           //   method() {}
           // }
-          check_modifiers_for_field_without_type_annotation();
+          check_modifiers_for_field_without_type_annotation(property_name);
           v.visit_property_declaration(property_name);
         } else {
           if (u8"const"_sv == property_name_span.string_view()) {
@@ -976,7 +978,7 @@ void Parser::parse_and_visit_class_or_interface_member(
             // class C {
             //   field? method() {}  // Invalid.
             // }
-            check_modifiers_for_field_without_type_annotation();
+            check_modifiers_for_field_without_type_annotation(property_name);
             v.visit_property_declaration(property_name);
             this->parse_field_terminator();
           } else {
@@ -999,7 +1001,7 @@ void Parser::parse_and_visit_class_or_interface_member(
           //   field        // ASI
           //   [expr]() {}
           // }
-          check_modifiers_for_field_without_type_annotation();
+          check_modifiers_for_field_without_type_annotation(property_name);
           v.visit_property_declaration(property_name);
         } else {
           QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
@@ -1007,7 +1009,7 @@ void Parser::parse_and_visit_class_or_interface_member(
         break;
 
       case Token_Type::colon:
-        this->check_modifiers_for_field_with_type_annotation();
+        this->check_modifiers_for_field_with_type_annotation(property_name);
         if (this->find_modifier(Token_Type::bang)) {
           // If we have a bang modifier, we already reported
           // Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_JavaScript.
@@ -1108,8 +1110,9 @@ void Parser::parse_and_visit_class_or_interface_member(
       QLJS_UNREACHABLE();
     }
 
-    void check_modifiers_for_field_without_type_annotation() {
-      this->check_modifiers_for_field();
+    void check_modifiers_for_field_without_type_annotation(
+        const std::optional<Identifier> &field_name) {
+      this->check_modifiers_for_field(field_name);
 
       if (!this->is_interface && p->options_.typescript) {
         if (const Modifier *bang = this->find_modifier(Token_Type::bang)) {
@@ -1121,11 +1124,13 @@ void Parser::parse_and_visit_class_or_interface_member(
       }
     }
 
-    void check_modifiers_for_field_with_type_annotation() {
-      this->check_modifiers_for_field();
+    void check_modifiers_for_field_with_type_annotation(
+        const std::optional<Identifier> &field_name) {
+      this->check_modifiers_for_field(field_name);
     }
 
-    void check_modifiers_for_field() {
+    void check_modifiers_for_field(
+        const std::optional<Identifier> &field_name) {
       error_if_invalid_access_specifier();
       error_if_getter_setter_field();
       error_if_access_specifier_not_first_in_field();
@@ -1134,6 +1139,10 @@ void Parser::parse_and_visit_class_or_interface_member(
       error_if_abstract_or_static_after_accessor();
       error_if_conflicting_modifiers();
       error_if_readonly_in_not_typescript();
+      error_if_declare_in_not_typescript();
+      error_if_declare_in_interface();
+      error_if_declare_of_private_identifier(field_name);
+      error_if_declare_field_with_assignment_assertion();
       error_if_accessor_in_interface();
       error_if_static_in_interface();
       error_if_static_abstract();
@@ -1145,6 +1154,7 @@ void Parser::parse_and_visit_class_or_interface_member(
 
     void check_modifiers_for_method() {
       error_if_accessor_method();
+      error_if_declare_method();
       error_if_readonly_method();
       error_if_async_or_generator_without_method_body();
       error_if_invalid_access_specifier();
@@ -1305,6 +1315,15 @@ void Parser::parse_and_visit_class_or_interface_member(
       }
     }
 
+    void error_if_declare_method() {
+      if (const Modifier *declare_modifier =
+              this->find_modifier(Token_Type::kw_declare)) {
+        p->diag_reporter_->report(Diag_TypeScript_Declare_Method{
+            .declare_keyword = declare_modifier->span,
+        });
+      }
+    }
+
     void error_if_readonly_method() {
       if (const Modifier *readonly_modifier =
               find_modifier(Token_Type::kw_readonly)) {
@@ -1321,6 +1340,59 @@ void Parser::parse_and_visit_class_or_interface_member(
           p->diag_reporter_->report(
               Diag_TypeScript_Readonly_Fields_Not_Allowed_In_JavaScript{
                   .readonly_keyword = readonly_modifier->span,
+              });
+        }
+      }
+    }
+
+    void error_if_declare_in_not_typescript() {
+      if (!p->options_.typescript) {
+        if (const Modifier *declare_modifier =
+                this->find_modifier(Token_Type::kw_declare)) {
+          p->diag_reporter_->report(
+              Diag_TypeScript_Declare_Field_Not_Allowed_In_JavaScript{
+                  .declare_keyword = declare_modifier->span,
+              });
+        }
+      }
+    }
+
+    void error_if_declare_in_interface() {
+      if (this->is_interface) {
+        if (const Modifier *declare_modifier =
+                this->find_modifier(Token_Type::kw_declare)) {
+          p->diag_reporter_->report(Diag_Interface_Field_Cannot_Be_Declare{
+              .declare_keyword = declare_modifier->span,
+          });
+        }
+      }
+    }
+
+    void error_if_declare_of_private_identifier(
+        const std::optional<Identifier> &field_name) {
+      if (field_name.has_value() && field_name->is_private_identifier()) {
+        if (const Modifier *declare_modifier =
+                this->find_modifier(Token_Type::kw_declare)) {
+          const Char8 *field_name_begin = field_name->span().begin();
+          p->diag_reporter_->report(
+              Diag_TypeScript_Declare_Field_Cannot_Use_Private_Identifier{
+                  .private_identifier_hash =
+                      Source_Code_Span(field_name_begin, field_name_begin + 1),
+                  .declare_keyword = declare_modifier->span,
+              });
+        }
+      }
+    }
+
+    void error_if_declare_field_with_assignment_assertion() {
+      if (const Modifier *declare_modifier =
+              this->find_modifier(Token_Type::kw_declare)) {
+        if (const Modifier *assignment_assertion_modifier =
+                this->find_modifier(Token_Type::bang)) {
+          p->diag_reporter_->report(
+              Diag_TypeScript_Declare_Field_Cannot_Be_Assignment_Asserted{
+                  .bang = assignment_assertion_modifier->span,
+                  .declare_keyword = declare_modifier->span,
               });
         }
       }

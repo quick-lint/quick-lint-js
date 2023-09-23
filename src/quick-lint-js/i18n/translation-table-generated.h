@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 511;
-constexpr std::size_t translation_table_string_table_size = 79343;
+constexpr std::uint16_t translation_table_mapping_table_size = 516;
+constexpr std::size_t translation_table_string_table_size = 79639;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -71,6 +71,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'declare {1}' cannot have initializer"sv,
           "'declare {1}' started here"sv,
           "'declare' here"sv,
+          "'declare' is not allowed for TypeScript interface fields"sv,
           "'declare' or 'export' is required for {1} in .d.ts files"sv,
           "'declare' should not be written inside a 'declare namespace'"sv,
           "'declare' specified here"sv,
@@ -129,6 +130,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript 'declare class' is not allowed in JavaScript"sv,
           "TypeScript 'declare function' is not allowed in JavaScript"sv,
           "TypeScript 'declare {1}' is not allowed in JavaScript"sv,
+          "TypeScript 'declare' fields are now allowed in JavaScript"sv,
           "TypeScript 'implements' is not allowed in JavaScript"sv,
           "TypeScript 'satisfies' operator is not allowed in JavaScript"sv,
           "TypeScript <Type> type assertions are not allowed in JSX mode"sv,
@@ -183,6 +185,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "array started here"sv,
           "arrow is here"sv,
           "assigning to 'async' in a for-of loop requires parentheses"sv,
+          "assignment assertion is not allowed on fields be marked 'declare'"sv,
           "assignment to const global variable"sv,
           "assignment to const variable"sv,
           "assignment to const variable before its declaration"sv,
@@ -325,6 +328,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "let statement cannot declare variables named 'let'"sv,
           "lower case letters compared with toUpperCase"sv,
           "method starts here"sv,
+          "methods cannot be marked 'declare'"sv,
           "methods cannot be readonly"sv,
           "methods should not use the 'function' keyword"sv,
           "misleading use of ',' operator in conditional statement"sv,
@@ -438,6 +442,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "parameter properties cannot be destructured"sv,
           "parentheses are required around 'infer {1}'"sv,
           "prior spread element is here"sv,
+          "private identifiers are not allowed for 'declare' fields; use 'private' instead"sv,
           "private properties are not allowed in object literals"sv,
           "property declared 'abstract' here"sv,
           "property declared static here"sv,

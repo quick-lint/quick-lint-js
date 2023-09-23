@@ -308,6 +308,10 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Inline_Type_Import_Not_Allowed_In_Type_Only_Import) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Interfaces_Cannot_Contain_Static_Blocks) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Declare_Field_Not_Allowed_In_JavaScript) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Declare_Field_Cannot_Use_Private_Identifier) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Declare_Field_Cannot_Be_Assignment_Asserted) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Declare_Method) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Missing_Name_In_Named_Tuple_Type) \
@@ -396,6 +400,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Function_Call_Before_Declaration_In_Block_Scope) \
   QLJS_DIAG_TYPE_NAME(Diag_Import_Cannot_Have_Declare_Keyword) \
   QLJS_DIAG_TYPE_NAME(Diag_Interface_Field_Cannot_Be_Accessor) \
+  QLJS_DIAG_TYPE_NAME(Diag_Interface_Field_Cannot_Be_Declare) \
   QLJS_DIAG_TYPE_NAME(Diag_Interface_Fields_Cannot_Have_Initializers) \
   QLJS_DIAG_TYPE_NAME(Diag_Interface_Methods_Cannot_Be_Async) \
   QLJS_DIAG_TYPE_NAME(Diag_Interface_Methods_Cannot_Be_Generators) \
@@ -432,7 +437,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 418;
+inline constexpr int Diag_Type_Count = 423;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

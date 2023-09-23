@@ -1502,6 +1502,22 @@ msgid "'declare class' cannot contain static block"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "TypeScript 'declare' fields are now allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "private identifiers are not allowed for 'declare' fields; use 'private' instead"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "assignment assertion is not allowed on fields be marked 'declare'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "methods cannot be marked 'declare'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr ""
 
@@ -1903,6 +1919,10 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'accessor' is not allowed for TypeScript interface fields"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'declare' is not allowed for TypeScript interface fields"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

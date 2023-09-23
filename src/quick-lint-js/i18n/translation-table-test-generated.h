@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[510] = {
+inline const Translated_String test_translation_table[515] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -521,6 +521,17 @@ inline const Translated_String test_translation_table[510] = {
             u8"'declare' here",
             u8"'declare' here",
             u8"'declare' here",
+        },
+    },
+    {
+        "'declare' is not allowed for TypeScript interface fields"_translatable,
+        u8"'declare' is not allowed for TypeScript interface fields",
+        {
+            u8"'declare' is not allowed for TypeScript interface fields",
+            u8"'declare' is not allowed for TypeScript interface fields",
+            u8"'declare' is not allowed for TypeScript interface fields",
+            u8"'declare' is not allowed for TypeScript interface fields",
+            u8"'declare' is not allowed for TypeScript interface fields",
         },
     },
     {
@@ -1162,6 +1173,17 @@ inline const Translated_String test_translation_table[510] = {
         },
     },
     {
+        "TypeScript 'declare' fields are now allowed in JavaScript"_translatable,
+        u8"TypeScript 'declare' fields are now allowed in JavaScript",
+        {
+            u8"TypeScript 'declare' fields are now allowed in JavaScript",
+            u8"TypeScript 'declare' fields are now allowed in JavaScript",
+            u8"TypeScript 'declare' fields are now allowed in JavaScript",
+            u8"TypeScript 'declare' fields are now allowed in JavaScript",
+            u8"TypeScript 'declare' fields are now allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript 'implements' is not allowed in JavaScript"_translatable,
         u8"TypeScript 'implements' is not allowed in JavaScript",
         {
@@ -1753,6 +1775,17 @@ inline const Translated_String test_translation_table[510] = {
             u8"une affectation de type 'async' dans une boucle for-of n\u00e9cessite l'usage de parenth\u00e8ses",
             u8"atribuir para 'async' em um loop for-of requer par\u00eanteses",
             u8"tilldelning av 'async' i for-of loop kr\u00e4ver paranteser",
+        },
+    },
+    {
+        "assignment assertion is not allowed on fields be marked 'declare'"_translatable,
+        u8"assignment assertion is not allowed on fields be marked 'declare'",
+        {
+            u8"assignment assertion is not allowed on fields be marked 'declare'",
+            u8"assignment assertion is not allowed on fields be marked 'declare'",
+            u8"assignment assertion is not allowed on fields be marked 'declare'",
+            u8"assignment assertion is not allowed on fields be marked 'declare'",
+            u8"assignment assertion is not allowed on fields be marked 'declare'",
         },
     },
     {
@@ -3318,6 +3351,17 @@ inline const Translated_String test_translation_table[510] = {
         },
     },
     {
+        "methods cannot be marked 'declare'"_translatable,
+        u8"methods cannot be marked 'declare'",
+        {
+            u8"methods cannot be marked 'declare'",
+            u8"methods cannot be marked 'declare'",
+            u8"methods cannot be marked 'declare'",
+            u8"methods cannot be marked 'declare'",
+            u8"methods cannot be marked 'declare'",
+        },
+    },
+    {
         "methods cannot be readonly"_translatable,
         u8"methods cannot be readonly",
         {
@@ -4558,6 +4602,17 @@ inline const Translated_String test_translation_table[510] = {
             u8"prior spread element is here",
             u8"prior spread element is here",
             u8"prior spread element is here",
+        },
+    },
+    {
+        "private identifiers are not allowed for 'declare' fields; use 'private' instead"_translatable,
+        u8"private identifiers are not allowed for 'declare' fields; use 'private' instead",
+        {
+            u8"private identifiers are not allowed for 'declare' fields; use 'private' instead",
+            u8"private identifiers are not allowed for 'declare' fields; use 'private' instead",
+            u8"private identifiers are not allowed for 'declare' fields; use 'private' instead",
+            u8"private identifiers are not allowed for 'declare' fields; use 'private' instead",
+            u8"private identifiers are not allowed for 'declare' fields; use 'private' instead",
         },
     },
     {

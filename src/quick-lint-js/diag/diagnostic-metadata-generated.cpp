@@ -4467,6 +4467,70 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Declare_Field_Not_Allowed_In_JavaScript
+    {
+      .code = 415,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("TypeScript 'declare' fields are now allowed in JavaScript"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Declare_Field_Not_Allowed_In_JavaScript, declare_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Declare_Field_Cannot_Use_Private_Identifier
+    {
+      .code = 416,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("private identifiers are not allowed for 'declare' fields; use 'private' instead"),
+        QLJS_TRANSLATABLE("'declare' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Declare_Field_Cannot_Use_Private_Identifier, private_identifier_hash), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Declare_Field_Cannot_Use_Private_Identifier, declare_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Declare_Field_Cannot_Be_Assignment_Asserted
+    {
+      .code = 418,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("assignment assertion is not allowed on fields be marked 'declare'"),
+        QLJS_TRANSLATABLE("'declare' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Declare_Field_Cannot_Be_Assignment_Asserted, bang), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Declare_Field_Cannot_Be_Assignment_Asserted, declare_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Declare_Method
+    {
+      .code = 417,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("methods cannot be marked 'declare'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Declare_Method, declare_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript
     {
       .code = 213,
@@ -5772,6 +5836,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Interface_Field_Cannot_Be_Accessor, accessor_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Interface_Field_Cannot_Be_Declare
+    {
+      .code = 419,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'declare' is not allowed for TypeScript interface fields"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Interface_Field_Cannot_Be_Declare, declare_keyword), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

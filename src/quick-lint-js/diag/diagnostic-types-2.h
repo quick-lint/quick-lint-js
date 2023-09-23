@@ -2301,6 +2301,41 @@ struct Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement {
   Source_Code_Span static_token;
 };
 
+struct Diag_TypeScript_Declare_Field_Not_Allowed_In_JavaScript {
+  [[qljs::diag("E0415", Diagnostic_Severity::error)]]  //
+  [[qljs::message("TypeScript 'declare' fields are now allowed in JavaScript",
+                  ARG(declare_keyword))]]  //
+  Source_Code_Span declare_keyword;
+};
+
+struct Diag_TypeScript_Declare_Field_Cannot_Use_Private_Identifier {
+  [[qljs::diag("E0416", Diagnostic_Severity::error)]]  //
+  [
+      [qljs::message("private identifiers are not allowed for 'declare' "
+                     "fields; use 'private' instead",
+                     ARG(private_identifier_hash))]]         //
+  [[qljs::message("'declare' here", ARG(declare_keyword))]]  //
+  Source_Code_Span private_identifier_hash;
+  Source_Code_Span declare_keyword;
+};
+
+struct Diag_TypeScript_Declare_Field_Cannot_Be_Assignment_Asserted {
+  [[qljs::diag("E0418", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "assignment assertion is not allowed on fields be marked 'declare'",
+      ARG(bang))]]                                           //
+  [[qljs::message("'declare' here", ARG(declare_keyword))]]  //
+  Source_Code_Span bang;
+  Source_Code_Span declare_keyword;
+};
+
+struct Diag_TypeScript_Declare_Method {
+  [[qljs::diag("E0417", Diagnostic_Severity::error)]]  //
+  [[qljs::message("methods cannot be marked 'declare'",
+                  ARG(declare_keyword))]]  //
+  Source_Code_Span declare_keyword;
+};
+
 struct Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript {
   [[qljs::diag("E0213", Diagnostic_Severity::error)]]  //
   [[qljs::message(
@@ -2974,6 +3009,13 @@ struct Diag_Interface_Field_Cannot_Be_Accessor {
   [[qljs::message("'accessor' is not allowed for TypeScript interface fields",
                   ARG(accessor_keyword))]]  //
   Source_Code_Span accessor_keyword;
+};
+
+struct Diag_Interface_Field_Cannot_Be_Declare {
+  [[qljs::diag("E0419", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'declare' is not allowed for TypeScript interface fields",
+                  ARG(declare_keyword))]]  //
+  Source_Code_Span declare_keyword;
 };
 
 struct Diag_Interface_Fields_Cannot_Have_Initializers {

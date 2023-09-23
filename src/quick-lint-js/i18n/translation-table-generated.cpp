@@ -58,6 +58,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 27},                 //
         {0, 0, 0, 0, 0, 15},                 //
         {0, 0, 0, 0, 0, 57},                 //
+        {0, 0, 0, 0, 0, 57},                 //
         {0, 0, 0, 0, 0, 61},                 //
         {71, 48, 0, 44, 0, 25},              //
         {18, 13, 53, 16, 51, 16},            //
@@ -114,7 +115,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 0, 0, 56},                 //
         {0, 0, 0, 0, 0, 59},                 //
-        {0, 0, 0, 78, 0, 54},                //
+        {0, 0, 0, 0, 0, 54},                 //
+        {0, 0, 0, 78, 0, 58},                //
         {0, 0, 0, 0, 0, 53},                 //
         {0, 0, 0, 45, 0, 61},                //
         {0, 0, 0, 78, 0, 62},                //
@@ -168,7 +170,8 @@ const Translation_Table translation_data = {
         {18, 53, 70, 52, 76, 53},            //
         {19, 30, 21, 19, 19, 19},            //
         {15, 13, 19, 17, 15, 14},            //
-        {80, 64, 90, 59, 56, 59},            //
+        {0, 0, 0, 0, 0, 59},                 //
+        {80, 64, 90, 59, 56, 66},            //
         {40, 33, 46, 45, 40, 36},            //
         {32, 45, 38, 38, 33, 29},            //
         {48, 49, 0, 60, 0, 52},              //
@@ -310,7 +313,8 @@ const Translation_Table translation_data = {
         {61, 50, 75, 49, 64, 50},            //
         {50, 22, 0, 63, 0, 51},              //
         {0, 0, 0, 0, 0, 45},                 //
-        {0, 0, 0, 46, 0, 19},                //
+        {0, 0, 0, 0, 0, 19},                 //
+        {0, 0, 0, 46, 0, 35},                //
         {50, 47, 66, 33, 53, 27},            //
         {0, 0, 0, 0, 0, 46},                 //
         {0, 0, 0, 0, 0, 56},                 //
@@ -423,7 +427,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 48},                 //
         {0, 0, 0, 0, 0, 44},                 //
         {0, 0, 0, 0, 0, 44},                 //
-        {32, 13, 50, 41, 38, 29},            //
+        {0, 0, 0, 0, 0, 29},                 //
+        {32, 13, 50, 41, 38, 80},            //
         {0, 0, 0, 0, 0, 54},                 //
         {0, 0, 0, 0, 0, 34},                 //
         {0, 0, 0, 0, 0, 30},                 //
@@ -1838,6 +1843,7 @@ const Translation_Table translation_data = {
         u8"'declare {1}' cannot have initializer\0"
         u8"'declare {1}' started here\0"
         u8"'declare' here\0"
+        u8"'declare' is not allowed for TypeScript interface fields\0"
         u8"'declare' or 'export' is required for {1} in .d.ts files\0"
         u8"'declare' should not be written inside a 'declare namespace'\0"
         u8"'declare' specified here\0"
@@ -1896,6 +1902,7 @@ const Translation_Table translation_data = {
         u8"TypeScript 'declare class' is not allowed in JavaScript\0"
         u8"TypeScript 'declare function' is not allowed in JavaScript\0"
         u8"TypeScript 'declare {1}' is not allowed in JavaScript\0"
+        u8"TypeScript 'declare' fields are now allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
         u8"TypeScript 'satisfies' operator is not allowed in JavaScript\0"
         u8"TypeScript <Type> type assertions are not allowed in JSX mode\0"
@@ -1950,6 +1957,7 @@ const Translation_Table translation_data = {
         u8"array started here\0"
         u8"arrow is here\0"
         u8"assigning to 'async' in a for-of loop requires parentheses\0"
+        u8"assignment assertion is not allowed on fields be marked 'declare'\0"
         u8"assignment to const global variable\0"
         u8"assignment to const variable\0"
         u8"assignment to const variable before its declaration\0"
@@ -2092,6 +2100,7 @@ const Translation_Table translation_data = {
         u8"let statement cannot declare variables named 'let'\0"
         u8"lower case letters compared with toUpperCase\0"
         u8"method starts here\0"
+        u8"methods cannot be marked 'declare'\0"
         u8"methods cannot be readonly\0"
         u8"methods should not use the 'function' keyword\0"
         u8"misleading use of ',' operator in conditional statement\0"
@@ -2205,6 +2214,7 @@ const Translation_Table translation_data = {
         u8"parameter properties cannot be destructured\0"
         u8"parentheses are required around 'infer {1}'\0"
         u8"prior spread element is here\0"
+        u8"private identifiers are not allowed for 'declare' fields; use 'private' instead\0"
         u8"private properties are not allowed in object literals\0"
         u8"property declared 'abstract' here\0"
         u8"property declared static here\0"

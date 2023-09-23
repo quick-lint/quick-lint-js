@@ -47,6 +47,10 @@ class Identifier {
     return String8_View(this->normalized_begin_, this->normalized_size_);
   }
 
+  bool is_private_identifier() const {
+    return this->normalized_begin_[0] == u8'#';
+  }
+
  private:
   const Char8* span_begin_;
   const Char8* normalized_begin_;
