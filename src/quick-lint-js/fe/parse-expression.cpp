@@ -653,7 +653,8 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
   // @myDecorator class {}
   case Token_Type::at:
     // TODO(strager): Should we make a Decorated expression type?
-    this->parse_and_visit_decorator(v);
+    this->parse_and_visit_one_or_more_decorators(v);
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_class);
     goto parse_class;
 
   // new XMLHttpRequest()

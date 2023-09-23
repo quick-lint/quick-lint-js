@@ -384,6 +384,7 @@ class Parser {
 
   // Parse just the '@decorator' syntax.
   void parse_and_visit_decorator(Parse_Visitor_Base &v);
+  void parse_and_visit_one_or_more_decorators(Parse_Visitor_Base &v);
   // Parse '@decorator' followed by a class statement.
   void parse_and_visit_decorator_statement(Parse_Visitor_Base &v);
 

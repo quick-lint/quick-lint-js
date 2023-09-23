@@ -185,6 +185,59 @@ TEST_F(Test_Parse_Decorator,
   }
 }
 
+TEST_F(Test_Parse_Decorator, multiple_decorators_on_class) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"@decorator1\n"_sv
+        u8"@(decorator2)\n"_sv
+        u8"@decorator3(x)\n"_sv
+        u8"class C {}"_sv,
+        no_diags, javascript_options);
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"decorator1"_sv, u8"decorator2"_sv,
+                                  u8"decorator3"_sv, u8"x"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export\n"_sv
+        u8"  @decorator1\n"_sv
+        u8"  @(decorator2)\n"_sv
+        u8"  @decorator3(x)\n"_sv
+        u8"  class C {}"_sv,
+        no_diags, javascript_options);
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"decorator1"_sv, u8"decorator2"_sv,
+                                  u8"decorator3"_sv, u8"x"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export default\n"_sv
+        u8"  @decorator1\n"_sv
+        u8"  @(decorator2)\n"_sv
+        u8"  @decorator3(x)\n"_sv
+        u8"  class {}"_sv,
+        no_diags, javascript_options);
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"decorator1"_sv, u8"decorator2"_sv,
+                                  u8"decorator3"_sv, u8"x"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"const C ="_sv
+        u8"  @decorator1\n"_sv
+        u8"  @(decorator2)\n"_sv
+        u8"  @decorator3(x)\n"_sv
+        u8"  class {};"_sv,
+        no_diags, javascript_options);
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"decorator1"_sv, u8"decorator2"_sv,
+                                  u8"decorator3"_sv, u8"x"_sv}));
+  }
+}
+
 TEST_F(Test_Parse_Decorator, class_methods_can_have_decorator) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
