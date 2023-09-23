@@ -542,6 +542,12 @@ class Parser {
 
   struct Parse_Export_Options {
     TypeScript_Declare_Context declare_context;
+
+    // Location of '@' in a decorator if this export has a decorator. Example:
+    //
+    //   @myDecorator export class C {}
+    //   ^
+    std::optional<Source_Code_Span> decorator_at_span;
   };
   void parse_and_visit_export(Parse_Visitor_Base &v);
   void parse_and_visit_export(Parse_Visitor_Base &v,

@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[508] = {
+inline const Translated_String test_translation_table[510] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1558,6 +1558,17 @@ inline const Translated_String test_translation_table[508] = {
         },
     },
     {
+        "a decorator exists here before 'export'"_translatable,
+        u8"a decorator exists here before 'export'",
+        {
+            u8"a decorator exists here before 'export'",
+            u8"a decorator exists here before 'export'",
+            u8"a decorator exists here before 'export'",
+            u8"a decorator exists here before 'export'",
+            u8"a decorator exists here before 'export'",
+        },
+    },
+    {
         "a function statement is not allowed as the body of {1:singular}"_translatable,
         u8"a function statement is not allowed as the body of {1:singular}",
         {
@@ -2281,6 +2292,17 @@ inline const Translated_String test_translation_table[508] = {
             u8"decorators are not allowed on abstract properties",
             u8"decorators are not allowed on abstract properties",
             u8"decorators are not allowed on abstract properties",
+        },
+    },
+    {
+        "decorators may be before 'export' or here, but not in both locations"_translatable,
+        u8"decorators may be before 'export' or here, but not in both locations",
+        {
+            u8"decorators may be before 'export' or here, but not in both locations",
+            u8"decorators may be before 'export' or here, but not in both locations",
+            u8"decorators may be before 'export' or here, but not in both locations",
+            u8"decorators may be before 'export' or here, but not in both locations",
+            u8"decorators may be before 'export' or here, but not in both locations",
         },
     },
     {

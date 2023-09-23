@@ -150,7 +150,8 @@ const Translation_Table translation_data = {
         {18, 18, 0, 14, 0, 13},              //
         {20, 16, 0, 16, 0, 15},              //
         {20, 40, 63, 23, 66, 19},            //
-        {67, 28, 78, 78, 61, 61},            //
+        {0, 0, 0, 0, 0, 61},                 //
+        {67, 28, 78, 78, 61, 40},            //
         {0, 0, 0, 62, 0, 64},                //
         {66, 50, 74, 26, 65, 21},            //
         {77, 41, 0, 0, 0, 65},               //
@@ -217,6 +218,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 22},                 //
         {0, 0, 0, 0, 0, 56},                 //
         {0, 0, 0, 0, 0, 50},                 //
+        {0, 0, 0, 0, 0, 69},                 //
         {0, 0, 0, 0, 0, 49},                 //
         {49, 11, 64, 46, 39, 35},            //
         {46, 20, 32, 32, 31, 21},            //
@@ -1930,6 +1932,7 @@ const Translation_Table translation_data = {
         u8"a 'while' loop\0"
         u8"a 'with' statement\0"
         u8"a class statement is not allowed as the body of {1:singular}\0"
+        u8"a decorator exists here before 'export'\0"
         u8"a function statement is not allowed as the body of {1:singular}\0"
         u8"a labelled statement\0"
         u8"a lexical declaration is not allowed as the body of {1:singular}\0"
@@ -1996,6 +1999,7 @@ const Translation_Table translation_data = {
         u8"decorator starts here\0"
         u8"decorators are not allowed inside TypeScript interfaces\0"
         u8"decorators are not allowed on abstract properties\0"
+        u8"decorators may be before 'export' or here, but not in both locations\0"
         u8"decorators must appear after overload signatures\0"
         u8"decorators must appear before '{1}\0"
         u8"depth limit exceeded\0"

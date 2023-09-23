@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 509;
-constexpr std::size_t translation_table_string_table_size = 79234;
+constexpr std::uint16_t translation_table_mapping_table_size = 511;
+constexpr std::size_t translation_table_string_table_size = 79343;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -165,6 +165,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "a 'while' loop"sv,
           "a 'with' statement"sv,
           "a class statement is not allowed as the body of {1:singular}"sv,
+          "a decorator exists here before 'export'"sv,
           "a function statement is not allowed as the body of {1:singular}"sv,
           "a labelled statement"sv,
           "a lexical declaration is not allowed as the body of {1:singular}"sv,
@@ -231,6 +232,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "decorator starts here"sv,
           "decorators are not allowed inside TypeScript interfaces"sv,
           "decorators are not allowed on abstract properties"sv,
+          "decorators may be before 'export' or here, but not in both locations"sv,
           "decorators must appear after overload signatures"sv,
           "decorators must appear before '{1}"sv,
           "depth limit exceeded"sv,

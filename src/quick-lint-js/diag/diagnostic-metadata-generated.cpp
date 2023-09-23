@@ -682,6 +682,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Decorator_Before_And_After_Export_Keyword
+    {
+      .code = 414,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("decorators may be before 'export' or here, but not in both locations"),
+        QLJS_TRANSLATABLE("a decorator exists here before 'export'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_Before_And_After_Export_Keyword, decorator_at_after), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_Before_And_After_Export_Keyword, decorator_at_before), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Decorator_Not_Allowed_On_Class_Static_Block
     {
       .code = 407,

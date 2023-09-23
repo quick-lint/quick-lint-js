@@ -123,6 +123,27 @@ TEST_F(Test_Parse_Decorator, export_default_class_decorator) {
   }
 }
 
+TEST_F(Test_Parse_Decorator,
+       decorator_is_not_allowed_both_before_and_after_export) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"@d1 export @d2 class C {}"_sv,  //
+        u8"           ^ Diag_Decorator_Before_And_After_Export_Keyword.decorator_at_after\n"_diag
+        u8"^ .decorator_at_before"_diag,
+        javascript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"d1"_sv, u8"d2"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"@d1 export default @d2 class {}"_sv,  //
+        u8"                   ^ Diag_Decorator_Before_And_After_Export_Keyword.decorator_at_after\n"_diag
+        u8"^ .decorator_at_before"_diag,
+        javascript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"d1"_sv, u8"d2"_sv}));
+  }
+}
+
 TEST_F(Test_Parse_Decorator, class_expression_decorator) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(

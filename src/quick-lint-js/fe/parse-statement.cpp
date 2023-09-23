@@ -1044,6 +1044,13 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
 
     // export default @myDecorator class C {}
     case Token_Type::at:
+      if (options.decorator_at_span.has_value()) {
+        this->diag_reporter_->report(
+            Diag_Decorator_Before_And_After_Export_Keyword{
+                .decorator_at_before = *options.decorator_at_span,
+                .decorator_at_after = this->peek().span(),
+            });
+      }
       this->parse_and_visit_one_or_more_decorators(v);
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_class);
       goto parse_default_class;
@@ -1295,6 +1302,13 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
 
   // export @myDecorator class C {}
   case Token_Type::at:
+    if (options.decorator_at_span.has_value()) {
+      this->diag_reporter_->report(
+          Diag_Decorator_Before_And_After_Export_Keyword{
+              .decorator_at_before = *options.decorator_at_span,
+              .decorator_at_after = this->peek().span(),
+          });
+    }
     this->parse_and_visit_one_or_more_decorators(v);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_class);
     goto parse_class;
@@ -2656,6 +2670,7 @@ void Parser::parse_and_visit_one_or_more_decorators(Parse_Visitor_Base &v) {
 
 void Parser::parse_and_visit_decorator_statement(Parse_Visitor_Base &v) {
   QLJS_ASSERT(this->peek().type == Token_Type::at);
+  Source_Code_Span decorator_at = this->peek().span();
   this->parse_and_visit_one_or_more_decorators(v);
 
   switch (this->peek().type) {
@@ -2668,7 +2683,9 @@ void Parser::parse_and_visit_decorator_statement(Parse_Visitor_Base &v) {
     break;
 
   case Token_Type::kw_export:
-    this->parse_and_visit_export(v);
+    this->parse_and_visit_export(v, Parse_Export_Options{
+                                        .decorator_at_span = decorator_at,
+                                    });
     break;
 
   default:

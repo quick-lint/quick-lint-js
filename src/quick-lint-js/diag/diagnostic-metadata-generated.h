@@ -54,6 +54,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Var_Cannot_Have_Initializer) \
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Var_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_Decorator_After_Class_Member_Modifiers) \
+  QLJS_DIAG_TYPE_NAME(Diag_Decorator_Before_And_After_Export_Keyword) \
   QLJS_DIAG_TYPE_NAME(Diag_Decorator_Not_Allowed_On_Class_Static_Block) \
   QLJS_DIAG_TYPE_NAME(Diag_Decorator_In_TypeScript_Interface) \
   QLJS_DIAG_TYPE_NAME(Diag_Decorator_On_Abstract_Class_Member) \
@@ -431,7 +432,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 417;
+inline constexpr int Diag_Type_Count = 418;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

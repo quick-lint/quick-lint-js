@@ -318,6 +318,14 @@ msgid "write the decorator before here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "decorators may be before 'export' or here, but not in both locations"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "a decorator exists here before 'export'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "static blocks cannot have a decorator"
 msgstr ""
 

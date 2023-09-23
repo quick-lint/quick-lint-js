@@ -380,6 +380,17 @@ struct Diag_Decorator_After_Class_Member_Modifiers {
   Source_Code_Span modifier;
 };
 
+struct Diag_Decorator_Before_And_After_Export_Keyword {
+  [[qljs::diag("E0414", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "decorators may be before 'export' or here, but not in both locations",
+      ARG(decorator_at_after))]]  //
+  [[qljs::message("a decorator exists here before 'export'",
+                  ARG(decorator_at_before))]]  //
+  Source_Code_Span decorator_at_before;
+  Source_Code_Span decorator_at_after;
+};
+
 struct Diag_Decorator_Not_Allowed_On_Class_Static_Block {
   [[qljs::diag("E0407", Diagnostic_Severity::error)]]  //
   [[qljs::message("static blocks cannot have a decorator",
