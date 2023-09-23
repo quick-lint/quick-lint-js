@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[496] = {
+inline const Translated_String test_translation_table[508] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -2240,6 +2240,72 @@ inline const Translated_String test_translation_table[496] = {
         },
     },
     {
+        "decorator belongs immediately before this overloaded method"_translatable,
+        u8"decorator belongs immediately before this overloaded method",
+        {
+            u8"decorator belongs immediately before this overloaded method",
+            u8"decorator belongs immediately before this overloaded method",
+            u8"decorator belongs immediately before this overloaded method",
+            u8"decorator belongs immediately before this overloaded method",
+            u8"decorator belongs immediately before this overloaded method",
+        },
+    },
+    {
+        "decorator starts here"_translatable,
+        u8"decorator starts here",
+        {
+            u8"decorator starts here",
+            u8"decorator starts here",
+            u8"decorator starts here",
+            u8"decorator starts here",
+            u8"decorator starts here",
+        },
+    },
+    {
+        "decorators are not allowed inside TypeScript interfaces"_translatable,
+        u8"decorators are not allowed inside TypeScript interfaces",
+        {
+            u8"decorators are not allowed inside TypeScript interfaces",
+            u8"decorators are not allowed inside TypeScript interfaces",
+            u8"decorators are not allowed inside TypeScript interfaces",
+            u8"decorators are not allowed inside TypeScript interfaces",
+            u8"decorators are not allowed inside TypeScript interfaces",
+        },
+    },
+    {
+        "decorators are not allowed on abstract properties"_translatable,
+        u8"decorators are not allowed on abstract properties",
+        {
+            u8"decorators are not allowed on abstract properties",
+            u8"decorators are not allowed on abstract properties",
+            u8"decorators are not allowed on abstract properties",
+            u8"decorators are not allowed on abstract properties",
+            u8"decorators are not allowed on abstract properties",
+        },
+    },
+    {
+        "decorators must appear after overload signatures"_translatable,
+        u8"decorators must appear after overload signatures",
+        {
+            u8"decorators must appear after overload signatures",
+            u8"decorators must appear after overload signatures",
+            u8"decorators must appear after overload signatures",
+            u8"decorators must appear after overload signatures",
+            u8"decorators must appear after overload signatures",
+        },
+    },
+    {
+        "decorators must appear before '{1}"_translatable,
+        u8"decorators must appear before '{1}",
+        {
+            u8"decorators must appear before '{1}",
+            u8"decorators must appear before '{1}",
+            u8"decorators must appear before '{1}",
+            u8"decorators must appear before '{1}",
+            u8"decorators must appear before '{1}",
+        },
+    },
+    {
         "depth limit exceeded"_translatable,
         u8"depth limit exceeded",
         {
@@ -3571,6 +3637,17 @@ inline const Translated_String test_translation_table[496] = {
         },
     },
     {
+        "missing class method or field after decorator"_translatable,
+        u8"missing class method or field after decorator",
+        {
+            u8"missing class method or field after decorator",
+            u8"missing class method or field after decorator",
+            u8"missing class method or field after decorator",
+            u8"missing class method or field after decorator",
+            u8"missing class method or field after decorator",
+        },
+    },
+    {
         "missing comma between generic parameters"_translatable,
         u8"missing comma between generic parameters",
         {
@@ -4473,6 +4550,17 @@ inline const Translated_String test_translation_table[496] = {
         },
     },
     {
+        "property declared 'abstract' here"_translatable,
+        u8"property declared 'abstract' here",
+        {
+            u8"property declared 'abstract' here",
+            u8"property declared 'abstract' here",
+            u8"property declared 'abstract' here",
+            u8"property declared 'abstract' here",
+            u8"property declared 'abstract' here",
+        },
+    },
+    {
         "property declared static here"_translatable,
         u8"property declared static here",
         {
@@ -4583,6 +4671,17 @@ inline const Translated_String test_translation_table[496] = {
         },
     },
     {
+        "semicolon is not allowed after decorators"_translatable,
+        u8"semicolon is not allowed after decorators",
+        {
+            u8"semicolon is not allowed after decorators",
+            u8"semicolon is not allowed after decorators",
+            u8"semicolon is not allowed after decorators",
+            u8"semicolon is not allowed after decorators",
+            u8"semicolon is not allowed after decorators",
+        },
+    },
+    {
         "something happened"_translatable,
         u8"something happened",
         {
@@ -4613,6 +4712,28 @@ inline const Translated_String test_translation_table[496] = {
             u8"spread tuple elements cannot be optional",
             u8"spread tuple elements cannot be optional",
             u8"spread tuple elements cannot be optional",
+        },
+    },
+    {
+        "static block starts here"_translatable,
+        u8"static block starts here",
+        {
+            u8"static block starts here",
+            u8"static block starts here",
+            u8"static block starts here",
+            u8"static block starts here",
+            u8"static block starts here",
+        },
+    },
+    {
+        "static blocks cannot have a decorator"_translatable,
+        u8"static blocks cannot have a decorator",
+        {
+            u8"static blocks cannot have a decorator",
+            u8"static blocks cannot have a decorator",
+            u8"static blocks cannot have a decorator",
+            u8"static blocks cannot have a decorator",
+            u8"static blocks cannot have a decorator",
         },
     },
     {
@@ -5405,6 +5526,17 @@ inline const Translated_String test_translation_table[496] = {
             u8"write '{1}' here or remove it from the overload signature",
             u8"write '{1}' here or remove it from the overload signature",
             u8"write '{1}' here or remove it from the overload signature",
+        },
+    },
+    {
+        "write the decorator before here"_translatable,
+        u8"write the decorator before here",
+        {
+            u8"write the decorator before here",
+            u8"write the decorator before here",
+            u8"write the decorator before here",
+            u8"write the decorator before here",
+            u8"write the decorator before here",
         },
     },
     {

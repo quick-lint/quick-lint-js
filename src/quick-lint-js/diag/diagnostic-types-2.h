@@ -371,6 +371,52 @@ struct Diag_Declare_Var_Not_Allowed_In_JavaScript {
   Source_Code_Span declaring_token;
 };
 
+struct Diag_Decorator_After_Class_Member_Modifiers {
+  [[qljs::diag("E0408", Diagnostic_Severity::error)]]  //
+  [[qljs::message("decorators must appear before '{1}", ARG(decorator_at),
+                  ARG(modifier))]]                                     //
+  [[qljs::message("write the decorator before here", ARG(modifier))]]  //
+  Source_Code_Span decorator_at;
+  Source_Code_Span modifier;
+};
+
+struct Diag_Decorator_Not_Allowed_On_Class_Static_Block {
+  [[qljs::diag("E0407", Diagnostic_Severity::error)]]  //
+  [[qljs::message("static blocks cannot have a decorator",
+                  ARG(decorator_at))]]  //
+  [[qljs::message("static block starts here",
+                  ARG(static_keyword))]]  //
+  Source_Code_Span decorator_at;
+  Source_Code_Span static_keyword;
+};
+
+struct Diag_Decorator_In_TypeScript_Interface {
+  [[qljs::diag("E0411", Diagnostic_Severity::error)]]  //
+  [[qljs::message("decorators are not allowed inside TypeScript interfaces",
+                  ARG(decorator_at))]]  //
+  Source_Code_Span decorator_at;
+};
+
+struct Diag_Decorator_On_Abstract_Class_Member {
+  [[qljs::diag("E0412", Diagnostic_Severity::error)]]  //
+  [[qljs::message("decorators are not allowed on abstract properties",
+                  ARG(decorator_at))]]  //
+  [[qljs::message("property declared 'abstract' here",
+                  ARG(abstract_keyword))]]  //
+  Source_Code_Span decorator_at;
+  Source_Code_Span abstract_keyword;
+};
+
+struct Diag_Decorator_On_Overload_Signature {
+  [[qljs::diag("E0413", Diagnostic_Severity::error)]]  //
+  [[qljs::message("decorators must appear after overload signatures",
+                  ARG(decorator_at))]]  //
+  [[qljs::message("decorator belongs immediately before this overloaded method",
+                  ARG(expected_location))]]  //
+  Source_Code_Span decorator_at;
+  Source_Code_Span expected_location;
+};
+
 struct Diag_Function_Async_Function {
   [[qljs::diag("E0327", Diagnostic_Severity::error)]]  //
   [[qljs::message(
@@ -1419,6 +1465,15 @@ struct Diag_Missing_Key_For_Object_Entry {
   [[qljs::message("unexpected expression; missing key for object entry",
                   ARG(expression))]]  //
   Source_Code_Span expression;
+};
+
+struct Diag_Missing_Class_Member_After_Decorator {
+  [[qljs::diag("E0409", Diagnostic_Severity::error)]]  //
+  [[qljs::message("missing class method or field after decorator",
+                  ARG(expected_member))]]                        //
+  [[qljs::message("decorator starts here", ARG(decorator_at))]]  //
+  Source_Code_Span expected_member;
+  Source_Code_Span decorator_at;
 };
 
 struct Diag_Missing_Class_Method_Name {
@@ -2709,6 +2764,16 @@ struct Diag_Unexpected_Question_When_Destructuring {
   [[qljs::diag("E0309", Diagnostic_Severity::error)]]                    //
   [[qljs::message("unexpected '?' when destructuring", ARG(question))]]  //
   Source_Code_Span question;
+};
+
+struct Diag_Unexpected_Semicolon_After_Decorator {
+  [[qljs::diag("E0410", Diagnostic_Severity::error)]]  //
+  [[qljs::message("semicolon is not allowed after decorators",
+                  ARG(semicolon))]]  //
+  [[qljs::message("decorator starts here",
+                  ARG(decorator_at))]]  //
+  Source_Code_Span semicolon;
+  Source_Code_Span decorator_at;
 };
 
 struct Diag_Unexpected_Semicolon_After_Overload_Signature {

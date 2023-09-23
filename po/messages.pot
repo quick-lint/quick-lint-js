@@ -310,6 +310,42 @@ msgid "TypeScript 'declare {1}' is not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "decorators must appear before '{1}"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "write the decorator before here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "static blocks cannot have a decorator"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "static block starts here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "decorators are not allowed inside TypeScript interfaces"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "decorators are not allowed on abstract properties"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "property declared 'abstract' here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "decorators must appear after overload signatures"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "decorator belongs immediately before this overloaded method"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'function async' is not allowed; write 'async function' instead"
 msgstr ""
 
@@ -939,6 +975,14 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected expression; missing key for object entry"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "missing class method or field after decorator"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "decorator starts here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1731,6 +1775,10 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unexpected '?' when destructuring"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "semicolon is not allowed after decorators"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

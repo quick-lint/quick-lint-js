@@ -184,6 +184,203 @@ TEST_F(Test_Parse_Decorator,
     EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
   }
 }
+
+TEST_F(Test_Parse_Decorator, class_methods_can_have_decorator) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { @decorator method() {} }"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"decorator"_sv}));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { @decorator static method() {} }"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"decorator"_sv}));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { @decorator1 @(decorator2) @decorator3(x) method() {} }"_sv,
+        no_diags, javascript_options);
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"decorator1"_sv, u8"decorator2"_sv,
+                                  u8"decorator3"_sv, u8"x"_sv}));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"method"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_Decorator, class_fields_can_have_decorator) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { @decorator myField; }"_sv, no_diags, javascript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"decorator"_sv}));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myField"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { @decorator static myField; }"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"decorator"_sv}));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myField"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_Decorator, class_accessors_can_have_decorator) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { @decorator accessor myProp; }"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"decorator"_sv}));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myProp"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { @decorator static accessor myProp; }"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"decorator"_sv}));
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"myProp"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_Decorator, class_static_block_cannot_have_accessor) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { @decorator static { console.log('hi'); } }"_sv,
+        u8"                     ^^^^^^ Diag_Decorator_Not_Allowed_On_Class_Static_Block.static_keyword\n"_diag
+        u8"          ^ .decorator_at"_diag,
+        javascript_options);
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"decorator"_sv, u8"console"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_Decorator,
+       decorator_must_appear_before_class_member_modifiers) {
+  test_parse_and_visit_statement(
+      u8"class C { static @decorator foo() {} }"_sv,
+      u8"                 ^ Diag_Decorator_After_Class_Member_Modifiers.decorator_at\n"_diag
+      u8"          ^^^^^^ .modifier"_diag,
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { @decorator1 static @decorator2 foo() {} }"_sv,
+      u8"                             ^ Diag_Decorator_After_Class_Member_Modifiers.decorator_at\n"_diag
+      u8"                      ^^^^^^ .modifier"_diag,
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { public static @decorator1 @decorator2 async foo() {} }"_sv,
+      u8"                                    ^ Diag_Decorator_After_Class_Member_Modifiers.decorator_at\n"_diag
+      u8"          ^^^^^^ .modifier"_diag,
+      u8"                        ^ Diag_Decorator_After_Class_Member_Modifiers.decorator_at\n"_diag
+      u8"          ^^^^^^ .modifier"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"class C { static @decorator foo: number = 42; }"_sv,
+      u8"                 ^ Diag_Decorator_After_Class_Member_Modifiers.decorator_at\n"_diag
+      u8"          ^^^^^^ .modifier"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_Decorator, decorator_must_decorate_something_inside_class) {
+  test_parse_and_visit_statement(
+      u8"class C { @decorator }"_sv,
+      u8"                    ` Diag_Missing_Class_Member_After_Decorator.expected_member\n"_diag
+      u8"          ^ .decorator_at"_diag,
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { @decorator ; }"_sv,
+      u8"                    ` Diag_Missing_Class_Member_After_Decorator.expected_member\n"_diag
+      u8"          ^ .decorator_at"_diag,
+      javascript_options);
+}
+
+TEST_F(Test_Parse_Decorator, semicolon_is_not_allowed_after_decorator) {
+  test_parse_and_visit_statement(
+      u8"class C { @decorator; foo() {} }"_sv,
+      u8"                    ^ Diag_Unexpected_Semicolon_After_Decorator.semicolon\n"_diag
+      u8"          ^ .decorator_at"_diag,
+      javascript_options);
+}
+
+TEST_F(Test_Parse_Decorator,
+       decorators_are_not_allowed_in_typescript_interfaces) {
+  test_parse_and_visit_statement(
+      u8"interface I { @decorator foo(); }"_sv,
+      u8"              ^ Diag_Decorator_In_TypeScript_Interface"_diag,
+      typescript_options);
+
+  // Shouldn't also report Diag_Missing_Class_Member_After_Decorator.
+  test_parse_and_visit_statement(
+      u8"interface I { @decorator }"_sv,
+      u8"              ^ Diag_Decorator_In_TypeScript_Interface"_diag,
+      typescript_options);
+  // Shouldn't also report Diag_Missing_Class_Member_After_Decorator.
+  test_parse_and_visit_statement(
+      u8"interface I { @decorator; }"_sv,
+      u8"              ^ Diag_Decorator_In_TypeScript_Interface"_diag,
+      typescript_options);
+  // Shouldn't also report Diag_Unexpected_Semicolon_After_Decorator.
+  test_parse_and_visit_statement(
+      u8"interface I { @decorator; foo(); }"_sv,
+      u8"              ^ Diag_Decorator_In_TypeScript_Interface"_diag,
+      typescript_options);
+  // Shouldn't also report Diag_Decorator_After_Class_Member_Modifiers.
+  test_parse_and_visit_statement(
+      u8"interface I { readonly @decorator field; }"_sv,
+      u8"                       ^ Diag_Decorator_In_TypeScript_Interface"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_Decorator,
+       decorators_are_not_allowed_on_typescript_abstract_methods) {
+  test_parse_and_visit_statement(
+      u8"abstract class C { @decorator abstract foo(); }"_sv,
+      u8"                              ^^^^^^^^ Diag_Decorator_On_Abstract_Class_Member.abstract_keyword\n"_diag
+      u8"                   ^ .decorator_at"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"abstract class C { @decorator abstract myField; }"_sv,
+      u8"                              ^^^^^^^^ Diag_Decorator_On_Abstract_Class_Member.abstract_keyword\n"_diag
+      u8"                   ^ .decorator_at"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"abstract class C { @decorator1 @decorator2 abstract foo(); }"_sv,
+      u8"                                           ^^^^^^^^ Diag_Decorator_On_Abstract_Class_Member.abstract_keyword\n"_diag
+      u8"                               ^ .decorator_at"_diag,
+      u8"                                           ^^^^^^^^ Diag_Decorator_On_Abstract_Class_Member.abstract_keyword\n"_diag
+      u8"                   ^ .decorator_at"_diag,
+      typescript_options);
+  // Shouldn't also report Diag_Decorator_After_Class_Member_Modifiers.
+  test_parse_and_visit_statement(
+      u8"abstract class C { abstract @decorator foo(); }"_sv,
+      u8"                            ^ Diag_Decorator_On_Abstract_Class_Member.decorator_at\n"_diag
+      u8"                   ^^^^^^^^ .abstract_keyword"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_Decorator, decorator_on_typescript_overloaded_method) {
+  test_parse_and_visit_statement(u8"class C { foo(); @decorator foo() {} }"_sv,
+                                 no_diags, typescript_options);
+}
+
+TEST_F(Test_Parse_Decorator,
+       decorators_are_not_allowed_on_typescript_method_overload_signatures) {
+  test_parse_and_visit_statement(
+      u8"class C { @decorator foo(); foo() {} }"_sv,
+      u8"                            ` Diag_Decorator_On_Overload_Signature.expected_location\n"_diag
+      u8"          ^ .decorator_at"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"class C { @decorator foo(); async foo() {} }"_sv,
+      u8"                            ` Diag_Decorator_On_Overload_Signature.expected_location\n"_diag
+      u8"          ^ .decorator_at"_diag,
+      typescript_options);
+}
 }
 }
 

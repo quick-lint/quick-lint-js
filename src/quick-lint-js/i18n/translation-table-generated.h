@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 497;
-constexpr std::size_t translation_table_string_table_size = 78745;
+constexpr std::uint16_t translation_table_mapping_table_size = 509;
+constexpr std::size_t translation_table_string_table_size = 79234;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -227,6 +227,12 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "const variable declared here"sv,
           "containing 'declare namespace' starts here"sv,
           "continue can only be used inside of a loop"sv,
+          "decorator belongs immediately before this overloaded method"sv,
+          "decorator starts here"sv,
+          "decorators are not allowed inside TypeScript interfaces"sv,
+          "decorators are not allowed on abstract properties"sv,
+          "decorators must appear after overload signatures"sv,
+          "decorators must appear before '{1}"sv,
           "depth limit exceeded"sv,
           "do-while loop is missing '{1}' around condition"sv,
           "do-while loop needs parentheses around condition"sv,
@@ -348,6 +354,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing body for {1:headlinese}"sv,
           "missing catch or finally clause for try statement"sv,
           "missing catch variable name between parentheses"sv,
+          "missing class method or field after decorator"sv,
           "missing comma between generic parameters"sv,
           "missing comma between object literal entries"sv,
           "missing comparison; '{1}' does not extend to the right side of '{0}'"sv,
@@ -430,6 +437,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "parentheses are required around 'infer {1}'"sv,
           "prior spread element is here"sv,
           "private properties are not allowed in object literals"sv,
+          "property declared 'abstract' here"sv,
           "property declared static here"sv,
           "property declared using '{0}' here"sv,
           "redeclaration of global variable"sv,
@@ -440,9 +448,12 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "remove this 'type'"sv,
           "return statement returns nothing (undefined)"sv,
           "see here"sv,
+          "semicolon is not allowed after decorators"sv,
           "something happened"sv,
           "spread starts here"sv,
           "spread tuple elements cannot be optional"sv,
+          "static block starts here"sv,
+          "static blocks cannot have a decorator"sv,
           "stray comma in function parameter"sv,
           "stray comma in let statement"sv,
           "string module name is only allowed with 'declare module'"sv,
@@ -515,6 +526,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "with statement needs parentheses around expression"sv,
           "write 'const' instead of '{0}' here"sv,
           "write '{1}' here or remove it from the overload signature"sv,
+          "write the decorator before here"sv,
           "write the type assertion with 'as' here instead"sv,
           "{0} classes are not allowed in JavaScript"sv,
           "{0} is not the name of a parameter"sv,

@@ -663,6 +663,93 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Decorator_After_Class_Member_Modifiers
+    {
+      .code = 408,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("decorators must appear before '{1}"),
+        QLJS_TRANSLATABLE("write the decorator before here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_After_Class_Member_Modifiers, decorator_at), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_After_Class_Member_Modifiers, modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_After_Class_Member_Modifiers, modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Decorator_Not_Allowed_On_Class_Static_Block
+    {
+      .code = 407,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("static blocks cannot have a decorator"),
+        QLJS_TRANSLATABLE("static block starts here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_Not_Allowed_On_Class_Static_Block, decorator_at), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_Not_Allowed_On_Class_Static_Block, static_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Decorator_In_TypeScript_Interface
+    {
+      .code = 411,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("decorators are not allowed inside TypeScript interfaces"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_In_TypeScript_Interface, decorator_at), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Decorator_On_Abstract_Class_Member
+    {
+      .code = 412,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("decorators are not allowed on abstract properties"),
+        QLJS_TRANSLATABLE("property declared 'abstract' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_On_Abstract_Class_Member, decorator_at), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_On_Abstract_Class_Member, abstract_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Decorator_On_Overload_Signature
+    {
+      .code = 413,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("decorators must appear after overload signatures"),
+        QLJS_TRANSLATABLE("decorator belongs immediately before this overloaded method"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_On_Overload_Signature, decorator_at), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Decorator_On_Overload_Signature, expected_location), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Function_Async_Function
     {
       .code = 327,
@@ -2763,6 +2850,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_Key_For_Object_Entry, expression), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Missing_Class_Member_After_Decorator
+    {
+      .code = 409,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("missing class method or field after decorator"),
+        QLJS_TRANSLATABLE("decorator starts here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_Class_Member_After_Decorator, expected_member), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_Class_Member_After_Decorator, decorator_at), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },
@@ -5251,6 +5356,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Unexpected_Question_When_Destructuring, question), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Unexpected_Semicolon_After_Decorator
+    {
+      .code = 410,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("semicolon is not allowed after decorators"),
+        QLJS_TRANSLATABLE("decorator starts here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unexpected_Semicolon_After_Decorator, semicolon), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unexpected_Semicolon_After_Decorator, decorator_at), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

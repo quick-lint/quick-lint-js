@@ -2630,7 +2630,10 @@ void Parser::parse_and_visit_decorator(Parse_Visitor_Base &v) {
 
   // @(myDecorator)
   case Token_Type::left_paren:
+    this->skip();
     this->parse_and_visit_expression(v);
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
+    this->skip();
     break;
 
   default:

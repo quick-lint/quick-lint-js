@@ -53,6 +53,11 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Namespace_Cannot_Import_Module) \
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Var_Cannot_Have_Initializer) \
   QLJS_DIAG_TYPE_NAME(Diag_Declare_Var_Not_Allowed_In_JavaScript) \
+  QLJS_DIAG_TYPE_NAME(Diag_Decorator_After_Class_Member_Modifiers) \
+  QLJS_DIAG_TYPE_NAME(Diag_Decorator_Not_Allowed_On_Class_Static_Block) \
+  QLJS_DIAG_TYPE_NAME(Diag_Decorator_In_TypeScript_Interface) \
+  QLJS_DIAG_TYPE_NAME(Diag_Decorator_On_Abstract_Class_Member) \
+  QLJS_DIAG_TYPE_NAME(Diag_Decorator_On_Overload_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Function_Async_Function) \
   QLJS_DIAG_TYPE_NAME(Diag_Big_Int_Literal_Contains_Decimal_Point) \
   QLJS_DIAG_TYPE_NAME(Diag_Big_Int_Literal_Contains_Exponent) \
@@ -196,6 +201,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Header_Of_For_Loop) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Initializer_In_Const_Declaration) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Key_For_Object_Entry) \
+  QLJS_DIAG_TYPE_NAME(Diag_Missing_Class_Member_After_Decorator) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Class_Method_Name) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Name_In_Function_Statement) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Name_In_Class_Statement) \
@@ -362,6 +368,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Right_Curly_In_JSX_Text) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Question_In_Expression) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Question_When_Destructuring) \
+  QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Semicolon_After_Decorator) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Semicolon_After_Overload_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Semicolon_In_C_Style_For_Loop) \
   QLJS_DIAG_TYPE_NAME(Diag_Unexpected_Semicolon_In_For_In_Loop) \
@@ -424,7 +431,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 410;
+inline constexpr int Diag_Type_Count = 417;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

@@ -212,7 +212,13 @@ const Translation_Table translation_data = {
         {90, 38, 91, 90, 53, 75},            //
         {0, 0, 0, 0, 0, 29},                 //
         {41, 16, 34, 35, 34, 43},            //
-        {49, 11, 64, 46, 39, 43},            //
+        {0, 0, 0, 0, 0, 43},                 //
+        {0, 0, 0, 0, 0, 60},                 //
+        {0, 0, 0, 0, 0, 22},                 //
+        {0, 0, 0, 0, 0, 56},                 //
+        {0, 0, 0, 0, 0, 50},                 //
+        {0, 0, 0, 0, 0, 49},                 //
+        {49, 11, 64, 46, 39, 35},            //
         {46, 20, 32, 32, 31, 21},            //
         {47, 58, 59, 52, 39, 48},            //
         {51, 26, 71, 60, 46, 49},            //
@@ -333,7 +339,8 @@ const Translation_Table translation_data = {
         {33, 31, 36, 32, 30, 28},            //
         {34, 47, 35, 36, 34, 32},            //
         {53, 77, 57, 54, 46, 50},            //
-        {0, 0, 0, 44, 0, 48},                //
+        {0, 0, 0, 0, 0, 48},                 //
+        {0, 0, 0, 44, 0, 46},                //
         {44, 21, 60, 49, 44, 41},            //
         {49, 35, 0, 45, 0, 45},              //
         {76, 28, 56, 73, 48, 69},            //
@@ -416,6 +423,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 44},                 //
         {32, 13, 50, 41, 38, 29},            //
         {0, 0, 0, 0, 0, 54},                 //
+        {0, 0, 0, 0, 0, 34},                 //
         {0, 0, 0, 0, 0, 30},                 //
         {66, 33, 76, 54, 58, 35},            //
         {40, 29, 35, 35, 33, 33},            //
@@ -425,10 +433,13 @@ const Translation_Table translation_data = {
         {0, 0, 0, 56, 0, 44},                //
         {53, 14, 55, 19, 0, 19},             //
         {49, 31, 0, 52, 0, 45},              //
-        {11, 9, 0, 10, 0, 9},                //
+        {0, 0, 0, 0, 0, 9},                  //
+        {11, 9, 0, 10, 0, 42},               //
         {0, 0, 0, 0, 0, 19},                 //
         {0, 0, 0, 0, 0, 19},                 //
-        {14, 26, 53, 15, 0, 41},             //
+        {0, 0, 0, 0, 0, 41},                 //
+        {0, 0, 0, 0, 0, 25},                 //
+        {14, 26, 53, 15, 0, 38},             //
         {41, 63, 47, 41, 57, 34},            //
         {0, 0, 0, 0, 0, 29},                 //
         {36, 33, 41, 34, 31, 57},            //
@@ -500,7 +511,8 @@ const Translation_Table translation_data = {
         {43, 55, 61, 55, 43, 50},            //
         {0, 0, 0, 59, 0, 51},                //
         {0, 0, 0, 0, 0, 36},                 //
-        {0, 0, 0, 33, 0, 58},                //
+        {0, 0, 0, 0, 0, 58},                 //
+        {0, 0, 0, 33, 0, 32},                //
         {0, 0, 0, 44, 0, 48},                //
         {0, 0, 0, 43, 0, 42},                //
         {47, 55, 72, 36, 48, 35},            //
@@ -1980,6 +1992,12 @@ const Translation_Table translation_data = {
         u8"const variable declared here\0"
         u8"containing 'declare namespace' starts here\0"
         u8"continue can only be used inside of a loop\0"
+        u8"decorator belongs immediately before this overloaded method\0"
+        u8"decorator starts here\0"
+        u8"decorators are not allowed inside TypeScript interfaces\0"
+        u8"decorators are not allowed on abstract properties\0"
+        u8"decorators must appear after overload signatures\0"
+        u8"decorators must appear before '{1}\0"
         u8"depth limit exceeded\0"
         u8"do-while loop is missing '{1}' around condition\0"
         u8"do-while loop needs parentheses around condition\0"
@@ -2101,6 +2119,7 @@ const Translation_Table translation_data = {
         u8"missing body for {1:headlinese}\0"
         u8"missing catch or finally clause for try statement\0"
         u8"missing catch variable name between parentheses\0"
+        u8"missing class method or field after decorator\0"
         u8"missing comma between generic parameters\0"
         u8"missing comma between object literal entries\0"
         u8"missing comparison; '{1}' does not extend to the right side of '{0}'\0"
@@ -2183,6 +2202,7 @@ const Translation_Table translation_data = {
         u8"parentheses are required around 'infer {1}'\0"
         u8"prior spread element is here\0"
         u8"private properties are not allowed in object literals\0"
+        u8"property declared 'abstract' here\0"
         u8"property declared static here\0"
         u8"property declared using '{0}' here\0"
         u8"redeclaration of global variable\0"
@@ -2193,9 +2213,12 @@ const Translation_Table translation_data = {
         u8"remove this 'type'\0"
         u8"return statement returns nothing (undefined)\0"
         u8"see here\0"
+        u8"semicolon is not allowed after decorators\0"
         u8"something happened\0"
         u8"spread starts here\0"
         u8"spread tuple elements cannot be optional\0"
+        u8"static block starts here\0"
+        u8"static blocks cannot have a decorator\0"
         u8"stray comma in function parameter\0"
         u8"stray comma in let statement\0"
         u8"string module name is only allowed with 'declare module'\0"
@@ -2268,6 +2291,7 @@ const Translation_Table translation_data = {
         u8"with statement needs parentheses around expression\0"
         u8"write 'const' instead of '{0}' here\0"
         u8"write '{1}' here or remove it from the overload signature\0"
+        u8"write the decorator before here\0"
         u8"write the type assertion with 'as' here instead\0"
         u8"{0} classes are not allowed in JavaScript\0"
         u8"{0} is not the name of a parameter\0"

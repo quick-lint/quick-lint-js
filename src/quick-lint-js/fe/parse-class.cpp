@@ -278,9 +278,12 @@ void Parser::parse_and_visit_class_or_interface_member(
     std::optional<Source_Code_Span> declare_keyword;
 
     std::optional<Identifier> last_ident;
+    // The location of where this member starts. It could be the start of the
+    // first modifier or the beginning of the member's name.
+    const Char8 *current_member_begin;
 
     // *, !, ?, accessor, async, function, get, private, protected, public,
-    // readonly, set, static
+    // readonly, set, static, @ (decorator)
     struct Modifier {
       Source_Code_Span span;
       Token_Type type;
@@ -324,6 +327,7 @@ void Parser::parse_and_visit_class_or_interface_member(
         overload_signatures{"class overload signatures", &p->temporary_memory_};
 
     void reset_state_except_overload_signatures() {
+      this->current_member_begin = p->peek().begin;
       this->last_ident = std::nullopt;
       this->modifiers.clear();
     }
@@ -423,6 +427,20 @@ void Parser::parse_and_visit_class_or_interface_member(
           p->skip();
           continue;
 
+        // @decorator f() {}
+        case Token_Type::at:
+          if (this->is_interface) {
+            p->diag_reporter_->report(Diag_Decorator_In_TypeScript_Interface{
+                .decorator_at = p->peek().span(),
+            });
+          }
+          modifiers.push_back(Modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
+          p->parse_and_visit_decorator(v);
+          continue;
+
         default:
           return false;
         }
@@ -507,6 +525,27 @@ void Parser::parse_and_visit_class_or_interface_member(
         if (last_ident.has_value()) {
           modifiers.pop_back();
           parse_and_visit_field_or_method(*last_ident);
+        } else if (!this->modifiers.empty() &&
+                   this->modifiers.back().type == Token_Type::at) {
+          // @decorator;  // Invalid.
+          const Char8 *end_of_decorator = p->lexer_.end_of_previous_token();
+          Source_Code_Span semicolon_span = p->peek().span();
+          p->skip();
+          if (this->is_interface) {
+            // We already reported Diag_Decorator_In_TypeScript_Interface.
+          } else if (p->peek().type == Token_Type::right_curly) {
+            // class C { @decorator; }  // Invalid.
+            p->diag_reporter_->report(Diag_Missing_Class_Member_After_Decorator{
+                .expected_member = Source_Code_Span::unit(end_of_decorator),
+                .decorator_at = this->modifiers.back().span,
+            });
+          } else {
+            // class C { @decorator; foo() {} }  // Invalid.
+            p->diag_reporter_->report(Diag_Unexpected_Semicolon_After_Decorator{
+                .semicolon = semicolon_span,
+                .decorator_at = this->modifiers.back().span,
+            });
+          }
         } else {
           p->skip();
         }
@@ -546,6 +585,17 @@ void Parser::parse_and_visit_class_or_interface_member(
         } else if (last_ident.has_value()) {
           modifiers.pop_back();
           parse_and_visit_field_or_method(*last_ident);
+        } else if (!this->modifiers.empty() &&
+                   this->modifiers.back().type == Token_Type::at) {
+          if (this->is_interface) {
+            // We already reported Diag_Decorator_In_TypeScript_Interface.
+          } else {
+            p->diag_reporter_->report(Diag_Missing_Class_Member_After_Decorator{
+                .expected_member =
+                    Source_Code_Span::unit(p->lexer_.end_of_previous_token()),
+                .decorator_at = this->modifiers.back().span,
+            });
+          }
         } else {
           QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
         }
@@ -586,14 +636,14 @@ void Parser::parse_and_visit_class_or_interface_member(
       // class C { {             // Invalid.
       // class C { static { } }  // TypeScript only.
       case Token_Type::left_curly:
-        if (modifiers.size() == 1 &&
-            modifiers[0].type == Token_Type::kw_static) {
+        if (!modifiers.empty() &&
+            modifiers.back().type == Token_Type::kw_static) {
           // class C { static { } }
           v.visit_enter_block_scope();
           Source_Code_Span left_curly_span = p->peek().span();
           p->skip();
 
-          error_if_invalid_static_block(/*static_modifier=*/modifiers[0]);
+          error_if_invalid_static_block(/*static_modifier=*/modifiers.back());
 
           p->parse_and_visit_statement_block_after_left_curly(v,
                                                               left_curly_span);
@@ -1079,6 +1129,8 @@ void Parser::parse_and_visit_class_or_interface_member(
       error_if_invalid_access_specifier();
       error_if_getter_setter_field();
       error_if_access_specifier_not_first_in_field();
+      error_if_decorator_not_first();
+      error_if_abstract_with_decorator();
       error_if_abstract_or_static_after_accessor();
       error_if_conflicting_modifiers();
       error_if_readonly_in_not_typescript();
@@ -1097,6 +1149,8 @@ void Parser::parse_and_visit_class_or_interface_member(
       error_if_async_or_generator_without_method_body();
       error_if_invalid_access_specifier();
       error_if_access_specifier_not_first_in_method();
+      error_if_decorator_not_first();
+      error_if_abstract_with_decorator();
       error_if_static_in_interface();
       error_if_static_abstract();
       error_if_optional_in_not_typescript();
@@ -1133,6 +1187,14 @@ void Parser::parse_and_visit_class_or_interface_member(
         p->diag_reporter_->report(
             Diag_TypeScript_Interfaces_Cannot_Contain_Static_Blocks{
                 .static_token = static_modifier.span,
+            });
+      }
+      if (const Modifier *decorator_modifier =
+              this->find_modifier(Token_Type::at)) {
+        p->diag_reporter_->report(
+            Diag_Decorator_Not_Allowed_On_Class_Static_Block{
+                .decorator_at = decorator_modifier->span,
+                .static_keyword = static_modifier.span,
             });
       }
       if (declare_keyword.has_value() && !is_interface) {
@@ -1358,6 +1420,52 @@ void Parser::parse_and_visit_class_or_interface_member(
       }
     }
 
+    void error_if_decorator_not_first() {
+      if (this->is_interface) {
+        // We already reported Diag_Decorator_In_TypeScript_Interface.
+        return;
+      }
+      Span_Size i = 0;
+      for (; i < this->modifiers.size() &&
+             this->modifiers[i].type == Token_Type::at;
+           ++i) {
+        // Skip decorators.
+      }
+      if (i < this->modifiers.size()) {
+        // There is at least one non-decorator modifier.
+        const Modifier *non_decorator_modifier = &this->modifiers[i];
+        if (non_decorator_modifier->type == Token_Type::kw_abstract) {
+          // abstract @decorator myMethod() {}  // Invalid.
+          // Diag_Decorator_On_Abstract_Class_Member is reported elsewhere.
+          return;
+        }
+        for (; i < this->modifiers.size(); ++i) {
+          if (this->modifiers[i].type == Token_Type::at) {
+            p->diag_reporter_->report(
+                Diag_Decorator_After_Class_Member_Modifiers{
+                    .decorator_at = this->modifiers[i].span,
+                    .modifier = non_decorator_modifier->span,
+                });
+          }
+        }
+      }
+    }
+
+    void error_if_abstract_with_decorator() {
+      if (const Modifier *abstract_modifier =
+              this->find_modifier(Token_Type::kw_abstract)) {
+        for (const Modifier &other_modifier : this->modifiers) {
+          if (other_modifier.type == Token_Type::at) {
+            // @decorator abstract myMethod() {}  // Invalid.
+            p->diag_reporter_->report(Diag_Decorator_On_Abstract_Class_Member{
+                .decorator_at = other_modifier.span,
+                .abstract_keyword = abstract_modifier->span,
+            });
+          }
+        }
+      }
+    }
+
     void error_if_abstract_or_static_after_accessor() {
       if (const Modifier *accessor_modifier =
               this->find_modifier(Token_Type::kw_accessor)) {
@@ -1566,6 +1674,14 @@ void Parser::parse_and_visit_class_or_interface_member(
               Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star{
                   .generator_star = star_modifier->span,
               });
+        }
+        if (const Modifier *decorator_modifier =
+                this->find_modifier(Token_Type::at, signature.modifiers)) {
+          p->diag_reporter_->report(Diag_Decorator_On_Overload_Signature{
+              .decorator_at = decorator_modifier->span,
+              .expected_location =
+                  Source_Code_Span::unit(this->current_member_begin),
+          });
         }
 
         const Modifier *signature_get_or_set_modifier = nullptr;
