@@ -81,6 +81,20 @@ enum Variable_Declaration_Flags : unsigned char {
   // See also NOTE[non-empty-namespace] and
   // Parser::is_current_typescript_namespace_non_empty_.
   non_empty_namespace = 1 << 1,
+
+  // Only valid for _const, _let, and _var.
+  //
+  // Examples set:
+  //   for (let x = 0, y = 42; x < xs.length; ++x);
+  //   for (var [x] of xs);
+  //   for (const key in o);
+  // Examples unset:
+  //   for (x of xs) var y;
+  //   let x;
+  inside_for_loop_head = 1 << 2,
+
+  inside_for_loop_head_initialized_with_equals =
+      inside_for_loop_head | initialized_with_equals,
 };
 
 enum class Function_Attributes {

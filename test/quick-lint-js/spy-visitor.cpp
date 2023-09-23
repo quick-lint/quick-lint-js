@@ -11,6 +11,9 @@ void PrintTo(const Visited_Variable_Declaration &x, std::ostream *out) {
   if (x.flags & Variable_Declaration_Flags::initialized_with_equals) {
     *out << " (initialized with '=')";
   }
+  if (x.flags & Variable_Declaration_Flags::inside_for_loop_head) {
+    *out << " (inside 'for' loop head)";
+  }
   if (x.flags & Variable_Declaration_Flags::non_empty_namespace) {
     *out << " (non-empty)";
   }

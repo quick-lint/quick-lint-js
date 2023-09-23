@@ -47,8 +47,8 @@ inline Visited_Variable_Declaration class_decl(String8_View name) {
                                       Variable_Declaration_Flags::none};
 }
 
-// A variable declared with 'const' with an initializer. Example: const x =
-// null;
+// A variable declared with 'const' with an initializer.
+// Example: const x = null;
 inline Visited_Variable_Declaration const_init_decl(String8_View name) {
   return Visited_Variable_Declaration{
       String8(name), Variable_Kind::_const,
@@ -60,6 +60,24 @@ inline Visited_Variable_Declaration const_init_decl(String8_View name) {
 inline Visited_Variable_Declaration const_noinit_decl(String8_View name) {
   return Visited_Variable_Declaration{String8(name), Variable_Kind::_const,
                                       Variable_Declaration_Flags::none};
+}
+
+// A variable declared with 'const' with an initializer in the head of a 'for'
+// loop.
+// Example: for (const length = xs.length; i < length; ++i);
+inline Visited_Variable_Declaration const_init_for_decl(String8_View name) {
+  return Visited_Variable_Declaration{
+      String8(name), Variable_Kind::_const,
+      Variable_Declaration_Flags::inside_for_loop_head_initialized_with_equals};
+}
+
+// A variable declared with 'const' without an initializer in the head of a
+// 'for' loop.
+// Example: for (const x of xs);
+inline Visited_Variable_Declaration const_noinit_for_decl(String8_View name) {
+  return Visited_Variable_Declaration{
+      String8(name), Variable_Kind::_const,
+      Variable_Declaration_Flags::inside_for_loop_head};
 }
 
 inline Visited_Variable_Declaration enum_decl(String8_View name) {
@@ -137,6 +155,24 @@ inline Visited_Variable_Declaration let_noinit_decl(String8_View name) {
                                       Variable_Declaration_Flags::none};
 }
 
+// A variable declared with 'let' with an initializer in the head of a 'for'
+// loop.
+// Example: for (let x = 0; x < 10; ++x);
+inline Visited_Variable_Declaration let_init_for_decl(String8_View name) {
+  return Visited_Variable_Declaration{
+      String8(name), Variable_Kind::_let,
+      Variable_Declaration_Flags::inside_for_loop_head_initialized_with_equals};
+}
+
+// A variable declared with 'let' without an initializer in the head of a 'for'
+// loop.
+// Example: for (let x of xs);
+inline Visited_Variable_Declaration let_noinit_for_decl(String8_View name) {
+  return Visited_Variable_Declaration{
+      String8(name), Variable_Kind::_let,
+      Variable_Declaration_Flags::inside_for_loop_head};
+}
+
 // A TypeScript namespace (declared with the 'module' or 'namespace' keyword)
 // for which the TypeScript compiler generates JavaScript code.
 inline Visited_Variable_Declaration non_empty_namespace_decl(
@@ -177,6 +213,24 @@ inline Visited_Variable_Declaration var_init_decl(String8_View name) {
 inline Visited_Variable_Declaration var_noinit_decl(String8_View name) {
   return Visited_Variable_Declaration{String8(name), Variable_Kind::_var,
                                       Variable_Declaration_Flags::none};
+}
+
+// A variable declared with 'var' with an initializer in the head of a 'for'
+// loop.
+// Example: for (var length = xs.length; i < length; ++i);
+inline Visited_Variable_Declaration var_init_for_decl(String8_View name) {
+  return Visited_Variable_Declaration{
+      String8(name), Variable_Kind::_var,
+      Variable_Declaration_Flags::inside_for_loop_head_initialized_with_equals};
+}
+
+// A variable declared with 'var' without an initializer in the head of a
+// 'for' loop.
+// Example: for (var x of xs);
+inline Visited_Variable_Declaration var_noinit_for_decl(String8_View name) {
+  return Visited_Variable_Declaration{
+      String8(name), Variable_Kind::_var,
+      Variable_Declaration_Flags::inside_for_loop_head};
 }
 
 struct Parse_Visit_Collector : public Parse_Visitor_Base {

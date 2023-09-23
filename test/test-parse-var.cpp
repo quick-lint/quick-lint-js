@@ -1933,7 +1933,7 @@ TEST_F(Test_Parse_Var, variables_can_be_named_contextual_keywords) {
       auto guard = p.enter_function(Function_Attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations,
-                  ElementsAreArray({let_noinit_decl(name)}));
+                  ElementsAreArray({let_noinit_for_decl(name)}));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"xs"}));
     }
 
@@ -1942,7 +1942,7 @@ TEST_F(Test_Parse_Var, variables_can_be_named_contextual_keywords) {
       auto guard = p.enter_function(Function_Attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations,
-                  ElementsAreArray({var_noinit_decl(name)}));
+                  ElementsAreArray({var_noinit_for_decl(name)}));
       EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"xs"}));
     }
 

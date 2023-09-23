@@ -4894,6 +4894,16 @@ void Parser::parse_and_visit_let_bindings(
     });
   }
 
+  Variable_Declaration_Flags flags_without_initializer =
+      options.is_in_for_initializer
+          ? Variable_Declaration_Flags::inside_for_loop_head
+          : Variable_Declaration_Flags::none;
+  Variable_Declaration_Flags flags_with_initializer =
+      options.is_in_for_initializer
+          ? Variable_Declaration_Flags::
+                inside_for_loop_head_initialized_with_equals
+          : Variable_Declaration_Flags::initialized_with_equals;
+
   Source_Code_Span let_span = options.declaring_token.span();
   bool first_binding = true;
   for (;;) {
@@ -5051,7 +5061,7 @@ void Parser::parse_and_visit_let_bindings(
             Binding_Element_Info{
                 .declaration_kind = declaration_kind,
                 .declaring_token = options.declaring_token.span(),
-                .flags = Variable_Declaration_Flags::initialized_with_equals,
+                .flags = flags_with_initializer,
             });
         break;
       }
@@ -5071,7 +5081,7 @@ void Parser::parse_and_visit_let_bindings(
               Binding_Element_Info{
                   .declaration_kind = declaration_kind,
                   .declaring_token = options.declaring_token.span(),
-                  .flags = Variable_Declaration_Flags::none,
+                  .flags = flags_without_initializer,
               });
           this->lexer_.insert_semicolon();
           return;
@@ -5089,8 +5099,7 @@ void Parser::parse_and_visit_let_bindings(
             Binding_Element_Info{
                 .declaration_kind = declaration_kind,
                 .declaring_token = options.declaring_token.span(),
-                // TODO(strager): Would initialized_with_equals make more sense?
-                .flags = Variable_Declaration_Flags::none,
+                .flags = flags_with_initializer,
             });
         break;
       }
@@ -5111,7 +5120,7 @@ void Parser::parse_and_visit_let_bindings(
             Binding_Element_Info{
                 .declaration_kind = declaration_kind,
                 .declaring_token = options.declaring_token.span(),
-                .flags = Variable_Declaration_Flags::none,
+                .flags = flags_without_initializer,
             });
         break;
       }
@@ -5138,7 +5147,7 @@ void Parser::parse_and_visit_let_bindings(
           Binding_Element_Info{
               .declaration_kind = declaration_kind,
               .declaring_token = options.declaring_token.span(),
-              .flags = Variable_Declaration_Flags::none,
+              .flags = flags_without_initializer,
           });
       break;
     }
@@ -5296,7 +5305,9 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
     }
 
     this->visit_expression(rhs, v, Variable_Context::rhs);
-    Variable_Declaration_Flags lhs_flags = Variable_Declaration_Flags::none;
+    Variable_Declaration_Flags lhs_flags =
+        static_cast<Variable_Declaration_Flags>(
+            info.flags & Variable_Declaration_Flags::inside_for_loop_head);
     switch (info.declaration_kind) {
     case Variable_Kind::_const:
     case Variable_Kind::_let:
