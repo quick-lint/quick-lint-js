@@ -6331,12 +6331,12 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 713,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("'*' keyword is not allowed on getters or setters"),
+        QLJS_TRANSLATABLE("getters and setters cannot be generators"),
         QLJS_TRANSLATABLE("'{0}' here"),
       },
       .message_args = {
         {
-          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Generator_On_Getter_Or_Setter, generator_keyword), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Generator_On_Getter_Or_Setter, star_token), Diagnostic_Arg_Type::source_code_span),
         },
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Generator_On_Getter_Or_Setter, getter_setter_keyword), Diagnostic_Arg_Type::source_code_span),

@@ -2058,7 +2058,7 @@ msgid "missing ',' between array elements"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "'*' keyword is not allowed on getters or setters"
+msgid "getters and setters cannot be generators"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

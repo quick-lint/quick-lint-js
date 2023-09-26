@@ -106,17 +106,6 @@ inline const Translated_String test_translation_table[517] = {
         },
     },
     {
-        "'*' keyword is not allowed on getters or setters"_translatable,
-        u8"'*' keyword is not allowed on getters or setters",
-        {
-            u8"'*' keyword is not allowed on getters or setters",
-            u8"'*' keyword is not allowed on getters or setters",
-            u8"'*' keyword is not allowed on getters or setters",
-            u8"'*' keyword is not allowed on getters or setters",
-            u8"'*' keyword is not allowed on getters or setters",
-        },
-    },
-    {
         "'**' operator cannot be used after unary '{1}' without parentheses"_translatable,
         u8"'**' operator cannot be used after unary '{1}' without parentheses",
         {
@@ -3018,6 +3007,17 @@ inline const Translated_String test_translation_table[517] = {
             u8"generic arrow function needs ',' here in TSX",
             u8"aqui no TSX, uma arrow function gen\u00e9rica precisa de ','",
             u8"generic arrow function needs ',' here in TSX",
+        },
+    },
+    {
+        "getters and setters cannot be generators"_translatable,
+        u8"getters and setters cannot be generators",
+        {
+            u8"getters and setters cannot be generators",
+            u8"getters and setters cannot be generators",
+            u8"getters and setters cannot be generators",
+            u8"getters and setters cannot be generators",
+            u8"getters and setters cannot be generators",
         },
     },
     {

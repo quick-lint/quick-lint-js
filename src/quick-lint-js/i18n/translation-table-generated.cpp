@@ -18,8 +18,7 @@ const Translation_Table translation_data = {
         {74, 87, 79, 56, 0, 59},             //
         {71, 80, 60, 58, 0, 52},             //
         {0, 0, 0, 0, 0, 28},                 //
-        {0, 0, 0, 0, 0, 63},                 //
-        {31, 56, 0, 32, 0, 49},              //
+        {31, 56, 0, 32, 0, 63},              //
         {0, 0, 0, 0, 0, 67},                 //
         {0, 0, 0, 70, 0, 26},                //
         {79, 25, 30, 63, 49593, 66},         //
@@ -284,6 +283,7 @@ const Translation_Table translation_data = {
         {84, 28, 66, 75, 25, 54},            //
         {0, 0, 0, 70, 0, 52},                //
         {0, 0, 0, 0, 0, 45},                 //
+        {0, 0, 0, 0, 0, 41},                 //
         {70, 27, 0, 57, 0, 52},              //
         {0, 0, 0, 5, 0, 5},                  //
         {5, 11, 66, 52, 54, 42},             //
@@ -1807,7 +1807,6 @@ const Translation_Table translation_data = {
         u8"\"globals\" descriptor must be a boolean or an object\0"
         u8"\"globals\" must be an object\0"
         u8"'!' here treated as the TypeScript non-null assertion operator\0"
-        u8"'*' keyword is not allowed on getters or setters\0"
         u8"'**' operator cannot be used after unary '{1}' without parentheses\0"
         u8"',' should be ';' instead\0"
         u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead\0"
@@ -2072,6 +2071,7 @@ const Translation_Table translation_data = {
         u8"generator function '*' belongs after keyword function\0"
         u8"generator function '*' belongs before function name\0"
         u8"generic arrow function needs ',' here in TSX\0"
+        u8"getters and setters cannot be generators\0"
         u8"getters and setters cannot have overload signatures\0"
         u8"here\0"
         u8"here is the assignment assertion operator\0"

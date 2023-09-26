@@ -19,7 +19,7 @@ using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
 constexpr std::uint16_t translation_table_mapping_table_size = 518;
-constexpr std::size_t translation_table_string_table_size = 79741;
+constexpr std::size_t translation_table_string_table_size = 79733;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -33,7 +33,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "\"globals\" descriptor must be a boolean or an object"sv,
           "\"globals\" must be an object"sv,
           "'!' here treated as the TypeScript non-null assertion operator"sv,
-          "'*' keyword is not allowed on getters or setters"sv,
           "'**' operator cannot be used after unary '{1}' without parentheses"sv,
           "',' should be ';' instead"sv,
           "'.' is not allowed after generic arguments; write [\"{1}\"] instead"sv,
@@ -298,6 +297,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "generator function '*' belongs after keyword function"sv,
           "generator function '*' belongs before function name"sv,
           "generic arrow function needs ',' here in TSX"sv,
+          "getters and setters cannot be generators"sv,
           "getters and setters cannot have overload signatures"sv,
           "here"sv,
           "here is the assignment assertion operator"sv,

@@ -1155,8 +1155,8 @@ void Parser::parse_and_visit_class_or_interface_member(
     void check_modifiers_for_method() {
       error_if_accessor_method();
       error_if_declare_method();
-      error_if_generator_method();
-      error_if_async_method();
+      error_if_generator_getter_or_setter();
+      error_if_async_getter_or_setter();
       error_if_readonly_method();
       error_if_async_or_generator_without_method_body();
       error_if_invalid_access_specifier();
@@ -1326,40 +1326,34 @@ void Parser::parse_and_visit_class_or_interface_member(
       }
     }
 
-    void error_if_generator_method() {
+    void error_if_generator_getter_or_setter() {
       if (const Modifier *star_modifier = find_modifier(Token_Type::star)) {
-        Source_Code_Span method_start = p->peek().span();
         if (const Modifier *get_modifier = find_modifier(Token_Type::kw_get)) {
           p->diag_reporter_->report(Diag_Class_Generator_On_Getter_Or_Setter{
-              .method_start = method_start,
-              .generator_keyword = star_modifier->span,
+              .star_token = star_modifier->span,
               .getter_setter_keyword = get_modifier->span,
           });
         } else if (const Modifier *set_modifier =
                        find_modifier(Token_Type::kw_set)) {
           p->diag_reporter_->report(Diag_Class_Generator_On_Getter_Or_Setter{
-              .method_start = method_start,
-              .generator_keyword = star_modifier->span,
+              .star_token = star_modifier->span,
               .getter_setter_keyword = set_modifier->span,
           });
         }
       }
     }
 
-    void error_if_async_method() {
+    void error_if_async_getter_or_setter() {
       if (const Modifier *async_modifier =
               find_modifier(Token_Type::kw_async)) {
-        Source_Code_Span method_start = p->peek().span();
         if (const Modifier *get_modifier = find_modifier(Token_Type::kw_get)) {
           p->diag_reporter_->report(Diag_Class_Async_On_Getter_Or_Setter{
-              .method_start = method_start,
               .async_keyword = async_modifier->span,
               .getter_setter_keyword = get_modifier->span,
           });
         } else if (const Modifier *set_modifier =
                        find_modifier(Token_Type::kw_set)) {
           p->diag_reporter_->report(Diag_Class_Async_On_Getter_Or_Setter{
-              .method_start = method_start,
               .async_keyword = async_modifier->span,
               .getter_setter_keyword = set_modifier->span,
           });

@@ -839,26 +839,22 @@ TEST_F(Test_Parse_Class, accessor_cannot_be_method) {
 TEST_F(Test_Parse_Class, async_keyword_on_getters_and_setters) {
   test_parse_and_visit_statement(
       u8"class C { get async myMethod() { } }"_sv,  //
-      u8"                            ^ Diag_Class_Async_On_Getter_Or_Setter.method_start\n"_diag
-      u8"              ^^^^^ .async_keyword\n"_diag
+      u8"              ^^^^^ Diag_Class_Async_On_Getter_Or_Setter.async_keyword\n"_diag
       u8"          ^^^ .getter_setter_keyword"_diag,
       javascript_options);
   test_parse_and_visit_statement(
       u8"class C { set async myMethod() { } }"_sv,  //
-      u8"                            ^ Diag_Class_Async_On_Getter_Or_Setter.method_start\n"_diag
-      u8"              ^^^^^ .async_keyword\n"_diag
+      u8"              ^^^^^ Diag_Class_Async_On_Getter_Or_Setter.async_keyword\n"_diag
       u8"          ^^^ .getter_setter_keyword"_diag,
       javascript_options);
   test_parse_and_visit_statement(
       u8"class C { async get myMethod() { } }"_sv,  //
-      u8"                            ^ Diag_Class_Async_On_Getter_Or_Setter.method_start\n"_diag
-      u8"                ^^^ .getter_setter_keyword\n"_diag
+      u8"                ^^^ Diag_Class_Async_On_Getter_Or_Setter.getter_setter_keyword\n"_diag
       u8"          ^^^^^ .async_keyword"_diag,
       javascript_options);
   test_parse_and_visit_statement(
       u8"class C { async set myMethod() { } }"_sv,  //
-      u8"                            ^ Diag_Class_Async_On_Getter_Or_Setter.method_start\n"_diag
-      u8"                ^^^ .getter_setter_keyword\n"_diag
+      u8"                ^^^ Diag_Class_Async_On_Getter_Or_Setter.getter_setter_keyword\n"_diag
       u8"          ^^^^^ .async_keyword"_diag,
       javascript_options);
 }
@@ -866,14 +862,12 @@ TEST_F(Test_Parse_Class, async_keyword_on_getters_and_setters) {
 TEST_F(Test_Parse_Class, getters_and_setters_cannot_be_generator) {
   test_parse_and_visit_statement(
       u8"class C { get *myMethod() { } }"_sv,  //
-      u8"                       ^ Diag_Class_Generator_On_Getter_Or_Setter.method_start\n"_diag
-      u8"              ^ .generator_keyword\n"_diag
+      u8"              ^ Diag_Class_Generator_On_Getter_Or_Setter.star_token\n"_diag
       u8"          ^^^ .getter_setter_keyword"_diag,
       javascript_options);
   test_parse_and_visit_statement(
       u8"class C { set *myMethod() { } }"_sv,  //
-      u8"                       ^ Diag_Class_Generator_On_Getter_Or_Setter.method_start\n"_diag
-      u8"              ^ .generator_keyword\n"_diag
+      u8"              ^ Diag_Class_Generator_On_Getter_Or_Setter.star_token\n"_diag
       u8"          ^^^ .getter_setter_keyword"_diag,
       javascript_options);
 }
