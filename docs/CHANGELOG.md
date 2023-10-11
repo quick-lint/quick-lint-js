@@ -17,6 +17,10 @@ Semantic Versioning.
   S/390 (Linux s390x).
 * Missing commas in array literals now reports [E0712][]. (Implemented by
   [koopiehoop][].)
+* `get *prop()` and `set *prop()` in classes now report [E0713][] ("getters and
+  setters cannot be generators"). (Implemented by [koopiehoop][].)
+* `async get` and `async set` in classes now report [E0714][] ("'async' keyword
+  is not allowed on getters or setters"). (Implemented by [koopiehoop][].)
 * TypeScript support (still experimental):
   * Class method overload signatures are now parsed.
   * [E0398][] is now reported when using both `abstract` and `static` on a
@@ -1205,3 +1209,4 @@ Beta release.
 [E0709]: https://quick-lint-js.com/errors/E0709/
 [E0710]: https://quick-lint-js.com/errors/E0710/
 [E0712]: https://quick-lint-js.com/errors/E0712/
+[E0713]: https://quick-lint-js.com/errors/E0713/
