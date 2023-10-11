@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 516;
-constexpr std::size_t translation_table_string_table_size = 79639;
+constexpr std::uint16_t translation_table_mapping_table_size = 518;
+constexpr std::size_t translation_table_string_table_size = 79733;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -55,6 +55,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'as const' located here"sv,
           "'async export' is not allowed; write 'export async' instead"sv,
           "'async static' is not allowed; write 'static async' instead"sv,
+          "'async' keyword is not allowed on getters or setters"sv,
           "'await' cannot be followed by an arrow function; use 'async' instead"sv,
           "'await' is only allowed in async functions"sv,
           "'declare class' cannot contain static block"sv,
@@ -296,6 +297,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "generator function '*' belongs after keyword function"sv,
           "generator function '*' belongs before function name"sv,
           "generic arrow function needs ',' here in TSX"sv,
+          "getters and setters cannot be generators"sv,
           "getters and setters cannot have overload signatures"sv,
           "here"sv,
           "here is the assignment assertion operator"sv,

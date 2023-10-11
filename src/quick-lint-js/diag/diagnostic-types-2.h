@@ -3261,6 +3261,24 @@ struct Diag_Missing_Comma_Between_Array_Elements {
                   ARG(expected_comma))]]  //
   Source_Code_Span expected_comma;
 };
+
+struct Diag_Class_Generator_On_Getter_Or_Setter {
+  [[qljs::diag("E0713", Diagnostic_Severity::error)]]  //
+  [[qljs::message("getters and setters cannot be generators",
+                  ARG(star_token))]]                           //
+  [[qljs::message("'{0}' here", ARG(getter_setter_keyword))]]  //
+  Source_Code_Span star_token;
+  Source_Code_Span getter_setter_keyword;
+};
+
+struct Diag_Class_Async_On_Getter_Or_Setter {
+  [[qljs::diag("E0714", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'async' keyword is not allowed on getters or setters",
+                  ARG(async_keyword))]]                        //
+  [[qljs::message("'{0}' here", ARG(getter_setter_keyword))]]  //
+  Source_Code_Span async_keyword;
+  Source_Code_Span getter_setter_keyword;
+};
 }
 QLJS_WARNING_POP
 

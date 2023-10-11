@@ -40,7 +40,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 100, 0, 89},               //
         {0, 0, 0, 0, 0, 24},                 //
         {50, 77, 41, 27, 0, 60},             //
-        {70, 31, 69, 53, 0, 60},             //
+        {0, 0, 0, 0, 0, 60},                 //
+        {70, 31, 69, 53, 0, 53},             //
         {93, 15, 80, 68, 26, 69},            //
         {0, 0, 0, 0, 0, 43},                 //
         {0, 0, 0, 0, 0, 44},                 //
@@ -282,6 +283,7 @@ const Translation_Table translation_data = {
         {84, 28, 66, 75, 25, 54},            //
         {0, 0, 0, 70, 0, 52},                //
         {0, 0, 0, 0, 0, 45},                 //
+        {0, 0, 0, 0, 0, 41},                 //
         {70, 27, 0, 57, 0, 52},              //
         {0, 0, 0, 5, 0, 5},                  //
         {5, 11, 66, 52, 54, 42},             //
@@ -1827,6 +1829,7 @@ const Translation_Table translation_data = {
         u8"'as const' located here\0"
         u8"'async export' is not allowed; write 'export async' instead\0"
         u8"'async static' is not allowed; write 'static async' instead\0"
+        u8"'async' keyword is not allowed on getters or setters\0"
         u8"'await' cannot be followed by an arrow function; use 'async' instead\0"
         u8"'await' is only allowed in async functions\0"
         u8"'declare class' cannot contain static block\0"
@@ -2068,6 +2071,7 @@ const Translation_Table translation_data = {
         u8"generator function '*' belongs after keyword function\0"
         u8"generator function '*' belongs before function name\0"
         u8"generic arrow function needs ',' here in TSX\0"
+        u8"getters and setters cannot be generators\0"
         u8"getters and setters cannot have overload signatures\0"
         u8"here\0"
         u8"here is the assignment assertion operator\0"
