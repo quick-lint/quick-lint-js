@@ -436,10 +436,11 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Comma_Between_Array_Elements) \
   QLJS_DIAG_TYPE_NAME(Diag_Class_Generator_On_Getter_Or_Setter) \
   QLJS_DIAG_TYPE_NAME(Diag_Class_Async_On_Getter_Or_Setter) \
+  QLJS_DIAG_TYPE_NAME(Diag_Unintuitive_Bitshift_Precedence) \
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 425;
+inline constexpr int Diag_Type_Count = 426;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

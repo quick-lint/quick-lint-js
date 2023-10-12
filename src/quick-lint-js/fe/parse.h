@@ -496,6 +496,7 @@ class Parser {
   void warn_on_comma_operator_in_conditional_statement(Expression *);
   void warn_on_comma_operator_in_index(Expression *, Source_Code_Span);
   void warn_on_xor_operator_as_exponentiation(Expression::Binary_Operator *);
+  void warn_on_unintuitive_bitshift_precedence(Expression *ast);
   void error_on_pointless_string_compare(Expression::Binary_Operator *);
   void error_on_pointless_compare_against_literal(
       Expression::Binary_Operator *);

@@ -493,7 +493,8 @@ const Translation_Table translation_data = {
         {180, 42, 159, 156, 171, 156},       //
         {0, 0, 0, 0, 0, 65},                 //
         {92, 45, 78, 81, 70, 43},            //
-        {98, 37, 86, 82, 83, 77},            //
+        {0, 0, 0, 0, 0, 77},                 //
+        {98, 37, 86, 82, 83, 81},            //
         {38, 35, 17, 23, 13, 14},            //
         {38, 27, 34, 28, 33, 27},            //
         {26, 41, 26, 32, 0, 22},             //
@@ -2282,6 +2283,7 @@ const Translation_Table translation_data = {
         u8"unexpected token in variable declaration; expected variable name\0"
         u8"unexpected whitespace between '!' and '=='\0"
         u8"unicode byte order mark (BOM) cannot appear before #! at beginning of script\0"
+        u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &\0"
         u8"unmatched '}'\0"
         u8"unmatched indexing bracket\0"
         u8"unmatched parenthesis\0"

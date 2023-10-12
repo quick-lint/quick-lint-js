@@ -3279,6 +3279,14 @@ struct Diag_Class_Async_On_Getter_Or_Setter {
   Source_Code_Span async_keyword;
   Source_Code_Span getter_setter_keyword;
 };
+
+struct Diag_Unintuitive_Bitshift_Precedence {
+  [[qljs::diag("E0715", Diagnostic_Severity::warning)]]  //
+  [[qljs::message(
+      "unintuitive operator precedence when using & and '{0}'; "
+      "'{0}' evaluates before &",
+      ARG(bitshift_operator))]] Source_Code_Span bitshift_operator;
+};
 }
 QLJS_WARNING_POP
 

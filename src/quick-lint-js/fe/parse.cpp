@@ -360,7 +360,23 @@ void Parser::warn_on_comma_operator_in_index(Expression* ast,
     }
   }
 }
-
+void Parser::warn_on_unintuitive_bitshift_precedence(Expression* ast) {
+  if (ast->kind() != Expression_Kind::Binary_Operator) return;
+  if (ast->child_count() <= 2) return;
+  auto* binary_op = static_cast<Expression::Binary_Operator*>(ast);
+  Source_Code_Span left_op = binary_op->operator_spans_[0];
+  Source_Code_Span right_op = binary_op->operator_spans_[1];
+  if (left_op.string_view() == "&" &&
+      (right_op.string_view() == ">>" || right_op.string_view() == "<<")) {
+    if (binary_op->child(0)->kind() == Expression_Kind::Variable &&
+        binary_op->child(1)->kind() == Expression_Kind::Literal &&
+        binary_op->child(2)->kind() == Expression_Kind::Literal) {
+      this->diag_reporter_->report(
+          quick_lint_js::Diag_Unintuitive_Bitshift_Precedence{
+              .bitshift_operator = right_op});
+    }
+  }
+}
 void Parser::error_on_pointless_string_compare(
     Expression::Binary_Operator* ast) {
   auto is_comparison_operator = [](String8_View s) {
