@@ -39,6 +39,7 @@ Semantic Versioning.
 * [E0196][] is no longer falsely reported if the shadowing variable is declared
   in the head of a `for` loop. For example, quick-lint-js no longer warns about
   `let x; for (let x = 0;;);`.
+* Emacs: .el files are now installed in the correct place on Arch Linux, btw.
 * TypeScript support (still experimental):
   * A newline after `public`, `protected`, `private`, or `readonly` inside a
     class is now interpreted correctly.
