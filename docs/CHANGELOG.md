@@ -21,6 +21,8 @@ Semantic Versioning.
   setters cannot be generators"). (Implemented by [koopiehoop][].)
 * `async get` and `async set` in classes now report [E0714][] ("'async' keyword
   is not allowed on getters or setters"). (Implemented by [koopiehoop][].)
+* Emacs: The Debian/Ubuntu package now installs the Emacs plugin. Manual
+  installation of the .el files is no longer required.
 * TypeScript support (still experimental):
   * Class method overload signatures are now parsed.
   * [E0398][] is now reported when using both `abstract` and `static` on a

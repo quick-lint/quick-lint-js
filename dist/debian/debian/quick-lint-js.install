@@ -1,5 +1,6 @@
 usr/bin usr
 usr/share/bash-completion usr/share
+usr/share/emacs/site-lisp usr/share/emacs
 usr/share/fish usr/share
 usr/share/icons usr/share
 usr/share/man usr/share
