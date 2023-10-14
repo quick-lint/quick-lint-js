@@ -49,6 +49,8 @@ Semantic Versioning.
   * `<T>(T: T) => {}` (a generic arrow function with the same name for a
     run-time parameter and a generic parameter) no longer falsely reports
     [E0034][] ("redeclaration of variable").
+  * A namespace with the same name as an interface or type alias no longer
+    falsely reports [E0034][] ("redeclaration of variable").
   * Nested `module` declarations no longer falsely report [E0361][]. E0361's
     message has been changed:
     * Before: "module with string name is only allowed at the top level"

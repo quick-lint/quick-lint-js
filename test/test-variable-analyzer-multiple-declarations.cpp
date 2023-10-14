@@ -50,6 +50,27 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     type_or_interface_does_not_conflict_with_namespace) {
+  test_parse_and_analyze(u8"namespace n {}   type n = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"namespace n {;}  type n = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"type n = null;   namespace n {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"type n = null;   namespace n {;}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+
+  test_parse_and_analyze(u8"namespace n {}   interface n {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"namespace n {;}  interface n {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"interface n {}   namespace n {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"interface n {}   namespace n {;}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      namespace_can_be_declared_multiple_times) {
   test_parse_and_analyze(
       u8"namespace ns {} "_sv
