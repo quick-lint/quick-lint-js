@@ -304,13 +304,6 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
     QLJS_ASSERT(is_function_or_var);
   }
 
-  this->report_error_if_variable_declaration_conflicts_in_scope(
-      scope, name, kind, flags, declared_scope);
-
-  if (is_function_or_var && name.normalized_name() == u8"eval"_sv) {
-    scope.used_eval_in_this_scope = false;
-  }
-
   Declared_Variable declared = {
       .declaration = name,
       .kind = kind,
@@ -318,6 +311,13 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
       .is_used = false,
       .flags = flags,
   };
+
+  this->report_error_if_variable_declaration_conflicts_in_scope(scope,
+                                                                declared);
+
+  if (is_function_or_var && name.normalized_name() == u8"eval"_sv) {
+    scope.used_eval_in_this_scope = false;
+  }
 
   erase_if(scope.variables_used, [&](const Used_Variable &used_var) {
     if (name.normalized_name() != used_var.name.normalized_name()) {
@@ -933,11 +933,9 @@ void Variable_Analyzer::report_errors_for_variable_use(
 }
 
 void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
-    const Variable_Analyzer::Scope &scope, Identifier name, Variable_Kind kind,
-    Variable_Declaration_Flags flags,
-    Variable_Analyzer::Declared_Variable_Scope declaration_scope) const {
+    const Variable_Analyzer::Scope &scope, const Declared_Variable &var) const {
   const Declared_Variable *already_declared_variable =
-      scope.declared_variables.find(name);
+      scope.declared_variables.find(var.declaration);
   if (already_declared_variable) {
     this->report_error_if_variable_declaration_conflicts(
         /*already_declared=*/&already_declared_variable->declaration,
@@ -945,10 +943,10 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
         /*already_declared_flags=*/already_declared_variable->flags,
         /*already_declared_declaration_scope=*/
         already_declared_variable->declaration_scope,
-        /*newly_declared_name=*/name,
-        /*newly_declared_kind=*/kind,
-        /*newly_declared_flags=*/flags,
-        /*newly_declared_declaration_scope=*/declaration_scope);
+        /*newly_declared_name=*/var.declaration,
+        /*newly_declared_kind=*/var.kind,
+        /*newly_declared_flags=*/var.flags,
+        /*newly_declared_declaration_scope=*/var.declaration_scope);
   }
 }
 

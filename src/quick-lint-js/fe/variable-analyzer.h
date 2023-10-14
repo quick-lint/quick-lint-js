@@ -288,9 +288,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
                                       bool use_is_before_declaration) const;
 
   void report_error_if_variable_declaration_conflicts_in_scope(
-      const Scope &scope, Identifier name, Variable_Kind kind,
-      Variable_Declaration_Flags flags,
-      Declared_Variable_Scope declaration_scope) const;
+      const Scope &scope, const Declared_Variable &var) const;
   void report_error_if_variable_declaration_conflicts_in_scope(
       const Global_Scope &scope, const Declared_Variable &var) const;
   void report_error_if_variable_declaration_conflicts(
