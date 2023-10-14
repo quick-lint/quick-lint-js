@@ -299,8 +299,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
       const Identifier *already_declared, Variable_Kind already_declared_kind,
       Variable_Declaration_Flags already_declared_flags,
       Declared_Variable_Scope already_declared_declaration_scope,
-      bool already_declared_is_global_variable, Identifier newly_declared_name,
-      Variable_Kind newly_declared_kind,
+      Identifier newly_declared_name, Variable_Kind newly_declared_kind,
       Variable_Declaration_Flags newly_declared_flags,
       Declared_Variable_Scope newly_declared_declaration_scope) const;
 

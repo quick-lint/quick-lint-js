@@ -939,7 +939,6 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
         /*already_declared_flags=*/already_declared_variable->flags,
         /*already_declared_declaration_scope=*/
         already_declared_variable->declaration_scope,
-        /*already_declared_is_global_variable=*/false,
         /*newly_declared_name=*/name,
         /*newly_declared_kind=*/kind,
         /*newly_declared_flags=*/flags,
@@ -959,7 +958,6 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
           /*already_declared_flags=*/already_declared_variable->flags(),
           /*already_declared_declaration_scope=*/
           Declared_Variable_Scope::declared_in_current_scope,
-          /*already_declared_is_global_variable=*/true,
           /*newly_declared_name=*/var.declaration,
           /*newly_declared_kind=*/var.kind,
           /*newly_declared_flags=*/var.flags,
@@ -972,8 +970,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
     const Identifier *already_declared, Variable_Kind already_declared_kind,
     Variable_Declaration_Flags already_declared_flags,
     Declared_Variable_Scope already_declared_declaration_scope,
-    bool already_declared_is_global_variable, Identifier newly_declared_name,
-    Variable_Kind newly_declared_kind,
+    Identifier newly_declared_name, Variable_Kind newly_declared_kind,
     [[maybe_unused]] Variable_Declaration_Flags newly_declared_flags,
     Declared_Variable_Scope newly_declared_declaration_scope) const {
   using VK = Variable_Kind;
@@ -1093,6 +1090,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
            Declared_Variable_Scope::declared_in_descendant_scope) ||
       false;
   if (!redeclaration_ok) {
+    bool already_declared_is_global_variable = already_declared == nullptr;
     if (already_declared_is_global_variable) {
       this->diag_reporter_->report(Diag_Redeclaration_Of_Global_Variable{
           .redeclaration = newly_declared_name.span(),
