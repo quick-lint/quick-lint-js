@@ -312,8 +312,13 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
   }
 
   Declared_Variable *declared =
-      scope.declared_variables.add_variable_declaration(name, kind,
-                                                        declared_scope, flags);
+      scope.declared_variables.add_variable_declaration(Declared_Variable{
+          .declaration = name,
+          .kind = kind,
+          .declaration_scope = declared_scope,
+          .is_used = false,
+          .flags = flags,
+      });
 
   erase_if(scope.variables_used, [&](const Used_Variable &used_var) {
     if (name.normalized_name() != used_var.name.normalized_name()) {
@@ -1146,15 +1151,8 @@ bool Variable_Analyzer::Used_Variable::is_type() const {
 
 Variable_Analyzer::Declared_Variable *
 Variable_Analyzer::Declared_Variable_Set::add_variable_declaration(
-    Identifier name, Variable_Kind kind, Declared_Variable_Scope declared_scope,
-    Variable_Declaration_Flags flags) {
-  this->variables_.emplace_back(Declared_Variable{
-      .declaration = name,
-      .kind = kind,
-      .declaration_scope = declared_scope,
-      .is_used = false,
-      .flags = flags,
-  });
+    const Declared_Variable &variable) {
+  this->variables_.emplace_back(variable);
   return &this->variables_.back();
 }
 

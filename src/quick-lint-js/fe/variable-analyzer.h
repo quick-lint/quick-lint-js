@@ -165,9 +165,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
    public:
     using Found_Variable_Type = Declared_Variable *;
 
-    Declared_Variable *add_variable_declaration(
-        Identifier name, Variable_Kind, Declared_Variable_Scope,
-        Variable_Declaration_Flags flags);
+    Declared_Variable *add_variable_declaration(const Declared_Variable &);
 
     const Declared_Variable *find(Identifier name) const;
     Declared_Variable *find(Identifier name);
