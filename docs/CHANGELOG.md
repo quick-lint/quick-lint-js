@@ -46,6 +46,11 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * A newline after `public`, `protected`, `private`, or `readonly` inside a
     class is now interpreted correctly.
+  * Nested `module` declarations no longer falsely report [E0361][]. E0361's
+    message has been changed:
+    * Before: "module with string name is only allowed at the top level"
+    * After: "TypeScript 'declare module' with string name is not allowed in
+      namespaces"
 
 ## 2.16.0 (2023-09-06)
 

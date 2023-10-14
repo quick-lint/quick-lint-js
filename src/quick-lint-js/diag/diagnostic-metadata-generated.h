@@ -264,7 +264,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Stray_Comma_In_Let_Statement) \
   QLJS_DIAG_TYPE_NAME(Diag_Stray_Comma_In_Parameter) \
   QLJS_DIAG_TYPE_NAME(Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module) \
-  QLJS_DIAG_TYPE_NAME(Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level) \
+  QLJS_DIAG_TYPE_NAME(Diag_String_Namespace_Name_Not_Allowed_In_Namespace) \
   QLJS_DIAG_TYPE_NAME(Diag_This_Parameter_Must_Be_First) \
   QLJS_DIAG_TYPE_NAME(Diag_This_Parameter_Not_Allowed_In_Arrow_Functions) \
   QLJS_DIAG_TYPE_NAME(Diag_This_Parameter_Not_Allowed_In_JavaScript) \

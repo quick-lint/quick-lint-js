@@ -1948,10 +1948,13 @@ struct Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module {
   Source_Code_Span module_name;
 };
 
-struct Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level {
+struct Diag_String_Namespace_Name_Not_Allowed_In_Namespace {
   [[qljs::diag("E0361", Diagnostic_Severity::error)]]  //
-  [[qljs::message("module with string name is only allowed at the top level",
+  // clang-format off
+  [[qljs::message("TypeScript 'declare module' with string name is not "
+                  "allowed in namespaces",
                   ARG(module_name))]]  //
+  // clang-format on
   Source_Code_Span module_name;
 };
 

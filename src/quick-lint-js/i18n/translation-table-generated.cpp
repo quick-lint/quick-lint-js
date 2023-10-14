@@ -118,6 +118,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 59},                 //
         {0, 0, 0, 0, 0, 57},                 //
         {0, 0, 0, 0, 0, 57},                 //
+        {0, 0, 0, 0, 0, 74},                 //
         {0, 0, 0, 0, 0, 54},                 //
         {0, 0, 0, 78, 0, 58},                //
         {0, 0, 0, 0, 0, 53},                 //
@@ -396,8 +397,7 @@ const Translation_Table translation_data = {
         {72, 55, 79, 36, 61, 37},            //
         {33, 41, 45, 43, 34, 34},            //
         {20, 29, 0, 26, 0, 22},              //
-        {0, 0, 0, 0, 0, 48},                 //
-        {0, 0, 0, 52, 0, 57},                //
+        {0, 0, 0, 52, 0, 48},                //
         {0, 0, 0, 0, 0, 51},                 //
         {69, 26, 0, 59, 0, 22},              //
         {0, 0, 0, 46, 0, 39},                //
@@ -1910,6 +1910,7 @@ const Translation_Table translation_data = {
         u8"TypeScript 'declare function' is not allowed in JavaScript\0"
         u8"TypeScript 'declare global' is not allowed in JavaScript\0"
         u8"TypeScript 'declare global' is not allowed in namespaces\0"
+        u8"TypeScript 'declare module' with string name is not allowed in namespaces\0"
         u8"TypeScript 'declare {1}' is not allowed in JavaScript\0"
         u8"TypeScript 'declare' fields are now allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
@@ -2189,7 +2190,6 @@ const Translation_Table translation_data = {
         u8"missing value for object property\0"
         u8"missing variable name\0"
         u8"misspelled React attribute; write '{1}' instead\0"
-        u8"module with string name is only allowed at the top level\0"
         u8"move the 'extends' clause before 'implements' here\0"
         u8"namespace starts here\0"
         u8"new variable shadows existing variable\0"

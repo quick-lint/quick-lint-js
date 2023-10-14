@@ -1195,6 +1195,17 @@ inline const Translated_String test_translation_table[521] = {
         },
     },
     {
+        "TypeScript 'declare module' with string name is not allowed in namespaces"_translatable,
+        u8"TypeScript 'declare module' with string name is not allowed in namespaces",
+        {
+            u8"TypeScript 'declare module' with string name is not allowed in namespaces",
+            u8"TypeScript 'declare module' with string name is not allowed in namespaces",
+            u8"TypeScript 'declare module' with string name is not allowed in namespaces",
+            u8"TypeScript 'declare module' with string name is not allowed in namespaces",
+            u8"TypeScript 'declare module' with string name is not allowed in namespaces",
+        },
+    },
+    {
         "TypeScript 'declare {1}' is not allowed in JavaScript"_translatable,
         u8"TypeScript 'declare {1}' is not allowed in JavaScript",
         {
@@ -4261,17 +4272,6 @@ inline const Translated_String test_translation_table[521] = {
             u8"misspelled React attribute; write '{1}' instead",
             u8"erro de digita\u00e7\u00e3o no atributo de React; use '{1}'",
             u8"misspelled React attribute; write '{1}' instead",
-        },
-    },
-    {
-        "module with string name is only allowed at the top level"_translatable,
-        u8"module with string name is only allowed at the top level",
-        {
-            u8"module with string name is only allowed at the top level",
-            u8"module with string name is only allowed at the top level",
-            u8"module with string name is only allowed at the top level",
-            u8"module with string name is only allowed at the top level",
-            u8"module with string name is only allowed at the top level",
         },
     },
     {

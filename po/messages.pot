@@ -1278,7 +1278,7 @@ msgid "string module name is only allowed with 'declare module'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "module with string name is only allowed at the top level"
+msgid "TypeScript 'declare module' with string name is not allowed in namespaces"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

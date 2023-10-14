@@ -3796,16 +3796,16 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
-    // Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level
+    // Diag_String_Namespace_Name_Not_Allowed_In_Namespace
     {
       .code = 361,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("module with string name is only allowed at the top level"),
+        QLJS_TRANSLATABLE("TypeScript 'declare module' with string name is not allowed in namespaces"),
       },
       .message_args = {
         {
-          Diagnostic_Message_Arg_Info(offsetof(Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level, module_name), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_String_Namespace_Name_Not_Allowed_In_Namespace, module_name), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

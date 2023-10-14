@@ -2939,9 +2939,10 @@ Parser::parse_and_visit_typescript_namespace_or_module_head(
           Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module{
               .module_name = this->peek().span(),
           });
-    } else if (this->in_typescript_namespace_or_module_) {
+    } else if (this->in_typescript_namespace_or_module_ &&
+               !this->in_typescript_module_) {
       this->diag_reporter_->report(
-          Diag_String_Namespace_Name_Is_Only_Allowed_At_Top_Level{
+          Diag_String_Namespace_Name_Not_Allowed_In_Namespace{
               .module_name = this->peek().span(),
           });
     }
