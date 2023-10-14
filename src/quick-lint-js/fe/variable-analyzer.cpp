@@ -311,20 +311,19 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
     scope.used_eval_in_this_scope = false;
   }
 
-  Declared_Variable *declared =
-      scope.declared_variables.add_variable_declaration(Declared_Variable{
-          .declaration = name,
-          .kind = kind,
-          .declaration_scope = declared_scope,
-          .is_used = false,
-          .flags = flags,
-      });
+  Declared_Variable declared = {
+      .declaration = name,
+      .kind = kind,
+      .declaration_scope = declared_scope,
+      .is_used = false,
+      .flags = flags,
+  };
 
   erase_if(scope.variables_used, [&](const Used_Variable &used_var) {
     if (name.normalized_name() != used_var.name.normalized_name()) {
       return false;
     }
-    declared->is_used = true;
+    declared.is_used = true;
     if (kind == Variable_Kind::_function &&
         declared_scope ==
             Declared_Variable_Scope::declared_in_descendant_scope &&
@@ -336,7 +335,7 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
           });
     }
     this->report_errors_for_variable_use(
-        used_var, *declared,
+        used_var, declared,
         /*use_is_before_declaration=*/kind == Variable_Kind::_class ||
             kind == Variable_Kind::_const || kind == Variable_Kind::_let);
     if (this->in_typescript_ambient_context()) {
@@ -382,19 +381,19 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
              if (name.normalized_name() != used_var.name.normalized_name()) {
                return false;
              }
-             if (!((declared->is_runtime() && used_var.is_runtime()) ||
-                   (declared->is_type() && used_var.is_type()))) {
+             if (!((declared.is_runtime() && used_var.is_runtime()) ||
+                   (declared.is_type() && used_var.is_type()))) {
                return false;
              }
-             if (declared->is_runtime()) {
+             if (declared.is_runtime()) {
                this->report_errors_for_variable_use(
                    used_var, declared,
                    /*is_assigned_before_declaration=*/false);
              }
              switch (used_var.kind) {
              case Used_Variable_Kind::assignment:
-               if (declared->is_runtime()) {
-                 declared->is_used = true;
+               if (declared.is_runtime()) {
+                 declared.is_used = true;
                }
                break;
              case Used_Variable_Kind::_export:
@@ -404,14 +403,16 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
              case Used_Variable_Kind::_delete:
              case Used_Variable_Kind::_typeof:
              case Used_Variable_Kind::use:
-               declared->is_used = true;
+               declared.is_used = true;
                break;
              case Used_Variable_Kind::type:
-               // TODO(strager): Do we need to set declared->is_used?
+               // TODO(strager): Do we need to set declared.is_used?
                break;
              }
              return true;
            });
+
+  scope.declared_variables.add_variable_declaration(declared);
 }
 
 void Variable_Analyzer::visit_variable_assignment(Identifier name) {
