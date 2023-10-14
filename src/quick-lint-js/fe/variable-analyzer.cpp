@@ -1049,7 +1049,6 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (kind == VK::_function           && other_kind == VK::_function) ||
       (kind == VK::_function           && other_kind == VK::_var) ||
       (kind == VK::_function           && other_kind_is_parameter) ||
-      (kind == VK::_function_parameter && other_kind == VK::_generic_parameter) ||
       (kind == VK::_import             && other_kind == VK::_interface) ||
       (kind == VK::_interface          && other_kind == VK::_class) ||
       (kind == VK::_interface          && other_kind == VK::_import) ||
@@ -1074,6 +1073,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (kind == VK::_var                && other_kind == VK::_var) ||
       (kind == VK::_var                && other_kind_is_parameter) ||
       (kind_is_parameter               && other_kind == VK::_function) ||
+      (kind_is_parameter               && other_kind == VK::_generic_parameter) ||
       (kind_is_parameter               && other_kind_is_parameter) ||
       (!is_type(kind)                  && other_kind == VK::_interface) ||
       // clang-format on

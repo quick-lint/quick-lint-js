@@ -121,6 +121,8 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
      function_parameter_can_have_same_name_as_generic_parameter) {
   test_parse_and_analyze(u8"(function <T>(T) {});"_sv, no_diags,
                          typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"(<T>(T) => {});"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
 }
 }
 }
