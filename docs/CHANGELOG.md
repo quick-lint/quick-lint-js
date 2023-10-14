@@ -1226,3 +1226,4 @@ Beta release.
 [E0710]: https://quick-lint-js.com/errors/E0710/
 [E0712]: https://quick-lint-js.com/errors/E0712/
 [E0713]: https://quick-lint-js.com/errors/E0713/
+[E0714]: https://quick-lint-js.com/errors/E0714/
