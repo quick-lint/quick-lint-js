@@ -23,9 +23,9 @@ using ::testing::ElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-class Test_Parse_TypeScript_Declare_Tsmodule : public Test_Parse_Expression {};
+class Test_Parse_TypeScript_Declare_TSModule : public Test_Parse_Expression {};
 
-TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module) {
+TEST_F(Test_Parse_TypeScript_Declare_TSModule, declare_module) {
   {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"declare module 'my name space' {}"_sv, no_diags, typescript_options);
@@ -39,7 +39,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module) {
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module_permits_no_body) {
+TEST_F(Test_Parse_TypeScript_Declare_TSModule, declare_module_permits_no_body) {
   {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"declare module 'my name space';"_sv, no_diags, typescript_options);
@@ -74,7 +74,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule, declare_module_permits_no_body) {
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_TSModule,
        declaring_module_is_not_allowed_inside_containing_namespace) {
   test_parse_and_visit_module(
       u8"namespace ns { declare module 'my name space' {} }"_sv,  //
@@ -87,7 +87,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
       typescript_options);
 }
 
-TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_TSModule,
        declare_module_allows_import_from_module) {
   {
     Spy_Visitor p = test_parse_and_visit_module(
@@ -118,7 +118,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_TSModule,
        declare_module_allows_import_from_module_with_export_keyword) {
   test_parse_and_visit_module(
       u8"declare module 'mymod' { export * from 'module'; }"_sv, no_diags,
@@ -129,7 +129,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
       typescript_options);
 }
 
-TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_TSModule,
        declare_module_allows_exporting_default) {
   test_parse_and_visit_module(
       u8"declare module 'mymod' { export default class C {} }"_sv, no_diags,
@@ -140,7 +140,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
       typescript_options);
 }
 
-TEST_F(Test_Parse_TypeScript_Declare_Tsmodule,
+TEST_F(Test_Parse_TypeScript_Declare_TSModule,
        export_default_of_variable_is_allowed_in_declare_module) {
   // NOTE[declare-module-export-default-var]: Unlike a normal 'export default',
   // 'export default' inside 'declare module' is an export use:
