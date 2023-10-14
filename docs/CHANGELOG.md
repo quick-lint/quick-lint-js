@@ -51,6 +51,8 @@ Semantic Versioning.
     [E0034][] ("redeclaration of variable").
   * A namespace with the same name as an interface or type alias no longer
     falsely reports [E0034][] ("redeclaration of variable").
+  * `(a?, ...b) => ReturnType` in a TypeScript type no longer falsely reports
+    [E0379][] ("optional parameter cannot be followed by a required parameter").
   * Nested `module` declarations no longer falsely report [E0361][]. E0361's
     message has been changed:
     * Before: "module with string name is only allowed at the top level"

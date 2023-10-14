@@ -758,6 +758,12 @@ TEST_F(Test_Parse_TypeScript_Function, optional_parameter_in_function_type) {
 }
 
 TEST_F(Test_Parse_TypeScript_Function,
+       optional_parameter_followed_by_rest_parameter_is_allowed) {
+  test_parse_and_visit_typescript_type_expression(
+      u8"(param1?, ...rest) => ReturnType"_sv, no_diags, typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Function,
        optional_parameter_followed_by_required) {
   test_parse_and_visit_typescript_type_expression(
       u8"(param1?, param2) => ReturnType"_sv,  //

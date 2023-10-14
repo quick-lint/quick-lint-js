@@ -2494,7 +2494,8 @@ void Parser::parse_and_visit_function_parameters(
            parameter->child_0()->kind() == Expression_Kind::Optional)) {
         previous_optional_span = parameter->span();
       } else {
-        if (previous_optional_span.has_value()) {
+        if (previous_optional_span.has_value() &&
+            parameter->kind() != Expression_Kind::Spread) {
           this->diag_reporter_->report(
               Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter{
                   .optional_parameter = *previous_optional_span,
