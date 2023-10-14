@@ -451,7 +451,6 @@ parse_statement:
   case Token_Type::kw_constructor:
   case Token_Type::kw_from:
   case Token_Type::kw_get:
-  case Token_Type::kw_global:
   case Token_Type::kw_infer:
   case Token_Type::kw_intrinsic:
   case Token_Type::kw_is:
@@ -527,6 +526,34 @@ parse_statement:
       goto parse_statement;
     }
     break;
+
+  // global();
+  // global:
+  // global {}  // Invalid.
+  case Token_Type::kw_global: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    bool is_typescript_global_block =
+        this->peek().type == Token_Type::left_curly &&
+        !this->peek().has_leading_newline;
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    if (is_typescript_global_block) {
+      // global {}  // Invalid.
+      Source_Code_Span declare_keyword =
+          Source_Code_Span::unit(this->peek().begin);
+      this->diag_reporter_->report(Diag_TypeScript_Global_Block_Must_Be_Declare{
+          .global_keyword = this->peek().span(),
+          .expected_declare_keyword = declare_keyword,
+      });
+      this->parse_and_visit_declare_global(
+          v, TypeScript_Declare_Context{
+                 .direct_declare_keyword = declare_keyword,
+             });
+    } else {
+      goto parse_loop_label_or_expression_starting_with_identifier;
+    }
+    break;
+  }
 
   case Token_Type::kw_implements:
   case Token_Type::kw_package:
@@ -2951,87 +2978,92 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
   TypeScript_Namespace_Or_Module_Guard namespace_guard =
       this->enter_typescript_namespace_or_module(namespace_keyword_span,
                                                  is_module);
-  {
-    if (this->peek().type != Token_Type::left_curly) {
-      // module 'foo';
-      // namespace ns;  // Invalid.
-      if (!is_module) {
-        this->diag_reporter_->report(Diag_Missing_Body_For_TypeScript_Namespace{
-            .expected_body =
-                Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
-        });
-      }
-      goto done_parsing_body;
+  if (this->peek().type != Token_Type::left_curly) {
+    // module 'foo';
+    // namespace ns;  // Invalid.
+    if (!declare_context.in_module) {
+      this->diag_reporter_->report(Diag_Missing_Body_For_TypeScript_Namespace{
+          .expected_body =
+              Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
+      });
     }
-    Source_Code_Span left_curly_span = this->peek().span();
-    this->skip();
-
-    v.visit_enter_namespace_scope();
-    for (;;) {
-      switch (this->peek().type) {
-      case Token_Type::kw_export:
-        this->is_current_typescript_namespace_non_empty_ = true;
-        this->parse_and_visit_export(v, Parse_Export_Options{
-                                            .declare_context = declare_context,
-                                        });
-        break;
-
-      case Token_Type::right_curly:
-        this->skip();
-        goto stop_parsing_body;
-
-      case Token_Type::end_of_file:
-        this->diag_reporter_->report(Diag_Unclosed_Code_Block{
-            .block_open = left_curly_span,
-        });
-        goto stop_parsing_body;
-
-      case Token_Type::kw_declare: {
-        this->is_current_typescript_namespace_non_empty_ = true;
-        this->diag_reporter_->report(
-            Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace{
-                .declare_keyword = this->peek().span(),
-                .declare_namespace_declare_keyword = declare_keyword_span,
-            });
-        bool parsed_statement = this->parse_and_visit_statement(
-            v, Parse_Statement_Options{
-                   .possibly_followed_by_another_statement = true,
-               });
-        QLJS_ASSERT(parsed_statement);
-        break;
-      }
-
-      default:
-        if (this->is_declare_statement_start_token(this->peek().type)) {
-          this->is_current_typescript_namespace_non_empty_ = true;
-          this->parse_and_visit_declare_statement(v, declare_context);
-        } else {
-          // require_declaration will cause parse_and_visit_statement to report
-          // Diag_Declare_Namespace_Cannot_Contain_Statement.
-          bool parsed_statement = this->parse_and_visit_statement(
-              v, Parse_Statement_Options{
-                     .possibly_followed_by_another_statement = true,
-                     .require_declaration = true,
-                     .declare_keyword = declare_keyword_span,
-                 });
-          QLJS_ASSERT(parsed_statement);
-        }
-        break;
-
-      case Token_Type::regexp:
-        QLJS_UNREACHABLE();
-        break;
-      }
-    }
-  stop_parsing_body:
-    v.visit_exit_namespace_scope();
+    goto done_parsing_body;
   }
+
+  v.visit_enter_namespace_scope();
+  this->parse_and_visit_typescript_declare_block(v, declare_context);
+  v.visit_exit_namespace_scope();
 
 done_parsing_body:
   if (namespace_declaration.has_value()) {
     v.visit_variable_declaration(*namespace_declaration,
                                  Variable_Kind::_namespace,
                                  Variable_Declaration_Flags::none);
+  }
+}
+
+void Parser::parse_and_visit_typescript_declare_block(
+    Parse_Visitor_Base &v, const TypeScript_Declare_Context &declare_context) {
+  QLJS_ASSERT(this->peek().type == Token_Type::left_curly);
+  Source_Code_Span left_curly_span = this->peek().span();
+  this->skip();
+
+  for (;;) {
+    switch (this->peek().type) {
+    case Token_Type::kw_export:
+      this->is_current_typescript_namespace_non_empty_ = true;
+      this->parse_and_visit_export(v, Parse_Export_Options{
+                                          .declare_context = declare_context,
+                                      });
+      break;
+
+    case Token_Type::right_curly:
+      this->skip();
+      return;
+
+    case Token_Type::end_of_file:
+      this->diag_reporter_->report(Diag_Unclosed_Code_Block{
+          .block_open = left_curly_span,
+      });
+      return;
+
+    case Token_Type::kw_declare: {
+      this->is_current_typescript_namespace_non_empty_ = true;
+      this->diag_reporter_->report(
+          Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace{
+              .declare_keyword = this->peek().span(),
+              .declare_namespace_declare_keyword =
+                  declare_context.declare_keyword_span(),
+          });
+      bool parsed_statement = this->parse_and_visit_statement(
+          v, Parse_Statement_Options{
+                 .possibly_followed_by_another_statement = true,
+             });
+      QLJS_ASSERT(parsed_statement);
+      break;
+    }
+
+    default:
+      if (this->is_declare_statement_start_token(this->peek().type)) {
+        this->is_current_typescript_namespace_non_empty_ = true;
+        this->parse_and_visit_declare_statement(v, declare_context);
+      } else {
+        // require_declaration will cause parse_and_visit_statement to report
+        // Diag_Declare_Namespace_Cannot_Contain_Statement.
+        bool parsed_statement = this->parse_and_visit_statement(
+            v, Parse_Statement_Options{
+                   .possibly_followed_by_another_statement = true,
+                   .require_declaration = true,
+                   .declare_keyword = declare_context.declare_keyword_span(),
+               });
+        QLJS_ASSERT(parsed_statement);
+      }
+      break;
+
+    case Token_Type::regexp:
+      QLJS_UNREACHABLE();
+      break;
+    }
   }
 }
 
@@ -5819,6 +5851,13 @@ void Parser::parse_and_visit_declare_statement(
     this->parse_and_visit_import(v, declare_context);
     break;
 
+  // declare global { /* ... */ }
+  case Token_Type::kw_global:
+    maybe_visit_enter_declare_scope();
+    this->parse_and_visit_declare_global(v, declare_context);
+    maybe_visit_exit_declare_scope();
+    break;
+
   // declare:  // Label.
   // declare();
   case Token_Type::colon:
@@ -5826,6 +5865,35 @@ void Parser::parse_and_visit_declare_statement(
     QLJS_ASSERT(false);
     break;
   }
+}
+
+void Parser::parse_and_visit_declare_global(
+    Parse_Visitor_Base &v, const TypeScript_Declare_Context &declare_context) {
+  QLJS_ASSERT(this->peek().type == Token_Type::kw_global);
+  Source_Code_Span global_keyword_span = this->peek().span();
+  this->skip();
+
+  if (!this->options_.typescript) {
+    this->diag_reporter_->report(
+        Diag_TypeScript_Global_Block_Not_Allowed_In_JavaScript{
+            .global_keyword = global_keyword_span,
+        });
+  }
+  if (this->in_typescript_namespace_or_module_.has_value() &&
+      !this->in_typescript_module_) {
+    this->diag_reporter_->report(
+        Diag_TypeScript_Global_Block_Not_Allowed_In_Namespace{
+            .global_keyword = global_keyword_span,
+            .namespace_keyword = *this->in_typescript_namespace_or_module_,
+        });
+  }
+  this->parse_and_visit_typescript_declare_block(
+      v, TypeScript_Declare_Context{
+             .declare_namespace_declare_keyword =
+                 declare_context.declare_keyword_span(),
+             .direct_declare_keyword = std::nullopt,
+             .in_module = false,
+         });
 }
 
 bool Parser::is_declare_statement_start_token(Token_Type token_type) {
@@ -5836,6 +5904,7 @@ bool Parser::is_declare_statement_start_token(Token_Type token_type) {
   case Token_Type::kw_const:
   case Token_Type::kw_enum:
   case Token_Type::kw_function:
+  case Token_Type::kw_global:
   case Token_Type::kw_import:
   case Token_Type::kw_interface:
   case Token_Type::kw_let:

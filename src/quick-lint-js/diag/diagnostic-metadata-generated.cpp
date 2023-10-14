@@ -4389,6 +4389,52 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Global_Block_Must_Be_Declare
+    {
+      .code = 422,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("TypeScript global declaration block must use 'declare'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Global_Block_Must_Be_Declare, global_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Global_Block_Not_Allowed_In_JavaScript
+    {
+      .code = 420,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("TypeScript 'declare global' is not allowed in JavaScript"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Global_Block_Not_Allowed_In_JavaScript, global_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Global_Block_Not_Allowed_In_Namespace
+    {
+      .code = 421,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("TypeScript 'declare global' is not allowed in namespaces"),
+        QLJS_TRANSLATABLE("inside namespace here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Global_Block_Not_Allowed_In_Namespace, global_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Global_Block_Not_Allowed_In_Namespace, namespace_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript
     {
       .code = 278,

@@ -34,6 +34,7 @@ Semantic Versioning.
   * Type predicates are now supported in function types (e.g.
     `(param) => param is Type`).
   * `declare` fields are now parsed inside classes.
+  * `declare global` blocks are now parsed.
 
 ### Fixed
 

@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[517] = {
+inline const Translated_String test_translation_table[521] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1173,6 +1173,28 @@ inline const Translated_String test_translation_table[517] = {
         },
     },
     {
+        "TypeScript 'declare global' is not allowed in JavaScript"_translatable,
+        u8"TypeScript 'declare global' is not allowed in JavaScript",
+        {
+            u8"TypeScript 'declare global' is not allowed in JavaScript",
+            u8"TypeScript 'declare global' is not allowed in JavaScript",
+            u8"TypeScript 'declare global' is not allowed in JavaScript",
+            u8"TypeScript 'declare global' is not allowed in JavaScript",
+            u8"TypeScript 'declare global' is not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript 'declare global' is not allowed in namespaces"_translatable,
+        u8"TypeScript 'declare global' is not allowed in namespaces",
+        {
+            u8"TypeScript 'declare global' is not allowed in namespaces",
+            u8"TypeScript 'declare global' is not allowed in namespaces",
+            u8"TypeScript 'declare global' is not allowed in namespaces",
+            u8"TypeScript 'declare global' is not allowed in namespaces",
+            u8"TypeScript 'declare global' is not allowed in namespaces",
+        },
+    },
+    {
         "TypeScript 'declare {1}' is not allowed in JavaScript"_translatable,
         u8"TypeScript 'declare {1}' is not allowed in JavaScript",
         {
@@ -1247,6 +1269,17 @@ inline const Translated_String test_translation_table[517] = {
             u8"TypeScript generics are not allowed in JavaScript code",
             u8"generics do TypeScript n\u00e3o s\u00e3o permitidos em c\u00f3digo JavaScript",
             u8"TypeScript generics are not allowed in JavaScript code",
+        },
+    },
+    {
+        "TypeScript global declaration block must use 'declare'"_translatable,
+        u8"TypeScript global declaration block must use 'declare'",
+        {
+            u8"TypeScript global declaration block must use 'declare'",
+            u8"TypeScript global declaration block must use 'declare'",
+            u8"TypeScript global declaration block must use 'declare'",
+            u8"TypeScript global declaration block must use 'declare'",
+            u8"TypeScript global declaration block must use 'declare'",
         },
     },
     {
@@ -3161,6 +3194,17 @@ inline const Translated_String test_translation_table[517] = {
             u8"initializer starts here",
             u8"inicializador inicia aqui",
             u8"initializer starts here",
+        },
+    },
+    {
+        "inside namespace here"_translatable,
+        u8"inside namespace here",
+        {
+            u8"inside namespace here",
+            u8"inside namespace here",
+            u8"inside namespace here",
+            u8"inside namespace here",
+            u8"inside namespace here",
         },
     },
     {

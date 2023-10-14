@@ -461,6 +461,36 @@ class Parser {
   void parse_and_visit_typescript_declare_namespace_or_module(
       Parse_Visitor_Base &v, Source_Code_Span declare_keyword_span);
 
+  // Information about how the TypeScript 'declare' keyword was used.
+  struct TypeScript_Declare_Context {
+    // If present, the parser found a containing 'declare namespace' or
+    // 'declare module' or 'declare global'.
+    std::optional<Source_Code_Span> declare_namespace_declare_keyword =
+        std::nullopt;
+
+    // If present, the parser found a 'declare' keyword immediately before the
+    // statement being parsed.
+    std::optional<Source_Code_Span> direct_declare_keyword = std::nullopt;
+
+    // If true, we are inside a TypeScript ambient module. For example:
+    //
+    // module "modulename" {
+    //   /* in_module is true here. */
+    // }
+    bool in_module = false;
+
+    // Precondition: declare_namespace_declare_keyword.has_value()
+    //               || direct_declare_keyword.has_value()
+    Source_Code_Span declare_keyword_span() const;
+
+    std::optional<Source_Code_Span> maybe_declare_keyword_span() const;
+  };
+
+  // Parse a TypeScript ambient code block, including curlies. An ambient code
+  // block is the body of a 'declare namespace', for example.
+  void parse_and_visit_typescript_declare_block(
+      Parse_Visitor_Base &v, const TypeScript_Declare_Context &declare_context);
+
   void parse_and_visit_typescript_type_alias(Parse_Visitor_Base &v,
                                              Source_Code_Span type_token);
 
@@ -506,31 +536,6 @@ class Parser {
   void error_on_class_statement(Statement_Kind statement_kind);
   void error_on_lexical_declaration(Statement_Kind statement_kind);
   void error_on_function_statement(Statement_Kind statement_kind);
-
-  // Information about how the TypeScript 'declare' keyword was used.
-  struct TypeScript_Declare_Context {
-    // If present, the parser found a containing 'declare namespace' or
-    // 'declare module'.
-    std::optional<Source_Code_Span> declare_namespace_declare_keyword =
-        std::nullopt;
-
-    // If present, the parser found a 'declare' keyword immediately before the
-    // statement being parsed.
-    std::optional<Source_Code_Span> direct_declare_keyword = std::nullopt;
-
-    // If true, we are inside a TypeScript ambient module. For example:
-    //
-    // module "modulename" {
-    //   /* in_module is true here. */
-    // }
-    bool in_module = false;
-
-    // Precondition: declare_namespace_declare_keyword.has_value()
-    //               || direct_declare_keyword.has_value()
-    Source_Code_Span declare_keyword_span() const;
-
-    std::optional<Source_Code_Span> maybe_declare_keyword_span() const;
-  };
 
   void parse_and_visit_import(Parse_Visitor_Base &v);
   void parse_and_visit_import(
@@ -1136,6 +1141,10 @@ class Parser {
   // Precondition: is_declare_statement_start_token(this->peek().type)
   void parse_and_visit_declare_statement(
       Parse_Visitor_Base &v, const TypeScript_Declare_Context &declare_context);
+
+  void parse_and_visit_declare_global(
+      Parse_Visitor_Base &v, const TypeScript_Declare_Context &declare_context);
+
   bool is_declare_statement_start_token(Token_Type);
 };
 

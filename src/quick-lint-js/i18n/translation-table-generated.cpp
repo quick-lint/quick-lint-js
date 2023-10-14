@@ -116,12 +116,15 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 0, 0, 56},                 //
         {0, 0, 0, 0, 0, 59},                 //
+        {0, 0, 0, 0, 0, 57},                 //
+        {0, 0, 0, 0, 0, 57},                 //
         {0, 0, 0, 0, 0, 54},                 //
         {0, 0, 0, 78, 0, 58},                //
         {0, 0, 0, 0, 0, 53},                 //
         {0, 0, 0, 45, 0, 61},                //
         {0, 0, 0, 78, 0, 62},                //
         {0, 0, 0, 87, 0, 70},                //
+        {0, 0, 0, 0, 0, 55},                 //
         {0, 0, 0, 66, 0, 55},                //
         {0, 38, 0, 74, 0, 56},               //
         {0, 64, 0, 64, 0, 49},               //
@@ -296,7 +299,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 38},                 //
         {175, 14, 144, 48, 175, 18},         //
         {0, 0, 0, 30, 0, 32},                //
-        {0, 30, 0, 26, 0, 24},               //
+        {0, 0, 0, 0, 0, 24},                 //
+        {0, 30, 0, 26, 0, 22},               //
         {0, 0, 0, 68, 0, 59},                //
         {0, 0, 0, 75, 0, 61},                //
         {0, 0, 0, 81, 0, 56},                //
@@ -1904,6 +1908,8 @@ const Translation_Table translation_data = {
         u8"TypeScript 'declare abstract class' is not allowed in JavaScript\0"
         u8"TypeScript 'declare class' is not allowed in JavaScript\0"
         u8"TypeScript 'declare function' is not allowed in JavaScript\0"
+        u8"TypeScript 'declare global' is not allowed in JavaScript\0"
+        u8"TypeScript 'declare global' is not allowed in namespaces\0"
         u8"TypeScript 'declare {1}' is not allowed in JavaScript\0"
         u8"TypeScript 'declare' fields are now allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
@@ -1911,6 +1917,7 @@ const Translation_Table translation_data = {
         u8"TypeScript <Type> type assertions are not allowed in JSX mode\0"
         u8"TypeScript assignment-asserted fields are not supported in JavaScript\0"
         u8"TypeScript generics are not allowed in JavaScript code\0"
+        u8"TypeScript global declaration block must use 'declare'\0"
         u8"TypeScript import aliases are not allowed in JavaScript\0"
         u8"TypeScript interface fields cannot be initalized\0"
         u8"TypeScript interface methods cannot be marked 'async'\0"
@@ -2085,6 +2092,7 @@ const Translation_Table translation_data = {
         u8"index starts here\0"
         u8"indexing requires an expression\0"
         u8"initializer starts here\0"
+        u8"inside namespace here\0"
         u8"integer cannot be represented and will be rounded to '{1}'\0"
         u8"interface properties are always public and cannot be private\0"
         u8"interface properties cannot be marked public explicitly\0"

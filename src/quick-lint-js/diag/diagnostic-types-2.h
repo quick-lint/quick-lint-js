@@ -2262,6 +2262,31 @@ struct Diag_TypeScript_Generics_Not_Allowed_In_JavaScript {
   Source_Code_Span opening_less;
 };
 
+struct Diag_TypeScript_Global_Block_Must_Be_Declare {
+  [[qljs::diag("E0422", Diagnostic_Severity::error)]]  //
+  [[qljs::message("TypeScript global declaration block must use 'declare'",
+                  ARG(global_keyword))]]  //
+  Source_Code_Span global_keyword;
+  Source_Code_Span expected_declare_keyword;
+};
+
+struct Diag_TypeScript_Global_Block_Not_Allowed_In_JavaScript {
+  [[qljs::diag("E0420", Diagnostic_Severity::error)]]  //
+  [[qljs::message("TypeScript 'declare global' is not allowed in JavaScript",
+                  ARG(global_keyword))]]  //
+  Source_Code_Span global_keyword;
+};
+
+struct Diag_TypeScript_Global_Block_Not_Allowed_In_Namespace {
+  [[qljs::diag("E0421", Diagnostic_Severity::error)]]  //
+  [[qljs::message("TypeScript 'declare global' is not allowed in namespaces",
+                  ARG(global_keyword))]]  //
+  [[qljs::message("inside namespace here",
+                  ARG(namespace_keyword))]]  //
+  Source_Code_Span global_keyword;
+  Source_Code_Span namespace_keyword;
+};
+
 struct Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript {
   [[qljs::diag("E0278", Diagnostic_Severity::error)]]  //
   [[qljs::message("TypeScript type exports are not allowed in JavaScript",

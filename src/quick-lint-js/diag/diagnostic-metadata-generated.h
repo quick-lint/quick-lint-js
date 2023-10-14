@@ -303,6 +303,9 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Generic_Arrow_Needs_Comma_In_JSX_Mode) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Generic_Parameter_List_Is_Empty) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Generics_Not_Allowed_In_JavaScript) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Global_Block_Must_Be_Declare) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Global_Block_Not_Allowed_In_JavaScript) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Global_Block_Not_Allowed_In_Namespace) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Inline_Type_Export_Not_Allowed_In_Type_Only_Export) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Inline_Type_Import_Not_Allowed_In_Type_Only_Import) \
@@ -439,7 +442,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 425;
+inline constexpr int Diag_Type_Count = 428;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

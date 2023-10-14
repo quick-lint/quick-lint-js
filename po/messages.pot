@@ -1478,6 +1478,22 @@ msgid "TypeScript generics are not allowed in JavaScript code"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "TypeScript global declaration block must use 'declare'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "TypeScript 'declare global' is not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "TypeScript 'declare global' is not allowed in namespaces"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "inside namespace here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript type exports are not allowed in JavaScript"
 msgstr ""
 

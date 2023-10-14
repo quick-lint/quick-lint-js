@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 518;
-constexpr std::size_t translation_table_string_table_size = 79733;
+constexpr std::uint16_t translation_table_mapping_table_size = 522;
+constexpr std::size_t translation_table_string_table_size = 79924;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -130,6 +130,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript 'declare abstract class' is not allowed in JavaScript"sv,
           "TypeScript 'declare class' is not allowed in JavaScript"sv,
           "TypeScript 'declare function' is not allowed in JavaScript"sv,
+          "TypeScript 'declare global' is not allowed in JavaScript"sv,
+          "TypeScript 'declare global' is not allowed in namespaces"sv,
           "TypeScript 'declare {1}' is not allowed in JavaScript"sv,
           "TypeScript 'declare' fields are now allowed in JavaScript"sv,
           "TypeScript 'implements' is not allowed in JavaScript"sv,
@@ -137,6 +139,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript <Type> type assertions are not allowed in JSX mode"sv,
           "TypeScript assignment-asserted fields are not supported in JavaScript"sv,
           "TypeScript generics are not allowed in JavaScript code"sv,
+          "TypeScript global declaration block must use 'declare'"sv,
           "TypeScript import aliases are not allowed in JavaScript"sv,
           "TypeScript interface fields cannot be initalized"sv,
           "TypeScript interface methods cannot be marked 'async'"sv,
@@ -311,6 +314,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "index starts here"sv,
           "indexing requires an expression"sv,
           "initializer starts here"sv,
+          "inside namespace here"sv,
           "integer cannot be represented and will be rounded to '{1}'"sv,
           "interface properties are always public and cannot be private"sv,
           "interface properties cannot be marked public explicitly"sv,
