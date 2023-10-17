@@ -287,14 +287,23 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
                                       const Declared_Variable_Type &,
                                       bool use_is_before_declaration) const;
 
+  struct Declared_Variable_Options {
+    // If nullptr, the variable is a global variable.
+    const Identifier *name;
+    // See Declared_Variable::kind.
+    Variable_Kind kind;
+    // See Declared_Variable::declaration_scope.
+    Declared_Variable_Scope declaration_scope;
+    // See Declared_Variable::flags.
+    Variable_Declaration_Flags flags;
+  };
+
   void report_error_if_variable_declaration_conflicts_in_scope(
       const Scope &scope, const Declared_Variable &var) const;
   void report_error_if_variable_declaration_conflicts_in_scope(
       const Global_Scope &scope, const Declared_Variable &var) const;
   void report_error_if_variable_declaration_conflicts(
-      const Identifier *already_declared, Variable_Kind already_declared_kind,
-      Variable_Declaration_Flags already_declared_flags,
-      Declared_Variable_Scope already_declared_declaration_scope,
+      const Declared_Variable_Options &already_declared_var,
       const Declared_Variable &newly_declared_var) const;
 
   Scope &current_scope() { return this->scopes_.current_scope(); }

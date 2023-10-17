@@ -938,11 +938,13 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
       scope.declared_variables.find(var.declaration);
   if (already_declared_variable) {
     this->report_error_if_variable_declaration_conflicts(
-        /*already_declared=*/&already_declared_variable->declaration,
-        /*already_declared_kind=*/already_declared_variable->kind,
-        /*already_declared_flags=*/already_declared_variable->flags,
-        /*already_declared_declaration_scope=*/
-        already_declared_variable->declaration_scope,
+        /*already_declared_var=*/
+        Declared_Variable_Options{
+            .name = &already_declared_variable->declaration,
+            .kind = already_declared_variable->kind,
+            .declaration_scope = already_declared_variable->declaration_scope,
+            .flags = already_declared_variable->flags,
+        },
         /*newly_declared_var=*/var);
   }
 }
@@ -954,24 +956,25 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
   if (already_declared_variable) {
     if (!already_declared_variable->is_shadowable) {
       this->report_error_if_variable_declaration_conflicts(
-          /*already_declared=*/nullptr,
-          /*already_declared_kind=*/already_declared_variable->kind(),
-          /*already_declared_flags=*/already_declared_variable->flags(),
-          /*already_declared_declaration_scope=*/
-          Declared_Variable_Scope::declared_in_current_scope,
+          /*already_declared_var=*/
+          Declared_Variable_Options{
+              .name = nullptr,
+              .kind = already_declared_variable->kind(),
+              .declaration_scope =
+                  Declared_Variable_Scope::declared_in_current_scope,
+              .flags = already_declared_variable->flags(),
+          },
           /*newly_declared_var=*/var);
     }
   }
 }
 
 void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
-    const Identifier *already_declared, Variable_Kind already_declared_kind,
-    Variable_Declaration_Flags already_declared_flags,
-    Declared_Variable_Scope already_declared_declaration_scope,
+    const Declared_Variable_Options &already_declared_var,
     const Declared_Variable &newly_declared_var) const {
   using VK = Variable_Kind;
   VK kind = newly_declared_var.kind;
-  VK other_kind = already_declared_kind;
+  VK other_kind = already_declared_var.kind;
 
   switch (other_kind) {
   case VK::_catch:
@@ -1076,17 +1079,18 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       // clang-format on
       (other_kind == VK::_namespace &&
        (kind == VK::_class || kind == VK::_function) &&
-       !(already_declared_flags &
+       !(already_declared_var.flags &
          Variable_Declaration_Flags::non_empty_namespace)) ||
       (kind == VK::_function &&
        newly_declared_var.declaration_scope ==
            Declared_Variable_Scope::declared_in_descendant_scope) ||
       (other_kind == VK::_function &&
-       already_declared_declaration_scope ==
+       already_declared_var.declaration_scope ==
            Declared_Variable_Scope::declared_in_descendant_scope) ||
       false;
   if (!redeclaration_ok) {
-    bool already_declared_is_global_variable = already_declared == nullptr;
+    bool already_declared_is_global_variable =
+        already_declared_var.name == nullptr;
     if (already_declared_is_global_variable) {
       this->diag_reporter_->report(Diag_Redeclaration_Of_Global_Variable{
           .redeclaration = newly_declared_var.declaration.span(),
@@ -1094,7 +1098,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
     } else {
       this->diag_reporter_->report(Diag_Redeclaration_Of_Variable{
           .redeclaration = newly_declared_var.declaration.span(),
-          .original_declaration = already_declared->span(),
+          .original_declaration = already_declared_var.name->span(),
       });
     }
   }
