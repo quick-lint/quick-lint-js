@@ -109,6 +109,17 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     // existing variable instead. This happens iff the variable has an
     // initializer with '='.
     Variable_Declaration_Flags flags;
+    // If true, this variable was declared in a TypeScript ambient context, i.e.
+    // with the 'declare' keyword directly or inside a 'declare' block.
+    //
+    // declare var x;          // ambient==true
+    // var y;                  // ambient==false
+    // declare namespace ns {
+    //    var z;               // ambient==true
+    //    function f(          // ambient==true
+    //      myParameter);      // ambient==true
+    // };
+    bool ambient;
 
     // Returns true if this variable can be used in expressions.
     //
@@ -296,6 +307,8 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     Declared_Variable_Scope declaration_scope;
     // See Declared_Variable::flags.
     Variable_Declaration_Flags flags;
+    // See Declared_Variable::ambient;
+    bool ambient;
   };
 
   void report_error_if_variable_declaration_conflicts_in_scope(

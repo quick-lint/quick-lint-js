@@ -145,6 +145,33 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
   test_parse_and_analyze(u8"(<T>(T) => {});"_sv, no_diags,
                          typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     declare_class_does_not_conflict_with_function) {
+  test_parse_and_analyze(u8"declare class C {}  function C() {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"function C() {}  declare class C {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+
+  test_parse_and_analyze(u8"declare class C {}  declare function C();"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"declare function C(); declare class C {}"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     declare_function_conflicts_with_non_declare_class) {
+  test_parse_and_analyze(
+      u8"class C {}  declare function C();"_sv,  //
+      u8"                             ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"      ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"declare function C(); class C {}"_sv,  //
+      u8"                            ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                 ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+}
 }
 }
 

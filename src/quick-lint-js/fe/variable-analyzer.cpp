@@ -168,6 +168,7 @@ void Variable_Analyzer::visit_enter_named_function_scope(
       .declaration_scope = Declared_Variable_Scope::declared_in_current_scope,
       .is_used = false,
       .flags = Variable_Declaration_Flags::none,
+      .ambient = this->in_typescript_ambient_context(),
   };
 }
 
@@ -310,6 +311,7 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
       .declaration_scope = declared_scope,
       .is_used = false,
       .flags = flags,
+      .ambient = this->in_typescript_ambient_context(),
   };
 
   this->report_error_if_variable_declaration_conflicts_in_scope(scope,
@@ -944,6 +946,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
             .kind = already_declared_variable->kind,
             .declaration_scope = already_declared_variable->declaration_scope,
             .flags = already_declared_variable->flags,
+            .ambient = already_declared_variable->ambient,
         },
         /*newly_declared_var=*/var);
   }
@@ -963,6 +966,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
               .declaration_scope =
                   Declared_Variable_Scope::declared_in_current_scope,
               .flags = already_declared_variable->flags(),
+              .ambient = true,
           },
           /*newly_declared_var=*/var);
     }
@@ -1087,6 +1091,10 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (other_kind == VK::_function &&
        already_declared_var.declaration_scope ==
            Declared_Variable_Scope::declared_in_descendant_scope) ||
+      (other_kind == VK::_class && kind == VK::_function &&
+       already_declared_var.ambient) ||
+      (other_kind == VK::_function && kind == VK::_class &&
+       newly_declared_var.ambient) ||
       false;
   if (!redeclaration_ok) {
     bool already_declared_is_global_variable =
