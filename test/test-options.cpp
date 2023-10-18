@@ -422,41 +422,40 @@ TEST(Test_Options, language) {
     ASSERT_EQ(o.files_to_lint.size(), 1);
     EXPECT_EQ(o.files_to_lint[0].language, Input_File_Language::javascript_jsx);
   }
+}
 
-  {
-    Options o = parse_options({"file.js", "--language=javascript-jsx"});
-    EXPECT_THAT(o.warning_language_without_file,
-                ElementsAreArray({"javascript-jsx"sv}));
+TEST(Test_Options, language_after_file) {
+  Options o = parse_options({"file.js", "--language=javascript-jsx"});
+  EXPECT_THAT(o.warning_language_without_file,
+              ElementsAreArray({"javascript-jsx"sv}));
 
-    Dumped_Errors errors = dump_errors(o);
-    EXPECT_FALSE(errors.have_errors);
-    EXPECT_EQ(
-        errors.output,
-        u8"warning: flag '--language=javascript-jsx' should be followed by an "
-        u8"input file name or --stdin\n");
-  }
+  Dumped_Errors errors = dump_errors(o);
+  EXPECT_FALSE(errors.have_errors);
+  EXPECT_EQ(
+      errors.output,
+      u8"warning: flag '--language=javascript-jsx' should be followed by an "
+      u8"input file name or --stdin\n");
+}
 
-  {
-    Options o = parse_options(
-        {"--language=javascript", "--language=javascript-jsx", "test.jsx"});
-    EXPECT_THAT(o.warning_language_without_file,
-                ElementsAreArray({"javascript"sv}));
+TEST(Test_Options, multiple_languages) {
+  Options o = parse_options(
+      {"--language=javascript", "--language=javascript-jsx", "test.jsx"});
+  EXPECT_THAT(o.warning_language_without_file,
+              ElementsAreArray({"javascript"sv}));
 
-    Dumped_Errors errors = dump_errors(o);
-    EXPECT_FALSE(errors.have_errors);
-    EXPECT_EQ(
-        errors.output,
-        u8"warning: flag '--language=javascript' should be followed by an "
-        u8"input file name or --stdin\n");
-  }
+  Dumped_Errors errors = dump_errors(o);
+  EXPECT_FALSE(errors.have_errors);
+  EXPECT_EQ(errors.output,
+            u8"warning: flag '--language=javascript' should be followed by an "
+            u8"input file name or --stdin\n");
+}
 
-  {
-    Options o = parse_options({"--language=badlanguageid", "test.js"});
-    EXPECT_THAT(o.warning_language_without_file, IsEmpty());
-    // TODO(strager): Highlight the full option, not just the value.
-    EXPECT_THAT(o.error_unrecognized_options,
-                ElementsAreArray({"badlanguageid"sv}));
-  }
+TEST(Test_Options, invalid_language) {
+  Options o = parse_options({"--language=badlanguageid", "test.js"});
+  EXPECT_THAT(o.warning_language_without_file, IsEmpty());
+  // TODO(strager): Highlight the full option, not just the value.
+  EXPECT_THAT(o.error_unrecognized_options,
+              ElementsAreArray({"badlanguageid"sv}));
 }
 
 TEST(Test_Options, get_language_from_path) {
