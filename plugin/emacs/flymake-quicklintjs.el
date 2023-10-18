@@ -61,13 +61,14 @@ quick-lint-js process that is passed the current buffer's contents via stdin.
 REPORT-FN is Flymake's callback."
   (when (process-live-p flymake-quicklintjs--proc)
     (kill-process flymake-quicklintjs--proc))
-  (let ((src-buf (current-buffer)))
+  (let ((src-buf (current-buffer))
+        (output-buf (generate-new-buffer " *flymake-quicklintjs*")))
     (setq flymake-quicklintjs--proc
           (make-process
            :name "flymake-quicklintjs"
            :connection-type 'pipe
            :noquery t
-           :buffer (get-buffer-create " *flymake-quicklintjs*")
+           :buffer output-buf
            :command `(,flymake-quicklintjs-program
                       ,@(let ((file (buffer-file-name)))
                           (if file
@@ -80,7 +81,7 @@ REPORT-FN is Flymake's callback."
              (unwind-protect
                  (when (and (eq 'exit (process-status p))
                             (eq p flymake-quicklintjs--proc))
-                   (with-current-buffer (process-buffer p)
+                   (with-current-buffer output-buf
                      (let ((diags (flymake-quicklintjs--make-diagnostics
                                   src-buf
                                   (car (read-from-string
@@ -95,7 +96,7 @@ REPORT-FN is Flymake's callback."
                                    (point-min) (progn (goto-char (point-min))
                                                       (line-end-position))))))))
                (unless (process-live-p p)
-                 (kill-buffer (process-buffer p)))))))
+                 (kill-buffer output-buf))))))
     (process-send-region flymake-quicklintjs--proc (point-min) (point-max))
     (process-send-eof flymake-quicklintjs--proc)))
 
