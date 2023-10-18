@@ -62,13 +62,15 @@ REPORT-FN is Flymake's callback."
   (when (process-live-p flymake-quicklintjs--proc)
     (kill-process flymake-quicklintjs--proc))
   (let ((src-buf (current-buffer))
-        (output-buf (generate-new-buffer " *flymake-quicklintjs*")))
+        (stdout-buf (generate-new-buffer "*flymake-quicklintjs*"))
+        (stderr-buf (generate-new-buffer "*flymake-quicklintjs-stderr*")))
     (setq flymake-quicklintjs--proc
           (make-process
            :name "flymake-quicklintjs"
            :connection-type 'pipe
            :noquery t
-           :buffer output-buf
+           :buffer stdout-buf
+           :stderr stderr-buf
            :command `(,flymake-quicklintjs-program
                       ,@(let ((file (buffer-file-name)))
                           (if file
@@ -81,7 +83,11 @@ REPORT-FN is Flymake's callback."
              (unwind-protect
                  (when (and (eq 'exit (process-status p))
                             (eq p flymake-quicklintjs--proc))
-                   (with-current-buffer output-buf
+                   (with-current-buffer stderr-buf
+                     (flymake-log :warning "%S"
+                                  (buffer-substring-no-properties
+                                   (point-min) (point-max))))
+                   (with-current-buffer stdout-buf
                      (let ((diags (flymake-quicklintjs--make-diagnostics
                                   src-buf
                                   (car (read-from-string
@@ -96,7 +102,8 @@ REPORT-FN is Flymake's callback."
                                    (point-min) (progn (goto-char (point-min))
                                                       (line-end-position))))))))
                (unless (process-live-p p)
-                 (kill-buffer output-buf))))))
+                 (kill-buffer stdout-buf)
+                 (kill-buffer stderr-buf))))))
     (process-send-region flymake-quicklintjs--proc (point-min) (point-max))
     (process-send-eof flymake-quicklintjs--proc)))
 
