@@ -32,12 +32,12 @@
 (defcustom flymake-quicklintjs-program "quick-lint-js"
   "Path to quick-lint-js program to run."
   :group 'flymake-quicklintjs
-  :type 'stringp)
+  :type '(file :must-match t))
 
 (defcustom flymake-quicklintjs-args nil
   "Arguments to quick-lint-js."
   :group 'flymake-quicklintjs
-  :type '(repeat 'string))
+  :type '(repeat string))
 
 (defvar-local flymake-quicklintjs--proc nil
   "Internal variable for `flymake-quicklintjs'")
