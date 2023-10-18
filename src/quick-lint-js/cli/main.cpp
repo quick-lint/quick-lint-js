@@ -193,7 +193,7 @@ void init();
 [[noreturn]] void run(int argc, char **argv);
 [[noreturn]] void run(Options o);
 
-Linter_Options get_linter_options_from_language(Input_File_Language);
+Linter_Options get_linter_options_from_language(Resolved_Input_File_Language);
 
 void list_debug_apps();
 void run_lsp_server();
@@ -278,7 +278,7 @@ void run(Options o) {
                            File_To_Lint{
                                .path = config_file->config_path->c_str(),
                                .config_file = nullptr,
-                               .language = std::nullopt,
+                               .language = Raw_Input_File_Language::default_,
                                .is_stdin = false,
                                .vim_bufnr = std::nullopt,
                            });
@@ -318,27 +318,28 @@ void run(Options o) {
   std::exit(EXIT_SUCCESS);
 }
 
-Linter_Options get_linter_options_from_language(Input_File_Language language) {
+Linter_Options get_linter_options_from_language(
+    Resolved_Input_File_Language language) {
   Linter_Options o;
   switch (language) {
-  case Input_File_Language::javascript:
+  case Resolved_Input_File_Language::javascript:
     o.jsx = false;
     o.typescript = false;
     break;
-  case Input_File_Language::javascript_jsx:
+  case Resolved_Input_File_Language::javascript_jsx:
     o.jsx = true;
     o.typescript = false;
     break;
-  case Input_File_Language::typescript:
+  case Resolved_Input_File_Language::typescript:
     o.jsx = false;
     o.typescript = true;
     break;
-  case Input_File_Language::typescript_definition:
+  case Resolved_Input_File_Language::typescript_definition:
     o.jsx = false;
     o.typescript = true;
     o.typescript_definition = true;
     break;
-  case Input_File_Language::typescript_jsx:
+  case Resolved_Input_File_Language::typescript_jsx:
     o.jsx = true;
     o.typescript = true;
     break;

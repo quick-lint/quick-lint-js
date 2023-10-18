@@ -33,7 +33,7 @@ Options parse_options(int argc, char** argv) {
 
   const char* next_path_for_config_search = nullptr;
   const char* active_config_file = nullptr;
-  std::optional<Input_File_Language> language;
+  Raw_Input_File_Language language = Raw_Input_File_Language::default_;
   const char* unused_language_option = nullptr;
   bool has_stdin = false;
 
@@ -114,17 +114,17 @@ Options parse_options(int argc, char** argv) {
       }
       unused_language_option = arg_value;
       if (arg_value == "default"sv) {
-        language = std::nullopt;
+        language = Raw_Input_File_Language::default_;
       } else if (arg_value == "javascript"sv) {
-        language = Input_File_Language::javascript;
+        language = Raw_Input_File_Language::javascript;
       } else if (arg_value == "javascript-jsx"sv) {
-        language = Input_File_Language::javascript_jsx;
+        language = Raw_Input_File_Language::javascript_jsx;
       } else if (arg_value == "experimental-typescript"sv) {
-        language = Input_File_Language::typescript;
+        language = Raw_Input_File_Language::typescript;
       } else if (arg_value == "experimental-typescript-definition"sv) {
-        language = Input_File_Language::typescript_definition;
+        language = Raw_Input_File_Language::typescript_definition;
       } else if (arg_value == "experimental-typescript-jsx"sv) {
-        language = Input_File_Language::typescript_jsx;
+        language = Raw_Input_File_Language::typescript_jsx;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
@@ -258,17 +258,17 @@ bool Options::dump_errors(Output_Stream& out) const {
   return have_errors;
 }
 
-Input_File_Language File_To_Lint::get_language() const {
+Resolved_Input_File_Language File_To_Lint::get_language() const {
   return quick_lint_js::get_language(this->path, this->language);
 }
 
-Input_File_Language get_language(
-    const char* file, const std::optional<Input_File_Language>& language) {
+Resolved_Input_File_Language get_language(const char* file,
+                                          Raw_Input_File_Language language) {
   static_cast<void>(file);  // Unused for now.
-  if (language.has_value()) {
-    return *language;
+  if (language == Raw_Input_File_Language::default_) {
+    return Resolved_Input_File_Language::javascript_jsx;
   } else {
-    return Input_File_Language::javascript_jsx;
+    return static_cast<Resolved_Input_File_Language>(language);
   }
 }
 }
