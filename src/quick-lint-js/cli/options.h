@@ -43,8 +43,7 @@ struct File_To_Lint {
 };
 
 Input_File_Language get_language(
-    const char *config_file,
-    const std::optional<Input_File_Language> &language);
+    const char *file, const std::optional<Input_File_Language> &language);
 
 struct Options {
   bool help = false;

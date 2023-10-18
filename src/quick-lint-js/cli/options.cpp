@@ -263,9 +263,8 @@ Input_File_Language File_To_Lint::get_language() const {
 }
 
 Input_File_Language get_language(
-    const char* config_file,
-    const std::optional<Input_File_Language>& language) {
-  static_cast<void>(config_file);  // Unused for now.
+    const char* file, const std::optional<Input_File_Language>& language) {
+  static_cast<void>(file);  // Unused for now.
   if (language.has_value()) {
     return *language;
   } else {
