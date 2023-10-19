@@ -121,7 +121,15 @@
   ;; Optional: Remove the time to wait after last change before automatically
   ;; checking buffer. The default is 0.5 (500ms)
   (setq-local flymake-no-changes-timeout 0))
-(add-hook 'js-mode-hook #'my-flymake-quicklintjs-setup)</code></pre>
+(add-hook 'js-mode-hook #'my-flymake-quicklintjs-setup)
+
+;; Optional: Enable TypeScript support. Requires quick-lint-js version
+;; 2.17.0 or newer.
+;; EXPERIMENTAL. Subject to change in future versions of
+;; quick-lint-js.
+(add-hook 'typescript-mode-hook #'my-flymake-quicklintjs-setup)
+(setq flymake-quicklintjs-experimental-typescript t)
+</code></pre>
 
       <h2 id="lsp-mode">LSP Mode</h2>
       <p>

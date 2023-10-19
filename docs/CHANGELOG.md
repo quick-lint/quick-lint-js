@@ -29,6 +29,8 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * CLI: The new `--language=experimental-default` option auto-detects the
     language based on the file's extension (`.ts`, `.tsx`, `.d.ts`, or `.js`).
+  * Emacs: Flymake plugin users can now opt into TypeScript support. See the
+    [Flymake configuration instructions][emacs-configure-flymake].
   * Class method overload signatures are now parsed.
   * [E0398][] is now reported when using both `abstract` and `static` on a
     single class property.
@@ -1066,6 +1068,7 @@ Beta release.
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [cross-compiling-quick-lint-js]: https://quick-lint-js.com/contribute/build-from-source/cross-compiling/
+[emacs-configure-flymake]: https://quick-lint-js.com/install/emacs/configure/#flymake
 [install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
 
 [AidenThing]: https://github.com/AidenThing
