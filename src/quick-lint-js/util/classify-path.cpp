@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <cstddef>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/classify-path.h>
 #include <quick-lint-js/util/uri.h>
@@ -12,7 +13,7 @@ Path_Classification classify_uri(String8_View uri) {
   String8_View base_name = uri_base_name(uri);
   return Path_Classification{
       .typescript_definition = base_name.find(u8".d."_sv) != base_name.npos,
-      .typescript_jsx = base_name.find(u8".tsx"_sv) != base_name.npos,
+      .typescript_jsx = ends_with(base_name, u8".tsx"_sv),
   };
 }
 }

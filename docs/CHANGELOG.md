@@ -55,6 +55,9 @@ Semantic Versioning.
     [E0034][] ("redeclaration of variable").
   * `(a?, ...b) => ReturnType` in a TypeScript type no longer falsely reports
     [E0379][] ("optional parameter cannot be followed by a required parameter").
+  * LSP: A file named `a.tsxbanana.ts` is no longer recognized as a
+    TypeScript JSX file. It is now recognized as a non-JSX TypeScript
+    file.
   * Nested `module` declarations no longer falsely report [E0361][]. E0361's
     message has been changed:
     * Before: "module with string name is only allowed at the top level"

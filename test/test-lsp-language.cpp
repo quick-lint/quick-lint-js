@@ -107,6 +107,14 @@ TEST(Test_LSP_Language, typescript_file_without_d_or_tsx_is_source) {
         << ".d. in containing directory should be ignored";
   }
 
+  {
+    const LSP_Language* language =
+        LSP_Language::find("typescript"sv, u8"file:///folder/test.tsx.ts"_sv);
+    ASSERT_NE(language, nullptr);
+    EXPECT_FALSE(language->lint_options.jsx)
+        << ".tsx in file name but not in extension should be ignored";
+  }
+
   // TODO(strager): Query parameters should be ignored.
   // TODO(strager): Fragments should be ignored.
 }
