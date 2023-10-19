@@ -201,6 +201,46 @@ TEST_F(Test_CLI, automatically_find_config_file_given_path_for_config_search) {
   EXPECT_EQ(r.exit_status, 0);
 }
 
+TEST_F(Test_CLI, path_for_config_search_affects_stdin_file) {
+  std::string test_directory = this->make_temporary_directory();
+  std::string config_file = test_directory + "/quick-lint-js.config";
+  write_file_or_exit(config_file,
+                     u8R"({"globals":{"myGlobalVariable": true}})"_sv);
+
+  Run_Program_Result r = run_program(
+      {
+          get_quick_lint_js_executable_path(),
+          "--path-for-config-search",
+          test_directory + "/app.js",
+          "--stdin",
+      },
+      Run_Program_Options{
+          .input = u8"console.log(myGlobalVariable);"_sv,
+      });
+  EXPECT_EQ(r.output, u8""_sv);
+  EXPECT_EQ(r.exit_status, 0);
+}
+
+TEST_F(Test_CLI, path_for_stdin_affects_stdin_file_config_search) {
+  std::string test_directory = this->make_temporary_directory();
+  std::string config_file = test_directory + "/quick-lint-js.config";
+  write_file_or_exit(config_file,
+                     u8R"({"globals":{"myGlobalVariable": true}})"_sv);
+
+  Run_Program_Result r = run_program(
+      {
+          get_quick_lint_js_executable_path(),
+          "--stdin-path",
+          test_directory + "/app.js",
+          "--stdin",
+      },
+      Run_Program_Options{
+          .input = u8"console.log(myGlobalVariable);"_sv,
+      });
+  EXPECT_EQ(r.output, u8""_sv);
+  EXPECT_EQ(r.exit_status, 0);
+}
+
 TEST_F(Test_CLI, config_file_parse_error_prevents_lint) {
   std::string test_directory = this->make_temporary_directory();
 
@@ -270,6 +310,50 @@ TEST_F(Test_CLI, errors_for_all_config_files_are_printed) {
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("dir1"));
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("dir2"));
   EXPECT_EQ(count_occurences(r.output.string_view(), u8"E0164"_sv), 2)
+      << r.output;
+}
+
+TEST_F(Test_CLI, path_for_stdin_affects_default_language) {
+  {
+    Run_Program_Result r = run_program(
+        {get_quick_lint_js_executable_path(), "--language=experimental-default",
+         "--stdin", "--stdin-path=hello.js"},
+        Run_Program_Options{
+            .input = u8"interface I {}"_sv,
+        });
+    EXPECT_EQ(r.exit_status, 1);
+    EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("E0213"))
+        << "expected \"TypeScript's 'interface' feature is not allowed in "
+           "JavaScript code\"\n"
+        << r.output;
+  }
+
+  {
+    Run_Program_Result r = run_program(
+        {get_quick_lint_js_executable_path(), "--language=experimental-default",
+         "--stdin", "--stdin-path=hello.ts"},
+        Run_Program_Options{
+            .input = u8"interface I {}"_sv,
+        });
+    EXPECT_EQ(r.exit_status, 0);
+    EXPECT_THAT(to_string(r.output.string_view()), Not(HasSubstr("E0213")))
+        << "expected no diagnostics because file should be interpreted as "
+           "TypeScript\n"
+        << r.output;
+  }
+}
+
+TEST_F(Test_CLI, language_overrides_path_for_stdin) {
+  Run_Program_Result r = run_program({get_quick_lint_js_executable_path(),
+                                      "--language=experimental-typescript",
+                                      "--stdin", "--stdin-path=hello.js"},
+                                     Run_Program_Options{
+                                         .input = u8"interface I {}"_sv,
+                                     });
+  EXPECT_EQ(r.exit_status, 0);
+  EXPECT_THAT(to_string(r.output.string_view()), Not(HasSubstr("E0213")))
+      << "expected no diagnostics because file should be interpreted as "
+         "TypeScript\n"
       << r.output;
 }
 

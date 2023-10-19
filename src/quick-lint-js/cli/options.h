@@ -55,10 +55,6 @@ struct File_To_Lint {
   std::optional<int> vim_bufnr;
 };
 
-Resolved_Input_File_Language get_language(const File_To_Lint &file);
-Resolved_Input_File_Language get_language(const char *file,
-                                          Raw_Input_File_Language language);
-
 struct Options {
   bool help = false;
   bool list_debug_apps = false;
@@ -70,6 +66,7 @@ struct Options {
   Option_When diagnostic_hyperlinks = Option_When::auto_;
   std::vector<File_To_Lint> files_to_lint;
   Compiled_Diag_Code_List exit_fail_on;
+  const char *path_for_stdin = nullptr;
 
   std::vector<const char *> error_unrecognized_options;
   std::vector<const char *> warning_vim_bufnr_without_file;
@@ -79,8 +76,15 @@ struct Options {
   bool has_language = false;
   bool has_vim_file_bufnr = false;
 
+  bool has_stdin() const;
+
   bool dump_errors(Output_Stream &) const;
 };
+
+Resolved_Input_File_Language get_language(const File_To_Lint &file,
+                                          const Options &);
+Resolved_Input_File_Language get_language(const char *file,
+                                          Raw_Input_File_Language language);
 
 Options parse_options(int argc, char **argv);
 }

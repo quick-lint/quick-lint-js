@@ -557,6 +557,7 @@ TEST(Test_Options, stdin_file) {
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_TRUE(o.files_to_lint[0].is_stdin);
     EXPECT_FALSE(o.has_multiple_stdin);
+    EXPECT_EQ(o.path_for_stdin, nullptr);
   }
 
   {
@@ -564,6 +565,7 @@ TEST(Test_Options, stdin_file) {
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_TRUE(o.files_to_lint[1].is_stdin);
     EXPECT_FALSE(o.has_multiple_stdin);
+    EXPECT_EQ(o.path_for_stdin, nullptr);
   }
 
   {
@@ -571,6 +573,7 @@ TEST(Test_Options, stdin_file) {
     ASSERT_EQ(o.files_to_lint.size(), 1);
     EXPECT_TRUE(o.files_to_lint[0].is_stdin);
     EXPECT_FALSE(o.has_multiple_stdin);
+    EXPECT_EQ(o.path_for_stdin, nullptr);
   }
 }
 
@@ -584,6 +587,57 @@ TEST(Test_Options, is_stdin_emplaced_only_once) {
     Options o = parse_options_no_errors({"one.js", "-", "two.js", "-"});
     ASSERT_EQ(o.files_to_lint.size(), 3);
     EXPECT_TRUE(o.has_multiple_stdin);
+  }
+}
+
+TEST(Test_Options, path_for_stdin) {
+  {
+    Options o = parse_options_no_errors({"--stdin-path", "a.js", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "a.js");
+    EXPECT_STREQ(o.path_for_stdin, "a.js");
+  }
+
+  {
+    Options o = parse_options_no_errors({"--stdin-path=a.js", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "a.js");
+    EXPECT_STREQ(o.path_for_stdin, "a.js");
+  }
+
+  // Order does not matter.
+  {
+    Options o = parse_options_no_errors({"--stdin", "--stdin-path=a.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "a.js");
+    EXPECT_STREQ(o.path_for_stdin, "a.js");
+  }
+
+  // Last --stdin-path option takes effect.
+  {
+    Options o = parse_options_no_errors(
+        {"--stdin-path=a.js", "--stdin-path=b.js", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_STREQ(o.path_for_stdin, "b.js");
+  }
+
+  // --path-for-config-search overrides --stdin-path.
+  {
+    Options o = parse_options_no_errors(
+        {"--path-for-config-search=pfcs.js", "--stdin", "--stdin-path=pfs.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "pfcs.js");
+    EXPECT_STREQ(o.path_for_stdin, "pfs.js");
+  }
+
+  {
+    Options o = parse_options({"--stdin-path=a.js", "file.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+
+    Dumped_Errors errors = dump_errors(o);
+    EXPECT_FALSE(errors.have_errors);
+    EXPECT_EQ(errors.output,
+              u8"warning: '--stdin-path' has no effect without --stdin\n"_sv);
   }
 }
 

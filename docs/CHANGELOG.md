@@ -23,6 +23,9 @@ Semantic Versioning.
   is not allowed on getters or setters"). (Implemented by [koopiehoop][].)
 * Emacs: The Debian/Ubuntu package now installs the Emacs plugin. Manual
   installation of the .el files is no longer required.
+* CLI: The new `--stdin-path` CLI option allows users of the `--stdin` option
+  (primarily text editors) to have quick-lint-js detect the language
+  automatically via `--language=default` or `--language=experimental-default`.
 * TypeScript support (still experimental):
   * CLI: The new `--language=experimental-default` option auto-detects the
     language based on the file's extension (`.ts`, `.tsx`, `.d.ts`, or `.js`).

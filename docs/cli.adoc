@@ -101,9 +101,42 @@ _path_ does not need to exist in the filesystem.
 Therefore, if multiple input files are given, *--path-for-config-search* can be specified multiple times.
 If *--path-for-config-search* is the last option, it has no effect.
 +
+*--path-for-config-search* overrides *--stdin-path*.
++
 Incompatible with *--lsp-server*.
 +
 Added in quick-lint-js version 0.4.0.
+
+*--stdin-path*=_path_::
+  Change the behavior of *--stdin*.
+*--stdin* still reads a string from standard input, but otherwise it behaves as if the file at _path_ was specified instead:
++
+--
+- The default language is determined by _path_ (unless overridden by *--language*).
+See *--language* for details.
+ifdef::backend-manpage[]
+- Searching for a configuration file
+endif::[]
+ifdef::backend-html5[]
+- link:../config/[Searching for a configuration file]
+endif::[]
+is based on _path_ (unless overridden by *--config-file* or *--path-for-config-file*).
+ifdef::backend-manpage[]
+(See *quick-lint-js.config*(5) for details on configuration file searching.)
+endif::[]
+
+*--stdin-path* applies to only *--stdin*, not file paths (even special files such as /dev/stdin).
+
+*--stdin-path* may appear anywhere in the command line (except after *--*).
+
+_path_ must be a syntactically-valid path.
+_path_ does not need to exist in the filesystem.
+_path_ may be a relative path or an absolute path.
+
+Incompatible with *--lsp-server*.
+
+Added in quick-lint-js version 2.17.0.
+--
 
 [#config-file]
 *--config-file*=_file_::
@@ -124,6 +157,8 @@ endif::[]
 ifdef::backend-html5[]
 If *--config-file* is not given, *quick-lint-js* link:../config/[searches for a configuration file].
 endif::[]
++
+*--config-file* overrides *--path-for-config-file* and *--stdin-path*.
 +
 Incompatible with *--lsp-server*.
 +
@@ -162,6 +197,12 @@ See the <<Example>> section for an example.
 
 If *--language* is the last option, it has no effect.
 
+If the input file is *--stdin*:
+
+- If *--stdin-path* is specified, its _path_ is used for *--language=default*.
+- If *--stdin-path* is not specified, then the path is assumed to be *example.js*.
+This means that *--language=default* will behave like *--language=javascript-jsx*.
+
 Incompatible with *--lsp-server*.
 
 Added in quick-lint-js version 2.10.0.
@@ -175,18 +216,20 @@ See the <<Error lists>> section for a description of the format for _errors_.
 Incompatible with *--lsp-server*.
 
 *--stdin*::
-  Read standard input as a JavaScript file.
+  Read standard input as an input file.
 +
-If neither *--config-file* nor *--path-for-config-search* is specified, an empty configuration file is assumed.
+If none of *--config-file*, *--path-for-config-search*, or *--stdin-path* are specified, an empty configuration file is assumed.
 If *--config-file* is specified, _file_ is used for linting standard input.
-If *--path-for-config-search* is specified and *--config-file* is not specified,
+If *--config-file* is not specified and either *--stdin-path* or *--path-for-config-search* is specified,
 ifdef::backend-manpage[]
 *quick-lint-js* searches for a configuration file according to the rules specified in *quick-lint-js.config*(5)
 endif::[]
 ifdef::backend-html5[]
 *quick-lint-js* link:../config/[searches for a configuration file]
 endif::[]
-starting from *--path-for-config-search*'s _path_.
+starting from *--stdin-path*'s _path_ or *--path-for-config-search*'s _path_.
++
+If neither *--stdin-path* nor *--language* are specified, the *javascript-jsx* language is used.
 +
 Incompatible with *--lsp-server*.
 +

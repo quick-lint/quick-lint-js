@@ -137,6 +137,10 @@ Options parse_options(int argc, char** argv) {
       next_path_for_config_search = arg_value;
     }
 
+    QLJS_OPTION(const char* arg_value, "--stdin-path"sv) {
+      o.path_for_stdin = arg_value;
+    }
+
     QLJS_OPTION(const char* arg_value, "--vim-file-bufnr"sv) {
       o.has_vim_file_bufnr = true;
       int bufnr;
@@ -177,8 +181,24 @@ done_parsing_options:
   if (next_vim_file_bufnr.number != std::nullopt) {
     o.warning_vim_bufnr_without_file.emplace_back(next_vim_file_bufnr.arg_var);
   }
+  if (o.path_for_stdin != nullptr) {
+    for (File_To_Lint& file : o.files_to_lint) {
+      if (file.path_for_config_search == nullptr) {
+        file.path_for_config_search = o.path_for_stdin;
+      }
+    }
+  }
 
   return o;
+}
+
+bool Options::has_stdin() const {
+  for (const File_To_Lint& file : this->files_to_lint) {
+    if (file.is_stdin) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool Options::dump_errors(Output_Stream& out) const {
@@ -235,6 +255,11 @@ bool Options::dump_errors(Output_Stream& out) const {
     }
   }
 
+  if (this->path_for_stdin != nullptr && !this->has_stdin()) {
+    out.append_copy(
+        u8"warning: '--stdin-path' has no effect without --stdin\n"_sv);
+  }
+
   for (const auto& option : this->error_unrecognized_options) {
     out.append_copy(u8"error: unrecognized option: "_sv);
     out.append_copy(to_string8_view(option));
@@ -261,8 +286,12 @@ bool Options::dump_errors(Output_Stream& out) const {
   return have_errors;
 }
 
-Resolved_Input_File_Language get_language(const File_To_Lint& file) {
-  return get_language(file.path, file.language);
+Resolved_Input_File_Language get_language(const File_To_Lint& file,
+                                          const Options& options) {
+  const char* path = file.is_stdin && options.path_for_stdin != nullptr
+                         ? options.path_for_stdin
+                         : file.path;
+  return get_language(path, file.language);
 }
 
 Resolved_Input_File_Language get_language(const char* file,
