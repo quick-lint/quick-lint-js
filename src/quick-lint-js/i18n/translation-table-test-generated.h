@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[521] = {
+inline const Translated_String test_translation_table[522] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -3898,6 +3898,17 @@ inline const Translated_String test_translation_table[521] = {
             u8"missing expression in placeholder within template literal",
             u8"missing expression in placeholder within template literal",
             u8"missing expression in placeholder within template literal",
+        },
+    },
+    {
+        "missing fallthrough comment"_translatable,
+        u8"missing fallthrough comment",
+        {
+            u8"missing fallthrough comment",
+            u8"missing fallthrough comment",
+            u8"missing fallthrough comment",
+            u8"missing fallthrough comment",
+            u8"missing fallthrough comment",
         },
     },
     {

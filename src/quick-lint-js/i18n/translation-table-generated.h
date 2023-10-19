@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 522;
-constexpr std::size_t translation_table_string_table_size = 79941;
+constexpr std::uint16_t translation_table_mapping_table_size = 523;
+constexpr std::size_t translation_table_string_table_size = 79969;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -378,6 +378,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing exported name in import type"sv,
           "missing expression between parentheses"sv,
           "missing expression in placeholder within template literal"sv,
+          "missing fallthrough comment"sv,
           "missing for loop header"sv,
           "missing function parameter list"sv,
           "missing header and body for 'for' loop"sv,
