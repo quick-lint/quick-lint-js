@@ -53,10 +53,9 @@ struct File_To_Lint {
 
   bool is_stdin = false;
   std::optional<int> vim_bufnr;
-
-  Resolved_Input_File_Language get_language() const;
 };
 
+Resolved_Input_File_Language get_language(const File_To_Lint &file);
 Resolved_Input_File_Language get_language(const char *file,
                                           Raw_Input_File_Language language);
 

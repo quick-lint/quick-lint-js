@@ -301,7 +301,7 @@ void run(Options o) {
         source.error().print_and_exit();
       }
       Linter_Options lint_options =
-          get_linter_options_from_language(file.get_language());
+          get_linter_options_from_language(get_language(file));
       lint_options.print_parser_visits = o.print_parser_visits;
       reporter->set_source(&*source, file);
       parse_and_lint(&*source, *reporter->get(), config->globals(),

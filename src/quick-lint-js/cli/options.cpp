@@ -261,8 +261,8 @@ bool Options::dump_errors(Output_Stream& out) const {
   return have_errors;
 }
 
-Resolved_Input_File_Language File_To_Lint::get_language() const {
-  return quick_lint_js::get_language(this->path, this->language);
+Resolved_Input_File_Language get_language(const File_To_Lint& file) {
+  return get_language(file.path, file.language);
 }
 
 Resolved_Input_File_Language get_language(const char* file,
