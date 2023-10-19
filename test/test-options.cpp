@@ -551,7 +551,7 @@ TEST(Test_Options, lsp_server) {
   }
 }
 
-TEST(Test_Options, dash_dash_stdin) {
+TEST(Test_Options, stdin_file) {
   {
     Options o = parse_options_no_errors({"--stdin", "one.js"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
@@ -584,13 +584,6 @@ TEST(Test_Options, is_stdin_emplaced_only_once) {
     Options o = parse_options_no_errors({"one.js", "-", "two.js", "-"});
     ASSERT_EQ(o.files_to_lint.size(), 3);
     EXPECT_TRUE(o.has_multiple_stdin);
-  }
-}
-
-TEST(Test_Options, single_hyphen_is_argument) {
-  {
-    Options o = parse_options_no_errors({"one.js", "-", "two.js"});
-    ASSERT_EQ(o.files_to_lint.size(), 3);
   }
 }
 
