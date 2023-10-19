@@ -11,6 +11,7 @@
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/classify-path.h>
 #include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
@@ -115,6 +116,8 @@ Options parse_options(int argc, char** argv) {
       unused_language_option = arg_value;
       if (arg_value == "default"sv) {
         language = Raw_Input_File_Language::default_;
+      } else if (arg_value == "experimental-default"sv) {
+        language = Raw_Input_File_Language::experimental_default;
       } else if (arg_value == "javascript"sv) {
         language = Raw_Input_File_Language::javascript;
       } else if (arg_value == "javascript-jsx"sv) {
@@ -264,9 +267,20 @@ Resolved_Input_File_Language File_To_Lint::get_language() const {
 
 Resolved_Input_File_Language get_language(const char* file,
                                           Raw_Input_File_Language language) {
-  static_cast<void>(file);  // Unused for now.
   if (language == Raw_Input_File_Language::default_) {
     return Resolved_Input_File_Language::javascript_jsx;
+  } else if (language == Raw_Input_File_Language::experimental_default) {
+    Path_Classification classification = classify_path(file);
+    if (classification.typescript_jsx) {
+      return Resolved_Input_File_Language::typescript_jsx;
+    } else if (classification.typescript) {
+      if (classification.typescript_definition) {
+        return Resolved_Input_File_Language::typescript_definition;
+      }
+      return Resolved_Input_File_Language::typescript;
+    } else {
+      return Resolved_Input_File_Language::javascript_jsx;
+    }
   } else {
     return static_cast<Resolved_Input_File_Language>(language);
   }

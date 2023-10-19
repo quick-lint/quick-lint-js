@@ -17,11 +17,20 @@ struct Path_Classification {
   // https://github.com/microsoft/TypeScript/blob/daa7e985f5adc972aa241e5b0761c7dc433e94bf/src/compiler/parser.ts#L10408
   bool typescript_definition;
 
+  // True if the path's base name ends with '.ts', including '.d.ts'. False
+  // otherwise, for example if the path's base name ends with '.js' or '.tsx'.
+  bool typescript;
+
   // True if the path's base name ends with '.tsx'.
   bool typescript_jsx;
 };
 
 Path_Classification classify_uri(String8_View uri);
+Path_Classification classify_path(String8_View path);
+Path_Classification classify_path(const char* path);
+
+// Precondition: name has no directory components.
+Path_Classification classify_file_base_name(String8_View name);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

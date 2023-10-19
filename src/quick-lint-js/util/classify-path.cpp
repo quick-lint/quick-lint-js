@@ -2,18 +2,36 @@
 // See end of file for extended copyright information.
 
 #include <cstddef>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/classify-path.h>
 #include <quick-lint-js/util/uri.h>
+#include <string_view>
 
 namespace quick_lint_js {
 Path_Classification classify_uri(String8_View uri) {
   // FIXME(strager): Should this unescape % encoding?
-  String8_View base_name = uri_base_name(uri);
+  return classify_file_base_name(uri_base_name(uri));
+}
+
+Path_Classification classify_path(String8_View path) {
+  String8_View base_name =
+      to_string8_view(path_file_name(to_string_view(path)));
+  return classify_file_base_name(base_name);
+}
+
+Path_Classification classify_path(const char *path) {
+  return classify_path(to_string8_view(std::string_view(path)));
+}
+
+Path_Classification classify_file_base_name(String8_View name) {
+  QLJS_SLOW_ASSERT(name.find(u8'/') == name.npos);
   return Path_Classification{
-      .typescript_definition = base_name.find(u8".d."_sv) != base_name.npos,
-      .typescript_jsx = ends_with(base_name, u8".tsx"_sv),
+      .typescript_definition = name.find(u8".d."_sv) != name.npos,
+      .typescript = ends_with(name, u8".ts"_sv),
+      .typescript_jsx = ends_with(name, u8".tsx"_sv),
   };
 }
 }

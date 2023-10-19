@@ -4,6 +4,7 @@
 #pragma once
 
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/util/cpp.h>
 #include <string>
 
 #if defined(_WIN32)
@@ -13,6 +14,9 @@
 #define QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "/"
 #define QLJS_ALL_PATH_DIRECTORY_SEPARATORS "/"
 #endif
+
+#define QLJS_ALL_PATH_DIRECTORY_SEPARATORS_SV \
+  QLJS_CPP_CONCAT(QLJS_ALL_PATH_DIRECTORY_SEPARATORS, sv)
 
 namespace quick_lint_js {
 std::string parent_path(std::string&&);

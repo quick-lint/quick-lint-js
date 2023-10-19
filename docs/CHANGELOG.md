@@ -24,6 +24,8 @@ Semantic Versioning.
 * Emacs: The Debian/Ubuntu package now installs the Emacs plugin. Manual
   installation of the .el files is no longer required.
 * TypeScript support (still experimental):
+  * CLI: The new `--language=experimental-default` option auto-detects the
+    language based on the file's extension (`.ts`, `.tsx`, `.d.ts`, or `.js`).
   * Class method overload signatures are now parsed.
   * [E0398][] is now reported when using both `abstract` and `static` on a
     single class property.

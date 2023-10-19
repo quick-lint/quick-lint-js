@@ -138,6 +138,13 @@ Added in quick-lint-js version 0.3.0.
 ** *.js*: *javascript-jsx*
 ** *.jsx*: *javascript-jsx*
 ** (anything else): *javascript-jsx*
+* *experimental-default*: infer the _languageid_ from the file's extension (EXPERIMENTAL; subject to change in future versions of quick-lint-js):
+** *.js*: *javascript-jsx*
+** *.jsx*: *javascript-jsx*
+** *.d.ts*: *experimental-typescript-definition*
+** *.ts*: *experimental-typescript*
+** *.tsx*: *experimental-typescript-jsx*
+** (anything else): *javascript-jsx*
 * *javascript*: the latest ECMAScript standard with proposed features.
 * *javascript-jsx*: like *javascript* but with JSX (React) extensions.
 * *experimental-typescript*: the latest TypeScript version.

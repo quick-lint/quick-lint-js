@@ -6,8 +6,10 @@
 #include <initializer_list>
 #include <iostream>
 #include <quick-lint-js/cli/options.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/diag/diag-code-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
@@ -366,6 +368,20 @@ TEST(Test_Options, language) {
   }
 
   {
+    Options o = parse_options_no_errors({"--language=default", "file.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].language, Raw_Input_File_Language::default_);
+  }
+
+  {
+    Options o =
+        parse_options_no_errors({"--language=experimental-default", "file.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].language,
+              Raw_Input_File_Language::experimental_default);
+  }
+
+  {
     Options o = parse_options_no_errors(
         {"--language=javascript", "one.js", "two.ts", "three.txt"});
     ASSERT_EQ(o.files_to_lint.size(), 3);
@@ -474,8 +490,36 @@ TEST(Test_Options, default_language_is_javascript_jsx_regardless_of_extension) {
   EXPECT_EQ(get_language("hi.jsx", default_language), javascript_jsx);
   EXPECT_EQ(get_language("hi.ts", default_language), javascript_jsx);
   EXPECT_EQ(get_language("hi.d.ts", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.d.js", default_language), javascript_jsx);
   EXPECT_EQ(get_language("hi.tsx", default_language), javascript_jsx);
   EXPECT_EQ(get_language("hi.txt", default_language), javascript_jsx);
+}
+
+TEST(Test_Options,
+     experimental_default_language_guesses_language_from_extension) {
+  constexpr auto default_language =
+      Raw_Input_File_Language::experimental_default;
+  constexpr auto javascript_jsx = Resolved_Input_File_Language::javascript_jsx;
+  EXPECT_EQ(get_language("<stdin>", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.js", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.jsx", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.ts", default_language),
+            Resolved_Input_File_Language::typescript);
+  EXPECT_EQ(get_language("hi.d.ts", default_language),
+            Resolved_Input_File_Language::typescript_definition);
+  EXPECT_EQ(get_language("hi.d.js", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.tsx", default_language),
+            Resolved_Input_File_Language::typescript_jsx);
+  EXPECT_EQ(get_language("hi.txt", default_language), javascript_jsx);
+
+  for (char separator : QLJS_ALL_PATH_DIRECTORY_SEPARATORS_SV) {
+    std::string path =
+        concat("foo.d.ts"sv, std::string_view(&separator, 1), "bar.ts"sv);
+    SCOPED_TRACE(path);
+    EXPECT_EQ(get_language(path.c_str(), default_language),
+              Resolved_Input_File_Language::typescript)
+        << ".d.ts in containing folder should be ignored";
+  }
 }
 
 TEST(Test_Options, get_language_overwritten) {
