@@ -92,9 +92,10 @@ REPORT-FN is Flymake's callback."
                  (when (and (eq 'exit (process-status p))
                             (eq p flymake-quicklintjs--proc))
                    (with-current-buffer stderr-buf
-                     (flymake-log :warning "%S"
-                                  (buffer-substring-no-properties
-                                   (point-min) (point-max))))
+                     (let ((stderr-data (buffer-substring-no-properties
+                                         (point-min) (point-max))))
+                       (if (not (string-empty-p stderr-data))
+                           (flymake-log :warning "%S" stderr-data))))
                    (with-current-buffer stdout-buf
                      (let ((diags (flymake-quicklintjs--make-diagnostics
                                   src-buf
