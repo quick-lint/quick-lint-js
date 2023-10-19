@@ -466,16 +466,16 @@ TEST(Test_Options, invalid_language) {
               ElementsAreArray({"badlanguageid"sv}));
 }
 
-TEST(Test_Options, get_language_from_path) {
+TEST(Test_Options, default_language_is_javascript_jsx_regardless_of_extension) {
+  constexpr auto default_language = Raw_Input_File_Language::default_;
   constexpr auto javascript_jsx = Resolved_Input_File_Language::javascript_jsx;
-  EXPECT_EQ(get_language("<stdin>", Raw_Input_File_Language::default_),
-            javascript_jsx);
-  EXPECT_EQ(get_language("hi.js", Raw_Input_File_Language::default_),
-            javascript_jsx);
-  EXPECT_EQ(get_language("hi.jsx", Raw_Input_File_Language::default_),
-            javascript_jsx);
-  EXPECT_EQ(get_language("hi.txt", Raw_Input_File_Language::default_),
-            javascript_jsx);
+  EXPECT_EQ(get_language("<stdin>", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.js", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.jsx", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.ts", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.d.ts", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.tsx", default_language), javascript_jsx);
+  EXPECT_EQ(get_language("hi.txt", default_language), javascript_jsx);
 }
 
 TEST(Test_Options, get_language_overwritten) {
