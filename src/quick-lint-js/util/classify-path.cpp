@@ -1,15 +1,20 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#pragma once
-
+#include <cstddef>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/classify-path.h>
+#include <quick-lint-js/util/uri.h>
 
 namespace quick_lint_js {
-// Get the base name of the file path of the URI.
-//
-// FIXME(strager): This function is not robust at all.
-String8_View uri_base_name(String8_View uri);
+Path_Classification classify_uri(String8_View uri) {
+  // FIXME(strager): Should this unescape % encoding?
+  String8_View base_name = uri_base_name(uri);
+  return Path_Classification{
+      .typescript_definition = base_name.find(u8".d."_sv) != base_name.npos,
+      .typescript_jsx = base_name.find(u8".tsx"_sv) != base_name.npos,
+  };
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

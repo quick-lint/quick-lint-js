@@ -6,10 +6,22 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-// Get the base name of the file path of the URI.
-//
-// FIXME(strager): This function is not robust at all.
-String8_View uri_base_name(String8_View uri);
+struct Path_Classification {
+  // True if the path has '.d.' in the base name.
+  //
+  // This tries to emulate the logic of TypeScript's isDeclarationFileName
+  // function [1]. However, this does not require ".ts". It will be true for an
+  // URI such as u8"file:///test.d.js".
+  //
+  // [1]
+  // https://github.com/microsoft/TypeScript/blob/daa7e985f5adc972aa241e5b0761c7dc433e94bf/src/compiler/parser.ts#L10408
+  bool typescript_definition;
+
+  // True if the path's base name ends with '.tsx'.
+  bool typescript_jsx;
+};
+
+Path_Classification classify_uri(String8_View uri);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

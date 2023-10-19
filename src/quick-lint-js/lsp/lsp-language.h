@@ -7,7 +7,7 @@
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/uri.h>
+#include <quick-lint-js/util/classify-path.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -84,10 +84,11 @@ struct LSP_Language {
       return nullptr;
     }
     if (lang->typescript_autodetect) {
-      if (uri_looks_like_typescript_definition(uri)) {
+      Path_Classification classified_uri = classify_uri(uri);
+      if (classified_uri.typescript_definition) {
         return &languages[5];
       }
-      if (uri_looks_like_typescript_jsx(uri)) {
+      if (classified_uri.typescript_jsx) {
         return &languages[8];
       }
     }

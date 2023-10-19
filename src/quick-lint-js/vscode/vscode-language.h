@@ -7,7 +7,7 @@
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/uri.h>
+#include <quick-lint-js/util/classify-path.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -73,7 +73,8 @@ struct VSCode_Language {
     if (lang->lint_options.typescript && !allow_typescript) {
       return nullptr;
     }
-    if (uri_looks_like_typescript_definition(uri)) {
+    Path_Classification classified_uri = classify_uri(uri);
+    if (classified_uri.typescript_definition) {
       return &ts_definition;
     }
     return lang;
