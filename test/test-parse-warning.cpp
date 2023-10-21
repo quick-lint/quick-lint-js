@@ -442,7 +442,7 @@ TEST_F(Test_Parse_Warning, Diag_Explicit_Fallthrough_Comment_In_Switch) {
       u8"                       ^^^ Diag_Explicit_Fallthrough_Comment_In_Switch"_diag);
   test_parse_and_visit_statement(
       u8"switch(cond1){case 1:\nfoo()\ncase 2:\nlongBarFn()\ndefault:}"_sv,  //
-      u8"                                       ^^^^^^^^^ Diag_Explicit_Fallthrough_Comment_In_Switch"_diag, //
+      u8"                                       ^^^^^^^^^ Diag_Explicit_Fallthrough_Comment_In_Switch"_diag,  //
       u8"                       ^^^ Diag_Explicit_Fallthrough_Comment_In_Switch"_diag);
   // check for false positive
   test_parse_and_visit_statement(
@@ -450,7 +450,8 @@ TEST_F(Test_Parse_Warning, Diag_Explicit_Fallthrough_Comment_In_Switch) {
         case 1:
         case 2:
         default:
-      })"_sv, no_diags);
+      })"_sv,
+      no_diags);
   test_parse_and_visit_statement(
       u8R"(switch(cond1){
       case 1:
@@ -459,7 +460,8 @@ TEST_F(Test_Parse_Warning, Diag_Explicit_Fallthrough_Comment_In_Switch) {
         //fallthrough
       case 2:
         bar()//fallthrough
-      default:})"_sv, no_diags);
+      default:})"_sv,
+      no_diags);
 }
 }
 }

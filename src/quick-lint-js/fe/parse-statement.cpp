@@ -2770,30 +2770,30 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
   Hash_Set<String8_View> cases;
   while (keep_going) {
     auto is_comment_line = [&]() -> bool {
-      const Char8* th = this->lexer().end_of_previous_token();
+      const Char8 *th = this->lexer().end_of_previous_token();
       bool f = false;
       int i = 0;
-      for(;;) {
-        switch(th[i]) {
-          case '/':
-            if (th[i+1] == '/') {
-              f = true;
-            }
-            goto exit_loop;
-          // skip empty lines to reach comment
-          case ' ':
-          case '\n':
-          case '\r':
-          case '\t':
-          case '\f':
-          case '\v':
-            break;
-          default:
-            goto exit_loop;
+      for (;;) {
+        switch (th[i]) {
+        case '/':
+          if (th[i + 1] == '/') {
+            f = true;
+          }
+          goto exit_loop;
+        // skip empty lines to reach comment
+        case ' ':
+        case '\n':
+        case '\r':
+        case '\t':
+        case '\f':
+        case '\v':
+          break;
+        default:
+          goto exit_loop;
         }
-        i++; 
+        i++;
       }
-      exit_loop:;
+    exit_loop:;
       return f;
     };
     switch (this->peek().type) {
@@ -2803,10 +2803,12 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
       break;
 
     case Token_Type::kw_case: {
-      if (!is_before_first_switch_case && prev_token.type != Token_Type::kw_break && prev_token.type != Token_Type::kw_case && !is_comment_line()) {
+      if (!is_before_first_switch_case &&
+          prev_token.type != Token_Type::kw_break &&
+          prev_token.type != Token_Type::kw_case && !is_comment_line()) {
         this->diag_reporter_->report(
-            Diag_Explicit_Fallthrough_Comment_In_Switch{
-                .end_of_case = prev_token.span() });
+            Diag_Explicit_Fallthrough_Comment_In_Switch{.end_of_case =
+                                                            prev_token.span()});
       }
       prev_token = this->peek();
       is_before_first_switch_case = false;
@@ -2840,17 +2842,19 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
     }
 
     case Token_Type::kw_default:
-      if (!is_before_first_switch_case && prev_token.type != Token_Type::kw_break && prev_token.type != Token_Type::kw_case && !is_comment_line()) {
+      if (!is_before_first_switch_case &&
+          prev_token.type != Token_Type::kw_break &&
+          prev_token.type != Token_Type::kw_case && !is_comment_line()) {
         this->diag_reporter_->report(
-            Diag_Explicit_Fallthrough_Comment_In_Switch{
-                .end_of_case = prev_token.span() });
+            Diag_Explicit_Fallthrough_Comment_In_Switch{.end_of_case =
+                                                            prev_token.span()});
       }
       is_before_first_switch_case = false;
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::colon);
       this->skip();
       break;
-    
+
     default: {
       if (is_before_first_switch_case) {
         this->diag_reporter_->report(Diag_Statement_Before_First_Switch_Case{
