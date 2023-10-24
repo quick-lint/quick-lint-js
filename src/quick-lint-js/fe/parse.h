@@ -545,6 +545,11 @@ class Parser {
   void parse_and_visit_named_exports_for_typescript_type_only_import(
       Parse_Visitor_Base &v, Source_Code_Span type_keyword);
 
+  // If set, refers to the first `export default` statement in this module. A
+  // module cannot contain more than one `export default`.
+  std::optional<Source_Code_Span>
+      first_export_default_statement_default_keyword_ = std::nullopt;
+
   struct Parse_Export_Options {
     TypeScript_Declare_Context declare_context;
 

@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[521] = {
+inline const Translated_String test_translation_table[523] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -2163,6 +2163,17 @@ inline const Translated_String test_translation_table[521] = {
         },
     },
     {
+        "cannot use multiple `export default` statements in one module"_translatable,
+        u8"cannot use multiple `export default` statements in one module",
+        {
+            u8"cannot use multiple `export default` statements in one module",
+            u8"cannot use multiple `export default` statements in one module",
+            u8"cannot use multiple `export default` statements in one module",
+            u8"cannot use multiple `export default` statements in one module",
+            u8"cannot use multiple `export default` statements in one module",
+        },
+    },
+    {
         "cannot use type directly in its own definition"_translatable,
         u8"cannot use type directly in its own definition",
         {
@@ -2754,6 +2765,17 @@ inline const Translated_String test_translation_table[521] = {
             u8"expected {1:singular}",
             u8"esperado {1:singular}",
             u8"expected {1:singular}",
+        },
+    },
+    {
+        "export default previously appeared here"_translatable,
+        u8"export default previously appeared here",
+        {
+            u8"export default previously appeared here",
+            u8"export default previously appeared here",
+            u8"export default previously appeared here",
+            u8"export default previously appeared here",
+            u8"export default previously appeared here",
         },
     },
     {

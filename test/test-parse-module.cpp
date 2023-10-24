@@ -163,6 +163,24 @@ TEST_F(Test_Parse_Module, export_default) {
   }
 
   {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default class A {} export default class B {}"_sv,  //
+        u8"       ^^^^^^^ Diag_Multiple_Export_Defaults.first_export_default\n"
+        u8"                                 ^^^^^^^ .second_export_default"_diag);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // A
+                              "visit_enter_class_scope_body",  //
+                              "visit_exit_class_scope",        //
+                              "visit_variable_declaration",    //
+                              "visit_enter_class_scope",       // B
+                              "visit_enter_class_scope_body",  //
+                              "visit_exit_class_scope",        //
+                              "visit_variable_declaration",    //
+                              "visit_end_of_module",
+                          }));
+  }
+
+  {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"export default async (a) => b;"_sv, no_diags, javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({

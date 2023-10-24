@@ -206,6 +206,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 67, 0, 53},                //
         {0, 0, 0, 0, 0, 37},                 //
         {0, 0, 0, 0, 0, 43},                 //
+        {0, 0, 0, 0, 0, 62},                 //
         {0, 0, 0, 50, 0, 47},                //
         {72, 31, 71, 68, 56, 61},            //
         {34, 30, 0, 46, 0, 40},              //
@@ -259,7 +260,8 @@ const Translation_Table translation_data = {
         {33, 27, 36, 45, 0, 35},             //
         {39, 42, 0, 49, 0, 41},              //
         {24, 24, 0, 24, 0, 24},              //
-        {22, 22, 42, 22, 40, 22},            //
+        {0, 0, 0, 0, 0, 22},                 //
+        {22, 22, 42, 22, 40, 40},            //
         {32, 30, 35, 26, 30, 29},            //
         {0, 0, 0, 27, 0, 32},                //
         {35, 45, 38, 53, 33, 46},            //
@@ -1998,6 +2000,7 @@ const Translation_Table translation_data = {
         u8"cannot update variable with '{0}' while declaring it\0"
         u8"cannot use '...' on 'this' parameter\0"
         u8"cannot use 'declare' keyword with 'import'\0"
+        u8"cannot use multiple `export default` statements in one module\0"
         u8"cannot use type directly in its own definition\0"
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
@@ -2052,6 +2055,7 @@ const Translation_Table translation_data = {
         u8"expected variable name for 'import'-'as'\0"
         u8"expected {1:headlinese}\0"
         u8"expected {1:singular}\0"
+        u8"export default previously appeared here\0"
         u8"exporting requires 'default'\0"
         u8"exporting requires '{{' and '}'\0"
         u8"extra ',' is not allowed between enum members\0"

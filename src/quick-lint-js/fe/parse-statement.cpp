@@ -35,6 +35,8 @@ bool Parser::parse_and_visit_module_catching_fatal_parse_errors(
 }
 
 void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
+  QLJS_ASSERT(
+      !this->first_export_default_statement_default_keyword_.has_value());
   bool done = false;
   Parse_Statement_Options statement_options = {
       .possibly_followed_by_another_statement = true,
@@ -1011,6 +1013,17 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
   switch (this->peek().type) {
     // export default class C {}
   case Token_Type::kw_default:
+    if (this->first_export_default_statement_default_keyword_.has_value()) {
+      this->diag_reporter_->report(Diag_Multiple_Export_Defaults{
+          .second_export_default = this->peek().span(),
+          .first_export_default =
+              *this->first_export_default_statement_default_keyword_,
+      });
+    } else {
+      this->first_export_default_statement_default_keyword_ =
+          this->peek().span();
+    }
+
     this->is_current_typescript_namespace_non_empty_ = true;
     if (this->in_typescript_namespace_or_module_.has_value() &&
         !this->in_typescript_module_) {
