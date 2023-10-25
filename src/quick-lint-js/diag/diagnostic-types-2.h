@@ -3307,6 +3307,17 @@ struct Diag_Class_Async_On_Getter_Or_Setter {
   Source_Code_Span async_keyword;
   Source_Code_Span getter_setter_keyword;
 };
+
+struct Diag_Multiple_Export_Defaults {
+  [[qljs::diag("E0715", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "cannot use multiple `export default` statements in one module",
+      ARG(second_export_default))]]  //
+  [[qljs::message("export default previously appeared here",
+                  ARG(first_export_default))]]  //
+  Source_Code_Span second_export_default;
+  Source_Code_Span first_export_default;
+};
 }
 QLJS_WARNING_POP
 

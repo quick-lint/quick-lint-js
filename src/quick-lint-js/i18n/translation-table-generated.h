@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 522;
-constexpr std::size_t translation_table_string_table_size = 79941;
+constexpr std::uint16_t translation_table_mapping_table_size = 524;
+constexpr std::size_t translation_table_string_table_size = 80043;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -220,6 +220,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "cannot update variable with '{0}' while declaring it"sv,
           "cannot use '...' on 'this' parameter"sv,
           "cannot use 'declare' keyword with 'import'"sv,
+          "cannot use multiple `export default` statements in one module"sv,
           "cannot use type directly in its own definition"sv,
           "catch variable can only be typed as '*', 'any', or 'unknown'"sv,
           "character is not allowed in identifiers"sv,
@@ -274,6 +275,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "expected variable name for 'import'-'as'"sv,
           "expected {1:headlinese}"sv,
           "expected {1:singular}"sv,
+          "export default previously appeared here"sv,
           "exporting requires 'default'"sv,
           "exporting requires '{{' and '}'"sv,
           "extra ',' is not allowed between enum members"sv,

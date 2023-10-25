@@ -6407,6 +6407,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_Multiple_Export_Defaults
+    {
+      .code = 715,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("cannot use multiple `export default` statements in one module"),
+        QLJS_TRANSLATABLE("export default previously appeared here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Multiple_Export_Defaults, second_export_default), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Multiple_Export_Defaults, first_export_default), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 
