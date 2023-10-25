@@ -110,6 +110,30 @@ foobar\")((16 . 22) 2 \"E0057\" \"use of undeclared variable: foobar\")(\
                      (ert-fail "Test timed out waiting for diagnostics."))
         ;; TODO(strager): Assert specific diagnostics
         (while (not (flymake-diagnostics))
+          (accept-process-output nil 0.01)))))
+
+  ;; This is a regression test. Buffers were mixed up causing
+  ;; diagnostics after a certain point (usually a few bytes in) to not
+  ;; be cleared.
+  (ert-deftest quicklintjs-flymake-fixing-error-clears-diagnostics ()
+    (with-temp-buffer
+      (javascript-mode)
+      (insert "/*xxx*/ consol")
+      (flymake-mode 1)
+      (add-hook 'flymake-diagnostic-functions #'flymake-quicklintjs nil t)
+      (flymake-start)
+
+      (with-timeout (5
+                     (ert-fail "Test timed out waiting for diagnostics."))
+        (while (not (flymake-diagnostics))
+          (accept-process-output nil 0.01)))
+
+      (insert "e")  ;; Buffer content: /*xxx*/ console
+      (flymake-start)
+
+      (with-timeout (5
+                     (ert-fail "Test timed out waiting for diagnostics to be removed."))
+        (while (flymake-diagnostics)
           (accept-process-output nil 0.01))))))
 
 (defun def-eglot-tests ()

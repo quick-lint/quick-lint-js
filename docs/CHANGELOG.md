@@ -50,6 +50,8 @@ Semantic Versioning.
   in the head of a `for` loop. For example, quick-lint-js no longer warns about
   `let x; for (let x = 0;;);`.
 * Emacs: .el files are now installed in the correct place on Arch Linux, btw.
+* Emacs: The Flymake plugin now reliably clears out diagnostics after issues are
+  fixed. Sticky diagnostics are no more.
 * TypeScript support (still experimental):
   * A newline after `public`, `protected`, `private`, or `readonly` inside a
     class is now interpreted correctly.
