@@ -21,6 +21,9 @@ Semantic Versioning.
   setters cannot be generators"). (Implemented by [koopiehoop][].)
 * `async get` and `async set` in classes now report [E0714][] ("'async' keyword
   is not allowed on getters or setters"). (Implemented by [koopiehoop][].)
+* Multiple `export default` statements now report [E0715][] ("cannot use
+  multiple `export default` statements in one module"). (Implemented by
+  [Ariel Don][].)
 * Emacs: The Debian/Ubuntu package now installs the Emacs plugin. Manual
   installation of the .el files is no longer required.
 * CLI: The new `--stdin-path` CLI option allows users of the `--stdin` option
@@ -1076,6 +1079,7 @@ Beta release.
 [AidenThing]: https://github.com/AidenThing
 [Alek Lefebvre]: https://github.com/AlekLefebvre
 [Amir]: https://github.com/ahmafi
+[Ariel Don]: https://github.com/arieldon
 [Austin Garcia]: https://github.com/holychowders
 [Christian Mund]: https://github.com/kkkrist
 [Daniel La Rocque]: https://github.com/dlarocque
@@ -1242,3 +1246,4 @@ Beta release.
 [E0712]: https://quick-lint-js.com/errors/E0712/
 [E0713]: https://quick-lint-js.com/errors/E0713/
 [E0714]: https://quick-lint-js.com/errors/E0714/
+[E0715]: https://quick-lint-js.com/errors/E0715/
