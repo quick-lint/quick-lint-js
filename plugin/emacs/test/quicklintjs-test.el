@@ -9,6 +9,8 @@
                           (expand-file-name default-directory)
                           ".melpa-cache/"))
 
+(setq quicklintjs-test-dir (file-name-directory (or load-file-name buffer-file-name)))
+
 (defun quicklintjs-install-deps (deps)
   (mapcar (lambda (pkg) (unless (package-installed-p pkg)
                           (if (> emacs-major-version 24)
@@ -39,6 +41,11 @@
 
 (defun def-flymake-tests ()
   (require 'flymake-quicklintjs)
+
+  ; Disable warning which causes tests to fail when run non-interactively:
+  ; "Disabling backend flymake-proc-legacy-flymake because (error Can’t find a suitable init function)"
+  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
+
   (ert-deftest quicklintjs-flymake-parse-errors-and-warnings ()
     (skip-unless (>= emacs-major-version 26))
     (let ((js-buf (generate-new-buffer "*js-buf*")))
@@ -89,7 +96,21 @@ foobar\")((16 . 22) 2 \"E0057\" \"use of undeclared variable: foobar\")(\
                         (point-min) (point-max)
                         flymake-quicklintjs-program nil
                         out-buf nil "--stdin"
-                        "--output-format=emacs-lisp") 0))))))
+                        "--output-format=emacs-lisp") 0)))))
+
+  (ert-deftest quicklintjs-flymake-check-errors-js ()
+    (with-temp-buffer
+      (javascript-mode)
+      (insert-file-contents-literally (expand-file-name "error.js" quicklintjs-test-dir) nil nil nil t)
+      (flymake-mode 1)
+      (add-hook 'flymake-diagnostic-functions #'flymake-quicklintjs nil t)
+      (flymake-start)
+
+      (with-timeout (5
+                     (ert-fail "Test timed out waiting for diagnostics."))
+        ;; TODO(strager): Assert specific diagnostics
+        (while (not (flymake-diagnostics))
+          (accept-process-output nil 0.01))))))
 
 (defun def-eglot-tests ()
   (ert-deftest quicklintjs-is-in-eglot-servers ()
