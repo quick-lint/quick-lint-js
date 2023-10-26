@@ -3,6 +3,6 @@
 
 
 flow-bin@*:
-  version "0.179.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.179.0.tgz#a9afbedda1687726296bfc8bd34247a6aae34d4f"
-  integrity sha512-odCiPkX5Vjrgupqxq2cjib0GtzAjGRHVkLk4TG15N4B+Fd2ghb8HSW6zrdX9GwaXrsuocxm5+oVzkaaUYUf+Pg==
+  version "0.219.5"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.219.5.tgz#c717695de7f4ac6fc09af5918307dccde270b935"
+  integrity sha512-dAOF6d7f4IVdh02yO+egQWRTXIIFj61ix47vRBh3Dlr0r6AkiByc5hALMuP/LdXpT3jNAJx/rfQdMa1+5K+c7g==
