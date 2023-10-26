@@ -166,6 +166,13 @@ var Steps []Step = []Step{
 	},
 
 	Step{
+		Title: "Check builds folder",
+		Run: func() {
+			EnsureEmptyDirectory("builds")
+		},
+	},
+
+	Step{
 		Title: "Download builds",
 		Run: func() {
 			if ReleaseCommitHash == "" {
@@ -174,6 +181,13 @@ var Steps []Step = []Step{
 			fmt.Printf("Download the build artifacts from the artifact server:\n")
 			fmt.Printf("$ rsync -av github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/%s/ builds/\n", ReleaseCommitHash)
 			WaitForDone()
+		},
+	},
+
+	Step{
+		Title: "Check signed-builds folder",
+		Run: func() {
+			EnsureEmptyDirectory("signed-builds")
 		},
 	},
 
@@ -682,6 +696,28 @@ func UpdateDebianChangelog(changelogFilePath string, versionInfo VersionFileInfo
 	}
 
 	return nil
+}
+
+func EnsureEmptyDirectory(path string) {
+Retry:
+	err := os.Mkdir(path, 0700)
+	if err == nil {
+		// A newly-created directory is empty.
+		return
+	}
+	if !os.IsExist(err) {
+		// Unknown error. Report it to the user.
+		Stopf("%v", err)
+	}
+	entries, readError := os.ReadDir(path)
+	directoryIsEmpty := readError == nil && len(entries) == 0
+	if directoryIsEmpty {
+		return
+	}
+
+	fmt.Printf("Error: A '%s' folder already exists. Delete it then type 'done'.\n", path)
+	WaitForDone()
+	goto Retry
 }
 
 func StringLines(s string) []string {
