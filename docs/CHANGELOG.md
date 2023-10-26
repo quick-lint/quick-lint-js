@@ -17,6 +17,13 @@ Semantic Versioning.
 
 [Downloads](https://c.quick-lint-js.com/releases/2.17.0/)
 
+### Known issues
+
+* `cmake --install` with `--component build-tools` does not install the build
+  tools. (This is a regression introduced in quick-lint-js version 2.16.0.)
+  Patch: [Git commit
+  3923f0df76d24b73d57f15eec61ab190ea048093][cmake-install-component-build-tools-patch]
+
 ### Added
 
 * quick-lint-js now understands decorators.
@@ -88,6 +95,12 @@ Semantic Versioning.
 ## 2.16.0 (2023-09-06)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.16.0/)
+
+### Known issues
+
+* `cmake --install` with `--component build-tools` does not install the build
+  tools. Patch: [Git commit
+  3923f0df76d24b73d57f15eec61ab190ea048093][cmake-install-component-build-tools-patch]
 
 ### Added
 
@@ -1079,6 +1092,7 @@ Beta release.
 [Bun]: https://bun.sh/
 [Deno]: https://deno.land/
 [cli-language]: ../cli/#language
+[cmake-install-component-build-tools-patch]: https://github.com/quick-lint/quick-lint-js/commit/3923f0df76d24b73d57f15eec61ab190ea048093.patch
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [cross-compiling-quick-lint-js]: https://quick-lint-js.com/contribute/build-from-source/cross-compiling/
