@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* `cmake --install` with `--component build-tools` now installs the build
+  tools. (This is a regression introduced in quick-lint-js version 2.16.0.)
+
 ## 2.17.0 (2023-10-25)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.17.0/)
