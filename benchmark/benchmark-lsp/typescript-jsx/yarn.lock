@@ -3,11 +3,11 @@
 
 
 typescript-language-server@*:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/typescript-language-server/-/typescript-language-server-4.0.0.tgz#93c753f3caddbe312cc3c0b3c52f19410420a857"
-  integrity sha512-u6GLfWtHzOfGNpn0XuUYFg8Jv3oXWKzY6o5/Lt6LbWE6Ux965z2lP+vM0AN8Z2EobnlrDzzdcKusUx46j2eP3A==
+  version "4.1.3"
+  resolved "https://registry.yarnpkg.com/typescript-language-server/-/typescript-language-server-4.1.3.tgz#fc88e8fa426bc36be4f0bfc4622e129f4c9c1a97"
+  integrity sha512-miJcwsS5ZGuYlix9mbGZDF96ynzgxAZbCeQO2MpgaVahmnRjoZ3dI6hnnsvBbdTrpHAAEqdigOnVezoOzcXSag==
 
 typescript@*:
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.2.2.tgz#5ebb5e5a5b75f085f22bc3f8460fba308310fa78"
-  integrity sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.3.2.tgz#00d1c7c1c46928c5845c1ee8d0cc2791031d4c43"
+  integrity sha512-6l+RyNy7oAHDfxC4FzSJcz9vnjTKxrLpDG5M2Vu4SHRVNg6xzqZp6LYSR9zjqQTu8DU/f5xwxUdADOkbrIX2gQ==
