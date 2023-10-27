@@ -21,7 +21,7 @@ Semantic Versioning.
 
 * `cmake --install` with `--component build-tools` does not install the build
   tools. (This is a regression introduced in quick-lint-js version 2.16.0.)
-  Patch: [Git commit
+  Fix: [Git commit
   3923f0df76d24b73d57f15eec61ab190ea048093][cmake-install-component-build-tools-patch]
 
 ### Added
@@ -99,7 +99,7 @@ Semantic Versioning.
 ### Known issues
 
 * `cmake --install` with `--component build-tools` does not install the build
-  tools. Patch: [Git commit
+  tools. Fix: [Git commit
   3923f0df76d24b73d57f15eec61ab190ea048093][cmake-install-component-build-tools-patch]
 
 ### Added
