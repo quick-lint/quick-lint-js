@@ -308,6 +308,7 @@ Benchmark_Config Benchmark_Config::load() {
           .program_name = "Biome",
           .command = {"./run.sh"},
           .cwd = "biome/",
+          .supports_jsx = true,
       },
 
       Benchmark_Config_Server{
