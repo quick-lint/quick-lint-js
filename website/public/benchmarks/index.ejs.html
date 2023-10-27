@@ -296,7 +296,7 @@
         <p>
           Deno's LSP server (and thus its Visual Studio Code extension)
           <a
-            href="https://github.com/denoland/deno/blob/5b26a4a30e67b56232dd306b4735b759df9b16d1/cli/lsp/diagnostics.rs#L226-L229"
+            href="https://github.com/denoland/deno/blob/ef2fadc6ae517cad487e16530fdcee50065ba05a/cli/lsp/diagnostics.rs#L490"
             >delays processing by 200 milliseconds</a
           >. This means that Deno appears to be much slower than it actually is,
           but this artificial latency does affect the editing experience.
@@ -306,12 +306,12 @@
           TypeScript's LSP server (but not its Visual Studio Code extension)
           delays processing by
           <a
-            href="https://github.com/typescript-language-server/typescript-language-server/blob/468e663f11b187203de022491df673c0a5846c2c/src/lsp-server.ts#L365"
+            href="https://github.com/typescript-language-server/typescript-language-server/blob/39c46a9f83dbd86a1a19c80d2f0c9feaa9cc1980/src/lsp-server.ts#L377"
             >200 milliseconds</a
           >
           +
           <a
-            href="https://github.com/typescript-language-server/typescript-language-server/blob/468e663f11b187203de022491df673c0a5846c2c/src/diagnostic-queue.ts#L33"
+            href="https://github.com/typescript-language-server/typescript-language-server/blob/39c46a9f83dbd86a1a19c80d2f0c9feaa9cc1980/src/diagnostic-queue.ts#L35"
             >50 milliseconds</a
           >. This means that TypeScript appears to be much slower than it
           actually is, but this artificial latency does affect the editing
