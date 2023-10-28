@@ -107,7 +107,6 @@ quick_lint_js_add_executable(
   test-file.cpp
   test-fixed-vector.cpp
   test-function-ref.cpp
-  test-heap-function.cpp
   test-instance-tracker.cpp
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp

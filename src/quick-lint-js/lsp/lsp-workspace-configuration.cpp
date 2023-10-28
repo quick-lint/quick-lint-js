@@ -6,7 +6,6 @@
 #else
 
 #include <quick-lint-js/container/byte-buffer.h>
-#include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-workspace-configuration.h>
 #include <quick-lint-js/port/char8.h>
