@@ -193,7 +193,7 @@ class CXX_Diagnostic_Types_Parser : private CXX_Parser_Base {
 
   bool is_valid_code_string(String8_View code_string);
 
-  String8 next_unused_diag_code_string();
+  String8_View next_unused_diag_code_string();
 
   using Base::fatal_at;
 

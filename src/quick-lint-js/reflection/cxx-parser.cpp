@@ -673,11 +673,13 @@ bool CXX_Diagnostic_Types_Parser::is_valid_code_string(
          this->lexer_.is_digit(code_string[4]);
 }
 
-String8 CXX_Diagnostic_Types_Parser::next_unused_diag_code_string() {
+String8_View CXX_Diagnostic_Types_Parser::next_unused_diag_code_string() {
+  Span<char> code_string_raw =
+      this->allocator_.allocate_uninitialized_span<char>(8);
   for (int i = 1; i <= 9999; ++i) {
-    char code_string_raw[8];
-    std::snprintf(code_string_raw, sizeof(code_string_raw), "E%04d", i);
-    String8_View code_string = to_string8_view(code_string_raw);
+    std::snprintf(code_string_raw.data(),
+                  narrow_cast<std::size_t>(code_string_raw.size()), "E%04d", i);
+    String8_View code_string = to_string8_view(code_string_raw.data());
     bool in_use = any_of(this->parsed_types,
                          [&](const CXX_Diagnostic_Type& type) {
                            return code_string == type.code_string;
@@ -687,7 +689,7 @@ String8 CXX_Diagnostic_Types_Parser::next_unused_diag_code_string() {
                            return code_string == reserved_code.code;
                          });
     if (!in_use) {
-      return String8(code_string);
+      return code_string;
     }
   }
   QLJS_UNIMPLEMENTED();
