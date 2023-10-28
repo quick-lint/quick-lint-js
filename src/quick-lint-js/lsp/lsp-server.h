@@ -235,15 +235,16 @@ class Linting_LSP_Server_Handler final : public JSON_RPC_Message_Handler {
   // lock. LSP_Overlay_Configuration_Filesystem reads without taking the lock.
   Synchronized<LSP_Documents> documents_;
 
+  Monotonic_Allocator workspace_configuration_allocator_{
+      "Linting_LSP_Server_Handler::workspace_configuration_allocator_"};
+
   Outgoing_JSON_RPC_Message_Queue outgoing_messages_;
   Linting_LSP_Server_Config server_config_;
-  LSP_Workspace_Configuration workspace_configuration_;
+  LSP_Workspace_Configuration workspace_configuration_{
+      &this->workspace_configuration_allocator_};
   std::unique_ptr<Trace_Flusher_Directory_Backend> tracer_backend_;
   bool did_report_watch_io_error_ = false;
   bool shutdown_requested_ = false;
-
-  Monotonic_Allocator workspace_configuration_allocator_{
-      "Linting_LSP_Server_Handler::workspace_configuration_allocator_"};
 
   friend class LSP_Linter;
   friend struct LSP_Documents::Config_Document;

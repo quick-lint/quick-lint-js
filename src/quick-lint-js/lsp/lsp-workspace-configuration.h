@@ -7,12 +7,13 @@
 // No LSP on the web.
 #else
 
+#include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/function-ref.h>
 #include <quick-lint-js/simdjson-fwd.h>
 #include <string>
-#include <vector>
 
 namespace quick_lint_js {
 class Byte_Buffer;
@@ -21,6 +22,8 @@ class Byte_Buffer;
 // (e.g. workspace/configuration).
 class LSP_Workspace_Configuration {
  public:
+  explicit LSP_Workspace_Configuration(Monotonic_Allocator* allocator);
+
   // Register a configuration setting.
   //
   // callback is later called by process_response or process_notification.
@@ -58,7 +61,7 @@ class LSP_Workspace_Configuration {
   Item* find_item(String8_View name);
   bool set_item(Item&, ::simdjson::ondemand::value);
 
-  std::vector<Item> items_;
+  Bump_Vector<Item, Monotonic_Allocator> items_;
 };
 }
 

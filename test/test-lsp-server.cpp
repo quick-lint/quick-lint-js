@@ -626,7 +626,8 @@ TEST_F(Test_Linting_LSP_Server, javascript_language_ids_enable_jsx) {
             }
           }
         })"_sv)));
-    EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"code goes here"}));
+    EXPECT_THAT(this->linter.lint_calls,
+                ElementsAreArray({u8"code goes here"}));
   }
 }
 
@@ -658,7 +659,8 @@ TEST_F(Test_Linting_LSP_Server, typescript_language_ids_enable_typescript) {
             }
           }
         })"_sv)));
-    EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"code goes here"}));
+    EXPECT_THAT(this->linter.lint_calls,
+                ElementsAreArray({u8"code goes here"}));
   }
 }
 
@@ -690,7 +692,8 @@ TEST_F(Test_Linting_LSP_Server, tsx_language_ids_enable_typescript_jsx) {
             }
           }
         })"_sv)));
-    EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"code goes here"}));
+    EXPECT_THAT(this->linter.lint_calls,
+                ElementsAreArray({u8"code goes here"}));
   }
 }
 
@@ -787,8 +790,9 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv));
 
-  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"the slow brown fox",
-                                                  u8"the slow purple fox"}));
+  EXPECT_THAT(
+      this->linter.lint_calls,
+      ElementsAreArray({u8"the slow brown fox", u8"the slow purple fox"}));
 }
 
 TEST_F(Test_Linting_LSP_Server,
@@ -836,7 +840,8 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv));
 
-  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"the slow purple fox"}));
+  EXPECT_THAT(this->linter.lint_calls,
+              ElementsAreArray({u8"the slow purple fox"}));
 }
 
 TEST_F(Test_Linting_LSP_Server, linting_uses_config_from_file) {
@@ -1468,7 +1473,8 @@ TEST_F(Test_Linting_LSP_Server, editing_config_relints_only_affected_js_files) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"/* dir-a/test.js */"}));
+  EXPECT_THAT(this->linter.lint_calls,
+              ElementsAreArray({u8"/* dir-a/test.js */"}));
 
   std::vector<std::string> linted_uris;
   for (const TJSON_Value& notification : this->client->notifications()) {
@@ -2016,7 +2022,8 @@ TEST_F(Test_Linting_LSP_Server, making_config_file_unreadable_relints) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"testjs", u8"testjs"}))
+  EXPECT_THAT(this->linter.lint_calls,
+              ElementsAreArray({u8"testjs", u8"testjs"}))
       << "should have linted twice: once on open, and once after config file "
          "changed";
 
