@@ -156,11 +156,9 @@ TEST_F(Test_Directory, list_directory) {
   write_file_or_exit(temp_dir + "/file-3", u8""_sv);
 
   std::vector<std::string> visited_files;
-  auto visit_file = [&](const char* path) -> void {
-    visited_files.push_back(path);
-  };
-  Result<void, Platform_File_IO_Error> list =
-      list_directory(temp_dir.c_str(), visit_file);
+  Result<void, Platform_File_IO_Error> list = list_directory(
+      temp_dir.c_str(),
+      [&](const char* path) -> void { visited_files.push_back(path); });
   ASSERT_TRUE(list.ok()) << list.error_to_string();
 
   EXPECT_THAT(visited_files, ::testing::UnorderedElementsAreArray({
@@ -175,9 +173,9 @@ TEST_F(Test_Directory, list_directory_on_regular_file_fails) {
   std::string temp_dir = this->make_temporary_directory();
   write_file_or_exit(temp_dir + "/testfile", u8""_sv);
 
-  auto visit_file = [&](const char* path) -> void { ADD_FAILURE() << path; };
   Result<void, Platform_File_IO_Error> list =
-      list_directory((temp_dir + "/testfile").c_str(), visit_file);
+      list_directory((temp_dir + "/testfile").c_str(),
+                     [&](const char* path) -> void { ADD_FAILURE() << path; });
   ASSERT_FALSE(list.ok());
   SCOPED_TRACE(list.error_to_string());
   EXPECT_TRUE(list.error().is_not_a_directory_error());

@@ -240,7 +240,7 @@ void enumerate_all_process_thread_names(Callback&& callback) {
           /*thread_name=*/thread_name);
     };
     Result<void, Platform_File_IO_Error> list_task =
-        list_directory(path.c_str(), visit_task_entry);
+        list_directory(path.c_str(), std::move(visit_task_entry));
     if (!list_task.ok()) {
       path.resize(path_size_without_task_id);
       QLJS_DEBUG_LOG("%s: ignoring failure to read %s: %s\n", func,
@@ -248,7 +248,7 @@ void enumerate_all_process_thread_names(Callback&& callback) {
     }
   };
   Result<void, Platform_File_IO_Error> list_proc =
-      list_directory(path.c_str(), visit_proc_entry);
+      list_directory(path.c_str(), std::move(visit_proc_entry));
   if (!list_proc.ok()) {
     QLJS_DEBUG_LOG("%s: ignoring failure to read /proc: %s\n", func,
                    list_proc.error_to_string().c_str());

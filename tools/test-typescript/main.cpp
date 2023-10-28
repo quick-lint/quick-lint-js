@@ -76,7 +76,7 @@ class Expected_Test_Results {
     Result<void, Platform_File_IO_Error> list = list_directory(
         concat(std::string_view(baselines_path), "/baselines/reference/"sv)
             .c_str(),
-        visit_entry);
+        std::move(visit_entry));
     if (!list.ok()) {
       return list.propagate();
     }

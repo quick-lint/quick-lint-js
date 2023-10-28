@@ -108,9 +108,9 @@ void delete_directory_recursive(const std::string& path) {
 
 std::vector<std::string> list_files_in_directory(const std::string& directory) {
   std::vector<std::string> files;
-  auto visit_file = [&](const char* name) -> void { files.push_back(name); };
   Result<void, Platform_File_IO_Error> error =
-      list_directory(directory.c_str(), visit_file);
+      list_directory(directory.c_str(),
+                     [&](const char* name) -> void { files.push_back(name); });
   if (!error.ok()) {
     std::fprintf(stderr, "fatal: failed to read directory %s: %s\n",
                  directory.c_str(), std::strerror(errno));
