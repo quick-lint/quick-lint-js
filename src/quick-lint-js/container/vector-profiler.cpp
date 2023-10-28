@@ -14,7 +14,7 @@
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/logging/trace-types.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>

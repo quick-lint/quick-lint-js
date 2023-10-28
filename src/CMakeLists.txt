@@ -207,6 +207,10 @@ quick_lint_js_add_library(
   quick-lint-js/i18n/po-parser.cpp
   quick-lint-js/i18n/po-parser.h
   quick-lint-js/i18n/translation-table-compiler.cpp
+  quick-lint-js/container/vector-profiler.cpp
+  quick-lint-js/container/vector-profiler.h
+  quick-lint-js/container/vector.h
+  quick-lint-js/container/winkable.h
   quick-lint-js/i18n/translation-table-compiler.h
   quick-lint-js/io/file-handle-posix.cpp
   quick-lint-js/io/file-handle-win32.cpp
@@ -227,6 +231,8 @@ quick_lint_js_add_library(
   quick-lint-js/port/memory-resource.cpp
   quick-lint-js/port/memory-resource.h
   quick-lint-js/port/source-location.h
+  quick-lint-js/port/thread.cpp
+  quick-lint-js/port/thread.h
   quick-lint-js/port/type-traits.h
   quick-lint-js/port/warning.h
   quick-lint-js/port/windows-error.cpp
@@ -294,9 +300,6 @@ quick_lint_js_add_library(
   quick-lint-js/container/linked-vector.h
   quick-lint-js/container/optional.h
   quick-lint-js/container/result.h
-  quick-lint-js/container/vector-profiler.cpp
-  quick-lint-js/container/vector-profiler.h
-  quick-lint-js/container/vector.h
   quick-lint-js/debug/debug-probe.cpp
   quick-lint-js/debug/debug-probe.h
   quick-lint-js/debug/debug-server-fs.cpp
@@ -431,8 +434,6 @@ quick_lint_js_add_library(
   quick-lint-js/port/span.h
   quick-lint-js/port/thread-name.cpp
   quick-lint-js/port/thread-name.h
-  quick-lint-js/port/thread.cpp
-  quick-lint-js/port/thread.h
   quick-lint-js/port/unreachable.h
   quick-lint-js/simdjson.cpp
   quick-lint-js/simdjson.h
@@ -498,13 +499,13 @@ endif ()
 
 if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
   target_compile_definitions(
-    quick-lint-js-lib
+    quick-lint-js-tool-lib
     PUBLIC
     QLJS_FEATURE_VECTOR_PROFILING=1
   )
 else ()
   target_compile_definitions(
-    quick-lint-js-lib
+    quick-lint-js-tool-lib
     PUBLIC
     QLJS_FEATURE_VECTOR_PROFILING=0
   )
