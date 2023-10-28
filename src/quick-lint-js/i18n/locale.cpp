@@ -11,9 +11,11 @@
 #include <string>
 #include <vector>
 
+using namespace std::literals::string_view_literals;
+
 namespace quick_lint_js {
 namespace {
-constexpr const char locale_part_separators[] = "_.@";
+constexpr std::string_view locale_part_separators = "_.@"sv;
 
 struct Locale_Parts {
   // language, territory, codeset, modifier
@@ -32,23 +34,22 @@ Locale_Parts parse_locale(std::string_view locale_name) {
     std::size_t length;
     std::size_t which_separator;
   };
-  auto find_next_separator = [](std::string_view s,
-                                const char* separators) -> Found_Separator {
+  auto find_next_separator =
+      [](std::string_view s, std::string_view separators) -> Found_Separator {
     std::size_t length = s.find_first_of(separators);
     if (length == s.npos) {
       return Found_Separator{.length = s.size(),
                              .which_separator = static_cast<std::size_t>(-1)};
     }
-    const char* separator = std::strchr(separators, s[length]);
-    QLJS_ASSERT(separator);
-    return Found_Separator{
-        .length = length,
-        .which_separator = narrow_cast<std::size_t>(separator - separators)};
+    std::size_t which_separator = separators.find(s[length]);
+    QLJS_ASSERT(which_separator != separators.npos);
+    return Found_Separator{.length = length,
+                           .which_separator = which_separator};
   };
 
   Locale_Parts parts;
 
-  const char* current_separators = &locale_part_separators[0];
+  std::string_view current_separators = locale_part_separators;
   std::string_view* current_part = &parts.language();
   std::string_view remaining_locale_name = locale_name;
   for (;;) {
@@ -61,7 +62,7 @@ Locale_Parts parse_locale(std::string_view locale_name) {
     }
 
     QLJS_ASSERT(part.which_separator != static_cast<std::size_t>(-1));
-    current_separators += part.which_separator + 1;
+    current_separators = current_separators.substr(part.which_separator + 1);
     current_part += part.which_separator + 1;
     remaining_locale_name = remaining_locale_name.substr(1);
   }
