@@ -88,7 +88,7 @@ class Test_Linting_LSP_Server : public ::testing::Test, public Filesystem_Test {
   explicit Test_Linting_LSP_Server() { this->reset(); }
 
   void reset() {
-    this->lint_calls.clear();
+    this->linter.lint_calls.clear();
     this->fs.clear();
     this->linter = Mock_LSP_Linter();
     this->handler =
@@ -104,8 +104,6 @@ class Test_Linting_LSP_Server : public ::testing::Test, public Filesystem_Test {
   std::unique_ptr<Linting_LSP_Server_Handler> handler;
   std::unique_ptr<Spy_LSP_Endpoint_Remote> client;
   std::unique_ptr<LSP_JSON_RPC_Message_Parser> server;
-
-  std::vector<String8>& lint_calls = linter.lint_calls;
 
   std::string config_file_load_error_message(const char* js_path,
                                              const char* error_path) {
@@ -597,7 +595,7 @@ TEST_F(Test_Linting_LSP_Server, opening_document_lints) {
   EXPECT_EQ(diagnostics[0][u8"message"_sv],
             u8"variable used before declaration: x"_sv);
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"let x = x;"}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"let x = x;"}));
 }
 
 TEST_F(Test_Linting_LSP_Server, javascript_language_ids_enable_jsx) {
@@ -629,7 +627,7 @@ TEST_F(Test_Linting_LSP_Server, javascript_language_ids_enable_jsx) {
             }
           }
         })"_sv)));
-    EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"code goes here"}));
+    EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"code goes here"}));
   }
 }
 
@@ -661,7 +659,7 @@ TEST_F(Test_Linting_LSP_Server, typescript_language_ids_enable_typescript) {
             }
           }
         })"_sv)));
-    EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"code goes here"}));
+    EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"code goes here"}));
   }
 }
 
@@ -693,7 +691,7 @@ TEST_F(Test_Linting_LSP_Server, tsx_language_ids_enable_typescript_jsx) {
             }
           }
         })"_sv)));
-    EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"code goes here"}));
+    EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"code goes here"}));
   }
 }
 
@@ -711,7 +709,7 @@ TEST_F(Test_Linting_LSP_Server, changing_document_with_full_text_lints) {
           }
         }
       })"_sv));
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -729,7 +727,7 @@ TEST_F(Test_Linting_LSP_Server, changing_document_with_full_text_lints) {
         }
       })"_sv));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"SECOND"}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"SECOND"}));
 }
 
 TEST_F(Test_Linting_LSP_Server,
@@ -747,7 +745,7 @@ TEST_F(Test_Linting_LSP_Server,
           }
         }
       })"_sv));
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
 
   this->server->append(
       make_message(u8R"({
@@ -790,7 +788,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"the slow brown fox",
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"the slow brown fox",
                                                   u8"the slow purple fox"}));
 }
 
@@ -809,7 +807,7 @@ TEST_F(Test_Linting_LSP_Server,
           }
         }
       })"_sv));
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
 
   this->server->append(
       make_message(u8R"({
@@ -839,7 +837,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"the slow purple fox"}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"the slow purple fox"}));
 }
 
 TEST_F(Test_Linting_LSP_Server, linting_uses_config_from_file) {
@@ -869,7 +867,7 @@ TEST_F(Test_Linting_LSP_Server, linting_uses_config_from_file) {
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(
@@ -933,7 +931,7 @@ TEST_F(
         }
       })"_sv)));
 
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
@@ -960,7 +958,7 @@ TEST_F(
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(Test_Linting_LSP_Server,
@@ -991,7 +989,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"snowman"}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"snowman"}));
 }
 
 TEST_F(Test_Linting_LSP_Server, linting_uses_already_opened_config_file) {
@@ -1035,7 +1033,7 @@ TEST_F(Test_Linting_LSP_Server, linting_uses_already_opened_config_file) {
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(Test_Linting_LSP_Server,
@@ -1081,7 +1079,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(Test_Linting_LSP_Server, editing_config_relints_open_js_file) {
@@ -1223,7 +1221,7 @@ TEST_F(Test_Linting_LSP_Server,
     EXPECT_EQ(version_json, u8"11"_sv);
   };
   this->linter.lint_callback = lint_callback;
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
 
   // Change 'before' to 'after'.
   this->server->append(
@@ -1249,7 +1247,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"updated"_sv}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"updated"_sv}));
 }
 
 TEST_F(Test_Linting_LSP_Server, editing_config_relints_many_open_js_files) {
@@ -1315,7 +1313,7 @@ TEST_F(Test_Linting_LSP_Server, editing_config_relints_many_open_js_files) {
   }
 
   this->handler->flush_pending_notifications(*this->client);
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
   this->client->messages.clear();
   // Change 'before' to 'after'.
   this->server->append(
@@ -1343,7 +1341,7 @@ TEST_F(Test_Linting_LSP_Server, editing_config_relints_many_open_js_files) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->lint_calls,
+  EXPECT_THAT(this->linter.lint_calls,
               ::testing::UnorderedElementsAreArray(
                   {u8"/* a.js */", u8"/* b.js */", u8"/* c.js */"}));
 
@@ -1442,7 +1440,7 @@ TEST_F(Test_Linting_LSP_Server, editing_config_relints_only_affected_js_files) {
   }
 
   this->handler->flush_pending_notifications(*this->client);
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
   this->client->messages.clear();
   // Change 'a' to 'A' in dir-a/quick-lint-js.config (but leave
   // dir-b/quick-lint-js.config as-is).
@@ -1471,7 +1469,7 @@ TEST_F(Test_Linting_LSP_Server, editing_config_relints_only_affected_js_files) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"/* dir-a/test.js */"}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"/* dir-a/test.js */"}));
 
   std::vector<std::string> linted_uris;
   for (const TJSON_Value& notification : this->client->notifications()) {
@@ -1545,7 +1543,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv)));
 
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View,
                            String8_View version_json,
@@ -1575,7 +1573,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"modified"}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"modified"}));
 }
 
 TEST_F(Test_Linting_LSP_Server, opening_config_relints_open_js_files) {
@@ -1751,7 +1749,7 @@ TEST_F(
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(Test_Linting_LSP_Server,
@@ -1789,7 +1787,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv)));
 
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
@@ -1823,7 +1821,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv)));
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8""}));
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8""}));
 }
 
 TEST_F(Test_Linting_LSP_Server, opening_js_file_with_unreadable_config_lints) {
@@ -1880,7 +1878,7 @@ TEST_F(Test_Linting_LSP_Server, opening_js_file_with_unreadable_config_lints) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"testjs"}))
       << "should have linted despite config file being unloadable";
 
   std::vector<TJSON_Value> notifications = this->client->notifications();
@@ -1944,7 +1942,7 @@ TEST_F(Test_Linting_LSP_Server,
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs"}))
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"testjs"}))
       << "should have linted despite config file being unloadable";
 
   std::vector<TJSON_Value> notifications = this->client->notifications();
@@ -2019,7 +2017,7 @@ TEST_F(Test_Linting_LSP_Server, making_config_file_unreadable_relints) {
   this->server->flush_error_responses(*this->client);
   this->handler->flush_pending_notifications(*this->client);
 
-  EXPECT_THAT(this->lint_calls, ElementsAreArray({u8"testjs", u8"testjs"}))
+  EXPECT_THAT(this->linter.lint_calls, ElementsAreArray({u8"testjs", u8"testjs"}))
       << "should have linted twice: once on open, and once after config file "
          "changed";
 
@@ -2153,7 +2151,7 @@ TEST_F(Test_Linting_LSP_Server,
           }
         }
       })"_sv));
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2171,7 +2169,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv));
 
-  EXPECT_THAT(this->lint_calls, IsEmpty());
+  EXPECT_THAT(this->linter.lint_calls, IsEmpty());
 }
 
 TEST_F(Test_Linting_LSP_Server, json_file_which_is_not_config_file_is_ignored) {
@@ -2193,7 +2191,7 @@ TEST_F(Test_Linting_LSP_Server, json_file_which_is_not_config_file_is_ignored) {
   this->server->flush_error_responses(*this->client);
 
   EXPECT_THAT(this->client->messages, IsEmpty());
-  EXPECT_THAT(this->lint_calls, IsEmpty());
+  EXPECT_THAT(this->linter.lint_calls, IsEmpty());
 }
 
 TEST_F(Test_Linting_LSP_Server,
@@ -2212,7 +2210,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv));
 
-  EXPECT_THAT(this->lint_calls, IsEmpty());
+  EXPECT_THAT(this->linter.lint_calls, IsEmpty());
 }
 
 TEST_F(Test_Linting_LSP_Server,
@@ -2240,7 +2238,7 @@ TEST_F(Test_Linting_LSP_Server,
           }
         }
       })"_sv));
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2271,7 +2269,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv));
 
-  EXPECT_THAT(this->lint_calls,
+  EXPECT_THAT(this->linter.lint_calls,
               ElementsAreArray({u8"let x = x;", u8"let y = y;"}));
 }
 
@@ -2300,7 +2298,7 @@ TEST_F(Test_Linting_LSP_Server,
           }
         }
       })"_sv));
-  this->lint_calls.clear();
+  this->linter.lint_calls.clear();
   this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2331,7 +2329,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv));
 
-  EXPECT_THAT(this->lint_calls, IsEmpty());
+  EXPECT_THAT(this->linter.lint_calls, IsEmpty());
 }
 
 TEST_F(Test_Linting_LSP_Server, showing_io_errors_shows_only_first) {
