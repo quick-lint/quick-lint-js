@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 519;
-constexpr std::size_t translation_table_string_table_size = 79814;
+constexpr std::uint16_t translation_table_mapping_table_size = 520;
+constexpr std::size_t translation_table_string_table_size = 79823;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -33,6 +33,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "\"globals\" descriptor must be a boolean or an object"sv,
           "\"globals\" must be an object"sv,
           "'!' here treated as the TypeScript non-null assertion operator"sv,
+          "'&' here"sv,
           "'**' operator cannot be used after unary '{1}' without parentheses"sv,
           "',' should be ';' instead"sv,
           "'.' is not allowed after generic arguments; write [\"{1}\"] instead"sv,

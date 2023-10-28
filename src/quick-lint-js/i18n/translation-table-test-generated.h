@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[518] = {
+inline const Translated_String test_translation_table[519] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -103,6 +103,17 @@ inline const Translated_String test_translation_table[518] = {
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
+        },
+    },
+    {
+        "'&' here"_translatable,
+        u8"'&' here",
+        {
+            u8"'&' here",
+            u8"'&' here",
+            u8"'&' here",
+            u8"'&' here",
+            u8"'&' here",
         },
     },
     {

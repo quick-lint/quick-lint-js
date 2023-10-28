@@ -3285,7 +3285,10 @@ struct Diag_Unintuitive_Bitshift_Precedence {
   [[qljs::message(
       "unintuitive operator precedence when using & and '{0}'; "
       "'{0}' evaluates before &",
-      ARG(bitshift_operator))]] Source_Code_Span bitshift_operator;
+      ARG(bitshift_operator))]] 
+  [[qljs::message("'&' here", ARG(and_operator))]]
+  Source_Code_Span bitshift_operator;
+  Source_Code_Span and_operator;
 };
 }
 QLJS_WARNING_POP

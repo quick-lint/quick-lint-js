@@ -439,13 +439,16 @@ TEST_F(Test_Parse_Warning, warn_on_xor_operation_used_as_exponentiation) {
 TEST_F(Test_Parse_Warning, warn_on_unintuitive_precedence_when_using_bitshift) {
   test_parse_and_visit_expression(
       u8"var1 & 0x01 >> 0x02"_sv,
-      u8"            ^^ Diag_Unintuitive_Bitshift_Precedence"_diag);
+      u8"            ^^ Diag_Unintuitive_Bitshift_Precedence.bitshift_operator\n"_diag
+      u8"     ^ .and_operator"_diag); 
   test_parse_and_visit_expression(
       u8"var2 & 0x1234 << 0x4321"_sv,
-      u8"              ^^ Diag_Unintuitive_Bitshift_Precedence"_diag);
+      u8"              ^^ Diag_Unintuitive_Bitshift_Precedence.bitshift_operator\n"_diag
+      u8"     ^ .and_operator"_diag);
   test_parse_and_visit_statement(
       u8"const x = a & 10 << 12"_sv,
-      u8"                 ^^ Diag_Unintuitive_Bitshift_Precedence"_diag);
+      u8"                 ^^ Diag_Unintuitive_Bitshift_Precedence.bitshift_operator\n"_diag
+      u8"            ^ .and_operator"_diag);
   test_parse_and_visit_expression(u8"0x111 << 0x222 & var1"_sv, no_diags);
   test_parse_and_visit_expression(u8"a&b>>c"_sv, no_diags);
   test_parse_and_visit_expression(u8"x & y << z"_sv, no_diags);
