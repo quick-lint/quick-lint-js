@@ -19,7 +19,6 @@
 #include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/pointer.h>
 #include <string_view>
-#include <vector>
 
 using namespace std::literals::string_view_literals;
 

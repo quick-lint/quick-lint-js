@@ -9,10 +9,10 @@
 #include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/span.h>
 #include <string_view>
-#include <vector>
 
 namespace quick_lint_js {
 class CLI_Locator;
@@ -197,8 +197,11 @@ class CXX_Diagnostic_Types_Parser : private CXX_Parser_Base {
 
   using Base::fatal_at;
 
-  std::vector<CXX_Diagnostic_Type> parsed_types;
-  std::vector<Diag_Code_Definition> reserved_codes;
+  Monotonic_Allocator allocator_{"CXX_Diagnostic_Types_Parser"};
+  Bump_Vector<CXX_Diagnostic_Type, Monotonic_Allocator> parsed_types{
+      "parsed_types", &this->allocator_};
+  Bump_Vector<Diag_Code_Definition, Monotonic_Allocator> reserved_codes{
+      "reserved_codes", &this->allocator_};
 };
 
 // Precondition: variables.size() <= 4

@@ -629,7 +629,7 @@ const Diagnostic_Info_Debug& get_diagnostic_info_debug(Diag_Type type) {
     parser.parse_file();
 
     std::vector<Diagnostic_Info_Debug> infos;
-    infos.reserve(parser.parsed_types.size());
+    infos.reserve(narrow_cast<std::size_t>(parser.parsed_types.size()));
     for (CXX_Diagnostic_Type& diag_type : parser.parsed_types) {
       Diagnostic_Info_Debug& info = infos.emplace_back();
       Fixed_Vector<std::size_t, 4> variable_offsets = layout_offsets(
