@@ -294,6 +294,8 @@ quick_lint_js_add_library(
   quick-lint-js/container/linked-vector.h
   quick-lint-js/container/optional.h
   quick-lint-js/container/result.h
+  quick-lint-js/container/vector-profiler.cpp
+  quick-lint-js/container/vector-profiler.h
   quick-lint-js/container/vector.h
   quick-lint-js/debug/debug-probe.cpp
   quick-lint-js/debug/debug-probe.h
@@ -506,9 +508,6 @@ else ()
     PUBLIC
     QLJS_FEATURE_VECTOR_PROFILING=0
   )
-endif ()
-if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
-  target_link_libraries(quick-lint-js-lib PRIVATE quick-lint-js-lib-debug)
 endif ()
 
 # quick-lint-js-lib-debug should be dead-code stripped from production builds.
