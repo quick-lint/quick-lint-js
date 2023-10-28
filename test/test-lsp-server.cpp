@@ -1825,14 +1825,15 @@ TEST_F(Test_Linting_LSP_Server,
 }
 
 TEST_F(Test_Linting_LSP_Server, opening_js_file_with_unreadable_config_lints) {
-  this->fs.create_file(
-      this->fs.rooted("quick-lint-js.config"),
+  auto failing_read_file_callback =
       [this]() -> Fake_Configuration_Filesystem::Read_File_Result {
-        return failed_result(Read_File_IO_Error{
-            .path = this->fs.rooted("quick-lint-js.config").path(),
-            .io_error = generic_file_io_error,
-        });
-      });
+    return failed_result(Read_File_IO_Error{
+        .path = this->fs.rooted("quick-lint-js.config").path(),
+        .io_error = generic_file_io_error,
+    });
+  };
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       failing_read_file_callback);
   this->lint_callback =
       [&](Configuration& config, Linter_Options, Padded_String_View,
           String8_View uri_json, String8_View version_json,
@@ -1977,14 +1978,15 @@ TEST_F(Test_Linting_LSP_Server, making_config_file_unreadable_relints) {
         }
       })"_sv)));
 
-  this->fs.create_file(
-      this->fs.rooted("quick-lint-js.config"),
+  auto failing_read_file_callback =
       [this]() -> Fake_Configuration_Filesystem::Read_File_Result {
-        return failed_result(Read_File_IO_Error{
-            .path = this->fs.rooted("quick-lint-js.config").path(),
-            .io_error = generic_file_io_error,
-        });
-      });
+    return failed_result(Read_File_IO_Error{
+        .path = this->fs.rooted("quick-lint-js.config").path(),
+        .io_error = generic_file_io_error,
+    });
+  };
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       failing_read_file_callback);
   this->lint_callback =
       [&](Configuration& config, Linter_Options, Padded_String_View,
           String8_View uri_json, String8_View version_json,

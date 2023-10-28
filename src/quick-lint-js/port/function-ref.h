@@ -123,6 +123,9 @@ class Async_Function_Ref<Result(Args...)> {
   Async_Function_Ref(const Async_Function_Ref& func) = default;
   Async_Function_Ref(Async_Function_Ref&& func) = default;
 
+  Async_Function_Ref& operator=(const Async_Function_Ref&) = default;
+  Async_Function_Ref& operator=(Async_Function_Ref&&) = default;
+
   Result operator()(Args... args) {
     return this->callback_(std::forward<Args>(args)..., this->closure_);
   }
