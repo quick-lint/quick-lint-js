@@ -70,10 +70,11 @@ Locale_Parts parse_locale(std::string_view locale_name) {
 }
 
 template <class Func>
-void locale_name_combinations(const char* locale_name, Func&& callback);
+void locale_name_combinations(std::string_view locale_name, Func&& callback);
 }
 
-std::optional<int> find_locale(const char* locales, const char* locale_name) {
+std::optional<int> find_locale(const char* locales,
+                               std::string_view locale_name) {
   // NOTE[locale-list-null-terminator]: The code generator guarantees that there
   // is an empty string at the end of the list (i.e. two null bytes at the end).
   C_String_List_View locales_list(locales);
@@ -94,7 +95,7 @@ std::optional<int> find_locale(const char* locales, const char* locale_name) {
 }
 
 void enumerate_locale_name_combinations(
-    const char* locale_name,
+    std::string_view locale_name,
     Temporary_Function_Ref<bool(std::string_view locale)> callback) {
   return locale_name_combinations<
       Temporary_Function_Ref<bool(std::string_view locale)>>(
@@ -106,11 +107,11 @@ QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 
 template <class Func>
-void locale_name_combinations(const char* locale_name, Func&& callback) {
+void locale_name_combinations(std::string_view locale_name, Func&& callback) {
   Locale_Parts parts = parse_locale(locale_name);
 
   std::vector<char> locale;
-  std::size_t max_locale_size = std::strlen(locale_name);
+  std::size_t max_locale_size = locale_name.size();
   locale.reserve(max_locale_size);
   locale.insert(locale.end(), parts.language().begin(), parts.language().end());
 

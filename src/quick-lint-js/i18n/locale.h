@@ -13,11 +13,12 @@ namespace quick_lint_js {
 //
 // If locales is "en_US\0fr_FR\0de_DE\0", and locale_name is "fr_FR", then the
 // result will be 1.
-std::optional<int> find_locale(const char* locales, const char* locale_name);
+std::optional<int> find_locale(const char* locales,
+                               std::string_view locale_name);
 
 // For testing only.
 void enumerate_locale_name_combinations(
-    const char* locale_name,
+    std::string_view locale_name,
     Temporary_Function_Ref<bool(std::string_view locale)>);
 }
 

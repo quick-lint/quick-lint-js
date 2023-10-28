@@ -19,7 +19,7 @@ namespace quick_lint_js {
 class Translatable_Message;
 
 void initialize_translations_from_environment();
-void initialize_translations_from_locale(const char* locale_name);
+void initialize_translations_from_locale(std::string_view locale_name);
 
 class Translator {
  public:
@@ -27,8 +27,8 @@ class Translator {
   explicit Translator() = default;
 
   void use_messages_from_source_code();
-  bool use_messages_from_locale(const char* locale_name);
-  bool use_messages_from_locales(Span<const std::string> locale_names);
+  bool use_messages_from_locale(std::string_view locale_name);
+  bool use_messages_from_locales(Span<const std::string_view> locale_names);
 
   const Char8* translate(const Translatable_Message& message);
 
