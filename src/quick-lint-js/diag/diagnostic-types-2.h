@@ -759,9 +759,9 @@ struct Diag_Duplicated_Cases_In_Switch_Statement {
   Source_Code_Span duplicated_switch_case;
 };
 
-struct Diag_Explicit_Fallthrough_Comment_In_Switch {
+struct Diag_Fallthrough_Without_Comment_In_Switch {
   [[qljs::diag("E0423", Diagnostic_Severity::warning)]]  //
-  [[qljs::message("missing fallthrough comment",
+  [[qljs::message("missing 'break;' or '// fallthrough' comment between statement and 'case'",
                   ARG(end_of_case))]]  //
   Source_Code_Span end_of_case;
 };
