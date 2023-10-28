@@ -8,6 +8,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/warning.h>
 #include <string>
 #include <string_view>
@@ -72,7 +73,8 @@ void initialize_locale() {
 
 void initialize_translations_from_environment() {
   initialize_locale();
-  if (!qljs_messages.use_messages_from_locales(get_user_locale_preferences())) {
+  if (!qljs_messages.use_messages_from_locales(
+          Span<const std::string>(get_user_locale_preferences()))) {
     qljs_messages.use_messages_from_source_code();
   }
 }
@@ -100,7 +102,7 @@ bool Translator::use_messages_from_locale(const char* locale_name) {
 }
 
 bool Translator::use_messages_from_locales(
-    const std::vector<std::string>& locale_names) {
+    Span<const std::string> locale_names) {
   for (const std::string& locale : locale_names) {
     if (locale == "C" || locale == "POSIX") {
       // Stop seaching. C/POSIX locale takes priority. See GNU gettext.

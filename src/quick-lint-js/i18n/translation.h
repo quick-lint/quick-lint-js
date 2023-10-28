@@ -8,6 +8,7 @@
 #include <quick-lint-js/i18n/translation-table.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/consteval.h>
+#include <quick-lint-js/port/span.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -27,7 +28,7 @@ class Translator {
 
   void use_messages_from_source_code();
   bool use_messages_from_locale(const char* locale_name);
-  bool use_messages_from_locales(const std::vector<std::string>& locale_names);
+  bool use_messages_from_locales(Span<const std::string> locale_names);
 
   const Char8* translate(const Translatable_Message& message);
 
