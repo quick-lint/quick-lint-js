@@ -7,6 +7,7 @@
 #include <optional>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/diag/diagnostic-formatter.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
@@ -67,7 +68,9 @@ class C_API_Diag_Formatter
 
  private:
   C_API_Diag_Reporter<Diagnostic, Locator> *reporter_;
-  String8 current_message_;
+  Bump_Vector<Char8, Monotonic_Allocator> current_message_{
+      "C_API_Diag_Reporter::current_message_",
+      &this->reporter_->string_allocator_};
 };
 
 QLJS_WARNING_PUSH

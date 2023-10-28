@@ -8,13 +8,14 @@
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/optional.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/web-demo-location.h>
-#include <string>
+#include <string_view>
 
 namespace quick_lint_js {
 template <class Diagnostic, class Locator>
@@ -88,7 +89,7 @@ void C_API_Diag_Formatter<Diagnostic, Locator>::write_message_part(
     // Don't write notes. Only write the main message.
     return;
   }
-  this->current_message_.append(message);
+  this->current_message_ += message;
 }
 
 template <class Diagnostic, class Locator>
@@ -123,8 +124,8 @@ void C_API_Diag_Formatter<Diagnostic, Locator>::write_after_message(
   char *code_end = std::copy(code.begin(), code.end(), &diag.code[0]);
   *code_end = '\0';
 
-  diag.message = reinterpret_cast<const char *>(
-      this->reporter_->allocate_c_string(this->current_message_));
+  this->current_message_.push_back(u8'\0');
+  diag.message = reinterpret_cast<const char *>(this->current_message_.data());
   diag.severity = diag_severity;
 }
 
