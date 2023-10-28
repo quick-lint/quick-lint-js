@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <quick-lint-js/c-api.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/vector.h>
@@ -16,9 +17,6 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/web-demo-location.h>
-#include <vector>
-
-struct QLJS_Web_Demo_Diagnostic;
 
 namespace quick_lint_js {
 template <class Diagnostic, class Locator>
@@ -43,7 +41,9 @@ class C_API_Diag_Reporter final : public Diag_Reporter {
   Char8 *allocate_c_string(String8_View);
 
   Translator translator_;
-  std::vector<Diagnostic> diagnostics_;
+  Monotonic_Allocator allocator_{"C_API_Diag_Reporter::allocator_"};
+  Bump_Vector<Diagnostic, Monotonic_Allocator> diagnostics_{
+      "C_API_Diag_Reporter::diagnostics_", &this->allocator_};
   const Char8 *input_;
   std::optional<Locator> locator_;
   Monotonic_Allocator string_allocator_{
