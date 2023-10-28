@@ -83,10 +83,6 @@ void* Byte_Buffer::append(Size_Type byte_count) {
   return std::exchange(this->cursor_, this->cursor_ + byte_count);
 }
 
-void Byte_Buffer::append_copy(const String8& data) {
-  return this->append_copy(String8_View(data));
-}
-
 void Byte_Buffer::append_copy(String8_View data) {
   static_assert(sizeof(data[0]) == 1);
   void* out = this->append(data.size());

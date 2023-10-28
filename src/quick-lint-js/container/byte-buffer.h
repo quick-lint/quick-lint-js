@@ -65,7 +65,6 @@ class Byte_Buffer {
     });
   }
 
-  void append_copy(const String8& data);
   void append_copy(String8_View data);
   void append_copy(Char8 data);
 
