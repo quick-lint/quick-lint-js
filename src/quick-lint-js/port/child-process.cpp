@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <optional>
+#include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/io/temporary-directory.h>
@@ -17,7 +19,6 @@
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #if QLJS_HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -84,7 +85,9 @@ Run_Program_Result run_program(Span<const char* const> command) {
 
 Run_Program_Result run_program(Span<const std::string> command,
                                Run_Program_Options options) {
-  std::vector<const char*> command_raw;
+  Monotonic_Allocator allocator("run_program");
+  Bump_Vector<const char*, Monotonic_Allocator> command_raw("command_raw",
+                                                            &allocator);
   for (const std::string& arg : command) {
     command_raw.push_back(arg.c_str());
   }
@@ -119,7 +122,8 @@ Run_Program_Result run_program(Span<const char* const> command,
     set_current_working_directory_or_exit(options.current_directory);
   }
 
-  std::vector<char*> argv;
+  Monotonic_Allocator allocator("run_program");
+  Bump_Vector<char*, Monotonic_Allocator> argv("argv", &allocator);
   for (const char* arg : command) {
     argv.push_back(const_cast<char*>(arg));
   }
