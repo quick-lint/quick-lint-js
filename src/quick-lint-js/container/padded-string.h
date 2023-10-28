@@ -22,7 +22,6 @@ class Padded_String {
   static constexpr Size_Type padding_size = 64;
 
   explicit Padded_String();
-  explicit Padded_String(String8 &&);
   explicit Padded_String(String8_View);
   explicit Padded_String(const Char8 *) = delete;
 
