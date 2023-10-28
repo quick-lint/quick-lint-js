@@ -4,8 +4,8 @@
 #pragma once
 
 #include <cstdint>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/feature.h>
-#include <vector>
 
 namespace quick_lint_js {
 #if QLJS_FEATURE_DEBUG_SERVER
@@ -32,8 +32,10 @@ struct Found_Debug_Server {
 // This function is inherently racy. By the time this function returns, any
 // number of returned debug servers might be dead.
 //
+// allocator is used to allocate memory for the returned Span.
+//
 // NOTE[find-debug-server] for implementation details.
-std::vector<Found_Debug_Server> find_debug_servers();
+Span<Found_Debug_Server> find_debug_servers(Monotonic_Allocator* allocator);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

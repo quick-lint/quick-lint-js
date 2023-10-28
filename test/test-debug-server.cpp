@@ -538,7 +538,8 @@ TEST_F(Test_Debug_Server, find_debug_servers_finds_running_instance_SLOW) {
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
   std::uint16_t server_port = server->tcp_port_number();
 
-  std::vector<Found_Debug_Server> servers = find_debug_servers();
+  Monotonic_Allocator allocator("Test_Debug_Server");
+  Span<Found_Debug_Server> servers = find_debug_servers(&allocator);
   auto found_server_it =
       find_first_if(servers, [&](const Found_Debug_Server &s) -> bool {
         return s.port_number == server_port;

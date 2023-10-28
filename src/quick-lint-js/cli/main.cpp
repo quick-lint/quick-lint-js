@@ -348,12 +348,14 @@ Linter_Options get_linter_options_from_language(
 }
 
 void list_debug_apps() {
+  Monotonic_Allocator temporary_allocator("list_debug_apps");
+
   struct Table_Row {
     std::string process_id;
     std::string server_url;
   };
   std::vector<Table_Row> table;
-  for (const Found_Debug_Server &s : find_debug_servers()) {
+  for (const Found_Debug_Server &s : find_debug_servers(&temporary_allocator)) {
     table.push_back(Table_Row{
         .process_id = std::to_string(s.process_id),
         .server_url =
