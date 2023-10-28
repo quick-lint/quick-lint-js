@@ -23,6 +23,7 @@
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/lsp/outgoing-json-rpc-message-queue.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
 #include <quick-lint-js/version.h>
@@ -2339,7 +2340,7 @@ TEST_F(Test_Linting_LSP_Server,
 }
 
 TEST_F(Test_Linting_LSP_Server, showing_io_errors_shows_only_first) {
-  this->handler->add_watch_io_errors(std::vector<Watch_IO_Error>{
+  this->handler->add_watch_io_errors(Span<const Watch_IO_Error>({
       Watch_IO_Error{
           .path = "/banana",
           .io_error = generic_file_io_error,
@@ -2348,7 +2349,7 @@ TEST_F(Test_Linting_LSP_Server, showing_io_errors_shows_only_first) {
           .path = "/orange",
           .io_error = generic_file_io_error,
       },
-  });
+  }));
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector<TJSON_Value> notifications = this->client->notifications();
@@ -2366,20 +2367,20 @@ TEST_F(Test_Linting_LSP_Server, showing_io_errors_shows_only_first) {
 }
 
 TEST_F(Test_Linting_LSP_Server, showing_io_errors_shows_only_first_ever) {
-  this->handler->add_watch_io_errors(std::vector<Watch_IO_Error>{
+  this->handler->add_watch_io_errors(Span<const Watch_IO_Error>({
       Watch_IO_Error{
           .path = "/banana",
           .io_error = generic_file_io_error,
       },
-  });
+  }));
   this->handler->flush_pending_notifications(*this->client);
   // Separate call to add_watch_io_errors:
-  this->handler->add_watch_io_errors(std::vector<Watch_IO_Error>{
+  this->handler->add_watch_io_errors(Span<const Watch_IO_Error>({
       Watch_IO_Error{
           .path = "/orange",
           .io_error = generic_file_io_error,
       },
-  });
+  }));
   this->handler->flush_pending_notifications(*this->client);
 
   std::vector<TJSON_Value> notifications = this->client->notifications();

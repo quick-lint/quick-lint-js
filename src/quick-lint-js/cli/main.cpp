@@ -587,7 +587,8 @@ void run_lsp_server() {
     }
 
     void report_pending_watch_io_errors() {
-      this->handler_.add_watch_io_errors(this->fs_.take_watch_errors());
+      this->handler_.add_watch_io_errors(
+          Span<const Watch_IO_Error>(this->fs_.take_watch_errors()));
       this->handler_.flush_pending_notifications(this->writer_);
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
       this->enable_or_disable_writer_events_as_needed();

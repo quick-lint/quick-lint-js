@@ -34,6 +34,7 @@
 #include <simdjson.h>
 #include <string>
 #include <utility>
+#include <vector>
 
 using namespace std::literals::string_view_literals;
 
@@ -222,12 +223,13 @@ void Linting_LSP_Server_Handler::filesystem_changed() {
       this->config_loader_.refresh();
   {
     Lock_Ptr<LSP_Documents> documents = this->documents_.lock();
-    this->handle_config_file_changes(documents, config_changes);
+    this->handle_config_file_changes(
+        documents, Span<const Configuration_Change>(config_changes));
   }
 }
 
 void Linting_LSP_Server_Handler::add_watch_io_errors(
-    const std::vector<Watch_IO_Error>& errors) {
+    Span<const Watch_IO_Error> errors) {
   if (!errors.empty() && !this->did_report_watch_io_error_) {
     Byte_Buffer& out_json = this->outgoing_messages_.new_message();
     // clang-format off
@@ -366,7 +368,8 @@ void Linting_LSP_Server_Handler::handle_text_document_did_change_notification(
   case LSP_Documents::Document_Type::config: {
     std::vector<Configuration_Change> config_changes =
         this->config_loader_.refresh();
-    this->handle_config_file_changes(documents, config_changes);
+    this->handle_config_file_changes(
+        documents, Span<const Configuration_Change>(config_changes));
     break;
   }
 
@@ -517,7 +520,8 @@ void Linting_LSP_Server_Handler::handle_text_document_did_open_notification(
         this->config_loader_.refresh();
     {
       Lock_Ptr<LSP_Documents> documents = this->documents_.lock();
-      this->handle_config_file_changes(documents, config_changes);
+      this->handle_config_file_changes(
+          documents, Span<const Configuration_Change>(config_changes));
     }
 
     doc_ptr = std::move(doc);
@@ -552,7 +556,7 @@ void Linting_LSP_Server_Handler::
 
 void Linting_LSP_Server_Handler::handle_config_file_changes(
     Lock_Ptr<LSP_Documents>& documents,
-    const std::vector<Configuration_Change>& config_changes) {
+    Span<const Configuration_Change> config_changes) {
   for (auto& entry : documents->documents) {
     const String8& document_uri = entry.first;
     LSP_Documents::Document_Base& doc = *entry.second;
