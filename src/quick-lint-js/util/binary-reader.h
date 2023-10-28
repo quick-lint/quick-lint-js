@@ -20,9 +20,9 @@ namespace quick_lint_js {
 // Invariant: When unexpected_end_of_file is called, it does not return.
 class Checked_Binary_Reader {
  public:
-  explicit Checked_Binary_Reader(const std::uint8_t* data,
-                                 std::size_t data_size,
-                                 Function_Ref<void()> unexpected_end_of_file)
+  explicit Checked_Binary_Reader(
+      const std::uint8_t* data, std::size_t data_size,
+      Async_Function_Ref<void()> unexpected_end_of_file)
       : data_(data),
         data_end_(data + data_size),
         unexpected_end_of_file_(unexpected_end_of_file) {}
@@ -72,7 +72,7 @@ class Checked_Binary_Reader {
  private:
   const std::uint8_t* data_;
   const std::uint8_t* data_end_;
-  Function_Ref<void()> unexpected_end_of_file_;
+  Async_Function_Ref<void()> unexpected_end_of_file_;
 };
 }
 

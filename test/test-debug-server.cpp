@@ -91,7 +91,7 @@ using Trace_Event_Callback = bool(Debug_Server &,
 //
 // test_web_socket keeps running until on_trace_event returns false or until a
 // timeout elapses, whichever comes first.
-void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event);
+void test_web_socket(Async_Function_Ref<Trace_Event_Callback> on_trace_event);
 
 class Test_Debug_Server : public ::testing::Test {
  public:
@@ -707,7 +707,7 @@ HTTP_WebSocket_Client::HTTP_WebSocket_Client(
     HTTP_WebSocket_Client_Delegate *delegate)
     : delegate_(delegate) {}
 
-void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event) {
+void test_web_socket(Async_Function_Ref<Trace_Event_Callback> on_trace_event) {
   std::shared_ptr<Debug_Server> server = Debug_Server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
@@ -715,8 +715,9 @@ void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event) {
 
   class Test_Delegate : public HTTP_WebSocket_Client_Delegate {
    public:
-    explicit Test_Delegate(Debug_Server *server,
-                           Function_Ref<Trace_Event_Callback> on_trace_event)
+    explicit Test_Delegate(
+        Debug_Server *server,
+        Async_Function_Ref<Trace_Event_Callback> on_trace_event)
         : server(server), on_trace_event(on_trace_event) {}
 
     void on_message_binary(HTTP_WebSocket_Client *client, const void *message,
@@ -752,7 +753,7 @@ void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event) {
     }
 
     Debug_Server *server;
-    Function_Ref<Trace_Event_Callback> on_trace_event;
+    Async_Function_Ref<Trace_Event_Callback> on_trace_event;
     std::map<Trace_Flusher_Thread_Index, Trace_Reader> trace_readers;
   };
   Test_Delegate delegate(server.get(), on_trace_event);

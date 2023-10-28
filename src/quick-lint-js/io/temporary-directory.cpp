@@ -267,7 +267,7 @@ bool is_dot_or_dot_dot(const Char *path) {
 #if QLJS_HAVE_WINDOWS_H
 Result<void, Platform_File_IO_Error> list_directory_raw(
     const char *directory,
-    Function_Ref<void(::WIN32_FIND_DATAW &)> visit_entry) {
+    Async_Function_Ref<void(::WIN32_FIND_DATAW &)> visit_entry) {
   std::optional<std::wstring> search_pattern = mbstring_to_wstring(directory);
   if (!search_pattern.has_value()) {
     QLJS_UNIMPLEMENTED();
@@ -299,7 +299,7 @@ Result<void, Platform_File_IO_Error> list_directory_raw(
 
 #if QLJS_HAVE_DIRENT_H
 Result<void, Platform_File_IO_Error> list_directory_raw(
-    const char *directory, Function_Ref<void(::dirent *)> visit_entry) {
+    const char *directory, Async_Function_Ref<void(::dirent *)> visit_entry) {
   ::DIR *d = ::opendir(directory);
   if (d == nullptr) {
     return failed_result(POSIX_File_IO_Error{
@@ -326,7 +326,7 @@ Result<void, Platform_File_IO_Error> list_directory_raw(
 }
 
 Result<void, Platform_File_IO_Error> list_directory(
-    const char *directory, Function_Ref<void(const char *)> visit_file) {
+    const char *directory, Async_Function_Ref<void(const char *)> visit_file) {
 #if QLJS_HAVE_WINDOWS_H
   auto visit_entry = [&](::WIN32_FIND_DATAW &entry) -> void {
     // TODO(strager): Reduce allocations.
@@ -354,7 +354,7 @@ Result<void, Platform_File_IO_Error> list_directory(
 
 Result<void, Platform_File_IO_Error> list_directory(
     const char *directory,
-    Function_Ref<void(const char *, bool is_directory)> visit_file) {
+    Async_Function_Ref<void(const char *, bool is_directory)> visit_file) {
 #if QLJS_HAVE_WINDOWS_H
   auto visit_entry = [&](::WIN32_FIND_DATAW &entry) -> void {
     // TODO(strager): Reduce allocations.
