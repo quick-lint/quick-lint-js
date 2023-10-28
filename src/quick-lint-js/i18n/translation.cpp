@@ -6,14 +6,15 @@
 #include <cstring>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/warning.h>
 #include <string>
 #include <string_view>
-#include <vector>
 
 using namespace std::literals::string_view_literals;
 
@@ -23,8 +24,10 @@ namespace quick_lint_js {
 Translator qljs_messages;
 
 namespace {
-std::vector<std::string_view> split_on(const char* s, char separator) {
-  std::vector<std::string_view> locales;
+Span<std::string_view> split_on(const char* s, char separator,
+                                Monotonic_Allocator* allocator) {
+  Bump_Vector<std::string_view, Monotonic_Allocator> locales("locales",
+                                                             allocator);
   for (;;) {
     const char* sep = std::strchr(s, separator);
     if (sep) {
@@ -35,10 +38,11 @@ std::vector<std::string_view> split_on(const char* s, char separator) {
       break;
     }
   }
-  return locales;
+  return locales.release_to_span();
 }
 
-std::vector<std::string_view> get_user_locale_preferences() {
+Span<std::string_view> get_user_locale_preferences(
+    Monotonic_Allocator* allocator) {
   // This lookup order roughly mimics GNU gettext.
 
   int category =
@@ -55,13 +59,16 @@ std::vector<std::string_view> get_user_locale_preferences() {
 
   const char* language_env = ::getenv("LANGUAGE");
   if (language_env && language_env[0] != '\0') {
-    return split_on(language_env, ':');
+    return split_on(language_env, ':', allocator);
   }
 
   // TODO(strager): Determine the language using macOS' and Windows' native
   // APIs. See GNU gettext's _nl_language_preferences_default.
 
-  return {locale};
+  Bump_Vector<std::string_view, Monotonic_Allocator> locales("locales",
+                                                             allocator);
+  locales.push_back(locale);
+  return locales.release_to_span();
 }
 
 void initialize_locale() {
@@ -74,8 +81,9 @@ void initialize_locale() {
 
 void initialize_translations_from_environment() {
   initialize_locale();
+  Monotonic_Allocator allocator("initialize_translations_from_environment");
   if (!qljs_messages.use_messages_from_locales(
-          Span<const std::string_view>(get_user_locale_preferences()))) {
+          get_user_locale_preferences(&allocator))) {
     qljs_messages.use_messages_from_source_code();
   }
 }
