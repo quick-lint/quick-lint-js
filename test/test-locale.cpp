@@ -11,6 +11,16 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+std::vector<std::string> locale_name_combinations(const char* locale_name) {
+  std::vector<std::string> locale_names;
+  enumerate_locale_name_combinations(
+      locale_name, [&](std::string_view current_locale) -> bool {
+        locale_names.emplace_back(current_locale);
+        return true;
+      });
+  return locale_names;
+}
+
 TEST(Test_Locale, combinations_for_language) {
   EXPECT_THAT(locale_name_combinations("en"), ElementsAreArray({"en"}));
 }

@@ -93,14 +93,12 @@ std::optional<int> find_locale(const char* locales, const char* locale_name) {
   return found_entry;
 }
 
-std::vector<std::string> locale_name_combinations(const char* locale_name) {
-  std::vector<std::string> locale_names;
-  locale_name_combinations(locale_name,
-                           [&](std::string_view current_locale) -> bool {
-                             locale_names.emplace_back(current_locale);
-                             return true;
-                           });
-  return locale_names;
+void enumerate_locale_name_combinations(
+    const char* locale_name,
+    Temporary_Function_Ref<bool(std::string_view locale)> callback) {
+  return locale_name_combinations<
+      Temporary_Function_Ref<bool(std::string_view locale)>>(
+      locale_name, std::move(callback));
 }
 
 namespace {

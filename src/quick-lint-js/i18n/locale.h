@@ -5,8 +5,8 @@
 
 #include <cstring>
 #include <optional>
-#include <string>
-#include <vector>
+#include <quick-lint-js/port/function-ref.h>
+#include <string_view>
 
 namespace quick_lint_js {
 // Returns the index of the matching locale.
@@ -15,7 +15,10 @@ namespace quick_lint_js {
 // result will be 1.
 std::optional<int> find_locale(const char* locales, const char* locale_name);
 
-std::vector<std::string> locale_name_combinations(const char* locale_name);
+// For testing only.
+void enumerate_locale_name_combinations(
+    const char* locale_name,
+    Temporary_Function_Ref<bool(std::string_view locale)>);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
