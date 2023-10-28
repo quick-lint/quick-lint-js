@@ -21,10 +21,6 @@
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 
-#if QLJS_FEATURE_VECTOR_PROFILING
-#include <iostream>
-#endif
-
 QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 
 namespace quick_lint_js {
@@ -94,31 +90,42 @@ void Vector_Instrumentation::register_dump_on_exit_if_requested() {
   const char *dump_vectors_value = std::getenv("QLJS_DUMP_VECTORS");
   bool should_dump_on_exit = dump_vectors_value && *dump_vectors_value != '\0';
   if (should_dump_on_exit) {
+    // HACK(strager): Force the stderr File_Output_Stream to be destructed
+    // *after* our std::atexit callback is called.
+    //
+    // Without this dummy call, the File_Output_Stream is destructed before our
+    // callback, causing uses of the File_Output_Stream to likely crash due to
+    // the vtable being wiped during destruction.
+    (void)File_Output_Stream::get_stderr();
+
     std::atexit([]() -> void {
       auto entries = instance.entries();
+      Output_Stream &out = *File_Output_Stream::get_stderr();
 
       {
         Vector_Max_Size_Histogram_By_Owner hist;
         hist.add_entries(entries);
         Monotonic_Allocator memory("Vector_Instrumentation dump_on_exit");
         Vector_Max_Size_Histogram_By_Owner::dump(
-            hist.histogram(&memory), std::cerr,
+            hist.histogram(&memory), out,
             Vector_Max_Size_Histogram_By_Owner::Dump_Options{
                 .maximum_line_length = 80,
                 .max_adjacent_empty_rows = 5,
             });
       }
-      std::cerr << '\n';
+      out.append_copy(u8'\n');
 
       {
         Vector_Capacity_Change_Histogram_By_Owner hist;
         hist.add_entries(entries);
         Vector_Capacity_Change_Histogram_By_Owner::dump(
-            hist.histogram(), std::cerr,
+            hist.histogram(), out,
             Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{
                 .maximum_line_length = 80,
             });
       }
+
+      out.flush();
     });
   }
 }
@@ -196,23 +203,25 @@ Vector_Max_Size_Histogram_By_Owner::histogram(
 
 void Vector_Max_Size_Histogram_By_Owner::dump(
     Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> histogram,
-    std::ostream &out) {
+    Output_Stream &out) {
   return dump(histogram, out, Dump_Options());
 }
 
 void Vector_Max_Size_Histogram_By_Owner::dump(
     Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> histogram,
-    std::ostream &out, const Dump_Options &options) {
+    Output_Stream &out, const Dump_Options &options) {
   bool need_blank_line = false;
   for (const auto &[group_name, object_size_histogram] : histogram) {
     QLJS_ASSERT(!object_size_histogram.empty());
 
     if (need_blank_line) {
-      out << '\n';
+      out.append_copy(u8'\n');
     }
     need_blank_line = true;
 
-    out << "Max sizes for " << out_string8(group_name) << ":\n";
+    out.append_literal(u8"Max sizes for "_sv);
+    out.append_copy(group_name);
+    out.append_literal(u8":\n"_sv);
 
     std::uint64_t max_count = 0;
     std::uint64_t total_count = 0;
@@ -239,35 +248,42 @@ void Vector_Max_Size_Histogram_By_Owner::dump(
       QLJS_ASSERT(options.max_adjacent_empty_rows > 0);
       if (object_size - next_object_size >
           narrow_cast<std::size_t>(options.max_adjacent_empty_rows)) {
-        out << "...\n";
+        out.append_literal(u8"...\n"_sv);
       } else {
         for (std::size_t i = next_object_size; i < object_size; ++i) {
-          out << std::setw(max_digits_in_legend) << i << "  ( 0%)\n";
+          out.append_padded_decimal_integer(i, max_digits_in_legend, u8' ');
+          out.append_literal(u8"  ( 0%)\n"_sv);
         }
       }
 
-      out << std::setw(max_digits_in_legend) << object_size << "  (";
+      out.append_padded_decimal_integer(object_size, max_digits_in_legend,
+                                        u8' ');
+      out.append_literal(u8"  ("_sv);
       if (count == total_count) {
-        out << "ALL";
+        out.append_literal(u8"ALL"_sv);
       } else {
         double count_fraction =
             static_cast<double>(count) / static_cast<double>(total_count);
-        out << std::setw(2) << std::round(count_fraction * 100) << "%";
+        out.append_padded_decimal_integer(
+            static_cast<unsigned>(std::round(count_fraction * 100)), 2, u8' ');
+        out.append_literal(u8"%"_sv);
       }
-      out << ')';
+      out.append_copy(u8')');
 
       int bar_width =
           std::max(1, static_cast<int>(std::floor(static_cast<double>(count) *
                                                   bar_scale_factor)));
-      out << "  ";
+      out.append_literal(u8"  "_sv);
       for (int i = 0; i < bar_width; ++i) {
-        out << '*';
+        out.append_copy(u8'*');
       }
-      out << '\n';
+      out.append_copy(u8'\n');
 
       next_object_size = object_size + 1;
     }
   }
+
+  out.flush();
 }
 
 Vector_Capacity_Change_Histogram_By_Owner::
@@ -307,10 +323,11 @@ Vector_Capacity_Change_Histogram_By_Owner::histogram() const {
 
 void Vector_Capacity_Change_Histogram_By_Owner::dump(
     const std::map<std::string_view, Capacity_Change_Histogram> &histogram,
-    std::ostream &out, const Dump_Options &options) {
-  out << R"(vector capacity changes:
+    Output_Stream &out, const Dump_Options &options) {
+  out.append_literal(
+      u8R"(vector capacity changes:
 (C=copied; z=initial alloc; -=used internal capacity)
-)";
+)"_sv);
 
   int count_width = 1;
   for (auto &[owner, h] : histogram) {
@@ -330,13 +347,20 @@ void Vector_Capacity_Change_Histogram_By_Owner::dump(
       continue;
     }
 
-    out << owner << ":\n";
+    out.append_copy(to_string8_view(owner));
+    out.append_literal(u8":\n"_sv);
 
     // Example:
     //  5C  0z 15_ |CCCCC_______________|
-    out << std::setw(count_width) << h.appends_growing_capacity << "C "
-        << std::setw(count_width) << h.appends_initial_capacity << "z "
-        << std::setw(count_width) << h.appends_reusing_capacity << "_ |";
+    out.append_padded_decimal_integer(h.appends_growing_capacity, count_width,
+                                      u8' ');
+    out.append_literal(u8"C "_sv);
+    out.append_padded_decimal_integer(h.appends_initial_capacity, count_width,
+                                      u8' ');
+    out.append_literal(u8"z "_sv);
+    out.append_padded_decimal_integer(h.appends_reusing_capacity, count_width,
+                                      u8' ');
+    out.append_literal(u8"_ |"_sv);
     int graph_columns =
         options.maximum_line_length -
         (count_width * 3 + narrow_cast<int>(std::strlen("C z _ ||")));
@@ -344,24 +368,24 @@ void Vector_Capacity_Change_Histogram_By_Owner::dump(
         narrow_cast<int>(narrow_cast<std::uintmax_t>(graph_columns) *
                          h.appends_growing_capacity / append_count);  // 'C'
     for (int i = 0; i < columns_growing_capacity; ++i) {
-      out << 'C';
+      out.append_copy(u8'C');
     }
     int columns_initial_capacity =
         narrow_cast<int>(narrow_cast<std::uintmax_t>(graph_columns) *
                          h.appends_initial_capacity / append_count);  // 'z'
     for (int i = 0; i < columns_initial_capacity; ++i) {
-      out << 'z';
+      out.append_copy(u8'z');
     }
     int columns_reusing_capacity =
         graph_columns -
         (columns_growing_capacity + columns_initial_capacity);  // '_'
     for (int i = 0; i < columns_reusing_capacity; ++i) {
-      out << '_';
+      out.append_copy(u8'_');
     }
-    out << "|\n";
+    out.append_copy(u8"|\n"_sv);
   }
+  out.flush();
 }
-
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

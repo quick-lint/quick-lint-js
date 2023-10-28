@@ -13,6 +13,7 @@
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/feature.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/attribute.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/warning.h>
@@ -97,9 +98,9 @@ class Vector_Max_Size_Histogram_By_Owner {
   };
 
   static void dump(Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>,
-                   std::ostream &);
+                   Output_Stream &);
   static void dump(Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>,
-                   std::ostream &, const Dump_Options &options);
+                   Output_Stream &, const Dump_Options &options);
 
  private:
   Hash_Map<const char *, Hash_Map<std::size_t, int>> histogram_;
@@ -138,7 +139,7 @@ class Vector_Capacity_Change_Histogram_By_Owner {
 
   static void dump(
       const std::map<std::string_view, Capacity_Change_Histogram> &,
-      std::ostream &, const Dump_Options &);
+      Output_Stream &, const Dump_Options &);
 
  private:
   struct Vector_Info {

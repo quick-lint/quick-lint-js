@@ -6,6 +6,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <map>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/linked-bump-allocator.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/vector-profiler.h>
@@ -578,15 +579,15 @@ TEST_F(Test_Vector_Instrumentation_Max_Size_Histogram_By_Owner,
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_empty_histogram) {
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>(), stream);
-  EXPECT_EQ(stream.str(), "");
+  EXPECT_EQ(stream.get_flushed_string8(), u8""_sv);
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_histogram_with_one_group) {
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
@@ -600,16 +601,17 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
           },
       }),
       stream);
-  EXPECT_EQ(stream.str(), R"(Max sizes for test group:
+  EXPECT_EQ(stream.get_flushed_string8(),
+            u8R"(Max sizes for test group:
 0  (50%)  ***
 1  (33%)  **
 2  (17%)  *
-)");
+)"_sv);
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_histogram_with_one_data_point_per_group) {
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
@@ -621,14 +623,15 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
           },
       }),
       stream);
-  EXPECT_EQ(stream.str(), R"(Max sizes for test group:
+  EXPECT_EQ(stream.get_flushed_string8(),
+            u8R"(Max sizes for test group:
 0  (ALL)  **
-)");
+)"_sv);
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_histogram_with_multiple_groups) {
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
@@ -649,19 +652,20 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
           },
       }),
       stream);
-  EXPECT_EQ(stream.str(), R"(Max sizes for group A:
+  EXPECT_EQ(stream.get_flushed_string8(),
+            u8R"(Max sizes for group A:
 0  (50%)  ***
 1  (50%)  ***
 
 Max sizes for group B:
 0  (50%)  **
 1  (50%)  **
-)");
+)"_sv);
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      dump_sparse_histogram) {
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
@@ -676,7 +680,8 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
           },
       }),
       stream);
-  EXPECT_EQ(stream.str(), R"(Max sizes for test group:
+  EXPECT_EQ(stream.get_flushed_string8(),
+            u8R"(Max sizes for test group:
 0  ( 0%)
 1  (25%)  *
 2  ( 0%)
@@ -687,12 +692,12 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
 7  ( 0%)
 8  ( 0%)
 9  (25%)  *
-)");
+)"_sv);
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      histogram_legend_is_padded_with_spaces) {
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
@@ -705,8 +710,8 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
           },
       }),
       stream);
-  EXPECT_THAT(stream.str(), HasSubstr("\n  3  ("));
-  EXPECT_THAT(stream.str(), HasSubstr("\n100  ("));
+  EXPECT_THAT(to_string(stream.get_flushed_string8()), HasSubstr("\n  3  ("));
+  EXPECT_THAT(to_string(stream.get_flushed_string8()), HasSubstr("\n100  ("));
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
@@ -716,7 +721,7 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
   histogram["test group"][1] = 50;
   histogram["test group"][2] = 25;
   histogram["test group"][3] = 1;
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
@@ -734,17 +739,18 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
       Vector_Max_Size_Histogram_By_Owner::Dump_Options{
           .maximum_line_length = 20,
       });
-  EXPECT_EQ(stream.str(), R"(Max sizes for test group:
+  EXPECT_EQ(stream.get_flushed_string8(),
+            u8R"(Max sizes for test group:
 0  (57%)  **********
 1  (28%)  *****
 2  (14%)  **
 3  ( 1%)  *
-)");
+)"_sv);
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      histogram_skips_many_empty_rows) {
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
@@ -762,18 +768,19 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
       Vector_Max_Size_Histogram_By_Owner::Dump_Options{
           .max_adjacent_empty_rows = 3,
       });
-  EXPECT_EQ(stream.str(), R"(Max sizes for test group:
+  EXPECT_EQ(stream.get_flushed_string8(),
+            u8R"(Max sizes for test group:
 0  (20%)  *
 1  (40%)  **
 2  (20%)  *
 ...
 8  (20%)  *
-)");
+)"_sv);
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
      histogram_including_legend_is_limited_to_max_screen_width) {
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Max_Size_Histogram_By_Owner::dump(
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>({
           Trace_Vector_Max_Size_Histogram_By_Owner_Entry{
@@ -788,7 +795,8 @@ TEST(Test_Vector_Instrumentation_Dump_Max_Size_Histogram,
       Vector_Max_Size_Histogram_By_Owner::Dump_Options{
           .maximum_line_length = 20,
       });
-  EXPECT_THAT(stream.str(), HasSubstr("\n100  (ALL)  ********\n"));
+  EXPECT_THAT(to_string(stream.get_flushed_string8()),
+              HasSubstr("\n100  (ALL)  ********\n"));
 }
 
 TEST(Test_Vector_Instrumentation_Capacity_Change_Histogram_By_Owner,
@@ -1084,20 +1092,21 @@ TEST(Test_Vector_Instrumentation_Capacity_Change_Histogram_By_Owner,
   EXPECT_EQ(hist["myvector"].appends_growing_capacity, 1) << "first vector";
 }
 
-std::string dump_capacity_change_header = R"(vector capacity changes:
+constexpr String8_View dump_capacity_change_header =
+    u8R"(vector capacity changes:
 (C=copied; z=initial alloc; -=used internal capacity)
-)";
+)"_sv;
 
 TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
      dump_empty_histogram) {
   std::map<std::string_view,
            Vector_Capacity_Change_Histogram_By_Owner::Capacity_Change_Histogram>
       histogram;
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Capacity_Change_Histogram_By_Owner::dump(
       histogram, stream,
       Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{});
-  EXPECT_EQ(stream.str(), dump_capacity_change_header);
+  EXPECT_EQ(stream.get_flushed_string8(), dump_capacity_change_header);
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
@@ -1106,15 +1115,16 @@ TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
            Vector_Capacity_Change_Histogram_By_Owner::Capacity_Change_Histogram>
       histogram;
   histogram["myvector"].appends_reusing_capacity = 10;
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Capacity_Change_Histogram_By_Owner::dump(
       histogram, stream,
       Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{
           .maximum_line_length = 34,
       });
-  EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
+  EXPECT_EQ(stream.get_flushed_string8(), concat(dump_capacity_change_header,
+                                                 u8R"(myvector:
  0C  0z 10_ |____________________|
-)");
+)"_sv));
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
@@ -1123,15 +1133,16 @@ TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
            Vector_Capacity_Change_Histogram_By_Owner::Capacity_Change_Histogram>
       histogram;
   histogram["myvector"].appends_growing_capacity = 10;
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Capacity_Change_Histogram_By_Owner::dump(
       histogram, stream,
       Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{
           .maximum_line_length = 34,
       });
-  EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
+  EXPECT_EQ(stream.get_flushed_string8(), concat(dump_capacity_change_header,
+                                                 u8R"(myvector:
 10C  0z  0_ |CCCCCCCCCCCCCCCCCCCC|
-)");
+)"_sv));
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
@@ -1140,15 +1151,16 @@ TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
            Vector_Capacity_Change_Histogram_By_Owner::Capacity_Change_Histogram>
       histogram;
   histogram["myvector"].appends_initial_capacity = 10;
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Capacity_Change_Histogram_By_Owner::dump(
       histogram, stream,
       Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{
           .maximum_line_length = 34,
       });
-  EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
+  EXPECT_EQ(stream.get_flushed_string8(), concat(dump_capacity_change_header,
+                                                 u8R"(myvector:
  0C 10z  0_ |zzzzzzzzzzzzzzzzzzzz|
-)");
+)"_sv));
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
@@ -1159,15 +1171,16 @@ TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
   histogram["myvector"].appends_growing_capacity = 5;
   histogram["myvector"].appends_initial_capacity = 5;
   histogram["myvector"].appends_reusing_capacity = 10;
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Capacity_Change_Histogram_By_Owner::dump(
       histogram, stream,
       Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{
           .maximum_line_length = 34,
       });
-  EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
+  EXPECT_EQ(stream.get_flushed_string8(), concat(dump_capacity_change_header,
+                                                 u8R"(myvector:
  5C  5z 10_ |CCCCCzzzzz__________|
-)");
+)"_sv));
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
@@ -1178,27 +1191,29 @@ TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
   histogram["myvector"].appends_growing_capacity = 9001;
 
   {
-    std::ostringstream stream;
+    Memory_Output_Stream stream;
     Vector_Capacity_Change_Histogram_By_Owner::dump(
         histogram, stream,
         Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{
             .maximum_line_length = 30,
         });
-    EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
+    EXPECT_EQ(stream.get_flushed_string8(), concat(dump_capacity_change_header,
+                                                   u8R"(myvector:
 9001C    0z    0_ |CCCCCCCCCC|
-)");
+)"_sv));
   }
 
   {
-    std::ostringstream stream;
+    Memory_Output_Stream stream;
     Vector_Capacity_Change_Histogram_By_Owner::dump(
         histogram, stream,
         Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{
             .maximum_line_length = 50,
         });
-    EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(myvector:
+    EXPECT_EQ(stream.get_flushed_string8(), concat(dump_capacity_change_header,
+                                                   u8R"(myvector:
 9001C    0z    0_ |CCCCCCCCCCCCCCCCCCCCCCCCCCCCCC|
-)");
+)"_sv));
   }
 }
 
@@ -1211,17 +1226,18 @@ TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
   histogram["first"].appends_reusing_capacity = 1;
   histogram["second"].appends_growing_capacity = 30;
   histogram["second"].appends_reusing_capacity = 30;
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Capacity_Change_Histogram_By_Owner::dump(
       histogram, stream,
       Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{
           .maximum_line_length = 30,
       });
-  EXPECT_EQ(stream.str(), dump_capacity_change_header + R"(first:
+  EXPECT_EQ(stream.get_flushed_string8(), concat(dump_capacity_change_header,
+                                                 u8R"(first:
  1C  0z  1_ |CCCCCCCC________|
 second:
 30C  0z 30_ |CCCCCCCC________|
-)");
+)"_sv));
 }
 
 TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
@@ -1231,11 +1247,11 @@ TEST(Test_Vector_Instrumentation_Dump_Capacity_Change_Histogram,
       histogram;
   histogram["first"];   // Zeroes.
   histogram["second"];  // Zeroes.
-  std::ostringstream stream;
+  Memory_Output_Stream stream;
   Vector_Capacity_Change_Histogram_By_Owner::dump(
       histogram, stream,
       Vector_Capacity_Change_Histogram_By_Owner::Dump_Options{});
-  EXPECT_EQ(stream.str(), dump_capacity_change_header);
+  EXPECT_EQ(stream.get_flushed_string8(), dump_capacity_change_header);
 }
 }
 }
