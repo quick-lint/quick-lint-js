@@ -125,31 +125,33 @@ Linting_LSP_Server_Handler::Linting_LSP_Server_Handler(
 
   this->workspace_configuration_.add_item(
       u8"quick-lint-js.tracing-directory"_sv,
-      [this](std::string_view new_value) {
-        bool changed = this->server_config_.tracing_directory != new_value;
-        if (changed) {
-          this->server_config_.tracing_directory = new_value;
-          if (this->tracer_backend_) {
-            Trace_Flusher::instance()->disable_backend(
-                this->tracer_backend_.get());
-            this->tracer_backend_.reset();
-          }
-          if (!this->server_config_.tracing_directory.empty()) {
-            auto new_backend =
-                Trace_Flusher_Directory_Backend::create_child_directory(
-                    this->server_config_.tracing_directory);
-            if (new_backend) {
-              this->tracer_backend_ =
-                  std::make_unique<Trace_Flusher_Directory_Backend>(
-                      std::move(*new_backend));
-              Trace_Flusher::instance()->enable_backend(
-                  this->tracer_backend_.get());
-              QLJS_DEBUG_LOG("enabled tracing in directory %s\n",
-                             this->tracer_backend_->trace_directory().c_str());
+      *this->workspace_configuration_allocator_.new_object_copy(
+          [this](std::string_view new_value) -> void {
+            bool changed = this->server_config_.tracing_directory != new_value;
+            if (changed) {
+              this->server_config_.tracing_directory = new_value;
+              if (this->tracer_backend_) {
+                Trace_Flusher::instance()->disable_backend(
+                    this->tracer_backend_.get());
+                this->tracer_backend_.reset();
+              }
+              if (!this->server_config_.tracing_directory.empty()) {
+                auto new_backend =
+                    Trace_Flusher_Directory_Backend::create_child_directory(
+                        this->server_config_.tracing_directory);
+                if (new_backend) {
+                  this->tracer_backend_ =
+                      std::make_unique<Trace_Flusher_Directory_Backend>(
+                          std::move(*new_backend));
+                  Trace_Flusher::instance()->enable_backend(
+                      this->tracer_backend_.get());
+                  QLJS_DEBUG_LOG(
+                      "enabled tracing in directory %s\n",
+                      this->tracer_backend_->trace_directory().c_str());
+                }
+              }
             }
-          }
-        }
-      });
+          }));
 }
 
 void Linting_LSP_Server_Handler::handle_request(

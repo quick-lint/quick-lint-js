@@ -141,6 +141,11 @@ class Linked_Bump_Allocator : public Memory_Resource {
   }
 
   template <class T>
+  T* new_object_copy(T&& value) {
+    return this->new_object<T>(std::forward<T>(value));
+  }
+
+  template <class T>
   [[nodiscard]] T* allocate_uninitialized_array(std::size_t size) {
     static_assert(alignof(T) <= alignment,
                   "T is not allowed by this allocator; this allocator's "

@@ -18,7 +18,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 void LSP_Workspace_Configuration::add_item(
-    String8_View name, Heap_Function<void(std::string_view)>&& callback) {
+    String8_View name, Async_Function_Ref<void(std::string_view)> callback) {
   this->items_.push_back(Item{
       .name = name,
       .callback = std::move(callback),

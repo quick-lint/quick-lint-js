@@ -7,9 +7,9 @@
 // No LSP on the web.
 #else
 
-#include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/function-ref.h>
 #include <quick-lint-js/simdjson-fwd.h>
 #include <string>
 #include <vector>
@@ -28,7 +28,7 @@ class LSP_Workspace_Configuration {
   // name must be have global lifetime (e.g. be a compile-time string).
   // name must be a JSON-encoded string (without surrounding quotation marks).
   void add_item(String8_View name,
-                Heap_Function<void(std::string_view)>&& callback);
+                Async_Function_Ref<void(std::string_view)> callback);
 
   // Create a workspace/configuration JSON-RPC request to send to the LSP
   // client.
@@ -52,7 +52,7 @@ class LSP_Workspace_Configuration {
  private:
   struct Item {
     String8_View name;
-    Heap_Function<void(std::string_view)> callback;
+    Async_Function_Ref<void(std::string_view)> callback;
   };
 
   Item* find_item(String8_View name);

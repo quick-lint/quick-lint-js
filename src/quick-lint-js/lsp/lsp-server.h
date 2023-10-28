@@ -242,6 +242,9 @@ class Linting_LSP_Server_Handler final : public JSON_RPC_Message_Handler {
   bool did_report_watch_io_error_ = false;
   bool shutdown_requested_ = false;
 
+  Monotonic_Allocator workspace_configuration_allocator_{
+      "Linting_LSP_Server_Handler::workspace_configuration_allocator_"};
+
   friend class LSP_Linter;
   friend struct LSP_Documents::Config_Document;
   friend struct LSP_Documents::Lintable_Document;
