@@ -27,19 +27,19 @@ struct Locale_Parts {
   std::string_view& language() { return this->parts[this->language_index]; }
 };
 
-Locale_Parts parse_locale(const char* locale_name) {
+Locale_Parts parse_locale(std::string_view locale_name) {
   struct Found_Separator {
     std::size_t length;
     std::size_t which_separator;
   };
-  auto find_next_separator = [](const char* c,
+  auto find_next_separator = [](std::string_view s,
                                 const char* separators) -> Found_Separator {
-    std::size_t length = std::strcspn(c, separators);
-    if (c[length] == '\0') {
-      return Found_Separator{.length = length,
+    std::size_t length = s.find_first_of(separators);
+    if (length == s.npos) {
+      return Found_Separator{.length = s.size(),
                              .which_separator = static_cast<std::size_t>(-1)};
     }
-    const char* separator = std::strchr(separators, c[length]);
+    const char* separator = std::strchr(separators, s[length]);
     QLJS_ASSERT(separator);
     return Found_Separator{
         .length = length,
@@ -50,19 +50,20 @@ Locale_Parts parse_locale(const char* locale_name) {
 
   const char* current_separators = &locale_part_separators[0];
   std::string_view* current_part = &parts.language();
-  const char* c = locale_name;
+  std::string_view remaining_locale_name = locale_name;
   for (;;) {
-    Found_Separator part = find_next_separator(c, current_separators);
-    *current_part = std::string_view(c, part.length);
-    c += part.length;
-    if (*c == '\0') {
+    Found_Separator part =
+        find_next_separator(remaining_locale_name, current_separators);
+    *current_part = remaining_locale_name.substr(0, part.length);
+    remaining_locale_name = remaining_locale_name.substr(part.length);
+    if (remaining_locale_name.empty()) {
       break;
     }
 
     QLJS_ASSERT(part.which_separator != static_cast<std::size_t>(-1));
     current_separators += part.which_separator + 1;
     current_part += part.which_separator + 1;
-    c += 1;
+    remaining_locale_name = remaining_locale_name.substr(1);
   }
   return parts;
 }
