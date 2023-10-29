@@ -386,7 +386,7 @@ TEST(Test_Byte_Buffer,
   assert_no_empty_iovec(iovec);
 }
 
-TEST(Test_Byte_Buffer_Iovec, remove_front_entire_single_chunk) {
+TEST(Test_Byte_Buffer_IOVec, remove_front_entire_single_chunk) {
   Byte_Buffer_IOVec bb =
       make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
           u8"hello"_sv,
@@ -397,7 +397,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_front_entire_single_chunk) {
   EXPECT_EQ(get_data(bb), u8" world");
 }
 
-TEST(Test_Byte_Buffer_Iovec, remove_front_entire_multiple_chunks) {
+TEST(Test_Byte_Buffer_IOVec, remove_front_entire_multiple_chunks) {
   Byte_Buffer_IOVec bb =
       make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
           u8"hello"_sv,
@@ -408,7 +408,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_front_entire_multiple_chunks) {
   EXPECT_EQ(get_data(bb), u8"world");
 }
 
-TEST(Test_Byte_Buffer_Iovec, remove_front_all_chunks) {
+TEST(Test_Byte_Buffer_IOVec, remove_front_all_chunks) {
   Byte_Buffer_IOVec bb =
       make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
           u8"hello"_sv,
@@ -419,7 +419,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_front_all_chunks) {
   EXPECT_EQ(get_data(bb), u8"");
 }
 
-TEST(Test_Byte_Buffer_Iovec, remove_part_of_first_chunk) {
+TEST(Test_Byte_Buffer_IOVec, remove_part_of_first_chunk) {
   Byte_Buffer_IOVec bb =
       make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
           u8"hello"_sv,
@@ -430,7 +430,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_part_of_first_chunk) {
   EXPECT_EQ(get_data(bb), u8"lo world");
 }
 
-TEST(Test_Byte_Buffer_Iovec, remove_parts_of_first_chunk) {
+TEST(Test_Byte_Buffer_IOVec, remove_parts_of_first_chunk) {
   Byte_Buffer_IOVec bb =
       make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
           u8"hello"_sv,
@@ -443,7 +443,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_parts_of_first_chunk) {
   EXPECT_EQ(get_data(bb), u8"lo world");
 }
 
-TEST(Test_Byte_Buffer_Iovec, remove_first_chunk_and_part_of_second_chunk) {
+TEST(Test_Byte_Buffer_IOVec, remove_first_chunk_and_part_of_second_chunk) {
   Byte_Buffer_IOVec bb =
       make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
           u8"hello"_sv,
@@ -454,7 +454,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_first_chunk_and_part_of_second_chunk) {
   EXPECT_EQ(get_data(bb), u8"fulworld");
 }
 
-TEST(Test_Byte_Buffer_Iovec, remove_front_all_chunks_byte_by_byte) {
+TEST(Test_Byte_Buffer_IOVec, remove_front_all_chunks_byte_by_byte) {
   Byte_Buffer_IOVec bb =
       make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
           u8"hello"_sv,
@@ -469,7 +469,7 @@ TEST(Test_Byte_Buffer_Iovec, remove_front_all_chunks_byte_by_byte) {
   EXPECT_EQ(get_data(bb), u8"");
 }
 
-TEST(Test_Byte_Buffer_Iovec, moving_makes_original_empty) {
+TEST(Test_Byte_Buffer_IOVec, moving_makes_original_empty) {
   Byte_Buffer_IOVec bb_1 =
       make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
           u8"hello"_sv,
