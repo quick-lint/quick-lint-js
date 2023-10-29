@@ -36,7 +36,7 @@ namespace quick_lint_js {
 //
 // Internally, Linked_Bump_Allocator maintains a linked list of chunks.
 template <std::size_t alignment>
-class Linked_Bump_Allocator : public Memory_Resource {
+class Linked_Bump_Allocator final : public Memory_Resource {
  private:
   struct Chunk_Header;
   using Chunk = Flexible_Array<char, Chunk_Header>;
