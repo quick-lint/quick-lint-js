@@ -244,10 +244,6 @@ class Linked_Bump_Allocator final : public Memory_Resource {
     this->deallocate_bytes(p, bytes);
   }
 
-  bool do_is_equal(const Memory_Resource& other) const override {
-    return this == static_cast<const Linked_Bump_Allocator*>(&other);
-  }
-
  private:
   struct alignas(maximum(alignment, alignof(void*))) Chunk_Header {
     explicit Chunk_Header(Chunk* previous) : previous(previous) {}

@@ -19,15 +19,10 @@ class Memory_Resource {
     return this->do_deallocate(p, bytes, alignment);
   }
 
-  bool is_equal(const Memory_Resource& other) const {
-    return this->do_is_equal(other);
-  }
-
  protected:
   virtual void* do_allocate(std::size_t bytes, std::size_t alignment) = 0;
   virtual void do_deallocate(void* p, std::size_t bytes,
                              std::size_t alignment) = 0;
-  virtual bool do_is_equal(const Memory_Resource& other) const = 0;
 };
 
 // Like std::pmr::new_delete_resource.
