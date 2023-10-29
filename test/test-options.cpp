@@ -896,11 +896,10 @@ TEST(Test_Options, dump_errors) {
 
   {
     Options o;
-
-    Parsed_Diag_Code_List parsed_errors;
-    parsed_errors.included_categories.emplace_back("banana");
-    parsed_errors.excluded_codes.emplace_back("E9999");
-    o.exit_fail_on.add(parsed_errors);
+    o.exit_fail_on.add(Parsed_Diag_Code_List{
+        .excluded_codes = {"E9999"},
+        .included_categories = {"banana"},
+    });
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);

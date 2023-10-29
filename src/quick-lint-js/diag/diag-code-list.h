@@ -22,10 +22,12 @@ struct Parsed_Diag_Code_List {
   bool override_defaults = false;
 };
 
+// Return std::string_view-s within raw_diag_code_list.
 Parsed_Diag_Code_List parse_diag_code_list(const char* raw_diag_code_list);
 
 class Compiled_Diag_Code_List {
  public:
+  // Retains references to the std::string_view-s.
   void add(const Parsed_Diag_Code_List&);
 
   std::vector<std::string> parse_errors(std::string_view cli_option_name) const;
