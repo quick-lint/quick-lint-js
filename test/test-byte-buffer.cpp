@@ -256,7 +256,8 @@ TEST(Test_Byte_Buffer, append_byte_buffer_to_byte_buffer_iovec) {
   bb_2.append_copy(u8"WORLD"_sv);
   bb_2_expected.append(u8"WORLD");
 
-  Byte_Buffer_IOVec iov = std::move(bb_1).to_iovec();
+  Byte_Buffer_IOVec iov;
+  iov.append(std::move(bb_1));
   String8 iov_expected = bb_1_expected;
   iov.append(std::move(bb_2));
   iov_expected.append(bb_2_expected);
@@ -267,7 +268,8 @@ TEST(Test_Byte_Buffer, append_byte_buffer_to_byte_buffer_iovec) {
 TEST(Test_Byte_Buffer, append_empty_byte_buffer_to_byte_buffer_iovec) {
   Byte_Buffer bb_1;
   bb_1.append_copy(u8"hello"_sv);
-  Byte_Buffer_IOVec iov = std::move(bb_1).to_iovec();
+  Byte_Buffer_IOVec iov;
+  iov.append(std::move(bb_1));
 
   Byte_Buffer bb_2;
   iov.append(std::move(bb_2));
@@ -278,7 +280,8 @@ TEST(Test_Byte_Buffer, append_empty_byte_buffer_to_byte_buffer_iovec) {
 TEST(Test_Byte_Buffer,
      append_byte_buffer_to_indirectly_empty_byte_buffer_iovec) {
   Byte_Buffer bb_1;
-  Byte_Buffer_IOVec iov = std::move(bb_1).to_iovec();
+  Byte_Buffer_IOVec iov;
+  iov.append(std::move(bb_1));
 
   Byte_Buffer bb_2;
   bb_2.append_copy(u8"hello"_sv);
@@ -330,13 +333,15 @@ TEST(Test_Byte_Buffer, iovec) {
   bb.append_copy(String8_View(small_data));
   expected_data.append(small_data);
 
-  Byte_Buffer_IOVec iovec = std::move(bb).to_iovec();
+  Byte_Buffer_IOVec iovec;
+  iovec.append(std::move(bb));
   EXPECT_EQ(get_data(iovec), expected_data);
 }
 
 TEST(Test_Byte_Buffer, empty_byte_buffer_to_iovec_has_no_chunks) {
   Byte_Buffer bb;
-  Byte_Buffer_IOVec iovec = std::move(bb).to_iovec();
+  Byte_Buffer_IOVec iovec;
+  iovec.append(std::move(bb));
   EXPECT_EQ(iovec.iovec_count(), 0);
 }
 
@@ -348,7 +353,8 @@ TEST(Test_Byte_Buffer,
   // to Byte_Buffer_IOVec.
   Byte_Buffer bb;
   bb.append_copy(String8(Byte_Buffer::default_chunk_size * 3, 'x'));
-  Byte_Buffer_IOVec iovec = std::move(bb).to_iovec();
+  Byte_Buffer_IOVec iovec;
+  iovec.append(std::move(bb));
   assert_no_empty_iovec(iovec);
 }
 
@@ -359,7 +365,8 @@ TEST(Test_Byte_Buffer,
   // Byte_Buffer_IOVec.
   Byte_Buffer bb;
   bb.append(1, []([[maybe_unused]] void* data) -> std::size_t { return 0; });
-  Byte_Buffer_IOVec iovec = std::move(bb).to_iovec();
+  Byte_Buffer_IOVec iovec;
+  iovec.append(std::move(bb));
   assert_no_empty_iovec(iovec);
 }
 
@@ -372,7 +379,8 @@ TEST(Test_Byte_Buffer,
   Byte_Buffer bb;
   bb.append(Byte_Buffer::default_chunk_size * 3,
             []([[maybe_unused]] void* data) -> std::size_t { return 0; });
-  Byte_Buffer_IOVec iovec = std::move(bb).to_iovec();
+  Byte_Buffer_IOVec iovec;
+  iovec.append(std::move(bb));
   assert_no_empty_iovec(iovec);
 }
 

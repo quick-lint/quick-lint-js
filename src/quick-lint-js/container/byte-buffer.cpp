@@ -161,12 +161,6 @@ String8 Byte_Buffer::to_string8() const {
   return s;
 }
 
-Byte_Buffer_IOVec Byte_Buffer::to_iovec() && {
-  this->update_current_chunk_size();
-  this->remove_current_chunk_if_empty();
-  return Byte_Buffer_IOVec(std::move(this->chunks_));
-}
-
 void Byte_Buffer::reserve(Size_Type extra_byte_count) {
   if (this->bytes_remaining_in_current_chunk() < extra_byte_count) {
     this->grow(extra_byte_count);

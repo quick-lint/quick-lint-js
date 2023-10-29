@@ -87,10 +87,6 @@ class Byte_Buffer {
   // For testing.
   String8 to_string8() const;
 
-  // After calling this->to_iovec(), do not call any other member function on
-  // this byte_buffer (aside from the destructor).
-  Byte_Buffer_IOVec to_iovec() &&;
-
   template <class Func>
   void enumerate_chunks(Func&& on_chunk) const {
     for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size();
