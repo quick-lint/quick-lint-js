@@ -5,12 +5,13 @@
 
 #include <array>
 #include <bitset>
+#include <memory>
 #include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/port/span.h>
 #include <string>
 #include <string_view>
-#include <vector>
 
 namespace quick_lint_js {
 struct Parsed_Diag_Code_List {
@@ -34,6 +35,8 @@ Parsed_Diag_Code_List parse_diag_code_list(const char* raw_diag_code_list,
 
 class Compiled_Diag_Code_List {
  public:
+  explicit Compiled_Diag_Code_List();
+
   // Retains references to the std::string_view-s.
   void add(const Parsed_Diag_Code_List&);
 
@@ -49,15 +52,22 @@ class Compiled_Diag_Code_List {
   struct Codes {
     std::bitset<Diag_Type_Count> included_codes;
     std::bitset<Diag_Type_Count> excluded_codes;
-    std::vector<std::string_view> included_categories;
-    std::vector<std::string_view> excluded_categories;
+    Span<std::string_view> included_categories;
+    Span<std::string_view> excluded_categories;
     bool override_defaults;
   };
 
-  std::vector<Codes> parsed_diag_code_lists_;
+  // TODO(strager): Make caller provide the allocator.
+  // HACK(strager): This is a unique_ptr to make Compiled_Diag_Code_List
+  // movable.
+  std::unique_ptr<Monotonic_Allocator> allocator_;
+
+  Bump_Vector<Codes, Monotonic_Allocator> parsed_diag_code_lists_{
+      "parsed_diag_code_lists_", this->allocator_.get()};
 
   // Collected errors and warnings:
-  std::vector<std::string_view> unknown_codes_;
+  Bump_Vector<std::string_view, Monotonic_Allocator> unknown_codes_{
+      "unknown_codes_", this->allocator_.get()};
   bool has_missing_predicate_error_ = false;
 };
 }

@@ -108,6 +108,10 @@ Parsed_Diag_Code_List parse_diag_code_list(const char* const raw_diag_code_list,
   };
 }
 
+Compiled_Diag_Code_List::Compiled_Diag_Code_List()
+    : allocator_(
+          std::make_unique<Monotonic_Allocator>("Compiled_Diag_Code_List")) {}
+
 void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
   auto add_code = [this](std::string_view code, auto& code_set) -> void {
     std::optional<Diag_Type> code_diag_type = diag_type_from_code_slow(code);
@@ -125,12 +129,11 @@ void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
   for (std::string_view code : diag_code_list.excluded_codes) {
     add_code(code, c.excluded_codes);
   }
-  c.included_categories.insert(c.included_categories.end(),
-                               diag_code_list.included_categories.begin(),
-                               diag_code_list.included_categories.end());
-  c.excluded_categories.insert(c.excluded_categories.end(),
-                               diag_code_list.excluded_categories.begin(),
-                               diag_code_list.excluded_categories.end());
+  // TODO(strager): Copy the referenced std::string_view-s.
+  c.included_categories =
+      this->allocator_->new_objects_copy(diag_code_list.included_categories);
+  c.excluded_categories =
+      this->allocator_->new_objects_copy(diag_code_list.excluded_categories);
   c.override_defaults = diag_code_list.override_defaults;
 
   if (diag_code_list.error_missing_predicate()) {

@@ -146,6 +146,15 @@ class Linked_Bump_Allocator : public Memory_Resource {
   }
 
   template <class T>
+  Span<T> new_objects_copy(Span<const T> objects) {
+    Span<T> new_objects = this->allocate_uninitialized_span<T>(
+        narrow_cast<std::size_t>(objects.size()));
+    std::uninitialized_copy(objects.begin(), objects.end(),
+                            new_objects.begin());
+    return new_objects;
+  }
+
+  template <class T>
   [[nodiscard]] T* allocate_uninitialized_array(std::size_t size) {
     static_assert(alignof(T) <= alignment,
                   "T is not allowed by this allocator; this allocator's "

@@ -227,7 +227,7 @@ void init() {
 
 void run(int argc, char **argv) {
   Options o = parse_options(argc, argv);
-  run(o);
+  run(std::move(o));
 }
 
 void run(Options o) {
