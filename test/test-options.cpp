@@ -885,7 +885,7 @@ TEST_F(Test_Options, invalid_option) {
 TEST_F(Test_Options, dump_errors) {
   {
     Options o;
-    o.error_unrecognized_options.clear();
+    o.error_unrecognized_options = Span<const char *const>();
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);
@@ -893,8 +893,10 @@ TEST_F(Test_Options, dump_errors) {
   }
 
   {
+    const char *unrecognized_options[] = {"--bad-option"};
     Options o;
-    o.error_unrecognized_options.push_back("--bad-option");
+    o.error_unrecognized_options =
+        Span<const char *const>(unrecognized_options);
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_TRUE(errors.have_errors);
@@ -965,17 +967,19 @@ TEST_F(Test_Options, dump_errors) {
   }
 
   {
-    const File_To_Lint file = {
-        .path = "file.js",
-        .config_file = nullptr,
-        .language = Raw_Input_File_Language::default_,
-        .is_stdin = false,
-        .vim_bufnr = std::optional<int>(),
+    const File_To_Lint files[] = {
+        File_To_Lint{
+            .path = "file.js",
+            .config_file = nullptr,
+            .language = Raw_Input_File_Language::default_,
+            .is_stdin = false,
+            .vim_bufnr = std::optional<int>(),
+        },
     };
 
     Options o;
     o.lsp_server = true;
-    o.files_to_lint.emplace_back(file);
+    o.files_to_lint = Span<const File_To_Lint>(files);
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);

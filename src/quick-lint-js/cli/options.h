@@ -6,7 +6,7 @@
 #include <optional>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/diag/diag-code-list.h>
-#include <vector>
+#include <quick-lint-js/port/span.h>
 
 namespace quick_lint_js {
 class Output_Stream;
@@ -65,13 +65,13 @@ struct Options {
   bool snarky = false;
   Output_Format output_format = Output_Format::default_format;
   Option_When diagnostic_hyperlinks = Option_When::auto_;
-  std::vector<File_To_Lint> files_to_lint;
+  Span<const File_To_Lint> files_to_lint;
   Compiled_Diag_Code_List exit_fail_on;
   const char *path_for_stdin = nullptr;
 
-  std::vector<const char *> error_unrecognized_options;
-  std::vector<const char *> warning_vim_bufnr_without_file;
-  std::vector<const char *> warning_language_without_file;
+  Span<const char *const> error_unrecognized_options;
+  Span<const char *const> warning_vim_bufnr_without_file;
+  Span<const char *const> warning_language_without_file;
   bool has_multiple_stdin = false;
   bool has_config_file = false;
   bool has_language = false;
