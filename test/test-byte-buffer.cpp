@@ -8,6 +8,7 @@
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <vector>
 
@@ -20,8 +21,9 @@ using namespace std::literals::string_view_literals;
 namespace quick_lint_js {
 namespace {
 String8 get_data(const Byte_Buffer_IOVec&);
-Byte_Buffer_Chunk make_chunk(String8_View);
 void assert_no_empty_iovec(const Byte_Buffer_IOVec&);
+Byte_Buffer_IOVec make_byte_buffer_iovec_with_chunks(
+    Span<const String8_View> chunks);
 
 TEST(Test_Byte_Buffer, empty_byte_buffer_is_empty) {
   Byte_Buffer bb;
@@ -291,7 +293,7 @@ TEST(Test_Byte_Buffer,
 }
 
 TEST(Test_Byte_Buffer, append_byte_buffer_to_empty_byte_buffer_iovec) {
-  Byte_Buffer_IOVec iov(std::vector<Byte_Buffer_Chunk>{});
+  Byte_Buffer_IOVec iov;
 
   Byte_Buffer bb;
   bb.append_copy(u8"hello"_sv);
@@ -301,11 +303,11 @@ TEST(Test_Byte_Buffer, append_byte_buffer_to_empty_byte_buffer_iovec) {
 }
 
 TEST(Test_Byte_Buffer, append_byte_buffer_to_exhausted_byte_buffer_iovec) {
-  std::vector<Byte_Buffer_Chunk> chunks = {
-      make_chunk(u8"hello"_sv),
-      make_chunk(u8"world"_sv),
-  };
-  Byte_Buffer_IOVec iov(std::move(chunks));
+  Byte_Buffer_IOVec iov =
+      make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
+          u8"hello"_sv,
+          u8"world"_sv,
+      }));
   iov.remove_front(u8"helloworld"_sv.size());
 
   Byte_Buffer bb;
@@ -385,56 +387,56 @@ TEST(Test_Byte_Buffer,
 }
 
 TEST(Test_Byte_Buffer_Iovec, remove_front_entire_single_chunk) {
-  std::vector<Byte_Buffer_Chunk> chunks = {
-      make_chunk(u8"hello"_sv),
-      make_chunk(u8" "_sv),
-      make_chunk(u8"world"_sv),
-  };
-  Byte_Buffer_IOVec bb(std::move(chunks));
+  Byte_Buffer_IOVec bb =
+      make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
+          u8"hello"_sv,
+          u8" "_sv,
+          u8"world"_sv,
+      }));
   bb.remove_front(u8"hello"_sv.size());
   EXPECT_EQ(get_data(bb), u8" world");
 }
 
 TEST(Test_Byte_Buffer_Iovec, remove_front_entire_multiple_chunks) {
-  std::vector<Byte_Buffer_Chunk> chunks = {
-      make_chunk(u8"hello"_sv),
-      make_chunk(u8"beautiful"_sv),
-      make_chunk(u8"world"_sv),
-  };
-  Byte_Buffer_IOVec bb(std::move(chunks));
+  Byte_Buffer_IOVec bb =
+      make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
+          u8"hello"_sv,
+          u8"beautiful"_sv,
+          u8"world"_sv,
+      }));
   bb.remove_front(u8"hello"_sv.size() + u8"beautiful"_sv.size());
   EXPECT_EQ(get_data(bb), u8"world");
 }
 
 TEST(Test_Byte_Buffer_Iovec, remove_front_all_chunks) {
-  std::vector<Byte_Buffer_Chunk> chunks = {
-      make_chunk(u8"hello"_sv),
-      make_chunk(u8" "_sv),
-      make_chunk(u8"world"_sv),
-  };
-  Byte_Buffer_IOVec bb(std::move(chunks));
+  Byte_Buffer_IOVec bb =
+      make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
+          u8"hello"_sv,
+          u8" "_sv,
+          u8"world"_sv,
+      }));
   bb.remove_front(u8"hello"_sv.size() + u8" "_sv.size() + u8"world"_sv.size());
   EXPECT_EQ(get_data(bb), u8"");
 }
 
 TEST(Test_Byte_Buffer_Iovec, remove_part_of_first_chunk) {
-  std::vector<Byte_Buffer_Chunk> chunks = {
-      make_chunk(u8"hello"_sv),
-      make_chunk(u8" "_sv),
-      make_chunk(u8"world"_sv),
-  };
-  Byte_Buffer_IOVec bb(std::move(chunks));
+  Byte_Buffer_IOVec bb =
+      make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
+          u8"hello"_sv,
+          u8" "_sv,
+          u8"world"_sv,
+      }));
   bb.remove_front(u8"hel"_sv.size());
   EXPECT_EQ(get_data(bb), u8"lo world");
 }
 
 TEST(Test_Byte_Buffer_Iovec, remove_parts_of_first_chunk) {
-  std::vector<Byte_Buffer_Chunk> chunks = {
-      make_chunk(u8"hello"_sv),
-      make_chunk(u8" "_sv),
-      make_chunk(u8"world"_sv),
-  };
-  Byte_Buffer_IOVec bb(std::move(chunks));
+  Byte_Buffer_IOVec bb =
+      make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
+          u8"hello"_sv,
+          u8" "_sv,
+          u8"world"_sv,
+      }));
   bb.remove_front(1);
   bb.remove_front(1);
   bb.remove_front(1);
@@ -442,23 +444,23 @@ TEST(Test_Byte_Buffer_Iovec, remove_parts_of_first_chunk) {
 }
 
 TEST(Test_Byte_Buffer_Iovec, remove_first_chunk_and_part_of_second_chunk) {
-  std::vector<Byte_Buffer_Chunk> chunks = {
-      make_chunk(u8"hello"_sv),
-      make_chunk(u8"beautiful"_sv),
-      make_chunk(u8"world"_sv),
-  };
-  Byte_Buffer_IOVec bb(std::move(chunks));
+  Byte_Buffer_IOVec bb =
+      make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
+          u8"hello"_sv,
+          u8"beautiful"_sv,
+          u8"world"_sv,
+      }));
   bb.remove_front(u8"hello"_sv.size() + u8"beauti"_sv.size());
   EXPECT_EQ(get_data(bb), u8"fulworld");
 }
 
 TEST(Test_Byte_Buffer_Iovec, remove_front_all_chunks_byte_by_byte) {
-  std::vector<Byte_Buffer_Chunk> chunks = {
-      make_chunk(u8"hello"_sv),
-      make_chunk(u8"beautiful"_sv),
-      make_chunk(u8"world"_sv),
-  };
-  Byte_Buffer_IOVec bb(std::move(chunks));
+  Byte_Buffer_IOVec bb =
+      make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
+          u8"hello"_sv,
+          u8"beautiful"_sv,
+          u8"world"_sv,
+      }));
   for (std::size_t i = 0;
        i < u8"hello"_sv.size() + u8"beautiful"_sv.size() + u8"world"_sv.size();
        ++i) {
@@ -468,12 +470,12 @@ TEST(Test_Byte_Buffer_Iovec, remove_front_all_chunks_byte_by_byte) {
 }
 
 TEST(Test_Byte_Buffer_Iovec, moving_makes_original_empty) {
-  std::vector<Byte_Buffer_Chunk> chunks = {
-      make_chunk(u8"hello"_sv),
-      make_chunk(u8"beautiful"_sv),
-      make_chunk(u8"world"_sv),
-  };
-  Byte_Buffer_IOVec bb_1(std::move(chunks));
+  Byte_Buffer_IOVec bb_1 =
+      make_byte_buffer_iovec_with_chunks(Span<const String8_View>({
+          u8"hello"_sv,
+          u8"beautiful"_sv,
+          u8"world"_sv,
+      }));
 
   Byte_Buffer_IOVec bb_2(std::move(bb_1));
   EXPECT_EQ(bb_1.iovec_count(), 0);
@@ -492,15 +494,15 @@ String8 get_data(const Byte_Buffer_IOVec& bb) {
   return data;
 }
 
-Byte_Buffer_Chunk make_chunk(String8_View data) {
-  Char8* chunk_data = new Char8[data.size()];
-  std::copy_n(data.data(), data.size(), chunk_data);
-#if QLJS_HAVE_WRITEV
-  return Byte_Buffer_Chunk{.iov_base = chunk_data, .iov_len = data.size()};
-#else
-  return Byte_Buffer_Chunk{.data = reinterpret_cast<std::byte*>(chunk_data),
-                           .size = data.size()};
-#endif
+Byte_Buffer_IOVec make_byte_buffer_iovec_with_chunks(
+    Span<const String8_View> chunks) {
+  Byte_Buffer_IOVec iovec;
+  for (String8_View chunk : chunks) {
+    Byte_Buffer chunk_byte_buffer;
+    chunk_byte_buffer.append_copy(chunk);
+    iovec.append(std::move(chunk_byte_buffer));
+  }
+  return iovec;
 }
 
 void assert_no_empty_iovec(const Byte_Buffer_IOVec& iovec) {

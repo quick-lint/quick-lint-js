@@ -212,20 +212,8 @@ void Byte_Buffer::delete_chunk(Byte_Buffer_Chunk&& c) {
   delete[] chunk_begin(c);
 }
 
-Byte_Buffer_IOVec::Byte_Buffer_IOVec()
-    : Byte_Buffer_IOVec(std::vector<Byte_Buffer_Chunk>()) {}
-
-Byte_Buffer_IOVec::Byte_Buffer_IOVec(std::vector<Byte_Buffer_Chunk>&& chunks)
-    : chunks_(std::move(chunks)), first_chunk_index_(0) {
-  if (this->chunks_.empty()) {
-    this->first_chunk_allocation_ = make_chunk(nullptr, 0);
-  } else {
-    this->first_chunk_allocation_ = this->chunks_.front();
-  }
-
-  for (const Byte_Buffer_Chunk& c : this->chunks_) {
-    QLJS_ASSERT(chunk_size(c) > 0);
-  }
+Byte_Buffer_IOVec::Byte_Buffer_IOVec() : first_chunk_index_(0) {
+  this->first_chunk_allocation_ = make_chunk(nullptr, 0);
 }
 
 Byte_Buffer_IOVec::Byte_Buffer_IOVec(Byte_Buffer_IOVec&&) = default;

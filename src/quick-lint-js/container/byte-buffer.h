@@ -148,7 +148,6 @@ class Byte_Buffer_IOVec {
   using Size_Type = Byte_Buffer::Size_Type;
 
   explicit Byte_Buffer_IOVec();
-  explicit Byte_Buffer_IOVec(std::vector<Byte_Buffer_Chunk>&&);
 
   Byte_Buffer_IOVec(Byte_Buffer_IOVec&&);
   Byte_Buffer_IOVec& operator=(Byte_Buffer_IOVec&&) = delete;
