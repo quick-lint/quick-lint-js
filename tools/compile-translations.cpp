@@ -203,10 +203,10 @@ String8_View po_path_to_locale_name(const char* po_path) {
 
 String_Table::Entry::Entry(String8_View string, Monotonic_Allocator* allocator)
     : origin_file_paths("String_Table::Entry::file_paths", allocator) {
-  Char8* new_string =
-      allocator->allocate_uninitialized_array<Char8>(string.size());
-  Char8* new_string_end = std::copy(string.begin(), string.end(), new_string);
-  this->string = make_string_view(new_string, new_string_end);
+  Span<Char8> new_string =
+      allocator->allocate_uninitialized_span<Char8>(string.size());
+  std::copy(string.begin(), string.end(), new_string.begin());
+  this->string = make_string_view(new_string.begin(), new_string.end());
 }
 
 void String_Table::add_string(String8_View string,

@@ -1362,12 +1362,14 @@ void Lexer::check_integer_precision_loss(String8_View number_literal) {
   std::string_view result_string_view(result_string.data(),
                                       static_cast<size_t>(rc));
   if (cleaned_string != result_string_view) {
-    Char8* rounded_val = this->allocator_.allocate_uninitialized_array<Char8>(
-        result_string_view.size());
-    std::copy(result_string_view.begin(), result_string_view.end(),
-              rounded_val);
-    String8_View rounded_val_string_view =
-        String8_View(rounded_val, result_string_view.size());
+    // TODO(strager): Use Linked_Bump_Allocator::new_objects_copy
+    Span<Char8> rounded_val =
+        this->allocator_.allocate_uninitialized_span<Char8>(
+            result_string_view.size());
+    std::uninitialized_copy(result_string_view.begin(),
+                            result_string_view.end(), rounded_val.data());
+    String8_View rounded_val_string_view = String8_View(
+        rounded_val.data(), narrow_cast<std::size_t>(rounded_val.size()));
     this->diag_reporter_->report(Diag_Integer_Literal_Will_Lose_Precision{
         .characters =
             Source_Code_Span(number_literal.data(),

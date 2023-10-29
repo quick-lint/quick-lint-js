@@ -57,12 +57,15 @@ const Diagnostic *C_API_Diag_Reporter<Diagnostic, Locator>::get_diagnostics() {
 template <class Diagnostic, class Locator>
 Char8 *C_API_Diag_Reporter<Diagnostic, Locator>::allocate_c_string(
     String8_View string) {
-  Char8 *result =
-      this->string_allocator_.template allocate_uninitialized_array<Char8>(
+  // TODO(strager): Use Linked_Bump_Allocator::new_objects_copy.
+  Span<Char8> result =
+      this->string_allocator_.template allocate_uninitialized_span<Char8>(
           string.size() + 1);
-  std::uninitialized_copy(string.begin(), string.end(), result);
-  result[string.size()] = u8'\0';
-  return result;
+  Char8 *result_end =
+      std::uninitialized_copy(string.begin(), string.end(), result.begin());
+  *result_end++ = u8'\0';
+  QLJS_ASSERT(result_end == result.end());
+  return result.data();
 }
 
 template <class Diagnostic, class Locator>

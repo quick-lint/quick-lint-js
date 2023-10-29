@@ -413,13 +413,14 @@ const Hash_Map<String8_View, JSX_Attribute>& jsx_attribute_aliases() {
     for (std::string_view raw_attribute_name :
          C_String_List_View(attribute_names)) {
       String8_View attribute_name = to_string8_view(raw_attribute_name);
-      Char8* lowered_attribute_name =
-          string_allocator.allocate_uninitialized_array<Char8>(
+      Span<Char8> lowered_attribute_name =
+          string_allocator.allocate_uninitialized_span<Char8>(
               attribute_name.size());
       std::transform(attribute_name.begin(), attribute_name.end(),
-                     lowered_attribute_name, tolower);
+                     lowered_attribute_name.begin(), tolower);
       auto [_it, inserted] = aliases.try_emplace(
-          String8_View(lowered_attribute_name, attribute_name.size()),
+          String8_View(lowered_attribute_name.begin(),
+                       narrow_cast<std::size_t>(lowered_attribute_name.size())),
           JSX_Attribute{attribute_name});
       QLJS_ASSERT(inserted);
     }

@@ -155,17 +155,12 @@ class Linked_Bump_Allocator : public Memory_Resource {
   }
 
   template <class T>
-  [[nodiscard]] T* allocate_uninitialized_array(std::size_t size) {
+  [[nodiscard]] Span<T> allocate_uninitialized_span(std::size_t size) {
     static_assert(alignof(T) <= alignment,
                   "T is not allowed by this allocator; this allocator's "
                   "alignment is insufficient for T");
     std::size_t byte_size = this->align_up(size * sizeof(T));
-    return reinterpret_cast<T*>(this->allocate_bytes(byte_size));
-  }
-
-  template <class T>
-  [[nodiscard]] Span<T> allocate_uninitialized_span(std::size_t size) {
-    T* items = this->allocate_uninitialized_array<T>(size);
+    T* items = reinterpret_cast<T*>(this->allocate_bytes(byte_size));
     return Span<T>(items, narrow_cast<Span_Size>(size));
   }
 

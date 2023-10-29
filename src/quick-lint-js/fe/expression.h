@@ -189,13 +189,16 @@ class Expression_Arena {
     return this->allocator_.new_object<T>(std::forward<Args>(args)...);
   }
 
+  // TODO(strager): Accept a Span.
+  // TODO(strager): Return a Span.
   template <class T>
   T *allocate_array_move(T *begin, T *end) {
     static_assert(is_allocatable<T>);
-    T *result = this->allocator_.allocate_uninitialized_array<T>(
+    // TODO(strager): Implement Linked_Bump_Allocator::new_objects_move.
+    Span<T> result = this->allocator_.allocate_uninitialized_span<T>(
         narrow_cast<std::size_t>(end - begin));
-    std::uninitialized_move(begin, end, result);
-    return result;
+    std::uninitialized_move(begin, end, result.data());
+    return result.data();
   }
 
   Monotonic_Allocator allocator_{"expression_arena"};

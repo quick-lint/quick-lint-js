@@ -183,21 +183,23 @@ class Raw_Bump_Vector {
       if (grew) {
         this->capacity_end_ = this->data_ + new_capacity;
       } else {
-        T *new_data =
-            this->allocator_->template allocate_uninitialized_array<T>(
+        Span<T> new_data =
+            this->allocator_->template allocate_uninitialized_span<T>(
                 narrow_cast<std::size_t>(new_capacity));
-        T *new_data_end =
-            std::uninitialized_move(this->data_, this->data_end_, new_data);
+        T *new_data_end = std::uninitialized_move(this->data_, this->data_end_,
+                                                  new_data.begin());
         this->clear();
-        this->data_ = new_data;
+        this->data_ = new_data.begin();
         this->data_end_ = new_data_end;
-        this->capacity_end_ = new_data + new_capacity;
+        this->capacity_end_ = new_data.end();
       }
     } else {
-      this->data_ = this->allocator_->template allocate_uninitialized_array<T>(
-          narrow_cast<std::size_t>(new_capacity));
+      Span<T> new_data =
+          this->allocator_->template allocate_uninitialized_span<T>(
+              narrow_cast<std::size_t>(new_capacity));
+      this->data_ = new_data.begin();
       this->data_end_ = this->data_;
-      this->capacity_end_ = this->data_ + new_capacity;
+      this->capacity_end_ = new_data.end();
     }
   }
 
