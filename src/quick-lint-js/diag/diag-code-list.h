@@ -37,8 +37,9 @@ class Compiled_Diag_Code_List {
   // Retains references to the std::string_view-s.
   void add(const Parsed_Diag_Code_List&);
 
-  std::vector<std::string> parse_errors(std::string_view cli_option_name) const;
-  std::vector<std::string> parse_warnings() const;
+  Span<std::string_view> parse_errors(std::string_view cli_option_name,
+                                      Monotonic_Allocator* allocator) const;
+  Span<std::string_view> parse_warnings(Monotonic_Allocator* allocator) const;
 
   bool is_present(Diag_Type) const;
 

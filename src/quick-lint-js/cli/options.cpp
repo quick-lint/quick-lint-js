@@ -205,6 +205,8 @@ bool Options::has_stdin() const {
 }
 
 bool Options::dump_errors(Output_Stream& out) const {
+  Monotonic_Allocator temporary_allocator("dump_errors");
+
   bool have_errors = false;
   if (this->lsp_server) {
     if (this->exit_fail_on.is_user_provided()) {
@@ -269,14 +271,15 @@ bool Options::dump_errors(Output_Stream& out) const {
     out.append_copy(u8'\n');
     have_errors = true;
   }
-  for (const std::string& error :
-       this->exit_fail_on.parse_errors("--exit-fail-on")) {
+  for (std::string_view error : this->exit_fail_on.parse_errors(
+           "--exit-fail-on", &temporary_allocator)) {
     out.append_copy(u8"error: "_sv);
     out.append_copy(to_string8_view(error));
     out.append_copy(u8'\n');
     have_errors = true;
   }
-  for (const std::string& warning : this->exit_fail_on.parse_warnings()) {
+  for (std::string_view warning :
+       this->exit_fail_on.parse_warnings(&temporary_allocator)) {
     out.append_copy(u8"warning: "_sv);
     out.append_copy(to_string8_view(warning));
     out.append_copy(u8'\n');

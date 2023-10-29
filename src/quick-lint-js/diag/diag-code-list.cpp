@@ -138,22 +138,31 @@ void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
   }
 }
 
-std::vector<std::string> Compiled_Diag_Code_List::parse_errors(
-    std::string_view cli_option_name) const {
-  std::vector<std::string> errors;
+Span<std::string_view> Compiled_Diag_Code_List::parse_errors(
+    std::string_view cli_option_name, Monotonic_Allocator* allocator) const {
+  Bump_Vector<std::string_view, Monotonic_Allocator> errors("errors",
+                                                            allocator);
   if (this->has_missing_predicate_error_) {
-    errors.emplace_back(std::string(cli_option_name) +
-                        " must be given at least one category or code");
+    // TODO(#1102): Make this code pretty.
+    Bump_Vector<char, Monotonic_Allocator> error("error", allocator);
+    error += cli_option_name;
+    error += " must be given at least one category or code"sv;
+    errors.emplace_back(error.release_to_string_view());
   }
-  return errors;
+  return errors.release_to_span();
 }
 
-std::vector<std::string> Compiled_Diag_Code_List::parse_warnings() const {
-  std::vector<std::string> warnings;
-  auto check_category = [&warnings](std::string_view category) {
+Span<std::string_view> Compiled_Diag_Code_List::parse_warnings(
+    Monotonic_Allocator* allocator) const {
+  Bump_Vector<std::string_view, Monotonic_Allocator> warnings("warnings",
+                                                              allocator);
+  auto check_category = [&](std::string_view category) {
     if (category != "all") {
-      warnings.emplace_back("unknown error category: ");
-      warnings.back().append(category);
+      // TODO(#1102): Make this code pretty.
+      Bump_Vector<char, Monotonic_Allocator> warning("warning", allocator);
+      warning += "unknown error category: "sv;
+      warning += category;
+      warnings.emplace_back(warning.release_to_string_view());
     }
   };
 
@@ -167,11 +176,14 @@ std::vector<std::string> Compiled_Diag_Code_List::parse_warnings() const {
   }
 
   for (std::string_view code : this->unknown_codes_) {
-    warnings.emplace_back("unknown error code: ");
-    warnings.back().append(code);
+    // TODO(#1102): Make this code pretty.
+    Bump_Vector<char, Monotonic_Allocator> warning("warning", allocator);
+    warning += "unknown error code: "sv;
+    warning += code;
+    warnings.emplace_back(warning.release_to_string_view());
   }
 
-  return warnings;
+  return warnings.release_to_span();
 }
 
 bool Compiled_Diag_Code_List::is_present(Diag_Type type) const {

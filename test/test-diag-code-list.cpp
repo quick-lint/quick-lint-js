@@ -28,8 +28,8 @@ TEST_F(Test_Diag_Code_List, compiled_default_matches_all_errors) {
   QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
 
-  EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
-  EXPECT_THAT(errors.parse_warnings(), IsEmpty());
+  EXPECT_THAT(errors.parse_errors("--testoption", &this->allocator), IsEmpty());
+  EXPECT_THAT(errors.parse_warnings(&this->allocator), IsEmpty());
 }
 
 TEST_F(Test_Diag_Code_List, compiled_excluded_error_by_code) {
@@ -44,8 +44,8 @@ TEST_F(Test_Diag_Code_List, compiled_excluded_error_by_code) {
       errors.is_present(Diag_Type::Diag_Big_Int_Literal_Contains_Decimal_Point))
       << "E0005 should be enabled";
 
-  EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
-  EXPECT_THAT(errors.parse_warnings(), IsEmpty());
+  EXPECT_THAT(errors.parse_errors("--testoption", &this->allocator), IsEmpty());
+  EXPECT_THAT(errors.parse_warnings(&this->allocator), IsEmpty());
 }
 
 TEST_F(Test_Diag_Code_List, compiled_excluded_then_included_error_by_code) {
@@ -85,8 +85,8 @@ TEST_F(Test_Diag_Code_List, compiled_exclude_all_matches_no_errors) {
   QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
 
-  EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
-  EXPECT_THAT(errors.parse_warnings(), IsEmpty());
+  EXPECT_THAT(errors.parse_errors("--testoption", &this->allocator), IsEmpty());
+  EXPECT_THAT(errors.parse_warnings(&this->allocator), IsEmpty());
 }
 
 TEST_F(Test_Diag_Code_List,
@@ -162,10 +162,11 @@ TEST_F(Test_Diag_Code_List, compiling_invalid_category_is_an_error) {
       .excluded_categories = Span<const std::string_view>({"strawberry"}),
   });
 
-  EXPECT_THAT(errors.parse_warnings(), UnorderedElementsAreArray({
-                                           "unknown error category: banana",
-                                           "unknown error category: strawberry",
-                                       }));
+  EXPECT_THAT(errors.parse_warnings(&this->allocator),
+              UnorderedElementsAreArray({
+                  "unknown error category: banana",
+                  "unknown error category: strawberry",
+              }));
 }
 
 TEST_F(Test_Diag_Code_List, compiling_invalid_code_is_an_error) {
@@ -175,10 +176,11 @@ TEST_F(Test_Diag_Code_List, compiling_invalid_code_is_an_error) {
       .excluded_codes = Span<const std::string_view>({"E0000"}),
   });
 
-  EXPECT_THAT(errors.parse_warnings(), UnorderedElementsAreArray({
-                                           "unknown error code: E9999",
-                                           "unknown error code: E0000",
-                                       }));
+  EXPECT_THAT(errors.parse_warnings(&this->allocator),
+              UnorderedElementsAreArray({
+                  "unknown error code: E9999",
+                  "unknown error code: E0000",
+              }));
 }
 
 TEST_F(Test_Diag_Code_List, compiling_empty_parsed_diag_code_list_is_an_error) {
@@ -191,9 +193,9 @@ TEST_F(Test_Diag_Code_List, compiling_empty_parsed_diag_code_list_is_an_error) {
       .excluded_codes = Span<const std::string_view>({"E0003"}),
   });
 
-  EXPECT_THAT(errors.parse_warnings(), IsEmpty());
+  EXPECT_THAT(errors.parse_warnings(&this->allocator), IsEmpty());
   EXPECT_THAT(
-      errors.parse_errors("--testoption"),
+      errors.parse_errors("--testoption", &this->allocator),
       ElementsAreArray(
           {"--testoption must be given at least one category or code"}));
 }
