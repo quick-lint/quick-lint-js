@@ -8,6 +8,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/cli/options.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/warning.h>
@@ -26,6 +27,8 @@ using namespace std::literals::string_view_literals;
 namespace quick_lint_js {
 Options parse_options(int argc, char** argv) {
   Options o;
+
+  Monotonic_Allocator temporary_allocator("parse_options");
 
   struct {
     std::optional<int> number;
@@ -158,7 +161,7 @@ Options parse_options(int argc, char** argv) {
     }
 
     QLJS_OPTION(const char* arg_value, "--exit-fail-on"sv) {
-      o.exit_fail_on.add(parse_diag_code_list(arg_value));
+      o.exit_fail_on.add(parse_diag_code_list(arg_value, &temporary_allocator));
     }
 
     QLJS_FLAG('h', "--help"sv, "--h"sv) { o.help = true; }

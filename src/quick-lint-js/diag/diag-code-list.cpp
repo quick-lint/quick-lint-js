@@ -18,8 +18,8 @@ bool Parsed_Diag_Code_List::error_missing_predicate() const {
          this->included_categories.empty() && this->excluded_categories.empty();
 }
 
-Parsed_Diag_Code_List parse_diag_code_list(
-    const char* const raw_diag_code_list) {
+Parsed_Diag_Code_List parse_diag_code_list(const char* const raw_diag_code_list,
+                                           Monotonic_Allocator* allocator) {
   static auto is_initial_category_character = [](char c) -> bool {
     return 'a' <= c && c <= 'z';
   };
@@ -30,7 +30,18 @@ Parsed_Diag_Code_List parse_diag_code_list(
     return '0' <= c && c <= '9';
   };
 
-  Parsed_Diag_Code_List diag_codes;
+  Bump_Vector<std::string_view, Monotonic_Allocator> included_codes(
+      "included_codes", allocator);
+  Bump_Vector<std::string_view, Monotonic_Allocator> excluded_codes(
+      "excluded_codes", allocator);
+  Bump_Vector<std::string_view, Monotonic_Allocator> included_categories(
+      "included_categories", allocator);
+  Bump_Vector<std::string_view, Monotonic_Allocator> excluded_categories(
+      "excluded_categories", allocator);
+  Bump_Vector<std::string_view, Monotonic_Allocator> unexpected("unexpected",
+                                                                allocator);
+  bool override_defaults = false;
+
   std::size_t i = 0;
   bool need_comma = false;
 
@@ -46,16 +57,15 @@ Parsed_Diag_Code_List parse_diag_code_list(
     };
 
     if (raw_diag_code_list[i] == 'E') {
-      (is_include ? diag_codes.included_codes : diag_codes.excluded_codes)
+      (is_include ? included_codes : excluded_codes)
           .emplace_back(parse_word(is_continue_code_character));
       return true;
     } else if (is_initial_category_character(raw_diag_code_list[i])) {
-      (is_include ? diag_codes.included_categories
-                  : diag_codes.excluded_categories)
+      (is_include ? included_categories : excluded_categories)
           .emplace_back(parse_word(is_continue_category_character));
       return true;
     } else {
-      diag_codes.unexpected.emplace_back(&raw_diag_code_list[i], 1);
+      unexpected.emplace_back(&raw_diag_code_list[i], std::size_t{1});
       return false;
     }
   };
@@ -66,7 +76,7 @@ Parsed_Diag_Code_List parse_diag_code_list(
       break;
     }
     if (need_comma && raw_diag_code_list[i] != ',') {
-      diag_codes.unexpected.emplace_back(&raw_diag_code_list[i], 1);
+      unexpected.emplace_back(&raw_diag_code_list[i], std::size_t{1});
       break;
     }
     i = i + std::strspn(&raw_diag_code_list[i], " \t,");
@@ -84,11 +94,18 @@ Parsed_Diag_Code_List parse_diag_code_list(
       if (!try_parse_category_or_code(/*is_include=*/true)) {
         break;
       }
-      diag_codes.override_defaults = true;
+      override_defaults = true;
     }
   }
 
-  return diag_codes;
+  return Parsed_Diag_Code_List{
+      .included_codes = included_codes.release_to_span(),
+      .excluded_codes = excluded_codes.release_to_span(),
+      .included_categories = included_categories.release_to_span(),
+      .excluded_categories = excluded_categories.release_to_span(),
+      .unexpected = unexpected.release_to_span(),
+      .override_defaults = override_defaults,
+  };
 }
 
 void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
@@ -108,8 +125,12 @@ void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
   for (std::string_view code : diag_code_list.excluded_codes) {
     add_code(code, c.excluded_codes);
   }
-  c.included_categories = diag_code_list.included_categories;
-  c.excluded_categories = diag_code_list.excluded_categories;
+  c.included_categories.insert(c.included_categories.end(),
+                               diag_code_list.included_categories.begin(),
+                               diag_code_list.included_categories.end());
+  c.excluded_categories.insert(c.excluded_categories.end(),
+                               diag_code_list.excluded_categories.begin(),
+                               diag_code_list.excluded_categories.end());
   c.override_defaults = diag_code_list.override_defaults;
 
   if (diag_code_list.error_missing_predicate()) {

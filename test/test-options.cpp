@@ -897,8 +897,8 @@ TEST(Test_Options, dump_errors) {
   {
     Options o;
     o.exit_fail_on.add(Parsed_Diag_Code_List{
-        .excluded_codes = {"E9999"},
-        .included_categories = {"banana"},
+        .excluded_codes = Span<const std::string_view>({"E9999"}),
+        .included_categories = Span<const std::string_view>({"banana"}),
     });
 
     Dumped_Errors errors = dump_errors(o);
@@ -980,7 +980,8 @@ TEST(Test_Options, dump_errors) {
   {
     Options o;
     o.lsp_server = true;
-    o.exit_fail_on.add(parse_diag_code_list("E0001"));
+    Monotonic_Allocator allocator(__func__);
+    o.exit_fail_on.add(parse_diag_code_list("E0001", &allocator));
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);

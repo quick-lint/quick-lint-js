@@ -5,7 +5,9 @@
 
 #include <array>
 #include <bitset>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/port/span.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -14,16 +16,21 @@ namespace quick_lint_js {
 struct Parsed_Diag_Code_List {
   bool error_missing_predicate() const;
 
-  std::vector<std::string_view> included_codes;
-  std::vector<std::string_view> excluded_codes;
-  std::vector<std::string_view> included_categories;
-  std::vector<std::string_view> excluded_categories;
-  std::vector<std::string_view> unexpected;
+  Span<const std::string_view> included_codes = Span<const std::string_view>();
+  Span<const std::string_view> excluded_codes = Span<const std::string_view>();
+  Span<const std::string_view> included_categories =
+      Span<const std::string_view>();
+  Span<const std::string_view> excluded_categories =
+      Span<const std::string_view>();
+  Span<const std::string_view> unexpected = Span<const std::string_view>();
   bool override_defaults = false;
 };
 
+// Returns Span-s allocated by allocator.
+//
 // Return std::string_view-s within raw_diag_code_list.
-Parsed_Diag_Code_List parse_diag_code_list(const char* raw_diag_code_list);
+Parsed_Diag_Code_List parse_diag_code_list(const char* raw_diag_code_list,
+                                           Monotonic_Allocator* allocator);
 
 class Compiled_Diag_Code_List {
  public:

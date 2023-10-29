@@ -4,6 +4,7 @@
 #include <array>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/diag/diag-code-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <string_view>
@@ -15,7 +16,12 @@ using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-TEST(Test_Diag_Code_List, compiled_default_matches_all_errors) {
+class Test_Diag_Code_List : public ::testing::Test {
+ public:
+  Monotonic_Allocator allocator{"Test_Diag_Code_List"};
+};
+
+TEST_F(Test_Diag_Code_List, compiled_default_matches_all_errors) {
   Compiled_Diag_Code_List errors;
 #define QLJS_DIAG_TYPE_NAME(error_name) \
   EXPECT_TRUE(errors.is_present(Diag_Type::error_name)) << #error_name;
@@ -26,10 +32,10 @@ TEST(Test_Diag_Code_List, compiled_default_matches_all_errors) {
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
 }
 
-TEST(Test_Diag_Code_List, compiled_excluded_error_by_code) {
+TEST_F(Test_Diag_Code_List, compiled_excluded_error_by_code) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .excluded_codes = {"E0003"},
+      .excluded_codes = Span<const std::string_view>({"E0003"}),
   });
 
   EXPECT_FALSE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
@@ -42,36 +48,36 @@ TEST(Test_Diag_Code_List, compiled_excluded_error_by_code) {
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
 }
 
-TEST(Test_Diag_Code_List, compiled_excluded_then_included_error_by_code) {
+TEST_F(Test_Diag_Code_List, compiled_excluded_then_included_error_by_code) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .excluded_codes = {"E0003"},
+      .excluded_codes = Span<const std::string_view>({"E0003"}),
   });
   errors.add(Parsed_Diag_Code_List{
-      .included_codes = {"E0003"},
+      .included_codes = Span<const std::string_view>({"E0003"}),
   });
 
   EXPECT_TRUE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
       << "E0003 should be enabled";
 }
 
-TEST(Test_Diag_Code_List, compiled_included_then_excluded_error_by_code) {
+TEST_F(Test_Diag_Code_List, compiled_included_then_excluded_error_by_code) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .included_codes = {"E0003"},
+      .included_codes = Span<const std::string_view>({"E0003"}),
   });
   errors.add(Parsed_Diag_Code_List{
-      .excluded_codes = {"E0003"},
+      .excluded_codes = Span<const std::string_view>({"E0003"}),
   });
 
   EXPECT_FALSE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
       << "E0003 should be disabled";
 }
 
-TEST(Test_Diag_Code_List, compiled_exclude_all_matches_no_errors) {
+TEST_F(Test_Diag_Code_List, compiled_exclude_all_matches_no_errors) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .excluded_categories = {"all"},
+      .excluded_categories = Span<const std::string_view>({"all"}),
   });
 
 #define QLJS_DIAG_TYPE_NAME(error_name) \
@@ -83,11 +89,11 @@ TEST(Test_Diag_Code_List, compiled_exclude_all_matches_no_errors) {
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
 }
 
-TEST(Test_Diag_Code_List,
-     compiled_override_and_include_code_matches_only_explicit) {
+TEST_F(Test_Diag_Code_List,
+       compiled_override_and_include_code_matches_only_explicit) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .included_codes = {"E0003"},
+      .included_codes = Span<const std::string_view>({"E0003"}),
       .override_defaults = true,
   });
 
@@ -98,14 +104,14 @@ TEST(Test_Diag_Code_List,
       << "E0005 (default) should be disabled";
 }
 
-TEST(Test_Diag_Code_List,
-     compiled_include_code_then_override_matches_only_later_included_codes) {
+TEST_F(Test_Diag_Code_List,
+       compiled_include_code_then_override_matches_only_later_included_codes) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .included_codes = {"E0003"},
+      .included_codes = Span<const std::string_view>({"E0003"}),
   });
   errors.add(Parsed_Diag_Code_List{
-      .included_codes = {"E0005"},
+      .included_codes = Span<const std::string_view>({"E0005"}),
       .override_defaults = true,
   });
 
@@ -116,12 +122,12 @@ TEST(Test_Diag_Code_List,
       << "E0005 should be enabled";
 }
 
-TEST(Test_Diag_Code_List,
-     compiled_exclude_all_and_include_code_matches_only_explicit) {
+TEST_F(Test_Diag_Code_List,
+       compiled_exclude_all_and_include_code_matches_only_explicit) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .included_codes = {"E0003"},
-      .excluded_categories = {"all"},
+      .included_codes = Span<const std::string_view>({"E0003"}),
+      .excluded_categories = Span<const std::string_view>({"all"}),
   });
 
   EXPECT_TRUE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
@@ -131,15 +137,15 @@ TEST(Test_Diag_Code_List,
       << "E0005 (all) should be disabled";
 }
 
-TEST(Test_Diag_Code_List,
-     compiled_exclude_default_code_and_include_all_matches_excluded_code) {
+TEST_F(Test_Diag_Code_List,
+       compiled_exclude_default_code_and_include_all_matches_excluded_code) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
       // These codes are enabled by default.
-      .excluded_codes = {"E0003", "E0005"},
+      .excluded_codes = Span<const std::string_view>({"E0003", "E0005"}),
   });
   errors.add(Parsed_Diag_Code_List{
-      .included_categories = {"all"},
+      .included_categories = Span<const std::string_view>({"all"}),
   });
 
   EXPECT_TRUE(errors.is_present(Diag_Type::Diag_Assignment_To_Const_Variable))
@@ -149,11 +155,11 @@ TEST(Test_Diag_Code_List,
       << "E0005 (all) should be enabled";
 }
 
-TEST(Test_Diag_Code_List, compiling_invalid_category_is_an_error) {
+TEST_F(Test_Diag_Code_List, compiling_invalid_category_is_an_error) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .included_categories = {"banana"},
-      .excluded_categories = {"strawberry"},
+      .included_categories = Span<const std::string_view>({"banana"}),
+      .excluded_categories = Span<const std::string_view>({"strawberry"}),
   });
 
   EXPECT_THAT(errors.parse_warnings(), UnorderedElementsAreArray({
@@ -162,11 +168,11 @@ TEST(Test_Diag_Code_List, compiling_invalid_category_is_an_error) {
                                        }));
 }
 
-TEST(Test_Diag_Code_List, compiling_invalid_code_is_an_error) {
+TEST_F(Test_Diag_Code_List, compiling_invalid_code_is_an_error) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .included_codes = {"E9999"},
-      .excluded_codes = {"E0000"},
+      .included_codes = Span<const std::string_view>({"E9999"}),
+      .excluded_codes = Span<const std::string_view>({"E0000"}),
   });
 
   EXPECT_THAT(errors.parse_warnings(), UnorderedElementsAreArray({
@@ -175,14 +181,14 @@ TEST(Test_Diag_Code_List, compiling_invalid_code_is_an_error) {
                                        }));
 }
 
-TEST(Test_Diag_Code_List, compiling_empty_parsed_diag_code_list_is_an_error) {
+TEST_F(Test_Diag_Code_List, compiling_empty_parsed_diag_code_list_is_an_error) {
   Compiled_Diag_Code_List errors;
   errors.add(Parsed_Diag_Code_List{
-      .included_codes = {"E0003"},
+      .included_codes = Span<const std::string_view>({"E0003"}),
   });
   errors.add(Parsed_Diag_Code_List{});
   errors.add(Parsed_Diag_Code_List{
-      .excluded_codes = {"E0003"},
+      .excluded_codes = Span<const std::string_view>({"E0003"}),
   });
 
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
@@ -192,23 +198,25 @@ TEST(Test_Diag_Code_List, compiling_empty_parsed_diag_code_list_is_an_error) {
           {"--testoption must be given at least one category or code"}));
 }
 
-TEST(Test_Diag_Code_List, empty_list_is_disallowed) {
+TEST_F(Test_Diag_Code_List, empty_list_is_disallowed) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("");
+    Parsed_Diag_Code_List errors = parse_diag_code_list("", &this->allocator);
     EXPECT_TRUE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("    \t ");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("    \t ", &this->allocator);
     EXPECT_TRUE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 }
 
-TEST(Test_Diag_Code_List, add_error_code_to_default) {
+TEST_F(Test_Diag_Code_List, add_error_code_to_default) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("+E0420");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("+E0420", &this->allocator);
     EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -216,7 +224,8 @@ TEST(Test_Diag_Code_List, add_error_code_to_default) {
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("+E0420,+E0069");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("+E0420,+E0069", &this->allocator);
     EXPECT_THAT(errors.included_codes,
                 UnorderedElementsAreArray({"E0420", "E0069"}));
     EXPECT_FALSE(errors.override_defaults);
@@ -225,9 +234,10 @@ TEST(Test_Diag_Code_List, add_error_code_to_default) {
   }
 }
 
-TEST(Test_Diag_Code_List, remove_error_code_from_default) {
+TEST_F(Test_Diag_Code_List, remove_error_code_from_default) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("-E0420");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("-E0420", &this->allocator);
     EXPECT_THAT(errors.excluded_codes, ElementsAreArray({"E0420"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -235,7 +245,8 @@ TEST(Test_Diag_Code_List, remove_error_code_from_default) {
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("-E0420,-E0069");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("-E0420,-E0069", &this->allocator);
     EXPECT_THAT(errors.excluded_codes,
                 UnorderedElementsAreArray({"E0420", "E0069"}));
     EXPECT_FALSE(errors.override_defaults);
@@ -244,9 +255,10 @@ TEST(Test_Diag_Code_List, remove_error_code_from_default) {
   }
 }
 
-TEST(Test_Diag_Code_List, add_error_category_to_default) {
+TEST_F(Test_Diag_Code_List, add_error_category_to_default) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("+warning");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("+warning", &this->allocator);
     EXPECT_THAT(errors.included_categories, ElementsAreArray({"warning"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -254,9 +266,10 @@ TEST(Test_Diag_Code_List, add_error_category_to_default) {
   }
 }
 
-TEST(Test_Diag_Code_List, remove_error_category_from_default) {
+TEST_F(Test_Diag_Code_List, remove_error_category_from_default) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("-warning");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("-warning", &this->allocator);
     EXPECT_THAT(errors.excluded_categories, ElementsAreArray({"warning"}));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -264,9 +277,10 @@ TEST(Test_Diag_Code_List, remove_error_category_from_default) {
   }
 }
 
-TEST(Test_Diag_Code_List, set_default_to_category) {
+TEST_F(Test_Diag_Code_List, set_default_to_category) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("warning");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("warning", &this->allocator);
     EXPECT_THAT(errors.included_categories, ElementsAreArray({"warning"}));
     EXPECT_TRUE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -274,9 +288,10 @@ TEST(Test_Diag_Code_List, set_default_to_category) {
   }
 }
 
-TEST(Test_Diag_Code_List, set_default_to_error_code) {
+TEST_F(Test_Diag_Code_List, set_default_to_error_code) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("E0420");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("E0420", &this->allocator);
     EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_TRUE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
@@ -284,10 +299,10 @@ TEST(Test_Diag_Code_List, set_default_to_error_code) {
   }
 }
 
-TEST(Test_Diag_Code_List, mixed) {
+TEST_F(Test_Diag_Code_List, mixed) {
   {
-    Parsed_Diag_Code_List errors =
-        parse_diag_code_list("+E0420,warning,-pedantic,syntax-error");
+    Parsed_Diag_Code_List errors = parse_diag_code_list(
+        "+E0420,warning,-pedantic,syntax-error", &this->allocator);
     EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_THAT(errors.excluded_codes, IsEmpty());
     EXPECT_THAT(errors.included_categories,
@@ -299,63 +314,73 @@ TEST(Test_Diag_Code_List, mixed) {
   }
 }
 
-TEST(Test_Diag_Code_List, whitespace_around_predicates_is_ignored) {
+TEST_F(Test_Diag_Code_List, whitespace_around_predicates_is_ignored) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("\t +E0420 \t");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("\t +E0420 \t", &this->allocator);
     EXPECT_THAT(errors.included_codes, ElementsAreArray({"E0420"}));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list(" +E0420 , +E0069");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list(" +E0420 , +E0069", &this->allocator);
     EXPECT_THAT(errors.included_codes,
                 UnorderedElementsAreArray({"E0420", "E0069"}));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 }
 
-TEST(Test_Diag_Code_List, stray_commas_are_ignored) {
+TEST_F(Test_Diag_Code_List, stray_commas_are_ignored) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list(",one,,two , three");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list(",one,,two , three", &this->allocator);
     EXPECT_THAT(errors.included_categories,
                 UnorderedElementsAreArray({"one", "two", "three"}));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 }
 
-TEST(Test_Diag_Code_List, unexpected_characters) {
+TEST_F(Test_Diag_Code_List, unexpected_characters) {
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("~E0420");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("~E0420", &this->allocator);
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"~"}));
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("E???");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("E???", &this->allocator);
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"?"}));
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("err0r");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("err0r", &this->allocator);
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"0"}));
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("err?r");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("err?r", &this->allocator);
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"?"}));
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("+err+r");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("+err+r", &this->allocator);
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"+"}));
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("+%^#");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("+%^#", &this->allocator);
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"%"}));
   }
 
   {
-    Parsed_Diag_Code_List errors = parse_diag_code_list("warning error");
+    Parsed_Diag_Code_List errors =
+        parse_diag_code_list("warning error", &this->allocator);
     EXPECT_THAT(errors.unexpected, ElementsAreArray({"e"}));
   }
 }
