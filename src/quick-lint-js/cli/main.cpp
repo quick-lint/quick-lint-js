@@ -226,7 +226,8 @@ void init() {
 }
 
 void run(int argc, char **argv) {
-  Options o = parse_options(argc, argv);
+  Monotonic_Allocator options_allocator("run options_allocator");
+  Options o = parse_options(argc, argv, &options_allocator);
   run(std::move(o));
 }
 

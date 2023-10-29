@@ -4,6 +4,7 @@
 #pragma once
 
 #include <optional>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/diag/diag-code-list.h>
 #include <vector>
 
@@ -86,7 +87,8 @@ Resolved_Input_File_Language get_language(const File_To_Lint &file,
 Resolved_Input_File_Language get_language(const char *file,
                                           Raw_Input_File_Language language);
 
-Options parse_options(int argc, char **argv);
+// Returns portions of argv and memory allocated by allocator.
+Options parse_options(int argc, char **argv, Monotonic_Allocator *allocator);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

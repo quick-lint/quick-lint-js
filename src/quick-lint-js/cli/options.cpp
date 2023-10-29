@@ -25,7 +25,8 @@ QLJS_WARNING_IGNORE_GCC("-Wshadow=local")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-Options parse_options(int argc, char** argv) {
+Options parse_options(int argc, char** argv,
+                      [[maybe_unused]] Monotonic_Allocator* allocator) {
   Options o;
 
   Monotonic_Allocator temporary_allocator("parse_options");
