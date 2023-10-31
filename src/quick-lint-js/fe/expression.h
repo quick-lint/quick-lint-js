@@ -304,14 +304,14 @@ template <class Derived>
 Derived expression_cast(Expression *p) {
   // TODO(strager): Assert that Derived matches the Expression's run-time
   // type.
-  return static_cast<Derived>(&*p);
+  return static_cast<Derived>(p);
 }
 
 template <class Derived>
 Derived expression_cast(const Expression *p) {
   // TODO(strager): Assert that Derived matches the Expression's run-time
   // type.
-  return static_cast<Derived>(&*p);
+  return static_cast<Derived>(p);
 }
 
 template <class Derived>
