@@ -332,7 +332,8 @@ Resolved_Input_File_Language get_language(const char* file,
       return Resolved_Input_File_Language::javascript_jsx;
     }
   } else {
-    return static_cast<Resolved_Input_File_Language>(language);
+    return int_to_enum_cast<Resolved_Input_File_Language>(
+        enum_to_int_cast(language));
   }
 }
 }

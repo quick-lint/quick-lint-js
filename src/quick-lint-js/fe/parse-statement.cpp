@@ -22,6 +22,7 @@
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/enum-cast.h>
 #include <utility>
 
 // For Parser::binding_element_info.
@@ -5353,13 +5354,13 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
 
     this->visit_expression(rhs, v, Variable_Context::rhs);
     Variable_Declaration_Flags lhs_flags =
-        static_cast<Variable_Declaration_Flags>(
+        int_to_enum_cast<Variable_Declaration_Flags>(
             info.flags & Variable_Declaration_Flags::inside_for_loop_head);
     switch (info.declaration_kind) {
     case Variable_Kind::_const:
     case Variable_Kind::_let:
     case Variable_Kind::_var:
-      lhs_flags = static_cast<Variable_Declaration_Flags>(
+      lhs_flags = int_to_enum_cast<Variable_Declaration_Flags>(
           lhs_flags | Variable_Declaration_Flags::initialized_with_equals);
       break;
     default:

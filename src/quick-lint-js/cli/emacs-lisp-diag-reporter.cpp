@@ -9,6 +9,7 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/enum-cast.h>
 
 namespace quick_lint_js {
 Emacs_Lisp_Diag_Reporter::Emacs_Lisp_Diag_Reporter(Translator t,
@@ -50,7 +51,7 @@ void Emacs_Lisp_Diag_Formatter::write_before_message(
   this->output_.append_literal(u8" . "_sv);
   this->output_.append_decimal_integer(end);
   this->output_.append_literal(u8") "_sv);
-  this->output_.append_decimal_integer(static_cast<int>(sev));
+  this->output_.append_decimal_integer(enum_to_int_cast(sev));
   this->output_.append_literal(u8" \""_sv);
   this->output_.append_copy(to_string8_view(code));
   this->output_.append_literal(u8"\" \""_sv);

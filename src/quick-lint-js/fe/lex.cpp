@@ -22,6 +22,7 @@
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/enum-cast.h>
 #include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>
@@ -245,7 +246,7 @@ bool Lexer::try_parse_current_token() {
   case '{':
   case '}':
   case '~':
-    this->last_token_.type = static_cast<Token_Type>(*this->input_);
+    this->last_token_.type = int_to_enum_cast<Token_Type>(*this->input_);
     this->input_ += 1;
     this->last_token_.end = this->input_;
     break;

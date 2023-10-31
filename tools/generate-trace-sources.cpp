@@ -1408,6 +1408,7 @@ void write_writer_h(CXX_Trace_Types_Parser& types, Output_Stream& out) {
 #include <quick-lint-js/logging/trace-types.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/binary-writer.h>
+#include <quick-lint-js/util/enum-cast.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 
@@ -1563,13 +1564,13 @@ namespace quick_lint_js {
         }
 
         String8_View type = types.resolve_type_aliases_cxx(member.cxx_type);
-        bool need_cast = false;
+        bool need_enum_to_int_cast = false;
         if (const Parsed_Enum* e = types.find_enum_with_cxx_name(type)) {
           // NOTE[Trace_Writer-enum-code-gen]: Instead of creating a dedicated
           // function for writing each enum type, we write the enum as its
           // primitive type directly. This allows writing of the enum to be
           // batched into one append_bytes call with other integers.
-          need_cast = true;
+          need_enum_to_int_cast = true;
           type = e->underlying_cxx_type;
         }
         auto built_in_it = built_in_types.find(type);
@@ -1605,13 +1606,11 @@ namespace quick_lint_js {
           code.append_literal(u8"w."_sv);
           code.append_copy(built_in_it->second.write_method);
           code.append_literal(u8"("_sv);
-          if (need_cast) {
-            code.append_literal(u8"static_cast<std::"_sv);
-            code.append_copy(type);
-            code.append_literal(u8">("_sv);
+          if (need_enum_to_int_cast) {
+            code.append_literal(u8"enum_to_int_cast("_sv);
           }
           code.append_copy(var);
-          if (need_cast) {
+          if (need_enum_to_int_cast) {
             code.append_literal(u8")"_sv);
           }
           code.append_literal(u8");\n"_sv);

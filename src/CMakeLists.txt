@@ -202,15 +202,15 @@ quick_lint_js_add_library(
   quick-lint-js/container/padded-string.cpp
   quick-lint-js/container/padded-string.h
   quick-lint-js/container/string-view.h
+  quick-lint-js/container/vector-profiler.cpp
+  quick-lint-js/container/vector-profiler.h
+  quick-lint-js/container/vector.h
+  quick-lint-js/container/winkable.h
   quick-lint-js/fe/keyword-lexer.h
   quick-lint-js/fe/keyword-list.h
   quick-lint-js/i18n/po-parser.cpp
   quick-lint-js/i18n/po-parser.h
   quick-lint-js/i18n/translation-table-compiler.cpp
-  quick-lint-js/container/vector-profiler.cpp
-  quick-lint-js/container/vector-profiler.h
-  quick-lint-js/container/vector.h
-  quick-lint-js/container/winkable.h
   quick-lint-js/i18n/translation-table-compiler.h
   quick-lint-js/io/file-handle-posix.cpp
   quick-lint-js/io/file-handle-win32.cpp
@@ -240,6 +240,7 @@ quick_lint_js_add_library(
   quick-lint-js/port/windows.h
   quick-lint-js/reflection/cxx-parser.cpp
   quick-lint-js/reflection/cxx-parser.h
+  quick-lint-js/util/enum-cast.h
   quick-lint-js/util/float.cpp
   quick-lint-js/util/float.h
   quick-lint-js/util/integer.cpp

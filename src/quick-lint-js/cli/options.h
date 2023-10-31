@@ -7,6 +7,7 @@
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/diag/diag-code-list.h>
 #include <quick-lint-js/port/span.h>
+#include <quick-lint-js/util/enum-cast.h>
 
 namespace quick_lint_js {
 class Output_Stream;
@@ -33,14 +34,12 @@ enum class Raw_Input_File_Language : unsigned char {
 };
 
 enum class Resolved_Input_File_Language : unsigned char {
-  javascript = static_cast<unsigned char>(Raw_Input_File_Language::javascript),
-  javascript_jsx =
-      static_cast<unsigned char>(Raw_Input_File_Language::javascript_jsx),
-  typescript = static_cast<unsigned char>(Raw_Input_File_Language::typescript),
-  typescript_definition = static_cast<unsigned char>(
-      Raw_Input_File_Language::typescript_definition),
-  typescript_jsx =
-      static_cast<unsigned char>(Raw_Input_File_Language::typescript_jsx),
+  javascript = enum_to_int_cast(Raw_Input_File_Language::javascript),
+  javascript_jsx = enum_to_int_cast(Raw_Input_File_Language::javascript_jsx),
+  typescript = enum_to_int_cast(Raw_Input_File_Language::typescript),
+  typescript_definition =
+      enum_to_int_cast(Raw_Input_File_Language::typescript_definition),
+  typescript_jsx = enum_to_int_cast(Raw_Input_File_Language::typescript_jsx),
 };
 
 enum class Option_When { auto_, always, never };
