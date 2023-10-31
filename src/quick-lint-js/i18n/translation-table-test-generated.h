@@ -3571,6 +3571,17 @@ inline const Translated_String test_translation_table[522] = {
         },
     },
     {
+        "missing 'break;' or '// fallthrough' comment between statement and 'case'"_translatable,
+        u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+        {
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+        },
+    },
+    {
         "missing 'if' after 'else'"_translatable,
         u8"missing 'if' after 'else'",
         {
@@ -3898,17 +3909,6 @@ inline const Translated_String test_translation_table[522] = {
             u8"missing expression in placeholder within template literal",
             u8"missing expression in placeholder within template literal",
             u8"missing expression in placeholder within template literal",
-        },
-    },
-    {
-        "missing fallthrough comment"_translatable,
-        u8"missing fallthrough comment",
-        {
-            u8"missing fallthrough comment",
-            u8"missing fallthrough comment",
-            u8"missing fallthrough comment",
-            u8"missing fallthrough comment",
-            u8"missing fallthrough comment",
         },
     },
     {

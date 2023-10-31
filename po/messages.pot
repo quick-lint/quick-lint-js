@@ -558,7 +558,7 @@ msgid "this case will run instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "missing fallthrough comment"
+msgid "missing 'break;' or '// fallthrough' comment between statement and 'case'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

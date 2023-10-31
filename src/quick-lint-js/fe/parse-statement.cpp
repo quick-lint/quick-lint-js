@@ -2807,7 +2807,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
           prev_token.type != Token_Type::kw_break &&
           prev_token.type != Token_Type::kw_case && !is_comment_line()) {
         this->diag_reporter_->report(
-            Diag_Explicit_Fallthrough_Comment_In_Switch{.end_of_case =
+            Diag_Fallthrough_Without_Comment_In_Switch{.end_of_case =
                                                             prev_token.span()});
       }
       prev_token = this->peek();
@@ -2846,7 +2846,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
           prev_token.type != Token_Type::kw_break &&
           prev_token.type != Token_Type::kw_case && !is_comment_line()) {
         this->diag_reporter_->report(
-            Diag_Explicit_Fallthrough_Comment_In_Switch{.end_of_case =
+            Diag_Fallthrough_Without_Comment_In_Switch{.end_of_case =
                                                             prev_token.span()});
       }
       is_before_first_switch_case = false;

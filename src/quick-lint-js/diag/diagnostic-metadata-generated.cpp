@@ -1423,16 +1423,16 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
-    // Diag_Explicit_Fallthrough_Comment_In_Switch
+    // Diag_Fallthrough_Without_Comment_In_Switch
     {
       .code = 423,
       .severity = Diagnostic_Severity::warning,
       .message_formats = {
-        QLJS_TRANSLATABLE("missing fallthrough comment"),
+        QLJS_TRANSLATABLE("missing 'break;' or '// fallthrough' comment between statement and 'case'"),
       },
       .message_args = {
         {
-          Diagnostic_Message_Arg_Info(offsetof(Diag_Explicit_Fallthrough_Comment_In_Switch, end_of_case), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Fallthrough_Without_Comment_In_Switch, end_of_case), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

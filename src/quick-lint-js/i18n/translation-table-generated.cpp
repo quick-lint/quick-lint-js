@@ -333,7 +333,8 @@ const Translation_Table translation_data = {
         {35, 20, 49, 55, 39, 38},            //
         {34, 44, 0, 36, 0, 38},              //
         {58, 48, 46, 50, 28, 52},            //
-        {0, 40, 0, 28, 0, 27},               //
+        {0, 0, 0, 0, 0, 27},                 //
+        {0, 40, 0, 28, 0, 74},               //
         {29, 22, 33, 28, 26, 26},            //
         {0, 0, 0, 55, 0, 51},                //
         {48, 27, 63, 27, 0, 24},             //
@@ -363,8 +364,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 35},                 //
         {36, 34, 39, 35, 40, 37},            //
         {0, 0, 0, 0, 0, 39},                 //
-        {0, 0, 0, 0, 0, 58},                 //
-        {33, 7, 40, 40, 33, 28},             //
+        {33, 7, 40, 40, 33, 58},             //
         {24, 11, 33, 22, 23, 24},            //
         {34, 63, 43, 41, 33, 32},            //
         {41, 11, 49, 43, 0, 39},             //
@@ -2127,6 +2127,7 @@ const Translation_Table translation_data = {
         u8"missing ':' in conditional expression\0"
         u8"missing '<>' and '</>' to enclose multiple children\0"
         u8"missing '=' after variable\0"
+        u8"missing 'break;' or '// fallthrough' comment between statement and 'case'\0"
         u8"missing 'if' after 'else'\0"
         u8"missing 'while (condition)' for do-while statement\0"
         u8"missing TypeScript type\0"
@@ -2157,7 +2158,6 @@ const Translation_Table translation_data = {
         u8"missing exported name in import type\0"
         u8"missing expression between parentheses\0"
         u8"missing expression in placeholder within template literal\0"
-        u8"missing fallthrough comment\0"
         u8"missing for loop header\0"
         u8"missing function parameter list\0"
         u8"missing header and body for 'for' loop\0"
