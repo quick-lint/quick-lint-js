@@ -7,7 +7,7 @@
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/diag/diag-code-list.h>
 #include <quick-lint-js/port/span.h>
-#include <quick-lint-js/util/enum-cast.h>
+#include <quick-lint-js/util/cast.h>
 
 namespace quick_lint_js {
 class Output_Stream;

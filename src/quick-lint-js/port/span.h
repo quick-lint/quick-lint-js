@@ -7,7 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <vector>
 
 namespace quick_lint_js {

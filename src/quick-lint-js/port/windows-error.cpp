@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/windows.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 
 namespace quick_lint_js {

@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include <quick-lint-js/i18n/locale.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 
 using ::testing::ElementsAreArray;
 using namespace std::literals::string_view_literals;

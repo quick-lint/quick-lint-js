@@ -14,7 +14,7 @@
 #include <quick-lint-js/port/process.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <string.h>
 #include <vector>

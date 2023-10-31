@@ -15,8 +15,8 @@
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/reflection/cxx-parser.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/cpp.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <type_traits>
 
 using namespace std::literals::string_view_literals;

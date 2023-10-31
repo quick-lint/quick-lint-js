@@ -9,7 +9,7 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/enum-cast.h>
+#include <quick-lint-js/util/cast.h>
 
 namespace quick_lint_js {
 Emacs_Lisp_Diag_Reporter::Emacs_Lisp_Diag_Reporter(Translator t,

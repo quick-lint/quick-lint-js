@@ -7,7 +7,7 @@
 #include <quick-lint-js/container/c-string-list.h>
 #include <quick-lint-js/i18n/locale.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 #include <vector>
 

@@ -12,7 +12,7 @@
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
 #include <quick-lint-js/port/span.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string_view>
 #include <type_traits>
 #include <utility>

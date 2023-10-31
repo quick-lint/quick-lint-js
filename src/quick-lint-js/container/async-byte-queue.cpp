@@ -9,7 +9,7 @@
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/pointer.h>
 #include <utility>
 

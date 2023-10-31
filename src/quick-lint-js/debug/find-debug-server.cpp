@@ -19,8 +19,8 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/thread-name.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string_view>
 

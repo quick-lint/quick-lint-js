@@ -240,12 +240,11 @@ quick_lint_js_add_library(
   quick-lint-js/port/windows.h
   quick-lint-js/reflection/cxx-parser.cpp
   quick-lint-js/reflection/cxx-parser.h
-  quick-lint-js/util/enum-cast.h
+  quick-lint-js/util/cast.h
   quick-lint-js/util/float.cpp
   quick-lint-js/util/float.h
   quick-lint-js/util/integer.cpp
   quick-lint-js/util/integer.h
-  quick-lint-js/util/narrow-cast.h
   quick-lint-js/util/utf-16.cpp
   quick-lint-js/util/utf-16.h
   quick-lint-js/util/utf-8.cpp

@@ -11,7 +11,7 @@
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/byte-order.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <utility>
 
 namespace quick_lint_js {

@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/process.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 
 #if QLJS_HAVE_UNISTD_H
 #include <unistd.h>

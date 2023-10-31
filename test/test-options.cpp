@@ -11,7 +11,7 @@
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/output-stream.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string_view>
 #include <vector>
 

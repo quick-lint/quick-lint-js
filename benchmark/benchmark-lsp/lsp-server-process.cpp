@@ -15,7 +15,7 @@
 #include <quick-lint-js/lsp-server-process.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/process.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <signal.h>
 #include <spawn.h>
 #include <string>

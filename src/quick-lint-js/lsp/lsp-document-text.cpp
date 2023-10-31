@@ -10,7 +10,7 @@
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 

@@ -22,7 +22,7 @@
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/enum-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <utility>
 
 // For Parser::binding_element_info.

@@ -16,7 +16,7 @@
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/logging/trace-types.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 
 QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.

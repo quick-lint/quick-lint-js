@@ -11,8 +11,8 @@
 #include <optional>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <vector>
 
 namespace quick_lint_js {

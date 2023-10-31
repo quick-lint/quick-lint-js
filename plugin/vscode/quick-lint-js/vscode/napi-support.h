@@ -5,7 +5,7 @@
 
 #include <napi.h>
 #include <optional>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 #include <vector>
 

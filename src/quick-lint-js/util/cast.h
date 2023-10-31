@@ -3,9 +3,36 @@
 
 #pragma once
 
+#include <quick-lint-js/assert.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/in-range.h>
+#include <quick-lint-js/port/source-location.h>
 #include <type_traits>
 
 namespace quick_lint_js {
+template <class Out, class In>
+Out narrow_cast(In x
+#if !(defined(NDEBUG) && NDEBUG)
+                ,
+                Source_Location caller = Source_Location::current()
+#endif
+) {
+#if !(defined(NDEBUG) && NDEBUG)
+  if (!in_range<Out>(x)) {
+    if constexpr (Source_Location::valid()) {
+      report_assertion_failure(caller.file_name(),
+                               static_cast<int>(caller.line()),
+                               caller.function_name(), "number not in range");
+    } else {
+      report_assertion_failure(__FILE__, __LINE__, __func__,
+                               "number not in range");
+    }
+    QLJS_ASSERT_TRAP();
+  }
+#endif
+  return static_cast<Out>(x);
+}
+
 // Convert an integer to an enum.
 //
 // Example:

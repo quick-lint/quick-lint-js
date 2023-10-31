@@ -6,7 +6,7 @@
 #include <iosfwd>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 
 namespace quick_lint_js {
 class Source_Code_Span {

@@ -10,8 +10,8 @@
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/type-traits.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
-#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
 // Output_Stream is similar to std::basic_ostream<Char8>.

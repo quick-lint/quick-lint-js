@@ -27,8 +27,8 @@
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/binary-writer.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/instance-tracker.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <string>
 #include <string_view>

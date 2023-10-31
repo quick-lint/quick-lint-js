@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 #include <utility>
 
