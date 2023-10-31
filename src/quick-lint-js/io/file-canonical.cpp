@@ -413,7 +413,7 @@ class Path_Canonicalizer_Base {
     return component;
   }
 
-  Derived &derived() { return *static_cast<Derived *>(this); }
+  Derived &derived() { return *derived_cast<Derived *>(this); }
 
  protected:
   void skip_to_next_component() {

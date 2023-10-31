@@ -95,7 +95,7 @@ inline void Diagnostic_Formatter<Derived>::format_message(
   static constexpr auto npos = String8_View::npos;
   using String8_Pos = String8_View::size_type;
 
-  Derived* self = static_cast<Derived*>(this);
+  Derived* self = derived_cast<Derived*>(this);
 
   Source_Code_Span origin_span =
       get_argument_source_code_span(args, diagnostic, 0);

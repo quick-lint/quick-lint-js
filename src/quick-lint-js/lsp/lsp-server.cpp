@@ -374,7 +374,7 @@ void Linting_LSP_Server_Handler::handle_text_document_did_change_notification(
   }
 
   case LSP_Documents::Document_Type::lintable:
-    this->linter_.lint(static_cast<LSP_Documents::Lintable_Document&>(doc),
+    this->linter_.lint(derived_cast<LSP_Documents::Lintable_Document&>(doc),
                        notification.uri.json, this->outgoing_messages_);
     break;
 

@@ -304,33 +304,29 @@ template <class Derived>
 Derived expression_cast(Expression *p) {
   // TODO(strager): Assert that Derived matches the Expression's run-time
   // type.
-  return static_cast<Derived>(p);
+  return derived_cast<Derived>(p);
 }
 
 template <class Derived>
 Derived expression_cast(const Expression *p) {
   // TODO(strager): Assert that Derived matches the Expression's run-time
   // type.
-  return static_cast<Derived>(p);
+  return derived_cast<Derived>(p);
 }
 
 template <class Derived>
 Derived expression_cast(Expression &p) {
   // TODO(strager): Assert that Derived matches the Expression's run-time
   // type.
-  return static_cast<Derived>(p);
+  return derived_cast<Derived>(p);
 }
 
 template <class Derived>
 Derived expression_cast(const Expression &p) {
   // TODO(strager): Assert that Derived matches the Expression's run-time
   // type.
-  return static_cast<Derived>(p);
+  return derived_cast<Derived>(p);
 }
-
-// Prevent expression_cast<array>((call*)p).
-template <class Derived, class Expression>
-Derived *expression_cast(Expression *) = delete;
 
 template <class Expression, class... Args>
 Expression *Expression_Arena::make_expression(Args &&... args) {

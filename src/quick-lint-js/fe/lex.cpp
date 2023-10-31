@@ -1126,7 +1126,7 @@ Lexer_Transaction Lexer::begin_transaction() {
 
 void Lexer::commit_transaction(Lexer_Transaction&& transaction) {
   Buffering_Diag_Reporter* buffered_diagnostics =
-      static_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
+      derived_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
   buffered_diagnostics->move_into(transaction.old_diag_reporter);
 
   this->diag_reporter_ = transaction.old_diag_reporter;
@@ -1146,7 +1146,7 @@ void Lexer::roll_back_transaction(Lexer_Transaction&& transaction) {
 
 bool Lexer::transaction_has_lex_diagnostics(const Lexer_Transaction&) const {
   Buffering_Diag_Reporter* buffered_diagnostics =
-      static_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
+      derived_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
   return !buffered_diagnostics->empty();
 }
 

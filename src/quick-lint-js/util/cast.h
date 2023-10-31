@@ -55,6 +55,29 @@ template <class Enum>
 constexpr std::underlying_type_t<Enum> enum_to_int_cast(Enum value) {
   return static_cast<std::underlying_type_t<Enum>>(value);
 }
+
+// Cast a pointer or reference to a pointer/reference to a derived class.
+//
+// In the presence of multiple inheritance, perform pointer adjustments (like
+// what static_cast does).
+template <class Derived_Pointer, class Base>
+Derived_Pointer derived_cast(Base* base) {
+  using Derived = std::remove_pointer_t<Derived_Pointer>;
+  static_assert(std::is_base_of_v<Base, Derived>,
+                "Derived should derive from Base");
+  static_assert(!std::is_base_of_v<Derived, Base>,
+                "Derived should not be the same type as Base");
+  return static_cast<Derived_Pointer>(base);
+}
+template <class Derived_Reference, class Base>
+Derived_Reference derived_cast(Base& base) {
+  using Derived = std::remove_reference_t<Derived_Reference>;
+  static_assert(std::is_base_of_v<Base, Derived>,
+                "Derived should derive from Base");
+  static_assert(!std::is_base_of_v<Derived, Base>,
+                "Derived should not be the same type as Base");
+  return static_cast<Derived_Reference>(base);
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

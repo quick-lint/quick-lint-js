@@ -852,7 +852,7 @@ Parser_Transaction Parser::begin_transaction() {
 
 void Parser::commit_transaction(Parser_Transaction&& transaction) {
   auto* buffered_diagnostics =
-      static_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
+      derived_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
   buffered_diagnostics->move_into(transaction.old_diag_reporter);
   this->diag_reporter_ = transaction.old_diag_reporter;
 
