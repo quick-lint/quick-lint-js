@@ -301,10 +301,10 @@ Object_Property_Value_Pair::is_merged_property_and_value_shorthand() {
 }
 
 template <class Derived>
-Derived *expression_cast(Expression *p) {
+Derived expression_cast(Expression *p) {
   // TODO(strager): Assert that Derived matches the Expression's run-time
   // type.
-  return static_cast<Derived *>(&*p);
+  return static_cast<Derived>(&*p);
 }
 
 // Prevent expression_cast<array>((call*)p).

@@ -5411,7 +5411,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   }
 
   case Expression_Kind::Await: {
-    auto *await = expression_cast<Expression::Await>(ast);
+    auto *await = expression_cast<Expression::Await *>(ast);
     Identifier ident(await->unary_operator_span());
     visit_variable_declaration(ident);
     this->diag_reporter_->report(Diag_Cannot_Declare_Await_In_Async_Function{

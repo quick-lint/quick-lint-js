@@ -264,7 +264,7 @@ Expression* Parser::maybe_wrap_erroneous_arrow_function(
     return arrow_function;
 
   case Expression_Kind::Trailing_Comma: {
-    auto* parameter_list = expression_cast<Expression::Trailing_Comma>(lhs);
+    auto* parameter_list = expression_cast<Expression::Trailing_Comma*>(lhs);
     Expression* last_parameter =
         parameter_list->child(parameter_list->child_count() - 1);
     if (last_parameter->kind() == Expression_Kind::Spread) {
@@ -279,7 +279,7 @@ Expression* Parser::maybe_wrap_erroneous_arrow_function(
 
   // f() => {}         // Invalid.
   case Expression_Kind::Call: {
-    auto* call = expression_cast<Expression::Call>(lhs);
+    auto* call = expression_cast<Expression::Call*>(lhs);
     Source_Code_Span missing_operator_span(call->span().begin(),
                                            call->left_paren_span().end());
     this->diag_reporter_->report(

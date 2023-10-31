@@ -2448,7 +2448,7 @@ Expression* Parser::parse_arrow_function_expression_remainder(
 
   // f(x, y) => {}
   case Expression_Kind::Call: {
-    auto* call = expression_cast<Expression::Call>(parameters_expression);
+    auto* call = expression_cast<Expression::Call*>(parameters_expression);
     if (this->peek().type == Token_Type::left_curly) {
       parameter_list_begin = call->left_paren_span().begin();
       for (Span_Size i = 1; i < call->child_count(); ++i) {

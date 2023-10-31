@@ -435,7 +435,7 @@ TEST_F(Test_Parse_Expression, parse_function_call) {
     EXPECT_EQ(summarize(ast->child_0()), "var f");
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
-    Expression::Call* call = expression_cast<Expression::Call>(ast);
+    Expression::Call* call = expression_cast<Expression::Call*>(ast);
     EXPECT_THAT(call->left_paren_span(), p.matches_offsets(1, 2));
   }
 
