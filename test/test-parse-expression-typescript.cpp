@@ -37,7 +37,7 @@ TEST_F(Test_Parse_Expression_TypeScript, type_annotation) {
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x: Type"_sv));
 
     Spy_Visitor v;
-    static_cast<Expression::Type_Annotated*>(ast)->visit_type_annotation(v);
+    expression_cast<Expression::Type_Annotated*>(ast)->visit_type_annotation(v);
     EXPECT_THAT(v.visits, ElementsAreArray({
                               "visit_variable_type_use",
                           }));

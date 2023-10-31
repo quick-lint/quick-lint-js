@@ -144,7 +144,8 @@ void summarize(const Expression& expression, std::string& out) {
     break;
   case Expression_Kind::JSX_Element: {
     const auto& jsx =
-        static_cast<const quick_lint_js::Expression::JSX_Element&>(expression);
+        expression_cast<const quick_lint_js::Expression::JSX_Element&>(
+            expression);
     out += "jsxelement(";
     out += to_string_view(jsx.tag.normalized_name());
     if (jsx.child_count() != 0) {
@@ -155,9 +156,8 @@ void summarize(const Expression& expression, std::string& out) {
     break;
   }
   case Expression_Kind::JSX_Element_With_Members: {
-    const auto& jsx =
-        static_cast<const quick_lint_js::Expression::JSX_Element_With_Members&>(
-            expression);
+    const auto& jsx = expression_cast<
+        const quick_lint_js::Expression::JSX_Element_With_Members&>(expression);
     out += "jsxmemberelement((";
     bool need_comma = false;
     for (int i = 0; i < jsx.members.size(); ++i) {

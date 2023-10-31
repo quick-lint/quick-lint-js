@@ -624,7 +624,7 @@ TEST_F(Test_Parse_TypeScript_Function, optional_expression) {
     ASSERT_THAT(summarize(ast), "paren(typed(optional(var x)))");
 
     auto* type_annotated =
-        static_cast<Expression::Type_Annotated*>(ast->without_paren());
+        expression_cast<Expression::Type_Annotated*>(ast->without_paren());
     Spy_Visitor v;
     type_annotated->visit_type_annotation(v);
     EXPECT_THAT(v.visits, ElementsAreArray({

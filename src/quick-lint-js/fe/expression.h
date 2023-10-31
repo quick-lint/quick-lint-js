@@ -307,6 +307,27 @@ Derived expression_cast(Expression *p) {
   return static_cast<Derived>(&*p);
 }
 
+template <class Derived>
+Derived expression_cast(const Expression *p) {
+  // TODO(strager): Assert that Derived matches the Expression's run-time
+  // type.
+  return static_cast<Derived>(&*p);
+}
+
+template <class Derived>
+Derived expression_cast(Expression &p) {
+  // TODO(strager): Assert that Derived matches the Expression's run-time
+  // type.
+  return static_cast<Derived>(p);
+}
+
+template <class Derived>
+Derived expression_cast(const Expression &p) {
+  // TODO(strager): Assert that Derived matches the Expression's run-time
+  // type.
+  return static_cast<Derived>(p);
+}
+
 // Prevent expression_cast<array>((call*)p).
 template <class Derived, class Expression>
 Derived *expression_cast(Expression *) = delete;
@@ -1127,17 +1148,17 @@ static_assert(Expression_Arena::is_allocatable<Expression::Yield_One>);
 inline Identifier Expression::variable_identifier() const {
   switch (this->kind_) {
   case Expression_Kind::Dot:
-    return static_cast<const Expression::Dot *>(this)->variable_identifier_;
+    return expression_cast<const Expression::Dot *>(this)->variable_identifier_;
   case Expression_Kind::JSX_Element:
-    return static_cast<const Expression::JSX_Element *>(this)->tag;
+    return expression_cast<const Expression::JSX_Element *>(this)->tag;
   case Expression_Kind::Named_Function:
-    return static_cast<const Expression::Named_Function *>(this)
+    return expression_cast<const Expression::Named_Function *>(this)
         ->variable_identifier_;
   case Expression_Kind::Private_Variable:
-    return static_cast<const Expression::Private_Variable *>(this)
+    return expression_cast<const Expression::Private_Variable *>(this)
         ->variable_identifier_;
   case Expression_Kind::Variable:
-    return static_cast<const Expression::Variable *>(this)
+    return expression_cast<const Expression::Variable *>(this)
         ->variable_identifier_;
 
   default:
@@ -1148,7 +1169,7 @@ inline Identifier Expression::variable_identifier() const {
 inline Token_Type Expression::variable_identifier_token_type() const {
   switch (this->kind_) {
   case Expression_Kind::Variable:
-    return static_cast<const Expression::Variable *>(this)->type_;
+    return expression_cast<const Expression::Variable *>(this)->type_;
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -1168,7 +1189,7 @@ inline Expression_Arena::Array_Ptr<Expression *> Expression::children() const {
   case Expression_Kind::Assignment:
   case Expression_Kind::Compound_Assignment:
   case Expression_Kind::Conditional_Assignment: {
-    auto *assignment = static_cast<const Expression::Assignment *>(this);
+    auto *assignment = expression_cast<const Expression::Assignment *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(assignment->children_);
   }
 
@@ -1180,9 +1201,8 @@ inline Expression_Arena::Array_Ptr<Expression *> Expression::children() const {
   case Expression_Kind::Unary_Operator:
   case Expression_Kind::Yield_Many:
   case Expression_Kind::Yield_One: {
-    auto *ast =
-        static_cast<const Expression::Expression_With_Prefix_Operator_Base *>(
-            this);
+    auto *ast = expression_cast<
+        const Expression::Expression_With_Prefix_Operator_Base *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&ast->child_, 1);
   }
 
@@ -1190,72 +1210,75 @@ inline Expression_Arena::Array_Ptr<Expression *> Expression::children() const {
   case Expression_Kind::JSX_Element_With_Members:
   case Expression_Kind::JSX_Element_With_Namespace:
   case Expression_Kind::JSX_Fragment: {
-    auto *jsx = static_cast<const Expression::JSX_Base *>(this);
+    auto *jsx = expression_cast<const Expression::JSX_Base *>(this);
     return jsx->children;
   }
 
   case Expression_Kind::New:
-    return static_cast<const Expression::New *>(this)->children_;
+    return expression_cast<const Expression::New *>(this)->children_;
   case Expression_Kind::Template:
-    return static_cast<const Expression::Template *>(this)->children_;
+    return expression_cast<const Expression::Template *>(this)->children_;
   case Expression_Kind::Angle_Type_Assertion: {
     auto *assertion =
-        static_cast<const Expression::Angle_Type_Assertion *>(this);
+        expression_cast<const Expression::Angle_Type_Assertion *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&assertion->child_, 1);
   }
   case Expression_Kind::Array:
-    return static_cast<const Expression::Array *>(this)->children_;
+    return expression_cast<const Expression::Array *>(this)->children_;
   case Expression_Kind::Arrow_Function:
-    return static_cast<const Expression::Arrow_Function *>(this)->children_;
+    return expression_cast<const Expression::Arrow_Function *>(this)->children_;
   case Expression_Kind::As_Type_Assertion: {
-    auto *assertion = static_cast<const Expression::As_Type_Assertion *>(this);
+    auto *assertion =
+        expression_cast<const Expression::As_Type_Assertion *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&assertion->child_, 1);
   }
   case Expression_Kind::Binary_Operator:
-    return static_cast<const Expression::Binary_Operator *>(this)->children_;
+    return expression_cast<const Expression::Binary_Operator *>(this)
+        ->children_;
   case Expression_Kind::Call:
-    return static_cast<const Expression::Call *>(this)->children_;
+    return expression_cast<const Expression::Call *>(this)->children_;
   case Expression_Kind::Conditional: {
-    auto *conditional = static_cast<const Expression::Conditional *>(this);
+    auto *conditional = expression_cast<const Expression::Conditional *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(conditional->children_);
   }
   case Expression_Kind::Dot: {
-    auto *dot = static_cast<const Expression::Dot *>(this);
+    auto *dot = expression_cast<const Expression::Dot *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&dot->child_, 1);
   }
   case Expression_Kind::Index: {
-    auto *index = static_cast<const Expression::Index *>(this);
+    auto *index = expression_cast<const Expression::Index *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(index->children_);
   }
   case Expression_Kind::Non_Null_Assertion: {
-    auto *assertion = static_cast<const Expression::Non_Null_Assertion *>(this);
+    auto *assertion =
+        expression_cast<const Expression::Non_Null_Assertion *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&assertion->child_, 1);
   }
   case Expression_Kind::Paren: {
-    auto *paren = static_cast<const Expression::Paren *>(this);
+    auto *paren = expression_cast<const Expression::Paren *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&paren->child_, 1);
   }
   case Expression_Kind::Optional: {
-    auto *optional = static_cast<const Expression::Optional *>(this);
+    auto *optional = expression_cast<const Expression::Optional *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&optional->child_, 1);
   }
   case Expression_Kind::RW_Unary_Suffix: {
     auto *rw_unary_suffix =
-        static_cast<const Expression::RW_Unary_Suffix *>(this);
+        expression_cast<const Expression::RW_Unary_Suffix *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&rw_unary_suffix->child_,
                                                      1);
   }
   case Expression_Kind::Satisfies: {
-    auto *satisfies = static_cast<const Expression::Satisfies *>(this);
+    auto *satisfies = expression_cast<const Expression::Satisfies *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&satisfies->child_, 1);
   }
   case Expression_Kind::Tagged_Template_Literal:
-    return static_cast<const Expression::Tagged_Template_Literal *>(this)
+    return expression_cast<const Expression::Tagged_Template_Literal *>(this)
         ->tag_and_template_children_;
   case Expression_Kind::Trailing_Comma:
-    return static_cast<const Expression::Trailing_Comma *>(this)->children_;
+    return expression_cast<const Expression::Trailing_Comma *>(this)->children_;
   case Expression_Kind::Type_Annotated: {
-    auto *annotated = static_cast<const Expression::Type_Annotated *>(this);
+    auto *annotated = expression_cast<const Expression::Type_Annotated *>(this);
     return Expression_Arena::Array_Ptr<Expression *>(&annotated->child_, 1);
   }
 
@@ -1267,7 +1290,7 @@ inline Expression_Arena::Array_Ptr<Expression *> Expression::children() const {
 inline Expression *Expression::without_paren() const {
   const Expression *ast = this;
   while (ast->kind_ == Expression_Kind::Paren) {
-    ast = static_cast<const Paren *>(ast)->child_;
+    ast = expression_cast<const Paren *>(ast)->child_;
   }
   // TODO(strager): Remove const_cast.
   return const_cast<Expression *>(ast);
@@ -1276,7 +1299,7 @@ inline Expression *Expression::without_paren() const {
 inline Span_Size Expression::object_entry_count() const {
   switch (this->kind_) {
   case Expression_Kind::Object:
-    return static_cast<const Expression::Object *>(this)->entries_.size();
+    return expression_cast<const Expression::Object *>(this)->entries_.size();
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -1287,7 +1310,7 @@ inline Object_Property_Value_Pair Expression::object_entry(
     Span_Size index) const {
   switch (this->kind_) {
   case Expression_Kind::Object:
-    return static_cast<const Expression::Object *>(this)->entries_[index];
+    return expression_cast<const Expression::Object *>(this)->entries_[index];
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -1299,7 +1322,7 @@ inline Source_Code_Span Expression::span() const {
   case Expression_Kind::Assignment:
   case Expression_Kind::Compound_Assignment:
   case Expression_Kind::Conditional_Assignment: {
-    auto *assignment = static_cast<const Expression::Assignment *>(this);
+    auto *assignment = expression_cast<const Expression::Assignment *>(this);
     return Source_Code_Span(assignment->children_.front()->span().begin(),
                             assignment->children_.back()->span().end());
   }
@@ -1312,9 +1335,8 @@ inline Source_Code_Span Expression::span() const {
   case Expression_Kind::Unary_Operator:
   case Expression_Kind::Yield_Many:
   case Expression_Kind::Yield_One: {
-    auto *prefix =
-        static_cast<const Expression::Expression_With_Prefix_Operator_Base *>(
-            this);
+    auto *prefix = expression_cast<
+        const Expression::Expression_With_Prefix_Operator_Base *>(this);
     return Source_Code_Span(prefix->unary_operator_begin_,
                             prefix->child_->span().end());
   }
@@ -1323,27 +1345,27 @@ inline Source_Code_Span Expression::span() const {
   case Expression_Kind::JSX_Element_With_Members:
   case Expression_Kind::JSX_Element_With_Namespace:
   case Expression_Kind::JSX_Fragment:
-    return static_cast<const JSX_Base *>(this)->span;
+    return expression_cast<const JSX_Base *>(this)->span;
 
   case Expression_Kind::Class:
-    return static_cast<const Class *>(this)->span_;
+    return expression_cast<const Class *>(this)->span_;
   case Expression_Kind::Invalid:
-    return static_cast<const Invalid *>(this)->span_;
+    return expression_cast<const Invalid *>(this)->span_;
   case Expression_Kind::Missing:
-    return static_cast<const Missing *>(this)->span_;
+    return expression_cast<const Missing *>(this)->span_;
   case Expression_Kind::New:
-    return static_cast<const New *>(this)->span_;
+    return expression_cast<const New *>(this)->span_;
   case Expression_Kind::Template:
-    return static_cast<const Template *>(this)->span_;
+    return expression_cast<const Template *>(this)->span_;
   case Expression_Kind::Angle_Type_Assertion: {
-    auto *assertion = static_cast<const Angle_Type_Assertion *>(this);
+    auto *assertion = expression_cast<const Angle_Type_Assertion *>(this);
     return Source_Code_Span(assertion->bracketed_type_span_.begin(),
                             assertion->child_->span().end());
   }
   case Expression_Kind::Array:
-    return static_cast<const Array *>(this)->span_;
+    return expression_cast<const Array *>(this)->span_;
   case Expression_Kind::Arrow_Function: {
-    auto *arrow = static_cast<const Expression::Arrow_Function *>(this);
+    auto *arrow = expression_cast<const Expression::Arrow_Function *>(this);
     if (arrow->parameter_list_begin_) {
       return Source_Code_Span(arrow->parameter_list_begin_, arrow->span_end_);
     } else {
@@ -1352,97 +1374,97 @@ inline Source_Code_Span Expression::span() const {
     }
   }
   case Expression_Kind::As_Type_Assertion: {
-    auto *assertion = static_cast<const As_Type_Assertion *>(this);
+    auto *assertion = expression_cast<const As_Type_Assertion *>(this);
     return Source_Code_Span(assertion->child_->span().begin(),
                             assertion->span_end_);
   }
   case Expression_Kind::Binary_Operator: {
-    auto *binary = static_cast<const Expression::Binary_Operator *>(this);
+    auto *binary = expression_cast<const Expression::Binary_Operator *>(this);
     return Source_Code_Span(binary->children_.front()->span().begin(),
                             binary->children_.back()->span().end());
   }
   case Expression_Kind::Call: {
-    auto *call = static_cast<const Expression::Call *>(this);
+    auto *call = expression_cast<const Expression::Call *>(this);
     return Source_Code_Span(call->children_.front()->span().begin(),
                             call->span_end_);
   }
   case Expression_Kind::Conditional: {
-    auto *conditional = static_cast<const Expression::Conditional *>(this);
+    auto *conditional = expression_cast<const Expression::Conditional *>(this);
     return Source_Code_Span(conditional->children_.front()->span().begin(),
                             conditional->children_.back()->span().end());
   }
   case Expression_Kind::Dot: {
-    auto *dot = static_cast<const Expression::Dot *>(this);
+    auto *dot = expression_cast<const Expression::Dot *>(this);
     return Source_Code_Span(dot->child_0()->span().begin(),
                             dot->variable_identifier_.span().end());
   }
   case Expression_Kind::Function:
-    return static_cast<const Function *>(this)->span_;
+    return expression_cast<const Function *>(this)->span_;
   case Expression_Kind::Import:
-    return static_cast<const Import *>(this)->span_;
+    return expression_cast<const Import *>(this)->span_;
   case Expression_Kind::Index: {
-    auto *index = static_cast<const Expression::Index *>(this);
+    auto *index = expression_cast<const Expression::Index *>(this);
     return Source_Code_Span(index->child_0()->span().begin(),
                             index->index_subscript_end_);
   }
   case Expression_Kind::Literal:
-    return static_cast<const Literal *>(this)->span_;
+    return expression_cast<const Literal *>(this)->span_;
   case Expression_Kind::Named_Function:
-    return static_cast<const Named_Function *>(this)->span_;
+    return expression_cast<const Named_Function *>(this)->span_;
   case Expression_Kind::New_Target:
-    return static_cast<const New_Target *>(this)->span_;
+    return expression_cast<const New_Target *>(this)->span_;
   case Expression_Kind::Non_Null_Assertion: {
-    auto *assertion = static_cast<const Non_Null_Assertion *>(this);
+    auto *assertion = expression_cast<const Non_Null_Assertion *>(this);
     return Source_Code_Span(assertion->child_->span().begin(),
                             assertion->bang_end_);
   }
   case Expression_Kind::Object:
-    return static_cast<const Object *>(this)->span_;
+    return expression_cast<const Object *>(this)->span_;
   case Expression_Kind::Optional: {
-    auto *optional = static_cast<const Expression::Optional *>(this);
+    auto *optional = expression_cast<const Expression::Optional *>(this);
     return Source_Code_Span(optional->child_->span().begin(),
                             optional->question_end_);
   }
   case Expression_Kind::Paren:
-    return static_cast<const Paren *>(this)->span_;
+    return expression_cast<const Paren *>(this)->span_;
   case Expression_Kind::Paren_Empty:
-    return static_cast<const Paren_Empty *>(this)->span_;
+    return expression_cast<const Paren_Empty *>(this)->span_;
   case Expression_Kind::Private_Variable:
-    return static_cast<const Private_Variable *>(this)
+    return expression_cast<const Private_Variable *>(this)
         ->variable_identifier_.span();
   case Expression_Kind::RW_Unary_Suffix: {
-    auto *suffix = static_cast<const RW_Unary_Suffix *>(this);
+    auto *suffix = expression_cast<const RW_Unary_Suffix *>(this);
     return Source_Code_Span(suffix->child_->span().begin(),
                             suffix->unary_operator_end_);
   }
   case Expression_Kind::Satisfies: {
-    auto *s = static_cast<const Satisfies *>(this);
+    auto *s = expression_cast<const Satisfies *>(this);
     return Source_Code_Span(s->child_->span().begin(), s->span_end_);
   }
   case Expression_Kind::Super:
-    return static_cast<const Super *>(this)->span_;
+    return expression_cast<const Super *>(this)->span_;
   case Expression_Kind::Tagged_Template_Literal: {
-    auto *literal = static_cast<const Tagged_Template_Literal *>(this);
+    auto *literal = expression_cast<const Tagged_Template_Literal *>(this);
     return Source_Code_Span(
         literal->tag_and_template_children_[0]->span().begin(),
         literal->template_span_end_);
   }
   case Expression_Kind::This_Variable:
-    return static_cast<const This_Variable *>(this)->span_;
+    return expression_cast<const This_Variable *>(this)->span_;
   case Expression_Kind::Trailing_Comma: {
-    auto *comma = static_cast<const Trailing_Comma *>(this);
+    auto *comma = expression_cast<const Trailing_Comma *>(this);
     return Source_Code_Span(comma->children_.front()->span().begin(),
                             comma->comma_end_);
   }
   case Expression_Kind::Type_Annotated: {
-    auto *annotated = static_cast<const Type_Annotated *>(this);
+    auto *annotated = expression_cast<const Type_Annotated *>(this);
     return Source_Code_Span(annotated->child_->span().begin(),
                             annotated->span_end_);
   }
   case Expression_Kind::Variable:
-    return static_cast<const Variable *>(this)->variable_identifier_.span();
+    return expression_cast<const Variable *>(this)->variable_identifier_.span();
   case Expression_Kind::Yield_None:
-    return static_cast<const Yield_None *>(this)->span_;
+    return expression_cast<const Yield_None *>(this)->span_;
   }
   QLJS_UNREACHABLE();
 }
@@ -1456,13 +1478,13 @@ inline const Char8 *Expression::span_end() const { return this->span().end(); }
 inline Function_Attributes Expression::attributes() const {
   switch (this->kind_) {
   case Expression_Kind::Arrow_Function:
-    return static_cast<const Expression::Arrow_Function *>(this)
+    return expression_cast<const Expression::Arrow_Function *>(this)
         ->function_attributes_;
   case Expression_Kind::Function:
-    return static_cast<const Expression::Function *>(this)
+    return expression_cast<const Expression::Function *>(this)
         ->function_attributes_;
   case Expression_Kind::Named_Function:
-    return static_cast<const Expression::Named_Function *>(this)
+    return expression_cast<const Expression::Named_Function *>(this)
         ->function_attributes_;
 
   default:

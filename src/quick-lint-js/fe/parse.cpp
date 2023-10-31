@@ -298,7 +298,7 @@ Expression* Parser::maybe_wrap_erroneous_arrow_function(
 void Parser::error_on_sketchy_condition(Expression* ast) {
   if (ast->kind() == Expression_Kind::Assignment &&
       ast->child_1()->kind() == Expression_Kind::Literal) {
-    auto* assignment = static_cast<Expression::Assignment*>(ast);
+    auto* assignment = expression_cast<Expression::Assignment*>(ast);
     this->diag_reporter_->report(Diag_Assignment_Makes_Condition_Constant{
         .assignment_operator = assignment->operator_span_,
     });
@@ -310,9 +310,9 @@ void Parser::error_on_sketchy_condition(Expression* ast) {
       ast->children().size() == 3 &&
       ((ast->child(2)->kind() == Expression_Kind::Literal) ||
        ((ast->child(2)->kind() == Expression_Kind::Variable) &&
-        (static_cast<Expression::Variable*>(ast->child(2))->type_ ==
+        (expression_cast<Expression::Variable*>(ast->child(2))->type_ ==
          Token_Type::kw_undefined)))) {
-    auto* binary = static_cast<Expression::Binary_Operator*>(ast);
+    auto* binary = expression_cast<Expression::Binary_Operator*>(ast);
     Source_Code_Span left_operator = binary->operator_spans_[0];
     Source_Code_Span right_operator = binary->operator_spans_[1];
     if (right_operator.string_view() == u8"||"_sv &&
@@ -331,7 +331,7 @@ void Parser::warn_on_comma_operator_in_conditional_statement(Expression* ast) {
 
   auto is_comma = [](String8_View s) -> bool { return s == u8","_sv; };
 
-  auto* binary_operator = static_cast<Expression::Binary_Operator*>(ast);
+  auto* binary_operator = expression_cast<Expression::Binary_Operator*>(ast);
   for (Span_Size i = binary_operator->child_count() - 2; i >= 0; i--) {
     Source_Code_Span op_span = binary_operator->operator_spans_[i];
     if (is_comma(op_span.string_view())) {
@@ -349,7 +349,7 @@ void Parser::warn_on_comma_operator_in_index(Expression* ast,
 
   auto is_comma = [](String8_View s) -> bool { return s == u8","_sv; };
 
-  auto* binary_operator = static_cast<Expression::Binary_Operator*>(ast);
+  auto* binary_operator = expression_cast<Expression::Binary_Operator*>(ast);
   for (Span_Size i = binary_operator->child_count() - 2; i >= 0; i--) {
     Source_Code_Span op_span = binary_operator->operator_spans_[i];
     if (is_comma(op_span.string_view())) {
@@ -431,7 +431,7 @@ void Parser::error_on_invalid_as_const(Expression* ast,
     break;
 
   case Expression_Kind::Literal: {
-    auto* literal = static_cast<Expression::Literal*>(ast);
+    auto* literal = expression_cast<Expression::Literal*>(ast);
     if (literal->is_null() || literal->is_regexp()) {
       goto invalid;
     }
@@ -537,7 +537,7 @@ void Parser::check_compare_against_literal(Expression* lhs, Expression* rhs,
           .equals_operator = op_span, .comparison_result = comparison_result});
       return;
     case Expression_Kind::Literal:
-      if (static_cast<Expression::Literal*>(child)->is_regexp()) {
+      if (expression_cast<Expression::Literal*>(child)->is_regexp()) {
         this->diag_reporter_->report(
             Diag_Pointless_Comp_Against_Regular_Expression_Literal{
                 .equals_operator = op_span,
@@ -808,7 +808,7 @@ void Parser::check_lhs_for_null_potential(Expression* lhs,
     report_diag = true;
     break;
   case Expression_Kind::Unary_Operator: {
-    auto* maybe_void_lhs = static_cast<Expression::Unary_Operator*>(lhs);
+    auto* maybe_void_lhs = expression_cast<Expression::Unary_Operator*>(lhs);
     if (!maybe_void_lhs->is_void_operator()) {
       report_diag = true;
     }
@@ -818,7 +818,7 @@ void Parser::check_lhs_for_null_potential(Expression* lhs,
     report_diag = true;
     break;
   case Expression_Kind::Binary_Operator: {
-    auto* operator_lhs = static_cast<Expression::Binary_Operator*>(lhs);
+    auto* operator_lhs = expression_cast<Expression::Binary_Operator*>(lhs);
     report_diag = binary_operator_is_never_null(operator_lhs);
     break;
   }

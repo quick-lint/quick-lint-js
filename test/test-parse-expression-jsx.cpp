@@ -33,7 +33,7 @@ TEST_F(Test_Parse_Expression_JSX, intrinsic_element) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::JSX_Element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"div"_sv);
-    EXPECT_TRUE(static_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
+    EXPECT_TRUE(expression_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
   }
 
   {
@@ -41,7 +41,7 @@ TEST_F(Test_Parse_Expression_JSX, intrinsic_element) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::JSX_Element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"div"_sv);
-    EXPECT_TRUE(static_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
+    EXPECT_TRUE(expression_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
   }
 
   {
@@ -50,7 +50,7 @@ TEST_F(Test_Parse_Expression_JSX, intrinsic_element) {
     ASSERT_EQ(ast->kind(), Expression_Kind::JSX_Element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(),
               u8"My-Web-Component"_sv);
-    EXPECT_TRUE(static_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
+    EXPECT_TRUE(expression_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
   }
 }
 
@@ -60,7 +60,8 @@ TEST_F(Test_Parse_Expression_JSX, user_element) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::JSX_Element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"MyComponent"_sv);
-    EXPECT_FALSE(static_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
+    EXPECT_FALSE(
+        expression_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
   }
 
   {
@@ -68,7 +69,8 @@ TEST_F(Test_Parse_Expression_JSX, user_element) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::JSX_Element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"MyComponent"_sv);
-    EXPECT_FALSE(static_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
+    EXPECT_FALSE(
+        expression_cast<Expression::JSX_Element*>(ast)->is_intrinsic());
   }
 }
 
