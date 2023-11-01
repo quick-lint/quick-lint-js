@@ -2768,35 +2768,26 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
   bool is_before_first_switch_case = true;
   Token prev_token;
   Hash_Set<String8_View> cases;
+  auto is_valid_end_of_case = [](Token_Type tk) {
+    switch (tk) {
+      case Token_Type::kw_return:
+      case Token_Type::kw_continue:
+      case Token_Type::kw_throw:
+      case Token_Type::kw_break:
+      case Token_Type::kw_case:
+      //Temporarily return false to omit diag with if statments
+      case Token_Type::kw_if:
+      case Token_Type::kw_try:
+      case Token_Type::kw_while:
+      case Token_Type::kw_for:
+        return true;
+      default:
+        return false;
+    }
+  };
   while (keep_going) {
-    auto is_comment_line = [&]() -> bool {
-      const Char8 *th = this->lexer().end_of_previous_token();
-      bool f = false;
-      int i = 0;
-      for (;;) {
-        switch (th[i]) {
-        case '/':
-          if (th[i + 1] == '/') {
-            f = true;
-          }
-          goto exit_loop;
-        // skip empty lines to reach comment
-        case ' ':
-        case '\n':
-        case '\r':
-        case '\t':
-        case '\f':
-        case '\v':
-          break;
-        default:
-          goto exit_loop;
-        }
-        i++;
-      }
-    exit_loop:;
-      return f;
-    };
     switch (this->peek().type) {
+ 
     case Token_Type::right_curly:
       this->skip();
       keep_going = false;
@@ -2804,8 +2795,8 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
     case Token_Type::kw_case: {
       if (!is_before_first_switch_case &&
-          prev_token.type != Token_Type::kw_break &&
-          prev_token.type != Token_Type::kw_case && !is_comment_line()) {
+          !is_valid_end_of_case(prev_token.type) &&
+          !this->peek().has_leading_comment) {
         this->diag_reporter_->report(
             Diag_Fallthrough_Without_Comment_In_Switch{.end_of_case =
                                                             prev_token.span()});
@@ -2843,8 +2834,8 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
     case Token_Type::kw_default:
       if (!is_before_first_switch_case &&
-          prev_token.type != Token_Type::kw_break &&
-          prev_token.type != Token_Type::kw_case && !is_comment_line()) {
+          !is_valid_end_of_case(prev_token.type) &&
+          !this->peek().has_leading_comment) {
         this->diag_reporter_->report(
             Diag_Fallthrough_Without_Comment_In_Switch{.end_of_case =
                                                             prev_token.span()});

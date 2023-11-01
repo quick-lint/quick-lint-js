@@ -142,6 +142,7 @@ void Lexer::parse_bom_before_shebang() {
 [[gnu::noinline]] void Lexer::parse_current_token() {
   this->last_last_token_end_ = this->last_token_.end;
   this->last_token_.has_leading_newline = false;
+  this->last_token_.has_leading_comment = false;
   this->skip_whitespace();
 
   while (!this->try_parse_current_token()) {
@@ -906,6 +907,7 @@ Lexer::Parsed_Template_Body Lexer::parse_template_body(
 void Lexer::skip_in_jsx() {
   this->last_last_token_end_ = this->last_token_.end;
   this->last_token_.has_leading_newline = false;
+  this->last_token_.has_leading_comment = false;
   this->skip_whitespace();
 
 retry:
@@ -980,6 +982,7 @@ const Char8* Lexer::find_equal_greater_in_jsx_children() const {
 void Lexer::skip_less_less_as_less() {
   QLJS_ASSERT(this->peek().type == Token_Type::less_less);
   this->last_token_.has_leading_newline = false;
+  this->last_token_.has_leading_comment = false;
   this->last_token_.type = Token_Type::less;
   this->last_token_.begin += 1;
   this->last_last_token_end_ = this->last_token_.begin;
@@ -1156,6 +1159,7 @@ void Lexer::insert_semicolon() {
 
   this->last_token_.type = Token_Type::semicolon;
   this->last_token_.has_leading_newline = false;
+  this->last_token_.has_leading_comment = false;
   this->last_token_.begin = this->input_;
   this->last_token_.end = this->input_;
 }
@@ -1950,7 +1954,7 @@ QLJS_WARNING_POP
 void Lexer::skip_block_comment() {
   QLJS_SLOW_ASSERT(this->input_[0] == '/' && this->input_[1] == '*');
   const Char8* c = this->input_ + 2;
-
+  this->last_token_.has_leading_comment = true; 
 #if QLJS_HAVE_X86_SSE2
   using Bool_Vector = Bool_Vector_16_SSE2;
   using Char_Vector = Char_Vector_16_SSE2;
@@ -2048,6 +2052,7 @@ void Lexer::skip_line_comment_body() {
   using Char_Vector = Char_Vector_1;
 #endif
 
+  this->last_token_.has_leading_comment = true; 
   auto found_comment_end = [&]() {
     int n = newline_character_size(this->input_);
 
