@@ -436,14 +436,14 @@ TEST_F(Test_Parse_Warning, warn_on_xor_operation_used_as_exponentiation) {
   test_parse_and_visit_expression(u8"4 ^ 3"_sv, no_diags);
   test_parse_and_visit_expression(u8"(x+2)^a"_sv, no_diags);
 }
-TEST_F(Test_Parse_Warning, Diag_Explicit_Fallthrough_Comment_In_Switch) {
+TEST_F(Test_Parse_Warning, Diag_Fallthrough_Without_Comment_In_Switch) {
   test_parse_and_visit_statement(
       u8"switch(cond1){case 1:\nfoo()\ncase 2:\nbar() //fallthrough\ndefault:}"_sv,  //
-      u8"                       ^^^ Diag_Explicit_Fallthrough_Comment_In_Switch"_diag);
+      u8"                       ^^^ Diag_Fallthrough_Without_Comment_In_Switch"_diag);
   test_parse_and_visit_statement(
       u8"switch(cond1){case 1:\nfoo()\ncase 2:\nlongBarFn()\ndefault:}"_sv,  //
-      u8"                                       ^^^^^^^^^ Diag_Explicit_Fallthrough_Comment_In_Switch"_diag,  //
-      u8"                       ^^^ Diag_Explicit_Fallthrough_Comment_In_Switch"_diag);
+      u8"                                       ^^^^^^^^^ Diag_Fallthrough_Without_Comment_In_Switch"_diag,  //
+      u8"                       ^^^ Diag_Fallthrough_Without_Comment_In_Switch"_diag);
   // check for false positive
   test_parse_and_visit_statement(
       u8R"(switch(cond1){
