@@ -8,8 +8,17 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* Mixing `&` and `<<` such as in `a & 0x1 << 3` now reports [E0716][]
+  ("unintuitive operator precedence when using & and << or >>"). (Implemented by
+  [toastin0][].)
+
 ### Fixed
 
+* A missing operator in an `if` condition (such as in `if (x y)`) no longer
+  causes [E0065][] ("'else' has no corresponding 'if'") to be reported.
+  (Implemented by [arieldon][].)
 * `cmake --install` with `--component build-tools` now installs the build
   tools. (This is a regression introduced in quick-lint-js version 2.16.0.)
 
@@ -1143,6 +1152,7 @@ Beta release.
 [ooblegork]: https://github.com/ooblegork
 [pedrobl1718]: https://github.com/pedrobl85
 [tiagovla]: https://github.com/tiagovla
+[toastin0]: https://github.com/toastin0
 [wagner riffel]: https://github.com/wgrr
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
@@ -1271,3 +1281,4 @@ Beta release.
 [E0713]: https://quick-lint-js.com/errors/E0713/
 [E0714]: https://quick-lint-js.com/errors/E0714/
 [E0715]: https://quick-lint-js.com/errors/E0715/
+[E0716]: https://quick-lint-js.com/errors/E0716/

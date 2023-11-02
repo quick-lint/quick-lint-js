@@ -89,4 +89,5 @@ authored portions of quick-lint-js:
 * ooblegork; codyxvalley@mail.fresnostate.edu; signed CLA-v1.md
 * oren; countoren@gmail.com; signed CLA-v1.md
 * pedrobl85; pedrobl1718@gmail.com; signed CLA-v1.md
+* toastino; toastino@disroot.org; signed CLA-v1.md
 * wagner riffel; w@104d.net; signed CLA-v1.md
