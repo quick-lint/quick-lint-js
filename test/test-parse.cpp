@@ -320,8 +320,9 @@ TEST_F(Test_Parse, utter_garbage) {
     assert_diagnostics(
         p.code, p.errors,
         {
-            u8"   ^ Diag_Expected_Parentheses_Around_If_Condition"_diag,  //
-            u8"   ^ Diag_Unexpected_Token"_diag,
+            u8"   ^ Diag_Unexpected_Token"_diag,  // :
+            u8"      ^^^^^^^^ Diag_Unexpected_Identifier_In_Expression"_diag,  // kjaslkjd
+            u8"   ^^^^^^^^^^^ Diag_Expected_Parentheses_Around_If_Condition"_diag,  // :\nkjaskljd
         });
   }
 }

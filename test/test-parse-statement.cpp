@@ -595,6 +595,27 @@ TEST_F(Test_Parse_Statement, if_with_else) {
   }
 }
 
+TEST_F(Test_Parse_Statement, if_else_with_malformed_condition) {
+  {
+    Test_Parser p(
+        u8"if (e isntanceof DataNotLoadedError) { } else { throw e; }"_sv,
+        capture_diags);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
+                ElementsAreArray({"visit_variable_use",  // e
+                                  "visit_variable_use",  // typoed instanceof
+                                  "visit_variable_use",  // DataNotLoadedError
+                                  "visit_enter_block_scope",  //
+                                  "visit_exit_block_scope",   //
+                                  "visit_enter_block_scope",  //
+                                  "visit_variable_use",       // e
+                                  "visit_exit_block_scope"}));
+    EXPECT_THAT(
+        p.errors,
+        ::testing::Not(::testing::Contains(DIAG_TYPE(Diag_Else_Has_No_If))));
+  }
+}
+
 TEST_F(Test_Parse_Statement, if_without_body) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(

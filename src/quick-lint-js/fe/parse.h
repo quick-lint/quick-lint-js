@@ -1173,7 +1173,7 @@ void Parser::parse_and_visit_parenthesized_expression(
 
   const Char8 *expression_begin = this->peek().begin;
 
-  Expression *ast = this->parse_expression(v);
+  Expression *ast = this->parse_expression(v, {.trailing_identifiers = true});
   this->visit_expression(ast, v, Variable_Context::rhs);
 
   if constexpr (check_for_sketchy_conditions) {
