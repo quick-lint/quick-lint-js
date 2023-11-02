@@ -3318,6 +3318,18 @@ struct Diag_Multiple_Export_Defaults {
   Source_Code_Span second_export_default;
   Source_Code_Span first_export_default;
 };
+
+struct Diag_Unintuitive_Bitshift_Precedence {
+  [[qljs::diag("E0716", Diagnostic_Severity::warning)]]  //
+  // clang-format off
+  [[qljs::message("unintuitive operator precedence when using & and '{0}'; "
+                  "'{0}' evaluates before &",
+                  ARG(bitshift_operator))]]         //
+  // clang-format on
+  [[qljs::message("'&' here", ARG(and_operator))]]  //
+  Source_Code_Span bitshift_operator;
+  Source_Code_Span and_operator;
+};
 }
 QLJS_WARNING_POP
 

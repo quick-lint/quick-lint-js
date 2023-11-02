@@ -6425,6 +6425,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_Unintuitive_Bitshift_Precedence
+    {
+      .code = 716,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &"),
+        QLJS_TRANSLATABLE("'&' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unintuitive_Bitshift_Precedence, bitshift_operator), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unintuitive_Bitshift_Precedence, and_operator), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 

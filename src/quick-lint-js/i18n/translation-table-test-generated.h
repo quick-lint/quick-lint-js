@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[523] = {
+inline const Translated_String test_translation_table[525] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -103,6 +103,17 @@ inline const Translated_String test_translation_table[523] = {
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
+        },
+    },
+    {
+        "'&' here"_translatable,
+        u8"'&' here",
+        {
+            u8"'&' here",
+            u8"'&' here",
+            u8"'&' here",
+            u8"'&' here",
+            u8"'&' here",
         },
     },
     {
@@ -5394,6 +5405,17 @@ inline const Translated_String test_translation_table[523] = {
             u8"un indicateur d'ordre des octets (BOM) ne peut figurer avant #! au d\u00e9but d'un script",
             u8"unicode byte order mark (BOM) n\u00e3o pode aparecer antes do #! no come\u00e7o do script",
             u8"unicode byte ordningsm\u00e4rke (BOM) kan inte f\u00f6rekomma f\u00f6re #! i b\u00f6rjan av skript",
+        },
+    },
+    {
+        "unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &"_translatable,
+        u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+        {
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
         },
     },
     {

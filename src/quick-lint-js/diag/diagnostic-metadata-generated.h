@@ -440,10 +440,11 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Class_Generator_On_Getter_Or_Setter) \
   QLJS_DIAG_TYPE_NAME(Diag_Class_Async_On_Getter_Or_Setter) \
   QLJS_DIAG_TYPE_NAME(Diag_Multiple_Export_Defaults) \
+  QLJS_DIAG_TYPE_NAME(Diag_Unintuitive_Bitshift_Precedence) \
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 429;
+inline constexpr int Diag_Type_Count = 430;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }
