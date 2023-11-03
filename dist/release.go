@@ -58,20 +58,28 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Update version number in files",
 		Run: func() {
-			UpdateReleaseVersionsInFiles([]string{
-				"Formula/quick-lint-js.rb",
-				"dist/arch/PKGBUILD-dev",
-				"dist/arch/PKGBUILD-git",
-				"dist/arch/PKGBUILD-release",
-				"dist/chocolatey/quick-lint-js.nuspec",
-				"dist/chocolatey/tools/VERIFICATION.txt",
-				"dist/debian/README.md",
-				"dist/npm/BUILDING.md",
-				"dist/npm/package.json",
-				"dist/scoop/quick-lint-js.template.json",
-				"dist/sign-release.go",
-				"plugin/vscode-lsp/README.md",
-				"plugin/vscode/BUILDING.md",
+			UpdateReleaseVersionsInFiles(map[string]string{
+				"Formula/quick-lint-js.rb":               "",
+				"dist/arch/PKGBUILD-dev":                 "",
+				"dist/arch/PKGBUILD-git":                 "",
+				"dist/arch/PKGBUILD-release":             "",
+				"dist/chocolatey/quick-lint-js.nuspec":   "",
+				"dist/chocolatey/tools/VERIFICATION.txt": "",
+				"dist/debian/README.md":                  "",
+				"dist/npm/BUILDING.md":                   "",
+				"dist/npm/package.json":                  "",
+				"dist/scoop/quick-lint-js.template.json": "",
+				"dist/sign-release.go":                   "",
+				"plugin/vscode-lsp/README.md":            "",
+				"plugin/vscode/BUILDING.md":              "",
+
+				"dist/msix/AppxManifest.xml":                                      "\\bVersion=",
+				"dist/winget/quick-lint.quick-lint-js.installer.template.yaml":    "PackageVersion:",
+				"dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml": "PackageVersion:",
+				"dist/winget/quick-lint.quick-lint-js.template.yaml":              "PackageVersion:",
+				"plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt":              "This plugin version is designed for quick-lint-js version",
+				"plugin/vscode-lsp/package.json":                                  "\"version\":",
+				"plugin/vscode/package.json":                                      "\"version\":",
 			})
 		},
 	},
@@ -102,21 +110,6 @@ var Steps []Step = []Step{
 					Stopf("failed to update Debian changelog %s: %v", changelogFilePath, err)
 				}
 			}
-		},
-	},
-
-	Step{
-		Title: "Manually update version number and release date",
-		Run: func() {
-			fmt.Printf("Change these files containing version numbers:\n")
-			fmt.Printf("* dist/msix/AppxManifest.xml\n")
-			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
-			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml\n")
-			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.template.yaml\n")
-			fmt.Printf("* plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt\n")
-			fmt.Printf("* plugin/vscode-lsp/package.json\n")
-			fmt.Printf("* plugin/vscode/package.json\n")
-			WaitForDone()
 		},
 	},
 
@@ -507,10 +500,12 @@ func Stop() {
 	os.Exit(0)
 }
 
-func UpdateReleaseVersionsInFiles(paths []string) {
+// Key: file path
+// Value: UpdateReleaseVersionsOptions.LineMatchRegexp
+func UpdateReleaseVersionsInFiles(pathToLineMatchRegexp map[string]string) {
 	fileContents := make(map[string][]byte)
 
-	for _, path := range paths {
+	for path, _ := range pathToLineMatchRegexp {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			Stopf("failed to read file: %v", err)
@@ -519,7 +514,17 @@ func UpdateReleaseVersionsInFiles(paths []string) {
 	}
 
 	for path, data := range fileContents {
-		fileContents[path] = UpdateReleaseVersions(data, path)
+		var err error
+		fileContents[path], err = UpdateReleaseVersions(UpdateReleaseVersionsOptions{
+			FileContent:       data,
+			PathForDebugging:  path,
+			OldReleaseVersion: OldReleaseVersion,
+			NewReleaseVersion: ReleaseVersion,
+			LineMatchRegexp:   pathToLineMatchRegexp[path],
+		})
+		if err != nil {
+			Stopf("failed to update version numbers in %s: %v", path, err)
+		}
 	}
 
 	for path, data := range fileContents {
@@ -530,30 +535,39 @@ func UpdateReleaseVersionsInFiles(paths []string) {
 	}
 }
 
-func UpdateReleaseVersions(fileContent []byte, pathForDebugging string) []byte {
-	oldVersion := []byte(OldReleaseVersion)
-	newVersion := []byte(ReleaseVersion)
+type UpdateReleaseVersionsOptions struct {
+	FileContent       []byte
+	PathForDebugging  string
+	OldReleaseVersion string
+	NewReleaseVersion string
+	LineMatchRegexp   string
+}
+
+func UpdateReleaseVersions(options UpdateReleaseVersionsOptions) ([]byte, error) {
+	oldVersion := []byte(options.OldReleaseVersion)
+	newVersion := []byte(options.NewReleaseVersion)
 	foundOldVersion := false
-	foundUnexpectedVersion := false
-	fileContent = ThreePartVersionRegexp.ReplaceAllFunc(fileContent, func(match []byte) []byte {
-		if bytes.Equal(match, oldVersion) {
-			foundOldVersion = true
-			return newVersion
-		} else {
-			foundUnexpectedVersion = true
-			log.Printf("error: found unexpected version number in %s: %s\n", pathForDebugging, string(match))
-			return match
-		}
+	var foundUnexpectedVersion error = nil
+	fullLineMatchRegexp := regexp.MustCompile("(?m:^.*" + options.LineMatchRegexp + ".*$)")
+	newFileContent := fullLineMatchRegexp.ReplaceAllFunc(options.FileContent, func(lineMatch []byte) []byte {
+		return ThreePartVersionRegexp.ReplaceAllFunc(lineMatch, func(versionMatch []byte) []byte {
+			if bytes.Equal(versionMatch, oldVersion) {
+				foundOldVersion = true
+				return newVersion
+			} else {
+				foundUnexpectedVersion = fmt.Errorf("found unexpected version number in %s: %s", options.PathForDebugging, string(versionMatch))
+				return versionMatch
+			}
+		})
 	})
-	if !foundOldVersion {
-		log.Printf("error: failed to find old version number %s in %s\n", OldReleaseVersion, pathForDebugging)
-		os.Exit(1)
+	if foundUnexpectedVersion != nil {
+		return nil, foundUnexpectedVersion
 	}
-	if foundUnexpectedVersion {
-		os.Exit(1)
+	if !foundOldVersion {
+		return nil, fmt.Errorf("failed to find old version number %s in %s", options.OldReleaseVersion, options.PathForDebugging)
 	}
 
-	return fileContent
+	return newFileContent, nil
 }
 
 func GetCurrentCommitHash() string {

@@ -102,6 +102,57 @@ func TestUpdateDebianChangelog(t *testing.T) {
 	})
 }
 
+func TestUpdateReleaseVersions(t *testing.T) {
+	t.Run("only version number", func(t *testing.T) {
+		updated, err := UpdateReleaseVersions(UpdateReleaseVersionsOptions{
+			FileContent:       []byte("hello, this is version 0.2.0 (beta)\n"),
+			PathForDebugging:  "file.txt",
+			OldReleaseVersion: "0.2.0",
+			NewReleaseVersion: "0.3.0",
+		})
+		Check(t, err)
+		AssertStringsEqual(t, string(updated), "hello, this is version 0.3.0 (beta)\n")
+	})
+
+	t.Run("missing version number", func(t *testing.T) {
+		_, err := UpdateReleaseVersions(UpdateReleaseVersionsOptions{
+			FileContent:       []byte("hello, world\n"),
+			PathForDebugging:  "file.txt",
+			OldReleaseVersion: "0.2.0",
+			NewReleaseVersion: "0.3.0",
+		})
+		if err == nil {
+			t.Fatalf("expected error")
+		}
+		AssertStringsEqual(t, err.Error(), "failed to find old version number 0.2.0 in file.txt")
+	})
+
+	t.Run("wrong version number", func(t *testing.T) {
+		_, err := UpdateReleaseVersions(UpdateReleaseVersionsOptions{
+			FileContent:       []byte("this feature was introduced in version 0.1.0\n"),
+			PathForDebugging:  "file.txt",
+			OldReleaseVersion: "0.2.0",
+			NewReleaseVersion: "0.3.0",
+		})
+		if err == nil {
+			t.Fatalf("expected error")
+		}
+		AssertStringsEqual(t, err.Error(), "found unexpected version number in file.txt: 0.1.0")
+	})
+
+	t.Run("ignores versions not matching line regexp", func(t *testing.T) {
+		updated, err := UpdateReleaseVersions(UpdateReleaseVersionsOptions{
+			FileContent:       []byte("0.1.0\nversion 0.2.0\n0.2.0\n0.2.0 version\n0.3.0\n"),
+			PathForDebugging:  "file.txt",
+			OldReleaseVersion: "0.2.0",
+			NewReleaseVersion: "0.3.0",
+			LineMatchRegexp:   "version",
+		})
+		Check(t, err)
+		AssertStringsEqual(t, string(updated), "0.1.0\nversion 0.3.0\n0.2.0\n0.3.0 version\n0.3.0\n")
+	})
+}
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //
