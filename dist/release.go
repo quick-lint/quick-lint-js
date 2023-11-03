@@ -170,9 +170,12 @@ var Steps []Step = []Step{
 			if ReleaseCommitHash == "" {
 				Stopf("missing -ReleaseCommitHash\n")
 			}
-			fmt.Printf("Download the build artifacts from the artifact server:\n")
-			fmt.Printf("$ rsync -av github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/%s/ builds/\n", ReleaseCommitHash)
-			WaitForDone()
+			RunCommandOrStop(
+				"rsync",
+				"-av",
+				fmt.Sprintf("github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/%s/", ReleaseCommitHash),
+				"builds/",
+			)
 		},
 	},
 
@@ -186,9 +189,15 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Sign the build artifacts",
 		Run: func() {
-			fmt.Printf("Sign the build artifacts:\n")
-			fmt.Printf("$ go run dist/sign-release.go dist/deep-hasher.go dist/appx.go -RelicConfig=dist/certificates/relic-config.yaml builds/ signed-builds/\n")
-			WaitForDone()
+			RunCommandOrStop(
+				"go", "run",
+				"dist/sign-release.go",
+				"dist/deep-hasher.go",
+				"dist/appx.go",
+				"-RelicConfig=dist/certificates/relic-config.yaml",
+				"builds/",
+				"signed-builds/",
+			)
 		},
 	},
 
@@ -220,27 +229,34 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Upload the signed build artifacts",
 		Run: func() {
-			fmt.Printf("Upload the signed build artifacts to the artifact server:\n")
-			fmt.Printf("$ rsync -av signed-builds/ github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/%s/\n", ReleaseVersion)
-			WaitForDone()
+			RunCommandOrStop(
+				"rsync",
+				"-av",
+				"signed-builds/",
+				fmt.Sprintf("github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/%s/", ReleaseVersion),
+			)
 		},
 	},
 
 	Step{
 		Title: "Update `latest` symlink",
 		Run: func() {
-			fmt.Printf("Update the `latest` symlink on the artifact server:\n")
-			fmt.Printf("$ ssh github-ci@c.quick-lint-js.com \"ln --force --no-dereference --symbolic %s /var/www/c.quick-lint-js.com/releases/latest\"\n", ReleaseVersion)
-			WaitForDone()
+			RunCommandOrStop(
+				"ssh",
+				"github-ci@c.quick-lint-js.com",
+				fmt.Sprintf("ln --force --no-dereference --symbolic %s /var/www/c.quick-lint-js.com/releases/latest", ReleaseVersion),
+			)
 		},
 	},
 
 	Step{
 		Title: "Publish the Visual Studio Code extension to the Marketplace",
 		Run: func() {
-			fmt.Printf("With the `vscode/quick-lint-js-*.vsix` artifact:\n")
-			fmt.Printf("$ npx vsce publish --packagePath signed-builds/vscode/quick-lint-js-%s.vsix\n", ReleaseVersion)
-			WaitForDone()
+			RunCommandOrStop(
+				"npx", "vsce",
+				"publish",
+				"--packagePath", fmt.Sprintf("signed-builds/vscode/quick-lint-js-%s.vsix", ReleaseVersion),
+			)
 		},
 	},
 
@@ -256,17 +272,18 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Publish to npm",
 		Run: func() {
-			fmt.Printf("With the `npm/quick-lint-js-*.tgz` artifact:\n")
-			fmt.Printf("$ npm publish signed-builds/npm/quick-lint-js-%s.tgz\n", ReleaseVersion)
-			WaitForDone()
+			RunCommandOrStop(
+				"npm",
+				"publish",
+				fmt.Sprintf("signed-builds/npm/quick-lint-js-%s.tgz", ReleaseVersion),
+			)
 		},
 	},
 
 	Step{
 		Title: "Publish Debian packages",
 		Run: func() {
-			fmt.Printf("Run the `dist/debian/sync-releases-to-apt` script.\n")
-			WaitForDone()
+			RunCommandOrStop("./dist/debian/sync-releases-to-apt")
 		},
 	},
 
@@ -276,7 +293,7 @@ var Steps []Step = []Step{
 			if ReleaseCommitHash == "" {
 				Stopf("missing -ReleaseCommitHash\n")
 			}
-			fmt.Printf("Publish the website: Run `./website/tools/deploy.sh %s`.\n", ReleaseCommitHash)
+			RunCommandOrStop("./website/tools/deploy.sh", ReleaseCommitHash)
 			WaitForDone()
 		},
 	},
