@@ -581,6 +581,9 @@ func UpdateReleaseVersions(options UpdateReleaseVersionsOptions) ([]byte, error)
 
 func RunCommandOrStop(name string, arg ...string) {
 	cmd := exec.Command(name, arg...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		commandString := CommandToShell(cmd.Args)
 		Stopf("failed to run command:\n$ %s\n%v", commandString, err)
