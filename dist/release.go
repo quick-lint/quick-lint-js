@@ -50,8 +50,13 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Update release notes file",
 		Run: func() {
-			fmt.Printf("Update the release notes file: docs/CHANGELOG.md\n")
-			WaitForDone()
+			changelogPath := "docs/CHANGELOG.md"
+			if err := UpdateUnreleasedChangelogFile(changelogPath, VersionFileInfo{
+				VersionNumber: ReleaseVersion,
+				ReleaseDate:   ReleaseDate,
+			}); err != nil {
+				Stopf("failed to update changelog file %s: %v", changelogPath, err)
+			}
 		},
 	},
 
@@ -710,6 +715,40 @@ func UpdateDebianChangelog(changelogFilePath string, versionInfo VersionFileInfo
 	}
 
 	return nil
+}
+
+func UpdateUnreleasedChangelogFile(changelogFilePath string, versionInfo VersionFileInfo) error {
+	originalData, err := os.ReadFile(changelogFilePath)
+	if err != nil {
+		return err
+	}
+
+	newData, err := UpdateUnreleasedChangelog(originalData, versionInfo)
+	if err != nil {
+		return err
+	}
+
+	fileMode := fs.FileMode(0644) // Unused, because the file should already exist.
+	if err := os.WriteFile(changelogFilePath, newData, fileMode); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateUnreleasedChangelog(changelog []byte, versionInfo VersionFileInfo) ([]byte, error) {
+	unreleasedHeadingRegexp := regexp.MustCompile("(?m:^## Unreleased\n)")
+	newHeading := []byte(fmt.Sprintf(
+		"## %s (%s)\n\n[Downloads](https://c.quick-lint-js.com/releases/%s/)\n",
+		versionInfo.VersionNumber,
+		versionInfo.ReleaseDate.Format("2006-01-02"),
+		versionInfo.VersionNumber,
+	))
+	newChangelog := unreleasedHeadingRegexp.ReplaceAllLiteral(changelog, newHeading)
+	if bytes.Equal(newChangelog, changelog) {
+		return nil, fmt.Errorf("could not find '## Unreleased' heading in changelog")
+	}
+	return newChangelog, nil
 }
 
 func EnsureEmptyDirectory(path string) {

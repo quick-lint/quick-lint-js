@@ -102,6 +102,45 @@ func TestUpdateDebianChangelog(t *testing.T) {
 	})
 }
 
+func TestUpdateUnreleasedChangelog(t *testing.T) {
+	t.Run("replaces unreleased heading and adds downlods link", func(t *testing.T) {
+		losAngeles, err := time.LoadLocation("America/Los_Angeles")
+		Check(t, err)
+
+		newChangelog, err := UpdateUnreleasedChangelog(
+			[]byte("## Unreleased\n\n## 1.0.0 (2022-01-01)\n"),
+			VersionFileInfo{
+				VersionNumber: "2.0.0",
+				ReleaseDate:   time.Date(2022, 2, 8, 16, 56, 37, 0, losAngeles),
+			},
+		)
+		Check(t, err)
+		AssertStringsEqual(t, string(newChangelog),
+			"## 2.0.0 (2022-02-08)\n"+
+				"\n"+
+				"[Downloads](https://c.quick-lint-js.com/releases/2.0.0/)\n"+
+				"\n"+
+				"## 1.0.0 (2022-01-01)\n")
+	})
+
+	t.Run("fails if no unreleased heading", func(t *testing.T) {
+		losAngeles, err := time.LoadLocation("America/Los_Angeles")
+		Check(t, err)
+
+		_, err = UpdateUnreleasedChangelog(
+			[]byte("## 1.0.0 (2022-01-01)\n\n"),
+			VersionFileInfo{
+				VersionNumber: "2.0.0",
+				ReleaseDate:   time.Date(2022, 2, 8, 16, 56, 37, 0, losAngeles),
+			},
+		)
+		if err == nil {
+			t.Fatalf("expected error")
+		}
+		AssertStringsEqual(t, err.Error(), "could not find '## Unreleased' heading in changelog")
+	})
+}
+
 func TestUpdateReleaseVersions(t *testing.T) {
 	t.Run("only version number", func(t *testing.T) {
 		updated, err := UpdateReleaseVersions(UpdateReleaseVersionsOptions{
