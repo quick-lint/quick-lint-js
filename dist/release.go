@@ -294,7 +294,6 @@ var Steps []Step = []Step{
 				Stopf("missing -ReleaseCommitHash\n")
 			}
 			RunCommandOrStop("./website/tools/deploy.sh", ReleaseCommitHash)
-			WaitForDone()
 		},
 	},
 
