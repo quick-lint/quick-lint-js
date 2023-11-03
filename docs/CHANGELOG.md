@@ -21,6 +21,8 @@ Semantic Versioning.
   (Implemented by [arieldon][].)
 * `cmake --install` with `--component build-tools` now installs the build
   tools. (This is a regression introduced in quick-lint-js version 2.16.0.)
+* Windows: The installer and executables are now signed with a non-expired
+  certificate chain.
 
 ## 2.17.0 (2023-10-25)
 
@@ -32,6 +34,9 @@ Semantic Versioning.
   tools. (This is a regression introduced in quick-lint-js version 2.16.0.)
   Fix: [Git commit
   3923f0df76d24b73d57f15eec61ab190ea048093][cmake-install-component-build-tools-patch]
+* Windows: Code signing does not validate on some machines. [Workaround: follow
+  SSL.com's instructions for removing the expired "Certum Trusted Network CA"
+  certificate.](https://www.ssl.com/blogs/ssl-com-legacy-cross-signed-root-certificate-expiring-on-september-11-2023/#ftoc-heading-7)
 
 ### Added
 

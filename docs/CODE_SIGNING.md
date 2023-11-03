@@ -65,7 +65,6 @@ from a certificate authority (e.g. [SSL.com][]):
    `dist/certificates/quick-lint-js.crt`.
 7. Augment .crt file with certificates root CAs:
    * `SSL_COM_ROOT_CERTIFICATION_AUTHORITY_RSA.crt`
-   * `Certum Trusted Network CA.pem`
 8. [Update the macOS code signing requirements file.][apple-csreq]
 
 [SSL.com]: https://www.ssl.com/
