@@ -121,20 +121,14 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Re-generate man pages",
 		Run: func() {
-			cmd := exec.Command("./docs/man/generate-man-pages")
-			if err := cmd.Run(); err != nil {
-				Stopf("failed to generate man pages: %v", err)
-			}
+			RunCommandOrStop("./docs/man/generate-man-pages")
 		},
 	},
 
 	Step{
 		Title: "Re-generate Vim tags",
 		Run: func() {
-			cmd := exec.Command("./tools/generate-vim-tags")
-			if err := cmd.Run(); err != nil {
-				Stopf("failed to generate Vim tags: %v", err)
-			}
+			RunCommandOrStop("./tools/generate-vim-tags")
 		},
 	},
 
@@ -201,31 +195,25 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Create a Scoop manifest",
 		Run: func() {
-			cmd := exec.Command(
+			RunCommandOrStop(
 				"go", "run", "./dist/scoop/make-manifest.go", "-BaseURI",
 				fmt.Sprintf("https://c.quick-lint-js.com/releases/%s/", ReleaseVersion),
 				"-x86-ZIP", "signed-builds/manual/windows-x86.zip",
 				"-x64-ZIP", "signed-builds/manual/windows.zip",
 				"-Out", "signed-builds/scoop/quick-lint-js.json",
 			)
-			if err := cmd.Run(); err != nil {
-				Stopf("failed to create Scoop manifest: %v", err)
-			}
 		},
 	},
 
 	Step{
 		Title: "Create a winget manifest",
 		Run: func() {
-			cmd := exec.Command(
+			RunCommandOrStop(
 				"go", "run", "./dist/winget/make-manifests.go", "-BaseURI",
 				fmt.Sprintf("https://c.quick-lint-js.com/releases/%s/", ReleaseVersion),
 				"-MSIX", "signed-builds/windows/quick-lint-js.msix",
 				"-OutDir", "signed-builds/winget/",
 			)
-			if err := cmd.Run(); err != nil {
-				Stopf("failed to create winget manifest: %v", err)
-			}
 		},
 	},
 
@@ -573,6 +561,26 @@ func UpdateReleaseVersions(options UpdateReleaseVersionsOptions) ([]byte, error)
 	}
 
 	return newFileContent, nil
+}
+
+func RunCommandOrStop(name string, arg ...string) {
+	cmd := exec.Command(name, arg...)
+	if err := cmd.Run(); err != nil {
+		commandString := CommandToShell(cmd.Args)
+		Stopf("failed to run command:\n$ %s\n%v", commandString, err)
+	}
+}
+
+// Escapes the command for POSIX-style shells.
+func CommandToShell(args []string) string {
+	escape := func(arg string) string {
+		return "'" + strings.ReplaceAll(arg, "'", "'\\''") + "'"
+	}
+	escapedArgs := make([]string, len(args))
+	for i, arg := range args {
+		escapedArgs[i] = escape(arg)
+	}
+	return strings.Join(escapedArgs, " ")
 }
 
 func GetCurrentCommitHash() string {
