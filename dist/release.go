@@ -239,7 +239,7 @@ var Steps []Step = []Step{
 		Title: "Publish the Visual Studio Code extension to the Marketplace",
 		Run: func() {
 			fmt.Printf("With the `vscode/quick-lint-js-*.vsix` artifact:\n")
-			fmt.Printf("$ npx vsce publish --packagePath signed-builds/vscode/quick-lint-js-*.vsix\n")
+			fmt.Printf("$ npx vsce publish --packagePath signed-builds/vscode/quick-lint-js-%s.vsix\n", ReleaseVersion)
 			WaitForDone()
 		},
 	},
@@ -248,7 +248,7 @@ var Steps []Step = []Step{
 		Title: "Publish the Visual Studio Code extension to the Open VSX Registry",
 		Run: func() {
 			fmt.Printf("With the `vscode/quick-lint-js-*.vsix` artifact:\n")
-			fmt.Printf("$ npx ovsx publish signed-builds/vscode/quick-lint-js-*.vsix --pat YOUR_ACCESS_TOKEN\n")
+			fmt.Printf("$ npx ovsx publish signed-builds/vscode/quick-lint-js-%s.vsix --pat YOUR_ACCESS_TOKEN\n", ReleaseVersion)
 			WaitForDone()
 		},
 	},
@@ -257,7 +257,7 @@ var Steps []Step = []Step{
 		Title: "Publish to npm",
 		Run: func() {
 			fmt.Printf("With the `npm/quick-lint-js-*.tgz` artifact:\n")
-			fmt.Printf("$ npm publish signed-builds/npm/quick-lint-js-*.tgz\n")
+			fmt.Printf("$ npm publish signed-builds/npm/quick-lint-js-%s.tgz\n", ReleaseVersion)
 			WaitForDone()
 		},
 	},
