@@ -12,6 +12,8 @@ Semantic Versioning.
 
 * TypeScript support (still experimental):
   * `export as namespace` statements are now parsed.
+  * `case await x:` no longer treats `:` as if it was a type annotation colon in
+    an arrow function parameter list.
 
 ## 2.18.0 (2023-11-03)
 

@@ -1105,7 +1105,8 @@ Expression* Parser::parse_async_expression_only(
     }
 
     std::optional<Source_Code_Span> type_colon_span;
-    if (this->peek().type == Token_Type::colon && this->options_.typescript) {
+    if (is_async && this->peek().type == Token_Type::colon &&
+        this->options_.typescript) {
       // async param: Type => {}  // Invalid.
       type_colon_span = this->peek().span();
       Buffering_Visitor type_visits(&this->type_expression_memory_);
