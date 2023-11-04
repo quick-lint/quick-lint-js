@@ -2775,10 +2775,11 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
       case Token_Type::kw_throw:
       case Token_Type::kw_break:
       case Token_Type::kw_case:
-      //Temporarily return false to omit diag with if statments
+      //Temporarily return true to omit diag with these statments
       case Token_Type::kw_if:
       case Token_Type::kw_try:
       case Token_Type::kw_while:
+      case Token_Type::kw_do:
       case Token_Type::kw_for:
         return true;
       default:
@@ -2799,7 +2800,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
           !this->peek().has_leading_comment) {
         this->diag_reporter_->report(
             Diag_Fallthrough_Without_Comment_In_Switch{.end_of_case =
-                                                            prev_token.span()});
+                                                            Source_Code_Span::unit(this->peek().begin) });
       }
       prev_token = this->peek();
       is_before_first_switch_case = false;
@@ -2836,9 +2837,10 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
       if (!is_before_first_switch_case &&
           !is_valid_end_of_case(prev_token.type) &&
           !this->peek().has_leading_comment) {
+        
         this->diag_reporter_->report(
             Diag_Fallthrough_Without_Comment_In_Switch{.end_of_case =
-                                                            prev_token.span()});
+                                                            Source_Code_Span::unit(this->peek().begin) });
       }
       is_before_first_switch_case = false;
       this->skip();
