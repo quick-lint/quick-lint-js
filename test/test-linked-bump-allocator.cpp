@@ -296,7 +296,7 @@ TEST(Test_Linked_Bump_Allocator, non_last_allocation_cannot_grow) {
     (defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST)
 TEST(Test_Linked_Bump_Allocator, cannot_allocate_when_disabled) {
   auto check = [] {
-    linked_bump_allocator<1> alloc("test");
+    Linked_Bump_Allocator alloc("test");
     auto disable_guard = alloc.disable();
     // The following line should crash:
     [[maybe_unused]] char* c = alloc.new_object<char>();
@@ -308,7 +308,7 @@ TEST(Test_Linked_Bump_Allocator, cannot_allocate_when_disabled) {
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
 TEST(Test_Linked_Bump_Allocator, can_allocate_after_disabling_then_reenabling) {
-  linked_bump_allocator<1> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   {
     auto disable_guard = alloc.disable();
     // Destruct disable_guard, re-enabling allocation.

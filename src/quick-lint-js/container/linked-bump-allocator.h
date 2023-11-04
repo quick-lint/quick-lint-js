@@ -211,7 +211,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
    private:
 #if QLJS_DEBUG_BUMP_ALLOCATOR
-    explicit disable_guard(linked_bump_allocator* alloc) : alloc_(alloc) {
+    explicit Disable_Guard(Linked_Bump_Allocator* alloc) : alloc_(alloc) {
       this->alloc_->disabled_count_ += 1;
     }
 #else
@@ -219,7 +219,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 #endif
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
-    linked_bump_allocator* alloc_;
+    Linked_Bump_Allocator* alloc_;
 #endif
 
     friend class Linked_Bump_Allocator;
