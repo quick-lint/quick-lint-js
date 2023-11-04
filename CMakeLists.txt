@@ -126,6 +126,11 @@ option(
   FALSE
 )
 option(
+  QUICK_LINT_JS_FEATURE_EXTRA_DEBUG
+  "Enable extra slow debug checking at run-time"
+  FALSE
+)
+option(
   QUICK_LINT_JS_FEATURE_VECTOR_PROFILING
   "Enable the QLJS_DUMP_VECTORS option at run-time"
   FALSE
@@ -146,6 +151,9 @@ quick_lint_js_disable_unwanted_warnings()
 
 if (WIN32)
   add_definitions(-D_WIN32_WINNT=0x0602)
+endif ()
+if (QUICK_LINT_JS_FEATURE_EXTRA_DEBUG)
+  add_compile_definitions(QLJS_DEBUG)
 endif ()
 
 # HACK(strager): Work around issues with CI. We should consider using
