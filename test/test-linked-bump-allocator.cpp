@@ -81,7 +81,7 @@ TEST(Test_Linked_Bump_Allocator,
 
 TEST(Test_Linked_Bump_Allocator,
      less_aligned_pre_grown_and_grown_array_keeps_next_allocation_aligned) {
-  Linked_Bump_Allocator<4> alloc("test");
+  Linked_Bump_Allocator<1> alloc("test");
 
   Span<char> chars = alloc.allocate_uninitialized_span<char>(3);
   bool grew = alloc.try_grow_array_in_place(chars.data(), 3, 6);
@@ -134,6 +134,26 @@ TEST(Test_Linked_Bump_Allocator, filling_first_chunk_allocates_second_chunk) {
   [[maybe_unused]] char* new_chunk_object = alloc.new_object<char>();
   // TODO(strager): How do we verify that new_chunk_object is in its own chunk?
   assert_valid_memory(new_chunk_object);
+}
+
+TEST(Test_Linked_Bump_Allocator,
+     allocate_new_chunk_with_over_alignment_aligns) {
+  constexpr std::size_t chunk_size =
+      4096 - sizeof(void*) * 2;  // Implementation detail.
+
+  Linked_Bump_Allocator<alignof(std::uint32_t)> alloc("test");
+  [[maybe_unused]] Span<char> padding = alloc.allocate_span<char>(chunk_size);
+  ASSERT_EQ(alloc.remaining_bytes_in_current_chunk(), 0)
+      << "First chunk should be consumed entirely";
+
+  // NOTE[Linked_Bump_Allocator-append_chunk-alignment]: This should allocate a
+  // brand new chunk, thus exercising the alignment code in
+  // Linked_Bump_Allocator::append_chunk.
+  struct alignas(128) Over_Aligned_Struct {
+    char data[chunk_size];
+  };
+  Over_Aligned_Struct* s = alloc.new_object<Over_Aligned_Struct>();
+  assert_valid_memory(s);
 }
 
 TEST(Test_Linked_Bump_Allocator, rewinding_within_chunk_reuses_memory) {

@@ -13,6 +13,7 @@
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/cast.h>
+#include <quick-lint-js/util/math-overflow.h>
 #include <quick-lint-js/util/pointer.h>
 #include <utility>
 
@@ -32,9 +33,10 @@ namespace quick_lint_js {
 // * no per-object free()/delete
 // * bulk free() via rewind() (doesn't call destructors)
 // * in-place growing of allocations
-// * all allocations have the same alignment
 //
 // Internally, Linked_Bump_Allocator maintains a linked list of chunks.
+//
+// TODO(strager): Remove alignment parameter.
 template <std::size_t alignment>
 class Linked_Bump_Allocator final : public Memory_Resource {
  private:
@@ -133,11 +135,8 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
   template <class T, class... Args>
   T* new_object(Args&&... args) {
-    static_assert(alignof(T) <= alignment,
-                  "T is not allowed by this allocator; this allocator's "
-                  "alignment is insufficient for T");
-    constexpr std::size_t byte_size = align_up(sizeof(T));
-    return new (this->allocate_bytes(byte_size)) T(std::forward<Args>(args)...);
+    return new (this->allocate_bytes(sizeof(T), alignof(T)))
+        T(std::forward<Args>(args)...);
   }
 
   template <class T>
@@ -156,11 +155,9 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
   template <class T>
   [[nodiscard]] Span<T> allocate_uninitialized_span(std::size_t size) {
-    static_assert(alignof(T) <= alignment,
-                  "T is not allowed by this allocator; this allocator's "
-                  "alignment is insufficient for T");
-    std::size_t byte_size = this->align_up(size * sizeof(T));
-    T* items = reinterpret_cast<T*>(this->allocate_bytes(byte_size));
+    std::size_t byte_size = size * sizeof(T);
+    T* items =
+        reinterpret_cast<T*>(this->allocate_bytes(byte_size, alignof(T)));
     return Span<T>(items, narrow_cast<Span_Size>(size));
   }
 
@@ -185,7 +182,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
                                std::size_t new_size) {
     this->assert_not_disabled();
     QLJS_ASSERT(new_size > old_size);
-    std::size_t old_byte_size = this->align_up(old_size * sizeof(T));
+    std::size_t old_byte_size = old_size * sizeof(T);
     bool array_is_last_allocation =
         reinterpret_cast<char*>(array) + old_byte_size ==
         this->next_allocation_;
@@ -194,7 +191,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
       return false;
     }
 
-    std::size_t extra_bytes = this->align_up((new_size - old_size) * sizeof(T));
+    std::size_t extra_bytes = (new_size - old_size) * sizeof(T);
     if (extra_bytes > this->remaining_bytes_in_current_chunk()) {
       return false;
     }
@@ -235,17 +232,16 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
  protected:
   void* do_allocate(std::size_t bytes, std::size_t align) override {
-    QLJS_ASSERT(align <= alignment);
-    return this->allocate_bytes(this->align_up(bytes));
+    return this->allocate_bytes(bytes, align);
   }
 
-  void do_deallocate(void* p, std::size_t bytes, std::size_t align) override {
-    QLJS_ASSERT(align <= alignment);
+  void do_deallocate(void* p, std::size_t bytes,
+                     [[maybe_unused]] std::size_t align) override {
     this->deallocate_bytes(p, bytes);
   }
 
  private:
-  struct alignas(maximum(alignment, alignof(void*))) Chunk_Header {
+  struct alignas(alignof(void*)) Chunk_Header {
     explicit Chunk_Header(Chunk* previous) : previous(previous) {}
 
     Chunk* previous;  // Linked list.
@@ -253,19 +249,30 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
   static inline constexpr std::size_t default_chunk_size = 4096 - sizeof(Chunk);
 
-  static constexpr std::size_t align_up(std::size_t size) {
-    return (size + alignment - 1) & ~(alignment - 1);
-  }
-
-  [[nodiscard]] void* allocate_bytes(std::size_t size) {
+  [[nodiscard]] void* allocate_bytes(std::size_t size, std::size_t align) {
     this->assert_not_disabled();
-    QLJS_SLOW_ASSERT(size % alignment == 0);
-    if (this->remaining_bytes_in_current_chunk() < size) {
-      this->append_chunk(maximum(size, this->default_chunk_size));
-      QLJS_ASSERT(this->remaining_bytes_in_current_chunk() >= size);
-    }
-    void* result = this->next_allocation_;
-    this->next_allocation_ += size;
+    QLJS_SLOW_ASSERT(size % align == 0);
+
+    std::uintptr_t next_allocation_int =
+        reinterpret_cast<std::uintptr_t>(this->next_allocation_);
+    // NOTE(strager): align_up might overflow. If it does, the allocation
+    // couldn't fit due to alignment alone
+    // (alignment_padding > this->remaining_bytes_in_current_chunk()).
+    std::uintptr_t result_int = align_up(next_allocation_int, align);
+    char* result = reinterpret_cast<char*>(result_int);
+
+    // alignment_padding is how much the pointer moved due to alignment, i.e.
+    // how much padding is necessary due to alignment.
+    std::uintptr_t alignment_padding = result_int - next_allocation_int;
+    bool have_enough_space =
+        (alignment_padding + size) <= this->remaining_bytes_in_current_chunk();
+    if (!have_enough_space) [[unlikely]] {
+        this->append_chunk(maximum(size, this->default_chunk_size), align);
+        result = this->next_allocation_;
+        QLJS_ASSERT(is_aligned(result, align));
+      }
+
+    this->next_allocation_ = result + size;
     this->did_allocate_bytes(result, size);
     return result;
   }
@@ -291,11 +298,25 @@ class Linked_Bump_Allocator final : public Memory_Resource {
     // TODO(strager): Mark memory as unusable for Valgrind.
   }
 
-  void append_chunk(std::size_t size) {
-    this->chunk_ = Chunk::allocate_and_construct_header(new_delete_resource(),
-                                                        size, this->chunk_);
-    this->next_allocation_ = this->chunk_->flexible_capacity_begin();
+  void append_chunk(std::size_t size, std::size_t align) {
+    // Over-alignment is tested by
+    // NOTE[Linked_Bump_Allocator-append_chunk-alignment].
+    bool is_over_aligned = align > Chunk::capacity_alignment;
+    std::size_t allocated_size = size;
+    if (is_over_aligned) {
+      allocated_size += align;
+    }
+    this->chunk_ = Chunk::allocate_and_construct_header(
+        new_delete_resource(), allocated_size, this->chunk_);
+    std::uintptr_t next_allocation_int = reinterpret_cast<std::uintptr_t>(
+        this->chunk_->flexible_capacity_begin());
+    if (is_over_aligned) {
+      next_allocation_int = align_up(next_allocation_int, align);
+    }
+    this->next_allocation_ = reinterpret_cast<char*>(next_allocation_int);
     this->chunk_end_ = this->chunk_->flexible_capacity_end();
+    QLJS_ASSERT(is_aligned(this->next_allocation_, align));
+    QLJS_ASSERT(this->remaining_bytes_in_current_chunk() >= size);
   }
 
   void assert_not_disabled() const {

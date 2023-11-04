@@ -30,6 +30,12 @@ class alignas(maximum(alignof(T),
                       alignof(Flexible_Array_Base<Header>))) Flexible_Array
     : public Flexible_Array_Base<Header> {
  public:
+  // The guaranteed alignment for the capacity.
+  //
+  // Invariant: capacity_alignment >= alignof(T)
+  static inline constexpr std::size_t capacity_alignment =
+      maximum(alignof(T), alignof(Flexible_Array_Base<Header>));
+
   T* flexible_capacity_begin() { return reinterpret_cast<T*>(&this[1]); }
 
   T* flexible_capacity_end() {
