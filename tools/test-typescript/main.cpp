@@ -32,6 +32,10 @@ constexpr String8_View ignored_tests[] = {
     // directives causes its errors to be ignored by the test runner, but I
     // can't tell which test directive would do this.
     u8"/usedImportNotElidedInJs.ts"sv,
+
+    // This test correctly emits E0196 (a warning).
+    // TODO(strager): Disable E0196 for this test but still check this test.
+    u8"/initializePropertiesWithRenamedLet.ts"sv,
 };
 
 struct Test_TypeScript_Options {
