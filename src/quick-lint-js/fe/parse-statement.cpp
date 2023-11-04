@@ -1459,6 +1459,37 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     break;
   }
 
+  // export as namespace MyLibrary;  // TypeScript definition only.
+  case Token_Type::kw_as:
+    // @@@ declare namespace stuff
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_namespace);
+    this->skip();
+    switch (this->peek().type) {
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
+    case Token_Type::identifier:
+      this->skip();
+      break;
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+    if (!this->options_.typescript_definition_file) {
+      this->diag_reporter_->report(
+          Diag_TypeScript_Export_As_Namespace_Is_Only_Allowed_In_TypeScript_Definition_File{
+              .export_keyword = export_token_span,
+          });
+    } else if (this->in_typescript_namespace_or_module_.has_value()) {
+      this->diag_reporter_->report(
+          Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module{
+              .export_keyword = export_token_span,
+              .namespace_or_module_keyword =
+                  *this->in_typescript_namespace_or_module_,
+          });
+    }
+    this->consume_semicolon_after_statement();
+    break;
+
   // export enum E {}  // TypeScript only.
   case Token_Type::kw_enum:
     // is_current_typescript_namespace_non_empty_ is possibly set by

@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[525] = {
+inline const Translated_String test_translation_table[528] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -620,6 +620,28 @@ inline const Translated_String test_translation_table[525] = {
             u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
             u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
             u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+        },
+    },
+    {
+        "'export as namespace' is not allowed in a namespace or module"_translatable,
+        u8"'export as namespace' is not allowed in a namespace or module",
+        {
+            u8"'export as namespace' is not allowed in a namespace or module",
+            u8"'export as namespace' is not allowed in a namespace or module",
+            u8"'export as namespace' is not allowed in a namespace or module",
+            u8"'export as namespace' is not allowed in a namespace or module",
+            u8"'export as namespace' is not allowed in a namespace or module",
+        },
+    },
+    {
+        "'export as namespace' is only allowed in TypeScript .d.ts files"_translatable,
+        u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+        {
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
         },
     },
     {
@@ -2347,6 +2369,17 @@ inline const Translated_String test_translation_table[525] = {
             u8"containing 'declare namespace' starts here",
             u8"containing 'declare namespace' starts here",
             u8"containing 'declare namespace' starts here",
+        },
+    },
+    {
+        "containing namespace or module declared here"_translatable,
+        u8"containing namespace or module declared here",
+        {
+            u8"containing namespace or module declared here",
+            u8"containing namespace or module declared here",
+            u8"containing namespace or module declared here",
+            u8"containing namespace or module declared here",
+            u8"containing namespace or module declared here",
         },
     },
     {

@@ -66,6 +66,8 @@ const Translation_Table translation_data = {
         {18, 13, 53, 16, 51, 16},            //
         {0, 0, 0, 0, 0, 33},                 //
         {0, 0, 0, 0, 0, 91},                 //
+        {0, 0, 0, 0, 0, 62},                 //
+        {0, 0, 0, 0, 0, 64},                 //
         {0, 0, 0, 39, 0, 22},                //
         {30, 39, 0, 46, 0, 38},              //
         {0, 0, 0, 0, 0, 11},                 //
@@ -222,7 +224,8 @@ const Translation_Table translation_data = {
         {58, 31, 67, 69, 0, 43},             //
         {90, 38, 91, 90, 53, 75},            //
         {0, 0, 0, 0, 0, 29},                 //
-        {41, 16, 34, 35, 34, 43},            //
+        {0, 0, 0, 0, 0, 43},                 //
+        {41, 16, 34, 35, 34, 45},            //
         {0, 0, 0, 0, 0, 43},                 //
         {0, 0, 0, 0, 0, 60},                 //
         {0, 0, 0, 0, 0, 22},                 //
@@ -1862,6 +1865,8 @@ const Translation_Table translation_data = {
         u8"'do-while' loop\0"
         u8"'else' has no corresponding 'if'\0"
         u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead\0"
+        u8"'export as namespace' is not allowed in a namespace or module\0"
+        u8"'export as namespace' is only allowed in TypeScript .d.ts files\0"
         u8"'export' keyword here\0"
         u8"'extends' must be before 'implements'\0"
         u8"'for' loop\0"
@@ -2019,6 +2024,7 @@ const Translation_Table translation_data = {
         u8"const fields within classes are only allowed in TypeScript, not JavaScript\0"
         u8"const variable declared here\0"
         u8"containing 'declare namespace' starts here\0"
+        u8"containing namespace or module declared here\0"
         u8"continue can only be used inside of a loop\0"
         u8"decorator belongs immediately before this overloaded method\0"
         u8"decorator starts here\0"

@@ -1410,6 +1410,18 @@ msgid "{1:headlinese} value must be a compile-time constant"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'export as namespace' is not allowed in a namespace or module"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "containing namespace or module declared here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'export as namespace' is only allowed in TypeScript .d.ts files"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"
 msgstr ""
 

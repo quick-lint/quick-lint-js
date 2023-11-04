@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 526;
-constexpr std::size_t translation_table_string_table_size = 80133;
+constexpr std::uint16_t translation_table_mapping_table_size = 529;
+constexpr std::size_t translation_table_string_table_size = 80304;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -80,6 +80,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'do-while' loop"sv,
           "'else' has no corresponding 'if'"sv,
           "'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"sv,
+          "'export as namespace' is not allowed in a namespace or module"sv,
+          "'export as namespace' is only allowed in TypeScript .d.ts files"sv,
           "'export' keyword here"sv,
           "'extends' must be before 'implements'"sv,
           "'for' loop"sv,
@@ -237,6 +239,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "const fields within classes are only allowed in TypeScript, not JavaScript"sv,
           "const variable declared here"sv,
           "containing 'declare namespace' starts here"sv,
+          "containing namespace or module declared here"sv,
           "continue can only be used inside of a loop"sv,
           "decorator belongs immediately before this overloaded method"sv,
           "decorator starts here"sv,

@@ -2155,6 +2155,27 @@ struct Diag_TypeScript_Enum_Value_Must_Be_Constant {
   Enum_Kind declared_enum_kind;
 };
 
+struct
+    Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module {
+  [[qljs::diag("E0424", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "'export as namespace' is not allowed in a namespace or module",
+      ARG(export_keyword))]]  //
+  [[qljs::message("containing namespace or module declared here",
+                  ARG(namespace_or_module_keyword))]]  //
+  Source_Code_Span export_keyword;
+  Source_Code_Span namespace_or_module_keyword;
+};
+
+struct
+    Diag_TypeScript_Export_As_Namespace_Is_Only_Allowed_In_TypeScript_Definition_File {
+  [[qljs::diag("E0423", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "'export as namespace' is only allowed in TypeScript .d.ts files",
+      ARG(export_keyword))]]  //
+  Source_Code_Span export_keyword;
+};
+
 struct Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript {
   [[qljs::diag("E0370", Diagnostic_Severity::error)]]  //
   // clang-format off

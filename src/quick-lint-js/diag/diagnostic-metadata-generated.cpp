@@ -4189,6 +4189,38 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module
+    {
+      .code = 424,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'export as namespace' is not allowed in a namespace or module"),
+        QLJS_TRANSLATABLE("containing namespace or module declared here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module, export_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module, namespace_or_module_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Export_As_Namespace_Is_Only_Allowed_In_TypeScript_Definition_File
+    {
+      .code = 423,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'export as namespace' is only allowed in TypeScript .d.ts files"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Export_As_Namespace_Is_Only_Allowed_In_TypeScript_Definition_File, export_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript
     {
       .code = 370,
