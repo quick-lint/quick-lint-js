@@ -35,9 +35,6 @@ namespace quick_lint_js {
 // * in-place growing of allocations
 //
 // Internally, Linked_Bump_Allocator maintains a linked list of chunks.
-//
-// TODO(strager): Remove alignment parameter.
-template <std::size_t alignment>
 class Linked_Bump_Allocator final : public Memory_Resource {
  private:
   struct Chunk_Header;

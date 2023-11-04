@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include <cstdint>
 #include <quick-lint-js/container/linked-bump-allocator.h>
-#include <quick-lint-js/port/math.h>
 
 namespace quick_lint_js {
-using Monotonic_Allocator =
-    Linked_Bump_Allocator<maximum(alignof(void*), alignof(std::uint64_t))>;
+using Monotonic_Allocator = Linked_Bump_Allocator;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

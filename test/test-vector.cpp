@@ -15,7 +15,7 @@ using ::testing::IsEmpty;
 namespace quick_lint_js {
 namespace {
 TEST(Test_Bump_Vector, empty) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   EXPECT_TRUE(v.empty());
   EXPECT_EQ(v.size(), 0);
@@ -23,7 +23,7 @@ TEST(Test_Bump_Vector, empty) {
 }
 
 TEST(Test_Bump_Vector, append_into_reserved_memory) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.reserve(2);
   EXPECT_EQ(v.capacity(), 2);
@@ -41,7 +41,7 @@ TEST(Test_Bump_Vector, append_into_reserved_memory) {
 }
 
 TEST(Test_Bump_Vector, reserve_0_does_nothing) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
 
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.reserve(0);
@@ -58,7 +58,7 @@ TEST(Test_Bump_Vector, reserve_0_does_nothing) {
 }
 
 TEST(Test_Bump_Vector, append_into_new_memory) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   EXPECT_EQ(v.capacity(), 0);
   EXPECT_EQ(v.size(), 0);
@@ -75,7 +75,7 @@ TEST(Test_Bump_Vector, append_into_new_memory) {
 }
 
 TEST(Test_Bump_Vector, growing_allocation_in_place) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.reserve(2);
 
@@ -91,7 +91,7 @@ TEST(Test_Bump_Vector, growing_allocation_in_place) {
 }
 
 TEST(Test_Bump_Vector, growing_allocation_by_copy) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.reserve(2);
 
@@ -117,7 +117,7 @@ TEST(Test_Bump_Vector, growing_allocation_by_copy) {
 }
 
 TEST(Test_Bump_Vector, resize_allows_same_size) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
@@ -136,7 +136,7 @@ TEST(Test_Bump_Vector, resize_allows_same_size) {
 }
 
 TEST(Test_Bump_Vector, resize_allows_shrinking) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
@@ -157,7 +157,7 @@ TEST(Test_Bump_Vector, resize_allows_shrinking) {
 }
 
 TEST(Test_Bump_Vector, resize_allows_growing_within_capacity) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
@@ -178,7 +178,7 @@ TEST(Test_Bump_Vector, resize_allows_growing_within_capacity) {
 }
 
 TEST(Test_Bump_Vector, resize_allows_growing_outside_capacity) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
@@ -194,7 +194,7 @@ TEST(Test_Bump_Vector, resize_allows_growing_outside_capacity) {
 }
 
 TEST(Test_Bump_Vector, pop_back_shrinks_vector) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.push_back(100);
   v.push_back(200);
@@ -206,7 +206,7 @@ TEST(Test_Bump_Vector, pop_back_shrinks_vector) {
 }
 
 TEST(Test_Bump_Vector, pop_back_then_push_back_reuses_memory) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.push_back(100);
   v.push_back(200);
@@ -223,7 +223,7 @@ TEST(Test_Bump_Vector, pop_back_then_push_back_reuses_memory) {
 }
 
 TEST(Test_Bump_Vector, move_constructing_clears_old_vector) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
@@ -233,7 +233,7 @@ TEST(Test_Bump_Vector, move_constructing_clears_old_vector) {
 }
 
 TEST(Test_Bump_Vector, move_constructor_preserves_pointers) {
-  Linked_Bump_Allocator<alignof(int)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   Bump_Vector<int, decltype(alloc)> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);

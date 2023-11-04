@@ -15,7 +15,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 const Hash_Map<String8_View, JSX_Attribute>& jsx_attribute_aliases() {
-  static Linked_Bump_Allocator<1> string_allocator("jsx_attribute_aliases");
+  static Linked_Bump_Allocator string_allocator("jsx_attribute_aliases");
   static const Hash_Map<String8_View, JSX_Attribute> cache = [] {
     // FIXME(strager): This is very inefficient.
     Hash_Map<String8_View, JSX_Attribute> aliases{
