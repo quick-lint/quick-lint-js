@@ -1409,7 +1409,6 @@ void write_writer_h(CXX_Trace_Types_Parser& types, Output_Stream& out) {
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/binary-writer.h>
 #include <quick-lint-js/util/cast.h>
-#include <quick-lint-js/util/cast.h>
 #include <string_view>
 
 // clang-format off
