@@ -8,8 +8,13 @@
 #include <new>
 #include <quick-lint-js/port/attribute.h>
 #include <quick-lint-js/port/span.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/cast.h>
 #include <utility>
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-final-methods")
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-final-types")
 
 namespace quick_lint_js {
 // Like std::pmr::memory_resource.
@@ -121,6 +126,8 @@ class Memory_Resource {
 // Like std::pmr::new_delete_resource.
 Memory_Resource* new_delete_resource();
 }
+
+QLJS_WARNING_POP
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
