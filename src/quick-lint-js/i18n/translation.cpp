@@ -26,7 +26,7 @@ Translator qljs_messages;
 namespace {
 Span<std::string_view> split_on(const char* s, char separator,
                                 Monotonic_Allocator* allocator) {
-  Bump_Vector<std::string_view> locales("locales", allocator);
+  Vector<std::string_view> locales("locales", allocator);
   for (;;) {
     const char* sep = std::strchr(s, separator);
     if (sep) {
@@ -64,7 +64,7 @@ Span<std::string_view> get_user_locale_preferences(
   // TODO(strager): Determine the language using macOS' and Windows' native
   // APIs. See GNU gettext's _nl_language_preferences_default.
 
-  Bump_Vector<std::string_view> locales("locales", allocator);
+  Vector<std::string_view> locales("locales", allocator);
   locales.push_back(locale);
   return locales.release_to_span();
 }

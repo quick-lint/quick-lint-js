@@ -36,12 +36,12 @@ Options parse_options(int argc, char** argv, Monotonic_Allocator* allocator) {
   };
   std::optional<Next_Vim_File_Bufnr> next_vim_file_bufnr;
 
-  Bump_Vector<File_To_Lint> files_to_lint("files_to_lint", allocator);
-  Bump_Vector<const char*> error_unrecognized_options(
-      "error_unrecognized_options", allocator);
-  Bump_Vector<const char*> warning_vim_bufnr_without_file(
+  Vector<File_To_Lint> files_to_lint("files_to_lint", allocator);
+  Vector<const char*> error_unrecognized_options("error_unrecognized_options",
+                                                 allocator);
+  Vector<const char*> warning_vim_bufnr_without_file(
       "warning_vim_bufnr_without_file", allocator);
-  Bump_Vector<const char*> warning_language_without_file(
+  Vector<const char*> warning_language_without_file(
       "warning_language_without_file", allocator);
 
   const char* next_path_for_config_search = nullptr;

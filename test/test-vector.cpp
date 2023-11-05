@@ -14,17 +14,17 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(Test_Bump_Vector, empty) {
+TEST(Test_Vector, empty) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   EXPECT_TRUE(v.empty());
   EXPECT_EQ(v.size(), 0);
   EXPECT_EQ(v.capacity(), 0);
 }
 
-TEST(Test_Bump_Vector, append_into_reserved_memory) {
+TEST(Test_Vector, append_into_reserved_memory) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.reserve(2);
   EXPECT_EQ(v.capacity(), 2);
   EXPECT_EQ(v.size(), 0);
@@ -40,10 +40,10 @@ TEST(Test_Bump_Vector, append_into_reserved_memory) {
   EXPECT_THAT(v, ElementsAreArray({100, 200}));
 }
 
-TEST(Test_Bump_Vector, reserve_0_does_nothing) {
+TEST(Test_Vector, reserve_0_does_nothing) {
   Linked_Bump_Allocator alloc("test");
 
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.reserve(0);
   EXPECT_EQ(v.capacity(), 0);
   EXPECT_EQ(v.size(), 0);
@@ -51,15 +51,15 @@ TEST(Test_Bump_Vector, reserve_0_does_nothing) {
   v.push_back(100);
   v.push_back(200);
   v.push_back(300);
-  Bump_Vector_Size old_capacity = v.capacity();
+  Vector_Size old_capacity = v.capacity();
   v.reserve(0);
   EXPECT_EQ(v.capacity(), old_capacity);
   EXPECT_EQ(v.size(), 3);
 }
 
-TEST(Test_Bump_Vector, append_into_new_memory) {
+TEST(Test_Vector, append_into_new_memory) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   EXPECT_EQ(v.capacity(), 0);
   EXPECT_EQ(v.size(), 0);
 
@@ -74,9 +74,9 @@ TEST(Test_Bump_Vector, append_into_new_memory) {
   EXPECT_THAT(v, ElementsAreArray({100, 200}));
 }
 
-TEST(Test_Bump_Vector, growing_allocation_in_place) {
+TEST(Test_Vector, growing_allocation_in_place) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.reserve(2);
 
   v.emplace_back(100);
@@ -90,9 +90,9 @@ TEST(Test_Bump_Vector, growing_allocation_in_place) {
   EXPECT_THAT(v, ElementsAreArray({100, 200, 300, 400}));
 }
 
-TEST(Test_Bump_Vector, growing_allocation_by_copy) {
+TEST(Test_Vector, growing_allocation_by_copy) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.reserve(2);
 
   v.emplace_back(100);
@@ -116,14 +116,14 @@ TEST(Test_Bump_Vector, growing_allocation_by_copy) {
       << "growing vector shouldn't change unrelated allocation";
 }
 
-TEST(Test_Bump_Vector, resize_allows_same_size) {
+TEST(Test_Vector, resize_allows_same_size) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
   std::uintptr_t old_v_data_pointer =
       reinterpret_cast<std::uintptr_t>(v.data());
-  Bump_Vector_Size old_capacity = v.capacity();
+  Vector_Size old_capacity = v.capacity();
 
   v.resize(2);
 
@@ -135,15 +135,15 @@ TEST(Test_Bump_Vector, resize_allows_same_size) {
       << "resizing vector should not change data pointer";
 }
 
-TEST(Test_Bump_Vector, resize_allows_shrinking) {
+TEST(Test_Vector, resize_allows_shrinking) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
   v.emplace_back(300);
   std::uintptr_t old_v_data_pointer =
       reinterpret_cast<std::uintptr_t>(v.data());
-  Bump_Vector_Size old_capacity = v.capacity();
+  Vector_Size old_capacity = v.capacity();
 
   v.resize(2);
 
@@ -156,14 +156,14 @@ TEST(Test_Bump_Vector, resize_allows_shrinking) {
       << "shrinking vector should not change data pointer";
 }
 
-TEST(Test_Bump_Vector, resize_allows_growing_within_capacity) {
+TEST(Test_Vector, resize_allows_growing_within_capacity) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
   std::uintptr_t old_v_data_pointer =
       reinterpret_cast<std::uintptr_t>(v.data());
-  Bump_Vector_Size old_capacity = v.capacity();
+  Vector_Size old_capacity = v.capacity();
 
   ASSERT_GE(old_capacity, 3);
   v.resize(3);
@@ -177,9 +177,9 @@ TEST(Test_Bump_Vector, resize_allows_growing_within_capacity) {
       << "growing vector within capacity should not change data pointer";
 }
 
-TEST(Test_Bump_Vector, resize_allows_growing_outside_capacity) {
+TEST(Test_Vector, resize_allows_growing_outside_capacity) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
 
@@ -193,9 +193,9 @@ TEST(Test_Bump_Vector, resize_allows_growing_outside_capacity) {
       << "growing vector should default-construct new elements";
 }
 
-TEST(Test_Bump_Vector, pop_back_shrinks_vector) {
+TEST(Test_Vector, pop_back_shrinks_vector) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.push_back(100);
   v.push_back(200);
   v.push_back(300);
@@ -205,9 +205,9 @@ TEST(Test_Bump_Vector, pop_back_shrinks_vector) {
   EXPECT_GE(v.capacity(), 3);
 }
 
-TEST(Test_Bump_Vector, pop_back_then_push_back_reuses_memory) {
+TEST(Test_Vector, pop_back_then_push_back_reuses_memory) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.push_back(100);
   v.push_back(200);
   v.push_back(300);
@@ -222,28 +222,28 @@ TEST(Test_Bump_Vector, pop_back_then_push_back_reuses_memory) {
   EXPECT_GE(v.capacity(), 3);
 }
 
-TEST(Test_Bump_Vector, move_constructing_clears_old_vector) {
+TEST(Test_Vector, move_constructing_clears_old_vector) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
 
-  Bump_Vector<int> v2(std::move(v));
+  Vector<int> v2(std::move(v));
   EXPECT_THAT(v, IsEmpty());
 }
 
-TEST(Test_Bump_Vector, move_constructor_preserves_pointers) {
+TEST(Test_Vector, move_constructor_preserves_pointers) {
   Linked_Bump_Allocator alloc("test");
-  Bump_Vector<int> v("test", &alloc);
+  Vector<int> v("test", &alloc);
   v.emplace_back(100);
   v.emplace_back(200);
 
   std::uintptr_t old_v_data_pointer =
       reinterpret_cast<std::uintptr_t>(v.data());
-  Bump_Vector_Size old_v_capacity = v.capacity();
-  Bump_Vector_Size old_v_size = v.size();
+  Vector_Size old_v_capacity = v.capacity();
+  Vector_Size old_v_size = v.size();
 
-  Bump_Vector<int> v2(std::move(v));
+  Vector<int> v2(std::move(v));
 
   EXPECT_EQ(reinterpret_cast<std::uintptr_t>(v2.data()), old_v_data_pointer);
   EXPECT_EQ(v2.capacity(), old_v_capacity);

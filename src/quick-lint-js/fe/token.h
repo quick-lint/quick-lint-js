@@ -289,7 +289,7 @@ enum class Token_Type {
 const char* to_string(Token_Type);
 std::ostream& operator<<(std::ostream&, Token_Type);
 
-using Escape_Sequence_List = Bump_Vector<Source_Code_Span>;
+using Escape_Sequence_List = Vector<Source_Code_Span>;
 
 struct Token {
   Identifier identifier_name() const;

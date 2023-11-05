@@ -74,8 +74,8 @@ Event_Loop_Poll::~Event_Loop_Poll() { delete this->impl_; }
 void Event_Loop_Poll::run() {
   Monotonic_Allocator allocator("Event_Loop_Poll");
   // events[i] corresponds to event_registered_events[i].
-  Bump_Vector<::pollfd> events("events", &allocator);
-  Bump_Vector<const Registered_Event*> event_registered_events(
+  Vector<::pollfd> events("events", &allocator);
+  Vector<const Registered_Event*> event_registered_events(
       "event_registered_events", &allocator);
 
   while (!this->is_stop_requested()) {
@@ -116,7 +116,7 @@ void Event_Loop_Poll::run() {
     }
     QLJS_ASSERT(rc > 0);
 
-    for (Bump_Vector_Size i = 0; i < events.size(); ++i) {
+    for (Vector_Size i = 0; i < events.size(); ++i) {
       const ::pollfd& event = events[i];
       if (event.revents == 0) {
         continue;

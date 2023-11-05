@@ -566,7 +566,7 @@ class Parser {
   void parse_and_visit_named_exports(
       Parse_Visitor_Base &v,
       std::optional<Source_Code_Span> typescript_type_only_keyword,
-      Bump_Vector<Token> *out_exported_bad_tokens);
+      Vector<Token> *out_exported_bad_tokens);
 
   void parse_and_visit_variable_declaration_statement(
       Parse_Visitor_Base &v,

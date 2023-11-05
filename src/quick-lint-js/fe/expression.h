@@ -162,7 +162,7 @@ class Expression_Arena {
   using Buffering_Visitor_Ptr = Buffering_Visitor *;
 
   template <class T>
-  using Vector = Bump_Vector<T>;
+  using Vector = Vector<T>;
 
   template <class T>
   static inline constexpr bool is_allocatable =
@@ -172,7 +172,7 @@ class Expression_Arena {
   Expression *make_expression(Args &&... args);
 
   template <class T>
-  Array_Ptr<T> make_array(Bump_Vector<T> &&);
+  Array_Ptr<T> make_array(Vector<T> &&);
 
   template <class T>
   Array_Ptr<T> make_array(T *begin, T *end);
@@ -337,7 +337,7 @@ Expression *Expression_Arena::make_expression(Args &&... args) {
 
 template <class T>
 inline Expression_Arena::Array_Ptr<T> Expression_Arena::make_array(
-    Bump_Vector<T> &&elements) {
+    Vector<T> &&elements) {
   QLJS_ASSERT(elements.get_allocator() == &this->allocator_);
   // NOTE(strager): Adopt the pointer instead of copying.
   Array_Ptr<T> result(elements.data(), elements.size());

@@ -258,7 +258,7 @@ void enumerate_all_process_thread_names(Callback&& callback) {
 
 #if defined(__linux__)
 Span<Found_Debug_Server> find_debug_servers(Monotonic_Allocator* allocator) {
-  Bump_Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
+  Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
 
   enumerate_all_process_thread_names([&](std::string_view process_id_string,
                                          std::string_view thread_name) {
@@ -301,7 +301,7 @@ void enumerate_all_process_threads(Monotonic_Allocator& allocator,
   QLJS_ASSERT(
       narrow_cast<std::size_t>(process_id_buffer_size) % sizeof(::pid_t) == 0);
 
-  Bump_Vector<::pid_t> process_ids("process_ids", &allocator);
+  Vector<::pid_t> process_ids("process_ids", &allocator);
   // NOTE(strager): It's okay if our buffer is to small. We miss out on some
   // processes, but they were just created anyway. Harmless race condition.
   process_ids.resize(narrow_cast<std::size_t>(process_id_buffer_size) /
@@ -309,7 +309,7 @@ void enumerate_all_process_threads(Monotonic_Allocator& allocator,
   process_id_buffer_size = ::proc_listpids(
       PROC_ALL_PIDS, 0, process_ids.data(),
       narrow_cast<int>(process_ids.size() *
-                       narrow_cast<Bump_Vector_Size>(sizeof(::pid_t))));
+                       narrow_cast<Vector_Size>(sizeof(::pid_t))));
   if (process_id_buffer_size == -1) {
     QLJS_DEBUG_LOG("%s: ignoring failure to get process IDs: %s\n", __func__,
                    std::strerror(errno));
@@ -318,7 +318,7 @@ void enumerate_all_process_threads(Monotonic_Allocator& allocator,
   process_ids.resize(narrow_cast<std::size_t>(process_id_buffer_size) /
                      sizeof(int));
 
-  Bump_Vector<std::uint64_t> thread_ids("thread_ids", &allocator);
+  Vector<std::uint64_t> thread_ids("thread_ids", &allocator);
   constexpr std::size_t initial_thread_ids_buffer_count = 128;  // Arbitrary.
   for (::pid_t process_id : process_ids) {
     thread_ids.resize(initial_thread_ids_buffer_count);
@@ -327,7 +327,7 @@ void enumerate_all_process_threads(Monotonic_Allocator& allocator,
         process_id, PROC_PIDLISTTHREADIDS,
         /*arg=*/0, thread_ids.data(),
         narrow_cast<int>(thread_ids.size() *
-                         narrow_cast<Bump_Vector_Size>(sizeof(std::uint64_t))));
+                         narrow_cast<Vector_Size>(sizeof(std::uint64_t))));
     if (thread_ids_buffer_size == -1) {
       QLJS_DEBUG_LOG(
           "%s: ignoring failure to get thread IDs for process %d: %s\n",
@@ -337,10 +337,10 @@ void enumerate_all_process_threads(Monotonic_Allocator& allocator,
     QLJS_ASSERT(narrow_cast<std::size_t>(thread_ids_buffer_size) %
                     sizeof(std::uint64_t) ==
                 0);
-    Bump_Vector_Size thread_count =
-        narrow_cast<Bump_Vector_Size>(thread_ids_buffer_size) /
-        narrow_cast<Bump_Vector_Size>(sizeof(std::uint64_t));
-    if (narrow_cast<Bump_Vector_Size>(thread_count) == thread_ids.size()) {
+    Vector_Size thread_count =
+        narrow_cast<Vector_Size>(thread_ids_buffer_size) /
+        narrow_cast<Vector_Size>(sizeof(std::uint64_t));
+    if (narrow_cast<Vector_Size>(thread_count) == thread_ids.size()) {
       // We can't tell if we read exactly all the threads or if there are more
       // threads. Assume there are more threads.
       thread_ids.resize(thread_ids.size() * 2);
@@ -359,7 +359,7 @@ void enumerate_all_process_threads(Monotonic_Allocator& allocator,
 Span<Found_Debug_Server> find_debug_servers(Monotonic_Allocator* allocator) {
   static constexpr char func[] = "find_debug_servers";
 
-  Bump_Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
+  Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
   enumerate_all_process_threads(
       *allocator, [&](::pid_t process_id, std::uint64_t thread_id) -> void {
         ::proc_threadinfo thread_info;
@@ -415,7 +415,7 @@ Span<Found_Debug_Server> find_debug_servers(Monotonic_Allocator* allocator) {
   size_t own_jid_size;
   ::kinfo_proc* p;
   ::kvm_t* kd;
-  Bump_Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
+  Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
 
   // Query our own jail id
   own_jid_size = sizeof own_jid;
@@ -514,7 +514,7 @@ void enumerate_all_process_threads(Callback&& callback) {
 Span<Found_Debug_Server> find_debug_servers(Monotonic_Allocator* allocator) {
   static constexpr char func[] = "find_debug_servers";
 
-  Bump_Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
+  Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
   enumerate_all_process_threads([&](::DWORD process_id,
                                     ::DWORD thread_id) -> void {
     Windows_Handle_File thread_handle(

@@ -198,10 +198,9 @@ class CXX_Diagnostic_Types_Parser : private CXX_Parser_Base {
   using Base::fatal_at;
 
   Monotonic_Allocator allocator_{"CXX_Diagnostic_Types_Parser"};
-  Bump_Vector<CXX_Diagnostic_Type> parsed_types{"parsed_types",
-                                                &this->allocator_};
-  Bump_Vector<Diag_Code_Definition> reserved_codes{"reserved_codes",
-                                                   &this->allocator_};
+  Vector<CXX_Diagnostic_Type> parsed_types{"parsed_types", &this->allocator_};
+  Vector<Diag_Code_Definition> reserved_codes{"reserved_codes",
+                                              &this->allocator_};
 };
 
 // Precondition: variables.size() <= 4

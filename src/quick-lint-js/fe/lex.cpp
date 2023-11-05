@@ -1698,8 +1698,8 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
   const Char8* private_identifier_begin =
       is_private_identifier ? &identifier_begin[-1] : identifier_begin;
 
-  Bump_Vector<Char8> normalized("parse_identifier_slow normalized",
-                                &this->allocator_);
+  Vector<Char8> normalized("parse_identifier_slow normalized",
+                           &this->allocator_);
   normalized.append(private_identifier_begin, input);
 
   Escape_Sequence_List* escape_sequences =
@@ -1735,8 +1735,7 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
         normalized.append(4, u8'\0');
         const Char8* end =
             encode_utf_8(code_point, &normalized.data()[normalized.size() - 4]);
-        normalized.resize(
-            narrow_cast<Bump_Vector_Size>(end - normalized.data()));
+        normalized.resize(narrow_cast<Vector_Size>(end - normalized.data()));
         escape_sequences->emplace_back(escape_begin, escape.end);
       }
     } else {

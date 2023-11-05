@@ -131,7 +131,7 @@ class PO_Parser {
       this->fatal();
     }
     this->input_ += 1;
-    Bump_Vector<Char8> decoded("parse_string", this->allocator_);
+    Vector<Char8> decoded("parse_string", this->allocator_);
     for (;;) {
       switch (*this->input_) {
       case u8'"': {
@@ -218,7 +218,7 @@ class PO_Parser {
   const CLI_Locator* locator_;
   Monotonic_Allocator* allocator_;
 
-  Bump_Vector<PO_Entry> entries_{"PO_Parser::entries", this->allocator_};
+  Vector<PO_Entry> entries_{"PO_Parser::entries", this->allocator_};
 
   bool is_next_entry_fuzzy_ = false;
 };

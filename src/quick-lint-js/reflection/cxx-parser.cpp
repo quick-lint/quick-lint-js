@@ -233,8 +233,8 @@ String8_View CXX_Lexer::lex_string_literal() {
   QLJS_ASSERT(*this->input_ == u8'"');
   this->input_ += 1;
 
-  Bump_Vector<Char8> decoded("CXX_Lexer::lex_string_literal",
-                             &this->decoded_string_allocator_);
+  Vector<Char8> decoded("CXX_Lexer::lex_string_literal",
+                        &this->decoded_string_allocator_);
   for (;;) {
     switch (*this->input_) {
     case u8'"': {

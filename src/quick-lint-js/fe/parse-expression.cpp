@@ -933,7 +933,7 @@ Expression* Parser::parse_async_expression_only(
           this->expressions_.allocator());
       call_children.emplace_back(this->make_expression<Expression::Variable>(
           async_or_await_token.identifier_name(), async_or_await_token.type));
-      for (Bump_Vector_Size i = 0; i < parameters.size(); ++i) {
+      for (Vector_Size i = 0; i < parameters.size(); ++i) {
         if (parameters.data()[i]->kind() != Expression_Kind::Invalid) {
           call_children.emplace_back(parameters.data()[i]);
         }
@@ -3763,8 +3763,8 @@ next:
         mismatch = true;
       }
       if (mismatch) {
-        Bump_Vector<Char8> opening_tag_name_pretty("opening_tag_name_pretty",
-                                                   &this->diagnostic_memory_);
+        Vector<Char8> opening_tag_name_pretty("opening_tag_name_pretty",
+                                              &this->diagnostic_memory_);
         if (tag_namespace) {
           opening_tag_name_pretty += tag_namespace->span().string_view();
           opening_tag_name_pretty += u8':';

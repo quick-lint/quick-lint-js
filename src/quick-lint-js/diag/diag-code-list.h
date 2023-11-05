@@ -62,12 +62,12 @@ class Compiled_Diag_Code_List {
   // movable.
   std::unique_ptr<Monotonic_Allocator> allocator_;
 
-  Bump_Vector<Codes> parsed_diag_code_lists_{"parsed_diag_code_lists_",
-                                             this->allocator_.get()};
+  Vector<Codes> parsed_diag_code_lists_{"parsed_diag_code_lists_",
+                                        this->allocator_.get()};
 
   // Collected errors and warnings:
-  Bump_Vector<std::string_view> unknown_codes_{"unknown_codes_",
-                                               this->allocator_.get()};
+  Vector<std::string_view> unknown_codes_{"unknown_codes_",
+                                          this->allocator_.get()};
   bool has_missing_predicate_error_ = false;
 };
 }

@@ -90,19 +90,19 @@ class Uninstrumented_Vector : private Vector {
   using Vector::to_string_view;
 };
 
-using Bump_Vector_Size = std::ptrdiff_t;
+using Vector_Size = std::ptrdiff_t;
 
 // Like std::pmr::vector. Some differences:
 //
 // * No exception safety.
 // * Extended interface for convenience.
 template <class T>
-class Raw_Bump_Vector {
+class Raw_Vector {
  public:
   using value_type = T;
   using allocator_type = Memory_Resource *;
-  using size_type = Bump_Vector_Size;
-  using difference_type = Bump_Vector_Size;
+  using size_type = Vector_Size;
+  using difference_type = Vector_Size;
   using reference = T &;
   using const_reference = const T &;
   using pointer = T *;
@@ -111,18 +111,17 @@ class Raw_Bump_Vector {
   using const_iterator = const T *;
 
   // Create an empty vector.
-  explicit Raw_Bump_Vector(Memory_Resource *allocator)
-      : allocator_(allocator) {}
+  explicit Raw_Vector(Memory_Resource *allocator) : allocator_(allocator) {}
 
-  Raw_Bump_Vector(const Raw_Bump_Vector &) = delete;
-  Raw_Bump_Vector &operator=(const Raw_Bump_Vector &) = delete;
+  Raw_Vector(const Raw_Vector &) = delete;
+  Raw_Vector &operator=(const Raw_Vector &) = delete;
 
-  // Move items from another Raw_Bump_Vector by taking its allocation.
+  // Move items from another Raw_Vector by taking its allocation.
   //
   // This function does not move individual items.
   //
   // Postcondition: other.empty()
-  Raw_Bump_Vector(Raw_Bump_Vector &&other)
+  Raw_Vector(Raw_Vector &&other)
       : data_(other.data_),
         data_end_(other.data_end_),
         capacity_end_(other.capacity_end_),
@@ -136,11 +135,11 @@ class Raw_Bump_Vector {
   // memory.
   //
   // If the allocator is a Linked_Bump_Allocator, then memory is only released
-  // if this Raw_Bump_Vector's capacity is the last thing allocated with that
+  // if this Raw_Vector's capacity is the last thing allocated with that
   // allocator.
-  ~Raw_Bump_Vector() { this->clear(); }
+  ~Raw_Vector() { this->clear(); }
 
-  // Return the pointer given in Raw_Bump_Vector's constructor.
+  // Return the pointer given in Raw_Vector's constructor.
   Memory_Resource *get_allocator() const { return this->allocator_; }
 
   bool empty() const { return this->data_ == this->data_end_; }
@@ -255,13 +254,13 @@ class Raw_Bump_Vector {
   }
 
   // Similar to std::basic_string::operator+=.
-  Raw_Bump_Vector &operator+=(std::basic_string_view<T> values) {
+  Raw_Vector &operator+=(std::basic_string_view<T> values) {
     this->append(values.data(), values.data() + values.size());
     return *this;
   }
 
   // Similar to std::basic_string::operator+=.
-  Raw_Bump_Vector &operator+=(T value) {
+  Raw_Vector &operator+=(T value) {
     this->emplace_back(value);
     return *this;
   }
@@ -296,7 +295,7 @@ class Raw_Bump_Vector {
       this->allocator_->deallocate(
           this->data_,
           narrow_cast<std::size_t>(this->size() *
-                                   static_cast<Bump_Vector_Size>(sizeof(T))),
+                                   static_cast<Vector_Size>(sizeof(T))),
           alignof(T));
       this->release();
     }
@@ -375,10 +374,10 @@ class Raw_Bump_Vector {
 
 #if QLJS_FEATURE_VECTOR_PROFILING
 template <class T>
-using Bump_Vector = Instrumented_Vector<Raw_Bump_Vector<T>>;
+using Vector = Instrumented_Vector<Raw_Vector<T>>;
 #else
 template <class T>
-using Bump_Vector = Uninstrumented_Vector<Raw_Bump_Vector<T>>;
+using Vector = Uninstrumented_Vector<Raw_Vector<T>>;
 #endif
 }
 

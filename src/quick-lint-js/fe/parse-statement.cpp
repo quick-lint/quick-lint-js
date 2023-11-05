@@ -1232,7 +1232,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     // NOTE[ambiguous-ambient-statement-in-namespace].
     Stacked_Buffering_Visitor exports_visitor =
         this->buffering_visitor_stack_.push();
-    Bump_Vector<Token> exported_bad_tokens(
+    Vector<Token> exported_bad_tokens(
         "parse_and_visit_export exported_bad_tokens", &this->temporary_memory_);
     this->parse_and_visit_named_exports(
         exports_visitor.visitor(),
@@ -1595,7 +1595,7 @@ void Parser::parse_and_visit_typescript_generic_parameters(
   const Char8 *less_end = this->peek().end;
   this->skip();
 
-  Bump_Vector<Source_Code_Span> leading_commas(
+  Vector<Source_Code_Span> leading_commas(
       "parse_and_visit_typescript_generic_parameters leading_commas",
       &this->temporary_memory_);
   while (this->peek().type == Token_Type::comma) {
@@ -1610,7 +1610,7 @@ void Parser::parse_and_visit_typescript_generic_parameters(
         Diag_TypeScript_Generic_Parameter_List_Is_Empty{
             .expected_parameter = Source_Code_Span::unit(less_end),
         });
-    for (Bump_Vector_Size i = 1; i < leading_commas.size(); ++i) {
+    for (Vector_Size i = 1; i < leading_commas.size(); ++i) {
       this->diag_reporter_->report(
           Diag_Multiple_Commas_In_Generic_Parameter_List{
               .unexpected_comma = leading_commas[i],
@@ -1942,7 +1942,7 @@ void Parser::parse_and_visit_function_declaration(
     Identifier function_name = this->peek().identifier_name();
     this->skip();
 
-    Bump_Vector<Identifier> overload_names(
+    Vector<Identifier> overload_names(
         "parse_and_visit_function_declaration overload_names",
         &this->temporary_memory_);
 
@@ -2019,7 +2019,7 @@ void Parser::parse_and_visit_function_declaration(
         //     function f(a, b) {}  // #3
         //
         // The last overload (#3 above) is the real function.
-        for (Bump_Vector_Size i = 0; i < overload_names.size() - 1; ++i) {
+        for (Vector_Size i = 0; i < overload_names.size() - 1; ++i) {
           Identifier &overload_name = overload_names[i];
           if (overload_name.normalized_name() !=
               real_function_name.normalized_name()) {
@@ -4626,7 +4626,7 @@ void Parser::parse_and_visit_named_exports_for_typescript_type_only_import(
 void Parser::parse_and_visit_named_exports(
     Parse_Visitor_Base &v,
     std::optional<Source_Code_Span> typescript_type_only_keyword,
-    Bump_Vector<Token> *out_exported_bad_tokens) {
+    Vector<Token> *out_exported_bad_tokens) {
   QLJS_ASSERT(this->peek().type == Token_Type::left_curly);
   this->skip();
 
