@@ -236,6 +236,10 @@ class Instrumented_Vector {
     return this->data_[index];
   }
 
+  QLJS_FORCE_INLINE const value_type &operator[](size_type index) const {
+    return this->data_[index];
+  }
+
   QLJS_FORCE_INLINE value_type *begin() { return this->data(); }
   QLJS_FORCE_INLINE value_type *end() { return this->begin() + this->size(); }
 

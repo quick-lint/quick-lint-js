@@ -68,7 +68,10 @@ Byte_Buffer_Chunk make_chunk(const void* data, Byte_Buffer::Size_Type size) {
 
 }
 
-Byte_Buffer::Byte_Buffer() { this->add_new_chunk(this->default_chunk_size); }
+Byte_Buffer::Byte_Buffer()
+    : chunks_("Byte_Buffer::chunks_", new_delete_resource()) {
+  this->add_new_chunk(this->default_chunk_size);
+}
 
 Byte_Buffer::Byte_Buffer(Byte_Buffer&&) = default;
 
@@ -107,7 +110,7 @@ void Byte_Buffer::prepend_copy(String8_View data) {
       std::copy_n(data_bytes, data.size(), chunk_begin(prefix_chunk));
   QLJS_ASSERT(end == chunk_end(prefix_chunk));
 
-  this->chunks_.insert(this->chunks_.begin(), std::move(prefix_chunk));
+  this->chunks_.push_front(std::move(prefix_chunk));
 }
 
 void Byte_Buffer::clear() {
@@ -123,7 +126,7 @@ void Byte_Buffer::clear() {
 
 Byte_Buffer::Size_Type Byte_Buffer::size() const {
   Size_Type total_size = 0;
-  for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;
+  for (Vector_Size chunk_index = 0; chunk_index < this->chunks_.size() - 1;
        ++chunk_index) {
     const Byte_Buffer_Chunk& c = this->chunks_[chunk_index];
     total_size += chunk_size(c);
@@ -136,7 +139,7 @@ bool Byte_Buffer::empty() const {
   if (this->bytes_used_in_current_chunk() > 0) {
     return false;
   }
-  for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;
+  for (Vector_Size chunk_index = 0; chunk_index < this->chunks_.size() - 1;
        ++chunk_index) {
     const Byte_Buffer_Chunk& c = this->chunks_[chunk_index];
     if (chunk_size(c) > 0) {

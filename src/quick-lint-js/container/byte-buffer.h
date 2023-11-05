@@ -6,12 +6,12 @@
 #include <cstddef>
 #include <memory>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
 #include <utility>
-#include <vector>
 
 #if QLJS_HAVE_WRITEV
 #include <sys/uio.h>
@@ -89,7 +89,7 @@ class Byte_Buffer {
 
   template <class Func>
   void enumerate_chunks(Func&& on_chunk) const {
-    for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size();
+    for (Vector_Size chunk_index = 0; chunk_index < this->chunks_.size();
          ++chunk_index) {
       const Byte_Buffer_Chunk* c = &this->chunks_[chunk_index];
       const std::byte* c_begin =
@@ -128,7 +128,7 @@ class Byte_Buffer {
   static Byte_Buffer_Chunk allocate_chunk(Size_Type size);
   static void delete_chunk(Byte_Buffer_Chunk&&);
 
-  std::vector<Byte_Buffer_Chunk> chunks_;
+  Vector<Byte_Buffer_Chunk> chunks_;
   std::byte* cursor_;
   std::byte* current_chunk_end_;
 

@@ -186,6 +186,10 @@ class Raw_Vector {
     QLJS_ASSERT(index < this->size());
     return this->data_[index];
   }
+  const T &operator[](size_type index) const {
+    QLJS_ASSERT(index < this->size());
+    return this->data_[index];
+  }
 
   // Precondition: (none)
   void reserve(size_type new_capacity) {
