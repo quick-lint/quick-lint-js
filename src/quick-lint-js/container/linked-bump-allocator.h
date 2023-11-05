@@ -4,22 +4,14 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdint>
+#include <memory>
 #include <new>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/flexible-array.h>
-#include <quick-lint-js/port/have.h>
-#include <quick-lint-js/port/math.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/cast.h>
-#include <quick-lint-js/util/math-overflow.h>
-#include <quick-lint-js/util/pointer.h>
 #include <utility>
-
-#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
-#include <sanitizer/asan_interface.h>
-#endif
 
 #if defined(QLJS_DEBUG) && QLJS_DEBUG
 #define QLJS_DEBUG_BUMP_ALLOCATOR 1
@@ -41,26 +33,14 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   using Chunk = Flexible_Array<char, Chunk_Header>;
 
  public:
-  explicit Linked_Bump_Allocator(const char* debug_owner) {
-    static_cast<void>(debug_owner);
-  }
+  explicit Linked_Bump_Allocator(const char* debug_owner);
 
   Linked_Bump_Allocator(const Linked_Bump_Allocator&) = delete;
   Linked_Bump_Allocator& operator=(const Linked_Bump_Allocator&) = delete;
 
-  ~Linked_Bump_Allocator() override { this->release(); }
+  ~Linked_Bump_Allocator() override;
 
-  void release() {
-    Chunk* c = this->chunk_;
-    while (c) {
-      Chunk* previous = c->previous;
-      Chunk::destroy_header_and_deallocate(new_delete_resource(), c);
-      c = previous;
-    }
-    this->chunk_ = nullptr;
-    this->next_allocation_ = nullptr;
-    this->chunk_end_ = nullptr;
-  }
+  void release();
 
   struct Rewind_State {
     // Private to linked_bump_allocator. Do not use.
@@ -96,37 +76,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
     };
   }
 
-  void rewind(Rewind_State&& r) {
-    bool allocated_new_chunk = this->chunk_ != r.chunk_;
-    if (allocated_new_chunk) {
-      // If we rewound to exactly where we were before, we might rewind near the
-      // end of a chunk. Allocations would soon need a new chunk.
-      //
-      // Avoid straddling near the end of a chunk by using a new chunk (which
-      // was already allocated).
-      //
-      // TODO(strager): Should we use the *oldest* chunk or the *newest* chunk?
-      // Here we pick the *oldest* chunk.
-      Chunk* c = this->chunk_;
-      QLJS_ASSERT(c);
-      while (c->previous != r.chunk_) {
-        Chunk* previous = c->previous;
-        Chunk::destroy_header_and_deallocate(new_delete_resource(), c);
-        c = previous;
-        QLJS_ASSERT(c);
-      }
-      this->chunk_ = c;
-      this->next_allocation_ = c->flexible_capacity_begin();
-      this->chunk_end_ = c->flexible_capacity_end();
-    } else {
-      this->chunk_ = r.chunk_;
-      this->next_allocation_ = r.next_allocation_;
-      this->chunk_end_ = r.chunk_end_;
-    }
-    this->did_deallocate_bytes(
-        this->next_allocation_,
-        narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_));
-  }
+  void rewind(Rewind_State&& r);
 
   [[nodiscard]] Rewind_Guard make_rewind_guard() { return Rewind_Guard(this); }
 
@@ -203,20 +153,10 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
   class Disable_Guard {
    public:
-    ~Disable_Guard() {
-#if QLJS_DEBUG_BUMP_ALLOCATOR
-      this->alloc_->disabled_count_ -= 1;
-#endif
-    }
+    ~Disable_Guard();
 
    private:
-#if QLJS_DEBUG_BUMP_ALLOCATOR
-    explicit Disable_Guard(Linked_Bump_Allocator* alloc) : alloc_(alloc) {
-      this->alloc_->disabled_count_ += 1;
-    }
-#else
-    explicit Disable_Guard(Linked_Bump_Allocator*) {}
-#endif
+    explicit Disable_Guard(Linked_Bump_Allocator*);
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
     Linked_Bump_Allocator* alloc_;
@@ -228,14 +168,9 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   [[nodiscard]] Disable_Guard disable() { return Disable_Guard(this); }
 
  protected:
-  void* do_allocate(std::size_t bytes, std::size_t align) override {
-    return this->allocate_bytes(bytes, align);
-  }
-
+  void* do_allocate(std::size_t bytes, std::size_t align) override;
   void do_deallocate(void* p, std::size_t bytes,
-                     [[maybe_unused]] std::size_t align) override {
-    this->deallocate_bytes(p, bytes);
-  }
+                     [[maybe_unused]] std::size_t align) override;
 
  private:
   struct alignas(alignof(void*)) Chunk_Header {
@@ -246,33 +181,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
   static inline constexpr std::size_t default_chunk_size = 4096 - sizeof(Chunk);
 
-  [[nodiscard]] void* allocate_bytes(std::size_t size, std::size_t align) {
-    this->assert_not_disabled();
-    QLJS_SLOW_ASSERT(size % align == 0);
-
-    std::uintptr_t next_allocation_int =
-        reinterpret_cast<std::uintptr_t>(this->next_allocation_);
-    // NOTE(strager): align_up might overflow. If it does, the allocation
-    // couldn't fit due to alignment alone
-    // (alignment_padding > this->remaining_bytes_in_current_chunk()).
-    std::uintptr_t result_int = align_up(next_allocation_int, align);
-    char* result = reinterpret_cast<char*>(result_int);
-
-    // alignment_padding is how much the pointer moved due to alignment, i.e.
-    // how much padding is necessary due to alignment.
-    std::uintptr_t alignment_padding = result_int - next_allocation_int;
-    bool have_enough_space =
-        (alignment_padding + size) <= this->remaining_bytes_in_current_chunk();
-    if (!have_enough_space) [[unlikely]] {
-        this->append_chunk(maximum(size, this->default_chunk_size), align);
-        result = this->next_allocation_;
-        QLJS_ASSERT(is_aligned(result, align));
-      }
-
-    this->next_allocation_ = result + size;
-    this->did_allocate_bytes(result, size);
-    return result;
-  }
+  [[nodiscard]] void* allocate_bytes(std::size_t size, std::size_t align);
 
   void deallocate_bytes([[maybe_unused]] void* p,
                         [[maybe_unused]] std::size_t size) {
@@ -280,50 +189,17 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   }
 
   void did_allocate_bytes([[maybe_unused]] void* p,
-                          [[maybe_unused]] std::size_t size) {
-#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
-    ASAN_UNPOISON_MEMORY_REGION(p, size);
-#endif
-    // TODO(strager): Mark memory as usable for Valgrind.
-  }
+                          [[maybe_unused]] std::size_t size);
 
   void did_deallocate_bytes([[maybe_unused]] void* p,
-                            [[maybe_unused]] std::size_t size) {
-#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
-    ASAN_POISON_MEMORY_REGION(p, size);
-#endif
-    // TODO(strager): Mark memory as unusable for Valgrind.
-  }
+                            [[maybe_unused]] std::size_t size);
 
-  void append_chunk(std::size_t size, std::size_t align) {
-    // Over-alignment is tested by
-    // NOTE[Linked_Bump_Allocator-append_chunk-alignment].
-    bool is_over_aligned = align > Chunk::capacity_alignment;
-    std::size_t allocated_size = size;
-    if (is_over_aligned) {
-      allocated_size += align;
-    }
-    this->chunk_ = Chunk::allocate_and_construct_header(
-        new_delete_resource(), allocated_size, this->chunk_);
-    std::uintptr_t next_allocation_int = reinterpret_cast<std::uintptr_t>(
-        this->chunk_->flexible_capacity_begin());
-    if (is_over_aligned) {
-      next_allocation_int = align_up(next_allocation_int, align);
-    }
-    this->next_allocation_ = reinterpret_cast<char*>(next_allocation_int);
-    this->chunk_end_ = this->chunk_->flexible_capacity_end();
-    QLJS_ASSERT(is_aligned(this->next_allocation_, align));
-    QLJS_ASSERT(this->remaining_bytes_in_current_chunk() >= size);
-  }
+  void append_chunk(std::size_t size, std::size_t align);
 
-  void assert_not_disabled() const {
-#if QLJS_DEBUG_BUMP_ALLOCATOR
-    QLJS_ALWAYS_ASSERT(!this->is_disabled());
-#endif
-  }
+  void assert_not_disabled() const;
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
-  bool is_disabled() const { return this->disabled_count_ > 0; }
+  bool is_disabled() const;
 #endif
 
   Chunk* chunk_ = nullptr;
@@ -331,6 +207,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   char* chunk_end_ = nullptr;
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
+  // Used only if QLJS_DEBUG_BUMP_ALLOCATOR.
   int disabled_count_ = 0;
 #endif
 };

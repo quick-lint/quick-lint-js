@@ -199,6 +199,8 @@ quick_lint_js_add_library(
   quick-lint-js/cli/cli-location.cpp
   quick-lint-js/cli/cli-location.h
   quick-lint-js/container/flexible-array.h
+  quick-lint-js/container/linked-bump-allocator.cpp
+  quick-lint-js/container/linked-bump-allocator.h
   quick-lint-js/container/padded-string.cpp
   quick-lint-js/container/padded-string.h
   quick-lint-js/container/string-view.h
@@ -295,7 +297,6 @@ quick_lint_js_add_library(
   quick-lint-js/container/hash-map.h
   quick-lint-js/container/hash-set.h
   quick-lint-js/container/hash.h
-  quick-lint-js/container/linked-bump-allocator.h
   quick-lint-js/container/linked-vector.h
   quick-lint-js/container/optional.h
   quick-lint-js/container/result.h
