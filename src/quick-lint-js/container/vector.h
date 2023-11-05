@@ -100,7 +100,7 @@ template <class T>
 class Raw_Bump_Vector {
  public:
   using value_type = T;
-  using allocator_type = Linked_Bump_Allocator *;
+  using allocator_type = Memory_Resource *;
   using size_type = Bump_Vector_Size;
   using difference_type = Bump_Vector_Size;
   using reference = T &;
@@ -110,10 +110,8 @@ class Raw_Bump_Vector {
   using iterator = T *;
   using const_iterator = const T *;
 
-  static_assert(is_winkable_v<T>);
-
   // Create an empty vector.
-  explicit Raw_Bump_Vector(Linked_Bump_Allocator *allocator)
+  explicit Raw_Bump_Vector(Memory_Resource *allocator)
       : allocator_(allocator) {}
 
   Raw_Bump_Vector(const Raw_Bump_Vector &) = delete;
@@ -143,7 +141,7 @@ class Raw_Bump_Vector {
   ~Raw_Bump_Vector() { this->clear(); }
 
   // Return the pointer given in Raw_Bump_Vector's constructor.
-  Linked_Bump_Allocator *get_allocator() const { return this->allocator_; }
+  Memory_Resource *get_allocator() const { return this->allocator_; }
 
   bool empty() const { return this->data_ == this->data_end_; }
   size_type size() const {
@@ -372,7 +370,7 @@ class Raw_Bump_Vector {
   T *data_end_ = nullptr;
   T *capacity_end_ = nullptr;
 
-  Linked_Bump_Allocator *allocator_;
+  Memory_Resource *allocator_;
 };
 
 #if QLJS_FEATURE_VECTOR_PROFILING
