@@ -268,6 +268,12 @@ class Instrumented_Vector {
     this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
   }
 
+  QLJS_FORCE_INLINE void push_front(value_type &&value) {
+    this->data_.push_front(std::move(value));
+    // TODO(strager): Add instrumentation specific to prepending.
+    this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
+  }
+
   QLJS_FORCE_INLINE void clear() {
     this->data_.clear();
     this->add_instrumentation_entry(Vector_Instrumentation::Event::clear);

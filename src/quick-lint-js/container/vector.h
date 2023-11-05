@@ -74,6 +74,7 @@ class Uninstrumented_Vector : private Vector {
   using Vector::operator[];
   using Vector::pop_back;
   using Vector::push_back;
+  using Vector::push_front;
   using Vector::reserve;
   using Vector::resize;
   using Vector::size;
@@ -268,6 +269,25 @@ class Raw_Vector {
   void pop_back() {
     QLJS_ASSERT(!this->empty());
     this->data_end_ -= 1;
+  }
+
+  void push_front(value_type &&value) {
+    if (this->empty()) {
+      this->push_back(std::move(value));
+    } else {
+      if (this->capacity_end_ == this->data_end_) {
+        this->reserve_grow_by_at_least(1);
+      }
+      // Shift all items to the right one. The last item is move-constructed
+      // into place, and the remaining items are move-assigned into place right
+      // to left.
+      new (&this->data_end_[0]) value_type(std::move(this->data_end_[-1]));
+      for (value_type *p = this->data_end_; p-- > this->data_;) {
+        p[1] = p[0];
+      }
+      this->data_[0] = std::move(value);
+      this->data_end_ += 1;
+    }
   }
 
   // Like clear(), but doesn't touch the allocated memory. Objects remain alive

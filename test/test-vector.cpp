@@ -222,6 +222,16 @@ TEST(Test_Vector, pop_back_then_push_back_reuses_memory) {
   EXPECT_GE(v.capacity(), 3);
 }
 
+TEST(Test_Vector, push_front_multiple_empty_is_push_back_backwards) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_front(100);
+  v.push_front(200);
+  v.push_front(300);
+  v.push_front(400);
+  EXPECT_THAT(v, ElementsAreArray({400, 300, 200, 100}));
+}
+
 TEST(Test_Vector, move_constructing_clears_old_vector) {
   Linked_Bump_Allocator alloc("test");
   Vector<int> v("test", &alloc);
