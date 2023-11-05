@@ -8,9 +8,7 @@
 #include <new>
 #include <quick-lint-js/container/flexible-array.h>
 #include <quick-lint-js/port/memory-resource.h>
-#include <quick-lint-js/port/span.h>
 #include <quick-lint-js/util/cast.h>
-#include <utility>
 
 #if defined(QLJS_DEBUG) && QLJS_DEBUG
 #define QLJS_DEBUG_BUMP_ALLOCATOR 1
@@ -84,62 +82,6 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   // Calls this->prepare_for_rewind() immediately then this->rewind() on
   // destruction.
   [[nodiscard]] Rewind_Guard make_rewind_guard() { return Rewind_Guard(this); }
-
-  // Allocate space for an instance of T, then construct T.
-  template <class T, class... Args>
-  T* new_object(Args&&... args) {
-    return new (this->allocate_bytes(sizeof(T), alignof(T)))
-        T(std::forward<Args>(args)...);
-  }
-
-  // Allocate space for an instance of T, then construct T via copy or move
-  // construction.
-  template <class T>
-  T* new_object_copy(T&& value) {
-    return this->new_object<T>(std::forward<T>(value));
-  }
-
-  // Allocate space for objects.size() instances of T, then construct result[i]
-  // via copy or move construction from objects[i] for i from 0 to
-  // objects.size()-1.
-  template <class T>
-  Span<T> new_objects_copy(Span<const T> objects) {
-    Span<T> new_objects = this->allocate_uninitialized_span<T>(
-        narrow_cast<std::size_t>(objects.size()));
-    std::uninitialized_copy(objects.begin(), objects.end(),
-                            new_objects.begin());
-    return new_objects;
-  }
-
-  // Allocate space for object.size() instances of T. Does not construct any
-  // T-s.
-  template <class T>
-  [[nodiscard]] Span<T> allocate_uninitialized_span(std::size_t size) {
-    std::size_t byte_size = size * sizeof(T);
-    T* items =
-        reinterpret_cast<T*>(this->allocate_bytes(byte_size, alignof(T)));
-    return Span<T>(items, narrow_cast<Span_Size>(size));
-  }
-
-  // Allocate space for object.size() instances of T, then default-construct
-  // object.size() instances.
-  template <class T>
-  [[nodiscard]] Span<T> allocate_span(Span_Size size) {
-    return this->allocate_span<T>(narrow_cast<std::size_t>(size));
-  }
-
-  // Allocate space for object.size() instances of T, then default-construct
-  // object.size() instances.
-  template <class T>
-  [[nodiscard]] Span<T> allocate_span(std::size_t size) {
-    Span<T> items = this->allocate_uninitialized_span<T>(size);
-    for (T& item : items) {
-      // FIXME(strager): I think we technically need to std::launder after
-      // placement new.
-      new (&item) T();
-    }
-    return items;
-  }
 
   // Given previously-allocated space for old_size instances of T, allocate
   // adjacent space for (new_size-old_size) instances of T after the old
