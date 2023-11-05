@@ -30,10 +30,11 @@ Options parse_options(int argc, char** argv, Monotonic_Allocator* allocator) {
 
   Monotonic_Allocator temporary_allocator("parse_options");
 
-  struct {
-    std::optional<int> number;
+  struct Next_Vim_File_Bufnr {
+    int number;
     const char* arg_var;
-  } next_vim_file_bufnr;
+  };
+  std::optional<Next_Vim_File_Bufnr> next_vim_file_bufnr;
 
   Bump_Vector<File_To_Lint> files_to_lint("files_to_lint", allocator);
   Bump_Vector<const char*> error_unrecognized_options(
@@ -53,12 +54,16 @@ Options parse_options(int argc, char** argv, Monotonic_Allocator* allocator) {
     if (is_stdin && has_stdin) {
       o.has_multiple_stdin = true;
     } else {
-      File_To_Lint file{.path = path,
-                        .config_file = active_config_file,
-                        .path_for_config_search = next_path_for_config_search,
-                        .language = language,
-                        .is_stdin = is_stdin,
-                        .vim_bufnr = next_vim_file_bufnr.number};
+      File_To_Lint file{
+          .path = path,
+          .config_file = active_config_file,
+          .path_for_config_search = next_path_for_config_search,
+          .language = language,
+          .is_stdin = is_stdin,
+          .vim_bufnr = next_vim_file_bufnr.has_value()
+                           ? std::optional<int>(next_vim_file_bufnr->number)
+                           : std::nullopt,
+      };
       files_to_lint.emplace_back(file);
     }
     if (is_stdin) {
@@ -67,7 +72,7 @@ Options parse_options(int argc, char** argv, Monotonic_Allocator* allocator) {
 
     unused_language_option = nullptr;
     next_path_for_config_search = nullptr;
-    next_vim_file_bufnr.number = std::nullopt;
+    next_vim_file_bufnr = std::nullopt;
   };
 
   auto add_stdin_file = [&]() { add_file("<stdin>", /*is_stdin=*/true); };
@@ -160,12 +165,14 @@ Options parse_options(int argc, char** argv, Monotonic_Allocator* allocator) {
         error_unrecognized_options.emplace_back(arg_value);
         continue;
       }
-      if (next_vim_file_bufnr.number != std::nullopt) {
+      if (next_vim_file_bufnr.has_value()) {
         warning_vim_bufnr_without_file.emplace_back(
-            next_vim_file_bufnr.arg_var);
+            next_vim_file_bufnr->arg_var);
       }
-      next_vim_file_bufnr.number = bufnr;
-      next_vim_file_bufnr.arg_var = arg_value;
+      next_vim_file_bufnr = Next_Vim_File_Bufnr{
+          .number = bufnr,
+          .arg_var = arg_value,
+      };
     }
 
     QLJS_OPTION(const char* arg_value, "--exit-fail-on"sv) {
@@ -189,8 +196,8 @@ done_parsing_options:
   if (unused_language_option) {
     warning_language_without_file.emplace_back(unused_language_option);
   }
-  if (next_vim_file_bufnr.number != std::nullopt) {
-    warning_vim_bufnr_without_file.emplace_back(next_vim_file_bufnr.arg_var);
+  if (next_vim_file_bufnr.has_value()) {
+    warning_vim_bufnr_without_file.emplace_back(next_vim_file_bufnr->arg_var);
   }
   if (o.path_for_stdin != nullptr) {
     for (File_To_Lint& file : files_to_lint) {
