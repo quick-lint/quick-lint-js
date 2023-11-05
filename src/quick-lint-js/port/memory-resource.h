@@ -85,10 +85,37 @@ class Memory_Resource {
     return items;
   }
 
+  // Given previously-allocated space for old_size instances of T, allocate
+  // adjacent space for (new_size-old_size) instances of T after the old
+  // allocation and return true.
+  //
+  // If adjacent space is not available, do nothing and return false.
+  template <class T>
+  QLJS_FORCE_INLINE bool try_grow_array_in_place(T* array, std::size_t old_size,
+                                                 std::size_t new_size) {
+    return this->try_grow_in_place(array, old_size * sizeof(T),
+                                   new_size * sizeof(T));
+  }
+
+  // Given previously-allocated space of old_byte_size bytes, allocate adjacent
+  // space for (new_byte_size-old_byte_size) bytes after the old allocation and
+  // return true.
+  //
+  // If adjacent space is not available, do nothing and return false.
+  QLJS_FORCE_INLINE bool try_grow_in_place(void* p, std::size_t old_byte_size,
+                                           std::size_t new_byte_size) {
+    return this->do_try_grow_in_place(p, old_byte_size, new_byte_size);
+  }
+
  protected:
   virtual void* do_allocate(std::size_t bytes, std::size_t alignment) = 0;
   virtual void do_deallocate(void* p, std::size_t bytes,
                              std::size_t alignment) = 0;
+  virtual bool do_try_grow_in_place(
+      [[maybe_unused]] void* p, [[maybe_unused]] std::size_t old_byte_size,
+      [[maybe_unused]] std::size_t new_byte_size) {
+    return false;
+  }
 };
 
 // Like std::pmr::new_delete_resource.

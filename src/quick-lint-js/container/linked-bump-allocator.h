@@ -83,19 +83,6 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   // destruction.
   [[nodiscard]] Rewind_Guard make_rewind_guard() { return Rewind_Guard(this); }
 
-  // Given previously-allocated space for old_size instances of T, allocate
-  // adjacent space for (new_size-old_size) instances of T after the old
-  // allocation and return true.
-  //
-  // If adjacent space is not available, do nothing and return false.
-  template <class T>
-  bool try_grow_array_in_place(T* array, std::size_t old_size,
-                               std::size_t new_size) {
-    return this->try_grow_array_in_place_impl(reinterpret_cast<char*>(array),
-                                              old_size * sizeof(T),
-                                              new_size * sizeof(T));
-  }
-
   // For testing only.
   std::size_t remaining_bytes_in_current_chunk() const {
     return narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_);
@@ -123,6 +110,8 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   void* do_allocate(std::size_t bytes, std::size_t align) override;
   void do_deallocate(void* p, std::size_t bytes,
                      [[maybe_unused]] std::size_t align) override;
+  bool do_try_grow_in_place(void* p, std::size_t old_byte_size,
+                            std::size_t new_byte_size) override;
 
  private:
   struct alignas(alignof(void*)) Chunk_Header {
@@ -132,14 +121,6 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   };
 
   static inline constexpr std::size_t default_chunk_size = 4096 - sizeof(Chunk);
-
-  // Given previously-allocated space of old_byte_size bytes, allocate adjacent
-  // space for (new_byte_size-old_byte_size) bytes after the old allocation and
-  // return true.
-  //
-  // If adjacent space is not available, do nothing and return false.
-  bool try_grow_array_in_place_impl(char* array, std::size_t old_byte_size,
-                                    std::size_t new_byte_size);
 
   [[nodiscard]] void* allocate_bytes(std::size_t size, std::size_t align);
 

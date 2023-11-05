@@ -97,12 +97,13 @@ void Linked_Bump_Allocator::do_deallocate(void* p, std::size_t bytes,
   this->deallocate_bytes(p, bytes);
 }
 
-bool Linked_Bump_Allocator::try_grow_array_in_place_impl(
-    char* array, std::size_t old_byte_size, std::size_t new_byte_size) {
+bool Linked_Bump_Allocator::do_try_grow_in_place(void* array,
+                                                 std::size_t old_byte_size,
+                                                 std::size_t new_byte_size) {
   this->assert_not_disabled();
   QLJS_ASSERT(new_byte_size > old_byte_size);
   bool array_is_last_allocation =
-      array + old_byte_size == this->next_allocation_;
+      reinterpret_cast<char*>(array) + old_byte_size == this->next_allocation_;
   if (!array_is_last_allocation) {
     // We can't grow because something else was already allocated.
     return false;
