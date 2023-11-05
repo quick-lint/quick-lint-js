@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <memory>
 #include <new>
-#include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/flexible-array.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/span.h>
@@ -127,24 +126,9 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   template <class T>
   bool try_grow_array_in_place(T* array, std::size_t old_size,
                                std::size_t new_size) {
-    this->assert_not_disabled();
-    QLJS_ASSERT(new_size > old_size);
-    std::size_t old_byte_size = old_size * sizeof(T);
-    bool array_is_last_allocation =
-        reinterpret_cast<char*>(array) + old_byte_size ==
-        this->next_allocation_;
-    if (!array_is_last_allocation) {
-      // We can't grow because something else was already allocated.
-      return false;
-    }
-
-    std::size_t extra_bytes = (new_size - old_size) * sizeof(T);
-    if (extra_bytes > this->remaining_bytes_in_current_chunk()) {
-      return false;
-    }
-    this->did_allocate_bytes(this->next_allocation_, extra_bytes);
-    this->next_allocation_ += extra_bytes;
-    return true;
+    return this->try_grow_array_in_place_impl(reinterpret_cast<char*>(array),
+                                              old_size * sizeof(T),
+                                              new_size * sizeof(T));
   }
 
   std::size_t remaining_bytes_in_current_chunk() const {
@@ -180,6 +164,9 @@ class Linked_Bump_Allocator final : public Memory_Resource {
   };
 
   static inline constexpr std::size_t default_chunk_size = 4096 - sizeof(Chunk);
+
+  bool try_grow_array_in_place_impl(char* array, std::size_t old_byte_size,
+                                    std::size_t new_byte_size);
 
   [[nodiscard]] void* allocate_bytes(std::size_t size, std::size_t align);
 
