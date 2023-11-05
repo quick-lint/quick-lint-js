@@ -358,7 +358,8 @@ class Raw_Bump_Vector {
 
  private:
   // Growth strategy.
-  void reserve_grow_by_at_least(size_type minimum_new_entries) {
+  [[gnu::noinline]] void reserve_grow_by_at_least(
+      size_type minimum_new_entries) {
     size_type old_capacity = this->capacity();
     constexpr size_type minimum_capacity = 4;
     size_type new_size = (std::max)(
