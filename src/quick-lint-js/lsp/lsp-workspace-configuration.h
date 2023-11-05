@@ -61,7 +61,7 @@ class LSP_Workspace_Configuration {
   Item* find_item(String8_View name);
   bool set_item(Item&, ::simdjson::ondemand::value);
 
-  Bump_Vector<Item, Monotonic_Allocator> items_;
+  Bump_Vector<Item> items_;
 };
 }
 

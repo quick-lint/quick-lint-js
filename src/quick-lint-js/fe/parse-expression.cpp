@@ -3763,8 +3763,8 @@ next:
         mismatch = true;
       }
       if (mismatch) {
-        Bump_Vector<Char8, Monotonic_Allocator> opening_tag_name_pretty(
-            "opening_tag_name_pretty", &this->diagnostic_memory_);
+        Bump_Vector<Char8> opening_tag_name_pretty("opening_tag_name_pretty",
+                                                   &this->diagnostic_memory_);
         if (tag_namespace) {
           opening_tag_name_pretty += tag_namespace->span().string_view();
           opening_tag_name_pretty += u8':';

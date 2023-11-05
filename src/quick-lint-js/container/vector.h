@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <memory>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/linked-bump-allocator.h>
 #include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
@@ -91,11 +92,11 @@ class Uninstrumented_Vector : private Vector {
 
 using Bump_Vector_Size = std::ptrdiff_t;
 
-template <class T, class Bump_Allocator>
+template <class T>
 class Raw_Bump_Vector {
  public:
   using value_type = T;
-  using allocator_type = Bump_Allocator *;
+  using allocator_type = Linked_Bump_Allocator *;
   using size_type = Bump_Vector_Size;
   using difference_type = Bump_Vector_Size;
   using reference = T &;
@@ -107,7 +108,8 @@ class Raw_Bump_Vector {
 
   static_assert(is_winkable_v<T>);
 
-  explicit Raw_Bump_Vector(Bump_Allocator *allocator) : allocator_(allocator) {}
+  explicit Raw_Bump_Vector(Linked_Bump_Allocator *allocator)
+      : allocator_(allocator) {}
 
   Raw_Bump_Vector(const Raw_Bump_Vector &) = delete;
   Raw_Bump_Vector &operator=(const Raw_Bump_Vector &) = delete;
@@ -124,7 +126,7 @@ class Raw_Bump_Vector {
 
   ~Raw_Bump_Vector() { this->clear(); }
 
-  Bump_Allocator *get_allocator() const { return this->allocator_; }
+  Linked_Bump_Allocator *get_allocator() const { return this->allocator_; }
 
   bool empty() const { return this->data_ == this->data_end_; }
   size_type size() const {
@@ -338,15 +340,15 @@ class Raw_Bump_Vector {
   T *data_end_ = nullptr;
   T *capacity_end_ = nullptr;
 
-  Bump_Allocator *allocator_;
+  Linked_Bump_Allocator *allocator_;
 };
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-template <class T, class Bump_Allocator>
-using Bump_Vector = Instrumented_Vector<Raw_Bump_Vector<T, Bump_Allocator>>;
+template <class T>
+using Bump_Vector = Instrumented_Vector<Raw_Bump_Vector<T>>;
 #else
-template <class T, class Bump_Allocator>
-using Bump_Vector = Uninstrumented_Vector<Raw_Bump_Vector<T, Bump_Allocator>>;
+template <class T>
+using Bump_Vector = Uninstrumented_Vector<Raw_Bump_Vector<T>>;
 #endif
 }
 

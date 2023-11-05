@@ -146,14 +146,12 @@ Vector_Max_Size_Histogram_By_Owner::histogram(
 
   // NOTE(strager): We use Raw_Bump_Vector to prevent vector profiling code from
   // emitting events itself.
-  Raw_Bump_Vector<Trace_Vector_Max_Size_Histogram_By_Owner_Entry,
-                  Monotonic_Allocator>
+  Raw_Bump_Vector<Trace_Vector_Max_Size_Histogram_By_Owner_Entry>
       out_entries_by_owner(memory);
   out_entries_by_owner.reserve(
       narrow_cast<Bump_Vector_Size>(stable_histogram.size()));
   for (auto &[owner, counts] : stable_histogram) {
-    Raw_Bump_Vector<Trace_Vector_Max_Size_Histogram_Entry, Monotonic_Allocator>
-        out_entries(memory);
+    Raw_Bump_Vector<Trace_Vector_Max_Size_Histogram_Entry> out_entries(memory);
     out_entries.reserve(narrow_cast<Bump_Vector_Size>(counts.size()));
     for (auto &[size, count] : counts) {
       out_entries.push_back(Trace_Vector_Max_Size_Histogram_Entry{

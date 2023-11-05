@@ -74,9 +74,9 @@ Event_Loop_Poll::~Event_Loop_Poll() { delete this->impl_; }
 void Event_Loop_Poll::run() {
   Monotonic_Allocator allocator("Event_Loop_Poll");
   // events[i] corresponds to event_registered_events[i].
-  Bump_Vector<::pollfd, Monotonic_Allocator> events("events", &allocator);
-  Bump_Vector<const Registered_Event*, Monotonic_Allocator>
-      event_registered_events("event_registered_events", &allocator);
+  Bump_Vector<::pollfd> events("events", &allocator);
+  Bump_Vector<const Registered_Event*> event_registered_events(
+      "event_registered_events", &allocator);
 
   while (!this->is_stop_requested()) {
     events.clear();

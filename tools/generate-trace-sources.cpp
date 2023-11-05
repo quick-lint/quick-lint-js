@@ -141,8 +141,8 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
       this->skip();
       this->expect_skip(CXX_Token_Type::less);
       this->expect_skip(u8"class"_sv);
-      Bump_Vector<String8_View, Monotonic_Allocator> template_parameters(
-          "template_parameters", &this->memory_);
+      Bump_Vector<String8_View> template_parameters("template_parameters",
+                                                    &this->memory_);
       template_parameters.emplace_back(this->expect_skip_identifier());
       this->expect_skip(CXX_Token_Type::greater);
       s.template_parameters = template_parameters.release_to_span();
@@ -154,8 +154,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
     s.ctf_name = this->cxx_name_to_ctf_name(s.cxx_name);
 
     this->expect_skip(CXX_Token_Type::left_curly);
-    Bump_Vector<Parsed_Struct_Member, Monotonic_Allocator> members(
-        "members", &this->memory_);
+    Bump_Vector<Parsed_Struct_Member> members("members", &this->memory_);
     while (!this->peek_is(CXX_Token_Type::right_curly)) {
       if (this->peek_is(u8"static"_sv)) {
         // static constexpr std::uint8_t id = 0x03;
@@ -292,8 +291,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
     e.underlying_cxx_type = this->expect_skip_identifier();
 
     this->expect_skip(CXX_Token_Type::left_curly);
-    Bump_Vector<Parsed_Enum_Member, Monotonic_Allocator> members(
-        "members", &this->memory_);
+    Bump_Vector<Parsed_Enum_Member> members("members", &this->memory_);
     while (!this->peek_is(CXX_Token_Type::right_curly)) {
       // name = 42,
       Parsed_Enum_Member& member = members.emplace_back();
@@ -394,8 +392,7 @@ class CXX_Trace_Types_Parser : public CXX_Parser_Base {
   }
 
   Monotonic_Allocator memory_{"CXX_Trace_Types_Parser"};
-  Bump_Vector<Parsed_Declaration, Monotonic_Allocator> declarations{
-      "declarations", &this->memory_};
+  Bump_Vector<Parsed_Declaration> declarations{"declarations", &this->memory_};
 };
 
 void write_010_editor_template(CXX_Trace_Types_Parser& types,

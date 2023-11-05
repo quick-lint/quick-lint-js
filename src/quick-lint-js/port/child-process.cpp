@@ -86,8 +86,7 @@ Run_Program_Result run_program(Span<const char* const> command) {
 Run_Program_Result run_program(Span<const std::string> command,
                                Run_Program_Options options) {
   Monotonic_Allocator allocator("run_program");
-  Bump_Vector<const char*, Monotonic_Allocator> command_raw("command_raw",
-                                                            &allocator);
+  Bump_Vector<const char*> command_raw("command_raw", &allocator);
   for (const std::string& arg : command) {
     command_raw.push_back(arg.c_str());
   }
@@ -123,7 +122,7 @@ Run_Program_Result run_program(Span<const char* const> command,
   }
 
   Monotonic_Allocator allocator("run_program");
-  Bump_Vector<char*, Monotonic_Allocator> argv("argv", &allocator);
+  Bump_Vector<char*> argv("argv", &allocator);
   for (const char* arg : command) {
     argv.push_back(const_cast<char*>(arg));
   }

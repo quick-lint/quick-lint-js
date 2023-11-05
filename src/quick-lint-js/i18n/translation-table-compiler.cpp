@@ -36,7 +36,7 @@ struct String_Table {
   }
 
  private:
-  Bump_Vector<Char8, Monotonic_Allocator> strings_;
+  Bump_Vector<Char8> strings_;
 };
 }
 
@@ -78,7 +78,7 @@ Compiled_Translation_Table compile_translation_table(
   Span<const String8_View> keys = untranslated_strings;
 
   {
-    Bump_Vector<String8_View, Monotonic_Allocator> locale_names(
+    Bump_Vector<String8_View> locale_names(
         "compile_translation_table locale_names", allocator);
     for (const PO_File& file : files) {
       locale_names.push_back(file.locale);
@@ -182,7 +182,7 @@ Compiled_Translation_Table compile_translation_table(
 
 Span<String8_View> get_all_untranslated(Span<const PO_File> files,
                                         Monotonic_Allocator* allocator) {
-  Bump_Vector<String8_View, Monotonic_Allocator> all_untranslated(
+  Bump_Vector<String8_View> all_untranslated(
       "get_all_untranslated all_untranslated", allocator);
   auto add_untranslated = [&](String8_View untranslated) -> void {
     bool is_duplicate = contains(all_untranslated, untranslated);

@@ -98,8 +98,8 @@ TJSON_Value TJSON_Value::operator[](std::size_t index) const {
 
 std::optional<Span<const TJSON_Value>> TJSON_Value::try_get_array() const {
   TJSON::Impl* tjson_impl = this->impl_->tjson_impl;
-  Bump_Vector<TJSON_Value, Monotonic_Allocator> items(
-      "TJSON_Value::try_get_array items", &tjson_impl->allocator);
+  Bump_Vector<TJSON_Value> items("TJSON_Value::try_get_array items",
+                                 &tjson_impl->allocator);
   ::simdjson::dom::array array;
   if (this->impl_->value.get(array) != ::simdjson::SUCCESS) {
     return std::nullopt;

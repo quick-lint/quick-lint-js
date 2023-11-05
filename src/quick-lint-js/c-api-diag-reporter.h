@@ -42,8 +42,8 @@ class C_API_Diag_Reporter final : public Diag_Reporter {
 
   Translator translator_;
   Monotonic_Allocator allocator_{"C_API_Diag_Reporter::allocator_"};
-  Bump_Vector<Diagnostic, Monotonic_Allocator> diagnostics_{
-      "C_API_Diag_Reporter::diagnostics_", &this->allocator_};
+  Bump_Vector<Diagnostic> diagnostics_{"C_API_Diag_Reporter::diagnostics_",
+                                       &this->allocator_};
   const Char8 *input_;
   std::optional<Locator> locator_;
   Monotonic_Allocator string_allocator_{
@@ -68,9 +68,8 @@ class C_API_Diag_Formatter
 
  private:
   C_API_Diag_Reporter<Diagnostic, Locator> *reporter_;
-  Bump_Vector<Char8, Monotonic_Allocator> current_message_{
-      "C_API_Diag_Reporter::current_message_",
-      &this->reporter_->string_allocator_};
+  Bump_Vector<Char8> current_message_{"C_API_Diag_Reporter::current_message_",
+                                      &this->reporter_->string_allocator_};
 };
 
 QLJS_WARNING_PUSH

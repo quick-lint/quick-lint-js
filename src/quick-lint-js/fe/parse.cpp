@@ -192,8 +192,8 @@ void Parser::check_jsx_attribute(const Identifier& attribute_name) {
   bool name_has_upper = any_of(name, isupper);
 
   if (!name_has_upper && is_event_attribute) {
-    Bump_Vector<Char8, Monotonic_Allocator> fixed_name(
-        "check_jsx_attribute fixed_name", &this->diagnostic_memory_);
+    Bump_Vector<Char8> fixed_name("check_jsx_attribute fixed_name",
+                                  &this->diagnostic_memory_);
     fixed_name += name;
     fixed_name[2] = toupper(fixed_name[2]);
     this->diag_reporter_->report(Diag_JSX_Event_Attribute_Should_Be_Camel_Case{

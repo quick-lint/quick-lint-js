@@ -30,16 +30,13 @@ Parsed_Diag_Code_List parse_diag_code_list(const char* const raw_diag_code_list,
     return '0' <= c && c <= '9';
   };
 
-  Bump_Vector<std::string_view, Monotonic_Allocator> included_codes(
-      "included_codes", allocator);
-  Bump_Vector<std::string_view, Monotonic_Allocator> excluded_codes(
-      "excluded_codes", allocator);
-  Bump_Vector<std::string_view, Monotonic_Allocator> included_categories(
-      "included_categories", allocator);
-  Bump_Vector<std::string_view, Monotonic_Allocator> excluded_categories(
-      "excluded_categories", allocator);
-  Bump_Vector<std::string_view, Monotonic_Allocator> unexpected("unexpected",
-                                                                allocator);
+  Bump_Vector<std::string_view> included_codes("included_codes", allocator);
+  Bump_Vector<std::string_view> excluded_codes("excluded_codes", allocator);
+  Bump_Vector<std::string_view> included_categories("included_categories",
+                                                    allocator);
+  Bump_Vector<std::string_view> excluded_categories("excluded_categories",
+                                                    allocator);
+  Bump_Vector<std::string_view> unexpected("unexpected", allocator);
   bool override_defaults = false;
 
   std::size_t i = 0;
@@ -143,11 +140,10 @@ void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
 
 Span<std::string_view> Compiled_Diag_Code_List::parse_errors(
     std::string_view cli_option_name, Monotonic_Allocator* allocator) const {
-  Bump_Vector<std::string_view, Monotonic_Allocator> errors("errors",
-                                                            allocator);
+  Bump_Vector<std::string_view> errors("errors", allocator);
   if (this->has_missing_predicate_error_) {
     // TODO(#1102): Make this code pretty.
-    Bump_Vector<char, Monotonic_Allocator> error("error", allocator);
+    Bump_Vector<char> error("error", allocator);
     error += cli_option_name;
     error += " must be given at least one category or code"sv;
     errors.emplace_back(error.release_to_string_view());
@@ -157,12 +153,11 @@ Span<std::string_view> Compiled_Diag_Code_List::parse_errors(
 
 Span<std::string_view> Compiled_Diag_Code_List::parse_warnings(
     Monotonic_Allocator* allocator) const {
-  Bump_Vector<std::string_view, Monotonic_Allocator> warnings("warnings",
-                                                              allocator);
+  Bump_Vector<std::string_view> warnings("warnings", allocator);
   auto check_category = [&](std::string_view category) {
     if (category != "all") {
       // TODO(#1102): Make this code pretty.
-      Bump_Vector<char, Monotonic_Allocator> warning("warning", allocator);
+      Bump_Vector<char> warning("warning", allocator);
       warning += "unknown error category: "sv;
       warning += category;
       warnings.emplace_back(warning.release_to_string_view());
@@ -180,7 +175,7 @@ Span<std::string_view> Compiled_Diag_Code_List::parse_warnings(
 
   for (std::string_view code : this->unknown_codes_) {
     // TODO(#1102): Make this code pretty.
-    Bump_Vector<char, Monotonic_Allocator> warning("warning", allocator);
+    Bump_Vector<char> warning("warning", allocator);
     warning += "unknown error code: "sv;
     warning += code;
     warnings.emplace_back(warning.release_to_string_view());
