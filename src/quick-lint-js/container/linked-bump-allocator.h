@@ -39,6 +39,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
   ~Linked_Bump_Allocator() override;
 
+  // Deallocate previously-allocated memory.
   void release();
 
   struct Rewind_State {
@@ -67,6 +68,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
     Rewind_State rewind_;
   };
 
+  // See rewind().
   Rewind_State prepare_for_rewind() {
     return Rewind_State{
         .chunk_ = this->chunk_,
@@ -75,21 +77,31 @@ class Linked_Bump_Allocator final : public Memory_Resource {
     };
   }
 
+  // Deallocate all allocations made since the creation of the Rewind_State
+  // (returned by this->prepare_for_rewind()).
   void rewind(Rewind_State&& r);
 
+  // Calls this->prepare_for_rewind() immediately then this->rewind() on
+  // destruction.
   [[nodiscard]] Rewind_Guard make_rewind_guard() { return Rewind_Guard(this); }
 
+  // Allocate space for an instance of T, then construct T.
   template <class T, class... Args>
   T* new_object(Args&&... args) {
     return new (this->allocate_bytes(sizeof(T), alignof(T)))
         T(std::forward<Args>(args)...);
   }
 
+  // Allocate space for an instance of T, then construct T via copy or move
+  // construction.
   template <class T>
   T* new_object_copy(T&& value) {
     return this->new_object<T>(std::forward<T>(value));
   }
 
+  // Allocate space for objects.size() instances of T, then construct result[i]
+  // via copy or move construction from objects[i] for i from 0 to
+  // objects.size()-1.
   template <class T>
   Span<T> new_objects_copy(Span<const T> objects) {
     Span<T> new_objects = this->allocate_uninitialized_span<T>(
@@ -99,6 +111,8 @@ class Linked_Bump_Allocator final : public Memory_Resource {
     return new_objects;
   }
 
+  // Allocate space for object.size() instances of T. Does not construct any
+  // T-s.
   template <class T>
   [[nodiscard]] Span<T> allocate_uninitialized_span(std::size_t size) {
     std::size_t byte_size = size * sizeof(T);
@@ -107,11 +121,15 @@ class Linked_Bump_Allocator final : public Memory_Resource {
     return Span<T>(items, narrow_cast<Span_Size>(size));
   }
 
+  // Allocate space for object.size() instances of T, then default-construct
+  // object.size() instances.
   template <class T>
   [[nodiscard]] Span<T> allocate_span(Span_Size size) {
     return this->allocate_span<T>(narrow_cast<std::size_t>(size));
   }
 
+  // Allocate space for object.size() instances of T, then default-construct
+  // object.size() instances.
   template <class T>
   [[nodiscard]] Span<T> allocate_span(std::size_t size) {
     Span<T> items = this->allocate_uninitialized_span<T>(size);
@@ -123,6 +141,11 @@ class Linked_Bump_Allocator final : public Memory_Resource {
     return items;
   }
 
+  // Given previously-allocated space for old_size instances of T, allocate
+  // adjacent space for (new_size-old_size) instances of T after the old
+  // allocation and return true.
+  //
+  // If adjacent space is not available, do nothing and return false.
   template <class T>
   bool try_grow_array_in_place(T* array, std::size_t old_size,
                                std::size_t new_size) {
@@ -131,6 +154,7 @@ class Linked_Bump_Allocator final : public Memory_Resource {
                                               new_size * sizeof(T));
   }
 
+  // For testing only.
   std::size_t remaining_bytes_in_current_chunk() const {
     return narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_);
   }
@@ -149,6 +173,8 @@ class Linked_Bump_Allocator final : public Memory_Resource {
     friend class Linked_Bump_Allocator;
   };
 
+  // In debug modes, cause all allocations to fail with a precondition failure
+  // until the Disable_Guard is destructed.
   [[nodiscard]] Disable_Guard disable() { return Disable_Guard(this); }
 
  protected:
@@ -165,6 +191,11 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
   static inline constexpr std::size_t default_chunk_size = 4096 - sizeof(Chunk);
 
+  // Given previously-allocated space of old_byte_size bytes, allocate adjacent
+  // space for (new_byte_size-old_byte_size) bytes after the old allocation and
+  // return true.
+  //
+  // If adjacent space is not available, do nothing and return false.
   bool try_grow_array_in_place_impl(char* array, std::size_t old_byte_size,
                                     std::size_t new_byte_size);
 

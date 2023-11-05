@@ -92,6 +92,10 @@ class Uninstrumented_Vector : private Vector {
 
 using Bump_Vector_Size = std::ptrdiff_t;
 
+// Like std::pmr::vector. Some differences:
+//
+// * No exception safety.
+// * Extended interface for convenience.
 template <class T>
 class Raw_Bump_Vector {
  public:
@@ -108,12 +112,18 @@ class Raw_Bump_Vector {
 
   static_assert(is_winkable_v<T>);
 
+  // Create an empty vector.
   explicit Raw_Bump_Vector(Linked_Bump_Allocator *allocator)
       : allocator_(allocator) {}
 
   Raw_Bump_Vector(const Raw_Bump_Vector &) = delete;
   Raw_Bump_Vector &operator=(const Raw_Bump_Vector &) = delete;
 
+  // Move items from another Raw_Bump_Vector by taking its allocation.
+  //
+  // This function does not move individual items.
+  //
+  // Postcondition: other.empty()
   Raw_Bump_Vector(Raw_Bump_Vector &&other)
       : data_(other.data_),
         data_end_(other.data_end_),
@@ -124,8 +134,15 @@ class Raw_Bump_Vector {
     other.capacity_end_ = nullptr;
   }
 
+  // Destruct items in the container, as in this->clear(), then release the
+  // memory.
+  //
+  // If the allocator is a Linked_Bump_Allocator, then memory is only released
+  // if this Raw_Bump_Vector's capacity is the last thing allocated with that
+  // allocator.
   ~Raw_Bump_Vector() { this->clear(); }
 
+  // Return the pointer given in Raw_Bump_Vector's constructor.
   Linked_Bump_Allocator *get_allocator() const { return this->allocator_; }
 
   bool empty() const { return this->data_ == this->data_end_; }
@@ -163,11 +180,15 @@ class Raw_Bump_Vector {
     return this->data_end_[-1];
   }
 
+  // Precondition: index is in bounds. This means that '&(*this)[this->size()]'
+  // (indexing one past the end) is invalid. To get one past the end, call
+  // this->end() instead or write '&this->data()[this->size()]'.
   T &operator[](size_type index) {
     QLJS_ASSERT(index < this->size());
     return this->data_[index];
   }
 
+  // Precondition: (none)
   void reserve(size_type new_capacity) {
     QLJS_ASSERT(new_capacity >= 0);
     if (this->capacity() < new_capacity) {
@@ -175,6 +196,7 @@ class Raw_Bump_Vector {
     }
   }
 
+  // Precondition: new_capacity > this->capacity()
   void reserve_grow(size_type new_capacity) {
     QLJS_ASSERT(new_capacity > this->capacity());
     if (this->data_) {
@@ -266,6 +288,10 @@ class Raw_Bump_Vector {
     return span;
   }
 
+  // Call the destructor of each item, then deallocate memory used for the
+  // items.
+  //
+  // Postcondition: this->empty()
   void clear() {
     if (this->data_) {
       std::destroy(this->data_, this->data_end_);
@@ -278,6 +304,10 @@ class Raw_Bump_Vector {
     }
   }
 
+  // If new_size > this->size(): default-construct new items at the end.
+  // If new_size < this->size(): destruct items at the end.
+  //
+  // Postcondition: this->size() == new_size
   void resize(size_type new_size) {
     size_type old_size = this->size();
     if (new_size == old_size) {
@@ -327,6 +357,7 @@ class Raw_Bump_Vector {
   }
 
  private:
+  // Growth strategy.
   void reserve_grow_by_at_least(size_type minimum_new_entries) {
     size_type old_capacity = this->capacity();
     constexpr size_type minimum_capacity = 4;
