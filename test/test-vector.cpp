@@ -232,6 +232,87 @@ TEST(Test_Vector, push_front_multiple_empty_is_push_back_backwards) {
   EXPECT_THAT(v, ElementsAreArray({400, 300, 200, 100}));
 }
 
+TEST(Test_Vector, erase_from_begin_to_end_is_clear) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+
+  v.erase(v.begin(), v.end());
+  EXPECT_THAT(v, IsEmpty());
+}
+
+TEST(Test_Vector,
+     erase_from_begin_to_middle_where_assign_and_destroy_do_not_overlap) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+  v.push_back(400);
+
+  // 100, 200, 300, 400
+  //    _______/     |
+  //   /    ________/
+  //  |    /
+  // 300, 400, ---, ---
+  //
+  // 100 = 300
+  // 200 = 400
+
+  v.erase(v.begin(), v.begin() + 2);
+  EXPECT_THAT(v, ElementsAreArray({300, 400}));
+}
+
+TEST(Test_Vector, erase_from_begin_to_middle_where_assign_and_destroy_overlap) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+  v.push_back(400);
+  v.push_back(500);
+
+  // 100, 200, 300, 400, 500
+  //    _______/     |    |
+  //   /     _______/     |
+  //  |     /    ________/
+  //  |    |    /
+  // 300, 400, 500, ---, ---
+  //
+  // 100 = 300
+  // 200 = 400
+  // 300 = 500
+
+  v.erase(v.begin(), v.begin() + 2);
+  EXPECT_THAT(v, ElementsAreArray({300, 400, 500}));
+}
+
+TEST(Test_Vector, erase_from_middle_to_end_removes_suffix) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+  v.push_back(400);
+
+  v.erase(v.begin() + 2, v.end());
+  EXPECT_THAT(v, ElementsAreArray({100, 200}));
+}
+
+TEST(Test_Vector, erase_from_middle_to_middle_removes_inner_items) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+  v.push_back(400);
+
+  v.erase(v.begin() + 1, v.begin() + 3);
+  EXPECT_THAT(v, ElementsAreArray({100, 400}));
+}
+
 TEST(Test_Vector, move_constructing_clears_old_vector) {
   Linked_Bump_Allocator alloc("test");
   Vector<int> v("test", &alloc);

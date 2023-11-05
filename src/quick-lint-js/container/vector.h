@@ -69,6 +69,7 @@ class Uninstrumented_Vector : private Vector {
   using Vector::emplace_back;
   using Vector::empty;
   using Vector::end;
+  using Vector::erase;
   using Vector::front;
   using Vector::get_allocator;
   using Vector::operator[];
@@ -319,6 +320,22 @@ class Raw_Vector {
           alignof(T));
       this->release();
     }
+  }
+
+  void erase(value_type *begin, value_type *end) {
+    // Shift items left (via move assignment), then destruct items on the right.
+
+    value_type *assign_to_begin = begin;
+    value_type *assign_from_begin = end;
+    value_type *assign_from_end = this->data_end_;
+    value_type *assign_to_end =
+        std::move(assign_from_begin, assign_from_end, assign_to_begin);
+
+    value_type *destroy_begin = assign_to_end;
+    value_type *destroy_end = this->data_end_;
+    std::destroy(destroy_begin, destroy_end);
+
+    this->data_end_ = destroy_begin;
   }
 
   // If new_size > this->size(): default-construct new items at the end.
