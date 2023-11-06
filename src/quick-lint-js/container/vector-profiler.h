@@ -289,6 +289,12 @@ class Instrumented_Vector {
     this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
   }
 
+  QLJS_FORCE_INLINE void erase(iterator item) {
+    this->data_.erase(item);
+    // TODO(strager): Add instrumentation specific to erasing.
+    this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
+  }
+
   void reserve(size_type new_capacity) { this->data_.reserve(new_capacity); }
 
   void resize(size_type new_size) {

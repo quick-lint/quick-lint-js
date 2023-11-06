@@ -313,6 +313,48 @@ TEST(Test_Vector, erase_from_middle_to_middle_removes_inner_items) {
   EXPECT_THAT(v, ElementsAreArray({100, 400}));
 }
 
+TEST(Test_Vector, erase_only_element) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_back(100);
+
+  v.erase(v.begin());
+  EXPECT_THAT(v, IsEmpty());
+}
+
+TEST(Test_Vector, erase_first_element) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+
+  v.erase(v.begin());
+  EXPECT_THAT(v, ElementsAreArray({200, 300}));
+}
+
+TEST(Test_Vector, erase_last_element) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+
+  v.erase(v.end() - 1);
+  EXPECT_THAT(v, ElementsAreArray({100, 200}));
+}
+
+TEST(Test_Vector, erase_middle_element) {
+  Linked_Bump_Allocator alloc("test");
+  Vector<int> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+
+  v.erase(v.begin() + 1);
+  EXPECT_THAT(v, ElementsAreArray({100, 300}));
+}
+
 TEST(Test_Vector, move_constructing_clears_old_vector) {
   Linked_Bump_Allocator alloc("test");
   Vector<int> v("test", &alloc);

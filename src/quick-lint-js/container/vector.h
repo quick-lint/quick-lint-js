@@ -342,6 +342,8 @@ class Raw_Vector {
     this->data_end_ = destroy_begin;
   }
 
+  void erase(value_type *item) { erase(item, item + 1); }
+
   // If new_size > this->size(): default-construct new items at the end.
   // If new_size < this->size(): destruct items at the end.
   //
