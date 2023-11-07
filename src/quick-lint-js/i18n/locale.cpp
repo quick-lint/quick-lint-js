@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/container/linked-bump-allocator.h"
+#include "quick-lint-js/container/vector.h"
 #include <array>
 #include <cstring>
 #include <quick-lint-js/assert.h>
@@ -108,12 +110,13 @@ QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 
 template <class Func>
 void locale_name_combinations(std::string_view locale_name, Func&& callback) {
+  Linked_Bump_Allocator temporary_allocator("locale_name_combinations");
   Locale_Parts parts = parse_locale(locale_name);
 
-  std::vector<char> locale;
-  std::size_t max_locale_size = locale_name.size();
+  Vector<char> locale("locale", &temporary_allocator);
+  Vector_Size max_locale_size = narrow_cast<Vector_Size>(locale_name.size());
   locale.reserve(max_locale_size);
-  locale.insert(locale.end(), parts.language().begin(), parts.language().end());
+  locale += parts.language();
 
   unsigned present_parts_mask = 0;
   for (std::size_t part_index = 1; part_index < 4; ++part_index) {
@@ -143,17 +146,18 @@ void locale_name_combinations(std::string_view locale_name, Func&& callback) {
       continue;
     }
 
-    locale.resize(parts.language().size());
+    locale.resize(narrow_cast<Vector_Size>(parts.language().size()));
     for (std::size_t part_index = 1; part_index < 4; ++part_index) {
       if (mask & (1 << part_index)) {
         std::string_view part = parts.parts[part_index];
         locale.push_back(locale_part_separators[part_index - 1]);
-        locale.insert(locale.end(), part.begin(), part.end());
+        locale += part;
       }
     }
     QLJS_ASSERT(locale.size() <= max_locale_size);
 
-    bool keep_going = callback(std::string_view(locale.data(), locale.size()));
+    bool keep_going = callback(std::string_view(
+        locale.data(), narrow_cast<std::size_t>(locale.size())));
     if (!keep_going) {
       break;
     }
