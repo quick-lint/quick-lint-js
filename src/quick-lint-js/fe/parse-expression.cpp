@@ -2177,7 +2177,8 @@ next:
         TypeScript_Type_Parse_Options{
             .allow_parenthesized_type =
                 !is_possibly_arrow_function_return_type_annotation,
-            .allow_type_predicate = true,
+            .allow_type_predicate =
+                is_possibly_arrow_function_return_type_annotation,
         });
     const Char8* type_end = this->lexer_.end_of_previous_token();
     binary_builder.replace_last(

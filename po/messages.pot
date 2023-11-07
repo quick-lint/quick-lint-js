@@ -1510,6 +1510,10 @@ msgid "TypeScript type exports are not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "type predicates are only allowed as function return types"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'type' cannot be used twice in export"
 msgstr ""
 

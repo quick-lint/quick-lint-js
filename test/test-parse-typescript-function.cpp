@@ -991,6 +991,41 @@ TEST_F(Test_Parse_TypeScript_Function, type_predicate_on_generator_function) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Function,
+       type_predicate_is_only_allowed_as_return_type) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(p, q: p is SomeType) {}"_sv,  //
+        u8"                   ^^ Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // p
+                              "visit_variable_use",               // p
+                              "visit_variable_type_use",          // SomeType
+                              "visit_variable_declaration",       // q
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"p", u8"SomeType"}));
+  }
+
+  {
+    test_parse_and_visit_statement(
+        u8"var x: p is T;"_sv,  //
+        u8"         ^^ Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type"_diag,
+        typescript_options);
+  }
+
+  {
+    test_parse_and_visit_statement(
+        u8"function f(p): p is p is T {}"_sv,  //
+        u8"                      ^^ Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type"_diag,
+        typescript_options);
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Function, type_predicate_in_type) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(

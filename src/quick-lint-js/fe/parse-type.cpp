@@ -219,10 +219,21 @@ again:
     if (this->peek().type == Token_Type::kw_is) {
       // param is Type
       // this is Type
+      Source_Code_Span is_keyword = this->peek().span();
       this->skip();
       if (name_type != Token_Type::kw_this) {
         // this is Type
-        v.visit_variable_type_predicate_use(name);
+        if (parse_options.allow_type_predicate) {
+          v.visit_variable_type_predicate_use(name);
+        } else {
+          v.visit_variable_use(name);
+        }
+      }
+      if (!parse_options.allow_type_predicate) {
+        this->diag_reporter_->report(
+            Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type{
+                .is_keyword = is_keyword,
+            });
       }
       this->parse_and_visit_typescript_type_expression(v);
       return;

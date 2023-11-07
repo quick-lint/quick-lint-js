@@ -14,6 +14,8 @@ Semantic Versioning.
   * `export as namespace` statements are now parsed.
   * `case await x:` no longer treats `:` as if it was a type annotation colon in
     an arrow function parameter list.
+  * If a type predicate appears outside a return type, quick-lint-js now reports
+    [E0426][] ("type predicates are only allowed as function return types").
 
 ### Fixed
 
@@ -1293,6 +1295,7 @@ Beta release.
 [E0383]: https://quick-lint-js.com/errors/E0383/
 [E0384]: https://quick-lint-js.com/errors/E0384/
 [E0398]: https://quick-lint-js.com/errors/E0398/
+[E0426]: https://quick-lint-js.com/errors/E0426/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/

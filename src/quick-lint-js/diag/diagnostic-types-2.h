@@ -2318,6 +2318,13 @@ struct Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript {
   Source_Code_Span type_keyword;
 };
 
+struct Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type {
+  [[qljs::diag("E0426", Diagnostic_Severity::error)]]  //
+  [[qljs::message("type predicates are only allowed as function return types",
+                  ARG(is_keyword))]]  //
+  Source_Code_Span is_keyword;
+};
+
 struct Diag_TypeScript_Inline_Type_Export_Not_Allowed_In_Type_Only_Export {
   [[qljs::diag("E0280", Diagnostic_Severity::error)]]  //
   [[qljs::message("'type' cannot be used twice in export",

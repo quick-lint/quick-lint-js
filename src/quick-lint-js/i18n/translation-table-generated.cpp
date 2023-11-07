@@ -469,6 +469,7 @@ const Translation_Table translation_data = {
         {50, 25, 0, 70, 0, 78},              //
         {33, 21, 74, 25, 44, 21},            //
         {0, 0, 0, 0, 0, 26},                 //
+        {0, 0, 0, 0, 0, 58},                 //
         {27, 19, 30, 29, 22, 31},            //
         {25, 50, 0, 36, 0, 23},              //
         {66, 43, 31, 36, 30, 44},            //
@@ -2268,6 +2269,7 @@ const Translation_Table translation_data = {
         u8"this tuple type is a named tuple type because at least one element has a name\0"
         u8"this {0} looks fishy\0"
         u8"try statement starts here\0"
+        u8"type predicates are only allowed as function return types\0"
         u8"type {1} is being defined here\0"
         u8"unclosed block comment\0"
         u8"unclosed class; expected '}' by end of file\0"

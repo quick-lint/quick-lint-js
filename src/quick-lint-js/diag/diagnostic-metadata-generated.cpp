@@ -4481,6 +4481,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type
+    {
+      .code = 426,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("type predicates are only allowed as function return types"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type, is_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_Inline_Type_Export_Not_Allowed_In_Type_Only_Export
     {
       .code = 280,

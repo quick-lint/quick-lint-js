@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[528] = {
+inline const Translated_String test_translation_table[529] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -5053,6 +5053,17 @@ inline const Translated_String test_translation_table[528] = {
             u8"l'instruction try d\u00e9bute ici",
             u8"instru\u00e7\u00e3o try iniciou aqui",
             u8"try sats startar h\u00e4r",
+        },
+    },
+    {
+        "type predicates are only allowed as function return types"_translatable,
+        u8"type predicates are only allowed as function return types",
+        {
+            u8"type predicates are only allowed as function return types",
+            u8"type predicates are only allowed as function return types",
+            u8"type predicates are only allowed as function return types",
+            u8"type predicates are only allowed as function return types",
+            u8"type predicates are only allowed as function return types",
         },
     },
     {
