@@ -8,6 +8,7 @@
 #include <optional>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/global-variables.h>
 #include <quick-lint-js/port/char8.h>
@@ -49,7 +50,8 @@ class Configuration {
 
   Monotonic_Allocator allocator_{"Configuration::allocator_"};
   Global_Declared_Variable_Set globals_;
-  std::vector<String8_View> globals_to_remove_;
+  Vector<String8_View> globals_to_remove_{"Configuration::globals_to_remove_",
+                                          &this->allocator_};
   bool did_add_globals_from_groups_ = false;
   std::array<bool, global_group_count> enabled_global_groups_;
   bool literally_anything_global_group_enabled_ = false;
