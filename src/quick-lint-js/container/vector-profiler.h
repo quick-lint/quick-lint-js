@@ -52,7 +52,7 @@ class Vector_Instrumentation {
   };
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-  static Vector_Instrumentation instance;
+  static Vector_Instrumentation &instance();
 #endif
 
   void clear();
@@ -366,7 +366,7 @@ class Instrumented_Vector {
  private:
   QLJS_FORCE_INLINE void add_instrumentation_entry(
       Vector_Instrumentation::Event event) {
-    Vector_Instrumentation::instance.add_entry(
+    Vector_Instrumentation::instance().add_entry(
         /*object_id=*/reinterpret_cast<std::uintptr_t>(this),
         /*owner=*/this->debug_owner_,
         /*event=*/event,

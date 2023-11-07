@@ -40,7 +40,7 @@ using Test_Vector = Instrumented_Vector<std::vector<int>>;
 
 class Test_Instrumented_Vector : public ::testing::Test {
  public:
-  void SetUp() override { Vector_Instrumentation::instance.clear(); }
+  void SetUp() override { Vector_Instrumentation::instance().clear(); }
 };
 
 TEST_F(Test_Instrumented_Vector,
@@ -53,7 +53,7 @@ TEST_F(Test_Instrumented_Vector,
   }
 
   EXPECT_THAT(
-      Vector_Instrumentation::instance.take_entries(),
+      Vector_Instrumentation::instance().take_entries(),
       ElementsAre(
           AllOf(FIELD_EQ(Vector_Instrumentation::Entry, object_id, v_object_id),
                 FIELD_EQ(Vector_Instrumentation::Entry, owner, owner),
@@ -74,7 +74,7 @@ TEST_F(Test_Instrumented_Vector, creating_vector_from_range_adds_entry) {
 
   std::uintptr_t v_object_id = reinterpret_cast<std::uintptr_t>(&v);
   EXPECT_THAT(
-      Vector_Instrumentation::instance.take_entries(),
+      Vector_Instrumentation::instance().take_entries(),
       ElementsAreArray({
           AllOf(FIELD_EQ(Vector_Instrumentation::Entry, object_id, v_object_id),
                 FIELD_EQ(Vector_Instrumentation::Entry, owner, owner),
@@ -87,7 +87,7 @@ TEST_F(Test_Instrumented_Vector, creating_vector_from_range_adds_entry) {
 
 TEST_F(Test_Instrumented_Vector, append_to_vector_adds_entries) {
   Test_Vector<int> v("test vector", {});
-  Vector_Instrumentation::instance.clear();
+  Vector_Instrumentation::instance().clear();
 
   v.emplace_back(100);
   v.emplace_back(200);
@@ -95,7 +95,7 @@ TEST_F(Test_Instrumented_Vector, append_to_vector_adds_entries) {
   v.emplace_back(400);
 
   EXPECT_THAT(
-      Vector_Instrumentation::instance.take_entries(),
+      Vector_Instrumentation::instance().take_entries(),
       ElementsAre(AllOf(FIELD_EQ(Vector_Instrumentation::Entry, event,
                                  Vector_Instrumentation::Event::append),
                         FIELD_EQ(Vector_Instrumentation::Entry, size, 1)),
@@ -114,11 +114,11 @@ TEST_F(Test_Instrumented_Vector, clearing_vector_adds_entry) {
   Test_Vector<int> v("test vector", {});
   v.emplace_back(100);
   v.emplace_back(200);
-  Vector_Instrumentation::instance.clear();
+  Vector_Instrumentation::instance().clear();
 
   v.clear();
 
-  EXPECT_THAT(Vector_Instrumentation::instance.take_entries(),
+  EXPECT_THAT(Vector_Instrumentation::instance().take_entries(),
               ElementsAreArray({
                   AllOf(FIELD_EQ(Vector_Instrumentation::Entry, event,
                                  Vector_Instrumentation::Event::clear),
@@ -132,14 +132,14 @@ TEST_F(Test_Instrumented_Vector, moving_vector_with_new_owner_adds_entries) {
   std::uintptr_t v_1_object_id = reinterpret_cast<std::uintptr_t>(&v_1);
   v_1.emplace_back(100);
   v_1.emplace_back(200);
-  Vector_Instrumentation::instance.clear();
+  Vector_Instrumentation::instance().clear();
 
   const char *v_2_owner = "v2";
   Test_Vector<int> v_2(v_2_owner, std::move(v_1));
   std::uintptr_t v_2_object_id = reinterpret_cast<std::uintptr_t>(&v_2);
 
   EXPECT_THAT(
-      Vector_Instrumentation::instance.take_entries(),
+      Vector_Instrumentation::instance().take_entries(),
       ElementsAre(
           AllOf(
               FIELD_EQ(Vector_Instrumentation::Entry, owner, v_2_owner),
@@ -161,13 +161,13 @@ TEST_F(Test_Instrumented_Vector, moving_vector_with_no_owner_adds_entries) {
   std::uintptr_t v_1_object_id = reinterpret_cast<std::uintptr_t>(&v_1);
   v_1.emplace_back(100);
   v_1.emplace_back(200);
-  Vector_Instrumentation::instance.clear();
+  Vector_Instrumentation::instance().clear();
 
   Test_Vector<int> v_2(std::move(v_1));
   std::uintptr_t v_2_object_id = reinterpret_cast<std::uintptr_t>(&v_2);
 
   EXPECT_THAT(
-      Vector_Instrumentation::instance.take_entries(),
+      Vector_Instrumentation::instance().take_entries(),
       ElementsAre(
           AllOf(
               FIELD_EQ(Vector_Instrumentation::Entry, owner, v_1_owner),
@@ -193,12 +193,12 @@ TEST_F(Test_Instrumented_Vector, move_assigning_vector_adds_entries) {
   v_2.emplace_back(200);
   v_2.emplace_back(300);
   std::uintptr_t v_2_object_id = reinterpret_cast<std::uintptr_t>(&v_2);
-  Vector_Instrumentation::instance.clear();
+  Vector_Instrumentation::instance().clear();
 
   v_1 = std::move(v_2);
 
   EXPECT_THAT(
-      Vector_Instrumentation::instance.take_entries(),
+      Vector_Instrumentation::instance().take_entries(),
       ElementsAre(
           AllOf(
               FIELD_EQ(Vector_Instrumentation::Entry, owner, v_1_owner),

@@ -23,7 +23,10 @@ QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 
 namespace quick_lint_js {
 #if QLJS_FEATURE_VECTOR_PROFILING
-Vector_Instrumentation Vector_Instrumentation::instance;
+Vector_Instrumentation &Vector_Instrumentation::instance() {
+  static Vector_Instrumentation instrumentation;
+  return instrumentation;
+}
 #endif
 
 void Vector_Instrumentation::clear() { this->entries_.lock()->clear(); }
@@ -68,7 +71,7 @@ void Vector_Instrumentation::register_dump_on_exit_if_requested() {
     (void)File_Output_Stream::get_stderr();
 
     std::atexit([]() -> void {
-      auto entries = instance.entries();
+      auto entries = instance().entries();
       Output_Stream &out = *File_Output_Stream::get_stderr();
 
       {

@@ -164,7 +164,7 @@ TEST_F(Test_Debug_Server, two_servers_listening_on_same_port_fails) {
 #if QLJS_FEATURE_VECTOR_PROFILING
 TEST_F(Test_Debug_Server,
        web_socket_publishes_vector_profile_stats_on_connect) {
-  Vector_Instrumentation::instance.clear();
+  Vector_Instrumentation::instance().clear();
   {
     Instrumented_Vector<std::vector<int>> v("debug server test vector", {});
     ASSERT_EQ(v.size(), 0);
@@ -222,7 +222,7 @@ TEST_F(Test_Debug_Server,
 }
 
 TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
-  Vector_Instrumentation::instance.clear();
+  Vector_Instrumentation::instance().clear();
 
   bool received_vector_profile_entry = false;
   auto on_trace_event =

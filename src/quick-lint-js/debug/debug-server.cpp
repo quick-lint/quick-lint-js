@@ -356,7 +356,7 @@ void Debug_Server::wakeup_pipe_callback(::mg_connection *c, int ev, void *) {
       this->need_publish_vector_profile_.store(false);
 
       this->max_size_histogram_.add_entries(
-          Vector_Instrumentation::instance.take_entries());
+          Vector_Instrumentation::instance().take_entries());
 
       Trace_Writer *tw =
           Trace_Flusher::instance()->trace_writer_for_current_thread();
