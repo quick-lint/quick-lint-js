@@ -27,6 +27,10 @@ class Configuration {
   bool add_global_group(String8_View group_name);
 
   void add_global_variable(Global_Declared_Variable);
+
+  // For testing and internal use only.
+  //
+  // name must live as long as this Configuration object.
   void remove_global_variable(String8_View name);
 
   void load_from_json(Padded_String_View, Diag_Reporter*);
@@ -45,7 +49,7 @@ class Configuration {
 
   Monotonic_Allocator allocator_{"Configuration::allocator_"};
   Global_Declared_Variable_Set globals_;
-  std::vector<String8> globals_to_remove_;
+  std::vector<String8_View> globals_to_remove_;
   bool did_add_globals_from_groups_ = false;
   std::array<bool, global_group_count> enabled_global_groups_;
   bool literally_anything_global_group_enabled_ = false;
