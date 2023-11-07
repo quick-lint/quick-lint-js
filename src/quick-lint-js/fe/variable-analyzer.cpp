@@ -466,9 +466,6 @@ void Variable_Analyzer::visit_variable_namespace_use(Identifier) {
 }
 
 void Variable_Analyzer::visit_variable_type_predicate_use(Identifier name) {
-  // TODO(#690)
-  static_cast<void>(name);
-
   QLJS_ASSERT(!this->scopes_.empty());
   Scope &current_scope = this->current_scope();
   Declared_Variable *var = current_scope.declared_variables.find_runtime(name);
