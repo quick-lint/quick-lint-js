@@ -40,6 +40,7 @@ class LSP_Locator {
 
   const Char8 *from_position(LSP_Position) const;
 
+  void set_text(Padded_String_View new_input);
   void replace_text(LSP_Range, String8_View replacement_text,
                     Padded_String_View new_input);
 

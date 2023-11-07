@@ -122,6 +122,13 @@ const Char8 *LSP_Locator::from_position(LSP_Position position) const {
   }
 }
 
+void LSP_Locator::set_text(Padded_String_View new_input) {
+  this->input_ = new_input;
+  this->offset_of_lines_.clear();
+  this->line_is_ascii_.clear();
+  this->cache_offsets_of_lines();
+}
+
 void LSP_Locator::replace_text(LSP_Range range, String8_View replacement_text,
                                Padded_String_View new_input) {
   Offset_Type start_offset = narrow_cast<Offset_Type>(
