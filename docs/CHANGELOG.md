@@ -15,6 +15,13 @@ Semantic Versioning.
   * `case await x:` no longer treats `:` as if it was a type annotation colon in
     an arrow function parameter list.
 
+### Fixed
+
+* TypeScript support (still experimental):
+  * Types named `await`, `implements`, `interface`, `let`, `package`, `private`,
+    `protected`, `public`, `static`, and `yield` are now recognized in type
+    signatures.
+
 ## 2.18.0 (2023-11-03)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.18.0/)

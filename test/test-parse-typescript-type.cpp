@@ -43,19 +43,19 @@ TEST_F(Test_Parse_TypeScript_Type, direct_type_reference) {
 
 TEST_F(Test_Parse_TypeScript_Type, direct_type_reference_with_keyword_name) {
   for (String8 keyword :
-       contextual_keywords - typescript_builtin_type_keywords -
-           typescript_special_type_keywords - typescript_type_only_keywords -
+       ((contextual_keywords - typescript_builtin_type_keywords -
+         typescript_special_type_keywords - typescript_type_only_keywords) |
+        strict_only_reserved_keywords |
+        Dirty_Set<String8>{u8"await", u8"yield"}) -
            Dirty_Set<String8>{
                // NOTE(strager): keyof is omitted on purpose because of
                // ambiguities in the grammar:
                // https://github.com/microsoft/TypeScript/issues/49724
                u8"keyof",
-               u8"let",
                // NOTE(strager): readonly is omitted on purpose because
                // TypeScript complains about it, even though there is no
                // ambiguity in this case.
                u8"readonly",
-               u8"static",
                // NOTE(strager): unique is omitted on purpose because of
                // ambiguities in the grammar.
                u8"unique",

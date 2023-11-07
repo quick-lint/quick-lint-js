@@ -140,23 +140,33 @@ again:
   case Token_Type::kw_assert:
   case Token_Type::kw_asserts:
   case Token_Type::kw_async:
+  case Token_Type::kw_await:
   case Token_Type::kw_constructor:
   case Token_Type::kw_declare:
   case Token_Type::kw_from:
   case Token_Type::kw_get:
   case Token_Type::kw_global:
+  case Token_Type::kw_implements:
+  case Token_Type::kw_interface:
   case Token_Type::kw_intrinsic:
   case Token_Type::kw_is:
+  case Token_Type::kw_let:
   case Token_Type::kw_module:
   case Token_Type::kw_namespace:
   case Token_Type::kw_of:
   case Token_Type::kw_out:
   case Token_Type::kw_override:
+  case Token_Type::kw_package:
+  case Token_Type::kw_private:
+  case Token_Type::kw_protected:
+  case Token_Type::kw_public:
   case Token_Type::kw_readonly:
   case Token_Type::kw_require:
   case Token_Type::kw_satisfies:
   case Token_Type::kw_set:
+  case Token_Type::kw_static:
   case Token_Type::kw_type:
+  case Token_Type::kw_yield:
   case Token_Type::identifier: {
     Identifier name = this->peek().identifier_name();
     bool had_dot = false;
