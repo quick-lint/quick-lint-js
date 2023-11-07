@@ -145,7 +145,7 @@ void Configuration::reset() {
     enabled = true;
   }
   this->literally_anything_global_group_enabled_ = false;
-  this->string_allocator_.release();
+  this->allocator_.release();
 }
 
 bool Configuration::load_global_groups_from_json(
@@ -306,7 +306,7 @@ String8_View Configuration::save_string(std::string_view s) {
   String8_View s8 = to_string8_view(s);
   // TODO(strager): Use Linked_Bump_Allocator::new_objects_copy.
   Span<Char8> out =
-      string_allocator_.allocate_uninitialized_span<Char8>(s8.size());
+      this->allocator_.allocate_uninitialized_span<Char8>(s8.size());
   std::uninitialized_copy(s8.begin(), s8.end(), out.data());
   return String8_View(out.data(), narrow_cast<std::size_t>(out.size()));
 }

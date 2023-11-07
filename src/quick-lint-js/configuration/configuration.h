@@ -43,12 +43,12 @@ class Configuration {
 
   void report_json_error(Padded_String_View json, Diag_Reporter*);
 
+  Monotonic_Allocator allocator_{"Configuration::allocator_"};
   Global_Declared_Variable_Set globals_;
   std::vector<String8> globals_to_remove_;
   bool did_add_globals_from_groups_ = false;
   std::array<bool, global_group_count> enabled_global_groups_;
   bool literally_anything_global_group_enabled_ = false;
-  Monotonic_Allocator string_allocator_{"configuration::string_allocator_"};
 
   String8_View save_string(std::string_view s);
 };
