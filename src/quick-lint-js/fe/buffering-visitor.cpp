@@ -121,6 +121,9 @@ void Buffering_Visitor::copy_into(Parse_Visitor_Base &target) const {
     case Visit_Kind::variable_assignment:
       target.visit_variable_assignment(v.name);
       break;
+    case Visit_Kind::variable_assertion_signature_use:
+      target.visit_variable_assertion_signature_use(v.name);
+      break;
     case Visit_Kind::variable_delete_use:
       target.visit_variable_delete_use(v.name, v.extra_span);
       break;
@@ -296,6 +299,11 @@ void Buffering_Visitor::visit_variable_declaration(
     Identifier name, Variable_Kind kind, Variable_Declaration_Flags flags) {
   this->visits_.emplace_back(Visit_Kind::variable_declaration, name, kind,
                              flags);
+}
+
+void Buffering_Visitor::visit_variable_assertion_signature_use(
+    Identifier name) {
+  this->add(name, Visit_Kind::variable_assertion_signature_use);
 }
 
 void Buffering_Visitor::visit_variable_delete_use(

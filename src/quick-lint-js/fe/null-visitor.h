@@ -46,6 +46,7 @@ class Null_Visitor final : public Parse_Visitor_Base {
   void visit_variable_assignment(Identifier) override {}
   void visit_variable_declaration(Identifier, Variable_Kind,
                                   Variable_Declaration_Flags) override {}
+  void visit_variable_assertion_signature_use(Identifier) override {}
   void visit_variable_delete_use(Identifier, Source_Code_Span) override {}
   void visit_variable_export_use(Identifier) override {}
   void visit_variable_namespace_use(Identifier) override {}

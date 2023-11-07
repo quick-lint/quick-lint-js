@@ -431,6 +431,12 @@ void Variable_Analyzer::visit_variable_assignment(Identifier name) {
   }
 }
 
+void Variable_Analyzer::visit_variable_assertion_signature_use([
+    [maybe_unused]] Identifier name) {
+  // TODO(#690)
+  QLJS_UNIMPLEMENTED();
+}
+
 void Variable_Analyzer::visit_variable_delete_use(
     Identifier name, Source_Code_Span delete_keyword) {
   QLJS_ASSERT(delete_keyword.end() <= name.span().begin());
