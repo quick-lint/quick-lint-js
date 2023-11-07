@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <iosfwd>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
 #include <vector>
@@ -58,13 +59,17 @@ class LSP_Locator {
   LSP_Position position(int line_number, Offset_Type offset) const;
 
   Padded_String_View input_;
-  std::vector<Offset_Type> offset_of_lines_;
-  std::vector<unsigned char> line_is_ascii_;
+  Vector<Offset_Type> offset_of_lines_{"LSP_Locator::offset_of_lines_",
+                                       new_delete_resource()};
+  Vector<unsigned char> line_is_ascii_{"LSP_Locator::line_is_ascii_",
+                                       new_delete_resource()};
 
   // old_offset_of_lines_ and old_line_is_ascii_ are used for double buffering
   // of offset_of_lines_ and line_is_ascii_. This reduces allocations.
-  std::vector<Offset_Type> old_offset_of_lines_;
-  std::vector<unsigned char> old_line_is_ascii_;
+  Vector<Offset_Type> old_offset_of_lines_{"LSP_Locator::old_offset_of_lines_",
+                                           new_delete_resource()};
+  Vector<unsigned char> old_line_is_ascii_{"LSP_Locator::old_line_is_ascii_",
+                                           new_delete_resource()};
 };
 }
 

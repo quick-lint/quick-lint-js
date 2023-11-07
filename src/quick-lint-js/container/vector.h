@@ -90,7 +90,16 @@ class Uninstrumented_Vector : private Vector {
   using Vector::release_to_span;
   using Vector::release_to_string_view;
   using Vector::to_string_view;
+
+  void swap(Uninstrumented_Vector &other) {
+    static_cast<Vector &>(*this).swap(static_cast<Vector &>(other));
+  }
 };
+
+template <class V>
+void swap(Uninstrumented_Vector<V> &lhs, Uninstrumented_Vector<V> &rhs) {
+  lhs.swap(rhs);
+}
 
 using Vector_Size = std::ptrdiff_t;
 
@@ -344,6 +353,17 @@ class Raw_Vector {
 
   void erase(value_type *item) { erase(item, item + 1); }
 
+  // Swap capacity pointers and sizes between *this and other. All items of
+  // *this and other are untouched.
+  //
+  // Precondition: this->get_allocator() == other.get_allocator()
+  void swap(Raw_Vector &other) {
+    QLJS_ALWAYS_ASSERT(this->get_allocator() == other.get_allocator());
+    std::swap(this->data_, other.data_);
+    std::swap(this->data_end_, other.data_end_);
+    std::swap(this->capacity_end_, other.capacity_end_);
+  }
+
   // If new_size > this->size(): default-construct new items at the end.
   // If new_size < this->size(): destruct items at the end.
   //
@@ -414,6 +434,11 @@ class Raw_Vector {
 
   Memory_Resource *allocator_;
 };
+
+template <class T>
+void swap(Raw_Vector<T> &lhs, Raw_Vector<T> &rhs) {
+  lhs.swap(rhs);
+}
 
 #if QLJS_FEATURE_VECTOR_PROFILING
 template <class T>

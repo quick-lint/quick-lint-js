@@ -355,6 +355,14 @@ class Instrumented_Vector {
     return Span<const value_type>(this->data_);
   }
 
+  void swap(Instrumented_Vector &other) {
+    this->data_.swap(other.data_);
+    std::swap(this->debug_owner_, other.debug_owner_);
+    // TODO(strager): Add instrumentation specific to swapping.
+    this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
+    other.add_instrumentation_entry(Vector_Instrumentation::Event::resize);
+  }
+
  private:
   QLJS_FORCE_INLINE void add_instrumentation_entry(
       Vector_Instrumentation::Event event) {
@@ -370,6 +378,11 @@ class Instrumented_Vector {
   Vector data_;
   const char *debug_owner_;
 };
+
+template <class V>
+void swap(Instrumented_Vector<V> &lhs, Instrumented_Vector<V> &rhs) {
+  lhs.swap(rhs);
+}
 #endif
 }
 

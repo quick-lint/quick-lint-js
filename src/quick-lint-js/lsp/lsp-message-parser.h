@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <optional>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
@@ -37,7 +38,8 @@ class LSP_Message_Parser_Base {
   static bool header_is(String8_View header_name,
                         String8_View expected_header_name);
 
-  std::vector<Char8> buffer_;
+  Vector<Char8> buffer_{"LSP_Message_Parser_Base::buffer_",
+                        new_delete_resource()};
 
   // If !pending_message_content_length_.has_value(), buffer_ contains message
   // headers (and possibly message content and other messages afterwards).
@@ -63,8 +65,7 @@ template <class Derived>
 class LSP_Message_Parser : private LSP_Message_Parser_Base {
  public:
   void append(String8_View data) {
-    this->buffer_.insert(this->buffer_.end(), data.data(),
-                         data.data() + data.size());
+    this->buffer_ += data;
     this->parse();
   }
 

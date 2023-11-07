@@ -19,12 +19,10 @@ namespace {
 template <class Input_It, class Output, class Transformer>
 void insert_back_transform(Input_It input_begin, Input_It input_end,
                            Output &output, Transformer &&transformer) {
-  using Difference_Type = typename Output::difference_type;
-  std::size_t original_size = output.size();
-  std::size_t final_size =
-      original_size + narrow_cast<std::size_t>(input_end - input_begin);
+  Vector_Size original_size = output.size();
+  Vector_Size final_size = original_size + input_end - input_begin;
   output.resize(final_size);
-  auto output_it = output.begin() + narrow_cast<Difference_Type>(original_size);
+  auto output_it = output.begin() + original_size;
   output_it = std::transform(input_begin, input_end, output_it, transformer);
   QLJS_ASSERT(output_it == output.end());
 }
@@ -66,9 +64,8 @@ const Char8 *LSP_Locator::from_position(LSP_Position position) const {
     return this->input_.null_terminator();
   }
 
-  Offset_Type line_begin_offset =
-      this->offset_of_lines_[narrow_cast<std::size_t>(line)];
-  bool line_is_ascii = this->line_is_ascii_[narrow_cast<std::size_t>(line)];
+  Offset_Type line_begin_offset = this->offset_of_lines_[line];
+  bool line_is_ascii = this->line_is_ascii_[line];
   bool is_last_line = line == number_of_lines - 1;
   if (is_last_line) {
     // TODO(strager): Get rid of this narrow_cast.
@@ -86,8 +83,7 @@ const Char8 *LSP_Locator::from_position(LSP_Position position) const {
       return advance_lsp_characters_in_utf_8(line_string, character);
     }
   } else {
-    Offset_Type line_end_offset =
-        this->offset_of_lines_[narrow_cast<std::size_t>(line + 1)];
+    Offset_Type line_end_offset = this->offset_of_lines_[line + 1];
     Offset_Type line_length_including_terminator =
         line_end_offset - line_begin_offset;
     if (line_is_ascii) {
@@ -139,24 +135,24 @@ void LSP_Locator::replace_text(LSP_Range range, String8_View replacement_text,
       narrow_cast<Offset_Type>(replacement_text.size());
 
   QLJS_ASSERT(!this->offset_of_lines_.empty());
-  std::size_t start_line = narrow_cast<std::size_t>(range.start.line);
-  std::size_t end_line = std::min(this->offset_of_lines_.size() - 1,
-                                  narrow_cast<std::size_t>(range.end.line));
+  Vector_Size start_line = narrow_cast<Vector_Size>(range.start.line);
+  Vector_Size end_line = std::min(this->offset_of_lines_.size() - 1,
+                                  narrow_cast<Vector_Size>(range.end.line));
 
   this->input_ = new_input;
-  std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
-  std::swap(this->old_line_is_ascii_, this->line_is_ascii_);
+  swap(this->old_offset_of_lines_, this->offset_of_lines_);
+  swap(this->old_line_is_ascii_, this->line_is_ascii_);
   this->offset_of_lines_.reserve(this->old_offset_of_lines_.size());
   this->offset_of_lines_.clear();
   this->line_is_ascii_.reserve(this->old_line_is_ascii_.size());
   this->line_is_ascii_.clear();
 
   // Offsets before replacement: do not adjust.
-  this->offset_of_lines_.insert(
-      this->offset_of_lines_.end(), this->old_offset_of_lines_.begin(),
+  this->offset_of_lines_.append(
+      this->old_offset_of_lines_.begin(),
       this->old_offset_of_lines_.begin() + range.start.line + 1);
-  this->line_is_ascii_.insert(
-      this->line_is_ascii_.end(), this->old_line_is_ascii_.begin(),
+  this->line_is_ascii_.append(
+      this->old_line_is_ascii_.begin(),
       this->old_line_is_ascii_.begin() + range.start.line);
 
   // Offsets within replacement: re-parse newlines.
@@ -183,8 +179,7 @@ void LSP_Locator::replace_text(LSP_Range range, String8_View replacement_text,
                         [&](Offset_Type offset) -> Offset_Type {
                           return offset + net_bytes_added;
                         });
-  this->line_is_ascii_.insert(this->line_is_ascii_.end(),
-                              this->old_line_is_ascii_.begin() +
+  this->line_is_ascii_.append(this->old_line_is_ascii_.begin() +
                                   narrow_cast<std::ptrdiff_t>(end_line) + 1,
                               this->old_line_is_ascii_.end());
 
@@ -216,8 +211,7 @@ void LSP_Locator::cache_offsets_of_lines() {
   QLJS_ASSERT(this->line_is_ascii_.empty());
 
   constexpr int estimated_bytes_per_line = 64;
-  std::size_t estimated_lines =
-      narrow_cast<std::size_t>(this->input_.size() / estimated_bytes_per_line);
+  Vector_Size estimated_lines = this->input_.size() / estimated_bytes_per_line;
   this->offset_of_lines_.reserve(estimated_lines);
   this->line_is_ascii_.reserve(estimated_lines);
 
@@ -275,10 +269,8 @@ LSP_Locator::Offset_Type LSP_Locator::offset(const Char8 *source) const {
 }
 
 LSP_Position LSP_Locator::position(int line_number, Offset_Type offset) const {
-  Offset_Type beginning_of_line_offset =
-      this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
-  bool line_is_ascii =
-      this->line_is_ascii_[narrow_cast<std::size_t>(line_number)];
+  Offset_Type beginning_of_line_offset = this->offset_of_lines_[line_number];
+  bool line_is_ascii = this->line_is_ascii_[line_number];
 
   int character;
   if (line_is_ascii) {

@@ -8,6 +8,7 @@
 #else
 
 #include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/vector.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -30,7 +31,8 @@ class Outgoing_JSON_RPC_Message_Queue {
   void send(LSP_Endpoint_Remote&);
 
  private:
-  std::vector<Byte_Buffer> messages_;
+  Vector<Byte_Buffer> messages_{"Outgoing_JSON_RPC_Message_Queue::messages_",
+                                new_delete_resource()};
 };
 }
 
