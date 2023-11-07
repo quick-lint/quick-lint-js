@@ -15,6 +15,10 @@ class Lock_Ptr;
 template <class Data>
 class Synchronized {
  public:
+  // Construct Data, forwarding arguments to Data's constructor.
+  template <class... Args>
+  explicit Synchronized(Args&&... args) : data_(std::forward<Args>(args)...) {}
+
   // Acquire the mutex. When the returned lock_ptr is destructed, the mutex is
   // released.
   Lock_Ptr<Data> lock();

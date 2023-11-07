@@ -12,6 +12,7 @@
 #include <mongoose.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/vector-profiler.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <string>
@@ -34,7 +35,7 @@ class Debug_Server {
 
  public:
   static std::shared_ptr<Debug_Server> create();
-  static std::vector<std::shared_ptr<Debug_Server>> instances();
+  static Raw_Vector<std::shared_ptr<Debug_Server>> instances();
 
   explicit Debug_Server(Create_Tag);
 
@@ -109,8 +110,7 @@ class Debug_Server {
 
   // Used by server thread only:
   // Each backend is associated with one WebSocket connection.
-  std::vector<std::unique_ptr<Trace_Flusher_WebSocket_Backend>>
-      tracer_backends_;
+  Vector<std::unique_ptr<Trace_Flusher_WebSocket_Backend>> tracer_backends_;
 #if QLJS_FEATURE_VECTOR_PROFILING
   Vector_Max_Size_Histogram_By_Owner max_size_histogram_;
 #endif

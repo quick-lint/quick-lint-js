@@ -179,15 +179,19 @@ TEST_F(Test_Debug_Server,
       // This should eventually be called.
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
           event.vector_max_size_histogram_by_owner_event.entries;
-      EXPECT_EQ(entries.size(), 1);
-      if (entries.size() > 0) {
-        EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
-        EXPECT_THAT(entries[0].max_size_entries,
-                    ::testing::ElementsAreArray({
-                        Trace_Vector_Max_Size_Histogram_Entry{.max_size = 0,
-                                                              .count = 1},
-                    }));
+      bool found_entry = false;
+      for (const Trace_Vector_Max_Size_Histogram_By_Owner_Entry &entry :
+           entries) {
+        if (entry.owner == u8"debug server test vector"_sv) {
+          found_entry = true;
+          EXPECT_THAT(entry.max_size_entries,
+                      ::testing::ElementsAreArray({
+                          Trace_Vector_Max_Size_Histogram_Entry{.max_size = 0,
+                                                                .count = 1},
+                      }));
+        }
       }
+      EXPECT_TRUE(found_entry);
 
       received_vector_max_size_histogram_by_owner_event = true;
       return false;
@@ -220,7 +224,7 @@ TEST_F(Test_Debug_Server,
 TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
   Vector_Instrumentation::instance.clear();
 
-  bool received_vector_max_size_histogram_by_owner_event = false;
+  bool received_vector_profile_entry = false;
   auto on_trace_event =
       [&](Debug_Server &server, const Parsed_Trace_Event &event,
           [[maybe_unused]] std::uint64_t thread_index) -> bool {
@@ -245,28 +249,30 @@ TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
 
     case Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event: {
       // This should eventually be called.
-      if (event.vector_max_size_histogram_by_owner_event.entries.empty()) {
-        // We will receive an initial vector_max_size_histogram_by_owner
-        // event. Ignore it.
-        return true;
-      }
 
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
           event.vector_max_size_histogram_by_owner_event.entries;
-      EXPECT_EQ(entries.size(), 1);
-      if (entries.size() > 0) {
-        EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
-        EXPECT_THAT(entries[0].max_size_entries,
-                    ::testing::ElementsAreArray({
-                        Trace_Vector_Max_Size_Histogram_Entry{.max_size = 2,
-                                                              .count = 1},
-                        Trace_Vector_Max_Size_Histogram_Entry{.max_size = 4,
-                                                              .count = 1},
-                    }));
+      for (const Trace_Vector_Max_Size_Histogram_By_Owner_Entry &entry :
+           entries) {
+        if (entry.owner == u8"debug server test vector"_sv) {
+          received_vector_profile_entry = true;
+          EXPECT_EQ(entry.owner, u8"debug server test vector"_sv);
+          EXPECT_THAT(entry.max_size_entries,
+                      ::testing::ElementsAreArray({
+                          Trace_Vector_Max_Size_Histogram_Entry{.max_size = 2,
+                                                                .count = 1},
+                          Trace_Vector_Max_Size_Histogram_Entry{.max_size = 4,
+                                                                .count = 1},
+                      }));
+          // Stop the server.
+          return false;
+        }
       }
 
-      received_vector_max_size_histogram_by_owner_event = true;
-      return false;
+      // We will receive an initial vector_max_size_histogram_by_owner event
+      // and perhaps spurious extra events. Ignore those events and keep waiting
+      // for the 'debug server test vector' events.
+      return true;
     }
 
     case Parsed_Trace_Event_Type::error_invalid_magic:
@@ -289,7 +295,7 @@ TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
     QLJS_UNREACHABLE();
   };
   test_web_socket(on_trace_event);
-  EXPECT_TRUE(received_vector_max_size_histogram_by_owner_event);
+  EXPECT_TRUE(received_vector_profile_entry);
 }
 #endif
 

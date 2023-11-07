@@ -14,7 +14,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/vector-profiler.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/debug/debug-server-fs.h>
 #include <quick-lint-js/debug/debug-server.h>
 #include <quick-lint-js/debug/find-debug-server.h>
@@ -108,11 +110,13 @@ std::shared_ptr<Debug_Server> Debug_Server::create() {
   return instance;
 }
 
-std::vector<std::shared_ptr<Debug_Server>> Debug_Server::instances() {
+Raw_Vector<std::shared_ptr<Debug_Server>> Debug_Server::instances() {
   return Instance_Tracker<Debug_Server>::instances();
 }
 
-Debug_Server::Debug_Server(Create_Tag) {}
+Debug_Server::Debug_Server(Create_Tag)
+    : tracer_backends_("Debug_Server::tracer_backends_",
+                       new_delete_resource()) {}
 
 Debug_Server::~Debug_Server() {
   if (this->server_thread_.joinable()) {
@@ -399,10 +403,14 @@ void Debug_Server::publish_lsp_documents_if_needed() {
     return;
   }
 
-  std::vector<Trace_LSP_Document_State> document_states;
+  Monotonic_Allocator temporary_allocator(
+      "Debug_Server::publish_lsp_documents_if_needed");
+  Vector<Trace_LSP_Document_State> document_states("document_states",
+                                                   &temporary_allocator);
   {
     Lock_Ptr<LSP_Documents> documents = documents_raw->lock();
-    document_states.reserve(documents->documents.size());
+    document_states.reserve(
+        narrow_cast<Vector_Size>(documents->documents.size()));
     for (auto &[uri, doc] : documents->documents) {
       document_states.push_back(Trace_LSP_Document_State{
           .type = doc->trace_type(),
