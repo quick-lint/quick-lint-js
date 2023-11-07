@@ -11,9 +11,11 @@
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/result.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -189,8 +191,10 @@ class Configuration_Loader {
   // Value: cached parsed configuration
   Hash_Map<Canonical_Path, Loaded_Config_File> loaded_config_files_;
 
-  std::vector<Watched_Config_Path> watched_config_paths_;
-  std::vector<Watched_Input_Path> watched_input_paths_;
+  Vector<Watched_Config_Path> watched_config_paths_{
+      "Configuration_Loader::watched_config_paths_", new_delete_resource()};
+  Vector<Watched_Input_Path> watched_input_paths_{
+      "Configuration_Loader::watched_input_paths_", new_delete_resource()};
 };
 }
 
