@@ -35,7 +35,7 @@ class Debug_Server {
 
  public:
   static std::shared_ptr<Debug_Server> create();
-  static Raw_Vector<std::shared_ptr<Debug_Server>> instances();
+  static Vector<std::shared_ptr<Debug_Server>> instances();
 
   explicit Debug_Server(Create_Tag);
 

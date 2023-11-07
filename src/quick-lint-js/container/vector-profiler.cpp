@@ -24,8 +24,12 @@ QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 namespace quick_lint_js {
 #if QLJS_FEATURE_VECTOR_PROFILING
 Vector_Instrumentation &Vector_Instrumentation::instance() {
-  static Vector_Instrumentation instrumentation;
-  return instrumentation;
+  // NOTE(strager): We intentionally leak the Vector_Instrumentation. We want to
+  // avoid deinitialization order issues, so defer deinitialization forever.
+  // Also, cleaning up the memory is wasteful and is unnecessary for modern leak
+  // checkers anyway.
+  static Vector_Instrumentation *instrumentation = new Vector_Instrumentation();
+  return *instrumentation;
 }
 #endif
 

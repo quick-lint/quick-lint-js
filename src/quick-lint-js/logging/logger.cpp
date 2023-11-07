@@ -32,10 +32,7 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=format")
 namespace quick_lint_js {
 namespace {
 struct Global_Loggers {
-  // NOTE(strager): We use Raw_Vector here instead of Vector. Otherwise, in
-  // vector instrumented builds, loggers might be initialized before the vector
-  // profiler is initialized, causing use-before-init issues.
-  Raw_Vector<Logger*> loggers{new_delete_resource()};
+  Vector<Logger*> loggers{"Global_Loggers::loggers", new_delete_resource()};
   bool initialized = false;
 
   void initialize_if_needed() {

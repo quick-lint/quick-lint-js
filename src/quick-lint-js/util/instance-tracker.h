@@ -18,16 +18,17 @@ template <class Tracked>
 class Instance_Tracker {
  public:
   static void track(std::shared_ptr<Tracked> instance) {
-    Lock_Ptr<Raw_Vector<std::weak_ptr<Tracked>>> weak_instances =
+    Lock_Ptr<Vector<std::weak_ptr<Tracked>>> weak_instances =
         weak_instances_.lock();
     sanitize_instances(weak_instances);
     weak_instances->push_back(std::move(instance));
   }
 
-  static Raw_Vector<std::shared_ptr<Tracked>> instances() {
-    Raw_Vector<std::shared_ptr<Tracked>> instances(new_delete_resource());
+  static Vector<std::shared_ptr<Tracked>> instances() {
+    Vector<std::shared_ptr<Tracked>> instances("instances",
+                                               new_delete_resource());
     {
-      Lock_Ptr<Raw_Vector<std::weak_ptr<Tracked>>> weak_instances =
+      Lock_Ptr<Vector<std::weak_ptr<Tracked>>> weak_instances =
           weak_instances_.lock();
       sanitize_instances(weak_instances);
       instances.reserve(weak_instances->size());
@@ -45,7 +46,7 @@ class Instance_Tracker {
 
  private:
   static void sanitize_instances(
-      Lock_Ptr<Raw_Vector<std::weak_ptr<Tracked>>>& weak_instances) {
+      Lock_Ptr<Vector<std::weak_ptr<Tracked>>>& weak_instances) {
     erase_if(*weak_instances, [](const std::weak_ptr<Tracked>& weak_instance) {
       return weak_instance.expired();
     });
@@ -55,11 +56,8 @@ class Instance_Tracker {
     sanitize_instances(weak_instances_.lock());
   }
 
-  // NOTE(strager): We use Raw_Vector here instead of Vector. Otherwise, in
-  // vector instrumented builds, weak_instances_ might be initialized before the
-  // vector profiler is initialized, causing use-before-init issues.
-  static inline Synchronized<Raw_Vector<std::weak_ptr<Tracked>>>
-      weak_instances_{new_delete_resource()};
+  static inline Synchronized<Vector<std::weak_ptr<Tracked>>> weak_instances_{
+      "weak_instances_", new_delete_resource()};
 };
 }
 

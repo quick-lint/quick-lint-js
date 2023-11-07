@@ -110,7 +110,7 @@ std::shared_ptr<Debug_Server> Debug_Server::create() {
   return instance;
 }
 
-Raw_Vector<std::shared_ptr<Debug_Server>> Debug_Server::instances() {
+Vector<std::shared_ptr<Debug_Server>> Debug_Server::instances() {
   return Instance_Tracker<Debug_Server>::instances();
 }
 
