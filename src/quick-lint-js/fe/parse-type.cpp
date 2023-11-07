@@ -37,8 +37,14 @@ void Parser::parse_typescript_colon_for_type() {
 
 void Parser::parse_and_visit_typescript_colon_type_expression(
     Parse_Visitor_Base &v) {
+  this->parse_and_visit_typescript_colon_type_expression(
+      v, TypeScript_Type_Parse_Options());
+}
+
+void Parser::parse_and_visit_typescript_colon_type_expression(
+    Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &parse_options) {
   this->parse_typescript_colon_for_type();
-  this->parse_and_visit_typescript_type_expression(v);
+  this->parse_and_visit_typescript_type_expression(v, parse_options);
 }
 
 void Parser::parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v) {
@@ -694,23 +700,6 @@ again:
   }
 }
 
-void Parser::parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-    Parse_Visitor_Base &v, bool allow_parenthesized_type) {
-  this->parse_typescript_colon_for_type();
-  this->parse_and_visit_typescript_type_expression_or_type_predicate(
-      v, /*allow_parenthesized_type=*/
-      allow_parenthesized_type);
-}
-
-void Parser::parse_and_visit_typescript_type_expression_or_type_predicate(
-    Parse_Visitor_Base &v, bool allow_parenthesized_type) {
-  this->parse_and_visit_typescript_type_expression(
-      v, TypeScript_Type_Parse_Options{
-             .allow_parenthesized_type = allow_parenthesized_type,
-             .allow_type_predicate = true,
-         });
-}
-
 void Parser::parse_and_visit_typescript_arrow_type_expression(
     Parse_Visitor_Base &v) {
   v.visit_enter_function_scope();
@@ -741,8 +730,11 @@ void Parser::
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
   this->skip();
-  this->parse_and_visit_typescript_type_expression_or_type_predicate(
-      v, /*allow_parenthesized_type=*/false);
+  this->parse_and_visit_typescript_type_expression(
+      v, TypeScript_Type_Parse_Options{
+             .allow_parenthesized_type = false,
+             .allow_type_predicate = true,
+         });
 }
 
 Parser::TypeScript_Type_Arrow_Or_Paren

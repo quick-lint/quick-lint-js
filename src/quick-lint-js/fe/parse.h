@@ -216,14 +216,11 @@ class Parser {
   };
 
   void parse_and_visit_typescript_colon_type_expression(Parse_Visitor_Base &v);
+  void parse_and_visit_typescript_colon_type_expression(
+      Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
   void parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_type_expression(
       Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
-
-  void parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-      Parse_Visitor_Base &v, bool allow_parenthesized_type);
-  void parse_and_visit_typescript_type_expression_or_type_predicate(
-      Parse_Visitor_Base &v, bool allow_parenthesized_type);
 
   enum class TypeScript_Type_Arrow_Or_Paren {
     arrow,

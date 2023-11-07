@@ -2274,8 +2274,11 @@ Parser::parse_and_visit_function_parameter_list(
     this->skip();
 
     if (this->peek().type == Token_Type::colon) {
-      this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-          v, /*allow_parenthesized_type=*/true);
+      this->parse_and_visit_typescript_colon_type_expression(
+          v, TypeScript_Type_Parse_Options{
+                 .allow_parenthesized_type = true,
+                 .allow_type_predicate = true,
+             });
     }
 
     if (this->peek().type == Token_Type::equal_greater) {
