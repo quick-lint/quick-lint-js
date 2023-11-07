@@ -170,7 +170,7 @@ TEST_F(Test_Debug_Server,
     ASSERT_EQ(v.size(), 0);
   }
 
-  bool received_vector_max_size_histogram_by_owner_event = true;
+  bool received_vector_max_size_histogram_by_owner_event = false;
   auto on_trace_event =
       [&](Debug_Server &, const Parsed_Trace_Event &event,
           [[maybe_unused]] std::uint64_t thread_index) -> bool {
