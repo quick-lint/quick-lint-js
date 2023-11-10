@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 #include <utility>
 
@@ -20,9 +20,6 @@ Padded_String::Padded_String() {
   this->data_ = empty_string.data();
   this->size_excluding_padding_bytes_ = 0;
 }
-
-Padded_String::Padded_String(String8&& string)
-    : Padded_String(String8_View(string)) {}
 
 Padded_String::Padded_String(String8_View string) {
   this->size_excluding_padding_bytes_ = narrow_cast<Size_Type>(string.size());

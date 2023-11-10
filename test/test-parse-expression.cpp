@@ -17,7 +17,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -435,7 +435,7 @@ TEST_F(Test_Parse_Expression, parse_function_call) {
     EXPECT_EQ(summarize(ast->child_0()), "var f");
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
-    Expression::Call* call = expression_cast<Expression::Call>(ast);
+    Expression::Call* call = expression_cast<Expression::Call*>(ast);
     EXPECT_THAT(call->left_paren_span(), p.matches_offsets(1, 2));
   }
 
@@ -2740,7 +2740,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     SCOPED_TRACE(p.code);
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::Binary_Operator);
-    auto* binary = static_cast<Expression::Binary_Operator*>(ast);
+    auto* binary = expression_cast<Expression::Binary_Operator*>(ast);
     EXPECT_THAT(
         binary->operator_spans_[0],
         p.matches_offsets(u8"x"_sv.size(), concat(u8"x"_sv, op).size()));
@@ -2748,7 +2748,8 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
 
   {
     Test_Parser p(u8"x + y * z"_sv);
-    auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
+    auto* ast =
+        expression_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0],
                 p.matches_offsets(u8"x "_sv.size(), u8"+"_sv));
     EXPECT_THAT(ast->operator_spans_[1],
@@ -2757,14 +2758,16 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
 
   {
     Test_Parser p(u8"x.'foo'"_sv, capture_diags);
-    auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
+    auto* ast =
+        expression_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0], p.matches_offsets(1, 2));
     // Ignore p.errors.
   }
 
   {
     Test_Parser p(u8"x .. y"_sv, capture_diags);
-    auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
+    auto* ast =
+        expression_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0],
                 p.matches_offsets(u8"x ."_sv.size(), u8"."_sv));
     // Ignore p.errors.
@@ -2772,7 +2775,8 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
 
   {
     Test_Parser p(u8"x in y"_sv);
-    auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
+    auto* ast =
+        expression_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0],
                 p.matches_offsets(u8"x "_sv.size(), u8"in"_sv));
   }
@@ -2780,7 +2784,8 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
   {
     Test_Parser p(u8"f(x y)"_sv, capture_diags);
     Expression* ast = p.parse_expression();
-    auto* binary = static_cast<Expression::Binary_Operator*>(ast->child_1());
+    auto* binary =
+        expression_cast<Expression::Binary_Operator*>(ast->child_1());
     EXPECT_THAT(binary->operator_spans_[0],
                 p.matches_offsets(u8"f(x"_sv.size(), u8""_sv));
     // Ignore p.errors.
@@ -2788,7 +2793,8 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
 
   {
     Test_Parser p(u8"x.y => z"_sv, capture_diags);
-    auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
+    auto* ast =
+        expression_cast<Expression::Binary_Operator*>(p.parse_expression());
     EXPECT_THAT(ast->operator_spans_[0],
                 p.matches_offsets(u8"x.y "_sv.size(), u8"=>"_sv));
     // Ignore p.errors.
@@ -2796,7 +2802,8 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
 
   {
     Test_Parser p(u8"f() => {}"_sv, capture_diags);
-    auto* ast = static_cast<Expression::Binary_Operator*>(p.parse_expression());
+    auto* ast =
+        expression_cast<Expression::Binary_Operator*>(p.parse_expression());
     // FIXME(strager): These spans look weird.
     EXPECT_THAT(ast->operator_spans_[0], p.matches_offsets(0, u8"f("_sv));
     // Ignore p.errors.

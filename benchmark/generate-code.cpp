@@ -8,7 +8,7 @@
 #include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <random>
 #include <set>
 #include <utility>

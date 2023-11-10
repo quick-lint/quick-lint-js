@@ -22,6 +22,7 @@
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/cast.h>
 #include <utility>
 
 // For Parser::binding_element_info.
@@ -35,6 +36,8 @@ bool Parser::parse_and_visit_module_catching_fatal_parse_errors(
 }
 
 void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
+  QLJS_ASSERT(
+      !this->first_export_default_statement_default_keyword_.has_value());
   bool done = false;
   Parse_Statement_Options statement_options = {
       .possibly_followed_by_another_statement = true,
@@ -1011,6 +1014,17 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
   switch (this->peek().type) {
     // export default class C {}
   case Token_Type::kw_default:
+    if (this->first_export_default_statement_default_keyword_.has_value()) {
+      this->diag_reporter_->report(Diag_Multiple_Export_Defaults{
+          .second_export_default = this->peek().span(),
+          .first_export_default =
+              *this->first_export_default_statement_default_keyword_,
+      });
+    } else {
+      this->first_export_default_statement_default_keyword_ =
+          this->peek().span();
+    }
+
     this->is_current_typescript_namespace_non_empty_ = true;
     if (this->in_typescript_namespace_or_module_.has_value() &&
         !this->in_typescript_module_) {
@@ -1218,7 +1232,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     // NOTE[ambiguous-ambient-statement-in-namespace].
     Stacked_Buffering_Visitor exports_visitor =
         this->buffering_visitor_stack_.push();
-    Bump_Vector<Token, Monotonic_Allocator> exported_bad_tokens(
+    Vector<Token> exported_bad_tokens(
         "parse_and_visit_export exported_bad_tokens", &this->temporary_memory_);
     this->parse_and_visit_named_exports(
         exports_visitor.visitor(),
@@ -1445,6 +1459,37 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     break;
   }
 
+  // export as namespace MyLibrary;  // TypeScript definition only.
+  case Token_Type::kw_as:
+    // @@@ declare namespace stuff
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_namespace);
+    this->skip();
+    switch (this->peek().type) {
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
+    case Token_Type::identifier:
+      this->skip();
+      break;
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+    if (!this->options_.typescript_definition_file) {
+      this->diag_reporter_->report(
+          Diag_TypeScript_Export_As_Namespace_Is_Only_Allowed_In_TypeScript_Definition_File{
+              .export_keyword = export_token_span,
+          });
+    } else if (this->in_typescript_namespace_or_module_.has_value()) {
+      this->diag_reporter_->report(
+          Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module{
+              .export_keyword = export_token_span,
+              .namespace_or_module_keyword =
+                  *this->in_typescript_namespace_or_module_,
+          });
+    }
+    this->consume_semicolon_after_statement();
+    break;
+
   // export enum E {}  // TypeScript only.
   case Token_Type::kw_enum:
     // is_current_typescript_namespace_non_empty_ is possibly set by
@@ -1550,7 +1595,7 @@ void Parser::parse_and_visit_typescript_generic_parameters(
   const Char8 *less_end = this->peek().end;
   this->skip();
 
-  Bump_Vector<Source_Code_Span, Monotonic_Allocator> leading_commas(
+  Vector<Source_Code_Span> leading_commas(
       "parse_and_visit_typescript_generic_parameters leading_commas",
       &this->temporary_memory_);
   while (this->peek().type == Token_Type::comma) {
@@ -1565,7 +1610,7 @@ void Parser::parse_and_visit_typescript_generic_parameters(
         Diag_TypeScript_Generic_Parameter_List_Is_Empty{
             .expected_parameter = Source_Code_Span::unit(less_end),
         });
-    for (Bump_Vector_Size i = 1; i < leading_commas.size(); ++i) {
+    for (Vector_Size i = 1; i < leading_commas.size(); ++i) {
       this->diag_reporter_->report(
           Diag_Multiple_Commas_In_Generic_Parameter_List{
               .unexpected_comma = leading_commas[i],
@@ -1897,7 +1942,7 @@ void Parser::parse_and_visit_function_declaration(
     Identifier function_name = this->peek().identifier_name();
     this->skip();
 
-    Bump_Vector<Identifier, Monotonic_Allocator> overload_names(
+    Vector<Identifier> overload_names(
         "parse_and_visit_function_declaration overload_names",
         &this->temporary_memory_);
 
@@ -1974,7 +2019,7 @@ void Parser::parse_and_visit_function_declaration(
         //     function f(a, b) {}  // #3
         //
         // The last overload (#3 above) is the real function.
-        for (Bump_Vector_Size i = 0; i < overload_names.size() - 1; ++i) {
+        for (Vector_Size i = 0; i < overload_names.size() - 1; ++i) {
           Identifier &overload_name = overload_names[i];
           if (overload_name.normalized_name() !=
               real_function_name.normalized_name()) {
@@ -2229,8 +2274,11 @@ Parser::parse_and_visit_function_parameter_list(
     this->skip();
 
     if (this->peek().type == Token_Type::colon) {
-      this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-          v, /*allow_parenthesized_type=*/true);
+      this->parse_and_visit_typescript_colon_type_expression(
+          v, TypeScript_Type_Parse_Options{
+                 .allow_parenthesized_type = true,
+                 .allow_type_predicate = true,
+             });
     }
 
     if (this->peek().type == Token_Type::equal_greater) {
@@ -2448,7 +2496,7 @@ void Parser::parse_and_visit_function_parameters(
           this->diag_reporter_->report(
               Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured{
                   .destructure_token =
-                      static_cast<const Expression::Array *>(parameter)
+                      expression_cast<const Expression::Array *>(parameter)
                           ->left_square_span(),
                   .property_keyword = *parameter_property_keyword,
               });
@@ -2460,7 +2508,7 @@ void Parser::parse_and_visit_function_parameters(
           this->diag_reporter_->report(
               Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured{
                   .destructure_token =
-                      static_cast<const Expression::Object *>(parameter)
+                      expression_cast<const Expression::Object *>(parameter)
                           ->left_curly_span(),
                   .property_keyword = *parameter_property_keyword,
               });
@@ -2471,8 +2519,9 @@ void Parser::parse_and_visit_function_parameters(
           // constructor(private ...field)  // Invalid.
           this->diag_reporter_->report(
               Diag_TypeScript_Parameter_Property_Cannot_Be_Rest{
-                  .spread = static_cast<const Expression::Spread *>(parameter)
-                                ->spread_operator_span(),
+                  .spread =
+                      expression_cast<const Expression::Spread *>(parameter)
+                          ->spread_operator_span(),
                   .property_keyword = *parameter_property_keyword,
               });
         }
@@ -4617,7 +4666,7 @@ void Parser::parse_and_visit_named_exports_for_typescript_type_only_import(
 void Parser::parse_and_visit_named_exports(
     Parse_Visitor_Base &v,
     std::optional<Source_Code_Span> typescript_type_only_keyword,
-    Bump_Vector<Token, Monotonic_Allocator> *out_exported_bad_tokens) {
+    Vector<Token> *out_exported_bad_tokens) {
   QLJS_ASSERT(this->peek().type == Token_Type::left_curly);
   this->skip();
 
@@ -5078,7 +5127,7 @@ void Parser::parse_and_visit_let_bindings(
           }
         }
 
-        auto *assignment_ast = static_cast<Expression::Assignment *>(
+        auto *assignment_ast = expression_cast<Expression::Assignment *>(
             this->parse_expression_remainder(
                 v, variable,
                 Precedence{.commas = false,
@@ -5347,7 +5396,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
 
   case Expression_Kind::Compound_Assignment:
     if (info.declaring_token.has_value()) {
-      auto *assignment = static_cast<Expression::Assignment *>(ast);
+      auto *assignment = expression_cast<Expression::Assignment *>(ast);
       this->diag_reporter_->report(
           Diag_Cannot_Update_Variable_During_Declaration{
               .declaring_token = *info.declaring_token,
@@ -5360,7 +5409,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
     }
     [[fallthrough]];
   case Expression_Kind::Assignment: {
-    auto *assignment = static_cast<const Expression::Assignment *>(ast);
+    auto *assignment = expression_cast<const Expression::Assignment *>(ast);
     Expression *lhs = assignment->children_[0];
     Expression *rhs = assignment->children_[1];
 
@@ -5370,20 +5419,20 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
       this->diag_reporter_->report(
           Diag_Optional_Parameter_Cannot_Have_Initializer{
               .equal = assignment->operator_span_,
-              .question = static_cast<const Expression::Optional *>(lhs)
+              .question = expression_cast<const Expression::Optional *>(lhs)
                               ->question_span(),
           });
     }
 
     this->visit_expression(rhs, v, Variable_Context::rhs);
     Variable_Declaration_Flags lhs_flags =
-        static_cast<Variable_Declaration_Flags>(
+        int_to_enum_cast<Variable_Declaration_Flags>(
             info.flags & Variable_Declaration_Flags::inside_for_loop_head);
     switch (info.declaration_kind) {
     case Variable_Kind::_const:
     case Variable_Kind::_let:
     case Variable_Kind::_var:
-      lhs_flags = static_cast<Variable_Declaration_Flags>(
+      lhs_flags = int_to_enum_cast<Variable_Declaration_Flags>(
           lhs_flags | Variable_Declaration_Flags::initialized_with_equals);
       break;
     default:
@@ -5423,7 +5472,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   }
 
   case Expression_Kind::Spread: {
-    Expression::Spread *spread = static_cast<Expression::Spread *>(ast);
+    Expression::Spread *spread = expression_cast<Expression::Spread *>(ast);
     if (spread->child_0()->kind() == Expression_Kind::Missing) {
       this->diag_reporter_->report(Diag_Spread_Must_Precede_Variable_Name{
           spread->spread_operator_span()});
@@ -5434,7 +5483,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   }
 
   case Expression_Kind::Await: {
-    auto *await = expression_cast<Expression::Await>(ast);
+    auto *await = expression_cast<Expression::Await *>(ast);
     Identifier ident(await->unary_operator_span());
     visit_variable_declaration(ident);
     this->diag_reporter_->report(Diag_Cannot_Declare_Await_In_Async_Function{
@@ -5485,7 +5534,8 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
 
   // function f(x!) {}  // Invalid.
   case Expression_Kind::Non_Null_Assertion: {
-    auto *assertion = static_cast<const Expression::Non_Null_Assertion *>(ast);
+    auto *assertion =
+        expression_cast<const Expression::Non_Null_Assertion *>(ast);
     this->diag_reporter_->report(
         Diag_Non_Null_Assertion_Not_Allowed_In_Parameter{
             .bang = assertion->bang_span(),
@@ -5497,7 +5547,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   // function f(<T>p) {}  // Invalid.
   case Expression_Kind::Angle_Type_Assertion: {
     auto *assertion =
-        static_cast<const Expression::Angle_Type_Assertion *>(ast);
+        expression_cast<const Expression::Angle_Type_Assertion *>(ast);
     this->diag_reporter_->report(Diag_Invalid_Parameter{
         .parameter = assertion->span(),
     });
@@ -5507,7 +5557,8 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
 
   // function f(x as y) {}  // Invalid.
   case Expression_Kind::As_Type_Assertion: {
-    auto *assertion = static_cast<const Expression::As_Type_Assertion *>(ast);
+    auto *assertion =
+        expression_cast<const Expression::As_Type_Assertion *>(ast);
     this->diag_reporter_->report(
         Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation{
             .bad_keyword = assertion->as_span(),
@@ -5518,7 +5569,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
 
   // function f(x satisfies T) {}  // Invalid.
   case Expression_Kind::Satisfies: {
-    auto *s = static_cast<const Expression::Satisfies *>(ast);
+    auto *s = expression_cast<const Expression::Satisfies *>(ast);
     this->diag_reporter_->report(
         Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation{
             .bad_keyword = s->satisfies_span(),
@@ -5530,7 +5581,8 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
     // function f([(p,)]) {}  // Invalid.
   case Expression_Kind::Trailing_Comma:
     this->diag_reporter_->report(Diag_Stray_Comma_In_Parameter{
-        .comma = static_cast<Expression::Trailing_Comma *>(ast)->comma_span(),
+        .comma =
+            expression_cast<Expression::Trailing_Comma *>(ast)->comma_span(),
     });
     this->visit_binding_element(ast->child_0(), v, info);
     break;
@@ -5553,7 +5605,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   // function f(param?) {}  // TypeScript only.
   // let [x?] = xs;         // Invalid.
   case Expression_Kind::Optional: {
-    auto *optional = static_cast<const Expression::Optional *>(ast);
+    auto *optional = expression_cast<const Expression::Optional *>(ast);
     if (info.is_destructuring) {
       // let [x?] = xs;  // Invalid.
       this->diag_reporter_->report(Diag_Unexpected_Question_When_Destructuring{
@@ -5574,7 +5626,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
 
     // function f([(arg)]) {}  // Invalid.
   case Expression_Kind::Paren: {
-    auto paren = static_cast<Expression::Paren *>(ast);
+    auto paren = expression_cast<Expression::Paren *>(ast);
     this->diag_reporter_->report(
         Diag_Unexpected_Function_Parameter_Is_Parenthesized{
             .left_paren_to_right_paren = paren->span()});
@@ -5585,7 +5637,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   // function f(()) {}  // Invalid.
   case Expression_Kind::Paren_Empty: {
     Expression::Paren_Empty *paren_empty =
-        static_cast<Expression::Paren_Empty *>(ast);
+        expression_cast<Expression::Paren_Empty *>(ast);
     paren_empty->report_missing_expression_error(this->diag_reporter_);
     break;
   }
@@ -5633,7 +5685,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   // const [x]: []number = xs;
   case Expression_Kind::Type_Annotated: {
     Expression::Type_Annotated *annotated =
-        static_cast<Expression::Type_Annotated *>(ast);
+        expression_cast<Expression::Type_Annotated *>(ast);
     annotated->visit_type_annotation(v);
     this->visit_binding_element(annotated->child_, v, info);
     break;

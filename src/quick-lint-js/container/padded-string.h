@@ -6,7 +6,7 @@
 #include <iosfwd>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 
 namespace quick_lint_js {
@@ -22,7 +22,6 @@ class Padded_String {
   static constexpr Size_Type padding_size = 64;
 
   explicit Padded_String();
-  explicit Padded_String(String8 &&);
   explicit Padded_String(String8_View);
   explicit Padded_String(const Char8 *) = delete;
 

@@ -211,17 +211,16 @@ class Parser {
     std::optional<Declaring_Type> type_being_declared = std::nullopt;
     bool parse_question_as_invalid = true;
     bool allow_parenthesized_type = true;
+    // If false, a type predicate is parsed but a diagnostic is reported.
+    bool allow_type_predicate = false;
   };
 
   void parse_and_visit_typescript_colon_type_expression(Parse_Visitor_Base &v);
+  void parse_and_visit_typescript_colon_type_expression(
+      Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
   void parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_type_expression(
       Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
-
-  void parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-      Parse_Visitor_Base &v, bool allow_parenthesized_type);
-  void parse_and_visit_typescript_type_expression_or_type_predicate(
-      Parse_Visitor_Base &v, bool allow_parenthesized_type);
 
   enum class TypeScript_Type_Arrow_Or_Paren {
     arrow,
@@ -526,6 +525,7 @@ class Parser {
   void warn_on_comma_operator_in_conditional_statement(Expression *);
   void warn_on_comma_operator_in_index(Expression *, Source_Code_Span);
   void warn_on_xor_operator_as_exponentiation(Expression::Binary_Operator *);
+  void warn_on_unintuitive_bitshift_precedence(Expression *ast);
   void error_on_pointless_string_compare(Expression::Binary_Operator *);
   void error_on_pointless_compare_against_literal(
       Expression::Binary_Operator *);
@@ -545,6 +545,11 @@ class Parser {
   void parse_and_visit_named_exports_for_typescript_type_only_import(
       Parse_Visitor_Base &v, Source_Code_Span type_keyword);
 
+  // If set, refers to the first `export default` statement in this module. A
+  // module cannot contain more than one `export default`.
+  std::optional<Source_Code_Span>
+      first_export_default_statement_default_keyword_ = std::nullopt;
+
   struct Parse_Export_Options {
     TypeScript_Declare_Context declare_context;
 
@@ -560,7 +565,7 @@ class Parser {
   void parse_and_visit_named_exports(
       Parse_Visitor_Base &v,
       std::optional<Source_Code_Span> typescript_type_only_keyword,
-      Bump_Vector<Token, Monotonic_Allocator> *out_exported_bad_tokens);
+      Vector<Token> *out_exported_bad_tokens);
 
   void parse_and_visit_variable_declaration_statement(
       Parse_Visitor_Base &v,
@@ -1167,7 +1172,7 @@ void Parser::parse_and_visit_parenthesized_expression(
 
   const Char8 *expression_begin = this->peek().begin;
 
-  Expression *ast = this->parse_expression(v);
+  Expression *ast = this->parse_expression(v, {.trailing_identifiers = true});
   this->visit_expression(ast, v, Variable_Context::rhs);
 
   if constexpr (check_for_sketchy_conditions) {

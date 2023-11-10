@@ -37,8 +37,14 @@ void Parser::parse_typescript_colon_for_type() {
 
 void Parser::parse_and_visit_typescript_colon_type_expression(
     Parse_Visitor_Base &v) {
+  this->parse_and_visit_typescript_colon_type_expression(
+      v, TypeScript_Type_Parse_Options());
+}
+
+void Parser::parse_and_visit_typescript_colon_type_expression(
+    Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &parse_options) {
   this->parse_typescript_colon_for_type();
-  this->parse_and_visit_typescript_type_expression(v);
+  this->parse_and_visit_typescript_type_expression(v, parse_options);
 }
 
 void Parser::parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v) {
@@ -90,31 +96,68 @@ again:
   if (this->peek().type == Token_Type::kw_readonly) {
     // readonly Type[]
     // readonly [Type, Type]
-    readonly_keyword = this->peek().span();
+    // readonly is Type
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
+    Identifier readonly = this->peek().identifier_name();
     this->skip();
+
+    if (parse_options.allow_type_predicate &&
+        this->peek().type == Token_Type::kw_is) {
+      // readonly is Type
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto type_variable_or_namespace_or_type_predicate;
+    }
+    this->lexer_.commit_transaction(std::move(transaction));
+    readonly_keyword = readonly.span();
   }
 
   switch (this->peek().type) {
   case Token_Type::complete_template:
-  case Token_Type::kw_any:
-  case Token_Type::kw_bigint:
-  case Token_Type::kw_boolean:
   case Token_Type::kw_false:
-  case Token_Type::kw_never:
   case Token_Type::kw_null:
-  case Token_Type::kw_number:
-  case Token_Type::kw_object:
-  case Token_Type::kw_string:
-  case Token_Type::kw_symbol:
-  case Token_Type::kw_this:
   case Token_Type::kw_true:
-  case Token_Type::kw_undefined:
-  case Token_Type::kw_unknown:
   case Token_Type::kw_void:
   case Token_Type::number:
   case Token_Type::string:
     this->skip();
     break;
+
+  // any
+  // any is Type
+  case Token_Type::kw_any:
+  case Token_Type::kw_bigint:
+  case Token_Type::kw_boolean:
+  case Token_Type::kw_never:
+  case Token_Type::kw_number:
+  case Token_Type::kw_object:
+  case Token_Type::kw_string:
+  case Token_Type::kw_symbol:
+  case Token_Type::kw_undefined:
+  case Token_Type::kw_unknown: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    if (this->peek().type == Token_Type::kw_is) {
+      // param is Type
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto type_variable_or_namespace_or_type_predicate;
+    }
+    this->lexer_.commit_transaction(std::move(transaction));
+    break;
+  }
+
+  // this
+  // this is Type
+  case Token_Type::kw_this: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    if (this->peek().type == Token_Type::kw_is) {
+      // this is Type
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto type_variable_or_namespace_or_type_predicate;
+    }
+    this->lexer_.commit_transaction(std::move(transaction));
+    break;
+  }
 
   // `template ${sometype}`
   case Token_Type::incomplete_template:
@@ -134,34 +177,71 @@ again:
 
   // Type
   // ns.Type<T>
+  // param is Type
+  type_variable_or_namespace_or_type_predicate:
   case Token_Type::kw_abstract:
   case Token_Type::kw_accessor:
   case Token_Type::kw_as:
   case Token_Type::kw_assert:
   case Token_Type::kw_asserts:
   case Token_Type::kw_async:
+  case Token_Type::kw_await:
   case Token_Type::kw_constructor:
   case Token_Type::kw_declare:
   case Token_Type::kw_from:
   case Token_Type::kw_get:
   case Token_Type::kw_global:
+  case Token_Type::kw_implements:
+  case Token_Type::kw_interface:
   case Token_Type::kw_intrinsic:
   case Token_Type::kw_is:
+  case Token_Type::kw_let:
   case Token_Type::kw_module:
   case Token_Type::kw_namespace:
   case Token_Type::kw_of:
   case Token_Type::kw_out:
   case Token_Type::kw_override:
+  case Token_Type::kw_package:
+  case Token_Type::kw_private:
+  case Token_Type::kw_protected:
+  case Token_Type::kw_public:
   case Token_Type::kw_readonly:
   case Token_Type::kw_require:
   case Token_Type::kw_satisfies:
   case Token_Type::kw_set:
+  case Token_Type::kw_static:
   case Token_Type::kw_type:
+  case Token_Type::kw_yield:
   case Token_Type::identifier: {
+    Token_Type name_type = this->peek().type;
     Identifier name = this->peek().identifier_name();
-    bool had_dot = false;
     this->skip();
+    if (this->peek().type == Token_Type::kw_is) {
+      // param is Type
+      // this is Type
+      Source_Code_Span is_keyword = this->peek().span();
+      this->skip();
+      if (name_type != Token_Type::kw_this) {
+        // this is Type
+        if (parse_options.allow_type_predicate) {
+          v.visit_variable_type_predicate_use(name);
+        } else {
+          v.visit_variable_use(name);
+        }
+      }
+      if (!parse_options.allow_type_predicate) {
+        this->diag_reporter_->report(
+            Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type{
+                .is_keyword = is_keyword,
+            });
+      }
+      this->parse_and_visit_typescript_type_expression(v);
+      return;
+    }
+
+    bool had_dot = false;
     while (this->peek().type == Token_Type::dot) {
+      // ns.Type
       had_dot = true;
       this->skip();
       switch (this->peek().type) {
@@ -205,6 +285,7 @@ again:
   // T extends infer U ? V : W
   // T extends infer U extends X ? V : W
   case Token_Type::kw_infer: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
     Source_Code_Span infer_keyword_span = this->peek().span();
     this->skip();
     switch (this->peek().type) {
@@ -222,7 +303,6 @@ again:
     case Token_Type::kw_global:
     case Token_Type::kw_infer:
     case Token_Type::kw_intrinsic:
-    case Token_Type::kw_is:
     case Token_Type::kw_keyof:
     case Token_Type::kw_module:
     case Token_Type::kw_namespace:
@@ -238,10 +318,21 @@ again:
     case Token_Type::kw_unique:
       break;
 
+    // infer is       // 'is' is the declared name.
+    // infer is Type  // Type predicate where 'infer' is the parameter name.
+    case Token_Type::kw_is:
+      if (parse_options.allow_type_predicate) {
+        // infer is Type
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto type_variable_or_namespace_or_type_predicate;
+      }
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
+    this->lexer_.commit_transaction(std::move(transaction));
     Identifier variable = this->peek().identifier_name();
     this->skip();
 
@@ -278,13 +369,22 @@ again:
   }
 
   // unique
-  // unique.prop
   // unique symbol
-  case Token_Type::kw_unique:
+  // unique is Type
+  case Token_Type::kw_unique: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
     this->skip();
+    if (parse_options.allow_type_predicate &&
+        this->peek().type == Token_Type::kw_is) {
+      // unique is Type
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto type_variable_or_namespace_or_type_predicate;
+    }
+    this->lexer_.commit_transaction(std::move(transaction));
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_symbol);
     this->skip();
     break;
+  }
 
   // [A, B, C]
   case Token_Type::left_square:
@@ -467,10 +567,21 @@ again:
     break;
 
   // keyof Type
-  case Token_Type::kw_keyof:
+  // keyof is Type
+  case Token_Type::kw_keyof: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
     this->skip();
+    if (parse_options.allow_type_predicate &&
+        this->peek().type == Token_Type::kw_is) {
+      // keyof is Type
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto type_variable_or_namespace_or_type_predicate;
+    }
+    // keyof Type
+    this->lexer_.commit_transaction(std::move(transaction));
     this->parse_and_visit_typescript_type_expression(v, parse_options);
     break;
+  }
 
   // import("module").Name
   case Token_Type::kw_import: {
@@ -600,60 +711,6 @@ again:
   }
 }
 
-void Parser::parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-    Parse_Visitor_Base &v, bool allow_parenthesized_type) {
-  this->parse_typescript_colon_for_type();
-  this->parse_and_visit_typescript_type_expression_or_type_predicate(
-      v, /*allow_parenthesized_type=*/
-      allow_parenthesized_type);
-}
-
-void Parser::parse_and_visit_typescript_type_expression_or_type_predicate(
-    Parse_Visitor_Base &v, bool allow_parenthesized_type) {
-  switch (this->peek().type) {
-  // param is Type
-  // Type
-  QLJS_CASE_CONTEXTUAL_KEYWORD:
-  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
-  case Token_Type::identifier:
-  case Token_Type::kw_await:
-  case Token_Type::kw_this:
-  case Token_Type::kw_yield: {
-    Token_Type parameter_type = this->peek().type;
-    Identifier parameter_name = this->peek().identifier_name();
-    Lexer_Transaction transaction = this->lexer_.begin_transaction();
-    this->skip();
-    if (this->peek().type == Token_Type::kw_is) {
-      // param is Type
-      this->lexer_.commit_transaction(std::move(transaction));
-      this->skip();
-      if (parameter_type != Token_Type::kw_this) {
-        v.visit_variable_type_predicate_use(parameter_name);
-      }
-      this->parse_and_visit_typescript_type_expression(v);
-    } else {
-      // Type
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      this->parse_and_visit_typescript_type_expression(v);
-    }
-    break;
-  }
-
-  // {key: Value}
-  // typeof v
-  // (param, param) => ReturnType
-  // ((((param, param) => ReturnType)))
-  // // Only if allow_parenthesized_type:
-  // (typeexpr)
-  default:
-    this->parse_and_visit_typescript_type_expression(
-        v, TypeScript_Type_Parse_Options{
-               .allow_parenthesized_type = allow_parenthesized_type,
-           });
-    break;
-  }
-}
-
 void Parser::parse_and_visit_typescript_arrow_type_expression(
     Parse_Visitor_Base &v) {
   v.visit_enter_function_scope();
@@ -684,8 +741,11 @@ void Parser::
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
   this->skip();
-  this->parse_and_visit_typescript_type_expression_or_type_predicate(
-      v, /*allow_parenthesized_type=*/false);
+  this->parse_and_visit_typescript_type_expression(
+      v, TypeScript_Type_Parse_Options{
+             .allow_parenthesized_type = false,
+             .allow_type_predicate = true,
+         });
 }
 
 Parser::TypeScript_Type_Arrow_Or_Paren

@@ -9,15 +9,16 @@
 #include <cstdio>
 #include <memory>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/logger.h>
+#include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/process.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <string.h>
-#include <vector>
 
 QLJS_WARNING_IGNORE_CLANG("-Wformat-nonliteral")
 QLJS_WARNING_IGNORE_GCC("-Wformat-security")
@@ -31,7 +32,7 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=format")
 namespace quick_lint_js {
 namespace {
 struct Global_Loggers {
-  std::vector<Logger*> loggers;
+  Vector<Logger*> loggers{"Global_Loggers::loggers", new_delete_resource()};
   bool initialized = false;
 
   void initialize_if_needed() {

@@ -10,7 +10,7 @@
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 
@@ -61,7 +61,7 @@ LSP_Document_Text::LSP_Document_Text() : locator_(this->buffers_.string()) {}
 
 void LSP_Document_Text::set_text(String8_View new_text) {
   this->buffers_.set_text(new_text);
-  this->locator_ = LSP_Locator(this->buffers_.string());
+  this->locator_.set_text(this->buffers_.string());
 }
 
 void LSP_Document_Text::replace_text(LSP_Range range,

@@ -8,12 +8,13 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/cli/options.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/classify-path.h>
 #include <quick-lint-js/util/integer.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <vector>
 
@@ -24,13 +25,24 @@ QLJS_WARNING_IGNORE_GCC("-Wshadow=local")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-Options parse_options(int argc, char** argv) {
+Options parse_options(int argc, char** argv, Monotonic_Allocator* allocator) {
   Options o;
 
-  struct {
-    std::optional<int> number;
+  Monotonic_Allocator temporary_allocator("parse_options");
+
+  struct Next_Vim_File_Bufnr {
+    int number;
     const char* arg_var;
-  } next_vim_file_bufnr;
+  };
+  std::optional<Next_Vim_File_Bufnr> next_vim_file_bufnr;
+
+  Vector<File_To_Lint> files_to_lint("files_to_lint", allocator);
+  Vector<const char*> error_unrecognized_options("error_unrecognized_options",
+                                                 allocator);
+  Vector<const char*> warning_vim_bufnr_without_file(
+      "warning_vim_bufnr_without_file", allocator);
+  Vector<const char*> warning_language_without_file(
+      "warning_language_without_file", allocator);
 
   const char* next_path_for_config_search = nullptr;
   const char* active_config_file = nullptr;
@@ -42,13 +54,17 @@ Options parse_options(int argc, char** argv) {
     if (is_stdin && has_stdin) {
       o.has_multiple_stdin = true;
     } else {
-      File_To_Lint file{.path = path,
-                        .config_file = active_config_file,
-                        .path_for_config_search = next_path_for_config_search,
-                        .language = language,
-                        .is_stdin = is_stdin,
-                        .vim_bufnr = next_vim_file_bufnr.number};
-      o.files_to_lint.emplace_back(file);
+      File_To_Lint file{
+          .path = path,
+          .config_file = active_config_file,
+          .path_for_config_search = next_path_for_config_search,
+          .language = language,
+          .is_stdin = is_stdin,
+          .vim_bufnr = next_vim_file_bufnr.has_value()
+                           ? std::optional<int>(next_vim_file_bufnr->number)
+                           : std::nullopt,
+      };
+      files_to_lint.emplace_back(file);
     }
     if (is_stdin) {
       has_stdin = true;
@@ -56,7 +72,7 @@ Options parse_options(int argc, char** argv) {
 
     unused_language_option = nullptr;
     next_path_for_config_search = nullptr;
-    next_vim_file_bufnr.number = std::nullopt;
+    next_vim_file_bufnr = std::nullopt;
   };
 
   auto add_stdin_file = [&]() { add_file("<stdin>", /*is_stdin=*/true); };
@@ -87,7 +103,7 @@ Options parse_options(int argc, char** argv) {
       } else if (arg_value == "emacs-lisp"sv) {
         o.output_format = Output_Format::emacs_lisp;
       } else {
-        o.error_unrecognized_options.emplace_back(arg_value);
+        error_unrecognized_options.emplace_back(arg_value);
       }
     }
 
@@ -99,7 +115,7 @@ Options parse_options(int argc, char** argv) {
       } else if (arg_value == "never"sv) {
         o.diagnostic_hyperlinks = Option_When::never;
       } else {
-        o.error_unrecognized_options.emplace_back(arg_value);
+        error_unrecognized_options.emplace_back(arg_value);
       }
     }
 
@@ -111,7 +127,7 @@ Options parse_options(int argc, char** argv) {
     QLJS_OPTION(const char* arg_value, "--language"sv) {
       o.has_language = true;
       if (unused_language_option) {
-        o.warning_language_without_file.emplace_back(unused_language_option);
+        warning_language_without_file.emplace_back(unused_language_option);
       }
       unused_language_option = arg_value;
       if (arg_value == "default"sv) {
@@ -129,7 +145,7 @@ Options parse_options(int argc, char** argv) {
       } else if (arg_value == "experimental-typescript-jsx"sv) {
         language = Raw_Input_File_Language::typescript_jsx;
       } else {
-        o.error_unrecognized_options.emplace_back(arg_value);
+        error_unrecognized_options.emplace_back(arg_value);
       }
     }
 
@@ -146,19 +162,21 @@ Options parse_options(int argc, char** argv) {
       int bufnr;
       if (parse_integer_exact(std::string_view(arg_value), bufnr) !=
           Parse_Integer_Exact_Error::ok) {
-        o.error_unrecognized_options.emplace_back(arg_value);
+        error_unrecognized_options.emplace_back(arg_value);
         continue;
       }
-      if (next_vim_file_bufnr.number != std::nullopt) {
-        o.warning_vim_bufnr_without_file.emplace_back(
-            next_vim_file_bufnr.arg_var);
+      if (next_vim_file_bufnr.has_value()) {
+        warning_vim_bufnr_without_file.emplace_back(
+            next_vim_file_bufnr->arg_var);
       }
-      next_vim_file_bufnr.number = bufnr;
-      next_vim_file_bufnr.arg_var = arg_value;
+      next_vim_file_bufnr = Next_Vim_File_Bufnr{
+          .number = bufnr,
+          .arg_var = arg_value,
+      };
     }
 
     QLJS_OPTION(const char* arg_value, "--exit-fail-on"sv) {
-      o.exit_fail_on.add(parse_diag_code_list(arg_value));
+      o.exit_fail_on.add(parse_diag_code_list(arg_value, &temporary_allocator));
     }
 
     QLJS_FLAG('h', "--help"sv, "--h"sv) { o.help = true; }
@@ -169,26 +187,32 @@ Options parse_options(int argc, char** argv) {
     QLJS_FLAG("--stdin"sv, ""sv) { add_stdin_file(); }
 
     QLJS_UNRECOGNIZED_OPTION(const char* unrecognized) {
-      o.error_unrecognized_options.emplace_back(unrecognized);
+      error_unrecognized_options.emplace_back(unrecognized);
       goto done_parsing_options;
     }
   }
 done_parsing_options:
 
   if (unused_language_option) {
-    o.warning_language_without_file.emplace_back(unused_language_option);
+    warning_language_without_file.emplace_back(unused_language_option);
   }
-  if (next_vim_file_bufnr.number != std::nullopt) {
-    o.warning_vim_bufnr_without_file.emplace_back(next_vim_file_bufnr.arg_var);
+  if (next_vim_file_bufnr.has_value()) {
+    warning_vim_bufnr_without_file.emplace_back(next_vim_file_bufnr->arg_var);
   }
   if (o.path_for_stdin != nullptr) {
-    for (File_To_Lint& file : o.files_to_lint) {
+    for (File_To_Lint& file : files_to_lint) {
       if (file.path_for_config_search == nullptr) {
         file.path_for_config_search = o.path_for_stdin;
       }
     }
   }
 
+  o.files_to_lint = files_to_lint.release_to_span();
+  o.error_unrecognized_options = error_unrecognized_options.release_to_span();
+  o.warning_vim_bufnr_without_file =
+      warning_vim_bufnr_without_file.release_to_span();
+  o.warning_language_without_file =
+      warning_language_without_file.release_to_span();
   return o;
 }
 
@@ -202,6 +226,8 @@ bool Options::has_stdin() const {
 }
 
 bool Options::dump_errors(Output_Stream& out) const {
+  Monotonic_Allocator temporary_allocator("dump_errors");
+
   bool have_errors = false;
   if (this->lsp_server) {
     if (this->exit_fail_on.is_user_provided()) {
@@ -266,14 +292,15 @@ bool Options::dump_errors(Output_Stream& out) const {
     out.append_copy(u8'\n');
     have_errors = true;
   }
-  for (const std::string& error :
-       this->exit_fail_on.parse_errors("--exit-fail-on")) {
+  for (std::string_view error : this->exit_fail_on.parse_errors(
+           "--exit-fail-on", &temporary_allocator)) {
     out.append_copy(u8"error: "_sv);
     out.append_copy(to_string8_view(error));
     out.append_copy(u8'\n');
     have_errors = true;
   }
-  for (const std::string& warning : this->exit_fail_on.parse_warnings()) {
+  for (std::string_view warning :
+       this->exit_fail_on.parse_warnings(&temporary_allocator)) {
     out.append_copy(u8"warning: "_sv);
     out.append_copy(to_string8_view(warning));
     out.append_copy(u8'\n');
@@ -311,7 +338,8 @@ Resolved_Input_File_Language get_language(const char* file,
       return Resolved_Input_File_Language::javascript_jsx;
     }
   } else {
-    return static_cast<Resolved_Input_File_Language>(language);
+    return int_to_enum_cast<Resolved_Input_File_Language>(
+        enum_to_int_cast(language));
   }
 }
 }

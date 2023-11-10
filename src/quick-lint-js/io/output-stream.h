@@ -9,8 +9,9 @@
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/type-traits.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
-#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
 // Output_Stream is similar to std::basic_ostream<Char8>.
@@ -50,6 +51,37 @@ class Output_Stream {
     this->append(integer_string_length<T>, [&](Char8* out) -> int {
       Char8* end = write_integer<T>(value, out);
       return narrow_cast<int>(end - out);
+    });
+  }
+
+  // Write pad_character then write a decimal integer. The total number of
+  // characters written is at least pad_width.
+  //
+  // append_padded_decimal_integer(42, 4, '0')
+  // => u8"0042"
+  template <class T>
+  void append_padded_decimal_integer(
+      T value, int pad_width,
+      std::enable_if_t<std::is_unsigned_v<T>, Char8> pad_character) {
+    int max_width = std::max(integer_string_length<T>, pad_width);
+    this->append(max_width, [&](Char8* out) -> int {
+      Char8* integer_end = write_integer<T>(value, out);
+      int integer_width = narrow_cast<int>(integer_end - out);
+      bool need_padding = pad_width > integer_width;
+      if (!need_padding) {
+        return integer_width;
+      }
+
+      Char8* out_end = out + pad_width;
+      Char8* integer_start = std::copy_backward(out, integer_end, out_end);
+      QLJS_ASSERT(out < integer_start &&
+                  "should pad with at least one character");
+      QLJS_ASSERT(integer_start < out_end &&
+                  "integer should consume at least one character");
+      for (Char8* c = out; c != integer_start; ++c) {
+        *c = pad_character;
+      }
+      return pad_width;
     });
   }
 

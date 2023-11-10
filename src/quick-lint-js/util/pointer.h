@@ -12,8 +12,10 @@ inline bool is_aligned(void* p, std::size_t alignment) {
   return (reinterpret_cast<std::uintptr_t>(p) & alignment_mask) == 0;
 }
 
+// Does not check for pointer overflow.
 template <class Integer_Pointer>
-Integer_Pointer align_up(Integer_Pointer p, std::size_t alignment) {
+[[nodiscard]] Integer_Pointer align_up(Integer_Pointer p,
+                                       std::size_t alignment) {
   Integer_Pointer alignment_mask = static_cast<Integer_Pointer>(alignment - 1);
   // TODO(strager): What about integer overflow?
   return ((p - 1) | alignment_mask) + 1;

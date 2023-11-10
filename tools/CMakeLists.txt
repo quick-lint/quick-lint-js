@@ -68,7 +68,6 @@ if (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
     COMMENT "Building all quick-lint-js build-time tools"
     DEPENDS ${QUICK_LINT_JS_BUILD_TOOL_TARGETS}
   )
-elseif (QUICK_LINT_JS_ENABLE_BUILD_TOOLS)
   install(
     TARGETS ${QUICK_LINT_JS_BUILD_TOOL_TARGETS}
     COMPONENT build-tools

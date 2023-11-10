@@ -9,7 +9,7 @@
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <utility>
 #include <vector>
 
@@ -68,7 +68,10 @@ Byte_Buffer_Chunk make_chunk(const void* data, Byte_Buffer::Size_Type size) {
 
 }
 
-Byte_Buffer::Byte_Buffer() { this->add_new_chunk(this->default_chunk_size); }
+Byte_Buffer::Byte_Buffer()
+    : chunks_("Byte_Buffer::chunks_", new_delete_resource()) {
+  this->add_new_chunk(this->default_chunk_size);
+}
 
 Byte_Buffer::Byte_Buffer(Byte_Buffer&&) = default;
 
@@ -81,10 +84,6 @@ Byte_Buffer::~Byte_Buffer() {
 void* Byte_Buffer::append(Size_Type byte_count) {
   this->reserve(byte_count);
   return std::exchange(this->cursor_, this->cursor_ + byte_count);
-}
-
-void Byte_Buffer::append_copy(const String8& data) {
-  return this->append_copy(String8_View(data));
 }
 
 void Byte_Buffer::append_copy(String8_View data) {
@@ -111,7 +110,7 @@ void Byte_Buffer::prepend_copy(String8_View data) {
       std::copy_n(data_bytes, data.size(), chunk_begin(prefix_chunk));
   QLJS_ASSERT(end == chunk_end(prefix_chunk));
 
-  this->chunks_.insert(this->chunks_.begin(), std::move(prefix_chunk));
+  this->chunks_.push_front(std::move(prefix_chunk));
 }
 
 void Byte_Buffer::clear() {
@@ -127,7 +126,7 @@ void Byte_Buffer::clear() {
 
 Byte_Buffer::Size_Type Byte_Buffer::size() const {
   Size_Type total_size = 0;
-  for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;
+  for (Vector_Size chunk_index = 0; chunk_index < this->chunks_.size() - 1;
        ++chunk_index) {
     const Byte_Buffer_Chunk& c = this->chunks_[chunk_index];
     total_size += chunk_size(c);
@@ -140,7 +139,7 @@ bool Byte_Buffer::empty() const {
   if (this->bytes_used_in_current_chunk() > 0) {
     return false;
   }
-  for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size() - 1;
+  for (Vector_Size chunk_index = 0; chunk_index < this->chunks_.size() - 1;
        ++chunk_index) {
     const Byte_Buffer_Chunk& c = this->chunks_[chunk_index];
     if (chunk_size(c) > 0) {
@@ -163,12 +162,6 @@ String8 Byte_Buffer::to_string8() const {
   s.resize(this->size());
   this->copy_to(s.data());
   return s;
-}
-
-Byte_Buffer_IOVec Byte_Buffer::to_iovec() && {
-  this->update_current_chunk_size();
-  this->remove_current_chunk_if_empty();
-  return Byte_Buffer_IOVec(std::move(this->chunks_));
 }
 
 void Byte_Buffer::reserve(Size_Type extra_byte_count) {
@@ -222,20 +215,8 @@ void Byte_Buffer::delete_chunk(Byte_Buffer_Chunk&& c) {
   delete[] chunk_begin(c);
 }
 
-Byte_Buffer_IOVec::Byte_Buffer_IOVec()
-    : Byte_Buffer_IOVec(std::vector<Byte_Buffer_Chunk>()) {}
-
-Byte_Buffer_IOVec::Byte_Buffer_IOVec(std::vector<Byte_Buffer_Chunk>&& chunks)
-    : chunks_(std::move(chunks)), first_chunk_index_(0) {
-  if (this->chunks_.empty()) {
-    this->first_chunk_allocation_ = make_chunk(nullptr, 0);
-  } else {
-    this->first_chunk_allocation_ = this->chunks_.front();
-  }
-
-  for (const Byte_Buffer_Chunk& c : this->chunks_) {
-    QLJS_ASSERT(chunk_size(c) > 0);
-  }
+Byte_Buffer_IOVec::Byte_Buffer_IOVec() : first_chunk_index_(0) {
+  this->first_chunk_allocation_ = make_chunk(nullptr, 0);
 }
 
 Byte_Buffer_IOVec::Byte_Buffer_IOVec(Byte_Buffer_IOVec&&) = default;

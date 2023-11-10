@@ -393,6 +393,11 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
 
   std::vector<Visited_Variable_Declaration> variable_declarations;
 
+  void visit_variable_assertion_signature_use(Identifier name) override {
+    this->variable_uses.emplace_back(name.normalized_name());
+    this->visits.emplace_back("visit_variable_assertion_signature_use");
+  }
+
   void visit_variable_delete_use(
       Identifier name,
       [[maybe_unused]] Source_Code_Span delete_keyword) override {

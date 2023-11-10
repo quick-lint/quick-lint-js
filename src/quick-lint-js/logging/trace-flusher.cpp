@@ -25,7 +25,7 @@
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/version.h>
 #include <string>
 #include <vector>

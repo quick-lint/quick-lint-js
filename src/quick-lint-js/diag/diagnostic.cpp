@@ -10,8 +10,8 @@
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/cpp.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <utility>
 

@@ -7,7 +7,7 @@
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/temporary-directory.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 
 namespace quick_lint_js {

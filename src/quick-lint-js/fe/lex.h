@@ -15,7 +15,7 @@
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/utf-8.h>
 #include <vector>
 
@@ -333,8 +333,7 @@ class Lexer {
   Padded_String_View original_input_;
 
   Monotonic_Allocator allocator_{"lexer::allocator_"};
-  Linked_Bump_Allocator<alignof(void*)> transaction_allocator_{
-      "lexer::transaction_allocator_"};
+  Linked_Bump_Allocator transaction_allocator_{"lexer::transaction_allocator_"};
 
   friend struct Lex_Tables;
 };
@@ -342,7 +341,7 @@ class Lexer {
 struct Lexer_Transaction {
   // Private to lexer. Do not construct, read, or modify.
 
-  using Allocator_Type = Linked_Bump_Allocator<alignof(void*)>;
+  using Allocator_Type = Linked_Bump_Allocator;
 
   explicit Lexer_Transaction(Token old_last_token,
                              const Char8* old_last_last_token_end,

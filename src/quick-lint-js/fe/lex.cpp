@@ -22,8 +22,8 @@
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>
 #include <string>
 #include <type_traits>
@@ -246,7 +246,7 @@ bool Lexer::try_parse_current_token() {
   case '{':
   case '}':
   case '~':
-    this->last_token_.type = static_cast<Token_Type>(*this->input_);
+    this->last_token_.type = int_to_enum_cast<Token_Type>(*this->input_);
     this->input_ += 1;
     this->last_token_.end = this->input_;
     break;
@@ -1129,7 +1129,7 @@ Lexer_Transaction Lexer::begin_transaction() {
 
 void Lexer::commit_transaction(Lexer_Transaction&& transaction) {
   Buffering_Diag_Reporter* buffered_diagnostics =
-      static_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
+      derived_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
   buffered_diagnostics->move_into(transaction.old_diag_reporter);
 
   this->diag_reporter_ = transaction.old_diag_reporter;
@@ -1149,7 +1149,7 @@ void Lexer::roll_back_transaction(Lexer_Transaction&& transaction) {
 
 bool Lexer::transaction_has_lex_diagnostics(const Lexer_Transaction&) const {
   Buffering_Diag_Reporter* buffered_diagnostics =
-      static_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
+      derived_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
   return !buffered_diagnostics->empty();
 }
 
@@ -1366,12 +1366,14 @@ void Lexer::check_integer_precision_loss(String8_View number_literal) {
   std::string_view result_string_view(result_string.data(),
                                       static_cast<size_t>(rc));
   if (cleaned_string != result_string_view) {
-    Char8* rounded_val = this->allocator_.allocate_uninitialized_array<Char8>(
-        result_string_view.size());
-    std::copy(result_string_view.begin(), result_string_view.end(),
-              rounded_val);
-    String8_View rounded_val_string_view =
-        String8_View(rounded_val, result_string_view.size());
+    // TODO(strager): Use Linked_Bump_Allocator::new_objects_copy
+    Span<Char8> rounded_val =
+        this->allocator_.allocate_uninitialized_span<Char8>(
+            result_string_view.size());
+    std::uninitialized_copy(result_string_view.begin(),
+                            result_string_view.end(), rounded_val.data());
+    String8_View rounded_val_string_view = String8_View(
+        rounded_val.data(), narrow_cast<std::size_t>(rounded_val.size()));
     this->diag_reporter_->report(Diag_Integer_Literal_Will_Lose_Precision{
         .characters =
             Source_Code_Span(number_literal.data(),
@@ -1700,8 +1702,8 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
   const Char8* private_identifier_begin =
       is_private_identifier ? &identifier_begin[-1] : identifier_begin;
 
-  Bump_Vector<Char8, Monotonic_Allocator> normalized(
-      "parse_identifier_slow normalized", &this->allocator_);
+  Vector<Char8> normalized("parse_identifier_slow normalized",
+                           &this->allocator_);
   normalized.append(private_identifier_begin, input);
 
   Escape_Sequence_List* escape_sequences =
@@ -1737,8 +1739,7 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
         normalized.append(4, u8'\0');
         const Char8* end =
             encode_utf_8(code_point, &normalized.data()[normalized.size() - 4]);
-        normalized.resize(
-            narrow_cast<Bump_Vector_Size>(end - normalized.data()));
+        normalized.resize(narrow_cast<Vector_Size>(end - normalized.data()));
         escape_sequences->emplace_back(escape_begin, escape.end);
       }
     } else {

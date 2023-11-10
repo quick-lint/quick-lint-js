@@ -18,8 +18,8 @@ bool Parsed_Diag_Code_List::error_missing_predicate() const {
          this->included_categories.empty() && this->excluded_categories.empty();
 }
 
-Parsed_Diag_Code_List parse_diag_code_list(
-    const char* const raw_diag_code_list) {
+Parsed_Diag_Code_List parse_diag_code_list(const char* const raw_diag_code_list,
+                                           Monotonic_Allocator* allocator) {
   static auto is_initial_category_character = [](char c) -> bool {
     return 'a' <= c && c <= 'z';
   };
@@ -30,7 +30,15 @@ Parsed_Diag_Code_List parse_diag_code_list(
     return '0' <= c && c <= '9';
   };
 
-  Parsed_Diag_Code_List diag_codes;
+  Vector<std::string_view> included_codes("included_codes", allocator);
+  Vector<std::string_view> excluded_codes("excluded_codes", allocator);
+  Vector<std::string_view> included_categories("included_categories",
+                                               allocator);
+  Vector<std::string_view> excluded_categories("excluded_categories",
+                                               allocator);
+  Vector<std::string_view> unexpected("unexpected", allocator);
+  bool override_defaults = false;
+
   std::size_t i = 0;
   bool need_comma = false;
 
@@ -46,16 +54,15 @@ Parsed_Diag_Code_List parse_diag_code_list(
     };
 
     if (raw_diag_code_list[i] == 'E') {
-      (is_include ? diag_codes.included_codes : diag_codes.excluded_codes)
+      (is_include ? included_codes : excluded_codes)
           .emplace_back(parse_word(is_continue_code_character));
       return true;
     } else if (is_initial_category_character(raw_diag_code_list[i])) {
-      (is_include ? diag_codes.included_categories
-                  : diag_codes.excluded_categories)
+      (is_include ? included_categories : excluded_categories)
           .emplace_back(parse_word(is_continue_category_character));
       return true;
     } else {
-      diag_codes.unexpected.emplace_back(&raw_diag_code_list[i], 1);
+      unexpected.emplace_back(&raw_diag_code_list[i], std::size_t{1});
       return false;
     }
   };
@@ -66,7 +73,7 @@ Parsed_Diag_Code_List parse_diag_code_list(
       break;
     }
     if (need_comma && raw_diag_code_list[i] != ',') {
-      diag_codes.unexpected.emplace_back(&raw_diag_code_list[i], 1);
+      unexpected.emplace_back(&raw_diag_code_list[i], std::size_t{1});
       break;
     }
     i = i + std::strspn(&raw_diag_code_list[i], " \t,");
@@ -84,12 +91,23 @@ Parsed_Diag_Code_List parse_diag_code_list(
       if (!try_parse_category_or_code(/*is_include=*/true)) {
         break;
       }
-      diag_codes.override_defaults = true;
+      override_defaults = true;
     }
   }
 
-  return diag_codes;
+  return Parsed_Diag_Code_List{
+      .included_codes = included_codes.release_to_span(),
+      .excluded_codes = excluded_codes.release_to_span(),
+      .included_categories = included_categories.release_to_span(),
+      .excluded_categories = excluded_categories.release_to_span(),
+      .unexpected = unexpected.release_to_span(),
+      .override_defaults = override_defaults,
+  };
 }
+
+Compiled_Diag_Code_List::Compiled_Diag_Code_List()
+    : allocator_(
+          std::make_unique<Monotonic_Allocator>("Compiled_Diag_Code_List")) {}
 
 void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
   auto add_code = [this](std::string_view code, auto& code_set) -> void {
@@ -108,8 +126,11 @@ void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
   for (std::string_view code : diag_code_list.excluded_codes) {
     add_code(code, c.excluded_codes);
   }
-  c.included_categories = diag_code_list.included_categories;
-  c.excluded_categories = diag_code_list.excluded_categories;
+  // TODO(strager): Copy the referenced std::string_view-s.
+  c.included_categories =
+      this->allocator_->new_objects_copy(diag_code_list.included_categories);
+  c.excluded_categories =
+      this->allocator_->new_objects_copy(diag_code_list.excluded_categories);
   c.override_defaults = diag_code_list.override_defaults;
 
   if (diag_code_list.error_missing_predicate()) {
@@ -117,22 +138,29 @@ void Compiled_Diag_Code_List::add(const Parsed_Diag_Code_List& diag_code_list) {
   }
 }
 
-std::vector<std::string> Compiled_Diag_Code_List::parse_errors(
-    std::string_view cli_option_name) const {
-  std::vector<std::string> errors;
+Span<std::string_view> Compiled_Diag_Code_List::parse_errors(
+    std::string_view cli_option_name, Monotonic_Allocator* allocator) const {
+  Vector<std::string_view> errors("errors", allocator);
   if (this->has_missing_predicate_error_) {
-    errors.emplace_back(std::string(cli_option_name) +
-                        " must be given at least one category or code");
+    // TODO(#1102): Make this code pretty.
+    Vector<char> error("error", allocator);
+    error += cli_option_name;
+    error += " must be given at least one category or code"sv;
+    errors.emplace_back(error.release_to_string_view());
   }
-  return errors;
+  return errors.release_to_span();
 }
 
-std::vector<std::string> Compiled_Diag_Code_List::parse_warnings() const {
-  std::vector<std::string> warnings;
-  auto check_category = [&warnings](std::string_view category) {
+Span<std::string_view> Compiled_Diag_Code_List::parse_warnings(
+    Monotonic_Allocator* allocator) const {
+  Vector<std::string_view> warnings("warnings", allocator);
+  auto check_category = [&](std::string_view category) {
     if (category != "all") {
-      warnings.emplace_back("unknown error category: ");
-      warnings.back().append(category);
+      // TODO(#1102): Make this code pretty.
+      Vector<char> warning("warning", allocator);
+      warning += "unknown error category: "sv;
+      warning += category;
+      warnings.emplace_back(warning.release_to_string_view());
     }
   };
 
@@ -146,11 +174,14 @@ std::vector<std::string> Compiled_Diag_Code_List::parse_warnings() const {
   }
 
   for (std::string_view code : this->unknown_codes_) {
-    warnings.emplace_back("unknown error code: ");
-    warnings.back().append(code);
+    // TODO(#1102): Make this code pretty.
+    Vector<char> warning("warning", allocator);
+    warning += "unknown error code: "sv;
+    warning += code;
+    warnings.emplace_back(warning.release_to_string_view());
   }
 
-  return warnings;
+  return warnings.release_to_span();
 }
 
 bool Compiled_Diag_Code_List::is_present(Diag_Type type) const {

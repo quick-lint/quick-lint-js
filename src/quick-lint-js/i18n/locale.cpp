@@ -1,19 +1,23 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/container/linked-bump-allocator.h"
+#include "quick-lint-js/container/vector.h"
 #include <array>
 #include <cstring>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/c-string-list.h>
 #include <quick-lint-js/i18n/locale.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 #include <vector>
 
+using namespace std::literals::string_view_literals;
+
 namespace quick_lint_js {
 namespace {
-constexpr const char locale_part_separators[] = "_.@";
+constexpr std::string_view locale_part_separators = "_.@"sv;
 
 struct Locale_Parts {
   // language, territory, codeset, modifier
@@ -27,51 +31,52 @@ struct Locale_Parts {
   std::string_view& language() { return this->parts[this->language_index]; }
 };
 
-Locale_Parts parse_locale(const char* locale_name) {
+Locale_Parts parse_locale(std::string_view locale_name) {
   struct Found_Separator {
     std::size_t length;
     std::size_t which_separator;
   };
-  auto find_next_separator = [](const char* c,
-                                const char* separators) -> Found_Separator {
-    std::size_t length = std::strcspn(c, separators);
-    if (c[length] == '\0') {
-      return Found_Separator{.length = length,
+  auto find_next_separator =
+      [](std::string_view s, std::string_view separators) -> Found_Separator {
+    std::size_t length = s.find_first_of(separators);
+    if (length == s.npos) {
+      return Found_Separator{.length = s.size(),
                              .which_separator = static_cast<std::size_t>(-1)};
     }
-    const char* separator = std::strchr(separators, c[length]);
-    QLJS_ASSERT(separator);
-    return Found_Separator{
-        .length = length,
-        .which_separator = narrow_cast<std::size_t>(separator - separators)};
+    std::size_t which_separator = separators.find(s[length]);
+    QLJS_ASSERT(which_separator != separators.npos);
+    return Found_Separator{.length = length,
+                           .which_separator = which_separator};
   };
 
   Locale_Parts parts;
 
-  const char* current_separators = &locale_part_separators[0];
+  std::string_view current_separators = locale_part_separators;
   std::string_view* current_part = &parts.language();
-  const char* c = locale_name;
+  std::string_view remaining_locale_name = locale_name;
   for (;;) {
-    Found_Separator part = find_next_separator(c, current_separators);
-    *current_part = std::string_view(c, part.length);
-    c += part.length;
-    if (*c == '\0') {
+    Found_Separator part =
+        find_next_separator(remaining_locale_name, current_separators);
+    *current_part = remaining_locale_name.substr(0, part.length);
+    remaining_locale_name = remaining_locale_name.substr(part.length);
+    if (remaining_locale_name.empty()) {
       break;
     }
 
     QLJS_ASSERT(part.which_separator != static_cast<std::size_t>(-1));
-    current_separators += part.which_separator + 1;
+    current_separators = current_separators.substr(part.which_separator + 1);
     current_part += part.which_separator + 1;
-    c += 1;
+    remaining_locale_name = remaining_locale_name.substr(1);
   }
   return parts;
 }
 
 template <class Func>
-void locale_name_combinations(const char* locale_name, Func&& callback);
+void locale_name_combinations(std::string_view locale_name, Func&& callback);
 }
 
-std::optional<int> find_locale(const char* locales, const char* locale_name) {
+std::optional<int> find_locale(const char* locales,
+                               std::string_view locale_name) {
   // NOTE[locale-list-null-terminator]: The code generator guarantees that there
   // is an empty string at the end of the list (i.e. two null bytes at the end).
   C_String_List_View locales_list(locales);
@@ -91,14 +96,12 @@ std::optional<int> find_locale(const char* locales, const char* locale_name) {
   return found_entry;
 }
 
-std::vector<std::string> locale_name_combinations(const char* locale_name) {
-  std::vector<std::string> locale_names;
-  locale_name_combinations(locale_name,
-                           [&](std::string_view current_locale) -> bool {
-                             locale_names.emplace_back(current_locale);
-                             return true;
-                           });
-  return locale_names;
+void enumerate_locale_name_combinations(
+    std::string_view locale_name,
+    Temporary_Function_Ref<bool(std::string_view locale)> callback) {
+  return locale_name_combinations<
+      Temporary_Function_Ref<bool(std::string_view locale)>>(
+      locale_name, std::move(callback));
 }
 
 namespace {
@@ -106,13 +109,14 @@ QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 
 template <class Func>
-void locale_name_combinations(const char* locale_name, Func&& callback) {
+void locale_name_combinations(std::string_view locale_name, Func&& callback) {
+  Linked_Bump_Allocator temporary_allocator("locale_name_combinations");
   Locale_Parts parts = parse_locale(locale_name);
 
-  std::vector<char> locale;
-  std::size_t max_locale_size = std::strlen(locale_name);
+  Vector<char> locale("locale", &temporary_allocator);
+  Vector_Size max_locale_size = narrow_cast<Vector_Size>(locale_name.size());
   locale.reserve(max_locale_size);
-  locale.insert(locale.end(), parts.language().begin(), parts.language().end());
+  locale += parts.language();
 
   unsigned present_parts_mask = 0;
   for (std::size_t part_index = 1; part_index < 4; ++part_index) {
@@ -142,17 +146,18 @@ void locale_name_combinations(const char* locale_name, Func&& callback) {
       continue;
     }
 
-    locale.resize(parts.language().size());
+    locale.resize(narrow_cast<Vector_Size>(parts.language().size()));
     for (std::size_t part_index = 1; part_index < 4; ++part_index) {
       if (mask & (1 << part_index)) {
         std::string_view part = parts.parts[part_index];
         locale.push_back(locale_part_separators[part_index - 1]);
-        locale.insert(locale.end(), part.begin(), part.end());
+        locale += part;
       }
     }
     QLJS_ASSERT(locale.size() <= max_locale_size);
 
-    bool keep_going = callback(std::string_view(locale.data(), locale.size()));
+    bool keep_going = callback(std::string_view(
+        locale.data(), narrow_cast<std::size_t>(locale.size())));
     if (!keep_going) {
       break;
     }

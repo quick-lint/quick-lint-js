@@ -7,10 +7,10 @@
 
 namespace quick_lint_js {
 namespace {
-TEST(Test_Function_Ref, references_temporary_lambda_with_no_captures) {
+TEST(Test_Async_Function_Ref, references_temporary_lambda_with_no_captures) {
   static int calls;
   calls = 0;
-  Function_Ref<std::string()> f([]() -> std::string {
+  Async_Function_Ref<std::string()> f([]() -> std::string {
     calls += 1;
     return "called";
   });
@@ -21,14 +21,15 @@ TEST(Test_Function_Ref, references_temporary_lambda_with_no_captures) {
   EXPECT_EQ(result, "called");
 }
 
-TEST(Test_Function_Ref, references_temporary_lambda_lvalue_with_no_captures) {
+TEST(Test_Async_Function_Ref,
+     references_temporary_lambda_lvalue_with_no_captures) {
   static int calls;
   calls = 0;
   auto functor = []() -> std::string {
     calls += 1;
     return "called";
   };
-  Function_Ref<std::string()> f(functor);
+  Async_Function_Ref<std::string()> f(functor);
 
   EXPECT_EQ(calls, 0);
   std::string result = f();
@@ -36,11 +37,11 @@ TEST(Test_Function_Ref, references_temporary_lambda_lvalue_with_no_captures) {
   EXPECT_EQ(result, "called");
 }
 
-TEST(Test_Function_Ref,
+TEST(Test_Async_Function_Ref,
      converts_implicitly_from_temporary_lambda_with_no_captures) {
   static int calls;
   calls = 0;
-  auto test = [](Function_Ref<std::string()> f) -> void {
+  auto test = [](Async_Function_Ref<std::string()> f) -> void {
     EXPECT_EQ(calls, 0);
     std::string result = f();
     EXPECT_EQ(calls, 1);
@@ -52,7 +53,8 @@ TEST(Test_Function_Ref,
   });
 }
 
-TEST(Test_Function_Ref, references_lambda_with_captures_if_stack_allocated) {
+TEST(Test_Async_Function_Ref,
+     references_lambda_with_captures_if_stack_allocated) {
   static int calls;
   calls = 0;
   int captured;
@@ -60,7 +62,7 @@ TEST(Test_Function_Ref, references_lambda_with_captures_if_stack_allocated) {
     calls += 1;
     return captured;
   };
-  Function_Ref<int()> f(functor);
+  Async_Function_Ref<int()> f(functor);
 
   EXPECT_EQ(calls, 0);
   captured = 42;
@@ -69,7 +71,7 @@ TEST(Test_Function_Ref, references_lambda_with_captures_if_stack_allocated) {
   EXPECT_EQ(result, 42);
 }
 
-TEST(Test_Function_Ref,
+TEST(Test_Async_Function_Ref,
      references_const_lambda_with_captures_if_stack_allocated) {
   static int calls;
   calls = 0;
@@ -78,7 +80,7 @@ TEST(Test_Function_Ref,
     calls += 1;
     return captured;
   };
-  Function_Ref<int()> f(functor);
+  Async_Function_Ref<int()> f(functor);
 
   EXPECT_EQ(calls, 0);
   captured = 42;
@@ -89,9 +91,61 @@ TEST(Test_Function_Ref,
 
 // TODO(strager): Test that the following programs do not compile:
 #if 0
-TEST(Test_Function_Ref, cannot_reference_lambda_rvalue_with_captures) {
+TEST(Test_Async_Function_Ref, cannot_reference_lambda_rvalue_with_captures) {
    int captured = 0;
-   Function_Ref<int()> f([captured]() -> int {
+   Async_Function_Ref<int()> f([captured]() -> int {
+     return captured;
+   });
+   f();  // Undefined behavior (if the code compiled).
+}
+#endif
+
+TEST(Test_Temporary_Function_Ref, references_lambda_argument_with_no_captures) {
+  static int calls;
+  calls = 0;
+  auto test = [](Temporary_Function_Ref<std::string()> f) -> void {
+    EXPECT_EQ(calls, 0);
+    std::string result = f();
+    EXPECT_EQ(calls, 1);
+    EXPECT_EQ(result, "called");
+  };
+  test([]() -> std::string {
+    calls += 1;
+    return "called";
+  });
+}
+
+TEST(Test_Temporary_Function_Ref,
+     references_lambda_with_captures_if_stack_allocated) {
+  static int calls;
+  calls = 0;
+  int captured;
+  auto test = [&captured](Temporary_Function_Ref<int()> f) -> void {
+    EXPECT_EQ(calls, 0);
+    captured = 42;
+    int result = f();
+    EXPECT_EQ(calls, 1);
+    EXPECT_EQ(result, 42);
+  };
+  test([&captured]() -> int {
+    calls += 1;
+    return captured;
+  });
+}
+
+// TODO(strager): Test that the following programs do not compile:
+#if 0
+TEST(Test_Temporary_Function_Ref, cannot_reference_lambda_lvalue_with_no_captures) {
+   int captured = 0;
+   Temporary_Function_Ref<int()> f([]() -> int {
+     return captured;
+   });
+   f();  // Bug prune. (See cannot_reference_lambda_lvalue_with_captures test.)
+}
+
+TEST(Test_Temporary_Function_Ref, cannot_reference_lambda_lvalue_with_captures) {
+   int captured = 0;
+   Temporary_Function_Ref<int()> f([captured]() -> int {
      return captured;
    });
    f();  // Undefined behavior (if the code compiled).

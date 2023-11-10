@@ -6,7 +6,6 @@
 #else
 
 #include <quick-lint-js/container/byte-buffer.h>
-#include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/lsp/lsp-json-rpc-message-parser.h>
 #include <quick-lint-js/lsp/lsp-workspace-configuration.h>
 #include <quick-lint-js/port/char8.h>
@@ -17,8 +16,12 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
+LSP_Workspace_Configuration::LSP_Workspace_Configuration(
+    Monotonic_Allocator* allocator)
+    : items_("LSP_Workspace_Configuration::items_", allocator) {}
+
 void LSP_Workspace_Configuration::add_item(
-    String8_View name, Heap_Function<void(std::string_view)>&& callback) {
+    String8_View name, Async_Function_Ref<void(std::string_view)> callback) {
   this->items_.push_back(Item{
       .name = name,
       .callback = std::move(callback),

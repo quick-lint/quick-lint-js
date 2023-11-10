@@ -8,7 +8,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 
 namespace quick_lint_js {
 Vim_Locator::Vim_Locator(Padded_String_View input) : input_(input) {}

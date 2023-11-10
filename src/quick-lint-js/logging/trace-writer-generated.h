@@ -11,7 +11,7 @@
 #include <quick-lint-js/logging/trace-types.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/binary-writer.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string_view>
 
 // clang-format off
@@ -230,7 +230,7 @@ inline void Trace_Writer::write_event(
 inline void Trace_Writer::write_Trace_LSP_Document_State(
       const Trace_LSP_Document_State& s) {
   Binary_Writer w = Binary_Writer(reinterpret_cast<std::uint8_t*>(this->out_->append(1)));
-  w.u8(static_cast<std::uint8_t>(s.type));
+  w.u8(enum_to_int_cast(s.type));
   /* Done with w. */
   this->write_utf8_string(s.uri);
   this->write_utf8_string(s.text);

@@ -11,7 +11,7 @@
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/output-stream.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string_view>
 #include <vector>
 
@@ -21,23 +21,29 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-Options parse_options(std::initializer_list<const char *> arguments) {
-  std::vector<char *> argv;
-  argv.emplace_back(const_cast<char *>("(program)"));
-  for (const char *argument : arguments) {
-    argv.emplace_back(const_cast<char *>(argument));
+class Test_Options : public ::testing::Test {
+ public:
+  Options parse_options(std::initializer_list<const char *> arguments) {
+    std::vector<char *> argv;
+    argv.emplace_back(const_cast<char *>("(program)"));
+    for (const char *argument : arguments) {
+      argv.emplace_back(const_cast<char *>(argument));
+    }
+    return quick_lint_js::parse_options(narrow_cast<int>(argv.size()),
+                                        argv.data(), &this->allocator);
   }
-  return quick_lint_js::parse_options(narrow_cast<int>(argv.size()),
-                                      argv.data());
-}
 
-Options parse_options_no_errors(std::initializer_list<const char *> arguments) {
-  Options o = parse_options(arguments);
-  EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
-  EXPECT_THAT(o.warning_language_without_file, IsEmpty());
-  EXPECT_THAT(o.warning_vim_bufnr_without_file, IsEmpty());
-  return o;
-}
+  Options parse_options_no_errors(
+      std::initializer_list<const char *> arguments) {
+    Options o = this->parse_options(arguments);
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    EXPECT_THAT(o.warning_language_without_file, IsEmpty());
+    EXPECT_THAT(o.warning_vim_bufnr_without_file, IsEmpty());
+    return o;
+  }
+
+  Monotonic_Allocator allocator{"Test_Options"};
+};
 
 struct Dumped_Errors {
   bool have_errors;
@@ -54,7 +60,7 @@ Dumped_Errors dump_errors(const Options &o) {
   };
 }
 
-TEST(Test_Options, default_options_with_no_files) {
+TEST_F(Test_Options, default_options_with_no_files) {
   Options o = parse_options_no_errors({});
   EXPECT_FALSE(o.print_parser_visits);
   EXPECT_FALSE(o.help);
@@ -65,7 +71,7 @@ TEST(Test_Options, default_options_with_no_files) {
   EXPECT_THAT(o.files_to_lint, IsEmpty());
 }
 
-TEST(Test_Options, default_options_with_files) {
+TEST_F(Test_Options, default_options_with_files) {
   Options o = parse_options_no_errors({"foo.js"});
   EXPECT_FALSE(o.print_parser_visits);
   EXPECT_FALSE(o.snarky);
@@ -73,7 +79,7 @@ TEST(Test_Options, default_options_with_files) {
   EXPECT_EQ(o.files_to_lint[0].path, "foo.js"sv);
 }
 
-TEST(Test_Options, hyphen_hyphen_treats_remaining_arguments_as_files) {
+TEST_F(Test_Options, hyphen_hyphen_treats_remaining_arguments_as_files) {
   {
     Options o = parse_options_no_errors({"--", "foo.js"});
     ASSERT_EQ(o.files_to_lint.size(), 1);
@@ -91,21 +97,21 @@ TEST(Test_Options, hyphen_hyphen_treats_remaining_arguments_as_files) {
   }
 }
 
-TEST(Test_Options, debug_parser_visits) {
+TEST_F(Test_Options, debug_parser_visits) {
   Options o = parse_options_no_errors({"--debug-parser-visits", "foo.js"});
   EXPECT_TRUE(o.print_parser_visits);
   ASSERT_EQ(o.files_to_lint.size(), 1);
   EXPECT_EQ(o.files_to_lint[0].path, "foo.js"sv);
 }
 
-TEST(Test_Options, snarky) {
+TEST_F(Test_Options, snarky) {
   Options o = parse_options_no_errors({"--snarky", "foo.js"});
   EXPECT_TRUE(o.snarky);
   ASSERT_EQ(o.files_to_lint.size(), 1);
   EXPECT_EQ(o.files_to_lint[0].path, "foo.js"sv);
 }
 
-TEST(Test_Options, debug_parser_visits_shorthand) {
+TEST_F(Test_Options, debug_parser_visits_shorthand) {
   {
     Options o = parse_options_no_errors({"--debug-p", "foo.js"});
     EXPECT_TRUE(o.print_parser_visits);
@@ -117,7 +123,7 @@ TEST(Test_Options, debug_parser_visits_shorthand) {
   }
 }
 
-TEST(Test_Options, output_format) {
+TEST_F(Test_Options, output_format) {
   {
     Options o = parse_options_no_errors({});
     EXPECT_EQ(o.output_format, Output_Format::default_format);
@@ -139,7 +145,7 @@ TEST(Test_Options, output_format) {
   }
 }
 
-TEST(Test_Options, invalid_output_format) {
+TEST_F(Test_Options, invalid_output_format) {
   {
     Options o = parse_options({"--output-format=unknown-garbage"});
     EXPECT_THAT(o.error_unrecognized_options,
@@ -155,7 +161,7 @@ TEST(Test_Options, invalid_output_format) {
   }
 }
 
-TEST(Test_Options, vim_file_bufnr) {
+TEST_F(Test_Options, vim_file_bufnr) {
   {
     Options o = parse_options_no_errors({"one.js", "two.js"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
@@ -217,7 +223,7 @@ TEST(Test_Options, vim_file_bufnr) {
   }
 }
 
-TEST(Test_Options, path_for_config_search) {
+TEST_F(Test_Options, path_for_config_search) {
   {
     Options o = parse_options_no_errors({"one.js", "two.js"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
@@ -289,7 +295,7 @@ TEST(Test_Options, path_for_config_search) {
   }
 }
 
-TEST(Test_Options, config_file) {
+TEST_F(Test_Options, config_file) {
   {
     Options o = parse_options_no_errors({"one.js", "two.js"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
@@ -353,7 +359,7 @@ TEST(Test_Options, config_file) {
   }
 }
 
-TEST(Test_Options, language) {
+TEST_F(Test_Options, language) {
   constexpr Raw_Input_File_Language default_language =
       Raw_Input_File_Language::default_;
 
@@ -448,7 +454,7 @@ TEST(Test_Options, language) {
   }
 }
 
-TEST(Test_Options, language_after_file) {
+TEST_F(Test_Options, language_after_file) {
   Options o = parse_options({"file.js", "--language=javascript-jsx"});
   EXPECT_THAT(o.warning_language_without_file,
               ElementsAreArray({"javascript-jsx"sv}));
@@ -461,7 +467,7 @@ TEST(Test_Options, language_after_file) {
       u8"input file name or --stdin\n");
 }
 
-TEST(Test_Options, multiple_languages) {
+TEST_F(Test_Options, multiple_languages) {
   Options o = parse_options(
       {"--language=javascript", "--language=javascript-jsx", "test.jsx"});
   EXPECT_THAT(o.warning_language_without_file,
@@ -474,7 +480,7 @@ TEST(Test_Options, multiple_languages) {
             u8"input file name or --stdin\n");
 }
 
-TEST(Test_Options, invalid_language) {
+TEST_F(Test_Options, invalid_language) {
   Options o = parse_options({"--language=badlanguageid", "test.js"});
   EXPECT_THAT(o.warning_language_without_file, IsEmpty());
   // TODO(strager): Highlight the full option, not just the value.
@@ -482,7 +488,8 @@ TEST(Test_Options, invalid_language) {
               ElementsAreArray({"badlanguageid"sv}));
 }
 
-TEST(Test_Options, default_language_is_javascript_jsx_regardless_of_extension) {
+TEST_F(Test_Options,
+       default_language_is_javascript_jsx_regardless_of_extension) {
   constexpr auto default_language = Raw_Input_File_Language::default_;
   constexpr auto javascript_jsx = Resolved_Input_File_Language::javascript_jsx;
   EXPECT_EQ(get_language("<stdin>", default_language), javascript_jsx);
@@ -495,8 +502,8 @@ TEST(Test_Options, default_language_is_javascript_jsx_regardless_of_extension) {
   EXPECT_EQ(get_language("hi.txt", default_language), javascript_jsx);
 }
 
-TEST(Test_Options,
-     experimental_default_language_guesses_language_from_extension) {
+TEST_F(Test_Options,
+       experimental_default_language_guesses_language_from_extension) {
   constexpr auto default_language =
       Raw_Input_File_Language::experimental_default;
   constexpr auto javascript_jsx = Resolved_Input_File_Language::javascript_jsx;
@@ -522,7 +529,7 @@ TEST(Test_Options,
   }
 }
 
-TEST(Test_Options, get_language_overwritten) {
+TEST_F(Test_Options, get_language_overwritten) {
   constexpr auto in_javascript = Raw_Input_File_Language::javascript;
   constexpr auto in_javascript_jsx = Raw_Input_File_Language::javascript_jsx;
   constexpr auto javascript = Resolved_Input_File_Language::javascript;
@@ -539,7 +546,7 @@ TEST(Test_Options, get_language_overwritten) {
   EXPECT_EQ(get_language("hi.txt", in_javascript), javascript);
 }
 
-TEST(Test_Options, lsp_server) {
+TEST_F(Test_Options, lsp_server) {
   {
     Options o = parse_options_no_errors({"--lsp-server"});
     EXPECT_TRUE(o.lsp_server);
@@ -551,7 +558,7 @@ TEST(Test_Options, lsp_server) {
   }
 }
 
-TEST(Test_Options, stdin_file) {
+TEST_F(Test_Options, stdin_file) {
   {
     Options o = parse_options_no_errors({"--stdin", "one.js"});
     ASSERT_EQ(o.files_to_lint.size(), 2);
@@ -577,7 +584,7 @@ TEST(Test_Options, stdin_file) {
   }
 }
 
-TEST(Test_Options, is_stdin_emplaced_only_once) {
+TEST_F(Test_Options, is_stdin_emplaced_only_once) {
   {
     Options o = parse_options_no_errors({"--stdin", "one.js", "-", "two.js"});
     ASSERT_EQ(o.files_to_lint.size(), 3);
@@ -590,7 +597,7 @@ TEST(Test_Options, is_stdin_emplaced_only_once) {
   }
 }
 
-TEST(Test_Options, path_for_stdin) {
+TEST_F(Test_Options, path_for_stdin) {
   {
     Options o = parse_options_no_errors({"--stdin-path", "a.js", "--stdin"});
     ASSERT_EQ(o.files_to_lint.size(), 1);
@@ -641,7 +648,7 @@ TEST(Test_Options, path_for_stdin) {
   }
 }
 
-TEST(Test_Options, print_help) {
+TEST_F(Test_Options, print_help) {
   {
     Options o = parse_options_no_errors({"--help"});
     EXPECT_TRUE(o.help);
@@ -658,12 +665,12 @@ TEST(Test_Options, print_help) {
   }
 }
 
-TEST(Test_Options, list_debug_apps) {
+TEST_F(Test_Options, list_debug_apps) {
   Options o = parse_options_no_errors({"--debug-apps"});
   EXPECT_TRUE(o.list_debug_apps);
 }
 
-TEST(Test_Options, print_version) {
+TEST_F(Test_Options, print_version) {
   {
     Options o = parse_options_no_errors({"--version"});
     EXPECT_TRUE(o.version);
@@ -680,7 +687,7 @@ TEST(Test_Options, print_version) {
   }
 }
 
-TEST(Test_Options, exit_fail_on) {
+TEST_F(Test_Options, exit_fail_on) {
   {
     Options o = parse_options_no_errors({"--exit-fail-on=E0003", "file.js"});
     EXPECT_TRUE(
@@ -692,7 +699,7 @@ TEST(Test_Options, exit_fail_on) {
   }
 }
 
-TEST(Test_Options, invalid_vim_file_bufnr) {
+TEST_F(Test_Options, invalid_vim_file_bufnr) {
   {
     Options o = parse_options({"--vim-file-bufnr=garbage", "file.js"});
     EXPECT_THAT(o.error_unrecognized_options, ElementsAreArray({"garbage"sv}));
@@ -705,7 +712,7 @@ TEST(Test_Options, invalid_vim_file_bufnr) {
   }
 }
 
-TEST(Test_Options, no_following_filename_vim_file_bufnr) {
+TEST_F(Test_Options, no_following_filename_vim_file_bufnr) {
   {
     Options o = parse_options({"foo.js", "--vim-file-bufnr=1"});
     o.output_format = Output_Format::vim_qflist_json;
@@ -776,7 +783,7 @@ TEST(Test_Options, no_following_filename_vim_file_bufnr) {
   }
 }
 
-TEST(Test_Options, using_vim_file_bufnr_without_format) {
+TEST_F(Test_Options, using_vim_file_bufnr_without_format) {
   {
     for (const auto &format : {
              Output_Format::default_format,
@@ -803,7 +810,7 @@ TEST(Test_Options, using_vim_file_bufnr_without_format) {
   }
 }
 
-TEST(Test_Options, using_vim_file_bufnr_in_lsp_mode) {
+TEST_F(Test_Options, using_vim_file_bufnr_in_lsp_mode) {
   {
     Options o = parse_options({"--lsp-server", "--vim-file-bufnr=1"});
 
@@ -824,7 +831,7 @@ TEST(Test_Options, using_vim_file_bufnr_in_lsp_mode) {
   }
 }
 
-TEST(Test_Options, using_language_in_lsp_mode) {
+TEST_F(Test_Options, using_language_in_lsp_mode) {
   {
     Options o = parse_options({"--lsp-server", "--language=javascript"});
 
@@ -846,7 +853,7 @@ TEST(Test_Options, using_language_in_lsp_mode) {
   }
 }
 
-TEST(Test_Options, invalid_option) {
+TEST_F(Test_Options, invalid_option) {
   {
     Options o = parse_options({"--option-does-not-exist", "foo.js"});
     EXPECT_THAT(o.error_unrecognized_options,
@@ -875,10 +882,10 @@ TEST(Test_Options, invalid_option) {
   }
 }
 
-TEST(Test_Options, dump_errors) {
+TEST_F(Test_Options, dump_errors) {
   {
     Options o;
-    o.error_unrecognized_options.clear();
+    o.error_unrecognized_options = Span<const char *const>();
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);
@@ -886,8 +893,10 @@ TEST(Test_Options, dump_errors) {
   }
 
   {
+    const char *unrecognized_options[] = {"--bad-option"};
     Options o;
-    o.error_unrecognized_options.push_back("--bad-option");
+    o.error_unrecognized_options =
+        Span<const char *const>(unrecognized_options);
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_TRUE(errors.have_errors);
@@ -896,11 +905,10 @@ TEST(Test_Options, dump_errors) {
 
   {
     Options o;
-
-    Parsed_Diag_Code_List parsed_errors;
-    parsed_errors.included_categories.emplace_back("banana");
-    parsed_errors.excluded_codes.emplace_back("E9999");
-    o.exit_fail_on.add(parsed_errors);
+    o.exit_fail_on.add(Parsed_Diag_Code_List{
+        .excluded_codes = Span<const std::string_view>({"E9999"}),
+        .included_categories = Span<const std::string_view>({"banana"}),
+    });
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);
@@ -959,17 +967,19 @@ TEST(Test_Options, dump_errors) {
   }
 
   {
-    const File_To_Lint file = {
-        .path = "file.js",
-        .config_file = nullptr,
-        .language = Raw_Input_File_Language::default_,
-        .is_stdin = false,
-        .vim_bufnr = std::optional<int>(),
+    const File_To_Lint files[] = {
+        File_To_Lint{
+            .path = "file.js",
+            .config_file = nullptr,
+            .language = Raw_Input_File_Language::default_,
+            .is_stdin = false,
+            .vim_bufnr = std::optional<int>(),
+        },
     };
 
     Options o;
     o.lsp_server = true;
-    o.files_to_lint.emplace_back(file);
+    o.files_to_lint = Span<const File_To_Lint>(files);
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);
@@ -981,7 +991,8 @@ TEST(Test_Options, dump_errors) {
   {
     Options o;
     o.lsp_server = true;
-    o.exit_fail_on.add(parse_diag_code_list("E0001"));
+    Monotonic_Allocator allocator(__func__);
+    o.exit_fail_on.add(parse_diag_code_list("E0001", &allocator));
 
     Dumped_Errors errors = dump_errors(o);
     EXPECT_FALSE(errors.have_errors);

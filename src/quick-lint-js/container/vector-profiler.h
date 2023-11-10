@@ -13,10 +13,11 @@
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/feature.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/attribute.h>
 #include <quick-lint-js/port/span.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <string>
 #include <string_view>
@@ -51,7 +52,7 @@ class Vector_Instrumentation {
   };
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-  static Vector_Instrumentation instance;
+  static Vector_Instrumentation &instance();
 #endif
 
   void clear();
@@ -97,9 +98,9 @@ class Vector_Max_Size_Histogram_By_Owner {
   };
 
   static void dump(Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>,
-                   std::ostream &);
+                   Output_Stream &);
   static void dump(Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry>,
-                   std::ostream &, const Dump_Options &options);
+                   Output_Stream &, const Dump_Options &options);
 
  private:
   Hash_Map<const char *, Hash_Map<std::size_t, int>> histogram_;
@@ -138,7 +139,7 @@ class Vector_Capacity_Change_Histogram_By_Owner {
 
   static void dump(
       const std::map<std::string_view, Capacity_Change_Histogram> &,
-      std::ostream &, const Dump_Options &);
+      Output_Stream &, const Dump_Options &);
 
  private:
   struct Vector_Info {
@@ -235,6 +236,10 @@ class Instrumented_Vector {
     return this->data_[index];
   }
 
+  QLJS_FORCE_INLINE const value_type &operator[](size_type index) const {
+    return this->data_[index];
+  }
+
   QLJS_FORCE_INLINE value_type *begin() { return this->data(); }
   QLJS_FORCE_INLINE value_type *end() { return this->begin() + this->size(); }
 
@@ -267,9 +272,27 @@ class Instrumented_Vector {
     this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
   }
 
+  QLJS_FORCE_INLINE void push_front(value_type &&value) {
+    this->data_.push_front(std::move(value));
+    // TODO(strager): Add instrumentation specific to prepending.
+    this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
+  }
+
   QLJS_FORCE_INLINE void clear() {
     this->data_.clear();
     this->add_instrumentation_entry(Vector_Instrumentation::Event::clear);
+  }
+
+  QLJS_FORCE_INLINE void erase(iterator begin, iterator end) {
+    this->data_.erase(begin, end);
+    // TODO(strager): Add instrumentation specific to erasing.
+    this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
+  }
+
+  QLJS_FORCE_INLINE void erase(iterator item) {
+    this->data_.erase(item);
+    // TODO(strager): Add instrumentation specific to erasing.
+    this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
   }
 
   void reserve(size_type new_capacity) { this->data_.reserve(new_capacity); }
@@ -332,10 +355,18 @@ class Instrumented_Vector {
     return Span<const value_type>(this->data_);
   }
 
+  void swap(Instrumented_Vector &other) {
+    this->data_.swap(other.data_);
+    std::swap(this->debug_owner_, other.debug_owner_);
+    // TODO(strager): Add instrumentation specific to swapping.
+    this->add_instrumentation_entry(Vector_Instrumentation::Event::resize);
+    other.add_instrumentation_entry(Vector_Instrumentation::Event::resize);
+  }
+
  private:
   QLJS_FORCE_INLINE void add_instrumentation_entry(
       Vector_Instrumentation::Event event) {
-    Vector_Instrumentation::instance.add_entry(
+    Vector_Instrumentation::instance().add_entry(
         /*object_id=*/reinterpret_cast<std::uintptr_t>(this),
         /*owner=*/this->debug_owner_,
         /*event=*/event,
@@ -347,6 +378,11 @@ class Instrumented_Vector {
   Vector data_;
   const char *debug_owner_;
 };
+
+template <class V>
+void swap(Instrumented_Vector<V> &lhs, Instrumented_Vector<V> &rhs) {
+  lhs.swap(rhs);
+}
 #endif
 }
 

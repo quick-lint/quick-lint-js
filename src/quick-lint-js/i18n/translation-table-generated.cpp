@@ -18,7 +18,8 @@ const Translation_Table translation_data = {
         {74, 87, 79, 56, 0, 59},             //
         {71, 80, 60, 58, 0, 52},             //
         {0, 0, 0, 0, 0, 28},                 //
-        {31, 56, 0, 32, 0, 63},              //
+        {0, 0, 0, 0, 0, 63},                 //
+        {31, 56, 0, 32, 0, 9},               //
         {0, 0, 0, 0, 0, 67},                 //
         {0, 0, 0, 70, 0, 26},                //
         {79, 25, 30, 63, 49593, 66},         //
@@ -65,6 +66,8 @@ const Translation_Table translation_data = {
         {18, 13, 53, 16, 51, 16},            //
         {0, 0, 0, 0, 0, 33},                 //
         {0, 0, 0, 0, 0, 91},                 //
+        {0, 0, 0, 0, 0, 62},                 //
+        {0, 0, 0, 0, 0, 64},                 //
         {0, 0, 0, 39, 0, 22},                //
         {30, 39, 0, 46, 0, 38},              //
         {0, 0, 0, 0, 0, 11},                 //
@@ -206,6 +209,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 67, 0, 53},                //
         {0, 0, 0, 0, 0, 37},                 //
         {0, 0, 0, 0, 0, 43},                 //
+        {0, 0, 0, 0, 0, 62},                 //
         {0, 0, 0, 50, 0, 47},                //
         {72, 31, 71, 68, 56, 61},            //
         {34, 30, 0, 46, 0, 40},              //
@@ -220,7 +224,8 @@ const Translation_Table translation_data = {
         {58, 31, 67, 69, 0, 43},             //
         {90, 38, 91, 90, 53, 75},            //
         {0, 0, 0, 0, 0, 29},                 //
-        {41, 16, 34, 35, 34, 43},            //
+        {0, 0, 0, 0, 0, 43},                 //
+        {41, 16, 34, 35, 34, 45},            //
         {0, 0, 0, 0, 0, 43},                 //
         {0, 0, 0, 0, 0, 60},                 //
         {0, 0, 0, 0, 0, 22},                 //
@@ -259,7 +264,8 @@ const Translation_Table translation_data = {
         {33, 27, 36, 45, 0, 35},             //
         {39, 42, 0, 49, 0, 41},              //
         {24, 24, 0, 24, 0, 24},              //
-        {22, 22, 42, 22, 40, 22},            //
+        {0, 0, 0, 0, 0, 22},                 //
+        {22, 22, 42, 22, 40, 40},            //
         {32, 30, 35, 26, 30, 29},            //
         {0, 0, 0, 27, 0, 32},                //
         {35, 45, 38, 53, 33, 46},            //
@@ -464,6 +470,7 @@ const Translation_Table translation_data = {
         {50, 25, 0, 70, 0, 78},              //
         {33, 21, 74, 25, 44, 21},            //
         {0, 0, 0, 0, 0, 26},                 //
+        {0, 0, 0, 0, 0, 58},                 //
         {27, 19, 30, 29, 22, 31},            //
         {25, 50, 0, 36, 0, 23},              //
         {66, 43, 31, 36, 30, 44},            //
@@ -498,7 +505,8 @@ const Translation_Table translation_data = {
         {180, 42, 159, 156, 171, 156},       //
         {0, 0, 0, 0, 0, 65},                 //
         {92, 45, 78, 81, 70, 43},            //
-        {98, 37, 86, 82, 83, 77},            //
+        {0, 0, 0, 0, 0, 77},                 //
+        {98, 37, 86, 82, 83, 81},            //
         {38, 35, 17, 23, 13, 14},            //
         {38, 27, 34, 28, 33, 27},            //
         {26, 41, 26, 32, 0, 22},             //
@@ -1812,6 +1820,7 @@ const Translation_Table translation_data = {
         u8"\"globals\" descriptor must be a boolean or an object\0"
         u8"\"globals\" must be an object\0"
         u8"'!' here treated as the TypeScript non-null assertion operator\0"
+        u8"'&' here\0"
         u8"'**' operator cannot be used after unary '{1}' without parentheses\0"
         u8"',' should be ';' instead\0"
         u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead\0"
@@ -1858,6 +1867,8 @@ const Translation_Table translation_data = {
         u8"'do-while' loop\0"
         u8"'else' has no corresponding 'if'\0"
         u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead\0"
+        u8"'export as namespace' is not allowed in a namespace or module\0"
+        u8"'export as namespace' is only allowed in TypeScript .d.ts files\0"
         u8"'export' keyword here\0"
         u8"'extends' must be before 'implements'\0"
         u8"'for' loop\0"
@@ -1999,6 +2010,7 @@ const Translation_Table translation_data = {
         u8"cannot update variable with '{0}' while declaring it\0"
         u8"cannot use '...' on 'this' parameter\0"
         u8"cannot use 'declare' keyword with 'import'\0"
+        u8"cannot use multiple `export default` statements in one module\0"
         u8"cannot use type directly in its own definition\0"
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
@@ -2014,6 +2026,7 @@ const Translation_Table translation_data = {
         u8"const fields within classes are only allowed in TypeScript, not JavaScript\0"
         u8"const variable declared here\0"
         u8"containing 'declare namespace' starts here\0"
+        u8"containing namespace or module declared here\0"
         u8"continue can only be used inside of a loop\0"
         u8"decorator belongs immediately before this overloaded method\0"
         u8"decorator starts here\0"
@@ -2053,6 +2066,7 @@ const Translation_Table translation_data = {
         u8"expected variable name for 'import'-'as'\0"
         u8"expected {1:headlinese}\0"
         u8"expected {1:singular}\0"
+        u8"export default previously appeared here\0"
         u8"exporting requires 'default'\0"
         u8"exporting requires '{{' and '}'\0"
         u8"extra ',' is not allowed between enum members\0"
@@ -2257,6 +2271,7 @@ const Translation_Table translation_data = {
         u8"this tuple type is a named tuple type because at least one element has a name\0"
         u8"this {0} looks fishy\0"
         u8"try statement starts here\0"
+        u8"type predicates are only allowed as function return types\0"
         u8"type {1} is being defined here\0"
         u8"unclosed block comment\0"
         u8"unclosed class; expected '}' by end of file\0"
@@ -2292,6 +2307,7 @@ const Translation_Table translation_data = {
         u8"unexpected token in variable declaration; expected variable name\0"
         u8"unexpected whitespace between '!' and '=='\0"
         u8"unicode byte order mark (BOM) cannot appear before #! at beginning of script\0"
+        u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &\0"
         u8"unmatched '}'\0"
         u8"unmatched indexing bracket\0"
         u8"unmatched parenthesis\0"

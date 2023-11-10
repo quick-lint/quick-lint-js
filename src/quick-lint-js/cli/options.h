@@ -4,8 +4,10 @@
 #pragma once
 
 #include <optional>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/diag/diag-code-list.h>
-#include <vector>
+#include <quick-lint-js/port/span.h>
+#include <quick-lint-js/util/cast.h>
 
 namespace quick_lint_js {
 class Output_Stream;
@@ -32,14 +34,12 @@ enum class Raw_Input_File_Language : unsigned char {
 };
 
 enum class Resolved_Input_File_Language : unsigned char {
-  javascript = static_cast<unsigned char>(Raw_Input_File_Language::javascript),
-  javascript_jsx =
-      static_cast<unsigned char>(Raw_Input_File_Language::javascript_jsx),
-  typescript = static_cast<unsigned char>(Raw_Input_File_Language::typescript),
-  typescript_definition = static_cast<unsigned char>(
-      Raw_Input_File_Language::typescript_definition),
-  typescript_jsx =
-      static_cast<unsigned char>(Raw_Input_File_Language::typescript_jsx),
+  javascript = enum_to_int_cast(Raw_Input_File_Language::javascript),
+  javascript_jsx = enum_to_int_cast(Raw_Input_File_Language::javascript_jsx),
+  typescript = enum_to_int_cast(Raw_Input_File_Language::typescript),
+  typescript_definition =
+      enum_to_int_cast(Raw_Input_File_Language::typescript_definition),
+  typescript_jsx = enum_to_int_cast(Raw_Input_File_Language::typescript_jsx),
 };
 
 enum class Option_When { auto_, always, never };
@@ -64,13 +64,13 @@ struct Options {
   bool snarky = false;
   Output_Format output_format = Output_Format::default_format;
   Option_When diagnostic_hyperlinks = Option_When::auto_;
-  std::vector<File_To_Lint> files_to_lint;
+  Span<const File_To_Lint> files_to_lint;
   Compiled_Diag_Code_List exit_fail_on;
   const char *path_for_stdin = nullptr;
 
-  std::vector<const char *> error_unrecognized_options;
-  std::vector<const char *> warning_vim_bufnr_without_file;
-  std::vector<const char *> warning_language_without_file;
+  Span<const char *const> error_unrecognized_options;
+  Span<const char *const> warning_vim_bufnr_without_file;
+  Span<const char *const> warning_language_without_file;
   bool has_multiple_stdin = false;
   bool has_config_file = false;
   bool has_language = false;
@@ -86,7 +86,8 @@ Resolved_Input_File_Language get_language(const File_To_Lint &file,
 Resolved_Input_File_Language get_language(const char *file,
                                           Raw_Input_File_Language language);
 
-Options parse_options(int argc, char **argv);
+// Returns portions of argv and memory allocated by allocator.
+Options parse_options(int argc, char **argv, Monotonic_Allocator *allocator);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

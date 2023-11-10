@@ -5,31 +5,44 @@
 
 #include <array>
 #include <bitset>
+#include <memory>
+#include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/port/span.h>
 #include <string>
 #include <string_view>
-#include <vector>
 
 namespace quick_lint_js {
 struct Parsed_Diag_Code_List {
   bool error_missing_predicate() const;
 
-  std::vector<std::string_view> included_codes;
-  std::vector<std::string_view> excluded_codes;
-  std::vector<std::string_view> included_categories;
-  std::vector<std::string_view> excluded_categories;
-  std::vector<std::string_view> unexpected;
+  Span<const std::string_view> included_codes = Span<const std::string_view>();
+  Span<const std::string_view> excluded_codes = Span<const std::string_view>();
+  Span<const std::string_view> included_categories =
+      Span<const std::string_view>();
+  Span<const std::string_view> excluded_categories =
+      Span<const std::string_view>();
+  Span<const std::string_view> unexpected = Span<const std::string_view>();
   bool override_defaults = false;
 };
 
-Parsed_Diag_Code_List parse_diag_code_list(const char* raw_diag_code_list);
+// Returns Span-s allocated by allocator.
+//
+// Return std::string_view-s within raw_diag_code_list.
+Parsed_Diag_Code_List parse_diag_code_list(const char* raw_diag_code_list,
+                                           Monotonic_Allocator* allocator);
 
 class Compiled_Diag_Code_List {
  public:
+  explicit Compiled_Diag_Code_List();
+
+  // Retains references to the std::string_view-s.
   void add(const Parsed_Diag_Code_List&);
 
-  std::vector<std::string> parse_errors(std::string_view cli_option_name) const;
-  std::vector<std::string> parse_warnings() const;
+  Span<std::string_view> parse_errors(std::string_view cli_option_name,
+                                      Monotonic_Allocator* allocator) const;
+  Span<std::string_view> parse_warnings(Monotonic_Allocator* allocator) const;
 
   bool is_present(Diag_Type) const;
 
@@ -39,15 +52,22 @@ class Compiled_Diag_Code_List {
   struct Codes {
     std::bitset<Diag_Type_Count> included_codes;
     std::bitset<Diag_Type_Count> excluded_codes;
-    std::vector<std::string_view> included_categories;
-    std::vector<std::string_view> excluded_categories;
+    Span<std::string_view> included_categories;
+    Span<std::string_view> excluded_categories;
     bool override_defaults;
   };
 
-  std::vector<Codes> parsed_diag_code_lists_;
+  // TODO(strager): Make caller provide the allocator.
+  // HACK(strager): This is a unique_ptr to make Compiled_Diag_Code_List
+  // movable.
+  std::unique_ptr<Monotonic_Allocator> allocator_;
+
+  Vector<Codes> parsed_diag_code_lists_{"parsed_diag_code_lists_",
+                                        this->allocator_.get()};
 
   // Collected errors and warnings:
-  std::vector<std::string_view> unknown_codes_;
+  Vector<std::string_view> unknown_codes_{"unknown_codes_",
+                                          this->allocator_.get()};
   bool has_missing_predicate_error_ = false;
 };
 }

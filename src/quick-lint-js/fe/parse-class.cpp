@@ -294,9 +294,8 @@ void Parser::parse_and_visit_class_or_interface_member(
                this->type == Token_Type::kw_public;
       }
     };
-    Bump_Vector<Modifier, Monotonic_Allocator> modifiers =
-        Bump_Vector<Modifier, Monotonic_Allocator>("class member modifiers",
-                                                   &p->temporary_memory_);
+    Vector<Modifier> modifiers =
+        Vector<Modifier>("class member modifiers", &p->temporary_memory_);
 
     // Example:
     //
@@ -323,8 +322,8 @@ void Parser::parse_and_visit_class_or_interface_member(
 
       Source_Code_Span name_span;
     };
-    Bump_Vector<TypeScript_Overload_Signature, Monotonic_Allocator>
-        overload_signatures{"class overload signatures", &p->temporary_memory_};
+    Vector<TypeScript_Overload_Signature> overload_signatures{
+        "class overload signatures", &p->temporary_memory_};
 
     void reset_state_except_overload_signatures() {
       this->current_member_begin = p->peek().begin;
@@ -897,8 +896,8 @@ void Parser::parse_and_visit_class_or_interface_member(
               // this->overload_signatures then parse the next member.
               is_possibly_typescript_overload = true;
               const Char8 *expected_body = p->lexer_.end_of_previous_token();
-              Bump_Vector<Source_Code_Span, Monotonic_Allocator> semicolons(
-                  "semicolons", &p->temporary_memory_);
+              Vector<Source_Code_Span> semicolons("semicolons",
+                                                  &p->temporary_memory_);
               while (p->peek().type == Token_Type::semicolon) {
                 semicolons.push_back(p->peek().span());
                 p->skip();

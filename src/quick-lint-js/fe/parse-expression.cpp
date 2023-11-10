@@ -66,16 +66,19 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
   case Expression_Kind::Binary_Operator:
     visit_children();
     this->error_on_pointless_compare_against_literal(
-        static_cast<Expression::Binary_Operator*>(ast));
+        expression_cast<Expression::Binary_Operator*>(ast));
     error_on_pointless_string_compare(
-        static_cast<Expression::Binary_Operator*>(ast));
+        expression_cast<Expression::Binary_Operator*>(ast));
     this->error_on_pointless_nullish_coalescing_operator(
-        static_cast<Expression::Binary_Operator*>(ast));
+        expression_cast<Expression::Binary_Operator*>(ast));
     this->warn_on_xor_operator_as_exponentiation(
-        static_cast<Expression::Binary_Operator*>(ast));
+        expression_cast<Expression::Binary_Operator*>(ast));
+    this->warn_on_unintuitive_bitshift_precedence(
+        expression_cast<Expression::Binary_Operator*>(ast));
     break;
   case Expression_Kind::Trailing_Comma: {
-    auto& trailing_comma_ast = static_cast<Expression::Trailing_Comma&>(*ast);
+    auto& trailing_comma_ast =
+        expression_cast<Expression::Trailing_Comma&>(*ast);
     this->diag_reporter_->report(Diag_Missing_Operand_For_Operator{
         .where = trailing_comma_ast.comma_span(),
     });
@@ -127,7 +130,7 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     if (child->kind() == Expression_Kind::Variable) {
       v.visit_variable_delete_use(
           child->variable_identifier(),
-          static_cast<Expression::Delete*>(ast)->unary_operator_span());
+          expression_cast<Expression::Delete*>(ast)->unary_operator_span());
     } else {
       this->visit_expression(child, v, context);
     }
@@ -161,11 +164,12 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     this->visit_expression(ast->child_0(), v, Variable_Context::rhs);
     this->visit_expression(ast->child_1(), v, Variable_Context::rhs);
     this->warn_on_comma_operator_in_index(
-        ast->child_1(), static_cast<Expression::Index*>(ast)->left_square_span);
+        ast->child_1(),
+        expression_cast<Expression::Index*>(ast)->left_square_span);
     break;
 
   case Expression_Kind::JSX_Element: {
-    auto* element = static_cast<Expression::JSX_Element*>(ast);
+    auto* element = expression_cast<Expression::JSX_Element*>(ast);
     if (!element->is_intrinsic()) {
       v.visit_variable_use(element->tag);
     }
@@ -173,7 +177,7 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     break;
   }
   case Expression_Kind::JSX_Element_With_Members: {
-    auto* element = static_cast<Expression::JSX_Element_With_Members*>(ast);
+    auto* element = expression_cast<Expression::JSX_Element_With_Members*>(ast);
     QLJS_ASSERT(element->members.size() >= 1);
     v.visit_variable_use(element->members[0]);
     visit_children();
@@ -222,7 +226,7 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     }
     break;
   case Expression_Kind::Optional: {
-    auto* optional = static_cast<const Expression::Optional*>(ast);
+    auto* optional = expression_cast<const Expression::Optional*>(ast);
     this->visit_expression(optional->child_, v, context);
     this->diag_reporter_->report(Diag_Unexpected_Question_In_Expression{
         .question = optional->question_span(),
@@ -234,7 +238,7 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     break;
   case Expression_Kind::Paren_Empty: {
     Expression::Paren_Empty* paren_empty =
-        static_cast<Expression::Paren_Empty*>(ast);
+        expression_cast<Expression::Paren_Empty*>(ast);
     paren_empty->report_missing_expression_error(this->diag_reporter_);
     break;
   }
@@ -250,7 +254,7 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     break;
   case Expression_Kind::Type_Annotated: {
     Expression::Type_Annotated* annotated =
-        static_cast<Expression::Type_Annotated*>(ast);
+        expression_cast<Expression::Type_Annotated*>(ast);
     this->visit_expression(annotated->child_, v, context);
     this->diag_reporter_->report(Diag_TypeScript_Type_Annotation_In_Expression{
         .type_colon = annotated->colon_span(),
@@ -885,9 +889,11 @@ Expression* Parser::parse_async_expression_only(
     Buffering_Visitor return_type_visits(&this->type_expression_memory_);
     if (this->peek().type == Token_Type::colon && this->options_.typescript) {
       // async (params): ReturnType => {}  // TypeScript only.
-      this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-          return_type_visits,
-          /*allow_parenthesized_type=*/false);
+      this->parse_and_visit_typescript_colon_type_expression(
+          return_type_visits, TypeScript_Type_Parse_Options{
+                                  .allow_parenthesized_type = false,
+                                  .allow_type_predicate = true,
+                              });
     }
 
     bool is_arrow_function = this->peek().type == Token_Type::equal_greater;
@@ -929,7 +935,7 @@ Expression* Parser::parse_async_expression_only(
           this->expressions_.allocator());
       call_children.emplace_back(this->make_expression<Expression::Variable>(
           async_or_await_token.identifier_name(), async_or_await_token.type));
-      for (Bump_Vector_Size i = 0; i < parameters.size(); ++i) {
+      for (Vector_Size i = 0; i < parameters.size(); ++i) {
         if (parameters.data()[i]->kind() != Expression_Kind::Invalid) {
           call_children.emplace_back(parameters.data()[i]);
         }
@@ -1024,9 +1030,11 @@ Expression* Parser::parse_async_expression_only(
         // code path).
         Buffering_Visitor return_type_visits(&this->type_expression_memory_);
         if (this->peek().type == Token_Type::colon) {
-          this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-              return_type_visits,
-              /*allow_parenthesized_type=*/false);
+          this->parse_and_visit_typescript_colon_type_expression(
+              return_type_visits, TypeScript_Type_Parse_Options{
+                                      .allow_parenthesized_type = false,
+                                      .allow_type_predicate = true,
+                                  });
         }
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
 
@@ -1101,7 +1109,8 @@ Expression* Parser::parse_async_expression_only(
     }
 
     std::optional<Source_Code_Span> type_colon_span;
-    if (this->peek().type == Token_Type::colon && this->options_.typescript) {
+    if (is_async && this->peek().type == Token_Type::colon &&
+        this->options_.typescript) {
       // async param: Type => {}  // Invalid.
       type_colon_span = this->peek().span();
       Buffering_Visitor type_visits(&this->type_expression_memory_);
@@ -1415,7 +1424,8 @@ next:
       // -a ** b  // Invalid.
       // void a ** b  // Invalid.
       case Expression_Kind::Unary_Operator: {
-        auto* lhs = static_cast<Expression::Unary_Operator*>(maybe_unary_lhs);
+        auto* lhs =
+            expression_cast<Expression::Unary_Operator*>(maybe_unary_lhs);
         if (lhs->is_void_operator()) {
           // void a ** b  // Invalid.
           this->diag_reporter_->report(
@@ -1440,7 +1450,7 @@ next:
 
       // delete a ** b  // Invalid.
       case Expression_Kind::Delete: {
-        auto* lhs = static_cast<Expression::Delete*>(maybe_unary_lhs);
+        auto* lhs = expression_cast<Expression::Delete*>(maybe_unary_lhs);
         this->diag_reporter_->report(
             Diag_Missing_Parentheses_Around_Exponent_With_Unary_Lhs{
                 .exponent_expression = Source_Code_Span(
@@ -1452,7 +1462,7 @@ next:
 
       // typeof a ** b  // Invalid.
       case Expression_Kind::Typeof: {
-        auto* lhs = static_cast<Expression::Typeof*>(maybe_unary_lhs);
+        auto* lhs = expression_cast<Expression::Typeof*>(maybe_unary_lhs);
         this->diag_reporter_->report(
             Diag_Missing_Parentheses_Around_Exponent_With_Unary_Lhs{
                 .exponent_expression = Source_Code_Span(
@@ -2037,7 +2047,7 @@ next:
     Buffering_Visitor* return_type_visits = nullptr;
     if (lhs->kind() == Expression_Kind::Type_Annotated) {
       Expression::Type_Annotated* annotated =
-          static_cast<Expression::Type_Annotated*>(lhs);
+          expression_cast<Expression::Type_Annotated*>(lhs);
       if (annotated->child_->kind() == Expression_Kind::Paren ||
           annotated->child_->kind() == Expression_Kind::Paren_Empty) {
         // (): ReturnType => {}  // TypeScript only.
@@ -2086,7 +2096,7 @@ next:
   case Token_Type::left_curly: {
     auto has_comma_operator = [&binary_builder]() -> bool {
       Expression::Binary_Operator* expr =
-          static_cast<Expression::Binary_Operator*>(
+          expression_cast<Expression::Binary_Operator*>(
               binary_builder.last_expression()->without_paren());
       bool comma = false;
       for (int i = 0; i < expr->children_.size() - 1; i++) {
@@ -2162,9 +2172,14 @@ next:
     bool is_possibly_arrow_function_return_type_annotation =
         child->kind() == Expression_Kind::Paren ||
         child->kind() == Expression_Kind::Paren_Empty;
-    this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-        type_visitor, /*allow_parenthesized_type=*/
-        !is_possibly_arrow_function_return_type_annotation);
+    this->parse_and_visit_typescript_colon_type_expression(
+        type_visitor,
+        TypeScript_Type_Parse_Options{
+            .allow_parenthesized_type =
+                !is_possibly_arrow_function_return_type_annotation,
+            .allow_type_predicate =
+                is_possibly_arrow_function_return_type_annotation,
+        });
     const Char8* type_end = this->lexer_.end_of_previous_token();
     binary_builder.replace_last(
         this->make_expression<Expression::Type_Annotated>(
@@ -2312,7 +2327,7 @@ Expression* Parser::parse_arrow_function_expression_remainder(
   if (parameters_expression->kind() == Expression_Kind::Paren) {
     parameter_list_begin = parameters_expression->span_begin();
     parameters_expression =
-        static_cast<Expression::Paren*>(parameters_expression)->child_;
+        expression_cast<Expression::Paren*>(parameters_expression)->child_;
   }
 
   Expression_Arena::Vector<Expression*> parameters(
@@ -2381,7 +2396,7 @@ Expression* Parser::parse_arrow_function_expression_remainder(
     if (!parameter_list_begin) {
       // param? => {}  // Invalid.
       Expression::Optional* param =
-          static_cast<Expression::Optional*>(parameters_expression);
+          expression_cast<Expression::Optional*>(parameters_expression);
       this->diag_reporter_->report(
           Diag_Optional_Arrow_Parameter_Requires_Parentheses{
               .parameter_and_question = param->span(),
@@ -2398,11 +2413,11 @@ Expression* Parser::parse_arrow_function_expression_remainder(
     // NOTE(strager): '(param): ReturnType => {}' is handled above.
     if (!parameter_list_begin) {
       Expression::Type_Annotated* param =
-          static_cast<Expression::Type_Annotated*>(parameters_expression);
+          expression_cast<Expression::Type_Annotated*>(parameters_expression);
       if (param->child_->kind() == Expression_Kind::Optional) {
         // param?: Type => {}  // Invalid.
         Expression::Optional* optional =
-            static_cast<Expression::Optional*>(param->child_);
+            expression_cast<Expression::Optional*>(param->child_);
         this->diag_reporter_->report(
             Diag_Optional_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses{
                 .parameter_and_annotation = param->span(),
@@ -2424,7 +2439,7 @@ Expression* Parser::parse_arrow_function_expression_remainder(
 
   // ((x)) => {}  // Invalid.
   case Expression_Kind::Paren: {
-    auto paren = static_cast<Expression::Paren*>(parameters_expression);
+    auto paren = expression_cast<Expression::Paren*>(parameters_expression);
     this->diag_reporter_->report(
         Diag_Unexpected_Function_Parameter_Is_Parenthesized{
             .left_paren_to_right_paren = paren->span()});
@@ -2435,7 +2450,7 @@ Expression* Parser::parse_arrow_function_expression_remainder(
   // (()) => {}  // Invalid.
   case Expression_Kind::Paren_Empty: {
     Expression::Paren_Empty* paren_empty =
-        static_cast<Expression::Paren_Empty*>(parameters_expression);
+        expression_cast<Expression::Paren_Empty*>(parameters_expression);
     if (parameter_list_begin) {
       // (()) => {}  // Invalid.
       paren_empty->report_missing_expression_error(this->diag_reporter_);
@@ -2448,7 +2463,7 @@ Expression* Parser::parse_arrow_function_expression_remainder(
 
   // f(x, y) => {}
   case Expression_Kind::Call: {
-    auto* call = expression_cast<Expression::Call>(parameters_expression);
+    auto* call = expression_cast<Expression::Call*>(parameters_expression);
     if (this->peek().type == Token_Type::left_curly) {
       parameter_list_begin = call->left_paren_span().begin();
       for (Span_Size i = 1; i < call->child_count(); ++i) {
@@ -2527,10 +2542,11 @@ Expression::Call* Parser::parse_call_expression_remainder(Parse_Visitor_Base& v,
         .left_paren = left_paren_span,
     });
   }
-  return static_cast<Expression::Call*>(this->make_expression<Expression::Call>(
-      this->expressions_.make_array(std::move(call_children)),
-      /*left_paren_span=*/left_paren_span,
-      /*span_end=*/call_span_end));
+  return expression_cast<Expression::Call*>(
+      this->make_expression<Expression::Call>(
+          this->expressions_.make_array(std::move(call_children)),
+          /*left_paren_span=*/left_paren_span,
+          /*span_end=*/call_span_end));
 }
 
 Expression* Parser::parse_index_expression_remainder(Parse_Visitor_Base& v,
@@ -3756,8 +3772,8 @@ next:
         mismatch = true;
       }
       if (mismatch) {
-        Bump_Vector<Char8, Monotonic_Allocator> opening_tag_name_pretty(
-            "opening_tag_name_pretty", &this->diagnostic_memory_);
+        Vector<Char8> opening_tag_name_pretty("opening_tag_name_pretty",
+                                              &this->diagnostic_memory_);
         if (tag_namespace) {
           opening_tag_name_pretty += tag_namespace->span().string_view();
           opening_tag_name_pretty += u8':';
@@ -3863,9 +3879,11 @@ Expression* Parser::parse_typescript_generic_arrow_expression(
 
   Buffering_Visitor return_type_visits(&this->type_expression_memory_);
   if (this->peek().type == Token_Type::colon) {
-    this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-        return_type_visits,
-        /*allow_parenthesized_type=*/false);
+    this->parse_and_visit_typescript_colon_type_expression(
+        return_type_visits, TypeScript_Type_Parse_Options{
+                                .allow_parenthesized_type = false,
+                                .allow_type_predicate = true,
+                            });
   }
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
@@ -3934,9 +3952,11 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
           ast->kind() == Expression_Kind::Paren_Empty) {
         Buffering_Visitor return_type_visits(&this->type_expression_memory_);
         if (this->peek().type == Token_Type::colon) {
-          this->parse_and_visit_typescript_colon_type_expression_or_type_predicate(
-              return_type_visits,
-              /*allow_parenthesized_type=*/false);
+          this->parse_and_visit_typescript_colon_type_expression(
+              return_type_visits, TypeScript_Type_Parse_Options{
+                                      .allow_parenthesized_type = false,
+                                      .allow_type_predicate = true,
+                                  });
         }
         if (this->peek().type == Token_Type::equal_greater) {
           // <T>(param) => body
@@ -4096,16 +4116,16 @@ try_again:
         Diag_Invalid_Expression_Left_Of_Assignment{ast->span()});
     break;
   case Expression_Kind::Paren:
-    ast = static_cast<Expression::Paren*>(ast)->child_;
+    ast = expression_cast<Expression::Paren*>(ast)->child_;
     goto try_again;
   case Expression_Kind::Non_Null_Assertion:
-    ast = static_cast<Expression::Non_Null_Assertion*>(ast)->child_;
+    ast = expression_cast<Expression::Non_Null_Assertion*>(ast)->child_;
     goto try_again;
   case Expression_Kind::Angle_Type_Assertion:
-    ast = static_cast<Expression::Angle_Type_Assertion*>(ast)->child_;
+    ast = expression_cast<Expression::Angle_Type_Assertion*>(ast)->child_;
     goto try_again;
   case Expression_Kind::As_Type_Assertion:
-    ast = static_cast<Expression::As_Type_Assertion*>(ast)->child_;
+    ast = expression_cast<Expression::As_Type_Assertion*>(ast)->child_;
     goto try_again;
   case Expression_Kind::Invalid:
   case Expression_Kind::Missing:
@@ -4120,10 +4140,10 @@ try_again:
   case Expression_Kind::Private_Variable:
     break;
   case Expression_Kind::Optional:
-    ast = static_cast<Expression::Optional*>(ast)->child_;
+    ast = expression_cast<Expression::Optional*>(ast)->child_;
     goto try_again;
   case Expression_Kind::Satisfies:
-    ast = static_cast<Expression::Satisfies*>(ast)->child_;
+    ast = expression_cast<Expression::Satisfies*>(ast)->child_;
     goto try_again;
   case Expression_Kind::Type_Annotated:
     // TODO(strager): Distinguish between the following:

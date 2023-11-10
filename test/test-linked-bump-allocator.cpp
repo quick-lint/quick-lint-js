@@ -31,7 +31,7 @@ TYPED_TEST_SUITE(Test_Linked_Bump_Allocator_With_Type,
 TYPED_TEST(Test_Linked_Bump_Allocator_With_Type,
            separate_allocations_are_contiguous_without_padding) {
   using T = TypeParam;
-  Linked_Bump_Allocator<alignof(T)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   std::intptr_t a =
       reinterpret_cast<std::intptr_t>(alloc.template new_object<T>());
   std::intptr_t b =
@@ -50,7 +50,7 @@ TYPED_TEST(Test_Linked_Bump_Allocator_With_Type,
 
 TEST(Test_Linked_Bump_Allocator,
      less_aligned_object_keeps_next_allocation_aligned) {
-  Linked_Bump_Allocator<4> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   [[maybe_unused]] char* small = alloc.new_object<char>();
   std::uint32_t* after = alloc.new_object<std::uint32_t>();
   assert_valid_memory(after);
@@ -58,32 +58,33 @@ TEST(Test_Linked_Bump_Allocator,
 
 TEST(Test_Linked_Bump_Allocator,
      less_aligned_bytes_keeps_next_allocation_aligned) {
-  Linked_Bump_Allocator<4> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   [[maybe_unused]] void* small = alloc.allocate(1, /*align=*/1);
   std::uint32_t* after = alloc.new_object<std::uint32_t>();
   assert_valid_memory(after);
 }
 
 TEST(Test_Linked_Bump_Allocator, array_allocation_is_contiguous) {
-  Linked_Bump_Allocator<1> alloc("test");
-  char* chars = alloc.allocate_uninitialized_array<char>(42);
-  assert_valid_memory(chars, chars + 42, alignof(char));
+  Linked_Bump_Allocator alloc("test");
+  Span<char> chars = alloc.allocate_uninitialized_span<char>(42);
+  assert_valid_memory(chars.data(), chars.data() + 42, alignof(char));
 }
 
 TEST(Test_Linked_Bump_Allocator,
      less_aligned_array_keeps_next_allocation_aligned) {
-  Linked_Bump_Allocator<4> alloc("test");
-  [[maybe_unused]] char* chars = alloc.allocate_uninitialized_array<char>(3);
+  Linked_Bump_Allocator alloc("test");
+  [[maybe_unused]] Span<char> chars =
+      alloc.allocate_uninitialized_span<char>(3);
   std::uint32_t* after = alloc.new_object<std::uint32_t>();
   assert_valid_memory(after);
 }
 
 TEST(Test_Linked_Bump_Allocator,
      less_aligned_pre_grown_and_grown_array_keeps_next_allocation_aligned) {
-  Linked_Bump_Allocator<4> alloc("test");
+  Linked_Bump_Allocator alloc("test");
 
-  char* chars = alloc.allocate_uninitialized_array<char>(3);
-  bool grew = alloc.try_grow_array_in_place(chars, 3, 6);
+  Span<char> chars = alloc.allocate_uninitialized_span<char>(3);
+  bool grew = alloc.try_grow_array_in_place(chars.data(), 3, 6);
   EXPECT_TRUE(grew);
 
   std::uint32_t* after = alloc.new_object<std::uint32_t>();
@@ -92,10 +93,10 @@ TEST(Test_Linked_Bump_Allocator,
 
 TEST(Test_Linked_Bump_Allocator,
      less_aligned_grown_array_keeps_next_allocation_aligned) {
-  Linked_Bump_Allocator<4> alloc("test");
+  Linked_Bump_Allocator alloc("test");
 
-  char* chars = alloc.allocate_uninitialized_array<char>(4);
-  bool grew = alloc.try_grow_array_in_place(chars, 4, 7);
+  Span<char> chars = alloc.allocate_uninitialized_span<char>(4);
+  bool grew = alloc.try_grow_array_in_place(chars.data(), 4, 7);
   EXPECT_TRUE(grew);
 
   std::uint32_t* after = alloc.new_object<std::uint32_t>();
@@ -110,7 +111,7 @@ TEST(Test_Linked_Bump_Allocator,
     char c[chunk_size - 2];
   };
 
-  Linked_Bump_Allocator<alignof(std::uint32_t)> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   ASSERT_GE(chunk_size, sizeof(Big_Object))
       << "A big_object should fit in the chunk before allocating padding";
   [[maybe_unused]] void* padding = alloc.new_object<std::uint32_t>();
@@ -123,7 +124,7 @@ TEST(Test_Linked_Bump_Allocator,
 }
 
 TEST(Test_Linked_Bump_Allocator, filling_first_chunk_allocates_second_chunk) {
-  Linked_Bump_Allocator<1> alloc("test");
+  Linked_Bump_Allocator alloc("test");
 
   std::size_t first_chunk_size = alloc.remaining_bytes_in_current_chunk();
   for (std::size_t i = 0; i < first_chunk_size; ++i) {
@@ -135,13 +136,33 @@ TEST(Test_Linked_Bump_Allocator, filling_first_chunk_allocates_second_chunk) {
   assert_valid_memory(new_chunk_object);
 }
 
+TEST(Test_Linked_Bump_Allocator,
+     allocate_new_chunk_with_over_alignment_aligns) {
+  constexpr std::size_t chunk_size =
+      4096 - sizeof(void*) * 2;  // Implementation detail.
+
+  Linked_Bump_Allocator alloc("test");
+  [[maybe_unused]] Span<char> padding = alloc.allocate_span<char>(chunk_size);
+  ASSERT_EQ(alloc.remaining_bytes_in_current_chunk(), 0)
+      << "First chunk should be consumed entirely";
+
+  // NOTE[Linked_Bump_Allocator-append_chunk-alignment]: This should allocate a
+  // brand new chunk, thus exercising the alignment code in
+  // Linked_Bump_Allocator::append_chunk.
+  struct alignas(128) Over_Aligned_Struct {
+    char data[chunk_size];
+  };
+  Over_Aligned_Struct* s = alloc.new_object<Over_Aligned_Struct>();
+  assert_valid_memory(s);
+}
+
 TEST(Test_Linked_Bump_Allocator, rewinding_within_chunk_reuses_memory) {
-  Linked_Bump_Allocator<1> alloc("test");
+  Linked_Bump_Allocator alloc("test");
 
   [[maybe_unused]] char* byte_0 = alloc.new_object<char>();
   [[maybe_unused]] char* byte_1 = alloc.new_object<char>();
 
-  typename Linked_Bump_Allocator<1>::Rewind_State rewind =
+  typename Linked_Bump_Allocator::Rewind_State rewind =
       alloc.prepare_for_rewind();
   char* byte_2a = alloc.new_object<char>();
   char* byte_3a = alloc.new_object<char>();
@@ -157,14 +178,14 @@ TEST(Test_Linked_Bump_Allocator, rewinding_within_chunk_reuses_memory) {
 
 TEST(Test_Linked_Bump_Allocator,
      rewinding_across_chunk_reuses_memory_of_first_chunk) {
-  Linked_Bump_Allocator<1> alloc("test");
+  Linked_Bump_Allocator alloc("test");
 
   // First chunk:
   std::size_t first_chunk_size = alloc.remaining_bytes_in_current_chunk();
   for (std::size_t i = 0; i < first_chunk_size / 2; ++i) {
     [[maybe_unused]] char* byte = alloc.new_object<char>();
   }
-  typename Linked_Bump_Allocator<1>::Rewind_State rewind =
+  typename Linked_Bump_Allocator::Rewind_State rewind =
       alloc.prepare_for_rewind();
   std::vector<char*> reusable_allocations;
   for (std::size_t i = first_chunk_size / 2; i < first_chunk_size; ++i) {
@@ -192,19 +213,19 @@ TEST(Test_Linked_Bump_Allocator,
 
 TEST(Test_Linked_Bump_Allocator,
      rewinding_across_chunk_uses_unallocated_memory_of_first_chunk) {
-  Linked_Bump_Allocator<1> alloc("test");
+  Linked_Bump_Allocator alloc("test");
 
   // First chunk:
   std::size_t first_chunk_size = alloc.remaining_bytes_in_current_chunk();
   for (std::size_t i = 0; i < first_chunk_size / 2; ++i) {
     [[maybe_unused]] char* byte = alloc.new_object<char>();
   }
-  typename Linked_Bump_Allocator<1>::Rewind_State rewind =
+  typename Linked_Bump_Allocator::Rewind_State rewind =
       alloc.prepare_for_rewind();
 
   // Second chunk:
-  [[maybe_unused]] char* big_allocation =
-      alloc.allocate_uninitialized_array<char>(first_chunk_size + 64);
+  [[maybe_unused]] Span<char> big_allocation =
+      alloc.allocate_uninitialized_span<char>(first_chunk_size + 64);
 
   // Third chunk:
   std::size_t third_chunk_size = first_chunk_size;
@@ -221,22 +242,22 @@ TEST(Test_Linked_Bump_Allocator,
 }
 
 TEST(Test_Linked_Bump_Allocator, last_allocation_can_grow_in_place) {
-  Linked_Bump_Allocator<1> alloc("test");
-  char* array = alloc.allocate_uninitialized_array<char>(10);
-  bool ok = alloc.try_grow_array_in_place<char>(array, 10, 20);
+  Linked_Bump_Allocator alloc("test");
+  Span<char> array = alloc.allocate_uninitialized_span<char>(10);
+  bool ok = alloc.try_grow_array_in_place<char>(array.data(), 10, 20);
   EXPECT_TRUE(ok);
-  assert_valid_memory(array, array + 20, /*alignment=*/1);
+  assert_valid_memory(array.data(), array.data() + 20, /*alignment=*/1);
 
-  char* next = alloc.allocate_uninitialized_array<char>(1);
-  EXPECT_THAT(reinterpret_cast<std::intptr_t>(next) -
-                  reinterpret_cast<std::intptr_t>(array),
+  Span<char> next = alloc.allocate_uninitialized_span<char>(1);
+  EXPECT_THAT(reinterpret_cast<std::intptr_t>(next.data()) -
+                  reinterpret_cast<std::intptr_t>(array.data()),
               ::testing::AnyOf(1, 20))
       << "future allocations should not overlap resized array";
 }
 
 TEST(Test_Linked_Bump_Allocator,
      last_allocation_cannot_grow_beyond_current_chunk) {
-  Linked_Bump_Allocator<1> alloc("test");
+  Linked_Bump_Allocator alloc("test");
 
   [[maybe_unused]] char* first_byte =
       alloc.new_object<char>();  // Allocate the first chunk.
@@ -244,30 +265,30 @@ TEST(Test_Linked_Bump_Allocator,
   for (std::size_t i = 0; i < first_chunk_size - 15; ++i) {
     [[maybe_unused]] char* byte = alloc.new_object<char>();
   }
-  char* array = alloc.allocate_uninitialized_array<char>(10);
+  Span<char> array = alloc.allocate_uninitialized_span<char>(10);
   EXPECT_EQ(alloc.remaining_bytes_in_current_chunk(), 5);
 
-  bool ok = alloc.try_grow_array_in_place<char>(array, 10, 20);
+  bool ok = alloc.try_grow_array_in_place<char>(array.data(), 10, 20);
   EXPECT_FALSE(ok);
-  assert_valid_memory(array, array + 10, /*alignment=*/1);
+  assert_valid_memory(array.data(), array.data() + 10, /*alignment=*/1);
 
-  char* next = alloc.allocate_uninitialized_array<char>(1);
-  EXPECT_THAT(reinterpret_cast<std::intptr_t>(next) -
-                  reinterpret_cast<std::intptr_t>(array),
+  Span<char> next = alloc.allocate_uninitialized_span<char>(1);
+  EXPECT_THAT(reinterpret_cast<std::intptr_t>(next.data()) -
+                  reinterpret_cast<std::intptr_t>(array.data()),
               ::testing::AnyOf(1, 10))
       << "future allocations should pretend realloc request never happened";
 }
 
 TEST(Test_Linked_Bump_Allocator, non_last_allocation_cannot_grow) {
-  Linked_Bump_Allocator<1> alloc("test");
-  char* array = alloc.allocate_uninitialized_array<char>(10);
+  Linked_Bump_Allocator alloc("test");
+  Span<char> array = alloc.allocate_uninitialized_span<char>(10);
   [[maybe_unused]] char* last = alloc.new_object<char>();
-  bool ok = alloc.try_grow_array_in_place<char>(array, 10, 20);
+  bool ok = alloc.try_grow_array_in_place<char>(array.data(), 10, 20);
   EXPECT_FALSE(ok);
-  assert_valid_memory(array, array + 10, /*alignment=*/1);
+  assert_valid_memory(array.data(), array.data() + 10, /*alignment=*/1);
 
-  char* next = alloc.allocate_uninitialized_array<char>(1);
-  EXPECT_NE(next, last)
+  Span<char> next = alloc.allocate_uninitialized_span<char>(1);
+  EXPECT_NE(next.data(), last)
       << "future allocations should not overlap resized array";
 }
 
@@ -275,7 +296,7 @@ TEST(Test_Linked_Bump_Allocator, non_last_allocation_cannot_grow) {
     (defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST)
 TEST(Test_Linked_Bump_Allocator, cannot_allocate_when_disabled) {
   auto check = [] {
-    linked_bump_allocator<1> alloc("test");
+    Linked_Bump_Allocator alloc("test");
     auto disable_guard = alloc.disable();
     // The following line should crash:
     [[maybe_unused]] char* c = alloc.new_object<char>();
@@ -287,7 +308,7 @@ TEST(Test_Linked_Bump_Allocator, cannot_allocate_when_disabled) {
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
 TEST(Test_Linked_Bump_Allocator, can_allocate_after_disabling_then_reenabling) {
-  linked_bump_allocator<1> alloc("test");
+  Linked_Bump_Allocator alloc("test");
   {
     auto disable_guard = alloc.disable();
     // Destruct disable_guard, re-enabling allocation.

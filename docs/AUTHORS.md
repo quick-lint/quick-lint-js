@@ -29,6 +29,7 @@ authored portions of quick-lint-js:
 * Amir; amir77mafi@gmail.com; signed CLA-v1.md
 * Ang Kosal; angkosal@gmail.com; signed CLA-v1.md
 * Angel Avila; angel.j.avila@gmail.com; signed CLA-v1.md
+* Ariel Don; ariel@arieldon.com; signed CLA-v1.md
 * Asaduzzaman Pavel; k1ngs.k1ngdom@live.com; signed CLA-v1.md
 * Austin Garcia; theholychowders@gmail.com; signed CLA-v1.md
 * Biel A. P. (0xbiel); bielp07@gmail.com; signed CLA-v1.md
@@ -88,4 +89,5 @@ authored portions of quick-lint-js:
 * ooblegork; codyxvalley@mail.fresnostate.edu; signed CLA-v1.md
 * oren; countoren@gmail.com; signed CLA-v1.md
 * pedrobl85; pedrobl1718@gmail.com; signed CLA-v1.md
+* toastino; toastino@disroot.org; signed CLA-v1.md
 * wagner riffel; w@104d.net; signed CLA-v1.md

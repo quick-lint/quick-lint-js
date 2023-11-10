@@ -3,7 +3,7 @@
 
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/utf-8.h>
 #include <quick-lint-js/web-demo-location.h>
 

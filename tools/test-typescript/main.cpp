@@ -32,6 +32,10 @@ constexpr String8_View ignored_tests[] = {
     // directives causes its errors to be ignored by the test runner, but I
     // can't tell which test directive would do this.
     u8"/usedImportNotElidedInJs.ts"sv,
+
+    // This test correctly emits E0196 (a warning).
+    // TODO(strager): Disable E0196 for this test but still check this test.
+    u8"/initializePropertiesWithRenamedLet.ts"sv,
 };
 
 struct Test_TypeScript_Options {
@@ -76,7 +80,7 @@ class Expected_Test_Results {
     Result<void, Platform_File_IO_Error> list = list_directory(
         concat(std::string_view(baselines_path), "/baselines/reference/"sv)
             .c_str(),
-        visit_entry);
+        std::move(visit_entry));
     if (!list.ok()) {
       return list.propagate();
     }

@@ -5,14 +5,37 @@
 
 #include <cstddef>
 #include <memory>
+#include <quick-lint-js/port/math.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <utility>
 
 namespace quick_lint_js {
+// Helper for Flexible_Array. Do not use directly.
+//
+// Flexible_Array_Base exists to have the compiler compute the required
+// alignment for Header and the capacity field.
+template <class Header>
+class Flexible_Array_Base : public Header {
+ protected:
+  template <class... Args>
+  explicit Flexible_Array_Base(std::size_t capacity, Args&&... args)
+      : Header(std::forward<Args>(args)...), capacity_(capacity) {}
+
+  std::size_t capacity_;
+};
+
 // Like a C99 flexible array member but with its size too.
 template <class T, class Header>
-class Flexible_Array : public Header {
+class alignas(maximum(alignof(T),
+                      alignof(Flexible_Array_Base<Header>))) Flexible_Array
+    : public Flexible_Array_Base<Header> {
  public:
+  // The guaranteed alignment for the capacity.
+  //
+  // Invariant: capacity_alignment >= alignof(T)
+  static inline constexpr std::size_t capacity_alignment =
+      maximum(alignof(T), alignof(Flexible_Array_Base<Header>));
+
   T* flexible_capacity_begin() { return reinterpret_cast<T*>(&this[1]); }
 
   T* flexible_capacity_end() {
@@ -53,9 +76,7 @@ class Flexible_Array : public Header {
  private:
   template <class... Args>
   explicit Flexible_Array(std::size_t capacity, Args&&... args)
-      : Header(std::forward<Args>(args)...), capacity_(capacity) {}
-
-  std::size_t capacity_;
+      : Flexible_Array_Base<Header>(capacity, std::forward<Args>(args)...) {}
 };
 }
 

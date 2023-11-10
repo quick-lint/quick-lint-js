@@ -29,11 +29,12 @@
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/version.h>
 #include <simdjson.h>
 #include <string>
 #include <utility>
+#include <vector>
 
 using namespace std::literals::string_view_literals;
 
@@ -125,31 +126,33 @@ Linting_LSP_Server_Handler::Linting_LSP_Server_Handler(
 
   this->workspace_configuration_.add_item(
       u8"quick-lint-js.tracing-directory"_sv,
-      [this](std::string_view new_value) {
-        bool changed = this->server_config_.tracing_directory != new_value;
-        if (changed) {
-          this->server_config_.tracing_directory = new_value;
-          if (this->tracer_backend_) {
-            Trace_Flusher::instance()->disable_backend(
-                this->tracer_backend_.get());
-            this->tracer_backend_.reset();
-          }
-          if (!this->server_config_.tracing_directory.empty()) {
-            auto new_backend =
-                Trace_Flusher_Directory_Backend::create_child_directory(
-                    this->server_config_.tracing_directory);
-            if (new_backend) {
-              this->tracer_backend_ =
-                  std::make_unique<Trace_Flusher_Directory_Backend>(
-                      std::move(*new_backend));
-              Trace_Flusher::instance()->enable_backend(
-                  this->tracer_backend_.get());
-              QLJS_DEBUG_LOG("enabled tracing in directory %s\n",
-                             this->tracer_backend_->trace_directory().c_str());
+      *this->workspace_configuration_allocator_.new_object_copy(
+          [this](std::string_view new_value) -> void {
+            bool changed = this->server_config_.tracing_directory != new_value;
+            if (changed) {
+              this->server_config_.tracing_directory = new_value;
+              if (this->tracer_backend_) {
+                Trace_Flusher::instance()->disable_backend(
+                    this->tracer_backend_.get());
+                this->tracer_backend_.reset();
+              }
+              if (!this->server_config_.tracing_directory.empty()) {
+                auto new_backend =
+                    Trace_Flusher_Directory_Backend::create_child_directory(
+                        this->server_config_.tracing_directory);
+                if (new_backend) {
+                  this->tracer_backend_ =
+                      std::make_unique<Trace_Flusher_Directory_Backend>(
+                          std::move(*new_backend));
+                  Trace_Flusher::instance()->enable_backend(
+                      this->tracer_backend_.get());
+                  QLJS_DEBUG_LOG(
+                      "enabled tracing in directory %s\n",
+                      this->tracer_backend_->trace_directory().c_str());
+                }
+              }
             }
-          }
-        }
-      });
+          }));
 }
 
 void Linting_LSP_Server_Handler::handle_request(
@@ -220,12 +223,13 @@ void Linting_LSP_Server_Handler::filesystem_changed() {
       this->config_loader_.refresh();
   {
     Lock_Ptr<LSP_Documents> documents = this->documents_.lock();
-    this->handle_config_file_changes(documents, config_changes);
+    this->handle_config_file_changes(
+        documents, Span<const Configuration_Change>(config_changes));
   }
 }
 
 void Linting_LSP_Server_Handler::add_watch_io_errors(
-    const std::vector<Watch_IO_Error>& errors) {
+    Span<const Watch_IO_Error> errors) {
   if (!errors.empty() && !this->did_report_watch_io_error_) {
     Byte_Buffer& out_json = this->outgoing_messages_.new_message();
     // clang-format off
@@ -364,12 +368,13 @@ void Linting_LSP_Server_Handler::handle_text_document_did_change_notification(
   case LSP_Documents::Document_Type::config: {
     std::vector<Configuration_Change> config_changes =
         this->config_loader_.refresh();
-    this->handle_config_file_changes(documents, config_changes);
+    this->handle_config_file_changes(
+        documents, Span<const Configuration_Change>(config_changes));
     break;
   }
 
   case LSP_Documents::Document_Type::lintable:
-    this->linter_.lint(static_cast<LSP_Documents::Lintable_Document&>(doc),
+    this->linter_.lint(derived_cast<LSP_Documents::Lintable_Document&>(doc),
                        notification.uri.json, this->outgoing_messages_);
     break;
 
@@ -515,7 +520,8 @@ void Linting_LSP_Server_Handler::handle_text_document_did_open_notification(
         this->config_loader_.refresh();
     {
       Lock_Ptr<LSP_Documents> documents = this->documents_.lock();
-      this->handle_config_file_changes(documents, config_changes);
+      this->handle_config_file_changes(
+          documents, Span<const Configuration_Change>(config_changes));
     }
 
     doc_ptr = std::move(doc);
@@ -550,7 +556,7 @@ void Linting_LSP_Server_Handler::
 
 void Linting_LSP_Server_Handler::handle_config_file_changes(
     Lock_Ptr<LSP_Documents>& documents,
-    const std::vector<Configuration_Change>& config_changes) {
+    Span<const Configuration_Change> config_changes) {
   for (auto& entry : documents->documents) {
     const String8& document_uri = entry.first;
     LSP_Documents::Document_Base& doc = *entry.second;

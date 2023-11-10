@@ -5,17 +5,21 @@
 
 #include <cstring>
 #include <optional>
-#include <string>
-#include <vector>
+#include <quick-lint-js/port/function-ref.h>
+#include <string_view>
 
 namespace quick_lint_js {
 // Returns the index of the matching locale.
 //
 // If locales is "en_US\0fr_FR\0de_DE\0", and locale_name is "fr_FR", then the
 // result will be 1.
-std::optional<int> find_locale(const char* locales, const char* locale_name);
+std::optional<int> find_locale(const char* locales,
+                               std::string_view locale_name);
 
-std::vector<std::string> locale_name_combinations(const char* locale_name);
+// For testing only.
+void enumerate_locale_name_combinations(
+    std::string_view locale_name,
+    Temporary_Function_Ref<bool(std::string_view locale)>);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

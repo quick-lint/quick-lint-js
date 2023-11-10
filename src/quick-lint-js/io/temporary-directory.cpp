@@ -267,7 +267,7 @@ bool is_dot_or_dot_dot(const Char *path) {
 #if QLJS_HAVE_WINDOWS_H
 Result<void, Platform_File_IO_Error> list_directory_raw(
     const char *directory,
-    Function_Ref<void(::WIN32_FIND_DATAW &)> visit_entry) {
+    Temporary_Function_Ref<void(::WIN32_FIND_DATAW &)> visit_entry) {
   std::optional<std::wstring> search_pattern = mbstring_to_wstring(directory);
   if (!search_pattern.has_value()) {
     QLJS_UNIMPLEMENTED();
@@ -299,7 +299,8 @@ Result<void, Platform_File_IO_Error> list_directory_raw(
 
 #if QLJS_HAVE_DIRENT_H
 Result<void, Platform_File_IO_Error> list_directory_raw(
-    const char *directory, Function_Ref<void(::dirent *)> visit_entry) {
+    const char *directory,
+    Temporary_Function_Ref<void(::dirent *)> visit_entry) {
   ::DIR *d = ::opendir(directory);
   if (d == nullptr) {
     return failed_result(POSIX_File_IO_Error{
@@ -326,9 +327,10 @@ Result<void, Platform_File_IO_Error> list_directory_raw(
 }
 
 Result<void, Platform_File_IO_Error> list_directory(
-    const char *directory, Function_Ref<void(const char *)> visit_file) {
+    const char *directory,
+    Temporary_Function_Ref<void(const char *)> visit_file) {
 #if QLJS_HAVE_WINDOWS_H
-  auto visit_entry = [&](::WIN32_FIND_DATAW &entry) -> void {
+  return list_directory_raw(directory, [&](::WIN32_FIND_DATAW &entry) -> void {
     // TODO(strager): Reduce allocations.
     std::optional<std::string> entry_name =
         wstring_to_mbstring(entry.cFileName);
@@ -338,15 +340,13 @@ Result<void, Platform_File_IO_Error> list_directory(
     if (!is_dot_or_dot_dot(entry_name->c_str())) {
       visit_file(entry_name->c_str());
     }
-  };
-  return list_directory_raw(directory, visit_entry);
+  });
 #elif QLJS_HAVE_DIRENT_H
-  auto visit_entry = [&](::dirent *entry) -> void {
+  return list_directory_raw(directory, [&](::dirent *entry) -> void {
     if (!is_dot_or_dot_dot(entry->d_name)) {
       visit_file(entry->d_name);
     }
-  };
-  return list_directory_raw(directory, visit_entry);
+  });
 #else
 #error "Unsupported platform"
 #endif
@@ -354,9 +354,9 @@ Result<void, Platform_File_IO_Error> list_directory(
 
 Result<void, Platform_File_IO_Error> list_directory(
     const char *directory,
-    Function_Ref<void(const char *, bool is_directory)> visit_file) {
+    Temporary_Function_Ref<void(const char *, bool is_directory)> visit_file) {
 #if QLJS_HAVE_WINDOWS_H
-  auto visit_entry = [&](::WIN32_FIND_DATAW &entry) -> void {
+  return list_directory_raw(directory, [&](::WIN32_FIND_DATAW &entry) -> void {
     // TODO(strager): Reduce allocations.
     std::optional<std::string> entry_name =
         wstring_to_mbstring(entry.cFileName);
@@ -368,11 +368,10 @@ Result<void, Platform_File_IO_Error> list_directory(
                           FILE_ATTRIBUTE_DIRECTORY;
       visit_file(entry_name->c_str(), is_directory);
     }
-  };
-  return list_directory_raw(directory, visit_entry);
+  });
 #elif QLJS_HAVE_DIRENT_H
   std::string temp_path;
-  auto visit_entry = [&](::dirent *entry) -> void {
+  return list_directory_raw(directory, [&](::dirent *entry) -> void {
     if (is_dot_or_dot_dot(entry->d_name)) {
       return;
     }
@@ -396,8 +395,7 @@ Result<void, Platform_File_IO_Error> list_directory(
       is_directory = entry->d_type == DT_DIR;
     }
     visit_file(entry->d_name, is_directory);
-  };
-  return list_directory_raw(directory, visit_entry);
+  });
 #else
 #error "Unsupported platform"
 #endif
@@ -438,7 +436,7 @@ void list_directory_recursively(const char *directory,
       // TODO(strager): Reduce allocations on Windows. Windows uses wchar_t
       // paths and also needs a "\*" suffix.
       Result<void, Platform_File_IO_Error> list =
-          list_directory(this->path.c_str(), visit_child);
+          list_directory(this->path.c_str(), std::move(visit_child));
       if (!list.ok()) {
         this->visitor.on_error(list.error(), depth);
       }

@@ -26,10 +26,9 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/simdjson-fwd.h>
 #include <quick-lint-js/simdjson.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/synchronized.h>
 #include <string>
-#include <vector>
 
 namespace quick_lint_js {
 class Byte_Buffer;
@@ -150,7 +149,7 @@ class Linting_LSP_Server_Handler final : public JSON_RPC_Message_Handler {
     this->outgoing_messages_.send(remote);
   }
 
-  void add_watch_io_errors(const std::vector<Watch_IO_Error>&);
+  void add_watch_io_errors(Span<const Watch_IO_Error>);
 
  private:
   void handle_initialize_request(::simdjson::ondemand::object& request,
@@ -197,7 +196,7 @@ class Linting_LSP_Server_Handler final : public JSON_RPC_Message_Handler {
 
   void handle_config_file_changes(
       Lock_Ptr<LSP_Documents>& documents,
-      const std::vector<Configuration_Change>& config_changes);
+      Span<const Configuration_Change> config_changes);
 
   void get_config_file_diagnostics_notification(Loaded_Config_File*,
                                                 String8_View uri_json,
@@ -235,9 +234,13 @@ class Linting_LSP_Server_Handler final : public JSON_RPC_Message_Handler {
   // lock. LSP_Overlay_Configuration_Filesystem reads without taking the lock.
   Synchronized<LSP_Documents> documents_;
 
+  Monotonic_Allocator workspace_configuration_allocator_{
+      "Linting_LSP_Server_Handler::workspace_configuration_allocator_"};
+
   Outgoing_JSON_RPC_Message_Queue outgoing_messages_;
   Linting_LSP_Server_Config server_config_;
-  LSP_Workspace_Configuration workspace_configuration_;
+  LSP_Workspace_Configuration workspace_configuration_{
+      &this->workspace_configuration_allocator_};
   std::unique_ptr<Trace_Flusher_Directory_Backend> tracer_backend_;
   bool did_report_watch_io_error_ = false;
   bool shutdown_requested_ = false;

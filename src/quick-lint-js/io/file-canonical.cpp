@@ -20,7 +20,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
 #include <string_view>
@@ -413,7 +413,7 @@ class Path_Canonicalizer_Base {
     return component;
   }
 
-  Derived &derived() { return *static_cast<Derived *>(this); }
+  Derived &derived() { return *derived_cast<Derived *>(this); }
 
  protected:
   void skip_to_next_component() {

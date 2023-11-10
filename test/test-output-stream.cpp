@@ -13,7 +13,7 @@
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string_view>
 
 #if QLJS_HAVE_FCNTL_H
@@ -142,6 +142,55 @@ TEST(Test_Memory_Output_Stream, append_fixed_hexadecimal_integer) {
     s.append_fixed_hexadecimal_integer(0x0bcd, 4);
     s.flush();
     EXPECT_EQ(s.get_flushed_string8(), u8"12340bcd"_sv);
+  }
+}
+
+TEST(Test_Memory_Output_Stream, append_padded_decimal_integer_exact_width) {
+  {
+    Memory_Output_Stream s(/*buffer_size=*/16);
+    s.append_padded_decimal_integer(1234u, 4, u8'x');
+    s.flush();
+    EXPECT_EQ(s.get_flushed_string8(), u8"1234"_sv);
+  }
+
+  {
+    Memory_Output_Stream s(/*buffer_size=*/16);
+    s.append_padded_decimal_integer(0u, 1, u8'x');
+    s.flush();
+    EXPECT_EQ(s.get_flushed_string8(), u8"0"_sv);
+  }
+}
+
+TEST(Test_Memory_Output_Stream, append_padded_decimal_integer_over_width) {
+  {
+    Memory_Output_Stream s(/*buffer_size=*/16);
+    s.append_padded_decimal_integer(1234u, 5, u8'x');
+    s.flush();
+    EXPECT_EQ(s.get_flushed_string8(), u8"x1234"_sv);
+  }
+
+  {
+    Memory_Output_Stream s(/*buffer_size=*/16);
+    s.append_padded_decimal_integer(0u, 20, u8' ');
+    s.flush();
+    EXPECT_EQ(s.get_flushed_string8(), u8"                   0"_sv);
+  }
+}
+
+TEST(Test_Memory_Output_Stream,
+     append_padded_decimal_integer_under_width_behaves_as_exact_width) {
+  {
+    Memory_Output_Stream s(/*buffer_size=*/16);
+    s.append_padded_decimal_integer(1234u, 1, u8'x');
+    s.flush();
+    EXPECT_EQ(s.get_flushed_string8(), u8"1234"_sv);
+  }
+
+  {
+    Memory_Output_Stream s(/*buffer_size=*/16);
+    s.append_padded_decimal_integer(0u, 0, u8' ');
+    s.flush();
+    EXPECT_EQ(s.get_flushed_string8(), u8"0"_sv);
   }
 }
 

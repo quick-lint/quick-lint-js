@@ -15,7 +15,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 #include <string_view>
 
@@ -37,7 +37,7 @@ TEST_F(Test_Parse_Expression_TypeScript, type_annotation) {
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x: Type"_sv));
 
     Spy_Visitor v;
-    static_cast<Expression::Type_Annotated*>(ast)->visit_type_annotation(v);
+    expression_cast<Expression::Type_Annotated*>(ast)->visit_type_annotation(v);
     EXPECT_THAT(v.visits, ElementsAreArray({
                               "visit_variable_type_use",
                           }));

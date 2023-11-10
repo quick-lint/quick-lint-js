@@ -6,12 +6,12 @@
 #include <cstddef>
 #include <memory>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <utility>
-#include <vector>
 
 #if QLJS_HAVE_WRITEV
 #include <sys/uio.h>
@@ -65,7 +65,6 @@ class Byte_Buffer {
     });
   }
 
-  void append_copy(const String8& data);
   void append_copy(String8_View data);
   void append_copy(Char8 data);
 
@@ -88,13 +87,9 @@ class Byte_Buffer {
   // For testing.
   String8 to_string8() const;
 
-  // After calling this->to_iovec(), do not call any other member function on
-  // this byte_buffer (aside from the destructor).
-  Byte_Buffer_IOVec to_iovec() &&;
-
   template <class Func>
   void enumerate_chunks(Func&& on_chunk) const {
-    for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size();
+    for (Vector_Size chunk_index = 0; chunk_index < this->chunks_.size();
          ++chunk_index) {
       const Byte_Buffer_Chunk* c = &this->chunks_[chunk_index];
       const std::byte* c_begin =
@@ -133,7 +128,7 @@ class Byte_Buffer {
   static Byte_Buffer_Chunk allocate_chunk(Size_Type size);
   static void delete_chunk(Byte_Buffer_Chunk&&);
 
-  std::vector<Byte_Buffer_Chunk> chunks_;
+  Vector<Byte_Buffer_Chunk> chunks_;
   std::byte* cursor_;
   std::byte* current_chunk_end_;
 
@@ -153,7 +148,6 @@ class Byte_Buffer_IOVec {
   using Size_Type = Byte_Buffer::Size_Type;
 
   explicit Byte_Buffer_IOVec();
-  explicit Byte_Buffer_IOVec(std::vector<Byte_Buffer_Chunk>&&);
 
   Byte_Buffer_IOVec(Byte_Buffer_IOVec&&);
   Byte_Buffer_IOVec& operator=(Byte_Buffer_IOVec&&) = delete;

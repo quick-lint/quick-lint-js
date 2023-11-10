@@ -4,9 +4,9 @@
 #pragma once
 
 #include <memory>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/util/synchronized.h>
-#include <vector>
 
 namespace quick_lint_js {
 // Maintains a global list of instances of Tracked. Each Tracked must be managed
@@ -18,16 +18,17 @@ template <class Tracked>
 class Instance_Tracker {
  public:
   static void track(std::shared_ptr<Tracked> instance) {
-    Lock_Ptr<std::vector<std::weak_ptr<Tracked>>> weak_instances =
+    Lock_Ptr<Vector<std::weak_ptr<Tracked>>> weak_instances =
         weak_instances_.lock();
     sanitize_instances(weak_instances);
     weak_instances->push_back(std::move(instance));
   }
 
-  static std::vector<std::shared_ptr<Tracked>> instances() {
-    std::vector<std::shared_ptr<Tracked>> instances;
+  static Vector<std::shared_ptr<Tracked>> instances() {
+    Vector<std::shared_ptr<Tracked>> instances("instances",
+                                               new_delete_resource());
     {
-      Lock_Ptr<std::vector<std::weak_ptr<Tracked>>> weak_instances =
+      Lock_Ptr<Vector<std::weak_ptr<Tracked>>> weak_instances =
           weak_instances_.lock();
       sanitize_instances(weak_instances);
       instances.reserve(weak_instances->size());
@@ -38,12 +39,14 @@ class Instance_Tracker {
         }
       }
     }
+    // NOTE(strager): We cannot wink (e.g. use Linked_Bump_Allocator and return
+    // a Span) because std::shared_ptr destructors need to be called.
     return instances;
   }
 
  private:
   static void sanitize_instances(
-      Lock_Ptr<std::vector<std::weak_ptr<Tracked>>>& weak_instances) {
+      Lock_Ptr<Vector<std::weak_ptr<Tracked>>>& weak_instances) {
     erase_if(*weak_instances, [](const std::weak_ptr<Tracked>& weak_instance) {
       return weak_instance.expired();
     });
@@ -53,8 +56,8 @@ class Instance_Tracker {
     sanitize_instances(weak_instances_.lock());
   }
 
-  static inline Synchronized<std::vector<std::weak_ptr<Tracked>>>
-      weak_instances_;
+  static inline Synchronized<Vector<std::weak_ptr<Tracked>>> weak_instances_{
+      "weak_instances_", new_delete_resource()};
 };
 }
 

@@ -4,8 +4,8 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include <optional>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/math-overflow.h>
-#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
 namespace {

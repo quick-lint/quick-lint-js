@@ -760,7 +760,7 @@ struct Diag_Duplicated_Cases_In_Switch_Statement {
 };
 
 struct Diag_Fallthrough_Without_Comment_In_Switch {
-  [[qljs::diag("E0423", Diagnostic_Severity::warning)]]  //
+  [[qljs::diag("E0427", Diagnostic_Severity::warning)]]  //
   [[qljs::message("missing 'break;' or '// fallthrough' comment between statement and 'case'",
                   ARG(end_of_case))]]  //
   Source_Code_Span end_of_case;
@@ -2162,6 +2162,27 @@ struct Diag_TypeScript_Enum_Value_Must_Be_Constant {
   Enum_Kind declared_enum_kind;
 };
 
+struct
+    Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module {
+  [[qljs::diag("E0424", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "'export as namespace' is not allowed in a namespace or module",
+      ARG(export_keyword))]]  //
+  [[qljs::message("containing namespace or module declared here",
+                  ARG(namespace_or_module_keyword))]]  //
+  Source_Code_Span export_keyword;
+  Source_Code_Span namespace_or_module_keyword;
+};
+
+struct
+    Diag_TypeScript_Export_As_Namespace_Is_Only_Allowed_In_TypeScript_Definition_File {
+  [[qljs::diag("E0423", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "'export as namespace' is only allowed in TypeScript .d.ts files",
+      ARG(export_keyword))]]  //
+  Source_Code_Span export_keyword;
+};
+
 struct Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript {
   [[qljs::diag("E0370", Diagnostic_Severity::error)]]  //
   // clang-format off
@@ -2302,6 +2323,13 @@ struct Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript {
   [[qljs::message("TypeScript type exports are not allowed in JavaScript",
                   ARG(type_keyword))]]  //
   Source_Code_Span type_keyword;
+};
+
+struct Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type {
+  [[qljs::diag("E0426", Diagnostic_Severity::error)]]  //
+  [[qljs::message("type predicates are only allowed as function return types",
+                  ARG(is_keyword))]]  //
+  Source_Code_Span is_keyword;
 };
 
 struct Diag_TypeScript_Inline_Type_Export_Not_Allowed_In_Type_Only_Export {
@@ -3313,6 +3341,29 @@ struct Diag_Class_Async_On_Getter_Or_Setter {
   [[qljs::message("'{0}' here", ARG(getter_setter_keyword))]]  //
   Source_Code_Span async_keyword;
   Source_Code_Span getter_setter_keyword;
+};
+
+struct Diag_Multiple_Export_Defaults {
+  [[qljs::diag("E0715", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "cannot use multiple `export default` statements in one module",
+      ARG(second_export_default))]]  //
+  [[qljs::message("export default previously appeared here",
+                  ARG(first_export_default))]]  //
+  Source_Code_Span second_export_default;
+  Source_Code_Span first_export_default;
+};
+
+struct Diag_Unintuitive_Bitshift_Precedence {
+  [[qljs::diag("E0716", Diagnostic_Severity::warning)]]  //
+  // clang-format off
+  [[qljs::message("unintuitive operator precedence when using & and '{0}'; "
+                  "'{0}' evaluates before &",
+                  ARG(bitshift_operator))]]         //
+  // clang-format on
+  [[qljs::message("'&' here", ARG(and_operator))]]  //
+  Source_Code_Span bitshift_operator;
+  Source_Code_Span and_operator;
 };
 }
 QLJS_WARNING_POP

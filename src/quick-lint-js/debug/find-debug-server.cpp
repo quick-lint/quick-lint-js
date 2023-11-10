@@ -10,6 +10,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/debug/find-debug-server.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/io/file-handle.h>
@@ -18,11 +19,10 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/thread-name.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string_view>
-#include <vector>
 
 #if defined(__linux__)
 #include <dirent.h>
@@ -240,7 +240,7 @@ void enumerate_all_process_thread_names(Callback&& callback) {
           /*thread_name=*/thread_name);
     };
     Result<void, Platform_File_IO_Error> list_task =
-        list_directory(path.c_str(), visit_task_entry);
+        list_directory(path.c_str(), std::move(visit_task_entry));
     if (!list_task.ok()) {
       path.resize(path_size_without_task_id);
       QLJS_DEBUG_LOG("%s: ignoring failure to read %s: %s\n", func,
@@ -248,7 +248,7 @@ void enumerate_all_process_thread_names(Callback&& callback) {
     }
   };
   Result<void, Platform_File_IO_Error> list_proc =
-      list_directory(path.c_str(), visit_proc_entry);
+      list_directory(path.c_str(), std::move(visit_proc_entry));
   if (!list_proc.ok()) {
     QLJS_DEBUG_LOG("%s: ignoring failure to read /proc: %s\n", func,
                    list_proc.error_to_string().c_str());
@@ -257,8 +257,8 @@ void enumerate_all_process_thread_names(Callback&& callback) {
 #endif
 
 #if defined(__linux__)
-std::vector<Found_Debug_Server> find_debug_servers() {
-  std::vector<Found_Debug_Server> debug_servers;
+Span<Found_Debug_Server> find_debug_servers(Monotonic_Allocator* allocator) {
+  Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
 
   enumerate_all_process_thread_names([&](std::string_view process_id_string,
                                          std::string_view thread_name) {
@@ -277,13 +277,14 @@ std::vector<Found_Debug_Server> find_debug_servers() {
     }
   });
 
-  return debug_servers;
+  return debug_servers.release_to_span();
 }
 #endif
 
 #if defined(__APPLE__)
 template <class Callback>
-void enumerate_all_process_threads(Callback&& callback) {
+void enumerate_all_process_threads(Monotonic_Allocator& allocator,
+                                   Callback&& callback) {
   // Kernel code uses sizeof(int), not sizeof(::pid_t):
   // https://github.com/apple/darwin-xnu/blob/8f02f2a044b9bb1ad951987ef5bab20ec9486310/bsd/kern/proc_info.c#L339
   //
@@ -300,13 +301,15 @@ void enumerate_all_process_threads(Callback&& callback) {
   QLJS_ASSERT(
       narrow_cast<std::size_t>(process_id_buffer_size) % sizeof(::pid_t) == 0);
 
+  Vector<::pid_t> process_ids("process_ids", &allocator);
   // NOTE(strager): It's okay if our buffer is to small. We miss out on some
   // processes, but they were just created anyway. Harmless race condition.
-  std::vector<::pid_t> process_ids(
-      narrow_cast<std::size_t>(process_id_buffer_size) / sizeof(::pid_t));
-  process_id_buffer_size =
-      ::proc_listpids(PROC_ALL_PIDS, 0, process_ids.data(),
-                      narrow_cast<int>(process_ids.size() * sizeof(::pid_t)));
+  process_ids.resize(narrow_cast<std::size_t>(process_id_buffer_size) /
+                     sizeof(::pid_t));
+  process_id_buffer_size = ::proc_listpids(
+      PROC_ALL_PIDS, 0, process_ids.data(),
+      narrow_cast<int>(process_ids.size() *
+                       narrow_cast<Vector_Size>(sizeof(::pid_t))));
   if (process_id_buffer_size == -1) {
     QLJS_DEBUG_LOG("%s: ignoring failure to get process IDs: %s\n", __func__,
                    std::strerror(errno));
@@ -315,7 +318,7 @@ void enumerate_all_process_threads(Callback&& callback) {
   process_ids.resize(narrow_cast<std::size_t>(process_id_buffer_size) /
                      sizeof(int));
 
-  std::vector<std::uint64_t> thread_ids;
+  Vector<std::uint64_t> thread_ids("thread_ids", &allocator);
   constexpr std::size_t initial_thread_ids_buffer_count = 128;  // Arbitrary.
   for (::pid_t process_id : process_ids) {
     thread_ids.resize(initial_thread_ids_buffer_count);
@@ -323,7 +326,8 @@ void enumerate_all_process_threads(Callback&& callback) {
     int thread_ids_buffer_size = ::proc_pidinfo(
         process_id, PROC_PIDLISTTHREADIDS,
         /*arg=*/0, thread_ids.data(),
-        narrow_cast<int>(thread_ids.size() * sizeof(std::uint64_t)));
+        narrow_cast<int>(thread_ids.size() *
+                         narrow_cast<Vector_Size>(sizeof(std::uint64_t))));
     if (thread_ids_buffer_size == -1) {
       QLJS_DEBUG_LOG(
           "%s: ignoring failure to get thread IDs for process %d: %s\n",
@@ -333,10 +337,10 @@ void enumerate_all_process_threads(Callback&& callback) {
     QLJS_ASSERT(narrow_cast<std::size_t>(thread_ids_buffer_size) %
                     sizeof(std::uint64_t) ==
                 0);
-    std::size_t thread_count =
-        narrow_cast<std::size_t>(thread_ids_buffer_size) /
-        sizeof(std::uint64_t);
-    if (thread_count == thread_ids.size()) {
+    Vector_Size thread_count =
+        narrow_cast<Vector_Size>(thread_ids_buffer_size) /
+        narrow_cast<Vector_Size>(sizeof(std::uint64_t));
+    if (narrow_cast<Vector_Size>(thread_count) == thread_ids.size()) {
       // We can't tell if we read exactly all the threads or if there are more
       // threads. Assume there are more threads.
       thread_ids.resize(thread_ids.size() * 2);
@@ -352,42 +356,44 @@ void enumerate_all_process_threads(Callback&& callback) {
 #endif
 
 #if defined(__APPLE__)
-std::vector<Found_Debug_Server> find_debug_servers() {
+Span<Found_Debug_Server> find_debug_servers(Monotonic_Allocator* allocator) {
   static constexpr char func[] = "find_debug_servers";
 
-  std::vector<Found_Debug_Server> debug_servers;
-  enumerate_all_process_threads([&](::pid_t process_id,
-                                    std::uint64_t thread_id) -> void {
-    ::proc_threadinfo thread_info;
-    int rc =
-        ::proc_pidinfo(process_id, PROC_PIDTHREADID64INFO,
-                       /*arg=*/thread_id, &thread_info, sizeof(thread_info));
-    if (rc == -1) {
-      QLJS_DEBUG_LOG(
-          "%s: ignoring failure to get name of thread %llu in process %d: %s\n",
-          func, narrow_cast<unsigned long long>(thread_id), process_id,
-          std::strerror(errno));
-      return;
-    }
-    QLJS_ASSERT(rc == sizeof(thread_info));
+  Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
+  enumerate_all_process_threads(
+      *allocator, [&](::pid_t process_id, std::uint64_t thread_id) -> void {
+        ::proc_threadinfo thread_info;
+        int rc = ::proc_pidinfo(process_id, PROC_PIDTHREADID64INFO,
+                                /*arg=*/thread_id, &thread_info,
+                                sizeof(thread_info));
+        if (rc == -1) {
+          QLJS_DEBUG_LOG(
+              "%s: ignoring failure to get name of thread %llu in process %d: "
+              "%s\n",
+              func, narrow_cast<unsigned long long>(thread_id), process_id,
+              std::strerror(errno));
+          return;
+        }
+        QLJS_ASSERT(rc == sizeof(thread_info));
 
-    std::string_view thread_name(
-        thread_info.pth_name,
-        ::strnlen(thread_info.pth_name, MAXTHREADNAMESIZE));
-    if (std::optional<std::uint16_t> port_number =
-            parse_port_number_from_thread_name(to_string8_view(thread_name))) {
-      debug_servers.push_back(Found_Debug_Server{
-          .process_id = narrow_cast<std::uint64_t>(process_id),
-          .port_number = *port_number,
+        std::string_view thread_name(
+            thread_info.pth_name,
+            ::strnlen(thread_info.pth_name, MAXTHREADNAMESIZE));
+        if (std::optional<std::uint16_t> port_number =
+                parse_port_number_from_thread_name(
+                    to_string8_view(thread_name))) {
+          debug_servers.push_back(Found_Debug_Server{
+              .process_id = narrow_cast<std::uint64_t>(process_id),
+              .port_number = *port_number,
+          });
+        }
       });
-    }
-  });
-  return debug_servers;
+  return debug_servers.release_to_span();
 }
 #endif
 
 #if defined(__FreeBSD__)
-std::vector<Found_Debug_Server> find_debug_servers() {
+Span<Found_Debug_Server> find_debug_servers(Monotonic_Allocator* allocator) {
   static constexpr char func[] = "find_debug_servers";
 
   // NOTE(Nico): On FreeBSD we can just fetch the list of all active LWPs by
@@ -409,7 +415,7 @@ std::vector<Found_Debug_Server> find_debug_servers() {
   size_t own_jid_size;
   ::kinfo_proc* p;
   ::kvm_t* kd;
-  std::vector<Found_Debug_Server> debug_servers;
+  Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
 
   // Query our own jail id
   own_jid_size = sizeof own_jid;
@@ -458,7 +464,7 @@ std::vector<Found_Debug_Server> find_debug_servers() {
 error_get_procs:
   ::kvm_close(kd);
 error_open_kvm:
-  return debug_servers;
+  return debug_servers.release_to_span();
 }
 #endif  // __FreeBSD__
 
@@ -505,10 +511,10 @@ void enumerate_all_process_threads(Callback&& callback) {
 #endif
 
 #if defined(_WIN32)
-std::vector<Found_Debug_Server> find_debug_servers() {
+Span<Found_Debug_Server> find_debug_servers(Monotonic_Allocator* allocator) {
   static constexpr char func[] = "find_debug_servers";
 
-  std::vector<Found_Debug_Server> debug_servers;
+  Vector<Found_Debug_Server> debug_servers("debug_servers", allocator);
   enumerate_all_process_threads([&](::DWORD process_id,
                                     ::DWORD thread_id) -> void {
     Windows_Handle_File thread_handle(
@@ -564,14 +570,15 @@ std::vector<Found_Debug_Server> find_debug_servers() {
 
     ::LocalFree(thread_name);
   });
-  return debug_servers;
+  return debug_servers.release_to_span();
 }
 #endif
 
 #if !QLJS_CAN_FIND_DEBUG_SERVERS
-std::vector<Found_Debug_Server> find_debug_servers() {
+Span<Found_Debug_Server> find_debug_servers([
+    [maybe_unused]] Monotonic_Allocator* allocator) {
 #warning "--debug-apps is not supported on this platform"
-  return std::vector<Found_Debug_Server>();
+  return Span<Found_Debug_Server>();
 }
 #endif
 }

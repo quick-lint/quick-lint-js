@@ -10,11 +10,11 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/container/hash-map.h>
-#include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/function-ref.h>
 #include <string>
 #include <utility>
 
@@ -29,7 +29,7 @@ class Fake_Configuration_Filesystem : public Configuration_Filesystem {
   // Create a new file, or modify an existing file.
   void create_file(const Canonical_Path& path, String8_View content);
   void create_file(const Canonical_Path& path,
-                   Heap_Function<Read_File_Result()> callback);
+                   Async_Function_Ref<Read_File_Result()> callback);
 
   Canonical_Path rooted(const char* path) const;
 
@@ -44,7 +44,8 @@ class Fake_Configuration_Filesystem : public Configuration_Filesystem {
   void clear();
 
  private:
-  Hash_Map<Canonical_Path, Heap_Function<Read_File_Result()>> files_;
+  Monotonic_Allocator allocator_{"Fake_Configuration_Filesystem"};
+  Hash_Map<Canonical_Path, Async_Function_Ref<Read_File_Result()>> files_;
 };
 }
 

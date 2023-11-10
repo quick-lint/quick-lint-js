@@ -4,7 +4,7 @@
 #pragma once
 
 #include <cstddef>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string_view>
 
 namespace quick_lint_js {

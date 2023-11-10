@@ -3,7 +3,7 @@
 
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/utf-8.h>
 
 namespace quick_lint_js {

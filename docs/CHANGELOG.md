@@ -10,6 +10,56 @@ Semantic Versioning.
 
 ### Added
 
+* TypeScript support (still experimental):
+  * `export as namespace` statements are now parsed.
+  * `case await x:` no longer treats `:` as if it was a type annotation colon in
+    an arrow function parameter list.
+  * If a type predicate appears outside a return type, quick-lint-js now reports
+    [E0426][] ("type predicates are only allowed as function return types").
+
+### Fixed
+
+* TypeScript support (still experimental):
+  * Types named `await`, `implements`, `interface`, `let`, `package`, `private`,
+    `protected`, `public`, `static`, and `yield` are now recognized in type
+    signatures.
+
+## 2.18.0 (2023-11-03)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.18.0/)
+
+### Added
+
+* Mixing `&` and `<<` such as in `a & 0x1 << 3` now reports [E0716][]
+  ("unintuitive operator precedence when using & and << or >>"). (Implemented by
+  [toastin0][].)
+
+### Fixed
+
+* A missing operator in an `if` condition (such as in `if (x y)`) no longer
+  causes [E0065][] ("'else' has no corresponding 'if'") to be reported.
+  (Implemented by [arieldon][].)
+* `cmake --install` with `--component build-tools` now installs the build
+  tools. (This is a regression introduced in quick-lint-js version 2.16.0.)
+* Windows: The installer and executables are now signed with a non-expired
+  certificate chain.
+
+## 2.17.0 (2023-10-25)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.17.0/)
+
+### Known issues
+
+* `cmake --install` with `--component build-tools` does not install the build
+  tools. (This is a regression introduced in quick-lint-js version 2.16.0.)
+  Fix: [Git commit
+  3923f0df76d24b73d57f15eec61ab190ea048093][cmake-install-component-build-tools-patch]
+* Windows: Code signing does not validate on some machines. [Workaround: follow
+  SSL.com's instructions for removing the expired "Certum Trusted Network CA"
+  certificate.](https://www.ssl.com/blogs/ssl-com-legacy-cross-signed-root-certificate-expiring-on-september-11-2023/#ftoc-heading-7)
+
+### Added
+
 * quick-lint-js now understands decorators.
 * quick-lint-js now understands `accessor` fields.
 * `class C { myField, }` now reports better diagnostics.
@@ -21,6 +71,9 @@ Semantic Versioning.
   setters cannot be generators"). (Implemented by [koopiehoop][].)
 * `async get` and `async set` in classes now report [E0714][] ("'async' keyword
   is not allowed on getters or setters"). (Implemented by [koopiehoop][].)
+* Multiple `export default` statements now report [E0715][] ("cannot use
+  multiple `export default` statements in one module"). (Implemented by
+  [Ariel Don][].)
 * Emacs: The Debian/Ubuntu package now installs the Emacs plugin. Manual
   installation of the .el files is no longer required.
 * CLI: The new `--stdin-path` CLI option allows users of the `--stdin` option
@@ -50,6 +103,8 @@ Semantic Versioning.
   in the head of a `for` loop. For example, quick-lint-js no longer warns about
   `let x; for (let x = 0;;);`.
 * Emacs: .el files are now installed in the correct place on Arch Linux, btw.
+* Emacs: The Flymake plugin now reliably clears out diagnostics after issues are
+  fixed. Sticky diagnostics are no more.
 * TypeScript support (still experimental):
   * A newline after `public`, `protected`, `private`, or `readonly` inside a
     class is now interpreted correctly.
@@ -74,6 +129,12 @@ Semantic Versioning.
 ## 2.16.0 (2023-09-06)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.16.0/)
+
+### Known issues
+
+* `cmake --install` with `--component build-tools` does not install the build
+  tools. Fix: [Git commit
+  3923f0df76d24b73d57f15eec61ab190ea048093][cmake-install-component-build-tools-patch]
 
 ### Added
 
@@ -1065,6 +1126,7 @@ Beta release.
 [Bun]: https://bun.sh/
 [Deno]: https://deno.land/
 [cli-language]: ../cli/#language
+[cmake-install-component-build-tools-patch]: https://github.com/quick-lint/quick-lint-js/commit/3923f0df76d24b73d57f15eec61ab190ea048093.patch
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [cross-compiling-quick-lint-js]: https://quick-lint-js.com/contribute/build-from-source/cross-compiling/
@@ -1074,6 +1136,7 @@ Beta release.
 [AidenThing]: https://github.com/AidenThing
 [Alek Lefebvre]: https://github.com/AlekLefebvre
 [Amir]: https://github.com/ahmafi
+[Ariel Don]: https://github.com/arieldon
 [Austin Garcia]: https://github.com/holychowders
 [Christian Mund]: https://github.com/kkkrist
 [Daniel La Rocque]: https://github.com/dlarocque
@@ -1114,6 +1177,7 @@ Beta release.
 [ooblegork]: https://github.com/ooblegork
 [pedrobl1718]: https://github.com/pedrobl85
 [tiagovla]: https://github.com/tiagovla
+[toastin0]: https://github.com/toastin0
 [wagner riffel]: https://github.com/wgrr
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
@@ -1218,6 +1282,7 @@ Beta release.
 [E0349]: https://quick-lint-js.com/errors/E0349/
 [E0356]: https://quick-lint-js.com/errors/E0356/
 [E0357]: https://quick-lint-js.com/errors/E0357/
+[E0361]: https://quick-lint-js.com/errors/E0361/
 [E0362]: https://quick-lint-js.com/errors/E0362/
 [E0365]: https://quick-lint-js.com/errors/E0365/
 [E0369]: https://quick-lint-js.com/errors/E0369/
@@ -1230,6 +1295,7 @@ Beta release.
 [E0383]: https://quick-lint-js.com/errors/E0383/
 [E0384]: https://quick-lint-js.com/errors/E0384/
 [E0398]: https://quick-lint-js.com/errors/E0398/
+[E0426]: https://quick-lint-js.com/errors/E0426/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/
@@ -1240,3 +1306,5 @@ Beta release.
 [E0712]: https://quick-lint-js.com/errors/E0712/
 [E0713]: https://quick-lint-js.com/errors/E0713/
 [E0714]: https://quick-lint-js.com/errors/E0714/
+[E0715]: https://quick-lint-js.com/errors/E0715/
+[E0716]: https://quick-lint-js.com/errors/E0716/

@@ -5,7 +5,7 @@
 
 #include <limits>
 #include <optional>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 
 namespace quick_lint_js {
 template <class T>

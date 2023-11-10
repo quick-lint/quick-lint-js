@@ -3,6 +3,8 @@
 
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/hash-map.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/pipe.h>
@@ -70,9 +72,11 @@ Event_Loop_Poll::Event_Loop_Poll() : impl_(new Impl()) {
 Event_Loop_Poll::~Event_Loop_Poll() { delete this->impl_; }
 
 void Event_Loop_Poll::run() {
+  Monotonic_Allocator allocator("Event_Loop_Poll");
   // events[i] corresponds to event_registered_events[i].
-  std::vector<::pollfd> events;
-  std::vector<const Registered_Event*> event_registered_events;
+  Vector<::pollfd> events("events", &allocator);
+  Vector<const Registered_Event*> event_registered_events(
+      "event_registered_events", &allocator);
 
   while (!this->is_stop_requested()) {
     events.clear();
@@ -112,7 +116,7 @@ void Event_Loop_Poll::run() {
     }
     QLJS_ASSERT(rc > 0);
 
-    for (std::size_t i = 0; i < events.size(); ++i) {
+    for (Vector_Size i = 0; i < events.size(); ++i) {
       const ::pollfd& event = events[i];
       if (event.revents == 0) {
         continue;

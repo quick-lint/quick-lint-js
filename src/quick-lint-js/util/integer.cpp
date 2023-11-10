@@ -15,9 +15,9 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
 #include <quick-lint-js/util/math-overflow.h>
-#include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <type_traits>
 
@@ -263,6 +263,7 @@ template Parse_Integer_Exact_Error parse_integer_exact_hex(
     String8_View, unsigned long long &value);
 #endif
 
+template Char8 *write_integer<unsigned char>(unsigned char, Char8 *out);
 template Char8 *write_integer<unsigned short>(unsigned short, Char8 *out);
 template Char8 *write_integer<int>(int, Char8 *out);
 template Char8 *write_integer<long>(long, Char8 *out);
@@ -273,6 +274,7 @@ template Char8 *write_integer<unsigned long long>(unsigned long long,
                                                   Char8 *out);
 
 #if QLJS_HAVE_CHAR8_T
+template char *write_integer<unsigned char>(unsigned char, char *out);
 template char *write_integer<unsigned short>(unsigned short, char *out);
 template char *write_integer<unsigned>(unsigned, char *out);
 #endif

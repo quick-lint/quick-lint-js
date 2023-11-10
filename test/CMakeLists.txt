@@ -106,8 +106,8 @@ quick_lint_js_add_executable(
   test-file-path.cpp
   test-file.cpp
   test-fixed-vector.cpp
+  test-flexible-array.cpp
   test-function-ref.cpp
-  test-heap-function.cpp
   test-instance-tracker.cpp
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp
@@ -152,6 +152,7 @@ quick_lint_js_add_executable(
   test-parse-typescript-declare-function.cpp
   test-parse-typescript-declare-global.cpp
   test-parse-typescript-declare-interface.cpp
+  test-parse-typescript-declare-module.cpp
   test-parse-typescript-declare-namespace.cpp
   test-parse-typescript-declare-tsmodule.cpp
   test-parse-typescript-declare-type-alias.cpp
@@ -167,6 +168,7 @@ quick_lint_js_add_executable(
   test-parse-typescript-module.cpp
   test-parse-typescript-namespace.cpp
   test-parse-typescript-object.cpp
+  test-parse-typescript-statement.cpp
   test-parse-typescript-this-parameters.cpp
   test-parse-typescript-type-alias.cpp
   test-parse-typescript-type.cpp

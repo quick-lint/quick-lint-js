@@ -192,8 +192,8 @@ void Parser::check_jsx_attribute(const Identifier& attribute_name) {
   bool name_has_upper = any_of(name, isupper);
 
   if (!name_has_upper && is_event_attribute) {
-    Bump_Vector<Char8, Monotonic_Allocator> fixed_name(
-        "check_jsx_attribute fixed_name", &this->diagnostic_memory_);
+    Vector<Char8> fixed_name("check_jsx_attribute fixed_name",
+                             &this->diagnostic_memory_);
     fixed_name += name;
     fixed_name[2] = toupper(fixed_name[2]);
     this->diag_reporter_->report(Diag_JSX_Event_Attribute_Should_Be_Camel_Case{
@@ -264,7 +264,7 @@ Expression* Parser::maybe_wrap_erroneous_arrow_function(
     return arrow_function;
 
   case Expression_Kind::Trailing_Comma: {
-    auto* parameter_list = expression_cast<Expression::Trailing_Comma>(lhs);
+    auto* parameter_list = expression_cast<Expression::Trailing_Comma*>(lhs);
     Expression* last_parameter =
         parameter_list->child(parameter_list->child_count() - 1);
     if (last_parameter->kind() == Expression_Kind::Spread) {
@@ -279,7 +279,7 @@ Expression* Parser::maybe_wrap_erroneous_arrow_function(
 
   // f() => {}         // Invalid.
   case Expression_Kind::Call: {
-    auto* call = expression_cast<Expression::Call>(lhs);
+    auto* call = expression_cast<Expression::Call*>(lhs);
     Source_Code_Span missing_operator_span(call->span().begin(),
                                            call->left_paren_span().end());
     this->diag_reporter_->report(
@@ -298,7 +298,7 @@ Expression* Parser::maybe_wrap_erroneous_arrow_function(
 void Parser::error_on_sketchy_condition(Expression* ast) {
   if (ast->kind() == Expression_Kind::Assignment &&
       ast->child_1()->kind() == Expression_Kind::Literal) {
-    auto* assignment = static_cast<Expression::Assignment*>(ast);
+    auto* assignment = expression_cast<Expression::Assignment*>(ast);
     this->diag_reporter_->report(Diag_Assignment_Makes_Condition_Constant{
         .assignment_operator = assignment->operator_span_,
     });
@@ -310,9 +310,9 @@ void Parser::error_on_sketchy_condition(Expression* ast) {
       ast->children().size() == 3 &&
       ((ast->child(2)->kind() == Expression_Kind::Literal) ||
        ((ast->child(2)->kind() == Expression_Kind::Variable) &&
-        (static_cast<Expression::Variable*>(ast->child(2))->type_ ==
+        (expression_cast<Expression::Variable*>(ast->child(2))->type_ ==
          Token_Type::kw_undefined)))) {
-    auto* binary = static_cast<Expression::Binary_Operator*>(ast);
+    auto* binary = expression_cast<Expression::Binary_Operator*>(ast);
     Source_Code_Span left_operator = binary->operator_spans_[0];
     Source_Code_Span right_operator = binary->operator_spans_[1];
     if (right_operator.string_view() == u8"||"_sv &&
@@ -331,7 +331,7 @@ void Parser::warn_on_comma_operator_in_conditional_statement(Expression* ast) {
 
   auto is_comma = [](String8_View s) -> bool { return s == u8","_sv; };
 
-  auto* binary_operator = static_cast<Expression::Binary_Operator*>(ast);
+  auto* binary_operator = expression_cast<Expression::Binary_Operator*>(ast);
   for (Span_Size i = binary_operator->child_count() - 2; i >= 0; i--) {
     Source_Code_Span op_span = binary_operator->operator_spans_[i];
     if (is_comma(op_span.string_view())) {
@@ -349,7 +349,7 @@ void Parser::warn_on_comma_operator_in_index(Expression* ast,
 
   auto is_comma = [](String8_View s) -> bool { return s == u8","_sv; };
 
-  auto* binary_operator = static_cast<Expression::Binary_Operator*>(ast);
+  auto* binary_operator = expression_cast<Expression::Binary_Operator*>(ast);
   for (Span_Size i = binary_operator->child_count() - 2; i >= 0; i--) {
     Source_Code_Span op_span = binary_operator->operator_spans_[i];
     if (is_comma(op_span.string_view())) {
@@ -360,7 +360,24 @@ void Parser::warn_on_comma_operator_in_index(Expression* ast,
     }
   }
 }
-
+void Parser::warn_on_unintuitive_bitshift_precedence(Expression* ast) {
+  if (ast->kind() != Expression_Kind::Binary_Operator) return;
+  if (ast->child_count() <= 2) return;
+  auto* binary_op = static_cast<Expression::Binary_Operator*>(ast);
+  Source_Code_Span left_op = binary_op->operator_spans_[0];
+  Source_Code_Span right_op = binary_op->operator_spans_[1];
+  if (left_op.string_view() == u8"&"_sv &&
+      (right_op.string_view() == u8">>"_sv ||
+       right_op.string_view() == u8"<<"_sv)) {
+    if (binary_op->child(0)->kind() == Expression_Kind::Variable &&
+        binary_op->child(1)->kind() == Expression_Kind::Literal &&
+        binary_op->child(2)->kind() == Expression_Kind::Literal) {
+      this->diag_reporter_->report(
+          quick_lint_js::Diag_Unintuitive_Bitshift_Precedence{
+              .bitshift_operator = right_op, .and_operator = left_op});
+    }
+  }
+}
 void Parser::error_on_pointless_string_compare(
     Expression::Binary_Operator* ast) {
   auto is_comparison_operator = [](String8_View s) {
@@ -431,7 +448,7 @@ void Parser::error_on_invalid_as_const(Expression* ast,
     break;
 
   case Expression_Kind::Literal: {
-    auto* literal = static_cast<Expression::Literal*>(ast);
+    auto* literal = expression_cast<Expression::Literal*>(ast);
     if (literal->is_null() || literal->is_regexp()) {
       goto invalid;
     }
@@ -537,7 +554,7 @@ void Parser::check_compare_against_literal(Expression* lhs, Expression* rhs,
           .equals_operator = op_span, .comparison_result = comparison_result});
       return;
     case Expression_Kind::Literal:
-      if (static_cast<Expression::Literal*>(child)->is_regexp()) {
+      if (expression_cast<Expression::Literal*>(child)->is_regexp()) {
         this->diag_reporter_->report(
             Diag_Pointless_Comp_Against_Regular_Expression_Literal{
                 .equals_operator = op_span,
@@ -808,7 +825,7 @@ void Parser::check_lhs_for_null_potential(Expression* lhs,
     report_diag = true;
     break;
   case Expression_Kind::Unary_Operator: {
-    auto* maybe_void_lhs = static_cast<Expression::Unary_Operator*>(lhs);
+    auto* maybe_void_lhs = expression_cast<Expression::Unary_Operator*>(lhs);
     if (!maybe_void_lhs->is_void_operator()) {
       report_diag = true;
     }
@@ -818,7 +835,7 @@ void Parser::check_lhs_for_null_potential(Expression* lhs,
     report_diag = true;
     break;
   case Expression_Kind::Binary_Operator: {
-    auto* operator_lhs = static_cast<Expression::Binary_Operator*>(lhs);
+    auto* operator_lhs = expression_cast<Expression::Binary_Operator*>(lhs);
     report_diag = binary_operator_is_never_null(operator_lhs);
     break;
   }
@@ -852,7 +869,7 @@ Parser_Transaction Parser::begin_transaction() {
 
 void Parser::commit_transaction(Parser_Transaction&& transaction) {
   auto* buffered_diagnostics =
-      static_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
+      derived_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
   buffered_diagnostics->move_into(transaction.old_diag_reporter);
   this->diag_reporter_ = transaction.old_diag_reporter;
 

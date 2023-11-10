@@ -39,7 +39,7 @@ struct String_Table {
     // Copies the string.
     explicit Entry(String8_View string, Monotonic_Allocator* allocator);
 
-    Bump_Vector<const char*, Monotonic_Allocator> origin_file_paths;
+    Vector<const char*> origin_file_paths;
     String8_View string;
   };
 
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
   write_messages_po_template(string_table, output_messages_pot_path);
 
   Monotonic_Allocator allocator("main");
-  Bump_Vector<PO_File, Monotonic_Allocator> po_files("PO files", &allocator);
+  Vector<PO_File> po_files("PO files", &allocator);
   for (const char* po_file_path : po_file_paths) {
     po_files.push_back(PO_File{
         .locale = po_path_to_locale_name(po_file_path),
@@ -203,10 +203,10 @@ String8_View po_path_to_locale_name(const char* po_path) {
 
 String_Table::Entry::Entry(String8_View string, Monotonic_Allocator* allocator)
     : origin_file_paths("String_Table::Entry::file_paths", allocator) {
-  Char8* new_string =
-      allocator->allocate_uninitialized_array<Char8>(string.size());
-  Char8* new_string_end = std::copy(string.begin(), string.end(), new_string);
-  this->string = make_string_view(new_string, new_string_end);
+  Span<Char8> new_string =
+      allocator->allocate_uninitialized_span<Char8>(string.size());
+  std::copy(string.begin(), string.end(), new_string.begin());
+  this->string = make_string_view(new_string.begin(), new_string.end());
 }
 
 void String_Table::add_string(String8_View string,
@@ -484,8 +484,8 @@ void write_translation_test_header(
     Output_Stream& out) {
   Monotonic_Allocator allocator("write_translation_test_header");
 
-  Bump_Vector<String8_View, Monotonic_Allocator> locale_names(
-      "compile_translation_table locale_names", &allocator);
+  Vector<String8_View> locale_names("compile_translation_table locale_names",
+                                    &allocator);
   for (const PO_File& file : po_files) {
     locale_names.push_back(file.locale);
   }

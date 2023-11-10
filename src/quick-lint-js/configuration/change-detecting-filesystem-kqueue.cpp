@@ -22,7 +22,7 @@
 #include <quick-lint-js/port/kqueue.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/util/algorithm.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
 #include <string_view>

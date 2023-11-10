@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[522] = {
+inline const Translated_String test_translation_table[530] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -103,6 +103,17 @@ inline const Translated_String test_translation_table[522] = {
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
             u8"'!' here treated as the TypeScript non-null assertion operator",
+        },
+    },
+    {
+        "'&' here"_translatable,
+        u8"'&' here",
+        {
+            u8"'&' here",
+            u8"'&' here",
+            u8"'&' here",
+            u8"'&' here",
+            u8"'&' here",
         },
     },
     {
@@ -609,6 +620,28 @@ inline const Translated_String test_translation_table[522] = {
             u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
             u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
             u8"'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead",
+        },
+    },
+    {
+        "'export as namespace' is not allowed in a namespace or module"_translatable,
+        u8"'export as namespace' is not allowed in a namespace or module",
+        {
+            u8"'export as namespace' is not allowed in a namespace or module",
+            u8"'export as namespace' is not allowed in a namespace or module",
+            u8"'export as namespace' is not allowed in a namespace or module",
+            u8"'export as namespace' is not allowed in a namespace or module",
+            u8"'export as namespace' is not allowed in a namespace or module",
+        },
+    },
+    {
+        "'export as namespace' is only allowed in TypeScript .d.ts files"_translatable,
+        u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+        {
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
+            u8"'export as namespace' is only allowed in TypeScript .d.ts files",
         },
     },
     {
@@ -2163,6 +2196,17 @@ inline const Translated_String test_translation_table[522] = {
         },
     },
     {
+        "cannot use multiple `export default` statements in one module"_translatable,
+        u8"cannot use multiple `export default` statements in one module",
+        {
+            u8"cannot use multiple `export default` statements in one module",
+            u8"cannot use multiple `export default` statements in one module",
+            u8"cannot use multiple `export default` statements in one module",
+            u8"cannot use multiple `export default` statements in one module",
+            u8"cannot use multiple `export default` statements in one module",
+        },
+    },
+    {
         "cannot use type directly in its own definition"_translatable,
         u8"cannot use type directly in its own definition",
         {
@@ -2325,6 +2369,17 @@ inline const Translated_String test_translation_table[522] = {
             u8"containing 'declare namespace' starts here",
             u8"containing 'declare namespace' starts here",
             u8"containing 'declare namespace' starts here",
+        },
+    },
+    {
+        "containing namespace or module declared here"_translatable,
+        u8"containing namespace or module declared here",
+        {
+            u8"containing namespace or module declared here",
+            u8"containing namespace or module declared here",
+            u8"containing namespace or module declared here",
+            u8"containing namespace or module declared here",
+            u8"containing namespace or module declared here",
         },
     },
     {
@@ -2754,6 +2809,17 @@ inline const Translated_String test_translation_table[522] = {
             u8"expected {1:singular}",
             u8"esperado {1:singular}",
             u8"expected {1:singular}",
+        },
+    },
+    {
+        "export default previously appeared here"_translatable,
+        u8"export default previously appeared here",
+        {
+            u8"export default previously appeared here",
+            u8"export default previously appeared here",
+            u8"export default previously appeared here",
+            u8"export default previously appeared here",
+            u8"export default previously appeared here",
         },
     },
     {
@@ -5001,6 +5067,17 @@ inline const Translated_String test_translation_table[522] = {
         },
     },
     {
+        "type predicates are only allowed as function return types"_translatable,
+        u8"type predicates are only allowed as function return types",
+        {
+            u8"type predicates are only allowed as function return types",
+            u8"type predicates are only allowed as function return types",
+            u8"type predicates are only allowed as function return types",
+            u8"type predicates are only allowed as function return types",
+            u8"type predicates are only allowed as function return types",
+        },
+    },
+    {
         "type {1} is being defined here"_translatable,
         u8"type {1} is being defined here",
         {
@@ -5383,6 +5460,17 @@ inline const Translated_String test_translation_table[522] = {
             u8"un indicateur d'ordre des octets (BOM) ne peut figurer avant #! au d\u00e9but d'un script",
             u8"unicode byte order mark (BOM) n\u00e3o pode aparecer antes do #! no come\u00e7o do script",
             u8"unicode byte ordningsm\u00e4rke (BOM) kan inte f\u00f6rekomma f\u00f6re #! i b\u00f6rjan av skript",
+        },
+    },
+    {
+        "unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &"_translatable,
+        u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+        {
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+            u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
         },
     },
     {

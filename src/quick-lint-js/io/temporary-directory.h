@@ -44,10 +44,11 @@ Result<std::string, Platform_File_IO_Error> make_timestamped_directory(
 //
 // visit_file is called with the name (not full path) of the child.
 Result<void, Platform_File_IO_Error> list_directory(
-    const char* directory, Function_Ref<void(const char*)> visit_file);
+    const char* directory,
+    Temporary_Function_Ref<void(const char*)> visit_file);
 Result<void, Platform_File_IO_Error> list_directory(
     const char* directory,
-    Function_Ref<void(const char*, bool is_directory)> visit_file);
+    Temporary_Function_Ref<void(const char*, bool is_directory)> visit_file);
 
 QLJS_WARNING_PUSH
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69210

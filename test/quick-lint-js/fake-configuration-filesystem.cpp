@@ -5,9 +5,9 @@
 // No filesystem on the web.
 #else
 
+#include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
-#include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/io/file-canonical.h>
@@ -24,15 +24,22 @@ Fake_Configuration_Filesystem::~Fake_Configuration_Filesystem() = default;
 
 void Fake_Configuration_Filesystem::create_file(const Canonical_Path& path,
                                                 String8_View content) {
-  this->files_.insert_or_assign(
-      path, [content_string = String8(content)]() -> Read_File_Result {
-        return Padded_String(String8_View(content_string));
-      });
+  Span<Char8> content_copy =
+      this->allocator_.allocate_uninitialized_span<Char8>(content.size());
+  std::uninitialized_copy(content.begin(), content.end(), content_copy.data());
+  String8_View content_copy_view(content_copy.data(),
+                                 narrow_cast<std::size_t>(content_copy.size()));
+  this->files_.insert_or_assign(path,
+                                *this->allocator_.new_object_copy(
+                                    [content_copy_view]() -> Read_File_Result {
+                                      return Padded_String(content_copy_view);
+                                    }));
 }
 
 void Fake_Configuration_Filesystem::create_file(
-    const Canonical_Path& path, Heap_Function<Read_File_Result()> callback) {
-  this->files_.insert_or_assign(path, std::move(callback));
+    const Canonical_Path& path,
+    Async_Function_Ref<Read_File_Result()> callback) {
+  this->files_.insert_or_assign(path, callback);
 }
 
 Canonical_Path Fake_Configuration_Filesystem::rooted(const char* path) const {

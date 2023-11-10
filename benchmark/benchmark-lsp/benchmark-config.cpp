@@ -304,10 +304,11 @@ Benchmark_Config Benchmark_Config::load() {
       },
 
       Benchmark_Config_Server{
-          .name = "Rome",
-          .program_name = "Rome",
+          .name = "Biome",
+          .program_name = "Biome",
           .command = {"./run.sh"},
-          .cwd = "rome/",
+          .cwd = "biome/",
+          .supports_jsx = true,
       },
 
       Benchmark_Config_Server{
@@ -423,8 +424,8 @@ Benchmark_Config Benchmark_Config::load() {
       },
 
       Benchmark_Config_Program{
-          .name = "Rome",
-          .get_metadata = []() { return get_yarn_packages_versions("rome"); },
+          .name = "Biome",
+          .get_metadata = []() { return get_yarn_packages_versions("biome"); },
       },
 
       Benchmark_Config_Program{

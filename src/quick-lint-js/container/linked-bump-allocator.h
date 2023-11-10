@@ -4,21 +4,11 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdint>
+#include <memory>
 #include <new>
-#include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/flexible-array.h>
-#include <quick-lint-js/port/have.h>
-#include <quick-lint-js/port/math.h>
 #include <quick-lint-js/port/memory-resource.h>
-#include <quick-lint-js/port/span.h>
-#include <quick-lint-js/util/narrow-cast.h>
-#include <quick-lint-js/util/pointer.h>
-#include <utility>
-
-#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
-#include <sanitizer/asan_interface.h>
-#endif
+#include <quick-lint-js/util/cast.h>
 
 #if defined(QLJS_DEBUG) && QLJS_DEBUG
 #define QLJS_DEBUG_BUMP_ALLOCATOR 1
@@ -32,36 +22,23 @@ namespace quick_lint_js {
 // * no per-object free()/delete
 // * bulk free() via rewind() (doesn't call destructors)
 // * in-place growing of allocations
-// * all allocations have the same alignment
 //
 // Internally, Linked_Bump_Allocator maintains a linked list of chunks.
-template <std::size_t alignment>
-class Linked_Bump_Allocator : public Memory_Resource {
+class Linked_Bump_Allocator final : public Memory_Resource {
  private:
   struct Chunk_Header;
   using Chunk = Flexible_Array<char, Chunk_Header>;
 
  public:
-  explicit Linked_Bump_Allocator(const char* debug_owner) {
-    static_cast<void>(debug_owner);
-  }
+  explicit Linked_Bump_Allocator(const char* debug_owner);
 
   Linked_Bump_Allocator(const Linked_Bump_Allocator&) = delete;
   Linked_Bump_Allocator& operator=(const Linked_Bump_Allocator&) = delete;
 
-  ~Linked_Bump_Allocator() override { this->release(); }
+  ~Linked_Bump_Allocator() override;
 
-  void release() {
-    Chunk* c = this->chunk_;
-    while (c) {
-      Chunk* previous = c->previous;
-      Chunk::destroy_header_and_deallocate(new_delete_resource(), c);
-      c = previous;
-    }
-    this->chunk_ = nullptr;
-    this->next_allocation_ = nullptr;
-    this->chunk_end_ = nullptr;
-  }
+  // Deallocate previously-allocated memory.
+  void release();
 
   struct Rewind_State {
     // Private to linked_bump_allocator. Do not use.
@@ -89,6 +66,7 @@ class Linked_Bump_Allocator : public Memory_Resource {
     Rewind_State rewind_;
   };
 
+  // See rewind().
   Rewind_State prepare_for_rewind() {
     return Rewind_State{
         .chunk_ = this->chunk_,
@@ -97,150 +75,46 @@ class Linked_Bump_Allocator : public Memory_Resource {
     };
   }
 
-  void rewind(Rewind_State&& r) {
-    bool allocated_new_chunk = this->chunk_ != r.chunk_;
-    if (allocated_new_chunk) {
-      // If we rewound to exactly where we were before, we might rewind near the
-      // end of a chunk. Allocations would soon need a new chunk.
-      //
-      // Avoid straddling near the end of a chunk by using a new chunk (which
-      // was already allocated).
-      //
-      // TODO(strager): Should we use the *oldest* chunk or the *newest* chunk?
-      // Here we pick the *oldest* chunk.
-      Chunk* c = this->chunk_;
-      QLJS_ASSERT(c);
-      while (c->previous != r.chunk_) {
-        Chunk* previous = c->previous;
-        Chunk::destroy_header_and_deallocate(new_delete_resource(), c);
-        c = previous;
-        QLJS_ASSERT(c);
-      }
-      this->chunk_ = c;
-      this->next_allocation_ = c->flexible_capacity_begin();
-      this->chunk_end_ = c->flexible_capacity_end();
-    } else {
-      this->chunk_ = r.chunk_;
-      this->next_allocation_ = r.next_allocation_;
-      this->chunk_end_ = r.chunk_end_;
-    }
-    this->did_deallocate_bytes(
-        this->next_allocation_,
-        narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_));
-  }
+  // Deallocate all allocations made since the creation of the Rewind_State
+  // (returned by this->prepare_for_rewind()).
+  void rewind(Rewind_State&& r);
 
+  // Calls this->prepare_for_rewind() immediately then this->rewind() on
+  // destruction.
   [[nodiscard]] Rewind_Guard make_rewind_guard() { return Rewind_Guard(this); }
 
-  template <class T, class... Args>
-  T* new_object(Args&&... args) {
-    static_assert(alignof(T) <= alignment,
-                  "T is not allowed by this allocator; this allocator's "
-                  "alignment is insufficient for T");
-    constexpr std::size_t byte_size = align_up(sizeof(T));
-    return new (this->allocate_bytes(byte_size)) T(std::forward<Args>(args)...);
-  }
-
-  template <class T>
-  [[nodiscard]] T* allocate_uninitialized_array(std::size_t size) {
-    static_assert(alignof(T) <= alignment,
-                  "T is not allowed by this allocator; this allocator's "
-                  "alignment is insufficient for T");
-    std::size_t byte_size = this->align_up(size * sizeof(T));
-    return reinterpret_cast<T*>(this->allocate_bytes(byte_size));
-  }
-
-  template <class T>
-  [[nodiscard]] Span<T> allocate_uninitialized_span(std::size_t size) {
-    T* items = this->allocate_uninitialized_array<T>(size);
-    return Span<T>(items, narrow_cast<Span_Size>(size));
-  }
-
-  template <class T>
-  [[nodiscard]] Span<T> allocate_span(Span_Size size) {
-    return this->allocate_span<T>(narrow_cast<std::size_t>(size));
-  }
-
-  template <class T>
-  [[nodiscard]] Span<T> allocate_span(std::size_t size) {
-    Span<T> items = this->allocate_uninitialized_span<T>(size);
-    for (T& item : items) {
-      // FIXME(strager): I think we technically need to std::launder after
-      // placement new.
-      new (&item) T();
-    }
-    return items;
-  }
-
-  template <class T>
-  bool try_grow_array_in_place(T* array, std::size_t old_size,
-                               std::size_t new_size) {
-    this->assert_not_disabled();
-    QLJS_ASSERT(new_size > old_size);
-    std::size_t old_byte_size = this->align_up(old_size * sizeof(T));
-    bool array_is_last_allocation =
-        reinterpret_cast<char*>(array) + old_byte_size ==
-        this->next_allocation_;
-    if (!array_is_last_allocation) {
-      // We can't grow because something else was already allocated.
-      return false;
-    }
-
-    std::size_t extra_bytes = this->align_up((new_size - old_size) * sizeof(T));
-    if (extra_bytes > this->remaining_bytes_in_current_chunk()) {
-      return false;
-    }
-    this->did_allocate_bytes(this->next_allocation_, extra_bytes);
-    this->next_allocation_ += extra_bytes;
-    return true;
-  }
-
+  // For testing only.
   std::size_t remaining_bytes_in_current_chunk() const {
     return narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_);
   }
 
   class Disable_Guard {
    public:
-    ~Disable_Guard() {
-#if QLJS_DEBUG_BUMP_ALLOCATOR
-      this->alloc_->disabled_count_ -= 1;
-#endif
-    }
+    ~Disable_Guard();
 
    private:
-#if QLJS_DEBUG_BUMP_ALLOCATOR
-    explicit disable_guard(linked_bump_allocator* alloc) : alloc_(alloc) {
-      this->alloc_->disabled_count_ += 1;
-    }
-#else
-    explicit Disable_Guard(Linked_Bump_Allocator*) {}
-#endif
+    explicit Disable_Guard(Linked_Bump_Allocator*);
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
-    linked_bump_allocator* alloc_;
+    Linked_Bump_Allocator* alloc_;
 #endif
 
     friend class Linked_Bump_Allocator;
   };
 
+  // In debug modes, cause all allocations to fail with a precondition failure
+  // until the Disable_Guard is destructed.
   [[nodiscard]] Disable_Guard disable() { return Disable_Guard(this); }
 
  protected:
-  void* do_allocate(std::size_t bytes, std::size_t align) override {
-    QLJS_ASSERT(align <= alignment);
-    return this->allocate_bytes(this->align_up(bytes));
-  }
-
-  void do_deallocate(void* p, std::size_t bytes, std::size_t align) override {
-    QLJS_ASSERT(align <= alignment);
-    this->deallocate_bytes(p, bytes);
-  }
-
-  bool do_is_equal(const Memory_Resource& other) const override {
-    return this == static_cast<const Linked_Bump_Allocator*>(&other);
-  }
+  void* do_allocate(std::size_t bytes, std::size_t align) override;
+  void do_deallocate(void* p, std::size_t bytes,
+                     [[maybe_unused]] std::size_t align) override;
+  bool do_try_grow_in_place(void* p, std::size_t old_byte_size,
+                            std::size_t new_byte_size) override;
 
  private:
-  struct alignas(maximum(alignment, alignof(void*))) Chunk_Header {
+  struct alignas(alignof(void*)) Chunk_Header {
     explicit Chunk_Header(Chunk* previous) : previous(previous) {}
 
     Chunk* previous;  // Linked list.
@@ -248,22 +122,7 @@ class Linked_Bump_Allocator : public Memory_Resource {
 
   static inline constexpr std::size_t default_chunk_size = 4096 - sizeof(Chunk);
 
-  static constexpr std::size_t align_up(std::size_t size) {
-    return (size + alignment - 1) & ~(alignment - 1);
-  }
-
-  [[nodiscard]] void* allocate_bytes(std::size_t size) {
-    this->assert_not_disabled();
-    QLJS_SLOW_ASSERT(size % alignment == 0);
-    if (this->remaining_bytes_in_current_chunk() < size) {
-      this->append_chunk(maximum(size, this->default_chunk_size));
-      QLJS_ASSERT(this->remaining_bytes_in_current_chunk() >= size);
-    }
-    void* result = this->next_allocation_;
-    this->next_allocation_ += size;
-    this->did_allocate_bytes(result, size);
-    return result;
-  }
+  [[nodiscard]] void* allocate_bytes(std::size_t size, std::size_t align);
 
   void deallocate_bytes([[maybe_unused]] void* p,
                         [[maybe_unused]] std::size_t size) {
@@ -271,36 +130,17 @@ class Linked_Bump_Allocator : public Memory_Resource {
   }
 
   void did_allocate_bytes([[maybe_unused]] void* p,
-                          [[maybe_unused]] std::size_t size) {
-#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
-    ASAN_UNPOISON_MEMORY_REGION(p, size);
-#endif
-    // TODO(strager): Mark memory as usable for Valgrind.
-  }
+                          [[maybe_unused]] std::size_t size);
 
   void did_deallocate_bytes([[maybe_unused]] void* p,
-                            [[maybe_unused]] std::size_t size) {
-#if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
-    ASAN_POISON_MEMORY_REGION(p, size);
-#endif
-    // TODO(strager): Mark memory as unusable for Valgrind.
-  }
+                            [[maybe_unused]] std::size_t size);
 
-  void append_chunk(std::size_t size) {
-    this->chunk_ = Chunk::allocate_and_construct_header(new_delete_resource(),
-                                                        size, this->chunk_);
-    this->next_allocation_ = this->chunk_->flexible_capacity_begin();
-    this->chunk_end_ = this->chunk_->flexible_capacity_end();
-  }
+  void append_chunk(std::size_t size, std::size_t align);
 
-  void assert_not_disabled() const {
-#if QLJS_DEBUG_BUMP_ALLOCATOR
-    QLJS_ALWAYS_ASSERT(!this->is_disabled());
-#endif
-  }
+  void assert_not_disabled() const;
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
-  bool is_disabled() const { return this->disabled_count_ > 0; }
+  bool is_disabled() const;
 #endif
 
   Chunk* chunk_ = nullptr;
@@ -308,6 +148,7 @@ class Linked_Bump_Allocator : public Memory_Resource {
   char* chunk_end_ = nullptr;
 
 #if QLJS_DEBUG_BUMP_ALLOCATOR
+  // Used only if QLJS_DEBUG_BUMP_ALLOCATOR.
   int disabled_count_ = 0;
 #endif
 };

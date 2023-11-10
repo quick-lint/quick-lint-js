@@ -29,10 +29,6 @@ class New_Delete_Resource_Impl : public Memory_Resource {
     ::operator delete(p);
 #endif
   }
-
-  bool do_is_equal(const Memory_Resource& other) const override {
-    return this == static_cast<const New_Delete_Resource_Impl*>(&other);
-  }
 };
 }
 

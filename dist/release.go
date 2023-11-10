@@ -50,28 +50,41 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Update release notes file",
 		Run: func() {
-			fmt.Printf("Update the release notes file: docs/CHANGELOG.md\n")
-			WaitForDone()
+			changelogPath := "docs/CHANGELOG.md"
+			if err := UpdateUnreleasedChangelogFile(changelogPath, VersionFileInfo{
+				VersionNumber: ReleaseVersion,
+				ReleaseDate:   ReleaseDate,
+			}); err != nil {
+				Stopf("failed to update changelog file %s: %v", changelogPath, err)
+			}
 		},
 	},
 
 	Step{
 		Title: "Update version number in files",
 		Run: func() {
-			UpdateReleaseVersionsInFiles([]string{
-				"Formula/quick-lint-js.rb",
-				"dist/arch/PKGBUILD-dev",
-				"dist/arch/PKGBUILD-git",
-				"dist/arch/PKGBUILD-release",
-				"dist/chocolatey/quick-lint-js.nuspec",
-				"dist/chocolatey/tools/VERIFICATION.txt",
-				"dist/debian/README.md",
-				"dist/npm/BUILDING.md",
-				"dist/npm/package.json",
-				"dist/scoop/quick-lint-js.template.json",
-				"dist/sign-release.go",
-				"plugin/vscode-lsp/README.md",
-				"plugin/vscode/BUILDING.md",
+			UpdateReleaseVersionsInFiles(map[string]string{
+				"Formula/quick-lint-js.rb":               "",
+				"dist/arch/PKGBUILD-dev":                 "",
+				"dist/arch/PKGBUILD-git":                 "",
+				"dist/arch/PKGBUILD-release":             "",
+				"dist/chocolatey/quick-lint-js.nuspec":   "",
+				"dist/chocolatey/tools/VERIFICATION.txt": "",
+				"dist/debian/README.md":                  "",
+				"dist/npm/BUILDING.md":                   "",
+				"dist/npm/package.json":                  "",
+				"dist/scoop/quick-lint-js.template.json": "",
+				"dist/sign-release.go":                   "",
+				"plugin/vscode-lsp/README.md":            "",
+				"plugin/vscode/BUILDING.md":              "",
+
+				"dist/msix/AppxManifest.xml":                                      "\\bVersion=",
+				"dist/winget/quick-lint.quick-lint-js.installer.template.yaml":    "PackageVersion:",
+				"dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml": "PackageVersion:",
+				"dist/winget/quick-lint.quick-lint-js.template.yaml":              "PackageVersion:",
+				"plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt":              "This plugin version is designed for quick-lint-js version",
+				"plugin/vscode-lsp/package.json":                                  "\"version\":",
+				"plugin/vscode/package.json":                                      "\"version\":",
 			})
 		},
 	},
@@ -106,37 +119,16 @@ var Steps []Step = []Step{
 	},
 
 	Step{
-		Title: "Manually update version number and release date",
-		Run: func() {
-			fmt.Printf("Change these files containing version numbers:\n")
-			fmt.Printf("* dist/msix/AppxManifest.xml\n")
-			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
-			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml\n")
-			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.template.yaml\n")
-			fmt.Printf("* plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt\n")
-			fmt.Printf("* plugin/vscode-lsp/package.json\n")
-			fmt.Printf("* plugin/vscode/package.json\n")
-			WaitForDone()
-		},
-	},
-
-	Step{
 		Title: "Re-generate man pages",
 		Run: func() {
-			cmd := exec.Command("./docs/man/generate-man-pages")
-			if err := cmd.Run(); err != nil {
-				Stopf("failed to generate man pages: %v", err)
-			}
+			RunCommandOrStop("./docs/man/generate-man-pages")
 		},
 	},
 
 	Step{
 		Title: "Re-generate Vim tags",
 		Run: func() {
-			cmd := exec.Command("./tools/generate-vim-tags")
-			if err := cmd.Run(); err != nil {
-				Stopf("failed to generate Vim tags: %v", err)
-			}
+			RunCommandOrStop("./tools/generate-vim-tags")
 		},
 	},
 
@@ -166,81 +158,105 @@ var Steps []Step = []Step{
 	},
 
 	Step{
+		Title: "Check builds folder",
+		Run: func() {
+			EnsureEmptyDirectory("builds")
+		},
+	},
+
+	Step{
 		Title: "Download builds",
 		Run: func() {
 			if ReleaseCommitHash == "" {
 				Stopf("missing -ReleaseCommitHash\n")
 			}
-			fmt.Printf("Download the build artifacts from the artifact server:\n")
-			fmt.Printf("$ rsync -av github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/%s/ builds/\n", ReleaseCommitHash)
-			WaitForDone()
+			RunCommandOrStop(
+				"rsync",
+				"-av",
+				fmt.Sprintf("github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/%s/", ReleaseCommitHash),
+				"builds/",
+			)
+		},
+	},
+
+	Step{
+		Title: "Check signed-builds folder",
+		Run: func() {
+			EnsureEmptyDirectory("signed-builds")
 		},
 	},
 
 	Step{
 		Title: "Sign the build artifacts",
 		Run: func() {
-			fmt.Printf("Sign the build artifacts:\n")
-			fmt.Printf("$ go run dist/sign-release.go dist/deep-hasher.go dist/appx.go -RelicConfig=dist/certificates/relic-config.yaml builds/ signed-builds/\n")
-			WaitForDone()
+			RunCommandOrStop(
+				"go", "run",
+				"dist/sign-release.go",
+				"dist/deep-hasher.go",
+				"dist/appx.go",
+				"-RelicConfig=dist/certificates/relic-config.yaml",
+				"builds/",
+				"signed-builds/",
+			)
 		},
 	},
 
 	Step{
 		Title: "Create a Scoop manifest",
 		Run: func() {
-			cmd := exec.Command(
+			RunCommandOrStop(
 				"go", "run", "./dist/scoop/make-manifest.go", "-BaseURI",
 				fmt.Sprintf("https://c.quick-lint-js.com/releases/%s/", ReleaseVersion),
 				"-x86-ZIP", "signed-builds/manual/windows-x86.zip",
 				"-x64-ZIP", "signed-builds/manual/windows.zip",
 				"-Out", "signed-builds/scoop/quick-lint-js.json",
 			)
-			if err := cmd.Run(); err != nil {
-				Stopf("failed to create Scoop manifest: %v", err)
-			}
 		},
 	},
 
 	Step{
 		Title: "Create a winget manifest",
 		Run: func() {
-			cmd := exec.Command(
+			RunCommandOrStop(
 				"go", "run", "./dist/winget/make-manifests.go", "-BaseURI",
 				fmt.Sprintf("https://c.quick-lint-js.com/releases/%s/", ReleaseVersion),
 				"-MSIX", "signed-builds/windows/quick-lint-js.msix",
 				"-OutDir", "signed-builds/winget/",
 			)
-			if err := cmd.Run(); err != nil {
-				Stopf("failed to create winget manifest: %v", err)
-			}
 		},
 	},
 
 	Step{
 		Title: "Upload the signed build artifacts",
 		Run: func() {
-			fmt.Printf("Upload the signed build artifacts to the artifact server:\n")
-			fmt.Printf("$ rsync -av signed-builds/ github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/%s/\n", ReleaseVersion)
-			WaitForDone()
+			RunCommandOrStop(
+				"rsync",
+				"-av",
+				"signed-builds/",
+				fmt.Sprintf("github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/%s/", ReleaseVersion),
+			)
 		},
 	},
 
 	Step{
 		Title: "Update `latest` symlink",
 		Run: func() {
-			fmt.Printf("Update the `latest` symlink on the artifact server:\n")
-			fmt.Printf("$ ssh github-ci@c.quick-lint-js.com \"ln --force --no-dereference --symbolic %s /var/www/c.quick-lint-js.com/releases/latest\"\n", ReleaseVersion)
-			WaitForDone()
+			RunCommandOrStop(
+				"ssh",
+				"github-ci@c.quick-lint-js.com",
+				fmt.Sprintf("ln --force --no-dereference --symbolic %s /var/www/c.quick-lint-js.com/releases/latest", ReleaseVersion),
+			)
 		},
 	},
 
 	Step{
 		Title: "Publish the Visual Studio Code extension to the Marketplace",
 		Run: func() {
-			fmt.Printf("With the `vscode/quick-lint-js-*.vsix` artifact:\n")
-			fmt.Printf("$ npx vsce publish --packagePath signed-builds/vscode/quick-lint-js-*.vsix\n")
-			WaitForDone()
+			RunCommandOrStop(
+				"npx", "vsce",
+				"publish",
+				"--packagePath", fmt.Sprintf("signed-builds/vscode/quick-lint-js-%s.vsix", ReleaseVersion),
+			)
 		},
 	},
 
@@ -248,7 +264,7 @@ var Steps []Step = []Step{
 		Title: "Publish the Visual Studio Code extension to the Open VSX Registry",
 		Run: func() {
 			fmt.Printf("With the `vscode/quick-lint-js-*.vsix` artifact:\n")
-			fmt.Printf("$ npx ovsx publish signed-builds/vscode/quick-lint-js-*.vsix --pat YOUR_ACCESS_TOKEN\n")
+			fmt.Printf("$ npx ovsx publish signed-builds/vscode/quick-lint-js-%s.vsix --pat YOUR_ACCESS_TOKEN\n", ReleaseVersion)
 			WaitForDone()
 		},
 	},
@@ -256,17 +272,18 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Publish to npm",
 		Run: func() {
-			fmt.Printf("With the `npm/quick-lint-js-*.tgz` artifact:\n")
-			fmt.Printf("$ npm publish signed-builds/npm/quick-lint-js-*.tgz\n")
-			WaitForDone()
+			RunCommandOrStop(
+				"npm",
+				"publish",
+				fmt.Sprintf("signed-builds/npm/quick-lint-js-%s.tgz", ReleaseVersion),
+			)
 		},
 	},
 
 	Step{
 		Title: "Publish Debian packages",
 		Run: func() {
-			fmt.Printf("Run the `dist/debian/sync-releases-to-apt` script.\n")
-			WaitForDone()
+			RunCommandOrStop("./dist/debian/sync-releases-to-apt")
 		},
 	},
 
@@ -276,8 +293,7 @@ var Steps []Step = []Step{
 			if ReleaseCommitHash == "" {
 				Stopf("missing -ReleaseCommitHash\n")
 			}
-			fmt.Printf("Publish the website: Run `./website/tools/deploy.sh %s`.\n", ReleaseCommitHash)
-			WaitForDone()
+			RunCommandOrStop("./website/tools/deploy.sh", ReleaseCommitHash)
 		},
 	},
 
@@ -493,10 +509,12 @@ func Stop() {
 	os.Exit(0)
 }
 
-func UpdateReleaseVersionsInFiles(paths []string) {
+// Key: file path
+// Value: UpdateReleaseVersionsOptions.LineMatchRegexp
+func UpdateReleaseVersionsInFiles(pathToLineMatchRegexp map[string]string) {
 	fileContents := make(map[string][]byte)
 
-	for _, path := range paths {
+	for path, _ := range pathToLineMatchRegexp {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			Stopf("failed to read file: %v", err)
@@ -505,7 +523,17 @@ func UpdateReleaseVersionsInFiles(paths []string) {
 	}
 
 	for path, data := range fileContents {
-		fileContents[path] = UpdateReleaseVersions(data, path)
+		var err error
+		fileContents[path], err = UpdateReleaseVersions(UpdateReleaseVersionsOptions{
+			FileContent:       data,
+			PathForDebugging:  path,
+			OldReleaseVersion: OldReleaseVersion,
+			NewReleaseVersion: ReleaseVersion,
+			LineMatchRegexp:   pathToLineMatchRegexp[path],
+		})
+		if err != nil {
+			Stopf("failed to update version numbers in %s: %v", path, err)
+		}
 	}
 
 	for path, data := range fileContents {
@@ -516,30 +544,62 @@ func UpdateReleaseVersionsInFiles(paths []string) {
 	}
 }
 
-func UpdateReleaseVersions(fileContent []byte, pathForDebugging string) []byte {
-	oldVersion := []byte(OldReleaseVersion)
-	newVersion := []byte(ReleaseVersion)
+type UpdateReleaseVersionsOptions struct {
+	FileContent       []byte
+	PathForDebugging  string
+	OldReleaseVersion string
+	NewReleaseVersion string
+	LineMatchRegexp   string
+}
+
+func UpdateReleaseVersions(options UpdateReleaseVersionsOptions) ([]byte, error) {
+	oldVersion := []byte(options.OldReleaseVersion)
+	newVersion := []byte(options.NewReleaseVersion)
 	foundOldVersion := false
-	foundUnexpectedVersion := false
-	fileContent = ThreePartVersionRegexp.ReplaceAllFunc(fileContent, func(match []byte) []byte {
-		if bytes.Equal(match, oldVersion) {
-			foundOldVersion = true
-			return newVersion
-		} else {
-			foundUnexpectedVersion = true
-			log.Printf("error: found unexpected version number in %s: %s\n", pathForDebugging, string(match))
-			return match
-		}
+	var foundUnexpectedVersion error = nil
+	fullLineMatchRegexp := regexp.MustCompile("(?m:^.*" + options.LineMatchRegexp + ".*$)")
+	newFileContent := fullLineMatchRegexp.ReplaceAllFunc(options.FileContent, func(lineMatch []byte) []byte {
+		return ThreePartVersionRegexp.ReplaceAllFunc(lineMatch, func(versionMatch []byte) []byte {
+			if bytes.Equal(versionMatch, oldVersion) {
+				foundOldVersion = true
+				return newVersion
+			} else {
+				foundUnexpectedVersion = fmt.Errorf("found unexpected version number in %s: %s", options.PathForDebugging, string(versionMatch))
+				return versionMatch
+			}
+		})
 	})
-	if !foundOldVersion {
-		log.Printf("error: failed to find old version number %s in %s\n", OldReleaseVersion, pathForDebugging)
-		os.Exit(1)
+	if foundUnexpectedVersion != nil {
+		return nil, foundUnexpectedVersion
 	}
-	if foundUnexpectedVersion {
-		os.Exit(1)
+	if !foundOldVersion {
+		return nil, fmt.Errorf("failed to find old version number %s in %s", options.OldReleaseVersion, options.PathForDebugging)
 	}
 
-	return fileContent
+	return newFileContent, nil
+}
+
+func RunCommandOrStop(name string, arg ...string) {
+	cmd := exec.Command(name, arg...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		commandString := CommandToShell(cmd.Args)
+		Stopf("failed to run command:\n$ %s\n%v", commandString, err)
+	}
+}
+
+// Escapes the command for POSIX-style shells.
+func CommandToShell(args []string) string {
+	escape := func(arg string) string {
+		return "'" + strings.ReplaceAll(arg, "'", "'\\''") + "'"
+	}
+	escapedArgs := make([]string, len(args))
+	for i, arg := range args {
+		escapedArgs[i] = escape(arg)
+	}
+	return strings.Join(escapedArgs, " ")
 }
 
 func GetCurrentCommitHash() string {
@@ -682,6 +742,62 @@ func UpdateDebianChangelog(changelogFilePath string, versionInfo VersionFileInfo
 	}
 
 	return nil
+}
+
+func UpdateUnreleasedChangelogFile(changelogFilePath string, versionInfo VersionFileInfo) error {
+	originalData, err := os.ReadFile(changelogFilePath)
+	if err != nil {
+		return err
+	}
+
+	newData, err := UpdateUnreleasedChangelog(originalData, versionInfo)
+	if err != nil {
+		return err
+	}
+
+	fileMode := fs.FileMode(0644) // Unused, because the file should already exist.
+	if err := os.WriteFile(changelogFilePath, newData, fileMode); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateUnreleasedChangelog(changelog []byte, versionInfo VersionFileInfo) ([]byte, error) {
+	unreleasedHeadingRegexp := regexp.MustCompile("(?m:^## Unreleased\n)")
+	newHeading := []byte(fmt.Sprintf(
+		"## %s (%s)\n\n[Downloads](https://c.quick-lint-js.com/releases/%s/)\n",
+		versionInfo.VersionNumber,
+		versionInfo.ReleaseDate.Format("2006-01-02"),
+		versionInfo.VersionNumber,
+	))
+	newChangelog := unreleasedHeadingRegexp.ReplaceAllLiteral(changelog, newHeading)
+	if bytes.Equal(newChangelog, changelog) {
+		return nil, fmt.Errorf("could not find '## Unreleased' heading in changelog")
+	}
+	return newChangelog, nil
+}
+
+func EnsureEmptyDirectory(path string) {
+Retry:
+	err := os.Mkdir(path, 0700)
+	if err == nil {
+		// A newly-created directory is empty.
+		return
+	}
+	if !os.IsExist(err) {
+		// Unknown error. Report it to the user.
+		Stopf("%v", err)
+	}
+	entries, readError := os.ReadDir(path)
+	directoryIsEmpty := readError == nil && len(entries) == 0
+	if directoryIsEmpty {
+		return
+	}
+
+	fmt.Printf("Error: A '%s' folder already exists. Delete it then type 'done'.\n", path)
+	WaitForDone()
+	goto Retry
 }
 
 func StringLines(s string) []string {

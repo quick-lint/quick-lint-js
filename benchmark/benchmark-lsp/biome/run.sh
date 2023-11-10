@@ -7,8 +7,8 @@ set -e
 set -u
 
 here="$(dirname "${0}")"
-"${here}/node_modules/.bin/rome" stop >&2
-exec "${here}/node_modules/.bin/rome" lsp-proxy
+"${here}/node_modules/.bin/biome" stop >&2
+exec "${here}/node_modules/.bin/biome" lsp-proxy
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

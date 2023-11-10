@@ -1425,7 +1425,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
 
     // Diag_Fallthrough_Without_Comment_In_Switch
     {
-      .code = 423,
+      .code = 427,
       .severity = Diagnostic_Severity::warning,
       .message_formats = {
         QLJS_TRANSLATABLE("missing 'break;' or '// fallthrough' comment between statement and 'case'"),
@@ -4203,6 +4203,38 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module
+    {
+      .code = 424,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'export as namespace' is not allowed in a namespace or module"),
+        QLJS_TRANSLATABLE("containing namespace or module declared here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module, export_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module, namespace_or_module_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Export_As_Namespace_Is_Only_Allowed_In_TypeScript_Definition_File
+    {
+      .code = 423,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'export as namespace' is only allowed in TypeScript .d.ts files"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Export_As_Namespace_Is_Only_Allowed_In_TypeScript_Definition_File, export_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript
     {
       .code = 370,
@@ -4459,6 +4491,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript, type_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type
+    {
+      .code = 426,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("type predicates are only allowed as function return types"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type, is_keyword), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },
@@ -6418,6 +6464,42 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Class_Async_On_Getter_Or_Setter, getter_setter_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Multiple_Export_Defaults
+    {
+      .code = 715,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("cannot use multiple `export default` statements in one module"),
+        QLJS_TRANSLATABLE("export default previously appeared here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Multiple_Export_Defaults, second_export_default), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Multiple_Export_Defaults, first_export_default), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Unintuitive_Bitshift_Precedence
+    {
+      .code = 716,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &"),
+        QLJS_TRANSLATABLE("'&' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unintuitive_Bitshift_Precedence, bitshift_operator), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unintuitive_Bitshift_Precedence, and_operator), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

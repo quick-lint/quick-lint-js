@@ -624,7 +624,7 @@ TEST_F(Test_Parse_TypeScript_Function, optional_expression) {
     ASSERT_THAT(summarize(ast), "paren(typed(optional(var x)))");
 
     auto* type_annotated =
-        static_cast<Expression::Type_Annotated*>(ast->without_paren());
+        expression_cast<Expression::Type_Annotated*>(ast->without_paren());
     Spy_Visitor v;
     type_annotated->visit_type_annotation(v);
     EXPECT_THAT(v.visits, ElementsAreArray({
@@ -988,6 +988,41 @@ TEST_F(Test_Parse_TypeScript_Function, type_predicate_on_generator_function) {
         u8"function *f(param): param is SomeType {}"_sv, no_diags,
         typescript_options);
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"param", u8"SomeType"}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Function,
+       type_predicate_is_only_allowed_as_return_type) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(p, q: p is SomeType) {}"_sv,  //
+        u8"                   ^^ Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // p
+                              "visit_variable_use",               // p
+                              "visit_variable_type_use",          // SomeType
+                              "visit_variable_declaration",       // q
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"p", u8"SomeType"}));
+  }
+
+  {
+    test_parse_and_visit_statement(
+        u8"var x: p is T;"_sv,  //
+        u8"         ^^ Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type"_diag,
+        typescript_options);
+  }
+
+  {
+    test_parse_and_visit_statement(
+        u8"function f(p): p is p is T {}"_sv,  //
+        u8"                      ^^ Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type"_diag,
+        typescript_options);
   }
 }
 

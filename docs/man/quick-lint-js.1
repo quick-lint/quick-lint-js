@@ -12,10 +12,10 @@
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.17
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version ﻿ 2.16.0
+.\"    Source: quick-lint-js version ﻿ 2.18.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 2.16.0" "\ \&"
+.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 2.18.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -181,9 +181,54 @@ searching for a configuration file (see \fBquick\-lint\-js.config\fP(5)).
 Therefore, if multiple input files are given, \fB\-\-path\-for\-config\-search\fP can be specified multiple times.
 If \fB\-\-path\-for\-config\-search\fP is the last option, it has no effect.
 .sp
+\fB\-\-path\-for\-config\-search\fP overrides \fB\-\-stdin\-path\fP.
+.sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .sp
 Added in quick\-lint\-js version 0.4.0.
+.RE
+.sp
+\fB\-\-stdin\-path\fP=\fIpath\fP
+.RS 4
+  Change the behavior of \fB\-\-stdin\fP.
+\fB\-\-stdin\fP still reads a string from standard input, but otherwise it behaves as if the file at \fIpath\fP was specified instead:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+The default language is determined by \fIpath\fP (unless overridden by \fB\-\-language\fP).
+See \fB\-\-language\fP for details.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Searching for a configuration file
+is based on \fIpath\fP (unless overridden by \fB\-\-config\-file\fP or \fB\-\-path\-for\-config\-file\fP).
+(See \fBquick\-lint\-js.config\fP(5) for details on configuration file searching.)
+.RE
+.sp
+\fB\-\-stdin\-path\fP applies to only \fB\-\-stdin\fP, not file paths (even special files such as /dev/stdin).
+.sp
+\fB\-\-stdin\-path\fP may appear anywhere in the command line (except after \fB\-\-\fP).
+.sp
+\fIpath\fP must be a syntactically\-valid path.
+\fIpath\fP does not need to exist in the filesystem.
+\fIpath\fP may be a relative path or an absolute path.
+.sp
+Incompatible with \fB\-\-lsp\-server\fP.
+.sp
+Added in quick\-lint\-js version 2.17.0.
 .RE
 .sp
 \fB\-\-config\-file\fP=\fIfile\fP
@@ -195,6 +240,8 @@ If \fB\-\-config\-file\fP is given twice, then the \fIfile\fP for the first \fB\
 See the EXAMPLE section for an example.
 .sp
 If \fB\-\-config\-file\fP is not given, \fBquick\-lint\-js\fP searches for a configuration file according to the rules specified in \fBquick\-lint\-js.config\fP(5).
+.sp
+\fB\-\-config\-file\fP overrides \fB\-\-path\-for\-config\-file\fP and \fB\-\-stdin\-path\fP.
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .sp
@@ -235,6 +282,83 @@ Interpret input files which are given later in the command line as if they were 
 .  IP \(bu 2.3
 .\}
 \fB.jsx\fP: \fBjavascript\-jsx\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+(anything else): \fBjavascript\-jsx\fP
+.RE
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBexperimental\-default\fP: infer the \fIlanguageid\fP from the file\(cqs extension (EXPERIMENTAL; subject to change in future versions of quick\-lint\-js):
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fB.js\fP: \fBjavascript\-jsx\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fB.jsx\fP: \fBjavascript\-jsx\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fB.d.ts\fP: \fBexperimental\-typescript\-definition\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fB.ts\fP: \fBexperimental\-typescript\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fB.tsx\fP: \fBexperimental\-typescript\-jsx\fP
 .RE
 .sp
 .RS 4
@@ -315,6 +439,31 @@ See the EXAMPLE section for an example.
 .sp
 If \fB\-\-language\fP is the last option, it has no effect.
 .sp
+If the input file is \fB\-\-stdin\fP:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+If \fB\-\-stdin\-path\fP is specified, its \fIpath\fP is used for \fB\-\-language=default\fP.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+If \fB\-\-stdin\-path\fP is not specified, then the path is assumed to be \fBexample.js\fP.
+This means that \fB\-\-language=default\fP will behave like \fB\-\-language=javascript\-jsx\fP.
+.RE
+.sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .sp
 Added in quick\-lint\-js version 2.10.0.
@@ -331,13 +480,15 @@ Incompatible with \fB\-\-lsp\-server\fP.
 .sp
 \fB\-\-stdin\fP
 .RS 4
-Read standard input as a JavaScript file.
+Read standard input as an input file.
 .sp
-If neither \fB\-\-config\-file\fP nor \fB\-\-path\-for\-config\-search\fP is specified, an empty configuration file is assumed.
+If none of \fB\-\-config\-file\fP, \fB\-\-path\-for\-config\-search\fP, or \fB\-\-stdin\-path\fP are specified, an empty configuration file is assumed.
 If \fB\-\-config\-file\fP is specified, \fIfile\fP is used for linting standard input.
-If \fB\-\-path\-for\-config\-search\fP is specified and \fB\-\-config\-file\fP is not specified,
+If \fB\-\-config\-file\fP is not specified and either \fB\-\-stdin\-path\fP or \fB\-\-path\-for\-config\-search\fP is specified,
 \fBquick\-lint\-js\fP searches for a configuration file according to the rules specified in \fBquick\-lint\-js.config\fP(5)
-starting from \fB\-\-path\-for\-config\-search\fP\*(Aqs \fIpath\fP.
+starting from \fB\-\-stdin\-path\fP\*(Aqs \fIpath\fP or \fB\-\-path\-for\-config\-search\fP\*(Aqs \fIpath\fP.
+.sp
+If neither \fB\-\-stdin\-path\fP nor \fB\-\-language\fP are specified, the \fBjavascript\-jsx\fP language is used.
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .sp

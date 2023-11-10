@@ -23,7 +23,7 @@
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/binary-reader.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/version.h>
 #include <string>
 #include <string_view>
@@ -91,7 +91,7 @@ using Trace_Event_Callback = bool(Debug_Server &,
 //
 // test_web_socket keeps running until on_trace_event returns false or until a
 // timeout elapses, whichever comes first.
-void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event);
+void test_web_socket(Async_Function_Ref<Trace_Event_Callback> on_trace_event);
 
 class Test_Debug_Server : public ::testing::Test {
  public:
@@ -164,13 +164,13 @@ TEST_F(Test_Debug_Server, two_servers_listening_on_same_port_fails) {
 #if QLJS_FEATURE_VECTOR_PROFILING
 TEST_F(Test_Debug_Server,
        web_socket_publishes_vector_profile_stats_on_connect) {
-  Vector_Instrumentation::instance.clear();
+  Vector_Instrumentation::instance().clear();
   {
     Instrumented_Vector<std::vector<int>> v("debug server test vector", {});
     ASSERT_EQ(v.size(), 0);
   }
 
-  bool received_vector_max_size_histogram_by_owner_event = true;
+  bool received_vector_max_size_histogram_by_owner_event = false;
   auto on_trace_event =
       [&](Debug_Server &, const Parsed_Trace_Event &event,
           [[maybe_unused]] std::uint64_t thread_index) -> bool {
@@ -179,15 +179,19 @@ TEST_F(Test_Debug_Server,
       // This should eventually be called.
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
           event.vector_max_size_histogram_by_owner_event.entries;
-      EXPECT_EQ(entries.size(), 1);
-      if (entries.size() > 0) {
-        EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
-        EXPECT_THAT(entries[0].max_size_entries,
-                    ::testing::ElementsAreArray({
-                        Trace_Vector_Max_Size_Histogram_Entry{.max_size = 0,
-                                                              .count = 1},
-                    }));
+      bool found_entry = false;
+      for (const Trace_Vector_Max_Size_Histogram_By_Owner_Entry &entry :
+           entries) {
+        if (entry.owner == u8"debug server test vector"_sv) {
+          found_entry = true;
+          EXPECT_THAT(entry.max_size_entries,
+                      ::testing::ElementsAreArray({
+                          Trace_Vector_Max_Size_Histogram_Entry{.max_size = 0,
+                                                                .count = 1},
+                      }));
+        }
       }
+      EXPECT_TRUE(found_entry);
 
       received_vector_max_size_histogram_by_owner_event = true;
       return false;
@@ -218,9 +222,9 @@ TEST_F(Test_Debug_Server,
 }
 
 TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
-  Vector_Instrumentation::instance.clear();
+  Vector_Instrumentation::instance().clear();
 
-  bool received_vector_max_size_histogram_by_owner_event = false;
+  bool received_vector_profile_entry = false;
   auto on_trace_event =
       [&](Debug_Server &server, const Parsed_Trace_Event &event,
           [[maybe_unused]] std::uint64_t thread_index) -> bool {
@@ -245,28 +249,30 @@ TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
 
     case Parsed_Trace_Event_Type::vector_max_size_histogram_by_owner_event: {
       // This should eventually be called.
-      if (event.vector_max_size_histogram_by_owner_event.entries.empty()) {
-        // We will receive an initial vector_max_size_histogram_by_owner
-        // event. Ignore it.
-        return true;
-      }
 
       Span<const Trace_Vector_Max_Size_Histogram_By_Owner_Entry> entries =
           event.vector_max_size_histogram_by_owner_event.entries;
-      EXPECT_EQ(entries.size(), 1);
-      if (entries.size() > 0) {
-        EXPECT_EQ(entries[0].owner, u8"debug server test vector"_sv);
-        EXPECT_THAT(entries[0].max_size_entries,
-                    ::testing::ElementsAreArray({
-                        Trace_Vector_Max_Size_Histogram_Entry{.max_size = 2,
-                                                              .count = 1},
-                        Trace_Vector_Max_Size_Histogram_Entry{.max_size = 4,
-                                                              .count = 1},
-                    }));
+      for (const Trace_Vector_Max_Size_Histogram_By_Owner_Entry &entry :
+           entries) {
+        if (entry.owner == u8"debug server test vector"_sv) {
+          received_vector_profile_entry = true;
+          EXPECT_EQ(entry.owner, u8"debug server test vector"_sv);
+          EXPECT_THAT(entry.max_size_entries,
+                      ::testing::ElementsAreArray({
+                          Trace_Vector_Max_Size_Histogram_Entry{.max_size = 2,
+                                                                .count = 1},
+                          Trace_Vector_Max_Size_Histogram_Entry{.max_size = 4,
+                                                                .count = 1},
+                      }));
+          // Stop the server.
+          return false;
+        }
       }
 
-      received_vector_max_size_histogram_by_owner_event = true;
-      return false;
+      // We will receive an initial vector_max_size_histogram_by_owner event
+      // and perhaps spurious extra events. Ignore those events and keep waiting
+      // for the 'debug server test vector' events.
+      return true;
     }
 
     case Parsed_Trace_Event_Type::error_invalid_magic:
@@ -289,7 +295,7 @@ TEST_F(Test_Debug_Server, vector_profile_probe_publishes_stats) {
     QLJS_UNREACHABLE();
   };
   test_web_socket(on_trace_event);
-  EXPECT_TRUE(received_vector_max_size_histogram_by_owner_event);
+  EXPECT_TRUE(received_vector_profile_entry);
 }
 #endif
 
@@ -538,7 +544,8 @@ TEST_F(Test_Debug_Server, find_debug_servers_finds_running_instance_SLOW) {
   ASSERT_TRUE(wait_result.ok()) << wait_result.error_to_string();
   std::uint16_t server_port = server->tcp_port_number();
 
-  std::vector<Found_Debug_Server> servers = find_debug_servers();
+  Monotonic_Allocator allocator("Test_Debug_Server");
+  Span<Found_Debug_Server> servers = find_debug_servers(&allocator);
   auto found_server_it =
       find_first_if(servers, [&](const Found_Debug_Server &s) -> bool {
         return s.port_number == server_port;
@@ -707,7 +714,7 @@ HTTP_WebSocket_Client::HTTP_WebSocket_Client(
     HTTP_WebSocket_Client_Delegate *delegate)
     : delegate_(delegate) {}
 
-void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event) {
+void test_web_socket(Async_Function_Ref<Trace_Event_Callback> on_trace_event) {
   std::shared_ptr<Debug_Server> server = Debug_Server::create();
   server->start_server_thread();
   auto wait_result = server->wait_for_server_start();
@@ -715,8 +722,9 @@ void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event) {
 
   class Test_Delegate : public HTTP_WebSocket_Client_Delegate {
    public:
-    explicit Test_Delegate(Debug_Server *server,
-                           Function_Ref<Trace_Event_Callback> on_trace_event)
+    explicit Test_Delegate(
+        Debug_Server *server,
+        Async_Function_Ref<Trace_Event_Callback> on_trace_event)
         : server(server), on_trace_event(on_trace_event) {}
 
     void on_message_binary(HTTP_WebSocket_Client *client, const void *message,
@@ -752,7 +760,7 @@ void test_web_socket(Function_Ref<Trace_Event_Callback> on_trace_event) {
     }
 
     Debug_Server *server;
-    Function_Ref<Trace_Event_Callback> on_trace_event;
+    Async_Function_Ref<Trace_Event_Callback> on_trace_event;
     std::map<Trace_Flusher_Thread_Index, Trace_Reader> trace_readers;
   };
   Test_Delegate delegate(server.get(), on_trace_event);

@@ -431,6 +431,12 @@ void Variable_Analyzer::visit_variable_assignment(Identifier name) {
   }
 }
 
+void Variable_Analyzer::visit_variable_assertion_signature_use([
+    [maybe_unused]] Identifier name) {
+  // TODO(#690)
+  QLJS_UNIMPLEMENTED();
+}
+
 void Variable_Analyzer::visit_variable_delete_use(
     Identifier name, Source_Code_Span delete_keyword) {
   QLJS_ASSERT(delete_keyword.end() <= name.span().begin());
@@ -466,9 +472,6 @@ void Variable_Analyzer::visit_variable_namespace_use(Identifier) {
 }
 
 void Variable_Analyzer::visit_variable_type_predicate_use(Identifier name) {
-  // TODO(#690)
-  static_cast<void>(name);
-
   QLJS_ASSERT(!this->scopes_.empty());
   Scope &current_scope = this->current_scope();
   Declared_Variable *var = current_scope.declared_variables.find_runtime(name);

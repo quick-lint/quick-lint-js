@@ -28,7 +28,7 @@
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/bit.h>
 #include <quick-lint-js/port/type-traits.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>

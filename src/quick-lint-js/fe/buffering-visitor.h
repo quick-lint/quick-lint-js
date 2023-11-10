@@ -69,6 +69,7 @@ class Buffering_Visitor final : public Parse_Visitor_Base {
   void visit_variable_assignment(Identifier name) override;
   void visit_variable_declaration(Identifier name, Variable_Kind kind,
                                   Variable_Declaration_Flags flags) override;
+  void visit_variable_assertion_signature_use(Identifier name) override;
   void visit_variable_delete_use(Identifier name,
                                  Source_Code_Span delete_keyword) override;
   void visit_variable_export_use(Identifier name) override;
@@ -114,6 +115,7 @@ class Buffering_Visitor final : public Parse_Visitor_Base {
     keyword_variable_use,
     property_declaration_with_name,
     property_declaration_without_name,
+    variable_assertion_signature_use,
     variable_assignment,
     variable_delete_use,
     variable_export_use,

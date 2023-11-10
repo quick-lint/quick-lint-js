@@ -34,11 +34,6 @@ class Tracking_Memory_Resource : public Memory_Resource {
     }
   }
 
-  bool do_is_equal(const Memory_Resource&) const override {
-    QLJS_UNIMPLEMENTED();
-    return false;
-  }
-
   Memory_Resource* underlying_memory_ = new_delete_resource();
 
   std::uint64_t allocated_bytes_ = 0;

@@ -18,7 +18,7 @@
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/port/windows-error.h>
 #include <quick-lint-js/port/windows.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <string>
 #include <string_view>
 #include <utility>

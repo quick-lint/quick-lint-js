@@ -78,6 +78,7 @@ inline constexpr int integer_string_length =
 template <class T>
 Char8 *write_integer(T, Char8 *out);
 
+extern template Char8 *write_integer<unsigned char>(unsigned char, Char8 *out);
 extern template Char8 *write_integer<unsigned short>(unsigned short,
                                                      Char8 *out);
 extern template Char8 *write_integer<int>(int, Char8 *out);
@@ -92,6 +93,7 @@ extern template Char8 *write_integer<unsigned long long>(unsigned long long,
 template <class T>
 char *write_integer(T, char *out);
 
+extern template char *write_integer<unsigned char>(unsigned char, char *out);
 extern template char *write_integer<unsigned short>(unsigned short, char *out);
 extern template char *write_integer<unsigned>(unsigned, char *out);
 #endif

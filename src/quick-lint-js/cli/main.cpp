@@ -226,8 +226,9 @@ void init() {
 }
 
 void run(int argc, char **argv) {
-  Options o = parse_options(argc, argv);
-  run(o);
+  Monotonic_Allocator options_allocator("run options_allocator");
+  Options o = parse_options(argc, argv, &options_allocator);
+  run(std::move(o));
 }
 
 void run(Options o) {
@@ -348,12 +349,14 @@ Linter_Options get_linter_options_from_language(
 }
 
 void list_debug_apps() {
+  Monotonic_Allocator temporary_allocator("list_debug_apps");
+
   struct Table_Row {
     std::string process_id;
     std::string server_url;
   };
   std::vector<Table_Row> table;
-  for (const Found_Debug_Server &s : find_debug_servers()) {
+  for (const Found_Debug_Server &s : find_debug_servers(&temporary_allocator)) {
     table.push_back(Table_Row{
         .process_id = std::to_string(s.process_id),
         .server_url =
@@ -587,7 +590,8 @@ void run_lsp_server() {
     }
 
     void report_pending_watch_io_errors() {
-      this->handler_.add_watch_io_errors(this->fs_.take_watch_errors());
+      this->handler_.add_watch_io_errors(
+          Span<const Watch_IO_Error>(this->fs_.take_watch_errors()));
       this->handler_.flush_pending_notifications(this->writer_);
 #if QLJS_EVENT_LOOP2_PIPE_WRITE
       this->enable_or_disable_writer_events_as_needed();

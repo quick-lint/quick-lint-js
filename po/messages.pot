@@ -1414,6 +1414,18 @@ msgid "{1:headlinese} value must be a compile-time constant"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'export as namespace' is not allowed in a namespace or module"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "containing namespace or module declared here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'export as namespace' is only allowed in TypeScript .d.ts files"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"
 msgstr ""
 
@@ -1499,6 +1511,10 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "TypeScript type exports are not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "type predicates are only allowed as function return types"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -2083,6 +2099,22 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'async' keyword is not allowed on getters or setters"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "cannot use multiple `export default` statements in one module"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "export default previously appeared here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'&' here"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp

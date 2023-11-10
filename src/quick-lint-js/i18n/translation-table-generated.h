@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 523;
-constexpr std::size_t translation_table_string_table_size = 80015;
+constexpr std::uint16_t translation_table_mapping_table_size = 531;
+constexpr std::size_t translation_table_string_table_size = 80436;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -33,6 +33,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "\"globals\" descriptor must be a boolean or an object"sv,
           "\"globals\" must be an object"sv,
           "'!' here treated as the TypeScript non-null assertion operator"sv,
+          "'&' here"sv,
           "'**' operator cannot be used after unary '{1}' without parentheses"sv,
           "',' should be ';' instead"sv,
           "'.' is not allowed after generic arguments; write [\"{1}\"] instead"sv,
@@ -79,6 +80,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'do-while' loop"sv,
           "'else' has no corresponding 'if'"sv,
           "'export =' is not allowed; write 'export default' or 'module.exports =' (CommonJS) instead"sv,
+          "'export as namespace' is not allowed in a namespace or module"sv,
+          "'export as namespace' is only allowed in TypeScript .d.ts files"sv,
           "'export' keyword here"sv,
           "'extends' must be before 'implements'"sv,
           "'for' loop"sv,
@@ -220,6 +223,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "cannot update variable with '{0}' while declaring it"sv,
           "cannot use '...' on 'this' parameter"sv,
           "cannot use 'declare' keyword with 'import'"sv,
+          "cannot use multiple `export default` statements in one module"sv,
           "cannot use type directly in its own definition"sv,
           "catch variable can only be typed as '*', 'any', or 'unknown'"sv,
           "character is not allowed in identifiers"sv,
@@ -235,6 +239,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "const fields within classes are only allowed in TypeScript, not JavaScript"sv,
           "const variable declared here"sv,
           "containing 'declare namespace' starts here"sv,
+          "containing namespace or module declared here"sv,
           "continue can only be used inside of a loop"sv,
           "decorator belongs immediately before this overloaded method"sv,
           "decorator starts here"sv,
@@ -274,6 +279,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "expected variable name for 'import'-'as'"sv,
           "expected {1:headlinese}"sv,
           "expected {1:singular}"sv,
+          "export default previously appeared here"sv,
           "exporting requires 'default'"sv,
           "exporting requires '{{' and '}'"sv,
           "extra ',' is not allowed between enum members"sv,
@@ -478,6 +484,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "this tuple type is a named tuple type because at least one element has a name"sv,
           "this {0} looks fishy"sv,
           "try statement starts here"sv,
+          "type predicates are only allowed as function return types"sv,
           "type {1} is being defined here"sv,
           "unclosed block comment"sv,
           "unclosed class; expected '}' by end of file"sv,
@@ -513,6 +520,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "unexpected token in variable declaration; expected variable name"sv,
           "unexpected whitespace between '!' and '=='"sv,
           "unicode byte order mark (BOM) cannot appear before #! at beginning of script"sv,
+          "unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &"sv,
           "unmatched '}'"sv,
           "unmatched indexing bracket"sv,
           "unmatched parenthesis"sv,

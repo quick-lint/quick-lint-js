@@ -44,8 +44,13 @@ struct Easy_SIMDJSON_Parser {
   ::simdjson::ondemand::value value;
 };
 
-TEST(Test_LSP_Workspace_Configuration, empty_config_request) {
-  LSP_Workspace_Configuration config;
+class Test_LSP_Workspace_Configuration : public ::testing::Test {
+ public:
+  Monotonic_Allocator allocator{"Test_LSP_Workspace_Configuration"};
+};
+
+TEST_F(Test_LSP_Workspace_Configuration, empty_config_request) {
+  LSP_Workspace_Configuration config(&this->allocator);
 
   Byte_Buffer request_json;
   config.build_request(77, request_json);
@@ -58,8 +63,8 @@ TEST(Test_LSP_Workspace_Configuration, empty_config_request) {
   EXPECT_THAT(items.try_get_array().value(), IsEmpty());
 }
 
-TEST(Test_LSP_Workspace_Configuration, config_request_with_three_items) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration, config_request_with_three_items) {
+  LSP_Workspace_Configuration config(&this->allocator);
   config.add_item(u8"first"_sv, [](std::string_view) {});
   config.add_item(u8"second"_sv, [](std::string_view) {});
   config.add_item(u8"third"_sv, [](std::string_view) {});
@@ -75,8 +80,8 @@ TEST(Test_LSP_Workspace_Configuration, config_request_with_three_items) {
   EXPECT_EQ(request_items[2][u8"section"_sv], u8"third"_sv);
 }
 
-TEST(Test_LSP_Workspace_Configuration, empty_config_response) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration, empty_config_response) {
+  LSP_Workspace_Configuration config(&this->allocator);
 
   Easy_SIMDJSON_Parser result("[]"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
@@ -84,18 +89,21 @@ TEST(Test_LSP_Workspace_Configuration, empty_config_response) {
   ASSERT_TRUE(ok);
 }
 
-TEST(Test_LSP_Workspace_Configuration, config_response_with_strings) {
+TEST_F(Test_LSP_Workspace_Configuration, config_response_with_strings) {
   std::string items[3];
-  LSP_Workspace_Configuration config;
-  config.add_item(u8"first"_sv, [&items](std::string_view new_value) {
+  LSP_Workspace_Configuration config(&this->allocator);
+  auto first_callback = [&items](std::string_view new_value) {
     items[0] = new_value;
-  });
-  config.add_item(u8"second"_sv, [&items](std::string_view new_value) {
+  };
+  config.add_item(u8"first"_sv, first_callback);
+  auto second_callback = [&items](std::string_view new_value) {
     items[1] = new_value;
-  });
-  config.add_item(u8"third"_sv, [&items](std::string_view new_value) {
+  };
+  config.add_item(u8"second"_sv, second_callback);
+  auto third_callback = [&items](std::string_view new_value) {
     items[2] = new_value;
-  });
+  };
+  config.add_item(u8"third"_sv, third_callback);
 
   Easy_SIMDJSON_Parser result(
       R"(["firstval", "secondval", "thirdval"])"_padded);
@@ -108,16 +116,16 @@ TEST(Test_LSP_Workspace_Configuration, config_response_with_strings) {
   EXPECT_EQ(items[2], "thirdval");
 }
 
-TEST(Test_LSP_Workspace_Configuration,
-     empty_config_response_with_added_items_fails) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration,
+       empty_config_response_with_added_items_fails) {
+  LSP_Workspace_Configuration config(&this->allocator);
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"_sv, [&myitem_callback_called](
-                                     std::string_view new_value) {
+  auto myitem_callback = [&myitem_callback_called](std::string_view new_value) {
     myitem_callback_called = true;
     ADD_FAILURE() << "myitem callback should not have been called; new_value="
                   << new_value;
-  });
+  };
+  config.add_item(u8"myitem"_sv, myitem_callback);
 
   Easy_SIMDJSON_Parser result("[]"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
@@ -127,15 +135,15 @@ TEST(Test_LSP_Workspace_Configuration,
   EXPECT_FALSE(myitem_callback_called);
 }
 
-TEST(Test_LSP_Workspace_Configuration,
-     more_values_than_config_fails_but_calls_callback_anyway) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration,
+       more_values_than_config_fails_but_calls_callback_anyway) {
+  LSP_Workspace_Configuration config(&this->allocator);
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"_sv,
-                  [&myitem_callback_called](std::string_view new_value) {
-                    myitem_callback_called = true;
-                    EXPECT_EQ(new_value, "val");
-                  });
+  auto myitem_callback = [&myitem_callback_called](std::string_view new_value) {
+    myitem_callback_called = true;
+    EXPECT_EQ(new_value, "val");
+  };
+  config.add_item(u8"myitem"_sv, myitem_callback);
 
   Easy_SIMDJSON_Parser result(R"(["val", "otherval"])"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
@@ -145,14 +153,14 @@ TEST(Test_LSP_Workspace_Configuration,
   EXPECT_TRUE(myitem_callback_called);
 }
 
-TEST(Test_LSP_Workspace_Configuration, null_is_coerced_to_empty_string) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration, null_is_coerced_to_empty_string) {
+  LSP_Workspace_Configuration config(&this->allocator);
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"_sv,
-                  [&myitem_callback_called](std::string_view new_value) {
-                    myitem_callback_called = true;
-                    EXPECT_EQ(new_value, "");
-                  });
+  auto myitem_callback = [&myitem_callback_called](std::string_view new_value) {
+    myitem_callback_called = true;
+    EXPECT_EQ(new_value, "");
+  };
+  config.add_item(u8"myitem"_sv, myitem_callback);
 
   Easy_SIMDJSON_Parser result(R"([null])"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
@@ -162,8 +170,8 @@ TEST(Test_LSP_Workspace_Configuration, null_is_coerced_to_empty_string) {
   EXPECT_TRUE(myitem_callback_called);
 }
 
-TEST(Test_LSP_Workspace_Configuration, non_array_config_response_fails) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration, non_array_config_response_fails) {
+  LSP_Workspace_Configuration config(&this->allocator);
 
   Easy_SIMDJSON_Parser result("{}"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
@@ -171,8 +179,9 @@ TEST(Test_LSP_Workspace_Configuration, non_array_config_response_fails) {
   ASSERT_FALSE(ok);
 }
 
-TEST(Test_LSP_Workspace_Configuration, empty_config_notification_does_nothing) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration,
+       empty_config_notification_does_nothing) {
+  LSP_Workspace_Configuration config(&this->allocator);
 
   Easy_SIMDJSON_Parser result("{}"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
@@ -180,15 +189,15 @@ TEST(Test_LSP_Workspace_Configuration, empty_config_notification_does_nothing) {
   ASSERT_TRUE(ok);
 }
 
-TEST(Test_LSP_Workspace_Configuration,
-     config_notification_calls_item_callbacks) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration,
+       config_notification_calls_item_callbacks) {
+  LSP_Workspace_Configuration config(&this->allocator);
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"_sv,
-                  [&myitem_callback_called](std::string_view new_value) {
-                    myitem_callback_called = true;
-                    EXPECT_EQ(new_value, "hello");
-                  });
+  auto myitem_callback = [&myitem_callback_called](std::string_view new_value) {
+    myitem_callback_called = true;
+    EXPECT_EQ(new_value, "hello");
+  };
+  config.add_item(u8"myitem"_sv, myitem_callback);
 
   Easy_SIMDJSON_Parser result(R"({"myitem": "hello"})"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
@@ -198,15 +207,16 @@ TEST(Test_LSP_Workspace_Configuration,
   EXPECT_TRUE(myitem_callback_called);
 }
 
-TEST(Test_LSP_Workspace_Configuration,
-     config_notification_ignores_extra_entries) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration,
+       config_notification_ignores_extra_entries) {
+  LSP_Workspace_Configuration config(&this->allocator);
   int myitem_callback_called_count = 0;
-  config.add_item(u8"myitem"_sv,
-                  [&myitem_callback_called_count](std::string_view new_value) {
-                    myitem_callback_called_count += 1;
-                    EXPECT_EQ(new_value, "hello");
-                  });
+  auto myitem_callback =
+      [&myitem_callback_called_count](std::string_view new_value) {
+        myitem_callback_called_count += 1;
+        EXPECT_EQ(new_value, "hello");
+      };
+  config.add_item(u8"myitem"_sv, myitem_callback);
 
   Easy_SIMDJSON_Parser result(
       R"({"myitem": "hello", "extraitem": "hi"})"_padded);
@@ -217,16 +227,16 @@ TEST(Test_LSP_Workspace_Configuration,
   EXPECT_EQ(myitem_callback_called_count, 1);
 }
 
-TEST(Test_LSP_Workspace_Configuration,
-     config_notification_does_not_call_callback_for_unnotified_items) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration,
+       config_notification_does_not_call_callback_for_unnotified_items) {
+  LSP_Workspace_Configuration config(&this->allocator);
   bool myitem_callback_called = false;
-  config.add_item(u8"myitem"_sv, [&myitem_callback_called](
-                                     std::string_view new_value) {
+  auto myitem_callback = [&myitem_callback_called](std::string_view new_value) {
     myitem_callback_called = true;
     ADD_FAILURE() << "myitem callback should not have been called; new_value="
                   << new_value;
-  });
+  };
+  config.add_item(u8"myitem"_sv, myitem_callback);
 
   Easy_SIMDJSON_Parser result(R"({})"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
@@ -236,15 +246,15 @@ TEST(Test_LSP_Workspace_Configuration,
   EXPECT_FALSE(myitem_callback_called);
 }
 
-TEST(Test_LSP_Workspace_Configuration,
-     initialization_options_calls_item_callbacks) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration,
+       initialization_options_calls_item_callbacks) {
+  LSP_Workspace_Configuration config(&this->allocator);
   bool myitem_callback_called = false;
-  config.add_item(u8"mysection.myitem"_sv,
-                  [&myitem_callback_called](std::string_view new_value) {
-                    myitem_callback_called = true;
-                    EXPECT_EQ(new_value, "hello");
-                  });
+  auto myitem_callback = [&myitem_callback_called](std::string_view new_value) {
+    myitem_callback_called = true;
+    EXPECT_EQ(new_value, "hello");
+  };
+  config.add_item(u8"mysection.myitem"_sv, myitem_callback);
 
   Easy_SIMDJSON_Parser result(R"({"mysection.myitem": "hello"})"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
@@ -254,15 +264,16 @@ TEST(Test_LSP_Workspace_Configuration,
   EXPECT_TRUE(myitem_callback_called);
 }
 
-TEST(Test_LSP_Workspace_Configuration,
-     initialization_options_ignores_extra_entries) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration,
+       initialization_options_ignores_extra_entries) {
+  LSP_Workspace_Configuration config(&this->allocator);
   int myitem_callback_called_count = 0;
-  config.add_item(u8"mysection.myitem"_sv,
-                  [&myitem_callback_called_count](std::string_view new_value) {
-                    myitem_callback_called_count += 1;
-                    EXPECT_EQ(new_value, "hello");
-                  });
+  auto myitem_callback =
+      [&myitem_callback_called_count](std::string_view new_value) {
+        myitem_callback_called_count += 1;
+        EXPECT_EQ(new_value, "hello");
+      };
+  config.add_item(u8"mysection.myitem"_sv, myitem_callback);
 
   Easy_SIMDJSON_Parser result(
       R"({"mysection.myitem": "hello", "mysection.extraitem": "hi"})"_padded);
@@ -273,17 +284,17 @@ TEST(Test_LSP_Workspace_Configuration,
   EXPECT_EQ(myitem_callback_called_count, 1);
 }
 
-TEST(Test_LSP_Workspace_Configuration,
-     initialization_options_does_not_call_callback_for_unnotified_items) {
-  LSP_Workspace_Configuration config;
+TEST_F(Test_LSP_Workspace_Configuration,
+       initialization_options_does_not_call_callback_for_unnotified_items) {
+  LSP_Workspace_Configuration config(&this->allocator);
   bool myitem_callback_called = false;
-  config.add_item(u8"mysection.myitem"_sv, [&myitem_callback_called](
-                                               std::string_view new_value) {
+  auto myitem_callback = [&myitem_callback_called](std::string_view new_value) {
     myitem_callback_called = true;
     ADD_FAILURE()
         << "mysection.myitem callback should not have been called; new_value="
         << new_value;
-  });
+  };
+  config.add_item(u8"mysection.myitem"_sv, myitem_callback);
 
   Easy_SIMDJSON_Parser result(R"({})"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);

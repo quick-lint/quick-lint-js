@@ -7,6 +7,7 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/in-range.h>
 #include <quick-lint-js/port/source-location.h>
+#include <type_traits>
 
 namespace quick_lint_js {
 template <class Out, class In>
@@ -30,6 +31,52 @@ Out narrow_cast(In x
   }
 #endif
   return static_cast<Out>(x);
+}
+
+// Convert an integer to an enum.
+//
+// Example:
+//
+//   enum class Color : unsigned char { red, green, blue };
+//   unsigned char raw = 1;                   // green
+//   Color c = int_to_enum_cast<Color>(raw);  // Color::green
+template <class Enum>
+constexpr Enum int_to_enum_cast(std::underlying_type_t<Enum> value) {
+  return static_cast<Enum>(value);
+}
+
+// Convert an enum to its integer value.
+//
+// Example:
+//
+//   enum class Color : unsigned char { red, green, blue };
+//   unsigned char raw = enum_to_int_cast(Color::green);     // 1
+template <class Enum>
+constexpr std::underlying_type_t<Enum> enum_to_int_cast(Enum value) {
+  return static_cast<std::underlying_type_t<Enum>>(value);
+}
+
+// Cast a pointer or reference to a pointer/reference to a derived class.
+//
+// In the presence of multiple inheritance, perform pointer adjustments (like
+// what static_cast does).
+template <class Derived_Pointer, class Base>
+Derived_Pointer derived_cast(Base* base) {
+  using Derived = std::remove_pointer_t<Derived_Pointer>;
+  static_assert(std::is_base_of_v<Base, Derived>,
+                "Derived should derive from Base");
+  static_assert(!std::is_base_of_v<Derived, Base>,
+                "Derived should not be the same type as Base");
+  return static_cast<Derived_Pointer>(base);
+}
+template <class Derived_Reference, class Base>
+Derived_Reference derived_cast(Base& base) {
+  using Derived = std::remove_reference_t<Derived_Reference>;
+  static_assert(std::is_base_of_v<Base, Derived>,
+                "Derived should derive from Base");
+  static_assert(!std::is_base_of_v<Derived, Base>,
+                "Derived should not be the same type as Base");
+  return static_cast<Derived_Reference>(base);
 }
 }
 

@@ -9,7 +9,7 @@
 #include <quick-lint-js/i18n/po-parser.h>
 #include <quick-lint-js/i18n/translation-table-compiler.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/cast.h>
 #include <vector>
 
 using ::testing::ElementsAreArray;

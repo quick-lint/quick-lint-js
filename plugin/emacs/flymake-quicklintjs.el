@@ -96,12 +96,13 @@ REPORT-FN is Flymake's callback."
                                          (point-min) (point-max))))
                        (if (not (string-empty-p stderr-data))
                            (flymake-log :warning "%S" stderr-data))))
-                   (with-current-buffer stdout-buf
-                     (let ((diags (flymake-quicklintjs--make-diagnostics
-                                  src-buf
-                                  (car (read-from-string
-                                        (buffer-substring-no-properties
-                                         (point-min) (point-max)))))))
+                   (let ((diags (flymake-quicklintjs--make-diagnostics
+                                 src-buf
+                                 (car (read-from-string
+                                       (with-current-buffer stdout-buf
+                                         (buffer-substring-no-properties
+                                          (point-min) (point-max))))))))
+                     (with-current-buffer src-buf
                        (if (or diags (zerop (process-exit-status p)))
                            (funcall report-fn diags
                                     :region (cons (point-min) (point-max)))
