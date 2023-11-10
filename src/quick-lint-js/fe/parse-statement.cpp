@@ -2815,29 +2815,28 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
   bool keep_going = true;
   bool is_before_first_switch_case = true;
-  Token prev_token;
+  Token previous_statement_first_token;
   Hash_Set<String8_View> cases;
   auto is_valid_end_of_case = [](Token_Type tk) {
     switch (tk) {
-      case Token_Type::kw_return:
-      case Token_Type::kw_continue:
-      case Token_Type::kw_throw:
-      case Token_Type::kw_break:
-      case Token_Type::kw_case:
-      //Temporarily return true to omit diag with these statments
-      case Token_Type::kw_if:
-      case Token_Type::kw_try:
-      case Token_Type::kw_while:
-      case Token_Type::kw_do:
-      case Token_Type::kw_for:
-        return true;
-      default:
-        return false;
+    case Token_Type::kw_return:
+    case Token_Type::kw_continue:
+    case Token_Type::kw_throw:
+    case Token_Type::kw_break:
+    case Token_Type::kw_case:
+    // Temporarily return true to omit diag with these statments
+    case Token_Type::kw_if:
+    case Token_Type::kw_try:
+    case Token_Type::kw_while:
+    case Token_Type::kw_do:
+    case Token_Type::kw_for:
+      return true;
+    default:
+      return false;
     }
   };
   while (keep_going) {
     switch (this->peek().type) {
- 
     case Token_Type::right_curly:
       this->skip();
       keep_going = false;
@@ -2845,13 +2844,12 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
     case Token_Type::kw_case: {
       if (!is_before_first_switch_case &&
-          !is_valid_end_of_case(prev_token.type) &&
+          !is_valid_end_of_case(previous_statement_first_token.type) &&
           !this->peek().has_leading_comment) {
-        this->diag_reporter_->report(
-            Diag_Fallthrough_Without_Comment_In_Switch{.end_of_case =
-                                                            Source_Code_Span::unit(this->peek().begin) });
+        this->diag_reporter_->report(Diag_Fallthrough_Without_Comment_In_Switch{
+            .end_of_case = Source_Code_Span::unit(this->peek().begin)});
       }
-      prev_token = this->peek();
+      previous_statement_first_token = this->peek();
       is_before_first_switch_case = false;
       Source_Code_Span case_token_span = this->peek().span();
       this->skip();
@@ -2884,12 +2882,10 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
     case Token_Type::kw_default:
       if (!is_before_first_switch_case &&
-          !is_valid_end_of_case(prev_token.type) &&
+          !is_valid_end_of_case(previous_statement_first_token.type) &&
           !this->peek().has_leading_comment) {
-        
-        this->diag_reporter_->report(
-            Diag_Fallthrough_Without_Comment_In_Switch{.end_of_case =
-                                                            Source_Code_Span::unit(this->peek().begin) });
+        this->diag_reporter_->report(Diag_Fallthrough_Without_Comment_In_Switch{
+            .end_of_case = Source_Code_Span::unit(this->peek().begin)});
       }
       is_before_first_switch_case = false;
       this->skip();
@@ -2903,7 +2899,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
             .unexpected_statement = this->peek().span(),
         });
       }
-      prev_token = this->peek();
+      previous_statement_first_token = this->peek();
       bool parsed_statement = this->parse_and_visit_statement(
           v, Parse_Statement_Options{
                  .possibly_followed_by_another_statement = true,
