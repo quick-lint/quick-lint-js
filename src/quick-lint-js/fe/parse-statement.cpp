@@ -2815,7 +2815,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
   bool keep_going = true;
   bool is_before_first_switch_case = true;
-  Token previous_statement_first_token;
+  std::optional<Token> previous_statement_first_token;
   Hash_Set<String8_View> cases;
   auto is_valid_end_of_case = [](Token_Type tk) {
     switch (tk) {
@@ -2830,6 +2830,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
     case Token_Type::kw_while:
     case Token_Type::kw_do:
     case Token_Type::kw_for:
+    case Token_Type::left_curly:
       return true;
     default:
       return false;
@@ -2844,7 +2845,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
     case Token_Type::kw_case: {
       if (!is_before_first_switch_case &&
-          !is_valid_end_of_case(previous_statement_first_token.type) &&
+          !is_valid_end_of_case(previous_statement_first_token->type) &&
           !this->peek().has_leading_comment) {
         this->diag_reporter_->report(Diag_Fallthrough_Without_Comment_In_Switch{
             .end_of_case = Source_Code_Span::unit(this->peek().begin)});
@@ -2882,7 +2883,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
     case Token_Type::kw_default:
       if (!is_before_first_switch_case &&
-          !is_valid_end_of_case(previous_statement_first_token.type) &&
+          !is_valid_end_of_case(previous_statement_first_token->type) &&
           !this->peek().has_leading_comment) {
         this->diag_reporter_->report(Diag_Fallthrough_Without_Comment_In_Switch{
             .end_of_case = Source_Code_Span::unit(this->peek().begin)});

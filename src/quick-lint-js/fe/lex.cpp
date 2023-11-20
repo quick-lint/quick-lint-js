@@ -1955,7 +1955,7 @@ QLJS_WARNING_POP
 void Lexer::skip_block_comment() {
   QLJS_SLOW_ASSERT(this->input_[0] == '/' && this->input_[1] == '*');
   const Char8* c = this->input_ + 2;
-  this->last_token_.has_leading_comment = true; 
+  this->last_token_.has_leading_comment = true;
 #if QLJS_HAVE_X86_SSE2
   using Bool_Vector = Bool_Vector_16_SSE2;
   using Char_Vector = Char_Vector_16_SSE2;
@@ -2053,7 +2053,7 @@ void Lexer::skip_line_comment_body() {
   using Char_Vector = Char_Vector_1;
 #endif
 
-  this->last_token_.has_leading_comment = true; 
+  this->last_token_.has_leading_comment = true;
   auto found_comment_end = [&]() {
     int n = newline_character_size(this->input_);
 
