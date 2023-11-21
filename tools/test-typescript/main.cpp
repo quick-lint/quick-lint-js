@@ -36,6 +36,10 @@ constexpr String8_View ignored_tests[] = {
     // This test correctly emits E0196 (a warning).
     // TODO(strager): Disable E0196 for this test but still check this test.
     u8"/initializePropertiesWithRenamedLet.ts"sv,
+
+    // These tests correctly emit E0427 (a warning).
+    // TODO(strager): Disable E0427 for all tests and don't ignore these tests.
+    u8"/es5-asyncFunctionSwitchStatements.ts"_sv,
 };
 
 struct Test_TypeScript_Options {
