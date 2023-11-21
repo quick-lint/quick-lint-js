@@ -63,7 +63,7 @@ class Output_Stream {
   void append_padded_decimal_integer(
       T value, int pad_width,
       std::enable_if_t<std::is_unsigned_v<T>, Char8> pad_character) {
-    int max_width = std::max(integer_string_length<T>, pad_width);
+    int max_width = (std::max)(integer_string_length<T>, pad_width);
     this->append(max_width, [&](Char8* out) -> int {
       Char8* integer_end = write_integer<T>(value, out);
       int integer_width = narrow_cast<int>(integer_end - out);
