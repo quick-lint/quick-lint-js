@@ -10,6 +10,10 @@ Semantic Versioning.
 
 ### Added
 
+* Missing `break;` (or `return;` or `throw ...;` or `// fallthrough`) after a
+  clause in `switch` statement now reports [E0427][] ("missing 'break;' or '//
+  fallthrough' comment between statement and 'case'"). (Implemented by [Yash
+  Masani][].)
 * TypeScript support (still experimental):
   * `export as namespace` statements are now parsed.
   * `case await x:` no longer treats `:` as if it was a type annotation colon in
@@ -1296,6 +1300,7 @@ Beta release.
 [E0384]: https://quick-lint-js.com/errors/E0384/
 [E0398]: https://quick-lint-js.com/errors/E0398/
 [E0426]: https://quick-lint-js.com/errors/E0426/
+[E0427]: https://quick-lint-js.com/errors/E0427/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/
