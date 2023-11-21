@@ -457,6 +457,34 @@ TEST_F(Test_Parse_Warning, warn_on_unintuitive_precedence_when_using_bitshift) {
   test_parse_and_visit_expression(u8"a & (b >> 0xBEEF)"_sv, no_diags);
   test_parse_and_visit_expression(u8"a & b >> c"_sv, no_diags);
 }
+
+TEST_F(Test_Parse_Warning, Diag_Fallthrough_Without_Comment_In_Switch) {
+  test_parse_and_visit_statement(
+      u8"switch(cond1){case 1:\nfoo()\ncase 2:\nbar() //fallthrough\ndefault:}"_sv,  //
+      u8"                              ` Diag_Fallthrough_Without_Comment_In_Switch"_diag);
+  test_parse_and_visit_statement(
+      u8"switch(cond1){case 1:\nfoo()\ncase 2:\nlongBarFn()\ndefault:}"_sv,  //
+      u8"                                                    ` Diag_Fallthrough_Without_Comment_In_Switch"_diag,  //
+      u8"                              ` Diag_Fallthrough_Without_Comment_In_Switch"_diag);
+  // check for false positive
+  test_parse_and_visit_statement(
+      u8R"(switch(cond1){
+        case 1:
+        case 2:
+        default:
+      })"_sv,
+      no_diags);
+  test_parse_and_visit_statement(
+      u8R"(switch(cond1){
+      case 1:
+        foo()
+
+        //fallthrough
+      case 2:
+        bar()//fallthrough
+      default:})"_sv,
+      no_diags);
+}
 }
 }
 

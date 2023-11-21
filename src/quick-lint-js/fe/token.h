@@ -318,6 +318,7 @@ struct Token {
   Token_Type type;
 
   bool has_leading_newline;
+  bool has_leading_comment;
 
   // Used only if this is a keyword token or an identifier token.
   // If the token contains no escape sequences, .normalized_identifier is

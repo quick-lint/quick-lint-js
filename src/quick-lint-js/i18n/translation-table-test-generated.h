@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[529] = {
+inline const Translated_String test_translation_table[530] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -3634,6 +3634,17 @@ inline const Translated_String test_translation_table[529] = {
             u8"'=' manquant apr\u00e8s une variable",
             u8"falta '=' ap\u00f3s a vari\u00e1vel",
             u8"saknar '=' efter variabel",
+        },
+    },
+    {
+        "missing 'break;' or '// fallthrough' comment between statement and 'case'"_translatable,
+        u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+        {
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+            u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
         },
     },
     {

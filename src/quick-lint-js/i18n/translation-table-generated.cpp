@@ -339,7 +339,8 @@ const Translation_Table translation_data = {
         {35, 20, 49, 55, 39, 38},            //
         {34, 44, 0, 36, 0, 38},              //
         {58, 48, 46, 50, 28, 52},            //
-        {0, 40, 0, 28, 0, 27},               //
+        {0, 0, 0, 0, 0, 27},                 //
+        {0, 40, 0, 28, 0, 74},               //
         {29, 22, 33, 28, 26, 26},            //
         {0, 0, 0, 55, 0, 51},                //
         {48, 27, 63, 27, 0, 24},             //
@@ -2140,6 +2141,7 @@ const Translation_Table translation_data = {
         u8"missing ':' in conditional expression\0"
         u8"missing '<>' and '</>' to enclose multiple children\0"
         u8"missing '=' after variable\0"
+        u8"missing 'break;' or '// fallthrough' comment between statement and 'case'\0"
         u8"missing 'if' after 'else'\0"
         u8"missing 'while (condition)' for do-while statement\0"
         u8"missing TypeScript type\0"

@@ -263,6 +263,7 @@ TEST_F(Test_Parse, asi_between_expression_statement_and_switch_label) {
       switch (x) {
         case a:
           f()
+          //fallthrough
         case b:
           g()
       }
@@ -278,6 +279,7 @@ TEST_F(Test_Parse, asi_between_expression_statement_and_switch_label) {
       switch (x) {
         case a:
           f()
+          //fallthrough
         default:
           g()
       }

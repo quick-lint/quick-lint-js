@@ -103,6 +103,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type) \
   QLJS_DIAG_TYPE_NAME(Diag_Dot_Dot_Is_Not_An_Operator) \
   QLJS_DIAG_TYPE_NAME(Diag_Duplicated_Cases_In_Switch_Statement) \
+  QLJS_DIAG_TYPE_NAME(Diag_Fallthrough_Without_Comment_In_Switch) \
   QLJS_DIAG_TYPE_NAME(Diag_Else_Has_No_If) \
   QLJS_DIAG_TYPE_NAME(Diag_Equals_Does_Not_Distribute_Over_Or) \
   QLJS_DIAG_TYPE_NAME(Diag_Escaped_Character_Disallowed_In_Identifiers) \
@@ -447,7 +448,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 433;
+inline constexpr int Diag_Type_Count = 434;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }
