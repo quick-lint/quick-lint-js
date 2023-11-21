@@ -17,6 +17,9 @@ Semantic Versioning.
 * Detection of multiple `export default` statements ([E0715][]) now also applies
   to `export {... as default};` statements.
 * TypeScript support (still experimental):
+  * `export default` with a class and an interface (triggering declaration
+    merging) no longer fasely reports [E0715][] ("cannot use multiple `export
+    default` statements in one module").
   * `export as namespace` statements are now parsed.
   * Assertion signatures (`function f(param): asserts param`) are now parsed.
   * `case await x:` no longer treats `:` as if it was a type annotation colon in

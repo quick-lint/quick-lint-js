@@ -216,6 +216,24 @@ TEST_F(Test_Parse_Module, multiple_default_exports) {
 }
 
 TEST_F(Test_Parse_Module,
+       default_exports_can_be_typescript_declaration_merged) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default class C {}  export default interface I {}"_sv,
+        no_diags, typescript_options);
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default interface I {}  export default class C {}"_sv,
+        no_diags, typescript_options);
+  }
+
+  // TODO(#1107): There are some cases where declaration merging does not occur
+  // between classes and interfaces.
+}
+
+TEST_F(Test_Parse_Module,
        export_default_with_contextual_keyword_variable_expression) {
   Dirty_Set<String8> variable_names =
       // TODO(#73): Disallow 'interface'.

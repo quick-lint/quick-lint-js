@@ -1015,7 +1015,6 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     // export default class C {}
   case Token_Type::kw_default: {
     Source_Code_Span default_keyword = this->peek().span();
-    this->found_default_export(default_keyword);
 
     this->is_current_typescript_namespace_non_empty_ = true;
     if (this->in_typescript_namespace_or_module_.has_value() &&
@@ -1027,6 +1026,11 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
           });
     }
     this->skip();
+
+    this->found_default_export(default_keyword,
+                               /*is_mergeable_interface=*/this->peek().type ==
+                                   Token_Type::kw_interface);
+
     switch (this->peek().type) {
       // export default async function f() {}
       // export default async () => {}
@@ -1574,15 +1578,29 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
   }
 }
 
-void Parser::found_default_export(Source_Code_Span default_keyword) {
+void Parser::found_default_export(Source_Code_Span default_keyword,
+                                  bool is_mergeable_interface) {
   if (this->first_export_default_statement_default_keyword_.has_value()) {
-    this->diag_reporter_->report(Diag_Multiple_Export_Defaults{
-        .second_export_default = default_keyword,
-        .first_export_default =
-            *this->first_export_default_statement_default_keyword_,
-    });
+    if (is_mergeable_interface) {
+      // export default class {}  export default interface I {}
+    } else {
+      // export default class {}  export default class {}  // Invalid.
+      this->diag_reporter_->report(Diag_Multiple_Export_Defaults{
+          .second_export_default = default_keyword,
+          .first_export_default =
+              *this->first_export_default_statement_default_keyword_,
+      });
+    }
   } else {
-    this->first_export_default_statement_default_keyword_ = default_keyword;
+    if (is_mergeable_interface) {
+      // export default interface I {}  ...
+      // export default interface I {}  export default class {}  // Merged.
+      // Allow an interface to merge with any other default export.
+      // TODO(#1107): An interface is not always mergeable with anything.
+    } else {
+      // export default class {}  ...
+      this->first_export_default_statement_default_keyword_ = default_keyword;
+    }
   }
 }
 
@@ -4726,7 +4744,8 @@ void Parser::parse_and_visit_named_exports(
             v.visit_variable_type_use(left_name);
           } else if (right_token.type == Token_Type::kw_default) {
             // export {C as default};
-            this->found_default_export(/*default_keyword=*/right_token.span());
+            this->found_default_export(/*default_keyword=*/right_token.span(),
+                                       /*is_mergeable_interface=*/false);
             v.visit_variable_export_default_use(left_name);
           } else {
             // export {C};
