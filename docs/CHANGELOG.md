@@ -52,7 +52,7 @@ Semantic Versioning.
 
 * A missing operator in an `if` condition (such as in `if (x y)`) no longer
   causes [E0065][] ("'else' has no corresponding 'if'") to be reported.
-  (Implemented by [arieldon][].)
+  (Implemented by [Ariel Don][].)
 * `cmake --install` with `--component build-tools` now installs the build
   tools. (This is a regression introduced in quick-lint-js version 2.16.0.)
 * Windows: The installer and executables are now signed with a non-expired
