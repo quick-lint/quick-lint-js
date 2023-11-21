@@ -315,8 +315,10 @@ void Configuration_Loader::unwatch_all_files() {
   this->watched_input_paths_.clear();
 }
 
-std::vector<Configuration_Change> Configuration_Loader::refresh() {
-  std::vector<Configuration_Change> changes;
+Span<Configuration_Change> Configuration_Loader::refresh(
+    Monotonic_Allocator* allocator) {
+  Vector<Configuration_Change> changes("Configuration_Loader::refresh changes",
+                                       allocator);
 
   Hash_Map<Canonical_Path, Loaded_Config_File> loaded_config_files =
       std::move(this->loaded_config_files_);
@@ -515,7 +517,7 @@ std::vector<Configuration_Change> Configuration_Loader::refresh() {
     }
   }
 
-  return changes;
+  return changes.release_to_span();
 }
 
 bool Configuration_Loader::is_config_file_path(

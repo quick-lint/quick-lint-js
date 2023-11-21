@@ -149,10 +149,13 @@ class Change_Detecting_Configuration_Loader {
     return this->fs_.take_watch_errors();
   }
 
-  std::vector<Configuration_Change> detect_changes_and_refresh();
+  Span<Configuration_Change> detect_changes_and_refresh();
 
  private:
   bool detect_changes();
+#if defined(_WIN32)
+  bool detect_changes_locked(std::unique_lock<Mutex>&);
+#endif
 
 #if defined(_WIN32)
   // On Windows, we pump events on a separate thread. This is because
@@ -187,6 +190,7 @@ class Change_Detecting_Configuration_Loader {
 
   // Protected by mutex_ if present:
   Configuration_Loader loader_;
+  Monotonic_Allocator allocator{"Change_Detecting_Configuration_Loader"};
 };
 
 class Test_Configuration_Loader : public ::testing::Test,
@@ -643,8 +647,7 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(::rmdir(parent_dir.c_str()), 0)
       << "failed to delete " << parent_dir << ": " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -659,8 +662,7 @@ TEST_F(Test_Configuration_Loader, config_found_initially_is_unchanged) {
     Change_Detecting_Configuration_Loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
-    std::vector<Configuration_Change> changes =
-        loader.detect_changes_and_refresh();
+    Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
     EXPECT_THAT(changes, IsEmpty());
   }
 }
@@ -678,8 +680,7 @@ TEST_F(Test_Configuration_Loader,
 
   write_file_or_exit(config_file, u8R"({"globals": {"after": true}})"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -708,8 +709,7 @@ TEST_F(Test_Configuration_Loader,
     ASSERT_EQ(std::fclose(file), 0) << std::strerror(errno);
   }
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -729,8 +729,7 @@ TEST_F(Test_Configuration_Loader,
   write_file_or_exit(config_file, u8R"({"globals": {"b": true}})"_sv);
   write_file_or_exit(config_file, u8R"({"globals": {"a": true}})"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -751,8 +750,7 @@ TEST_F(Test_Configuration_Loader,
 
   move_file(new_config_file, config_file);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -775,8 +773,7 @@ TEST_F(Test_Configuration_Loader,
 
   move_file(new_config_file, config_file);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -795,8 +792,7 @@ TEST_F(Test_Configuration_Loader,
   move_file(config_file, temp_config_file);
   move_file(temp_config_file, config_file);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -811,8 +807,7 @@ TEST_F(Test_Configuration_Loader, creating_config_in_same_dir_is_detected) {
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file_or_exit(config_file, u8"{}"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -829,8 +824,7 @@ TEST_F(Test_Configuration_Loader,
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file_or_exit(config_file, u8"{}"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -848,8 +842,7 @@ TEST_F(Test_Configuration_Loader, creating_config_in_parent_dir_is_detected) {
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file_or_exit(config_file, u8"{}"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -870,8 +863,7 @@ TEST_F(Test_Configuration_Loader,
   std::string inner_config_file = project_dir + "/dir/quick-lint-js.config";
   write_file_or_exit(inner_config_file, u8"{}"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, inner_config_file);
@@ -890,8 +882,7 @@ TEST_F(Test_Configuration_Loader, deleting_config_in_same_dir_is_detected) {
   EXPECT_EQ(std::remove(config_file.c_str()), 0)
       << "failed to delete " << config_file << ": " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
@@ -915,8 +906,7 @@ TEST_F(Test_Configuration_Loader,
       << "failed to delete " << inner_config_file << ": "
       << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, outer_config_file);
@@ -934,8 +924,7 @@ TEST_F(Test_Configuration_Loader, moving_config_away_in_same_dir_is_detected) {
 
   move_file(config_file, (project_dir + "/moved.config"));
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
@@ -957,8 +946,7 @@ TEST_F(Test_Configuration_Loader,
 
   move_file(inner_config_file, (project_dir + "/dir/moved.config"));
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, outer_config_file);
@@ -977,8 +965,7 @@ TEST_F(Test_Configuration_Loader, moving_config_into_same_dir_is_detected) {
 
   move_file(temp_config_file, renamed_config_file);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, renamed_config_file);
@@ -998,8 +985,7 @@ TEST_F(Test_Configuration_Loader, moving_config_into_parent_dir_is_detected) {
 
   move_file(temp_config_file, renamed_config_file);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, renamed_config_file);
@@ -1022,8 +1008,7 @@ TEST_F(Test_Configuration_Loader,
 
   move_file(temp_config_file, inner_config_file);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_SAME_FILE(*changes[0].watched_path, js_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, inner_config_file);
@@ -1043,8 +1028,7 @@ TEST_F(Test_Configuration_Loader,
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("olddir"));
@@ -1066,8 +1050,7 @@ TEST_F(Test_Configuration_Loader,
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("hello.js"));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("olddir"));
@@ -1088,8 +1071,7 @@ TEST_F(Test_Configuration_Loader,
 
   move_file((project_dir + "/olddir"), (project_dir + "/newdir"));
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -1105,8 +1087,7 @@ TEST_F(Test_Configuration_Loader, moving_file_keeps_config) {
 
   move_file((project_dir + "/oldfile.js"), (project_dir + "/newfile.js"));
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -1119,8 +1100,7 @@ TEST_F(Test_Configuration_Loader,
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   create_directory_or_exit(project_dir + "/dir");
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty())
       << "creating dir should not change associated config file";
 
@@ -1147,8 +1127,7 @@ TEST_F(
   std::string config_file = project_dir + "/dir/quick-lint-js.config";
   write_file_or_exit(config_file, u8"{}"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_THAT(*changes[0].watched_path, ::testing::HasSubstr("test.js"));
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
@@ -1174,8 +1153,7 @@ TEST_F(Test_Configuration_Loader,
   std::string config_file = project_dir + "/quick-lint-js.config";
   write_file_or_exit(config_file, u8"{}"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   Hash_Set<std::string> unconfigured_js_files = js_files;
   for (const Configuration_Change& change : changes) {
     SCOPED_TRACE(*change.watched_path);
@@ -1218,8 +1196,7 @@ TEST_F(Test_Configuration_Loader,
       << std::strerror(errno);
   write_file_or_exit(outer_config_file, u8R"({"globals": {"after": true}})"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
 
   std::vector<std::string> watched_paths;
   std::vector<void*> watched_tokens;
@@ -1266,8 +1243,7 @@ TEST_F(Test_Configuration_Loader,
 
   write_file_or_exit(config_file, u8R"({"globals": {"after": true}})"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].watched_path, config_file);
   EXPECT_EQ(changes[0].token, &config_file);
@@ -1289,8 +1265,7 @@ TEST_F(Test_Configuration_Loader,
   write_file_or_exit(config_file,
                      u8R"({"globals": {"testGlobalVariable": true}})"_sv);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].watched_path, config_file);
   EXPECT_EQ(changes[0].token, &config_file);
@@ -1312,8 +1287,7 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(std::remove(config_file.c_str()), 0)
       << "failed to delete " << config_file << ": " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].watched_path, config_file);
   EXPECT_EQ(changes[0].token, &config_file);
@@ -1407,8 +1381,7 @@ TEST_F(Test_Configuration_Loader,
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
@@ -1439,8 +1412,7 @@ TEST_F(Test_Configuration_Loader,
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
@@ -1485,8 +1457,7 @@ TEST_F(Test_Configuration_Loader,
       << "failed to make " << config_file
       << " readable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_TRUE(
@@ -1528,8 +1499,7 @@ TEST_F(Test_Configuration_Loader,
       << "failed to make " << config_file
       << " readable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_TRUE(
@@ -1562,8 +1532,7 @@ TEST_F(Test_Configuration_Loader,
             canonicalize_path(config_file)->c_str());
   EXPECT_EQ(loaded_config.error().io_error.error, EACCES);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -1589,8 +1558,7 @@ TEST_F(Test_Configuration_Loader,
               canonicalize_path(config_file)->c_str());
   EXPECT_THAT(loaded_config.error().io_error.error, EACCES);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -1615,15 +1583,14 @@ TEST_F(Test_Configuration_Loader,
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
 
-  [[maybe_unused]] std::vector<Configuration_Change> changes_1 =
+  [[maybe_unused]] Span<Configuration_Change> changes_1 =
       loader.detect_changes_and_refresh();
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0644), 0)
       << "failed to make " << config_file
       << " readable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes_2 =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes_2 = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &js_file);
   EXPECT_TRUE(changes_2[0].config_file->config.globals().find(
@@ -1650,15 +1617,14 @@ TEST_F(
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
 
-  [[maybe_unused]] std::vector<Configuration_Change> changes_1 =
+  [[maybe_unused]] Span<Configuration_Change> changes_1 =
       loader.detect_changes_and_refresh();
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0644), 0)
       << "failed to make " << config_file
       << " readable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes_2 =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes_2 = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &config_file);
   EXPECT_TRUE(changes_2[0].config_file->config.globals().find(
@@ -1702,15 +1668,14 @@ TEST_F(
       << "failed to make " << config_file
       << " readable: " << std::strerror(errno);
 
-  [[maybe_unused]] std::vector<Configuration_Change> changes_1 =
+  [[maybe_unused]] Span<Configuration_Change> changes_1 =
       loader.detect_changes_and_refresh();
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes_2 =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes_2 = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &js_file);
   EXPECT_EQ(changes_2[0].config_file, nullptr);
@@ -1752,15 +1717,14 @@ TEST_F(
       << "failed to make " << config_file
       << " readable: " << std::strerror(errno);
 
-  [[maybe_unused]] std::vector<Configuration_Change> changes_1 =
+  [[maybe_unused]] Span<Configuration_Change> changes_1 =
       loader.detect_changes_and_refresh();
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes_2 =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes_2 = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &config_file);
   EXPECT_EQ(changes_2[0].config_file, nullptr);
@@ -1799,8 +1763,7 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
       << "failed to make " << dir << " readable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_TRUE(
@@ -1838,8 +1801,7 @@ TEST_F(
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
       << "failed to make " << dir << " readable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_TRUE(
@@ -1874,8 +1836,7 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
@@ -1912,8 +1873,7 @@ TEST_F(
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_EQ(changes[0].config_file, nullptr);
@@ -1950,8 +1910,7 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(loaded_config.error().canonicalizing_path, js_file_canonical_path);
   EXPECT_EQ(loaded_config.error().io_error.error, EACCES);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 
@@ -1981,8 +1940,7 @@ TEST_F(Test_Configuration_Loader,
             config_file_canonical_path);
   EXPECT_EQ(loaded_config.error().io_error.error, EACCES);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   EXPECT_THAT(changes, IsEmpty());
 }
 #endif
@@ -2008,8 +1966,7 @@ TEST_F(Test_Configuration_Loader,
   ASSERT_EQ(::symlink("after.config", config_symlink.c_str()), 0)
       << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_symlink);
   EXPECT_EQ(*changes[0].config_file->config_path,
@@ -2043,8 +2000,7 @@ TEST_F(Test_Configuration_Loader,
   ASSERT_EQ(::symlink("after", subdir_symlink.c_str()), 0)
       << std::strerror(errno);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].config_file->config_path,
             canonicalize_path(after_config_file)->canonical());
@@ -2075,8 +2031,7 @@ TEST_F(Test_Configuration_Loader,
   move_file(subdir, project_dir + "/before");
   move_file(project_dir + "/after", subdir);
 
-  std::vector<Configuration_Change> changes =
-      loader.detect_changes_and_refresh();
+  Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].config_file->config_path,
             canonicalize_path(subdir + "/quick-lint-js.config")->canonical());
@@ -2205,8 +2160,13 @@ TEST_F(Test_Configuration_Loader,
 }
 #endif
 
-TEST(Test_Configuration_Loader_Fake,
-     file_with_no_config_file_gets_default_config) {
+class Test_Configuration_Loader_Fake : public ::testing::Test {
+ public:
+  Monotonic_Allocator allocator{"Test_Configuration_Loader_Fake"};
+};
+
+TEST_F(Test_Configuration_Loader_Fake,
+       file_with_no_config_file_gets_default_config) {
   Fake_Configuration_Filesystem fs;
   fs.create_file(fs.rooted("hello.js"), u8""_sv);
 
@@ -2219,8 +2179,8 @@ TEST(Test_Configuration_Loader_Fake,
   EXPECT_EQ(*loaded_config, nullptr);
 }
 
-TEST(Test_Configuration_Loader_Fake,
-     find_quick_lint_js_config_in_same_directory) {
+TEST_F(Test_Configuration_Loader_Fake,
+       find_quick_lint_js_config_in_same_directory) {
   Fake_Configuration_Filesystem fs;
   fs.create_file(fs.rooted("hello.js"), u8""_sv);
   fs.create_file(fs.rooted("quick-lint-js.config"), u8"{}"_sv);
@@ -2235,7 +2195,7 @@ TEST(Test_Configuration_Loader_Fake,
   EXPECT_EQ(*(*loaded_config)->config_path, fs.rooted("quick-lint-js.config"));
 }
 
-TEST(Test_Configuration_Loader_Fake, find_config_in_parent_directory) {
+TEST_F(Test_Configuration_Loader_Fake, find_config_in_parent_directory) {
   Fake_Configuration_Filesystem fs;
   fs.create_file(fs.rooted("dir/hello.js"), u8""_sv);
   fs.create_file(fs.rooted("quick-lint-js.config"), u8"{}"_sv);
@@ -2250,8 +2210,8 @@ TEST(Test_Configuration_Loader_Fake, find_config_in_parent_directory) {
   EXPECT_EQ(*(*loaded_config)->config_path, fs.rooted("quick-lint-js.config"));
 }
 
-TEST(Test_Configuration_Loader_Fake,
-     adding_json_syntax_error_makes_config_default) {
+TEST_F(Test_Configuration_Loader_Fake,
+       adding_json_syntax_error_makes_config_default) {
   Fake_Configuration_Filesystem fs;
   fs.create_file(fs.rooted("hello.js"), u8""_sv);
   fs.create_file(fs.rooted("quick-lint-js.config"), u8"{}"_sv);
@@ -2264,13 +2224,13 @@ TEST(Test_Configuration_Loader_Fake,
   ASSERT_TRUE((*loaded_config)->config.globals().find(u8"console"_sv));
 
   fs.create_file(fs.rooted("quick-lint-js.config"), u8"{\\}"_sv);
-  std::vector<Configuration_Change> changes = loader.refresh();
+  Span<Configuration_Change> changes = loader.refresh(&this->allocator);
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"console"_sv));
 }
 
-TEST(Test_Configuration_Loader_Fake,
-     multiple_watches_for_same_token_are_notified_together) {
+TEST_F(Test_Configuration_Loader_Fake,
+       multiple_watches_for_same_token_are_notified_together) {
   Fake_Configuration_Filesystem fs;
   fs.create_file(fs.rooted("quick-lint-js.config"), u8"{}"_sv);
   char token_1;
@@ -2284,7 +2244,7 @@ TEST(Test_Configuration_Loader_Fake,
 
   fs.create_file(fs.rooted("quick-lint-js.config"),
                  u8"{\"_svglobal-groups\": false}"_sv);
-  std::vector<Configuration_Change> changes = loader.refresh();
+  Span<Configuration_Change> changes = loader.refresh(&this->allocator);
   std::vector<void*> tokens;
   for (Configuration_Change& change : changes) {
     tokens.push_back(change.token);
@@ -2293,10 +2253,16 @@ TEST(Test_Configuration_Loader_Fake,
               ::testing::UnorderedElementsAreArray({&token_1, &token_2}));
 }
 
-std::vector<Configuration_Change>
+Span<Configuration_Change>
 Change_Detecting_Configuration_Loader::detect_changes_and_refresh() {
+#if defined(_WIN32)
+  std::unique_lock<Mutex> lock(this->mutex_);
+  bool fs_changed = this->detect_changes_locked(lock);
+#else
   bool fs_changed = this->detect_changes();
-  std::vector<Configuration_Change> config_changes = this->loader_.refresh();
+#endif
+  Span<Configuration_Change> config_changes =
+      this->loader_.refresh(&this->allocator);
   if (fs_changed) {
     // NOTE(strager): We cannot assert that at least one change happened,
     // because filesystem notifications might be spurious.
@@ -2345,6 +2311,15 @@ bool Change_Detecting_Configuration_Loader::detect_changes() {
   return kqueue_rc != 0;
 #elif defined(_WIN32)
   std::unique_lock<Mutex> lock(this->mutex_);
+  this->detect_changes_locked(lock);
+#else
+#error "Unsupported platform"
+#endif
+}
+
+#if defined(_WIN32)
+bool Change_Detecting_Configuration_Loader::detect_changes_locked(
+    std::unique_lock<Mutex>& lock) {
   auto old_io_thread_timed_out_count = this->io_thread_timed_out_count_;
   this->io_thread_timed_out_.wait(lock, [&]() {
     return this->io_thread_timed_out_count_ != old_io_thread_timed_out_count;
@@ -2353,10 +2328,8 @@ bool Change_Detecting_Configuration_Loader::detect_changes() {
   bool fs_changed = this->old_fs_changed_count_ != this->fs_changed_count_;
   this->old_fs_changed_count_ = this->fs_changed_count_;
   return fs_changed;
-#else
-#error "Unsupported platform"
-#endif
 }
+#endif
 
 #if defined(_WIN32)
 void Change_Detecting_Configuration_Loader::run_io_thread() {

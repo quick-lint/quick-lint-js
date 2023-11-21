@@ -372,7 +372,10 @@ void QLJS_Workspace::check_for_config_file_changes_from_thread(
 }
 
 void QLJS_Workspace::check_for_config_file_changes(::Napi::Env env) {
-  std::vector<Configuration_Change> changes = this->config_loader_.refresh();
+  Monotonic_Allocator temporary_allocator(
+      "QLJS_Workspace::check_for_config_file_changes");
+  Span<Configuration_Change> changes =
+      this->config_loader_.refresh(&temporary_allocator);
   for (const Configuration_Change& change : changes) {
     QLJS_DEBUG_LOG("Configuration changed for %s\n",
                    change.watched_path->c_str());

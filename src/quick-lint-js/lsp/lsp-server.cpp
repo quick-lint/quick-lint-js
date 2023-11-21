@@ -219,12 +219,13 @@ void Linting_LSP_Server_Handler::handle_notification(
 }
 
 void Linting_LSP_Server_Handler::filesystem_changed() {
-  std::vector<Configuration_Change> config_changes =
-      this->config_loader_.refresh();
+  Monotonic_Allocator temporary_allocator(
+      "Linting_LSP_Server_Handler::filesystem_changed");
+  Span<Configuration_Change> config_changes =
+      this->config_loader_.refresh(&temporary_allocator);
   {
     Lock_Ptr<LSP_Documents> documents = this->documents_.lock();
-    this->handle_config_file_changes(
-        documents, Span<const Configuration_Change>(config_changes));
+    this->handle_config_file_changes(documents, config_changes);
   }
 }
 
@@ -366,10 +367,12 @@ void Linting_LSP_Server_Handler::handle_text_document_did_change_notification(
 
   switch (doc.type) {
   case LSP_Documents::Document_Type::config: {
-    std::vector<Configuration_Change> config_changes =
-        this->config_loader_.refresh();
-    this->handle_config_file_changes(
-        documents, Span<const Configuration_Change>(config_changes));
+    Monotonic_Allocator temporary_allocator(
+        "Linting_LSP_Server_Handler::handle_text_document_did_change_"
+        "notification");
+    Span<Configuration_Change> config_changes =
+        this->config_loader_.refresh(&temporary_allocator);
+    this->handle_config_file_changes(documents, config_changes);
     break;
   }
 
@@ -516,12 +519,14 @@ void Linting_LSP_Server_Handler::handle_text_document_did_open_notification(
         *config_file, notification.uri.json, doc->version_json,
         config_diagnostics_json);
 
-    std::vector<Configuration_Change> config_changes =
-        this->config_loader_.refresh();
+    Monotonic_Allocator temporary_allocator(
+        "Linting_LSP_Server_Handler::handle_text_document_did_open_"
+        "notification");
+    Span<Configuration_Change> config_changes =
+        this->config_loader_.refresh(&temporary_allocator);
     {
       Lock_Ptr<LSP_Documents> documents = this->documents_.lock();
-      this->handle_config_file_changes(
-          documents, Span<const Configuration_Change>(config_changes));
+      this->handle_config_file_changes(documents, config_changes);
     }
 
     doc_ptr = std::move(doc);

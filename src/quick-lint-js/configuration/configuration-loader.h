@@ -10,12 +10,14 @@
 #include <optional>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/hash-map.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/memory-resource.h>
+#include <quick-lint-js/port/span.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -140,7 +142,7 @@ class Configuration_Loader {
   //   quick-lint-js.config's content changed.
   // * A quick-lint-js.config file didn't exist, and now one does.
   // * A quick-lint-js.config file was moved into an ancestor directory.
-  std::vector<Configuration_Change> refresh();
+  Span<Configuration_Change> refresh(Monotonic_Allocator*);
 
   // Returns true if the path might possibly be a configuration file detected by
   // load_for_file or watch_and_load_for_file.
