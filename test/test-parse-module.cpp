@@ -173,24 +173,6 @@ TEST_F(Test_Parse_Module, export_default) {
   }
 
   {
-    Spy_Visitor p = test_parse_and_visit_module(
-        u8"export default class A {} export default class B {}"_sv,  //
-        u8"       ^^^^^^^ Diag_Multiple_Export_Defaults.first_export_default\n"
-        u8"                                 ^^^^^^^ .second_export_default"_diag);
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_class_scope",       // A
-                              "visit_enter_class_scope_body",  //
-                              "visit_exit_class_scope",        //
-                              "visit_variable_declaration",    //
-                              "visit_enter_class_scope",       // B
-                              "visit_enter_class_scope_body",  //
-                              "visit_exit_class_scope",        //
-                              "visit_variable_declaration",    //
-                              "visit_end_of_module",
-                          }));
-  }
-
-  {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"export default async (a) => b;"_sv, no_diags, javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
@@ -200,6 +182,36 @@ TEST_F(Test_Parse_Module, export_default) {
                               "visit_variable_use",  // b
                               "visit_exit_function_scope",
                           }));
+  }
+}
+
+TEST_F(Test_Parse_Module, multiple_default_exports) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default class A {}  export default class B {}"_sv,  //
+        u8"                                  ^^^^^^^ Diag_Multiple_Export_Defaults.second_export_default\n"_diag
+        u8"       ^^^^^^^ .first_export_default"_diag);
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default class A {}  export {B as default};"_sv,  //
+        u8"                                        ^^^^^^^ Diag_Multiple_Export_Defaults.second_export_default\n"_diag
+        u8"       ^^^^^^^ .first_export_default"_diag);
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export {A as default}; export default class B {}"_sv,  //
+        u8"                              ^^^^^^^ Diag_Multiple_Export_Defaults.second_export_default\n"_diag
+        u8"             ^^^^^^^ .first_export_default"_diag);
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export {A as default}; export {B as default};"_sv,  //
+        u8"                                    ^^^^^^^ Diag_Multiple_Export_Defaults.second_export_default\n"_diag
+        u8"             ^^^^^^^ .first_export_default"_diag);
   }
 }
 

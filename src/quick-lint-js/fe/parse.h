@@ -568,6 +568,8 @@ class Parser {
       std::optional<Source_Code_Span> typescript_type_only_keyword,
       Vector<Token> *out_exported_bad_tokens);
 
+  void found_default_export(Source_Code_Span default_keyword);
+
   void parse_and_visit_variable_declaration_statement(
       Parse_Visitor_Base &v,
       bool is_top_level_typescript_definition_without_declare_or_export =

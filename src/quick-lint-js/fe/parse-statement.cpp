@@ -1014,16 +1014,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
   switch (this->peek().type) {
     // export default class C {}
   case Token_Type::kw_default:
-    if (this->first_export_default_statement_default_keyword_.has_value()) {
-      this->diag_reporter_->report(Diag_Multiple_Export_Defaults{
-          .second_export_default = this->peek().span(),
-          .first_export_default =
-              *this->first_export_default_statement_default_keyword_,
-      });
-    } else {
-      this->first_export_default_statement_default_keyword_ =
-          this->peek().span();
-    }
+    this->found_default_export(this->peek().span());
 
     this->is_current_typescript_namespace_non_empty_ = true;
     if (this->in_typescript_namespace_or_module_.has_value() &&
@@ -1578,6 +1569,18 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
         .unexpected_token = this->peek().span(),
     });
     break;
+  }
+}
+
+void Parser::found_default_export(Source_Code_Span default_keyword) {
+  if (this->first_export_default_statement_default_keyword_.has_value()) {
+    this->diag_reporter_->report(Diag_Multiple_Export_Defaults{
+        .second_export_default = default_keyword,
+        .first_export_default =
+            *this->first_export_default_statement_default_keyword_,
+    });
+  } else {
+    this->first_export_default_statement_default_keyword_ = default_keyword;
   }
 }
 
@@ -4721,6 +4724,7 @@ void Parser::parse_and_visit_named_exports(
             v.visit_variable_type_use(left_name);
           } else if (right_token.type == Token_Type::kw_default) {
             // export {C as default};
+            this->found_default_export(/*default_keyword=*/right_token.span());
             v.visit_variable_export_default_use(left_name);
           } else {
             // export {C};

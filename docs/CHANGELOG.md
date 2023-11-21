@@ -14,6 +14,8 @@ Semantic Versioning.
   clause in `switch` statement now reports [E0427][] ("missing 'break;' or '//
   fallthrough' comment between statement and 'case'"). (Implemented by [Yash
   Masani][].)
+* Detection of multiple `export default` statements ([E0715][]) now also applies
+  to `export {... as default};` statements.
 * TypeScript support (still experimental):
   * `export as namespace` statements are now parsed.
   * Assertion signatures (`function f(param): asserts param`) are now parsed.
