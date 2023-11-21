@@ -349,6 +349,7 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
       switch (used_var.kind) {
       case Used_Variable_Kind::assignment:
         break;
+      case Used_Variable_Kind::_export_default:
       case Used_Variable_Kind::_typeof:
       case Used_Variable_Kind::use:
         if (kind == Variable_Kind::_class || kind == Variable_Kind::_const ||
@@ -399,6 +400,7 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
                }
                break;
              case Used_Variable_Kind::_export:
+             case Used_Variable_Kind::_export_default:
                // TODO(strager): This shouldn't happen. export statements are
                // not allowed inside functions.
                break;
@@ -473,7 +475,7 @@ void Variable_Analyzer::visit_variable_delete_use(
 }
 
 void Variable_Analyzer::visit_variable_export_default_use(Identifier name) {
-  this->visit_variable_use(name, Used_Variable_Kind::use);
+  this->visit_variable_use(name, Used_Variable_Kind::_export_default);
 }
 
 void Variable_Analyzer::visit_variable_export_use(Identifier name) {
@@ -579,8 +581,9 @@ void Variable_Analyzer::visit_end_of_module() {
     // propagate_variable_uses_to_parent_scope should have already removed it
     // from variables_used and variables_used_in_descendant_scope.
     switch (var.kind) {
-    case Used_Variable_Kind::_export:
     case Used_Variable_Kind::_delete:
+    case Used_Variable_Kind::_export:
+    case Used_Variable_Kind::_export_default:
     case Used_Variable_Kind::_typeof:
     case Used_Variable_Kind::assignment:
     case Used_Variable_Kind::use:
@@ -612,6 +615,7 @@ void Variable_Analyzer::visit_end_of_module() {
             Diag_Use_Of_Undeclared_Type{.name = used_var.name.span()});
         break;
       case Used_Variable_Kind::_export:
+      case Used_Variable_Kind::_export_default:
       case Used_Variable_Kind::use:
         this->diag_reporter_->report(
             Diag_Use_Of_Undeclared_Variable{.name = used_var.name.span()});
@@ -693,6 +697,7 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
         var = parent_scope.declared_variables.find(used_var.name);
         break;
       case Used_Variable_Kind::_delete:
+      case Used_Variable_Kind::_export_default:
       case Used_Variable_Kind::_typeof:
       case Used_Variable_Kind::assignment:
       case Used_Variable_Kind::use:
@@ -735,6 +740,7 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
         var = parent_scope.declared_variables.find(used_var.name);
         break;
       case Used_Variable_Kind::_delete:
+      case Used_Variable_Kind::_export_default:
       case Used_Variable_Kind::_typeof:
       case Used_Variable_Kind::assignment:
       case Used_Variable_Kind::use:
@@ -1144,6 +1150,7 @@ bool Variable_Analyzer::Used_Variable::is_runtime() const {
   switch (this->kind) {
   case Used_Variable_Kind::_delete:
   case Used_Variable_Kind::_export:
+  case Used_Variable_Kind::_export_default:
   case Used_Variable_Kind::_typeof:
   case Used_Variable_Kind::assignment:
   case Used_Variable_Kind::use:
@@ -1160,6 +1167,7 @@ bool Variable_Analyzer::Used_Variable::is_type() const {
   case Used_Variable_Kind::type:
     return true;
   case Used_Variable_Kind::_delete:
+  case Used_Variable_Kind::_export_default:
   case Used_Variable_Kind::_typeof:
   case Used_Variable_Kind::assignment:
   case Used_Variable_Kind::use:

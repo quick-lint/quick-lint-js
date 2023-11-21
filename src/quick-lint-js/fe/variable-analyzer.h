@@ -139,6 +139,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   enum class Used_Variable_Kind {
     _delete,
     _export,
+    _export_default,
     _typeof,
     assignment,
     type,  // TypeScript only.
