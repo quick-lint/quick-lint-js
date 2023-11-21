@@ -127,6 +127,9 @@ void Buffering_Visitor::copy_into(Parse_Visitor_Base &target) const {
     case Visit_Kind::variable_delete_use:
       target.visit_variable_delete_use(v.name, v.extra_span);
       break;
+    case Visit_Kind::variable_export_default_use:
+      target.visit_variable_export_default_use(v.name);
+      break;
     case Visit_Kind::variable_export_use:
       target.visit_variable_export_use(v.name);
       break;
@@ -310,6 +313,10 @@ void Buffering_Visitor::visit_variable_delete_use(
     Identifier name, Source_Code_Span delete_keyword) {
   this->visits_.emplace_back(Visit_Kind::variable_delete_use, name,
                              delete_keyword);
+}
+
+void Buffering_Visitor::visit_variable_export_default_use(Identifier name) {
+  this->add(name, Visit_Kind::variable_export_default_use);
 }
 
 void Buffering_Visitor::visit_variable_export_use(Identifier name) {

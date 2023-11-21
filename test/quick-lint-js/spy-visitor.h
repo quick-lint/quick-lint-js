@@ -405,6 +405,11 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
     this->visits.emplace_back("visit_variable_delete_use");
   }
 
+  void visit_variable_export_default_use(Identifier name) override {
+    this->variable_uses.emplace_back(name.normalized_name());
+    this->visits.emplace_back("visit_variable_export_default_use");
+  }
+
   void visit_variable_export_use(Identifier name) override {
     this->variable_uses.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_export_use");

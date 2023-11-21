@@ -1047,11 +1047,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
         if (this->peek().has_leading_newline) {
           // export default async  // ASI.
           // function f() {}
-          if (this->in_typescript_module_) {
-            v.visit_variable_export_use(async_token.identifier_name());
-          } else {
-            v.visit_variable_use(async_token.identifier_name());
-          }
+          v.visit_variable_export_default_use(async_token.identifier_name());
           this->consume_semicolon_after_statement();
           break;
         }
@@ -1166,17 +1162,13 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     export_default_expression:
     default:
       Expression *ast = this->parse_expression(v);
-      if (this->in_typescript_module_) {
-        if (ast->kind() == Expression_Kind::Variable) {
-          // declare module "m" { export default MyClass; }
-          v.visit_variable_export_use(ast->variable_identifier());
-        } else {
-          // declare module "m" { export default 2 + 2; }  // Invalid.
-          this->visit_expression(ast, v, Variable_Context::rhs);
-        }
-      } else {
+      if (ast->kind() == Expression_Kind::Variable) {
         // export default MyClass;
+        // declare module "m" { export default MyClass; }
+        v.visit_variable_export_default_use(ast->variable_identifier());
+      } else {
         // export default 2 + 2;
+        // declare module "m" { export default 2 + 2; }  // Invalid.
         this->visit_expression(ast, v, Variable_Context::rhs);
       }
       this->consume_semicolon_after_statement();

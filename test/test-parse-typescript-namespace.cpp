@@ -320,11 +320,11 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_disallows_exporting_default) {
         u8"^^^^^^^^^ .namespace_keyword"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_namespace_scope",  // {
-                              "visit_variable_use",           // Z
-                              "visit_exit_namespace_scope",   // }
-                              "visit_variable_declaration",   // ns
-                              "visit_end_of_module",          //
+                              "visit_enter_namespace_scope",        // {
+                              "visit_variable_export_default_use",  // Z
+                              "visit_exit_namespace_scope",         // }
+                              "visit_variable_declaration",         // ns
+                              "visit_end_of_module",                //
                           }));
   }
 

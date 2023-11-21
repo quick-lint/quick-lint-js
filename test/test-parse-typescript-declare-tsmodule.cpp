@@ -149,28 +149,17 @@ TEST_F(Test_Parse_TypeScript_Declare_TSModule,
 
 TEST_F(Test_Parse_TypeScript_Declare_TSModule,
        export_default_of_variable_is_allowed_in_declare_module) {
-  // NOTE[declare-module-export-default-var]: Unlike a normal 'export default',
-  // 'export default' inside 'declare module' is an export use:
-  //
-  // export default A;     // Invalid
-  // class A {}
-  //
-  // declare module "m" {
-  //   export default A;   // OK
-  //   class A {}
-  // }
-
   {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"declare module 'mymod' { export default Z; }"_sv, no_diags,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_declare_scope",    //
-                              "visit_enter_namespace_scope",  // {
-                              "visit_variable_export_use",    // Z
-                              "visit_exit_namespace_scope",   // }
-                              "visit_exit_declare_scope",     //
-                              "visit_end_of_module",          //
+                              "visit_enter_declare_scope",          //
+                              "visit_enter_namespace_scope",        // {
+                              "visit_variable_export_default_use",  // Z
+                              "visit_exit_namespace_scope",         // }
+                              "visit_exit_declare_scope",           //
+                              "visit_end_of_module",                //
                           }));
   }
 
@@ -188,14 +177,15 @@ TEST_F(Test_Parse_TypeScript_Declare_TSModule,
                   typescript_options);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_declare_scope",    //
-                              "visit_enter_namespace_scope",  // {
-                              "visit_variable_export_use",    // (variable_name)
-                              "visit_exit_namespace_scope",   // {
-                              "visit_exit_declare_scope",     //
-                              "visit_end_of_module",          //
-                          }));
+    EXPECT_THAT(p.visits,
+                ElementsAreArray({
+                    "visit_enter_declare_scope",          //
+                    "visit_enter_namespace_scope",        // {
+                    "visit_variable_export_default_use",  // (variable_name)
+                    "visit_exit_namespace_scope",         // {
+                    "visit_exit_declare_scope",           //
+                    "visit_end_of_module",                //
+                }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({variable_name}));
   }
 
@@ -206,15 +196,15 @@ TEST_F(Test_Parse_TypeScript_Declare_TSModule,
         u8"declare module 'mymod' { export default async\nfunction f(); }"_sv,
         no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_declare_scope",    //
-                              "visit_enter_namespace_scope",  // {
-                              "visit_variable_export_use",    // async
-                              "visit_enter_function_scope",   // f
-                              "visit_exit_function_scope",    // f
-                              "visit_variable_declaration",   // f
-                              "visit_exit_namespace_scope",   // {
-                              "visit_exit_declare_scope",     //
-                              "visit_end_of_module",          //
+                              "visit_enter_declare_scope",          //
+                              "visit_enter_namespace_scope",        // {
+                              "visit_variable_export_default_use",  // async
+                              "visit_enter_function_scope",         // f
+                              "visit_exit_function_scope",          // f
+                              "visit_variable_declaration",         // f
+                              "visit_exit_namespace_scope",         // {
+                              "visit_exit_declare_scope",           //
+                              "visit_end_of_module",                //
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"async"}));
   }

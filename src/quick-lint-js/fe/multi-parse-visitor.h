@@ -196,6 +196,11 @@ class Multi_Parse_Visitor final : public Parse_Visitor_Base {
     this->visitor_2_->visit_variable_delete_use(name, delete_keyword);
   }
 
+  void visit_variable_export_default_use(Identifier name) override {
+    this->visitor_1_->visit_variable_export_default_use(name);
+    this->visitor_2_->visit_variable_export_default_use(name);
+  }
+
   void visit_variable_export_use(Identifier name) override {
     this->visitor_1_->visit_variable_export_use(name);
     this->visitor_2_->visit_variable_export_use(name);

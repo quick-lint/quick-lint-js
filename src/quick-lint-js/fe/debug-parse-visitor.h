@@ -220,6 +220,13 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
     this->output_->flush();
   }
 
+  void visit_variable_export_default_use(Identifier name) override {
+    this->output_->append_copy(u8"variable export default use: "_sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
+  }
+
   void visit_variable_export_use(Identifier name) override {
     this->output_->append_copy(u8"variable export use: "_sv);
     this->output_->append_copy(name.normalized_name());

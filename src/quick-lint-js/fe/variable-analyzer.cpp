@@ -472,6 +472,10 @@ void Variable_Analyzer::visit_variable_delete_use(
   }
 }
 
+void Variable_Analyzer::visit_variable_export_default_use(Identifier name) {
+  this->visit_variable_use(name, Used_Variable_Kind::use);
+}
+
 void Variable_Analyzer::visit_variable_export_use(Identifier name) {
   this->visit_variable_use(name, Used_Variable_Kind::_export);
 }

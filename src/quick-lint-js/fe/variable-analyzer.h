@@ -83,6 +83,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   void visit_variable_assertion_signature_use(Identifier name) override;
   void visit_variable_delete_use(Identifier name,
                                  Source_Code_Span delete_keyword) override;
+  void visit_variable_export_default_use(Identifier name) override;
   void visit_variable_export_use(Identifier name) override;
   void visit_variable_namespace_use(Identifier name) override;
   void visit_variable_type_predicate_use(Identifier name) override;

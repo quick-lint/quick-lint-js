@@ -60,6 +60,7 @@ class Parse_Visitor_Base {
   virtual void visit_variable_assertion_signature_use(Identifier name) = 0;
   virtual void visit_variable_delete_use(Identifier name,
                                          Source_Code_Span delete_keyword) = 0;
+  virtual void visit_variable_export_default_use(Identifier name) = 0;
   virtual void visit_variable_export_use(Identifier name) = 0;
   virtual void visit_variable_namespace_use(Identifier name) = 0;
   virtual void visit_variable_type_predicate_use(Identifier parameter_name) = 0;

@@ -138,6 +138,23 @@ TEST(Test_Variable_Analyzer_Module, variable_export_with_no_declaration) {
       u8"        ^ Diag_Use_Of_Undeclared_Variable.name"_diag,
       javascript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Module,
+     variable_export_default_cannot_use_before_declaration) {
+  test_parse_and_analyze(
+      u8"export default C; class C {}"_sv,
+      u8"                        ^ Diag_Variable_Used_Before_Declaration.declaration\n"_diag
+      u8"               ^ .use"_diag,
+      javascript_analyze_options, default_globals);
+}
+
+TEST(
+    Test_Variable_Analyzer_Module,
+    variable_export_default_inside_typescript_declare_module_can_use_before_declaration) {
+  test_parse_and_analyze(
+      u8"declare module 'm' { export default C; class C {} }"_sv, no_diags,
+      typescript_analyze_options, default_globals);
+}
 }
 }
 
