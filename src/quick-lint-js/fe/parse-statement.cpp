@@ -1013,15 +1013,16 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
 
   switch (this->peek().type) {
     // export default class C {}
-  case Token_Type::kw_default:
-    this->found_default_export(this->peek().span());
+  case Token_Type::kw_default: {
+    Source_Code_Span default_keyword = this->peek().span();
+    this->found_default_export(default_keyword);
 
     this->is_current_typescript_namespace_non_empty_ = true;
     if (this->in_typescript_namespace_or_module_.has_value() &&
         !this->in_typescript_module_) {
       this->diag_reporter_->report(
           Diag_TypeScript_Namespace_Cannot_Export_Default{
-              .default_keyword = this->peek().span(),
+              .default_keyword = default_keyword,
               .namespace_keyword = *this->in_typescript_namespace_or_module_,
           });
     }
@@ -1166,6 +1167,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
       break;
     }
     break;
+  }
 
     // export * from "module";
     // export * as name from "module";
