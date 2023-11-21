@@ -326,57 +326,8 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
       return false;
     }
     declared.is_used = true;
-    if (kind == Variable_Kind::_function &&
-        declared_scope ==
-            Declared_Variable_Scope::declared_in_descendant_scope &&
-        used_var.kind == Used_Variable_Kind::use) {
-      this->diag_reporter_->report(
-          Diag_Function_Call_Before_Declaration_In_Block_Scope{
-              .use = used_var.name.span(),
-              .declaration = name.span(),
-          });
-    }
-    this->report_errors_for_variable_use(
-        used_var, declared,
-        /*use_is_before_declaration=*/kind == Variable_Kind::_class ||
-            kind == Variable_Kind::_const || kind == Variable_Kind::_let);
-    if (this->in_typescript_ambient_context()) {
-      // Use before declaration is allowed in ambient contexts. For example:
-      //
-      //   new C();            // OK
-      //   declare class C {}  // OK (we are here)
-    } else {
-      switch (used_var.kind) {
-      case Used_Variable_Kind::assignment:
-        break;
-      case Used_Variable_Kind::_export_default:
-      case Used_Variable_Kind::_typeof:
-      case Used_Variable_Kind::use:
-        if (kind == Variable_Kind::_class || kind == Variable_Kind::_const ||
-            kind == Variable_Kind::_let) {
-          this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
-              .use = used_var.name.span(),
-              .declaration = name.span(),
-          });
-        }
-        break;
-      case Used_Variable_Kind::_delete:
-        // Use before declaration is legal for delete.
-        break;
-      case Used_Variable_Kind::_export:
-        // Use before declaration is legal for variable exports.
-        break;
-      case Used_Variable_Kind::type:
-        if (kind == Variable_Kind::_generic_parameter) {
-          this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
-              .use = used_var.name.span(),
-              .declaration = name.span(),
-          });
-        }
-        // Use before declaration is normally legal for types.
-        break;
-      }
-    }
+    this->report_errors_for_variable_use(used_var, declared,
+                                         /*use_is_before_declaration=*/true);
     return true;
   });
   erase_if(scope.variables_used_in_descendant_scope,
@@ -882,16 +833,8 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
 
     QLJS_WARNING_POP
     break;
-  case Variable_Kind::_arrow_parameter:
-  case Variable_Kind::_catch:
   case Variable_Kind::_class:
-  case Variable_Kind::_function:
-  case Variable_Kind::_function_parameter:
-  case Variable_Kind::_function_type_parameter:
-  // FIXME(strager): Is _index_signature_parameter correct here?
-  case Variable_Kind::_index_signature_parameter:
   case Variable_Kind::_let:
-  case Variable_Kind::_var:
     if (is_assigned_before_declaration) {
       QLJS_WARNING_PUSH
       QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
@@ -903,6 +846,19 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
 
       QLJS_WARNING_POP
     }
+    break;
+  // FIXME(strager): Assigning to an arrow or function parameter before
+  // declaration is not legal.
+  case Variable_Kind::_arrow_parameter:
+  case Variable_Kind::_catch:
+  case Variable_Kind::_function:
+  case Variable_Kind::_function_parameter:
+  // FIXME(strager): Assigning to a type parameter cannot happen.
+  case Variable_Kind::_function_type_parameter:
+  // FIXME(strager): Is _index_signature_parameter correct here?
+  case Variable_Kind::_index_signature_parameter:
+  case Variable_Kind::_var:
+    // Use before declaration is okay.
     break;
   case Variable_Kind::_interface:
     // Interfaces can't be assigned to.
@@ -953,6 +909,60 @@ void Variable_Analyzer::report_errors_for_variable_use(
         .delete_expression = Source_Code_Span(used_var.delete_keyword_begin,
                                               used_var.name.span().end()),
     });
+  }
+
+  if constexpr (!declared_in_global_scope) {
+    if (declared.kind == Variable_Kind::_function &&
+        declared.declaration_scope ==
+            Declared_Variable_Scope::declared_in_descendant_scope &&
+        used_var.kind == Used_Variable_Kind::use) {
+      this->diag_reporter_->report(
+          Diag_Function_Call_Before_Declaration_In_Block_Scope{
+              .use = used_var.name.span(),
+              .declaration = declared.declaration.span(),
+          });
+    }
+
+    if (use_is_before_declaration) {
+      if (this->in_typescript_ambient_context()) {
+        // Use before declaration is allowed in ambient contexts. For example:
+        //
+        //   new C();            // OK
+        //   declare class C {}  // OK (we are here)
+      } else {
+        switch (used_var.kind) {
+        case Used_Variable_Kind::assignment:
+          break;
+        case Used_Variable_Kind::_export_default:
+        case Used_Variable_Kind::_typeof:
+        case Used_Variable_Kind::use:
+          if (declared.kind == Variable_Kind::_class ||
+              declared.kind == Variable_Kind::_const ||
+              declared.kind == Variable_Kind::_let) {
+            this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
+                .use = used_var.name.span(),
+                .declaration = declared.declaration.span(),
+            });
+          }
+          break;
+        case Used_Variable_Kind::_delete:
+          // Use before declaration is legal for delete.
+          break;
+        case Used_Variable_Kind::_export:
+          // Use before declaration is legal for variable exports.
+          break;
+        case Used_Variable_Kind::type:
+          if (declared.kind == Variable_Kind::_generic_parameter) {
+            this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
+                .use = used_var.name.span(),
+                .declaration = declared.declaration.span(),
+            });
+          }
+          // Use before declaration is normally legal for types.
+          break;
+        }
+      }
+    }
   }
 }
 
