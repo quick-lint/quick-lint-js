@@ -20,6 +20,8 @@ Semantic Versioning.
   * `export default` with a class and an interface (triggering declaration
     merging) no longer fasely reports [E0715][] ("cannot use multiple `export
     default` statements in one module").
+  * `class C<T extends U, U> {}` no longer falsely reports [E0058][] ("variable
+    used before declaration").
   * `export as namespace` statements are now parsed.
   * Assertion signatures (`function f(param): asserts param`) are now parsed.
   * `case await x:` no longer treats `:` as if it was a type annotation colon in

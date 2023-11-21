@@ -116,12 +116,13 @@ TEST(Test_Variable_Analyzer_Type, type_use_of_import_is_okay) {
 }
 
 TEST(Test_Variable_Analyzer_Type,
-     generic_parameter_use_before_declaration_is_an_error) {
-  test_parse_and_analyze(
-      u8"(function< T extends U, U, >() { });"_sv,
-      u8"                     ^ Diag_Variable_Used_Before_Declaration.use\n"_diag
-      u8"                        ^ .declaration"_diag,
-      typescript_analyze_options, default_globals);
+     generic_parameter_use_before_declaration_in_extends_is_allowed) {
+  test_parse_and_analyze(u8"(function< T extends U, U, >() { });"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Type,
+     generic_parameter_use_before_declaration_in_default_is_not_allowed) {
   test_parse_and_analyze(
       u8"(function< T extends number = U, U, >() { });"_sv,
       u8"                                 ^ Diag_Variable_Used_Before_Declaration.declaration\n"_diag

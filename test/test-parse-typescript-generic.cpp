@@ -373,6 +373,28 @@ TEST_F(Test_Parse_TypeScript_Generic, type_parameter_default_with_extends) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Generic,
+       type_parameter_extends_visits_appear_after_all_default_visits) {
+  // See NOTE[generic-type-parameter-visit-order].
+
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<P1 extends E1 = D1, P2 extends E2 = D2>"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // D1
+                              "visit_variable_declaration",  // P1
+                              "visit_variable_type_use",     // D2
+                              "visit_variable_declaration",  // P2
+                              // All extends clauses follow:
+                              "visit_variable_type_use",  // E1
+                              "visit_variable_type_use",  // E2
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"D1", u8"D2", u8"E1", u8"E2"}));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Generic, variance_specifiers) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
