@@ -277,6 +277,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_As_Const_With_Non_Literal_Typeable) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_As_Type_Assertion_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Assertion_Signature_Only_Allowed_As_Return_Types) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Interfaces) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_JavaScript) \
@@ -400,6 +401,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Unmatched_Indexing_Bracket) \
   QLJS_DIAG_TYPE_NAME(Diag_Unmatched_Parenthesis) \
   QLJS_DIAG_TYPE_NAME(Diag_Unmatched_Right_Curly) \
+  QLJS_DIAG_TYPE_NAME(Diag_Use_Of_Undeclared_Parameter_In_Assertion_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Use_Of_Undeclared_Parameter_In_Type_Predicate) \
   QLJS_DIAG_TYPE_NAME(Diag_Use_Of_Undeclared_Type) \
   QLJS_DIAG_TYPE_NAME(Diag_Use_Of_Undeclared_Variable) \
@@ -448,7 +450,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 434;
+inline constexpr int Diag_Type_Count = 436;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

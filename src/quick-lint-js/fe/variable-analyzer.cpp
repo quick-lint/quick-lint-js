@@ -433,8 +433,17 @@ void Variable_Analyzer::visit_variable_assignment(Identifier name) {
 
 void Variable_Analyzer::visit_variable_assertion_signature_use([
     [maybe_unused]] Identifier name) {
-  // TODO(#690)
-  QLJS_UNIMPLEMENTED();
+  QLJS_ASSERT(!this->scopes_.empty());
+  Scope &current_scope = this->current_scope();
+  Declared_Variable *var = current_scope.declared_variables.find_runtime(name);
+  if (var) {
+    // FIXME(strager): Should we mark the parameter as used?
+  } else {
+    this->diag_reporter_->report(
+        Diag_Use_Of_Undeclared_Parameter_In_Assertion_Signature{
+            .name = name.span(),
+        });
+  }
 }
 
 void Variable_Analyzer::visit_variable_delete_use(

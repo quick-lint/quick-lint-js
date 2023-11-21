@@ -1350,6 +1350,10 @@ msgid "use ':' instead of '{0}' to type a function parameter"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "assertion signatures are only allowed as function return types"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment-asserted fields are not allowed in 'declare class'"
 msgstr ""
 

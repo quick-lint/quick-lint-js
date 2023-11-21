@@ -177,7 +177,8 @@ const Translation_Table translation_data = {
         {0, 26, 0, 21, 0, 18},               //
         {18, 53, 70, 52, 76, 53},            //
         {19, 30, 21, 19, 19, 19},            //
-        {15, 13, 19, 17, 15, 14},            //
+        {0, 0, 0, 0, 0, 14},                 //
+        {15, 13, 19, 17, 15, 63},            //
         {0, 0, 0, 0, 0, 59},                 //
         {80, 64, 90, 59, 56, 66},            //
         {40, 33, 46, 45, 40, 36},            //
@@ -1979,6 +1980,7 @@ const Translation_Table translation_data = {
         u8"another invalid string, do not use outside benchmark\0"
         u8"array started here\0"
         u8"arrow is here\0"
+        u8"assertion signatures are only allowed as function return types\0"
         u8"assigning to 'async' in a for-of loop requires parentheses\0"
         u8"assignment assertion is not allowed on fields be marked 'declare'\0"
         u8"assignment to const global variable\0"

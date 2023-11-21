@@ -1062,6 +1062,157 @@ TEST_F(Test_Parse_TypeScript_Function,
                 }));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Function, boolean_assertion_signature) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(param): asserts param {}"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits,
+                ElementsAreArray({
+                    "visit_enter_function_scope",              //
+                    "visit_variable_declaration",              // param
+                    "visit_variable_assertion_signature_use",  // param
+                    "visit_enter_function_scope_body",         // {
+                    "visit_exit_function_scope",               // }
+                    "visit_variable_declaration",              // f
+                }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"param"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"(p): asserts p => {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",              //
+                              "visit_variable_declaration",              // p
+                              "visit_variable_assertion_signature_use",  // p
+                              "visit_enter_function_scope_body",         // {
+                              "visit_exit_function_scope",               // }
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"p"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Function, assertion_signature_with_type) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(param): asserts param is MyType {}"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits,
+                ElementsAreArray({
+                    "visit_enter_function_scope",              //
+                    "visit_variable_declaration",              // param
+                    "visit_variable_assertion_signature_use",  // param
+                    "visit_variable_type_use",                 // MyType
+                    "visit_enter_function_scope_body",         // {
+                    "visit_exit_function_scope",               // }
+                    "visit_variable_declaration",              // f
+                }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"param"_sv, u8"MyType"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(p): asserts p is MyType|MyOtherType {}"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"p"_sv, u8"MyType"_sv,
+                                                   u8"MyOtherType"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(p): asserts p is readonly T[] {}"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"p"_sv, u8"T"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Function, assertion_signature_with_funny_type) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(p): asserts p is is {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"p"_sv, u8"is"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Function, assertion_signature_can_assert_this) {
+  // TODO(#881): Only allow 'this' within class and interface method signatures.
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { f(): asserts this {} }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.variable_uses, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { f(): asserts this is SomeType {} }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"SomeType"_sv}));
+  }
+}
+
+TEST_F(
+    Test_Parse_TypeScript_Function,
+    assertion_signature_can_assert_parameter_named_contextual_keyword_except_is) {
+  for (String8_View keyword :
+       contextual_keywords - Dirty_Set<String8>{u8"is"}) {
+    SCOPED_TRACE(out_string8(keyword));
+
+    {
+      Spy_Visitor p = test_parse_and_visit_statement(
+          concat(u8"class C { f("_sv, keyword, u8"): asserts "_sv, keyword,
+                 u8" {} }"_sv),
+          no_diags, typescript_options);
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
+    }
+
+    {
+      Spy_Visitor p = test_parse_and_visit_statement(
+          concat(u8"class C { f("_sv, keyword, u8"): asserts "_sv, keyword,
+                 u8" is string {} }"_sv),
+          no_diags, typescript_options);
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
+    }
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Function,
+       assertion_signature_is_only_allowed_as_return_types) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(p, q: asserts p) {}"_sv,  //
+        u8"                 ^^^^^^^ Diag_TypeScript_Assertion_Signature_Only_Allowed_As_Return_Types"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // p
+                              "visit_variable_use",               // p
+                              "visit_variable_declaration",       // q
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"p"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let x: asserts x is string;"_sv,  //
+        u8"       ^^^^^^^ Diag_TypeScript_Assertion_Signature_Only_Allowed_As_Return_Types"_diag,
+        typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"x"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(p): asserts p is (asserts u) {}"_sv,  //
+        u8"                             ^^^^^^^ Diag_TypeScript_Assertion_Signature_Only_Allowed_As_Return_Types"_diag,
+        typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"p"_sv, u8"u"_sv}));
+  }
+}
 }
 }
 

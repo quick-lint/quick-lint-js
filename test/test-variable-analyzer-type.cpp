@@ -673,6 +673,30 @@ TEST(Test_Variable_Analyzer_Type,
 }
 
 TEST(Test_Variable_Analyzer_Type,
+     assertion_signature_finds_function_parameter) {
+  test_parse_and_analyze(
+      u8"((p): asserts p => {"_sv
+      u8"});"_sv,
+      no_diags, typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Type,
+     assertion_signature_does_not_find_outer_function_parameter) {
+  test_parse_and_analyze(
+      u8"((outer) => { ((inner): asserts outer => { }); });"_sv,
+      u8"                                ^^^^^ Diag_Use_Of_Undeclared_Parameter_In_Assertion_Signature.name"_diag,
+      typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Type,
+     assertion_signature_does_not_find_generic_parameter) {
+  test_parse_and_analyze(
+      u8"(<T>(p): asserts T is String => { });"_sv,
+      u8"                 ^ Diag_Use_Of_Undeclared_Parameter_In_Assertion_Signature.name"_diag,
+      typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Type,
      variables_referenced_in_conditional_type_scope_are_looked_up) {
   test_parse_and_analyze(
       u8"type Derived = null; type Base = null; null as (Derived extends Base ? TrueType : FalseType)"_sv,

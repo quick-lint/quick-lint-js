@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[530] = {
+inline const Translated_String test_translation_table[531] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1852,6 +1852,17 @@ inline const Translated_String test_translation_table[530] = {
             u8"la fl\u00e8che est ici",
             u8"arrow est\u00e1 aqui",
             u8"pilen \u00e4r h\u00e4r",
+        },
+    },
+    {
+        "assertion signatures are only allowed as function return types"_translatable,
+        u8"assertion signatures are only allowed as function return types",
+        {
+            u8"assertion signatures are only allowed as function return types",
+            u8"assertion signatures are only allowed as function return types",
+            u8"assertion signatures are only allowed as function return types",
+            u8"assertion signatures are only allowed as function return types",
+            u8"assertion signatures are only allowed as function return types",
         },
     },
     {

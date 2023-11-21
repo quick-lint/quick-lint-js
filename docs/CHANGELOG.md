@@ -16,6 +16,7 @@ Semantic Versioning.
   Masani][].)
 * TypeScript support (still experimental):
   * `export as namespace` statements are now parsed.
+  * Assertion signatures (`function f(param): asserts param`) are now parsed.
   * `case await x:` no longer treats `:` as if it was a type annotation colon in
     an arrow function parameter list.
   * If a type predicate appears outside a return type, quick-lint-js now reports

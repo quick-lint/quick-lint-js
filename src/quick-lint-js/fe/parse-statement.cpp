@@ -2277,7 +2277,7 @@ Parser::parse_and_visit_function_parameter_list(
       this->parse_and_visit_typescript_colon_type_expression(
           v, TypeScript_Type_Parse_Options{
                  .allow_parenthesized_type = true,
-                 .allow_type_predicate = true,
+                 .allow_assertion_signature_or_type_predicate = true,
              });
     }
 

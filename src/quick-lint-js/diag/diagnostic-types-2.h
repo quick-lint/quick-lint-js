@@ -2060,8 +2060,16 @@ struct Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation {
   Source_Code_Span bad_keyword;
 };
 
-struct Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class {
+struct Diag_TypeScript_Assertion_Signature_Only_Allowed_As_Return_Types {
   [[qljs::diag("E0336", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "assertion signatures are only allowed as function return types",
+      ARG(asserts_keyword))]]  //
+  Source_Code_Span asserts_keyword;
+};
+
+struct Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class {
+  [[qljs::diag("E0425", Diagnostic_Severity::error)]]  //
   [[qljs::message(
       "assignment-asserted fields are not allowed in 'declare class'",
       ARG(bang))]]  //
@@ -3025,6 +3033,12 @@ struct Diag_Unmatched_Right_Curly {
   [[qljs::diag("E0143", Diagnostic_Severity::error)]]   //
   [[qljs::message("unmatched '}'", ARG(right_curly))]]  //
   Source_Code_Span right_curly;
+};
+
+struct Diag_Use_Of_Undeclared_Parameter_In_Assertion_Signature {
+  [[qljs::diag("E0428", Diagnostic_Severity::error)]]                 //
+  [[qljs::message("{0} is not the name of a parameter", ARG(name))]]  //
+  Source_Code_Span name;
 };
 
 struct Diag_Use_Of_Undeclared_Parameter_In_Type_Predicate {

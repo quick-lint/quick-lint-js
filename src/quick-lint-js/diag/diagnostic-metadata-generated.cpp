@@ -3998,9 +3998,23 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
-    // Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class
+    // Diag_TypeScript_Assertion_Signature_Only_Allowed_As_Return_Types
     {
       .code = 336,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("assertion signatures are only allowed as function return types"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Assertion_Signature_Only_Allowed_As_Return_Types, asserts_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Assignment_Asserted_Fields_Not_Allowed_In_Declare_Class
+    {
+      .code = 425,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
         QLJS_TRANSLATABLE("assignment-asserted fields are not allowed in 'declare class'"),
@@ -5836,6 +5850,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Unmatched_Right_Curly, right_curly), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Use_Of_Undeclared_Parameter_In_Assertion_Signature
+    {
+      .code = 428,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("{0} is not the name of a parameter"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Use_Of_Undeclared_Parameter_In_Assertion_Signature, name), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

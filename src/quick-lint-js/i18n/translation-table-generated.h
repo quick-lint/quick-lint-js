@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 531;
-constexpr std::size_t translation_table_string_table_size = 80436;
+constexpr std::uint16_t translation_table_mapping_table_size = 532;
+constexpr std::size_t translation_table_string_table_size = 80499;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -192,6 +192,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "another invalid string, do not use outside benchmark"sv,
           "array started here"sv,
           "arrow is here"sv,
+          "assertion signatures are only allowed as function return types"sv,
           "assigning to 'async' in a for-of loop requires parentheses"sv,
           "assignment assertion is not allowed on fields be marked 'declare'"sv,
           "assignment to const global variable"sv,

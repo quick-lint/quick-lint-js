@@ -890,10 +890,11 @@ Expression* Parser::parse_async_expression_only(
     if (this->peek().type == Token_Type::colon && this->options_.typescript) {
       // async (params): ReturnType => {}  // TypeScript only.
       this->parse_and_visit_typescript_colon_type_expression(
-          return_type_visits, TypeScript_Type_Parse_Options{
-                                  .allow_parenthesized_type = false,
-                                  .allow_type_predicate = true,
-                              });
+          return_type_visits,
+          TypeScript_Type_Parse_Options{
+              .allow_parenthesized_type = false,
+              .allow_assertion_signature_or_type_predicate = true,
+          });
     }
 
     bool is_arrow_function = this->peek().type == Token_Type::equal_greater;
@@ -1031,10 +1032,11 @@ Expression* Parser::parse_async_expression_only(
         Buffering_Visitor return_type_visits(&this->type_expression_memory_);
         if (this->peek().type == Token_Type::colon) {
           this->parse_and_visit_typescript_colon_type_expression(
-              return_type_visits, TypeScript_Type_Parse_Options{
-                                      .allow_parenthesized_type = false,
-                                      .allow_type_predicate = true,
-                                  });
+              return_type_visits,
+              TypeScript_Type_Parse_Options{
+                  .allow_parenthesized_type = false,
+                  .allow_assertion_signature_or_type_predicate = true,
+              });
         }
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
 
@@ -2177,7 +2179,7 @@ next:
         TypeScript_Type_Parse_Options{
             .allow_parenthesized_type =
                 !is_possibly_arrow_function_return_type_annotation,
-            .allow_type_predicate =
+            .allow_assertion_signature_or_type_predicate =
                 is_possibly_arrow_function_return_type_annotation,
         });
     const Char8* type_end = this->lexer_.end_of_previous_token();
@@ -3880,10 +3882,11 @@ Expression* Parser::parse_typescript_generic_arrow_expression(
   Buffering_Visitor return_type_visits(&this->type_expression_memory_);
   if (this->peek().type == Token_Type::colon) {
     this->parse_and_visit_typescript_colon_type_expression(
-        return_type_visits, TypeScript_Type_Parse_Options{
-                                .allow_parenthesized_type = false,
-                                .allow_type_predicate = true,
-                            });
+        return_type_visits,
+        TypeScript_Type_Parse_Options{
+            .allow_parenthesized_type = false,
+            .allow_assertion_signature_or_type_predicate = true,
+        });
   }
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
@@ -3953,10 +3956,11 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
         Buffering_Visitor return_type_visits(&this->type_expression_memory_);
         if (this->peek().type == Token_Type::colon) {
           this->parse_and_visit_typescript_colon_type_expression(
-              return_type_visits, TypeScript_Type_Parse_Options{
-                                      .allow_parenthesized_type = false,
-                                      .allow_type_predicate = true,
-                                  });
+              return_type_visits,
+              TypeScript_Type_Parse_Options{
+                  .allow_parenthesized_type = false,
+                  .allow_assertion_signature_or_type_predicate = true,
+              });
         }
         if (this->peek().type == Token_Type::equal_greater) {
           // <T>(param) => body

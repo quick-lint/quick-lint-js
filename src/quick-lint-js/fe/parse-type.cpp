@@ -101,7 +101,7 @@ again:
     Identifier readonly = this->peek().identifier_name();
     this->skip();
 
-    if (parse_options.allow_type_predicate &&
+    if (parse_options.allow_assertion_signature_or_type_predicate &&
         this->peek().type == Token_Type::kw_is) {
       // readonly is Type
       this->lexer_.roll_back_transaction(std::move(transaction));
@@ -183,7 +183,6 @@ again:
   case Token_Type::kw_accessor:
   case Token_Type::kw_as:
   case Token_Type::kw_assert:
-  case Token_Type::kw_asserts:
   case Token_Type::kw_async:
   case Token_Type::kw_await:
   case Token_Type::kw_constructor:
@@ -223,13 +222,13 @@ again:
       this->skip();
       if (name_type != Token_Type::kw_this) {
         // this is Type
-        if (parse_options.allow_type_predicate) {
+        if (parse_options.allow_assertion_signature_or_type_predicate) {
           v.visit_variable_type_predicate_use(name);
         } else {
           v.visit_variable_use(name);
         }
       }
-      if (!parse_options.allow_type_predicate) {
+      if (!parse_options.allow_assertion_signature_or_type_predicate) {
         this->diag_reporter_->report(
             Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type{
                 .is_keyword = is_keyword,
@@ -281,6 +280,60 @@ again:
     break;
   }
 
+  // asserts
+  // asserts param
+  // asserts param is Type
+  case Token_Type::kw_asserts: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
+    Source_Code_Span asserts_keyword = this->peek().span();
+    this->skip();
+    switch (this->peek().type) {
+    // asserts param
+    // asserts param is Type
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
+    case Token_Type::kw_this:
+    case Token_Type::identifier:
+      if (this->peek().type == Token_Type::kw_is) {
+        // asserts is Type     // Type predicate for parameter 'asserts'.
+        // asserts is is Type  // Invalid.
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto type_variable_or_namespace_or_type_predicate;
+      }
+
+      this->lexer_.commit_transaction(std::move(transaction));
+      if (this->peek().type == Token_Type::kw_this) {
+        // TODO(#881): Only allow 'this' within class and interface method
+        // signatures.
+      } else {
+        if (parse_options.allow_assertion_signature_or_type_predicate) {
+          v.visit_variable_assertion_signature_use(
+              this->peek().identifier_name());
+        } else {
+          v.visit_variable_use(this->peek().identifier_name());
+        }
+      }
+      if (!parse_options.allow_assertion_signature_or_type_predicate) {
+        this->diag_reporter_->report(
+            Diag_TypeScript_Assertion_Signature_Only_Allowed_As_Return_Types{
+                .asserts_keyword = asserts_keyword,
+            });
+      }
+      this->skip();
+      if (this->peek().type == Token_Type::kw_is) {
+        // asserts param is Type
+        this->skip();
+        goto again;  // Parse a type.
+      }
+      return;
+
+    // asserts  // Parameter name.
+    default:
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto type_variable_or_namespace_or_type_predicate;
+    }
+    break;
+  }
+
   // infer T  // Invalid.
   // T extends infer U ? V : W
   // T extends infer U extends X ? V : W
@@ -321,7 +374,7 @@ again:
     // infer is       // 'is' is the declared name.
     // infer is Type  // Type predicate where 'infer' is the parameter name.
     case Token_Type::kw_is:
-      if (parse_options.allow_type_predicate) {
+      if (parse_options.allow_assertion_signature_or_type_predicate) {
         // infer is Type
         this->lexer_.roll_back_transaction(std::move(transaction));
         goto type_variable_or_namespace_or_type_predicate;
@@ -374,7 +427,7 @@ again:
   case Token_Type::kw_unique: {
     Lexer_Transaction transaction = this->lexer_.begin_transaction();
     this->skip();
-    if (parse_options.allow_type_predicate &&
+    if (parse_options.allow_assertion_signature_or_type_predicate &&
         this->peek().type == Token_Type::kw_is) {
       // unique is Type
       this->lexer_.roll_back_transaction(std::move(transaction));
@@ -571,7 +624,7 @@ again:
   case Token_Type::kw_keyof: {
     Lexer_Transaction transaction = this->lexer_.begin_transaction();
     this->skip();
-    if (parse_options.allow_type_predicate &&
+    if (parse_options.allow_assertion_signature_or_type_predicate &&
         this->peek().type == Token_Type::kw_is) {
       // keyof is Type
       this->lexer_.roll_back_transaction(std::move(transaction));
@@ -744,7 +797,7 @@ void Parser::
   this->parse_and_visit_typescript_type_expression(
       v, TypeScript_Type_Parse_Options{
              .allow_parenthesized_type = false,
-             .allow_type_predicate = true,
+             .allow_assertion_signature_or_type_predicate = true,
          });
 }
 

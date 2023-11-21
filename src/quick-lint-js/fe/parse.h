@@ -211,8 +211,9 @@ class Parser {
     std::optional<Declaring_Type> type_being_declared = std::nullopt;
     bool parse_question_as_invalid = true;
     bool allow_parenthesized_type = true;
-    // If false, a type predicate is parsed but a diagnostic is reported.
-    bool allow_type_predicate = false;
+    // If false, assertion predicates and type predicates are parsed but a
+    // diagnostic is reported.
+    bool allow_assertion_signature_or_type_predicate = false;
   };
 
   void parse_and_visit_typescript_colon_type_expression(Parse_Visitor_Base &v);
