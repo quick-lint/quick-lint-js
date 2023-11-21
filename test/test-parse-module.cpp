@@ -455,6 +455,24 @@ TEST_F(Test_Parse_Module,
   }
 }
 
+TEST_F(Test_Parse_Module, export_as_default) {
+  {
+    Spy_Visitor p =
+        test_parse_and_visit_statement(u8"export {C as default};"_sv,  //
+                                       no_diags);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_export_default_use",  //
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export * as default from 'other-module';"_sv, no_diags,
+        javascript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+}
+
 TEST_F(Test_Parse_Module, export_from) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
@@ -1038,7 +1056,7 @@ TEST_F(Test_Parse_Module,
 }
 
 TEST_F(Test_Parse_Module, exported_names_can_be_named_keywords) {
-  for (String8 export_name : keywords) {
+  for (String8 export_name : keywords - Dirty_Set<String8>{u8"default"}) {
     {
       Test_Parser p(
           concat(u8"export {someFunction as "_sv, export_name, u8"};"_sv));

@@ -4716,8 +4716,14 @@ void Parser::parse_and_visit_named_exports(
           // later.
         } else {
           if (is_type_export()) {
+            // export type {T};        // TypeScript only.
+            // export {type T as TT};  // TypeScript only.
             v.visit_variable_type_use(left_name);
+          } else if (right_token.type == Token_Type::kw_default) {
+            // export {C as default};
+            v.visit_variable_export_default_use(left_name);
           } else {
+            // export {C};
             v.visit_variable_export_use(left_name);
           }
         }

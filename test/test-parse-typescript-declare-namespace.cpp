@@ -574,13 +574,13 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
         u8"declare namespace ns { export {Z as default}; }"_sv, no_diags,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_enter_declare_scope",    //
-                              "visit_enter_namespace_scope",  // {
-                              "visit_variable_export_use",    // Z
-                              "visit_exit_namespace_scope",   // }
-                              "visit_variable_declaration",   // ns
-                              "visit_exit_declare_scope",     //
-                              "visit_end_of_module",          //
+                              "visit_enter_declare_scope",          //
+                              "visit_enter_namespace_scope",        // {
+                              "visit_variable_export_default_use",  // Z
+                              "visit_exit_namespace_scope",         // }
+                              "visit_variable_declaration",         // ns
+                              "visit_exit_declare_scope",           //
+                              "visit_end_of_module",                //
                           }))
         << "'default' is treated as the exported name, not as a keyword (see "
            "declare_namespace_disallows_exporting_default)";
