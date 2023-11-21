@@ -155,6 +155,30 @@ TEST(
       u8"declare module 'm' { export default C; class C {} }"_sv, no_diags,
       typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Module,
+     variable_export_can_export_typescript_types) {
+  test_parse_and_analyze(u8"interface I {}; export {I};"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"export {T}; type T = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Module,
+     export_default_can_export_typescript_types_after_declaration) {
+  test_parse_and_analyze(u8"interface I {}; export default I;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"type T = null; export default T;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Module,
+     export_default_can_export_typescript_types_before_declaration) {
+  test_parse_and_analyze(u8"export default I; interface I {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"export default T; type T = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
 }
 }
 

@@ -21,6 +21,8 @@ Semantic Versioning.
     an arrow function parameter list.
   * If a type predicate appears outside a return type, quick-lint-js now reports
     [E0426][] ("type predicates are only allowed as function return types").
+  * `export default` now supports separately-declared TypeScript interfaces and
+    types.
 
 ### Fixed
 
