@@ -17,15 +17,8 @@ Semantic Versioning.
 * Detection of multiple `export default` statements ([E0715][]) now also applies
   to `export {... as default};` statements.
 * TypeScript support (still experimental):
-  * `export default` with a class and an interface (triggering declaration
-    merging) no longer fasely reports [E0715][] ("cannot use multiple `export
-    default` statements in one module").
-  * `class C<T extends U, U> {}` no longer falsely reports [E0058][] ("variable
-    used before declaration").
   * `export as namespace` statements are now parsed.
   * Assertion signatures (`function f(param): asserts param`) are now parsed.
-  * `case await x:` no longer treats `:` as if it was a type annotation colon in
-    an arrow function parameter list.
   * If a type predicate appears outside a return type, quick-lint-js now reports
     [E0426][] ("type predicates are only allowed as function return types").
   * `export default` now supports separately-declared TypeScript interfaces and
@@ -37,6 +30,13 @@ Semantic Versioning.
   * Types named `await`, `implements`, `interface`, `let`, `package`, `private`,
     `protected`, `public`, `static`, and `yield` are now recognized in type
     signatures.
+  * `export default` with a class and an interface (triggering declaration
+    merging) no longer fasely reports [E0715][] ("cannot use multiple `export
+    default` statements in one module").
+  * `class C<T extends U, U> {}` no longer falsely reports [E0058][] ("variable
+    used before declaration").
+  * `case await x:` no longer treats `:` as if it was a type annotation colon in
+    an arrow function parameter list.
 
 ## 2.18.0 (2023-11-03)
 
