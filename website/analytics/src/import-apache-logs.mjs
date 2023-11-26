@@ -35,7 +35,13 @@ async function mainAsync() {
     importedLogs += logEntries.length;
   }
 
-  for (let logFile of await globAsync(config["apache2.log_files"])) {
+  let logFiles = process.argv.slice(2);
+  if (logFiles.length === 0) {
+    // If no log files were provided, use the config.
+    logFiles = await globAsync(config["apache2.log_files"]);
+  }
+
+  for (let logFile of logFiles) {
     await db.batchAsync(async () => {
       console.log(`importing from ${logFile} ...`);
       await parseLogFileAsync(
