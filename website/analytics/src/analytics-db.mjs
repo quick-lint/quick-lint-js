@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 import BetterSQLite3 from "better-sqlite3";
+import assert from "node:assert/strict";
 
 let sql = String.raw;
 
@@ -48,6 +49,26 @@ export class AnalyticsDB {
         `
       )
       .run();
+    try {
+      this.#sqlite3DB
+        .prepare(
+          sql`
+            ALTER TABLE download
+            ADD COLUMN referrer_downloadable_id
+          `
+        )
+        .run();
+    } catch (e) {
+      // "duplicate column name"
+      if (
+        e.toString() ===
+        "SqliteError: duplicate column name: referrer_downloadable_id"
+      ) {
+        // Migration was already performed.
+      } else {
+        throw e;
+      }
+    }
     this.#sqlite3DB
       .prepare(
         sql`
@@ -173,7 +194,8 @@ export class AnalyticsDB {
       sql`
         SELECT
           download.id AS download_id,
-          downloader_user_agent IS NULL AS downloader_user_agent_is_null
+          downloader_user_agent IS NULL AS downloader_user_agent_is_null,
+          referrer_downloadable_id AS referrer_downloadable_id
         FROM download
         WHERE
           timestamp = @timestamp
@@ -215,38 +237,33 @@ export class AnalyticsDB {
       return;
     }
 
-    let insertDownloadablesQuery = this.#insertDownloadablesQueryCache.get(
-      downloads.length
-    );
-    if (insertDownloadablesQuery === undefined) {
-      let urlPlaceholders = Array(downloads.length).fill("(?)").join(", ");
-      insertDownloadablesQuery = this.#sqlite3DB
-        .prepare(
-          sql`
-            INSERT INTO downloadable (url)
-            VALUES ${urlPlaceholders}
-            ON CONFLICT (url) DO
-            UPDATE SET url = url
-            RETURNING id
-          `
-        )
-        .pluck();
-      this.#insertDownloadablesQueryCache.set(
-        downloads.length,
-        insertDownloadablesQuery
-      );
-    }
-    let downloadableIDs = insertDownloadablesQuery.all(
+    let downloadableIDs = this.#addDownloadablesBatch(
       downloads.map((download) => download.url)
     );
+    let referrerDownloadableIDs = this.#addDownloadablesBatch(
+      downloads
+        .map((download) => download.referrerURL)
+        .filter((referrerURL) => referrerURL != null)
+    );
 
+    let referrerIndex = 0;
     for (let i = 0; i < downloads.length; ++i) {
-      let { timestamp, url, downloaderIP, downloaderUserAgent } = downloads[i];
+      let { timestamp, url, referrerURL, downloaderIP, downloaderUserAgent } =
+        downloads[i];
+      let referrerDownloadableID = null;
+      if (referrerURL != null) {
+        referrerDownloadableID = referrerDownloadableIDs[referrerIndex];
+        assert.ok(referrerDownloadableID !== undefined);
+        assert.ok(referrerDownloadableID !== null);
+        referrerIndex += 1;
+      }
+
       let parameters = {
         timestamp: timestampMSToS(timestamp),
         downloader_ip: downloaderIP,
         downloader_user_agent: downloaderUserAgent,
         downloadable_id: downloadableIDs[i],
+        referrer_downloadable_id: referrerDownloadableID,
       };
       // TODO(strager): Put this query and the following query into a transation.
       let conflictResult = this.#checkDownloadConflictQuery.get(parameters);
@@ -260,7 +277,8 @@ export class AnalyticsDB {
                 timestamp_week,
                 downloader_ip,
                 downloader_user_agent,
-                downloadable_id
+                downloadable_id,
+                referrer_downloadable_id
               )
               VALUES (
                 @timestamp,
@@ -269,14 +287,15 @@ export class AnalyticsDB {
                 STRFTIME('%s', DATETIME(@timestamp, 'unixepoch'), 'start of day', '-6 days', 'weekday 1'),
                 @downloader_ip,
                 @downloader_user_agent,
-                @downloadable_id
+                @downloadable_id,
+                @referrer_downloadable_id
               )
             `
           )
           .run(parameters);
       } else {
         // A matching download is already in the database.
-        //
+
         // One of the following is true:
         //
         // * the database has a single row with a null downloader_user_agent
@@ -284,36 +303,94 @@ export class AnalyticsDB {
         // * the database has one or more rows each with non-null
         //   downloader_user_agent
         //   (conflictResult.downloader_user_agent_is_null === false)
+        let needToUpdateUserAgent;
         if (downloaderUserAgent === null) {
           if (conflictResult.downloader_user_agent_is_null) {
-            // The database has a row which is identical to the row we want to
-            // insert.
+            // downloader_user_agent is up to date.
+            needToUpdateUserAgent = false;
           } else {
             // The database has a row with a user agent already. Don't insert a
             // new row with a null user agent.
+            needToUpdateUserAgent = false;
           }
         } else {
           if (conflictResult.downloader_user_agent_is_null) {
             // The database has a single row with a null downloader_user_agent.
-            this.#sqlite3DB
-              .prepare(
-                sql`
+            needToUpdateUserAgent = true;
+          } else {
+            // downloader_user_agent is up to date.
+            needToUpdateUserAgent = false;
+          }
+        }
+
+        let needToUpdateReferrer;
+        if (referrerDownloadableID === null) {
+          // Don't lose information.
+          needToUpdateReferrer = false;
+        } else if (
+          conflictResult.referrer_downloadable_id === referrerDownloadableID
+        ) {
+          // referrer_downloadable_id is up to date.
+          needToUpdateReferrer = false;
+        } else {
+          // referrer_downloadable_id is possibly out of date.
+          needToUpdateReferrer = true;
+        }
+
+        let sets = [];
+        if (needToUpdateUserAgent) {
+          sets.push(sql`downloader_user_agent = @downloader_user_agent`);
+        }
+        if (needToUpdateReferrer) {
+          sets.push(sql`referrer_downloadable_id = @referrer_downloadable_id`);
+        }
+        if (sets.length > 0) {
+          this.#sqlite3DB
+            .prepare(
+              sql`
                   UPDATE download
-                  SET downloader_user_agent = @downloader_user_agent
+                  SET ${sets.join(",")}
                   WHERE download.id = @download_id
                 `
-              )
-              .run({
-                downloader_user_agent: downloaderUserAgent,
-                download_id: conflictResult.download_id,
-              });
-          } else {
-            // The database has a row which is identical to the row we want to
-            // insert.
-          }
+            )
+            .run({
+              downloader_user_agent: downloaderUserAgent,
+              referrer_downloadable_id: referrerDownloadableID,
+              download_id: conflictResult.download_id,
+            });
         }
       }
     }
+  }
+
+  // @param urls Array<String>
+  // @return Array<Number> Array of downloadable.id.
+  #addDownloadablesBatch(urls) {
+    if (urls.length === 0) {
+      return;
+    }
+    let insertDownloadablesQuery = this.#insertDownloadablesQueryCache.get(
+      urls.length
+    );
+    if (insertDownloadablesQuery === undefined) {
+      let urlPlaceholders = Array(urls.length).fill("(?)").join(", ");
+      insertDownloadablesQuery = this.#sqlite3DB
+        .prepare(
+          sql`
+            INSERT INTO downloadable (url)
+            VALUES ${urlPlaceholders}
+            ON CONFLICT (url) DO
+            UPDATE SET url = url
+            RETURNING id
+          `
+        )
+        .pluck();
+      this.#insertDownloadablesQueryCache.set(
+        urls.length,
+        insertDownloadablesQuery
+      );
+    }
+    return insertDownloadablesQuery.all(urls);
   }
 
   // @param download { timestamp, url, downloaderIP, downloaderUserAgent }
@@ -490,6 +567,48 @@ export class AnalyticsDB {
       counts.push(count);
     }
     return { dates, counts };
+  }
+
+  // Find what pages users clicked on when visiting the page at sourceURL.
+  //
+  // beginTimestamp is inclusive.
+  // endTimestamp is exclusive.
+  countWebDownloadsComingFromURL(sourceURL, beginTimestamp, endTimestamp) {
+    let rows = this.#sqlite3DB
+      .prepare(
+        sql`
+          SELECT
+            dest_downloadable.url AS url,
+            COUNT(*) AS count
+          FROM downloadable AS source_downloadable
+
+          INNER JOIN download AS dest_download
+          ON dest_download.referrer_downloadable_id = source_downloadable.id
+
+          INNER JOIN downloadable AS dest_downloadable
+          ON dest_downloadable.id = dest_download.downloadable_id
+
+          WHERE
+            source_downloadable.url = @source_url
+            AND @begin_timestamp <= dest_download.timestamp
+            AND dest_download.timestamp < @end_timestamp
+
+          GROUP BY dest_downloadable.id
+        `
+      )
+      .raw()
+      .all({
+        source_url: sourceURL,
+        begin_timestamp: timestampMSToS(beginTimestamp),
+        end_timestamp: timestampMSToS(endTimestamp),
+      });
+    let urls = [];
+    let counts = [];
+    for (let [url, count] of rows) {
+      urls.push(url);
+      counts.push(count);
+    }
+    return { urls, counts };
   }
 
   _querySQLForTesting(sqlQuery) {

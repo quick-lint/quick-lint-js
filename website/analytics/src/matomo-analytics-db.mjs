@@ -34,6 +34,8 @@ export class MatomoAnalyticsDB {
   // more Matomo visitor actions found in the database.
   //
   // onDownloads might return the same array and subobjects each call.
+  //
+  // TODO(strager): Return referrer information.
   async enumerateDownloadsAsync(onDownloads) {
     let rows = await this.#mariaDBConnection.query(sql`
       SELECT

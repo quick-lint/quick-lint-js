@@ -28,6 +28,7 @@ async function mainAsync() {
       logEntries.map((logEntry) => ({
         timestamp: logEntry.requestTimestamp,
         url: `https://${logEntry.serverName}${logEntry.uri}`,
+        referrerURL: logEntry.Apache_Referer,
         downloaderIP: logEntry.remoteHostName,
         downloaderUserAgent: logEntry["Apache_User-Agent"],
       }))

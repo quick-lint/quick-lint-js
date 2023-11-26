@@ -35,9 +35,18 @@ Import data from Matomo's MySQL database (idempotent):
 
 ## 3. Present data
 
+### Daily and weekly downloads
+
 Run the following command to create `chart.directory` (`config.json`) and put
 HTML and helper files inside that directory:
 
     $ node src/make-charts.mjs
 
 Then view `${chart.directory}/index.html` with your web browser.
+
+### Home page clicks
+
+To see what links people click from the home page, run the dump-page-transitions
+script:
+
+    $ node src/dump-page-transitions.mjs

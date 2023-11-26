@@ -65,6 +65,26 @@ describe("AnalyticsDB", () => {
       });
     });
 
+    it("completely identical web downloads with referrer are deduplicated", () => {
+      let db = AnalyticsDB.newInMemory();
+      for (let i = 0; i < 3; ++i) {
+        db.addWebDownload({
+          timestamp: Date.UTC(2020, 0, 1, 10, 12, 14),
+          url: "https://example.com/subpage/",
+          referrerURL: "https://example.com/",
+          downloaderIP: "192.168.1.1",
+          downloaderUserAgent: "CoolBrowser version 1.0",
+        });
+      }
+      assert.deepEqual(
+        db.countDailyWebDownloads(["https://example.com/subpage/"]),
+        {
+          dates: [Date.UTC(2020, 0, 1, 0, 0, 0)],
+          counts: [1],
+        }
+      );
+    });
+
     it("adding download with null user agent deduplicates into existing user agents", () => {
       let db = AnalyticsDB.newInMemory();
       for (let i = 0; i < 3; ++i) {
@@ -108,6 +128,111 @@ describe("AnalyticsDB", () => {
         counts: [3],
       });
     });
+
+    // NOTE(strager): Internally, upserting interacts weirdly with changing user agents. Test all combinations.
+    for (let { userAgentBefore, userAgentAfter } of [
+      { userAgentBefore: null, userAgentAfter: null },
+      { userAgentBefore: null, userAgentAfter: "ua" },
+      { userAgentBefore: "ua", userAgentAfter: "ua" },
+      { userAgentBefore: "ua", userAgentAfter: null },
+    ]) {
+      let scenario = `${
+        userAgentBefore === null
+          ? "without user agent before"
+          : "with user agent before"
+      } ${
+        userAgentAfter === null
+          ? "without user agent after"
+          : "with user agent after"
+      }`;
+
+      it(`adding download with null referrer does not change existing download (${scenario})`, () => {
+        let db = AnalyticsDB.newInMemory();
+        db.addWebDownload({
+          timestamp: Date.UTC(2020, 0, 1, 10, 12, 14),
+          url: "https://example.com/",
+          referrerURL: "https://referrer.com/",
+          downloaderIP: "192.168.1.1",
+          downloaderUserAgent: userAgentBefore,
+        });
+        db.addWebDownload({
+          timestamp: Date.UTC(2020, 0, 1, 10, 12, 14),
+          url: "https://example.com/",
+          // No referrerURL.
+          downloaderIP: "192.168.1.1",
+          downloaderUserAgent: userAgentAfter,
+        });
+        assert.deepEqual(
+          db._querySQLForTesting(
+            `
+              SELECT referrer_downloadable.url AS referrer_url
+              FROM download
+              LEFT JOIN downloadable AS referrer_downloadable
+              ON referrer_downloadable.id = download.referrer_downloadable_id
+            `
+          ),
+          [{ referrer_url: "https://referrer.com/" }]
+        );
+      });
+
+      it(`adding download with referrer does change existing download with no referrer (${scenario})`, () => {
+        let db = AnalyticsDB.newInMemory();
+        db.addWebDownload({
+          timestamp: Date.UTC(2020, 0, 1, 10, 12, 14),
+          url: "https://example.com/",
+          // No referrerURL.
+          downloaderIP: "192.168.1.1",
+          downloaderUserAgent: userAgentBefore,
+        });
+        db.addWebDownload({
+          timestamp: Date.UTC(2020, 0, 1, 10, 12, 14),
+          url: "https://example.com/",
+          referrerURL: "https://referrer.com/",
+          downloaderIP: "192.168.1.1",
+          downloaderUserAgent: userAgentAfter,
+        });
+        assert.deepEqual(
+          db._querySQLForTesting(
+            `
+              SELECT referrer_downloadable.url AS referrer_url
+              FROM download
+              LEFT JOIN downloadable AS referrer_downloadable
+              ON referrer_downloadable.id = download.referrer_downloadable_id
+            `
+          ),
+          [{ referrer_url: "https://referrer.com/" }]
+        );
+      });
+
+      it(`adding download with different referrer changes existing download with referrer (${scenario})`, () => {
+        let db = AnalyticsDB.newInMemory();
+        db.addWebDownload({
+          timestamp: Date.UTC(2020, 0, 1, 10, 12, 14),
+          url: "https://example.com/",
+          referrerURL: "https://referrer1.com/",
+          downloaderIP: "192.168.1.1",
+          downloaderUserAgent: userAgentBefore,
+        });
+        db.addWebDownload({
+          timestamp: Date.UTC(2020, 0, 1, 10, 12, 14),
+          url: "https://example.com/",
+          referrerURL: "https://referrer2.com/",
+          downloaderIP: "192.168.1.1",
+          downloaderUserAgent: userAgentAfter,
+        });
+        assert.deepEqual(
+          db._querySQLForTesting(
+            `
+              SELECT referrer_downloadable.url AS referrer_url
+              FROM download
+              LEFT JOIN downloadable AS referrer_downloadable
+              ON referrer_downloadable.id = download.referrer_downloadable_id
+            `
+          ),
+          [{ referrer_url: "https://referrer2.com/" }]
+        );
+      });
+    }
 
     it("URLs are deduplicated", () => {
       let db = AnalyticsDB.newInMemory();
@@ -772,6 +897,30 @@ describe("AnalyticsDB", () => {
           `
         ),
         []
+      );
+    });
+  });
+
+  describe("countWebDownloadsComingFromURL", () => {
+    it("tracks via referrer without prior visit of source page", () => {
+      let db = AnalyticsDB.newInMemory();
+      db.addWebDownload({
+        timestamp: Date.UTC(2020, 0, 1, 10, 12, 14),
+        url: "https://example.com/subpage/",
+        referrerURL: "https://example.com/",
+        downloaderIP: "192.168.1.1",
+        downloaderUserAgent: "CoolBrowser version 1.0",
+      });
+      assert.deepEqual(
+        db.countWebDownloadsComingFromURL(
+          "https://example.com/",
+          Date.UTC(2020, 0, 0, 0, 0, 0),
+          Date.UTC(2020, 1, 0, 0, 0, 0)
+        ),
+        {
+          urls: ["https://example.com/subpage/"],
+          counts: [1],
+        }
       );
     });
   });
