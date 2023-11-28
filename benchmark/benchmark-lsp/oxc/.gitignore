@@ -1,0 +1,7 @@
+# Created by instructions in ../README.md.
+/extension/
+/extension.vsixmanifest
+/\[Content_Types].xml
+
+# Created by benchmarks.
+/test*.js

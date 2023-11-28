@@ -290,6 +290,15 @@ Benchmark_Config Benchmark_Config::load() {
       },
 
       Benchmark_Config_Server{
+          .name = "oxlint",
+          .program_name = "oxlint",
+          .command = {"./extension/target/release/oxc_vscode"},
+          .cwd = "oxc/",
+          .need_files_on_disk = true,
+          .supports_jsx = true,
+      },
+
+      Benchmark_Config_Server{
           .name = "quick-lint-js",
           .program_name = "quick-lint-js",
           .command = {"quick-lint-js", "--lsp-server"},

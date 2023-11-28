@@ -12,6 +12,8 @@ Install the LSP servers you want to benchmark:
   `npm ci && npm run compile:server` in the `eslint/node_modules/vscode-eslint/`
   directory.
 * **Flow**: Run `yarn` in the `flow/` directory.
+* **oxlint**: Download the [Oxc Visual Studio Code extension .vsix
+  file][install-oxc] then ZIP-extract it into the `oxc/` directory.
 * **RSLint**: Install [RSLint's rslint_lsp crate][install-rslint]. Ensure the
   `rslint-lsp` command is in `$PATH`.
 * **TypeScript**: Run `yarn` in the `typescript/` and `typescript-jsx/`
@@ -124,4 +126,5 @@ Work (timed):
 [Deno]: https://deno.land/
 [Stack]: https://haskellstack.org/
 [build-from-source]: https://quick-lint-js.com/contribute/build-from-source/
+[install-oxc]: https://marketplace.visualstudio.com/items?itemName=oxc.oxc-vscode
 [install-rslint]: https://rslint.org/guide/
