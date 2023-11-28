@@ -1,0 +1,808 @@
+<!---{
+"title": "Why another JavaScript linter?",
+"description": "Isn't one code nanny enough?",
+"navTitle": "Why a JS linter?",
+"image": "/blog/why-another-javascript-linter/linters-showdown-splash.jpg",
+"blogAuthor": "Matthew \"strager\" Glazar",
+"blogDate": "2023-12-01T15:17:40-05:00"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html") %> <%- await
+    include("../blog-head.ejs.html") %>
+    <link href="../../main.css" rel="stylesheet" />
+    <style>
+      figure {
+        text-align: center;
+      }
+      figure img,
+      figure svg {
+        max-width: calc(100% - 4rem);
+        height: auto;
+      }
+      figure img.screenshot,
+      figure svg.screenshot {
+        box-shadow: 0 0 0.5rem #000;
+        border-radius: 0.25rem;
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <hgroup>
+        <h1><%= meta.title %></h1>
+        <p><%= meta.description %></p>
+      </hgroup>
+
+      <p>
+        Written by <a href="https://strager.net/">strager</a> on
+        <qljs-date datetime="<%= meta.blogDate %>" />
+      </p>
+
+      <figure>
+        <!-- Optimize loading on mobile by showing a smaller raster file. -->
+        <picture>
+          <source
+            type="image/webp"
+            media="(max-width: 730px)"
+            srcset="linters-showdown-2x.webp 2x, linters-showdown-1x.webp 1x"
+            width="1312"
+            height="611"
+          />
+          <img
+            src="linters-showdown.svg"
+            alt="A fight between ESLint, Biome, Deno, Oxc, and quick-lint-js"
+            width="161.303"
+            height="74.975"
+          />
+        </picture>
+        <figcaption>
+          JavaScript linters fight to the death.<br />
+          <a
+            href="https://www.vecteezy.com/vector-art/417698-angry-people-fighting-and-bullying"
+            >Isolated Vectors by Vecteezy.</a
+          >
+          Linter logos by their respective authors.
+        </figcaption>
+      </figure>
+
+      <p>
+        When people hear about quick-lint-js, they ask me one of two questions:
+      </p>
+      <ul>
+        <li><q>What makes quick-lint-js so fast?</q></li>
+        <li>
+          <q>Why did you make another JavaScript linter? Why not use ESLint?</q>
+        </li>
+      </ul>
+
+      <p>
+        JavaScript linters find mistakes in your code such as run-time errors,
+        outdated code patterns, and style issues. ESLint is the de-facto
+        standard JavaScript linter. It is highly customizable and readily
+        available. What's not to like about ESLint?
+      </p>
+
+      <p>Here is my list:</p>
+      <ul>
+        <li>
+          <a href="#eslint-is-not-for-editors">ESLint is not for editors</a>
+        </li>
+        <li>
+          <a href="#eslint-is-plugin-and-config-hell"
+            >ESLint is plugin &amp; config hell</a
+          >
+        </li>
+        <li><a href="#eslint-is-slow">ESLint is slow</a></li>
+      </ul>
+
+      <p>
+        After a discussion of my ESLint grievances, I will evaluate new
+        JavaScript linters:
+      </p>
+      <ul>
+        <li><a href="#deno-lint">Deno Lint</a></li>
+        <li><a href="#biome">Biome</a></li>
+        <li><a href="#quick-lint-js">quick-lint-js</a></li>
+        <li><a href="#oxlint">oxlint</a></li>
+      </ul>
+
+      <p>Finally, I will share my predictions:</p>
+      <ul>
+        <li>
+          <a href="#future-of-javascript-linters"
+            >The future of JavaScript linters</a
+          >
+        </li>
+      </ul>
+
+      <section id="eslint-grievences">
+        <section id="eslint-is-not-for-editors">
+          <h2>ESLint is not for editors</h2>
+
+          <p>
+            ESLint is <em>command-line first, CI second, and editor last</em>.
+            ESLint focuses on checking your code after you write it, not while
+            you write it. Programmers typically run ESLint as a batch job
+            pre-commit.
+          </p>
+
+          <p>
+            I want a JavaScript code assistant; I want to catch issues while I'm
+            typing. I miss the days when Visual Studio had my back when I hacked
+            away in C#:
+          </p>
+          <figure>
+            <img
+              class="screenshot"
+              src="visual-studio-squigglies.png"
+              width="1665"
+              height="683"
+              alt="Visual Studio showing a bug: 'richTextBox1' may be null"
+            />
+            <figcaption>
+              Visual Studio showing bugs in my WinForms C# code
+            </figcaption>
+          </figure>
+
+          <p>
+            While you <em>can</em> run ESLint in your editor, the experience
+            isn't great. I teach JavaScript a lot, so I often make small
+            programs showcasing different JavaScript, Node.js, or browser
+            features. ESLint only really works inside <em>projects</em>, so it
+            fights you when you're writing one-off scripts.
+          </p>
+
+          <p>
+            I use Vim. ESLint's Vim plugins are weak. The ALE plugin, for
+            example, starts a new Node.js process each time linting occurs.
+            ESLint takes over 150 milliseconds to <em>just</em> start up (on my
+            Zen 3 5950X CPU!); ESLint can't even keep up with typing at 80 WPM!
+            We will talk about ESLint's speed in more detail later.
+          </p>
+
+          <p>
+            When typing, you often introduce syntax errors. If you type
+            &ldquo;<code><kbd>(</kbd></code
+            >&rdquo; but don't write the closing &ldquo;<kdb><kbd>)</kbd></kdb
+            >&rdquo;, ESLint breaks. ESLint should at least give a helpful error
+            message, but it just tells me &ldquo;unexpected token }&rdquo;:
+          </p>
+          <figure>
+            <picture>
+              <source
+                srcset="eslint-bad-error-placement.webp"
+                type="image/webp"
+                width="1050"
+                height="350"
+                media="not (prefers-reduced-motion)"
+              />
+              <img
+                class="screenshot"
+                src="eslint-bad-error-placement-still.png"
+                width="1050"
+                height="350"
+                alt="Typing 'console.log(&quot;hello&quot;' into VS Code and showing the ESLint error"
+              />
+            </picture>
+            <figcaption>
+              ESLint unhelpfully tells me that the bug is because of the
+              &ldquo;<code>}</code>&rdquo;
+            </figcaption>
+          </figure>
+
+          <p>
+            Because ESLint's syntax error messages are low quality, you should
+            only use ESLint after you've tested your code. At that point, ESLint
+            is useless to me: it only is for telling me that
+            <code>row_index</code> is an evil variable name, not that I have
+            serious bugs.
+          </p>
+
+          <p>
+            I want a tool I can recommend to beginners. Unfortunately, the
+            ESLint Visual Studio Code extension does not bundle ESLint, so it
+            does not work out of the box. The extension doesn't tell you what's
+            wrong if you're missing ESLint or a config file; it silently doesn't
+            work. ESLint in VS Code is bad for beginners.
+          </p>
+
+          <p>
+            <strong>Editor support should be a first-class feature.</strong>
+            I want a linter which helps me code.
+          </p>
+        </section>
+
+        <section id="eslint-is-plugin-and-config-hell">
+          <h2>ESLint is plugin &amp; config hell</h2>
+
+          <p>
+            Want to use ESLint to lint some JavaScript code? Great! Just run
+            ESLint:
+          </p>
+          <figure>
+            <img
+              class="screenshot"
+              src="eslint-config-missing.png"
+              width="2039"
+              height="927"
+              alt="ESLint errors if you are missing an ESLint configuration file"
+            />
+            <figcaption>
+              ESLint fails but suggests that you run
+              <code>eslint --init</code> to configure
+            </figcaption>
+          </figure>
+
+          <p>
+            Nope. ESLint requires you to create a configuration file, even if
+            you want a default well-established configuration. As I mentioned
+            earlier, this makes it annoying to use ESLint for one-off scripts I
+            make while teaching.
+          </p>
+
+          <p>
+            Want to use ESLint with a Node.js project? Great! ESLint works out
+            of the box. Not! You need to <em>convince</em> ESLint that you're in
+            a Node.js project. By default, ESLint complains:
+          </p>
+          <figure>
+            <img
+              class="screenshot"
+              src="eslint-without-node-config.png"
+              width="1672"
+              height="572"
+              alt="ESLint reporting error: 'console' is not defined (no-undef)"
+            />
+            <figcaption>ESLint being confused by modern JavaScript</figcaption>
+          </figure>
+
+          <p>
+            Want to use ESLint for ES modules? Great! But it doesn't work out of
+            the box; you gotta configure it:
+          </p>
+          <figure>
+            <img
+              class="screenshot"
+              src="eslint-esmodule-errors.png"
+              width="2454"
+              height="1160"
+              alt="ESLint reporting errors: Parsing error: 'import' and 'export' may appear only with 'sourceType: module'"
+            />
+            <figcaption>
+              ESLint desperately trying to get your attention
+            </figcaption>
+          </figure>
+
+          <p>
+            Want to use ESLint for JavaScript code written after 2015 with
+            &ldquo;advanced&rdquo; features like arrow functions and async
+            functions? Great! But it doesn't work out of the box; you must
+            configure the parser's
+            <em>ecmaVersion</em>.
+          </p>
+
+          <p>
+            Want to use ESLint with a JSX/React project? Great! There's a plugin
+            for that. But you can't just install the React plugin; you also need
+            to configure ESLint's parser, and you should probably specify the
+            React version too. To make matters worse, the specifics for doing
+            these things have changed over the years, so old StackOverflow
+            answers don't work anymore.
+          </p>
+
+          <figure>
+            <img
+              class="screenshot"
+              src="eslint-jsx-old-config.png"
+              alt="StackOverflow answer suggesting using babel-eslint with ESLint"
+              width="1308"
+              height="561"
+            />
+            <figcaption>
+              Old JSX ESLint configurations don't work with ESLint 8
+            </figcaption>
+          </figure>
+
+          <p>
+            Want to use ESLint with a TypeScript project? Great! There's a
+            plugin for that. But just like how installing the JSX plugin wasn't
+            enough, installing the TypeScript plugin isn't enough. You need to
+            replace the ESLint parser (which might mean you need to change your
+            parserOptions), and you also want to enable some TypeScript rules.
+            Lots of configuration.
+          </p>
+
+          <p>
+            Want to use ESLint for bug-finding only and leave formatting to
+            Prettier? Great! There's a plugin for that. But why do you need a
+            plugin? Shouldn't I be able to just turn off ESLint's formatting
+            rules? Well, now
+            <a
+              href="https://eslint.org/blog/2023/10/deprecating-formatting-rules/"
+              >most ESLint formatting rules are gone</a
+            >
+            (deprecated as of ESLint v8.53.0), but a few (such as no-extra-semi
+            and no-irregular-whitespace) remain enabled by default.
+          </p>
+
+          <p>
+            Configuring ESLint only needs to be done when you make major changes
+            to the project, or when you're just starting the project. There is
+            even an init tool to create an ESLint config for you. Despite this,
+            ESLint doesn't make setup easy <em>enough</em> for me to recommend
+            it to beginners.
+          </p>
+
+          <p>
+            <strong>I want my batteries included.</strong> No required config
+            file for the basics. No plugins for the basics.
+            <strong>Easy for beginners, please.</strong>
+          </p>
+        </section>
+
+        <section id="eslint-is-slow">
+          <h2>ESLint is slow</h2>
+
+          <p>
+            Anyone who has used ESLint in a big project knows that ESLint's
+            performance sucks. I work on smaller projects, so performance
+            shouldn't be too bad, right?
+          </p>
+
+          <p>
+            For one 15k <abbr title="source lines of code">SLOC</abbr> project,
+            ESLint takes around 950 milliseconds to lint (16,000 lines per
+            second). The <code>--cache</code> option helps, bringing linting
+            down to around 400 milliseconds if I change one file. Despite the
+            caching, ESLint processes only 38,000 lines per second! C++ linters
+            run at over 100,000 lines per second without caching, and C++ is
+            notoriously uglier to deal with than JavaScript.
+          </p>
+
+          <p>
+            Why does linting speed matter to me? Half a second doesn't seem that
+            bad at first glance. As I mentioned in the
+            <i>ESLint is not for editors</i> section, I need ESLint to keep up
+            with my typing. ESLint being slow is disorienting:
+          </p>
+          <figure>
+            <picture>
+              <source
+                srcset="eslint-lag.webp"
+                type="image/webp"
+                width="400"
+                height="100"
+                media="not (prefers-reduced-motion)"
+              />
+              <img
+                class="screenshot"
+                src="eslint-lag-still.png"
+                width="400"
+                height="100"
+                alt="Typing 'console' into Vim with ESLint. Squigglies are much slower than typing."
+              />
+            </picture>
+            <figcaption>
+              ESLint squigglies cannot keep up with slow typing<br />(Vim ALE
+              ESLint plugin shown)
+            </figcaption>
+          </figure>
+
+          <p>
+            ESLint is distracting. &ldquo;But strager, why are you linting while
+            typing? Just add debouncing so it doesn't flicker as much.&rdquo;
+            No! Unacceptable. The debouncing is less distracting, but it's still
+            distracting! In contrast, a fast linter like quick-lint-js is
+            <em>not</em> distracting to me:
+          </p>
+          <figure>
+            <picture>
+              <source
+                srcset="quick-lint-js-no-lag.webp"
+                type="image/webp"
+                width="400"
+                height="100"
+                media="not (prefers-reduced-motion)"
+              />
+              <img
+                class="screenshot"
+                src="quick-lint-js-no-lag-still.png"
+                width="400"
+                height="100"
+                alt="Typing 'console' into Vim with quick-lint-js. Squigglies keep up with typing."
+              />
+            </picture>
+            <figcaption>
+              quick-lint-js squigglies keep up with fast typing
+            </figcaption>
+          </figure>
+
+          <p>
+            ESLint performance has been improving.
+            <a href="https://www.npmjs.com/package/eslint_d">eslint_d</a> and
+            the ESLint LSP server (<a
+              href="https://github.com/microsoft/vscode-eslint/tree/main/server"
+              >hidden inside the Visual Studio Code extension</a
+            >) help with the latency. ESLint's core has gotten faster; I had to
+            adjust my &ldquo;over 130× faster than ESLint&rdquo; messaging to
+            just &ldquo;over 90× faster&rdquo;.
+          </p>
+
+          <p>
+            Despite these improvements,
+            <strong>I want a 100× faster ESLint</strong>.
+          </p>
+        </section>
+      </section>
+
+      <section id="new-javascript-linters">
+        <h2>New JavaScript linters</h2>
+
+        <p>
+          ESLint isn't what I want in a JavaScript linter. What other options
+          are there, and how do they address the problems with ESLint? Let's
+          look at four ESLint alternatives:
+        </p>
+        <ul>
+          <li><a href="#deno-lint">Deno Lint</a></li>
+          <li><a href="#biome">Biome</a></li>
+          <li><a href="#quick-lint-js">quick-lint-js</a></li>
+          <li><a href="#oxlint">oxlint</a></li>
+        </ul>
+
+        <section id="deno-lint">
+          <h2><qljs-icon name="deno" size="22" /> Deno Lint</h2>
+
+          <p>
+            <a href="https://docs.deno.com/runtime/manual/tools/linter"
+              >Deno Lint</a
+            >
+            is a part of the Deno project. Created in March 2020, it features
+            better performance than ESLint and integration with the rest of
+            Deno.
+          </p>
+
+          <figure>
+            <img
+              src="deno-cover.svg"
+              width="1144"
+              height="582"
+              style="max-height: 200px"
+              alt="Deno's mascot announcing a new version"
+            />
+            <figcaption>The mascot is one of the best parts of Deno</figcaption>
+          </figure>
+
+          <p>
+            <b>Compatibility</b>: Deno Lint is designed for Deno projects. While
+            it can work for non-Deno projects, there are some problems. For
+            example, Deno Lint fails to recognize JSX syntax in
+            <code>.js</code> files; you need to rename your React files to
+            <code>.jsx</code>. Deno Lint probably won't ever support frameworks
+            such as Vue and Svelte either.
+          </p>
+
+          <p>
+            <b>Editor integration</b>: Deno has an LSP server that can run the
+            linter. Editor support is not prominently advertised, but it does
+            seem to be well-supported (including in Vim). There are caveats,
+            though. The Visual Studio Code extension does not bundle Deno and
+            disables itself by default outside of Deno projects, making it
+            harder to use for beginners.
+          </p>
+
+          <p>
+            <b>Plugin &amp; configs</b>: Deno Lint works out of the box with no
+            configuration. No plugins are necessary for JSX and TypeScript.
+            Nice!
+          </p>
+
+          <p>
+            <b>Speed</b>: Deno Lint's command-line interface is decently fast.
+            Sadly, the LSP server is slow. The slowness is caused by intentional
+            debouncing. I could fork Deno and patch it out, of course.
+          </p>
+
+          <p>
+            Deno Lint is a fine linter, but its goals differ from mine. I want a
+            general-purpose JavaScript linter, but Deno Lint is designed for
+            Deno devs.
+          </p>
+        </section>
+
+        <section id="biome">
+          <h2><qljs-icon name="biome" size="22" /> Biome</h2>
+
+          <p>
+            <a href="https://biomejs.dev/">Biome</a> is a linter and formatter
+            for JavaScript and other web languages. Biome's history is a bit
+            weird: Biome was forked from a project called Rome in August 2023.
+            Rome, the original project, was created in February 2020, but was
+            rewritten from scratch in September 2021. The rewrite was based on
+            <a href="https://github.com/rslint/rslint">RSLint</a>
+            which was created in September 2020.
+          </p>
+
+          <p>
+            <b>Compatibility</b>: Biome is designed to work with existing
+            projects. As such, it supports JavaScript, JSX, and TypeScript
+            today. Biome does not require a specific framework and will support
+            Vue and Svelte in the future.
+          </p>
+
+          <p>
+            <b>Editor integration</b>: Biome has an LSP server that works in Vim
+            with coc.nvim. In my experience, the LSP server is a bit flaky
+            because it talks to a separate Biome daemon. Biome's Visual Studio
+            Code extension requires Biome to be installed separately, making it
+            harder to use for beginners.
+          </p>
+
+          <p>
+            <b>Plugin &amp; configs</b>: Biome does not suffer from plugin hell
+            for basic features. Biome also works out of the box without configs.
+            However, Biome is opinionated by default; it disallows code such as
+            <code class="javascript">this.icons["zoomIn"]</code> and sometimes
+            requires blocks inside
+            <code class="javascript">switch</code> statements. Therefore, I need
+            to configure Biome to shut it up.
+          </p>
+
+          <p>
+            <b>Speed</b>: Biome started fast when it was a light fork of RSLint.
+            As new lint rules have been added over time,
+            <a href="https://github.com/rome/tools/issues/4776"
+              >Biome's linting performance has 50× gotten worse</a
+            >. In my testing, Biome's LSP server is slower than ESLint's! I'm
+            sure some of this can be fixed, but it looks like linting
+            performance is not a key feature of Biome.
+          </p>
+
+          <p>
+            Biome shows promise. Biome's goals seem to align with mine, and it
+            seems to be gaining popularity among JavaScript developers. I am
+            concerned about its poor speed and stability.
+          </p>
+        </section>
+
+        <section id="quick-lint-js">
+          <h2>
+            <qljs-icon name="quick-lint-js-small" size="22" /> quick-lint-js
+          </h2>
+
+          <p>
+            <a href="../../">quick-lint-js</a> is my own JavaScript linter. I
+            started writing it in March 2020 after being annoyed by ESLint's
+            poor editor integration and
+            <a href="https://flow.org/">Flow</a> being too picky.
+          </p>
+
+          <figure>
+            <img src=../../dusty.svg width=256 height=256 style='max-height:
+            200px;' alt="Dusty, the quick-lint-js mascot">
+            <figcaption>
+              quick-lint-js's mascot is objectively the cutest
+            </figcaption>
+          </figure>
+
+          <p>
+            <b>Compatibility</b>: Like Biome, quick-lint-js is designed to work
+            with any kind of JavaScript-based project. It supports vanilla
+            JavaScript and JSX today, with experimental support for TypeScript.
+            Vue and Svelte support will come eventually.
+          </p>
+
+          <p>
+            <b>Editor integration</b>: quick-lint-js was designed to work with
+            editors from the beginning. It has first-party support for various
+            editors, including different Vim and Emacs plugins. The Visual
+            Studio Code extension comes with the linter bundled, simplifying
+            installation.
+          </p>
+
+          <p>
+            <b>Plugin &amp; configs</b>: quick-lint-js is like Biome and Deno
+            Lint: Your code is correctly linted out of the box. quick-lint-js
+            focuses on correctness issues and avoids stylistic nitpicks, making
+            it usable in any project without configuration. However,
+            quick-lint-js's lack of configuration means that it cannot enforce
+            style rules in a team.
+          </p>
+
+          <p>
+            <b>Speed</b>: As its name implies, quick-lint-js is fast. Low
+            latency is a goal because quick-lint-js lints as you type and does
+            not want to be distracting. The other linters we've discussed
+            struggle to hit 30 FPS, and quick-lint-js easily passes 1000 FPS:
+          </p>
+
+          <figure>
+            <img
+              class="screenshot"
+              src="quick-lint-js-benchmark-results.png"
+              width="2183"
+              height="644"
+              alt="LSP server benchmark comparing quick-lint-js, ESLint, Biome, and Deno. quick-lint-js is sub-millisecond; other linters are slower than 60 FPS."
+            />
+            <figcaption>
+              quick-lint-js is very fast compared to ESLint.<br />
+              Biome and Deno are slower than ESLint.
+            </figcaption>
+          </figure>
+
+          <p>
+            quick-lint-js isn't perfect, though; it currently cannot lint
+            directories and does not lint files in parallel.
+          </p>
+
+          <p>
+            When I created quick-lint-js, Deno Lint and Rome/Biome/RSLint were
+            early in development. If they were mature, I might have contributed
+            to one of those projects (probably Deno Lint). Today, it would be
+            hard for me to abandon quick-lint-js. Just thinking about it makes
+            me sad, so let's move on. 😆
+          </p>
+        </section>
+
+        <section id="oxlint">
+          <h2><qljs-icon name="oxc" size="22" /> oxlint</h2>
+
+          <p>
+            <a href="https://oxc-project.github.io/docs/guide/usage/linter.html"
+              >Oxc's oxlint</a
+            >, started in February 2023, is the newest of all the linters
+            discussed. Oxc has similar goals to Biome, but oxlint tries to be
+            compatible with ESLint.
+          </p>
+
+          <p>
+            <b>Compatibility</b>: oxlint supports JavaScript, JSX, and
+            TypeScript out of the box with no configuration. However, Oxc
+            <a href="https://github.com/oxc-project/oxc/issues/1326"
+              >will not support</a
+            >
+            Svelte, Vue, or HTML, making its use limited for frameworks that
+            embed JavaScript in non-.js files.
+          </p>
+
+          <p>
+            <b>Editor integration</b>: Oxc has a Visual Studio Code extension
+            that bundles the oxlint linter, meaning it works out of the box.
+            However, it is buggy to the point of being unusable; lint warnings
+            get stuck until you save, and squigglies are often in the wrong
+            place, for example. oxlint's LSP server exists but is not
+            distributed, so if you want to use oxlint from Vim or Neovim, you
+            need to build oxlint and configure it yourself.
+          </p>
+          <figure>
+            <img
+              class="screenshot"
+              src="oxlint-editor-bug.png"
+              width="1953"
+              height="584"
+              alt="no-const-assign warning reported by Oxc's Visual Studio Code extension spanning multiple lines"
+            />
+            <figcaption>
+              oxlint incorrectly warns about the
+              <code class="javascript">console.log</code> statement on line 2
+            </figcaption>
+          </figure>
+
+          <p>
+            <b>Plugin &amp; configs</b>: oxlint learned the same lesson as the
+            other modern linters: work out of the box without any ugly config
+            files or separate plugins. oxlint's default rule set seems less
+            annoying than Biome's, so I don't feel pressured to maintain oxlint
+            configs in my project either. oxlint does plan to support custom
+            rules, but how these extensions are distributed remains to be seen.
+          </p>
+
+          <p>
+            <b>Speed</b>: oxlint claims to be very fast. Due to the bugs in the
+            LSP server, I cannot evaluate oxlint's editor latency.
+          </p>
+
+          <p>
+            oxlint also has niceties in its command line, such as parallelizing
+            by default, which makes oxlint useful for pre-commit hooks.
+          </p>
+
+          <p>
+            Oxc is the new kid on the block. While its claims are exciting,
+            oxlint is definitely not ready for production yet. I am also
+            concerned that the Oxc project itself might not last long.
+          </p>
+        </section>
+      </section>
+
+      <section id="future-of-javascript-linters">
+        <h2>The future of JavaScript linters</h2>
+
+        <p>
+          Biome started in February 2020. Deno Lint and quick-lint-js both
+          started in March 2020. RSLint (merged into Biome) started in September
+          2020. Worldwide lockdowns sure gave people the time to start their
+          ESLint rewrites. 😅
+        </p>
+
+        <p>
+          What about 2024 and beyond? Will the industry-standard ESLint prevail,
+          or will Deno Lint, Biome, quick-lint-js, or oxlint dethrone ESLint? Or
+          will even newer linters not yet created take the crown?
+        </p>
+
+        <p>The different linters of today have different strengths:</p>
+        <ul>
+          <li>
+            <b>ESLint</b> is highly extensible and allows teams to tune their
+            codebase however they want.
+          </li>
+
+          <li>
+            <b>Deno Lint</b> is the go-to option for developers making
+            Deno-based servers and scripts.
+          </li>
+
+          <li>
+            <b>Biome</b> is a tool to stop the fighting and make codebases
+            consistent.
+          </li>
+
+          <li>
+            <b>quick-lint-js</b> lets you find bugs in any codebase without
+            being overbearing or complicated.
+          </li>
+
+          <li>
+            <b>oxlint</b> is a direct ESLint replacement with fewer installation
+            and configuration headaches.
+          </li>
+        </ul>
+
+        <p>
+          I predict that some of these linters will converge. Biome might adopt
+          an 'easy mode', removing the need for quick-lint-js. Deno might
+          replace Deno Lint with a pre-configured ESLint. quick-lint-js might
+          add plugins and complicated configs and eventually replace ESLint.
+          oxlint might obsolete everything else!
+        </p>
+
+        <p>
+          What is the future of quick-lint-js? After I finish TypeScript
+          support, there are a number of directions quick-lint-js could go in:
+          type checking, multi-module analysis, go-to-definition, fix-its, or a
+          better CLI. Aside from features, I think quick-lint-js needs better
+          marketing to catch up with competitors such as Biome.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

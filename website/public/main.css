@@ -25,7 +25,9 @@ video + figcaption,
 pre + figcaption {
   font-style: italic;
 }
+figure > picture > img,
 figure > img,
+figure > svg,
 figure > video {
   width: 100%;
   height: auto;

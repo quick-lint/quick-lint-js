@@ -88,12 +88,14 @@ function getExtraIconAttributes(attributes) {
 let icons = {
   chocolatey: { path: "chocolatey.svg", alt: "Chocolatey" },
   "arch-linux": { path: "arch-linux.svg", alt: "Arch Linux" },
+  biome: { path: "biome.svg", alt: "Biome" },
   "cli-and-lsp-server": {
     path: "gnome-terminal.svg",
     alt: "CLI and LSP server",
   },
   codespaces: { path: "codespaces.png", alt: "GitHub Codespaces" },
   debian: { path: "debian.svg", alt: "Debian" },
+  deno: { path: "deno.svg", alt: "Deno" },
   emacs: { path: "emacs.svg", alt: "Emacs", disableSpritesheet: true },
   github: { path: "github.svg", alt: "GitHub" },
   homebrew: { path: "homebrew.svg", alt: "Homebrew" },
@@ -105,6 +107,7 @@ let icons = {
   "notepad-plus-plus": { path: "notepad-plus-plus.svg", alt: "Notepad++" },
   npm: { path: "npm.svg", alt: "npm" },
   "open-vsx": { path: "open-vsx.svg", alt: "Open VSX" },
+  oxc: { path: "oxc.png", alt: "Oxc" },
   "quick-lint-js": { path: "dusty.svg", alt: "quick-lint-js" },
   "quick-lint-js-small": { path: "favicon-32x32.png", alt: "quick-lint-js" },
   "sublime-text": {
