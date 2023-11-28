@@ -264,7 +264,7 @@ export class StaticVFSFile extends VFSEntry {
   }
 
   async getContentsAsync() {
-    return await fs.promises.readFile(this._path);
+    return await readFileAsync(this._path);
   }
 
   getContentType() {
