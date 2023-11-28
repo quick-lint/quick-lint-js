@@ -621,6 +621,19 @@ TEST_F(Test_Configuration_Loader,
 }
 
 TEST_F(Test_Configuration_Loader,
+       finding_config_succeeds_even_if_file_and_config_file_are_missing) {
+  std::string temp_dir = this->make_temporary_directory();
+  std::string parent_dir = temp_dir + "/dir";
+  create_directory_or_exit(parent_dir);
+
+  std::string js_file = parent_dir + "/hello.js";
+  Configuration_Loader loader(Basic_Configuration_Filesystem::instance());
+  auto loaded_config = loader.load_for_file(js_file);
+  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  EXPECT_EQ(*loaded_config, nullptr);
+}
+
+TEST_F(Test_Configuration_Loader,
        finding_config_succeeds_even_if_directory_is_missing) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file = temp_dir + "/quick-lint-js.config";
@@ -641,8 +654,7 @@ TEST_F(Test_Configuration_Loader,
 
   std::string js_file = parent_dir + "/hello.js";
   Change_Detecting_Configuration_Loader loader;
-  auto loaded_config = loader.watch_and_load_for_file(js_file, &js_file);
-  EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  loader.watch_and_load_for_file(js_file, &js_file);
 
   EXPECT_EQ(::rmdir(parent_dir.c_str()), 0)
       << "failed to delete " << parent_dir << ": " << std::strerror(errno);
@@ -1302,9 +1314,7 @@ TEST_F(Test_Configuration_Loader,
   write_file_or_exit(config_file, u8R"({"globals": {"before": true}})"_sv);
 
   Change_Detecting_Configuration_Loader loader;
-  auto loaded_config =
-      loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
-  ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
+  loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   write_file_or_exit(config_file, u8R"({"globals": {"during": true}})"_sv);
   loader.unwatch_file(js_file);
@@ -1340,12 +1350,8 @@ TEST_F(Test_Configuration_Loader,
   write_file_or_exit(config_file, u8R"({"globals": {"before": true}})"_sv);
 
   Change_Detecting_Configuration_Loader loader;
-  auto loaded_config_1 =
-      loader.watch_and_load_for_file(js_file_1, /*token=*/nullptr);
-  ASSERT_TRUE(loaded_config_1.ok()) << loaded_config_1.error_to_string();
-  auto loaded_config_2 =
-      loader.watch_and_load_for_file(js_file_2, /*token=*/nullptr);
-  ASSERT_TRUE(loaded_config_1.ok()) << loaded_config_2.error_to_string();
+  loader.watch_and_load_for_file(js_file_1, /*token=*/nullptr);
+  loader.watch_and_load_for_file(js_file_2, /*token=*/nullptr);
 
   write_file_or_exit(config_file, u8R"({"globals": {"during": true}})"_sv);
   loader.unwatch_all_files();
