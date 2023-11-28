@@ -63,7 +63,7 @@
   CXX=clang++ \
   CPPFLAGS=&quot;-I$(brew --prefix)/opt/llvm/include&quot; \
   CXXFLAGS=-D_LIBCPP_DISABLE_AVAILABILITY \
-  LDFLAGS=&quot;-L$(brew --prefix)/opt/llvm/lib&quot; \
+  LDFLAGS=&quot;-L$(brew --prefix)/opt/llvm/lib -L$(brew --prefix)/opt/llvm/lib/c++&quot; \
   cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug -S . -B build</kbd></code></pre>
         </blockquote>
 
