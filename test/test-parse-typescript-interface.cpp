@@ -1495,6 +1495,7 @@ TEST_F(Test_Parse_TypeScript_Interface,
       no_diags, typescript_options);
 }
 
+// Regression test for https://github.com/quick-lint/quick-lint-js/issues/1108
 TEST_F(Test_Parse_TypeScript_Interface,
        parser_is_left_in_consistent_state_after_parsing_interface) {
   {
