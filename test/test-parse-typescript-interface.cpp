@@ -1498,23 +1498,17 @@ TEST_F(Test_Parse_TypeScript_Interface,
 TEST_F(Test_Parse_TypeScript_Interface,
        parser_is_left_in_consistent_state_after_parsing_interface) {
   {
-    Test_Parser p(
-        u8"interface I {}\n"
-        u8"let a = \"",
-        typescript_options, capture_diags);
-    p.parse_and_visit_statement();
-    p.parse_and_visit_statement();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"interface I {}\nlet a = \"",
+        u8"                        ^^ Diag_Unclosed_String_Literal"_diag,
+        typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // {
                               "visit_exit_interface_scope",   // }
                               "visit_variable_declaration",   // a
+                              "visit_end_of_module",          //
                           }));
-    assert_diagnostics(
-        p.code, p.errors,
-        {
-            u8"                        ^^ Diag_Unclosed_String_Literal"_diag,
-        });
   }
 }
 }
