@@ -71,6 +71,7 @@ authored portions of quick-lint-js:
 * Rob Miner; robminer@umich.edu; signed CLA-v1.md
 * Roland Strasser; signed CLA-v1.md
 * Ross Barnie; r.barnie@gmail.com; signed CLA-v1.md
+* Rui Serra; ruipserra@gmail.com; signed CLA-v1.md
 * Samir Hamud; latander@gmail.com; signed CLA-v1.md
 * Sarah Schulte; sarah.schulte@samsara.com; signed CLA-v1.md
 * Sasha Krassovsky; warplane@hotmail.com; signed CLA-v1.md

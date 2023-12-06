@@ -37,6 +37,8 @@ Semantic Versioning.
     used before declaration").
   * `case await x:` no longer treats `:` as if it was a type annotation colon in
     an arrow function parameter list.
+  * Fixed a crash if certain diagnostics are reported after a TypeScript
+    interface. (Implemented by [Rui Serra][].)
 
 ## 2.18.0 (2023-11-03)
 
@@ -1176,6 +1178,7 @@ Beta release.
 [Rebraws]: https://github.com/Rebraws
 [Rob Miner]: https://github.com/robminer6
 [Roland Strasser]: https://github.com/rol1510
+[Rui Serra]: https://github.com/ruipserra
 [Samir Hamud]: https://github.com/samir-hamud
 [Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
