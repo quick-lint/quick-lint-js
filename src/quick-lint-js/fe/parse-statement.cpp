@@ -851,6 +851,7 @@ Parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
         goto initial_keyword_is_expression;
       }
     }
+    this->lexer_.commit_transaction(std::move(transaction));
     switch (initial_keyword.type) {
     case Token_Type::kw_interface:
       this->parse_and_visit_typescript_interface(v, initial_keyword.span());
@@ -867,7 +868,6 @@ Parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
     default:
       QLJS_UNREACHABLE();
     }
-    this->lexer_.commit_transaction(std::move(transaction));
     return Parse_Possible_Label_Result::parsed_not_as_a_label;
 
   // type++;  // Expression.
