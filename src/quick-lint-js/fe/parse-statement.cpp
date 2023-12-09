@@ -1451,7 +1451,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
 
   // export as namespace MyLibrary;  // TypeScript definition only.
   case Token_Type::kw_as:
-    // @@@ declare namespace stuff
+    // TODO(#690): 'declare namespace' stuff.
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_namespace);
     this->skip();
