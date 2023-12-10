@@ -23,6 +23,10 @@ Semantic Versioning.
     [E0426][] ("type predicates are only allowed as function return types").
   * `export default` now supports separately-declared TypeScript interfaces and
     types.
+  * `cond ? (param): ReturnType => body : f` is now correctly parsed as a
+    conditional expression with a function in the truthy branch.
+    (`cond ? (t) : param => body` continues to be parsed as a conditional
+    expression with a function in the falsy branch.)
 
 ### Fixed
 

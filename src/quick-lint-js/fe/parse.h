@@ -652,6 +652,16 @@ class Parser {
   // > 'unsigned char:2' in initialization
   enum Allow_Type_Annotations : std::uint8_t {
     typescript_only,
+    // Used inside 't' in 'c ? t : f':
+    //
+    //   c ? (param): Type => body : f;  // 'Type' is a type annotation.
+    //   c ? x : y => body : f;          // 'y' is not a type annotation because
+    //                                   // 'x' is not parenthesized. Invalid.
+    //   c ? (x) : param => body;        // 'param' is not a type annotation
+    //                                   // because no ':' follows 'body'.
+    // Only parse annotations if they are valid return type annotations inside
+    // the '?:'.
+    typescript_only_if_legal_as_conditional_true_branch,
     always,
     never,
   };

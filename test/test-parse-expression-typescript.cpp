@@ -66,6 +66,81 @@ TEST_F(Test_Parse_Expression_TypeScript,
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var cond, var x, var Type)");
   }
+
+  {
+    Test_Parser p(u8"cond ? t : param => body"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var cond, var t, arrowfunc(var param))");
+  }
+
+  {
+    Test_Parser p(u8"cond1 ? cond2 ? t2 : param => body : f1"_sv,
+                  typescript_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "cond(var cond1, cond(var cond2, var t2, arrowfunc(var param)), "
+              "var f1)");
+  }
+}
+
+TEST_F(Test_Parse_Expression_TypeScript,
+       colon_in_conditional_can_be_arrow_return_type_annotation) {
+  {
+    Test_Parser p(u8"cond ? (param): ReturnType => body : f"_sv,
+                  typescript_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var cond, arrowfunc(var param), var f)");
+  }
+
+  {
+    Test_Parser p(u8"cond ? async (param): ReturnType => body : f"_sv,
+                  typescript_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "cond(var cond, asyncarrowfunc(var param), var f)");
+  }
+}
+
+TEST_F(
+    Test_Parse_Expression_TypeScript,
+    colon_in_conditional_can_be_arrow_return_type_annotation_despite_following_syntax_error) {
+  {
+    // TypeScript resolves this ambiguity as a syntax error, so we should too.
+    // TypeScript's rule seems to be that '(t2)' is not a parameter list if
+    // 'body' is followed by a ':'.
+    test_parse_and_visit_expression(
+        u8"cond1 ? cond2 ? (t2) : param => body : f1"_sv,  //
+        u8"                                         ` Diag_Missing_Colon_In_Conditional_Expression.expected_colon\n"_diag
+        u8"      ^ .question"_diag,
+        typescript_options);
+  }
+}
+
+TEST_F(
+    Test_Parse_Expression_TypeScript,
+    colon_in_conditional_true_branch_cannot_be_arrow_return_type_annotation_if_arrow_body_not_followed_by_colon) {
+  {
+    Test_Parser p(u8"cond ? (t) : param => body"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "cond(var cond, paren(var t), arrowfunc(var param))");
+  }
+
+  {
+    // This example triggers backtracking in the parser. Ensure that the
+    // backtracking walks back any speculative visits.
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"cond ? (t) : param => body"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  //
+                              "visit_variable_use",               // body
+                              "visit_exit_function_scope",        //
+                              "visit_variable_use",               // cond,
+                              "visit_variable_use",               // t
+                          }));
+  }
 }
 
 TEST_F(Test_Parse_Expression_TypeScript, non_null_assertion) {

@@ -1952,7 +1952,8 @@ next:
     } else {
       true_expression = this->parse_expression(
           v, Precedence{
-                 .colon_type_annotation = Allow_Type_Annotations::never,
+                 .colon_type_annotation = Allow_Type_Annotations::
+                     typescript_only_if_legal_as_conditional_true_branch,
              });
     }
 
@@ -2105,8 +2106,14 @@ next:
 
   // x: Type  // TypeScript only.
   case Token_Type::colon: {
+    Expression* child = binary_builder.last_expression();
     bool should_parse_annotation;
     switch (prec.colon_type_annotation) {
+    case Allow_Type_Annotations::
+        typescript_only_if_legal_as_conditional_true_branch:
+      should_parse_annotation =
+          this->options_.typescript && child->kind() == Expression_Kind::Paren;
+      break;
     case Allow_Type_Annotations::typescript_only:
       should_parse_annotation = this->options_.typescript;
       break;
@@ -2120,9 +2127,10 @@ next:
     if (!should_parse_annotation) {
       break;
     }
-    Expression* child = binary_builder.last_expression();
     Source_Code_Span colon_span = this->peek().span();
     Buffering_Visitor type_visitor(&this->type_expression_memory_);
+
+    Parser_Transaction transaction = this->begin_transaction();
 
     // If an arrow function has a return type, then the return type must *not*
     // be parenthesized. Exception: an possibly-parenthesized arrow return type
@@ -2143,6 +2151,45 @@ next:
             .allow_assertion_signature_or_type_predicate =
                 is_possibly_arrow_function_return_type_annotation,
         });
+    if (prec.colon_type_annotation ==
+            Allow_Type_Annotations::
+                typescript_only_if_legal_as_conditional_true_branch &&
+        this->options_.typescript &&
+        this->peek().type == Token_Type::equal_greater) {
+      // cond ? (t)    : param   => body
+      // cond ? (param): RetType => body : f
+      //                         ^^
+
+      // TODO(strager): We should call validate_arrow_function_parameter_list,
+      // similar to if we did 'goto arrow_function;'.
+
+      this->skip();
+      Stacked_Buffering_Visitor arrow_body_visits =
+          this->buffering_visitor_stack_.push();
+      Expression* arrow_function =
+          this->parse_arrow_function_expression_remainder(
+              arrow_body_visits.visitor(), /*generic_parameter_visits=*/nullptr,
+              child,
+              /*return_type_visits=*/&type_visitor, /*prec=*/prec);
+
+      if (this->peek().type == Token_Type::colon) {
+        // (cond ? (param): RetType => body : f)
+        //                                  ^
+        // We correctly interpreted ': RetType' as a return type annotation.
+        this->commit_transaction(std::move(transaction));
+        arrow_body_visits.visitor().move_into(v);
+        binary_builder.replace_last(arrow_function);
+        break;
+      } else {
+        // (cond ? (x) : param => body)
+        //                            ^
+        // We incorrectly interpreted ': param' as a return type annotation.
+        this->roll_back_transaction(std::move(transaction));
+        break;
+      }
+    }
+    this->commit_transaction(std::move(transaction));
+
     const Char8* type_end = this->lexer_.end_of_previous_token();
     binary_builder.replace_last(
         this->make_expression<Expression::Type_Annotated>(
