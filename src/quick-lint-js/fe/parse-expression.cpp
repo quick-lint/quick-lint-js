@@ -1988,57 +1988,18 @@ next:
     Source_Code_Span arrow_span = this->peek().span();
     this->skip();
     Expression* lhs = binary_builder.last_expression();
-    Expression* lhs_without_paren = lhs->without_paren();
-    switch (lhs_without_paren->kind()) {
-    // f(x, y) => {}      // Invalid.
-    // f(x, y) => {}      // Invalid.
-    // f.x => z           // Invalid.
-    // 42 => {}           // Invalid.
-    case Expression_Kind::Call:
-    case Expression_Kind::Dot:
-    case Expression_Kind::Literal: {
-      if (lhs_without_paren->kind() == Expression_Kind::Call) {
-        if (this->peek().type == Token_Type::left_curly) {
-          // f(x, y) => {}
-          // This is handled by parse_arrow_function_expression_remainder.
-          break;
-        } else {
-          // f(x, y) => x+y
-        }
-      }
-
-      Source_Code_Span lhs_span = lhs->span();
-      switch (lhs_without_paren->kind()) {
-      case Expression_Kind::Call:
-      case Expression_Kind::Dot:
-        this->diag_reporter_->report(Diag_Unexpected_Arrow_After_Expression{
-            .arrow = arrow_span,
-            .expression = lhs_span,
-        });
-        break;
-      case Expression_Kind::Literal:
-        this->diag_reporter_->report(Diag_Unexpected_Arrow_After_Literal{
-            .arrow = arrow_span,
-            .literal_parameter = lhs_span,
-        });
-        break;
-      default:
-        QLJS_UNREACHABLE();
-      }
-
-      if (this->peek().type != Token_Type::left_curly) {
-        // Treat the '=>' as if it was a binary operator (like '>=').
-        binary_builder.add_child(
-            arrow_span,
-            this->parse_expression(
-                v, Precedence{.binary_operators = false, .commas = false}));
-        goto next;
-      }
+    switch (this->validate_arrow_function_parameter_list(lhs, arrow_span)) {
+    case Arrow_Function_Parameter_List_Validation::ok:
+    case Arrow_Function_Parameter_List_Validation::error:
       break;
-    }
-
-    default:
-      break;
+    case Arrow_Function_Parameter_List_Validation::
+        equal_greater_looks_like_operator:
+      // Treat the '=>' as if it was a binary operator (like '>=').
+      binary_builder.add_child(
+          arrow_span,
+          this->parse_expression(
+              v, Precedence{.binary_operators = false, .commas = false}));
+      goto next;
     }
 
     if (binary_builder.has_multiple_children()) {
@@ -2319,6 +2280,61 @@ next:
   }
 
   return this->build_expression(binary_builder);
+}
+
+Parser::Arrow_Function_Parameter_List_Validation
+Parser::validate_arrow_function_parameter_list(
+    Expression* parameters_expression, Source_Code_Span arrow_span) {
+  Expression* lhs = parameters_expression;
+  Expression* lhs_without_paren = lhs->without_paren();
+  switch (lhs_without_paren->kind()) {
+  // f(x, y) => {}      // Invalid.
+  // f(x, y) => {}      // Invalid.
+  // f.x => z           // Invalid.
+  // 42 => {}           // Invalid.
+  case Expression_Kind::Call:
+  case Expression_Kind::Dot:
+  case Expression_Kind::Literal: {
+    if (lhs_without_paren->kind() == Expression_Kind::Call) {
+      if (this->peek().type == Token_Type::left_curly) {
+        // f(x, y) => {}
+        // Diagnostic reporting is done by
+        // parse_arrow_function_expression_remainder.
+        return Arrow_Function_Parameter_List_Validation::error;
+      } else {
+        // f(x, y) => x+y
+      }
+    }
+
+    Source_Code_Span lhs_span = lhs->span();
+    switch (lhs_without_paren->kind()) {
+    case Expression_Kind::Call:
+    case Expression_Kind::Dot:
+      this->diag_reporter_->report(Diag_Unexpected_Arrow_After_Expression{
+          .arrow = arrow_span,
+          .expression = lhs_span,
+      });
+      break;
+    case Expression_Kind::Literal:
+      this->diag_reporter_->report(Diag_Unexpected_Arrow_After_Literal{
+          .arrow = arrow_span,
+          .literal_parameter = lhs_span,
+      });
+      break;
+    default:
+      QLJS_UNREACHABLE();
+    }
+
+    if (this->peek().type != Token_Type::left_curly) {
+      return Arrow_Function_Parameter_List_Validation::
+          equal_greater_looks_like_operator;
+    }
+    return Arrow_Function_Parameter_List_Validation::error;
+  }
+
+  default:
+    return Arrow_Function_Parameter_List_Validation::ok;
+  }
 }
 
 Expression* Parser::parse_arrow_function_expression_remainder(

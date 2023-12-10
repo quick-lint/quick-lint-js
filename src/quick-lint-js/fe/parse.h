@@ -760,6 +760,15 @@ class Parser {
                                      const Token &await_token, Precedence prec);
   Expression *parse_expression_remainder(Parse_Visitor_Base &, Expression *,
                                          Precedence);
+  enum class Arrow_Function_Parameter_List_Validation {
+    ok,
+    error,
+    // '=>' should be parsed as an operator like '>='.
+    equal_greater_looks_like_operator,
+  };
+  Arrow_Function_Parameter_List_Validation
+  validate_arrow_function_parameter_list(Expression *parameters_expression,
+                                         Source_Code_Span arrow_span);
   Expression *parse_arrow_function_expression_remainder(
       Parse_Visitor_Base &, Buffering_Visitor *generic_parameter_visits,
       Expression *parameters_expression, Buffering_Visitor *return_type_visits,
