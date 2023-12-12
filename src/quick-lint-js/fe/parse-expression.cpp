@@ -2152,41 +2152,47 @@ next:
                 is_possibly_arrow_function_return_type_annotation,
         });
     if (prec.colon_type_annotation ==
-            Allow_Type_Annotations::
-                typescript_only_if_legal_as_conditional_true_branch &&
-        this->options_.typescript &&
-        this->peek().type == Token_Type::equal_greater) {
+        Allow_Type_Annotations::
+            typescript_only_if_legal_as_conditional_true_branch) {
       // cond ? (t)    : param   => body
       // cond ? (param): RetType => body : f
-      //                         ^^
+      // cond ? (t)    : f
 
-      // TODO(strager): We should call validate_arrow_function_parameter_list,
-      // similar to if we did 'goto arrow_function;'.
+      if (this->options_.typescript &&
+          this->peek().type == Token_Type::equal_greater) {
+        // cond ? (t)    : param   => body
+        // cond ? (param): RetType => body : f
+        //                         ^^
 
-      this->skip();
-      Stacked_Buffering_Visitor arrow_body_visits =
-          this->buffering_visitor_stack_.push();
-      Expression* arrow_function =
-          this->parse_arrow_function_expression_remainder(
-              arrow_body_visits.visitor(), /*generic_parameter_visits=*/nullptr,
-              child,
-              /*return_type_visits=*/&type_visitor, /*prec=*/prec);
+        // TODO(strager): We should call validate_arrow_function_parameter_list,
+        // similar to if we did 'goto arrow_function;'.
 
-      if (this->peek().type == Token_Type::colon) {
-        // (cond ? (param): RetType => body : f)
-        //                                  ^
-        // We correctly interpreted ': RetType' as a return type annotation.
-        this->commit_transaction(std::move(transaction));
-        arrow_body_visits.visitor().move_into(v);
-        binary_builder.replace_last(arrow_function);
-        break;
-      } else {
-        // (cond ? (x) : param => body)
-        //                            ^
-        // We incorrectly interpreted ': param' as a return type annotation.
-        this->roll_back_transaction(std::move(transaction));
-        break;
+        this->skip();
+        Stacked_Buffering_Visitor arrow_body_visits =
+            this->buffering_visitor_stack_.push();
+        Expression* arrow_function =
+            this->parse_arrow_function_expression_remainder(
+                arrow_body_visits.visitor(),
+                /*generic_parameter_visits=*/nullptr, child,
+                /*return_type_visits=*/&type_visitor, /*prec=*/prec);
+
+        if (this->peek().type == Token_Type::colon) {
+          // (cond ? (param): RetType => body : f)
+          //                                  ^
+          // We correctly interpreted ': RetType' as a return type annotation.
+          this->commit_transaction(std::move(transaction));
+          arrow_body_visits.visitor().move_into(v);
+          binary_builder.replace_last(arrow_function);
+          break;
+        }
       }
+
+      // (cond ? (x) : param => body)
+      // (cond ? (x) : param)
+      //
+      // We incorrectly interpreted ': param' as a return type annotation.
+      this->roll_back_transaction(std::move(transaction));
+      break;
     }
     this->commit_transaction(std::move(transaction));
 

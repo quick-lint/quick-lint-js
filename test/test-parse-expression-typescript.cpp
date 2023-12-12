@@ -143,6 +143,16 @@ TEST_F(
   }
 }
 
+TEST_F(
+    Test_Parse_Expression_TypeScript,
+    colon_in_conditional_true_branch_cannot_be_type_annotation_if_not_arrow_function) {
+  {
+    Test_Parser p(u8"cond ? (t) : f"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var cond, paren(var t), var f)");
+  }
+}
+
 TEST_F(Test_Parse_Expression_TypeScript, non_null_assertion) {
   {
     Test_Parser p(u8"x!"_sv, typescript_options);
