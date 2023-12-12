@@ -2158,8 +2158,8 @@ next:
       // cond ? (param): RetType => body : f
       // cond ? (t)    : f
 
-      if (this->options_.typescript &&
-          this->peek().type == Token_Type::equal_greater) {
+      QLJS_ASSERT(this->options_.typescript);
+      if (this->peek().type == Token_Type::equal_greater) {
         // cond ? (t)    : param   => body
         // cond ? (param): RetType => body : f
         //                         ^^
