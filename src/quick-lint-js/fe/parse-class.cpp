@@ -2100,8 +2100,17 @@ void Parser::parse_and_visit_typescript_interface_reference(
     v.visit_variable_type_use(ident);
   }
 
-  if (this->peek().type == Token_Type::less) {
+  if (this->peek().type == Token_Type::less ||
+      this->peek().type == Token_Type::less_less) {
     // extends SomeType<Arg>
+    // extends SomeType< <T>() => ReturnType>
+    if (this->peek().type == Token_Type::less_less) {
+      // extends SomeType<<T>() => ReturnType>  // Invalid.
+      const Char8 *second_less = this->peek().begin + 1;
+      this->diag_reporter_->report(Diag_TypeScript_Generic_Less_Less_Not_Split{
+          .expected_space = Source_Code_Span::unit(second_less),
+      });
+    }
     this->parse_and_visit_typescript_generic_arguments(v);
   }
 }

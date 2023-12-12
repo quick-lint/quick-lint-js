@@ -27,6 +27,8 @@ Semantic Versioning.
     conditional expression with a function in the truthy branch.
     (`cond ? (t) : param => body` continues to be parsed as a conditional
     expression with a function in the falsy branch.)
+  * Using `<<` in an interface's `extends` clause or a class's `implements`
+    clause now reports [E0429][] instead of misleading diagnostics.
 
 ### Fixed
 
@@ -1318,6 +1320,7 @@ Beta release.
 [E0398]: https://quick-lint-js.com/errors/E0398/
 [E0426]: https://quick-lint-js.com/errors/E0426/
 [E0427]: https://quick-lint-js.com/errors/E0427/
+[E0429]: https://quick-lint-js.com/errors/E0429/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/

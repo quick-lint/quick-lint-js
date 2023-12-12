@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[531] = {
+inline const Translated_String test_translation_table[532] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4921,6 +4921,17 @@ inline const Translated_String test_translation_table[531] = {
             u8"something happened",
             u8"algo aconteceu",
             u8"something happened",
+        },
+    },
+    {
+        "space is required between '<' and '<' inside 'extends' or 'implements' clause"_translatable,
+        u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
+        {
+            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
+            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
+            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
+            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
+            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
         },
     },
     {

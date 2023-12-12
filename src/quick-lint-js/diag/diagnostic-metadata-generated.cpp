@@ -4573,6 +4573,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Generic_Less_Less_Not_Split
+    {
+      .code = 429,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("space is required between '<' and '<' inside 'extends' or 'implements' clause"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Generic_Less_Less_Not_Split, expected_space), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement
     {
       .code = 332,

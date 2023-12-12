@@ -457,6 +457,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 9},                  //
         {11, 9, 0, 10, 0, 42},               //
         {0, 0, 0, 0, 0, 19},                 //
+        {0, 0, 0, 0, 0, 78},                 //
         {0, 0, 0, 0, 0, 19},                 //
         {0, 0, 0, 0, 0, 41},                 //
         {0, 0, 0, 0, 0, 25},                 //
@@ -2259,6 +2260,7 @@ const Translation_Table translation_data = {
         u8"see here\0"
         u8"semicolon is not allowed after decorators\0"
         u8"something happened\0"
+        u8"space is required between '<' and '<' inside 'extends' or 'implements' clause\0"
         u8"spread starts here\0"
         u8"spread tuple elements cannot be optional\0"
         u8"static block starts here\0"

@@ -158,6 +158,32 @@ TEST_F(Test_Parse_TypeScript_Interface, extends_generic) {
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
 }
 
+TEST_F(Test_Parse_TypeScript_Interface,
+       extends_generic_with_arrow_type_requires_space) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"interface I extends Base<<T>() => ReturnType<T>> {}"_sv,  //
+        u8"                         ` Diag_TypeScript_Generic_Less_Less_Not_Split"_diag,
+        typescript_options);
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({interface_decl(u8"I"), generic_param_decl(u8"T")}));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"Base", u8"ReturnType", u8"T"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"interface I extends Base< <T>() => ReturnType<T>> {}"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({interface_decl(u8"I"), generic_param_decl(u8"T")}));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"Base", u8"ReturnType", u8"T"}));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Interface, unclosed_interface_statement) {
   {
     Spy_Visitor p = test_parse_and_visit_module(

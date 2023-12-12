@@ -1538,6 +1538,10 @@ msgid "interfaces cannot contain static blocks"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "space is required between '<' and '<' inside 'extends' or 'implements' clause"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "'declare class' cannot contain static block"
 msgstr ""
 

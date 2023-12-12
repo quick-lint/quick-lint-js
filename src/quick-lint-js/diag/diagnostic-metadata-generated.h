@@ -315,6 +315,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Inline_Type_Export_Not_Allowed_In_Type_Only_Export) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Inline_Type_Import_Not_Allowed_In_Type_Only_Import) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Interfaces_Cannot_Contain_Static_Blocks) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Generic_Less_Less_Not_Split) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Declare_Field_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Declare_Field_Cannot_Use_Private_Identifier) \
@@ -450,7 +451,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 436;
+inline constexpr int Diag_Type_Count = 437;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }
