@@ -881,6 +881,100 @@ TEST_F(Test_Parse_TypeScript_Generic,
         });
   }
 }
+
+TEST_F(
+    Test_Parse_TypeScript_Generic,
+    extending_or_implementing_generic_allows_newline_before_generic_arguments) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I extends A\n<B> {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C implements I\n<B> {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"I", u8"B"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C extends Base\n<T> {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"Base"}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic,
+       newline_is_allowed_before_generic_parameters_except_after_async) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f\n<T>() {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({generic_param_decl(u8"T"), function_decl(u8"f")}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C\n<T> {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({generic_param_decl(u8"T"), class_decl(u8"C")}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I\n<T> {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({interface_decl(u8"I"), generic_param_decl(u8"T")}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"type Identity\n<T> = T;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({type_alias_decl(u8"Identity"),
+                                  generic_param_decl(u8"T")}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let f:\n<T>() => RetType;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({generic_param_decl(u8"T"), let_noinit_decl(u8"f")}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let f =\n<T>() => value;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({generic_param_decl(u8"T"), let_init_decl(u8"f")}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic,
+       generic_in_expression_allows_newline_before_generic_arguments) {
+  {
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"new C\n<T>()"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"C"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_expression(u8"f\n<T>()"_sv, no_diags,
+                                                    typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"f"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_expression(u8"f?.\n<T>()"_sv, no_diags,
+                                                    typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"f"}));
+  }
+}
 }
 }
 
