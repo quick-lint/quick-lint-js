@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[538] = {
+inline const Translated_String test_translation_table[539] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4030,6 +4030,17 @@ inline const Translated_String test_translation_table[538] = {
             u8"missing exported name in import type",
             u8"missing exported name in import type",
             u8"missing exported name in import type",
+        },
+    },
+    {
+        "missing expression after type assertion"_translatable,
+        u8"missing expression after type assertion",
+        {
+            u8"missing expression after type assertion",
+            u8"missing expression after type assertion",
+            u8"missing expression after type assertion",
+            u8"missing expression after type assertion",
+            u8"missing expression after type assertion",
         },
     },
     {

@@ -136,6 +136,19 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     }
     break;
   }
+  case Expression_Kind::Angle_Type_Assertion: {
+    Expression* child = ast->child_0();
+    if (child->kind() == Expression_Kind::Missing) {
+      this->diag_reporter_->report(
+          Diag_Missing_Expression_After_Angle_Type_Assertion{
+              .expected_expression = Source_Code_Span::unit(
+                  expression_cast<Expression::Angle_Type_Assertion*>(ast)
+                      ->bracketed_type_span_.end()),
+          });
+    }
+    this->visit_expression(child, v, context);
+    break;
+  }
   case Expression_Kind::Spread: {
     if (ast->child_0()->kind() == Expression_Kind::Missing) {
       this->diag_reporter_->report(
@@ -143,7 +156,6 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     }
     [[fallthrough]];
   }
-  case Expression_Kind::Angle_Type_Assertion:
   case Expression_Kind::As_Type_Assertion:
   case Expression_Kind::Await:
   case Expression_Kind::Satisfies:
@@ -3991,6 +4003,7 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::greater);
     const Char8* greater_end = this->peek().end;
+    Source_Code_Span bracketed_type_span(less_begin, greater_end);
 
     this->skip();
 
@@ -3998,13 +4011,13 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
     if (this->options_.jsx) {
       this->diag_reporter_->report(
           Diag_TypeScript_Angle_Type_Assertion_Not_Allowed_In_Tsx{
-              .bracketed_type = Source_Code_Span(less_begin, greater_end),
+              .bracketed_type = bracketed_type_span,
               .expected_as =
                   Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
           });
     }
     return this->make_expression<Expression::Angle_Type_Assertion>(
-        /*bracketed_type_span=*/Source_Code_Span::unit(less_begin),
+        /*bracketed_type_span=*/bracketed_type_span,
         /*child=*/ast);
   };
 
@@ -4025,6 +4038,7 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
     // <Type>expr
     case Token_Type::greater: {
       this->lexer_.commit_transaction(std::move(transaction));
+      Source_Code_Span bracketed_type_span(less_begin, this->peek().end);
       this->skip();
 
       Expression* ast = this->parse_primary_expression(v, prec);
@@ -4068,7 +4082,7 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
 
       v.visit_variable_type_use(type);
       return this->make_expression<Expression::Angle_Type_Assertion>(
-          /*bracketed_type_span=*/Source_Code_Span::unit(less_begin),
+          /*bracketed_type_span=*/bracketed_type_span,
           /*child=*/ast);
     }
 

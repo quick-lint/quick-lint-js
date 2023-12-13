@@ -2918,6 +2918,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Missing_Expression_After_Angle_Type_Assertion
+    {
+      .code = 430,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("missing expression after type assertion"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_Expression_After_Angle_Type_Assertion, expected_expression), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Missing_Name_In_Function_Statement
     {
       .code = 61,

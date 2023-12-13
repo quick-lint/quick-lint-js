@@ -216,6 +216,17 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
         ElementsAreArray({func_param_decl(u8"x"_sv), function_decl(u8"f"_sv)}));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
+       angle_type_assertion_without_expression_is_invalid) {
+  {
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"<Type> ;"_sv,                                                      //
+        u8"      ` Diag_Missing_Expression_After_Angle_Type_Assertion"_diag,  //
+        typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type"_sv}));
+  }
+}
 }
 }
 

@@ -1502,6 +1502,13 @@ struct Diag_Missing_Class_Method_Name {
   Source_Code_Span expected_name;
 };
 
+struct Diag_Missing_Expression_After_Angle_Type_Assertion {
+  [[qljs::diag("E0430", Diagnostic_Severity::error)]]  //
+  [[qljs::message("missing expression after type assertion",
+                  ARG(expected_expression))]]  //
+  Source_Code_Span expected_expression;
+};
+
 struct Diag_Missing_Name_In_Function_Statement {
   [[qljs::diag("E0061", Diagnostic_Severity::error)]]                  //
   [[qljs::message("missing name in function statement", ARG(where))]]  //

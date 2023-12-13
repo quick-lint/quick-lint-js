@@ -1026,6 +1026,10 @@ msgid "missing name for class method"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "missing expression after type assertion"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing name in function statement"
 msgstr ""
 
