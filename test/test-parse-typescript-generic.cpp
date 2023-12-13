@@ -956,6 +956,38 @@ TEST_F(Test_Parse_TypeScript_Generic,
 }
 
 TEST_F(Test_Parse_TypeScript_Generic,
+       newline_is_allowed_between_async_and_generic_arguments) {
+  {
+    Test_Parser p(u8"async\n<T>(param)"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(var async, var param)");
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic,
+       newline_is_not_allowed_between_async_and_generic_arrow_parameters) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"async\n<T>() => {}"_sv,
+        u8"             ^^ Diag_Newline_Not_Allowed_Between_Async_And_Parameter_List.arrow\n"_diag
+        u8"^^^^^ .async"_diag,
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T")}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"async\n<T>(): ReturnType => {}"_sv,
+        u8"                         ^^ Diag_Newline_Not_Allowed_Between_Async_And_Parameter_List.arrow\n"_diag
+        u8"^^^^^ .async"_diag,
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T")}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic,
        generic_in_expression_allows_newline_before_generic_arguments) {
   {
     Spy_Visitor p = test_parse_and_visit_expression(

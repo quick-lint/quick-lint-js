@@ -965,6 +965,7 @@ Expression* Parser::parse_async_expression_only(
   case Token_Type::less:
     if (this->options_.typescript) {
       Source_Code_Span less = this->peek().span();
+      bool newline_before_async_token = this->peek().has_leading_newline;
 
       // If illegal_lone_parameter is set, then the code is like
       // 'async <T>() => {}' which TypeScript rejects in JSX mode. Therefore,
@@ -1023,10 +1024,9 @@ Expression* Parser::parse_async_expression_only(
       if (parsed_arrow_function_parameters_without_fatal_error) {
         // async <T,>() => {}
         // async <T extends U>() => {}
-        // async <T>() => {}   // Invalid.
+        // async <T>() => {}   // Invalid in TypeScript-JSX;
+        //                     // valid in pure TypeScript.
         this->commit_transaction(std::move(transaction));
-        // TODO(strager): Error if newline after 'async' token (like non-generic
-        // code path).
         // TODO(strager): Error on parameters named 'await' (like non-generic
         // code path).
         Buffering_Visitor return_type_visits(&this->type_expression_memory_);
@@ -1039,6 +1039,14 @@ Expression* Parser::parse_async_expression_only(
               });
         }
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
+        Source_Code_Span equal_greater = this->peek().span();
+        if (newline_before_async_token) {
+          this->diag_reporter_->report(
+              Diag_Newline_Not_Allowed_Between_Async_And_Parameter_List{
+                  .async = async_or_await_token.span(),
+                  .arrow = equal_greater,
+              });
+        }
 
         if (illegal_lone_parameter.has_value()) {
           this->diag_reporter_->report(
