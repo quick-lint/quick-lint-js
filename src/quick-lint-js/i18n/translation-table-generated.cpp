@@ -161,6 +161,7 @@ const Translation_Table translation_data = {
         {20, 16, 0, 16, 0, 15},              //
         {20, 40, 63, 23, 66, 19},            //
         {0, 0, 0, 0, 0, 61},                 //
+        {0, 0, 0, 0, 0, 30},                 //
         {67, 28, 78, 78, 61, 40},            //
         {0, 0, 0, 62, 0, 64},                //
         {66, 50, 74, 26, 65, 21},            //
@@ -174,7 +175,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 57},                 //
         {0, 0, 0, 0, 0, 37},                 //
         {14, 14, 0, 64, 0, 29},              //
-        {0, 26, 0, 21, 0, 18},               //
+        {0, 0, 0, 0, 0, 18},                 //
+        {0, 26, 0, 21, 0, 32},               //
         {18, 53, 70, 52, 76, 53},            //
         {19, 30, 21, 19, 19, 19},            //
         {0, 0, 0, 0, 0, 14},                 //
@@ -214,7 +216,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 50, 0, 47},                //
         {72, 31, 71, 68, 56, 61},            //
         {34, 30, 0, 46, 0, 40},              //
-        {0, 0, 0, 20, 0, 18},                //
+        {0, 0, 0, 0, 0, 18},                 //
+        {0, 0, 0, 20, 0, 26},                //
         {20, 12, 47, 37, 44, 29},            //
         {47, 34, 39, 35, 0, 30},             //
         {84, 58, 96, 77, 31, 72},            //
@@ -309,7 +312,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 30, 0, 32},                //
         {0, 0, 0, 0, 0, 24},                 //
         {0, 30, 0, 26, 0, 22},               //
-        {0, 0, 0, 68, 0, 59},                //
+        {0, 0, 0, 0, 0, 59},                 //
+        {0, 0, 0, 68, 0, 27},                //
         {0, 0, 0, 75, 0, 61},                //
         {0, 0, 0, 81, 0, 56},                //
         {37, 68, 39, 47, 31, 40},            //
@@ -457,7 +461,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 9},                  //
         {11, 9, 0, 10, 0, 42},               //
         {0, 0, 0, 0, 0, 19},                 //
-        {0, 0, 0, 0, 0, 78},                 //
+        {0, 0, 0, 0, 0, 60},                 //
         {0, 0, 0, 0, 0, 19},                 //
         {0, 0, 0, 0, 0, 41},                 //
         {0, 0, 0, 0, 0, 25},                 //
@@ -1964,6 +1968,7 @@ const Translation_Table translation_data = {
         u8"a 'while' loop\0"
         u8"a 'with' statement\0"
         u8"a class statement is not allowed as the body of {1:singular}\0"
+        u8"a class's 'implements' clause\0"
         u8"a decorator exists here before 'export'\0"
         u8"a function statement is not allowed as the body of {1:singular}\0"
         u8"a labelled statement\0"
@@ -1978,6 +1983,7 @@ const Translation_Table translation_data = {
         u8"abstract properties cannot be static\0"
         u8"accessors cannot be optional\0"
         u8"an 'if' statement\0"
+        u8"an interface's 'extends' clause\0"
         u8"another invalid string, do not use outside benchmark\0"
         u8"array started here\0"
         u8"arrow is here\0"
@@ -2018,6 +2024,7 @@ const Translation_Table translation_data = {
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
         u8"children end here\0"
+        u8"class 'implements' clause\0"
         u8"class is not marked abstract\0"
         u8"classes cannot be named 'let'\0"
         u8"code point in Unicode escape sequence must not be greater than U+10FFFF\0"
@@ -2113,6 +2120,7 @@ const Translation_Table translation_data = {
         u8"initializer starts here\0"
         u8"inside namespace here\0"
         u8"integer cannot be represented and will be rounded to '{1}'\0"
+        u8"interface 'extends' clause\0"
         u8"interface properties are always public and cannot be private\0"
         u8"interface properties cannot be marked public explicitly\0"
         u8"interfaces cannot contain static blocks\0"
@@ -2260,7 +2268,7 @@ const Translation_Table translation_data = {
         u8"see here\0"
         u8"semicolon is not allowed after decorators\0"
         u8"something happened\0"
-        u8"space is required between '<' and '<' inside 'extends' or 'implements' clause\0"
+        u8"space is required between '<' and '<' inside {1:headlinese}\0"
         u8"spread starts here\0"
         u8"spread tuple elements cannot be optional\0"
         u8"static block starts here\0"

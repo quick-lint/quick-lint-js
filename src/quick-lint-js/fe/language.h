@@ -7,6 +7,8 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
+// TODO(strager): Rename this because it doesn't only contain kinds of
+// statements anymore.
 enum class Statement_Kind {
   do_while_loop,
   for_loop,  // TODO(strager): c_style_for_loop + for_in_loop + for_of_loop?
@@ -14,6 +16,9 @@ enum class Statement_Kind {
   while_loop,
   with_statement,
   labelled_statement,
+
+  class_implements_clause,
+  interface_extends_clause,
 };
 
 std::ostream& operator<<(std::ostream&, Statement_Kind);

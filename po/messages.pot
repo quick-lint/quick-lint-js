@@ -74,6 +74,14 @@ msgid "labelled statement"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "class 'implements' clause"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "interface 'extends' clause"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr ""
 
@@ -95,6 +103,14 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-formatter.cpp
 msgid "a labelled statement"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a class's 'implements' clause"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "an interface's 'extends' clause"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -1538,7 +1554,7 @@ msgid "interfaces cannot contain static blocks"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "space is required between '<' and '<' inside 'extends' or 'implements' clause"
+msgid "space is required between '<' and '<' inside {1:headlinese}"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

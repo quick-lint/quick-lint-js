@@ -426,7 +426,8 @@ class Parser {
 
   // Parse a single item in a class 'implements' clause or an interface
   // 'extends' clause.
-  void parse_and_visit_typescript_interface_reference(Parse_Visitor_Base &v);
+  void parse_and_visit_typescript_interface_reference(Parse_Visitor_Base &v,
+                                                      Statement_Kind context);
 
   // Parse a TypeScript namespace declared with either 'namespace' or 'module'.
   //

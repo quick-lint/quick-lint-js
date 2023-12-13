@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 533;
-constexpr std::size_t translation_table_string_table_size = 80577;
+constexpr std::uint16_t translation_table_mapping_table_size = 537;
+constexpr std::size_t translation_table_string_table_size = 80674;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -175,6 +175,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "a 'while' loop"sv,
           "a 'with' statement"sv,
           "a class statement is not allowed as the body of {1:singular}"sv,
+          "a class's 'implements' clause"sv,
           "a decorator exists here before 'export'"sv,
           "a function statement is not allowed as the body of {1:singular}"sv,
           "a labelled statement"sv,
@@ -189,6 +190,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "abstract properties cannot be static"sv,
           "accessors cannot be optional"sv,
           "an 'if' statement"sv,
+          "an interface's 'extends' clause"sv,
           "another invalid string, do not use outside benchmark"sv,
           "array started here"sv,
           "arrow is here"sv,
@@ -229,6 +231,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "catch variable can only be typed as '*', 'any', or 'unknown'"sv,
           "character is not allowed in identifiers"sv,
           "children end here"sv,
+          "class 'implements' clause"sv,
           "class is not marked abstract"sv,
           "classes cannot be named 'let'"sv,
           "code point in Unicode escape sequence must not be greater than U+10FFFF"sv,
@@ -324,6 +327,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "initializer starts here"sv,
           "inside namespace here"sv,
           "integer cannot be represented and will be rounded to '{1}'"sv,
+          "interface 'extends' clause"sv,
           "interface properties are always public and cannot be private"sv,
           "interface properties cannot be marked public explicitly"sv,
           "interfaces cannot contain static blocks"sv,
@@ -471,7 +475,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "see here"sv,
           "semicolon is not allowed after decorators"sv,
           "something happened"sv,
-          "space is required between '<' and '<' inside 'extends' or 'implements' clause"sv,
+          "space is required between '<' and '<' inside {1:headlinese}"sv,
           "spread starts here"sv,
           "spread tuple elements cannot be optional"sv,
           "static block starts here"sv,

@@ -4578,11 +4578,12 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 429,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("space is required between '<' and '<' inside 'extends' or 'implements' clause"),
+        QLJS_TRANSLATABLE("space is required between '<' and '<' inside {1:headlinese}"),
       },
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Generic_Less_Less_Not_Split, expected_space), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Generic_Less_Less_Not_Split, context), Diagnostic_Arg_Type::statement_kind),
         },
       },
     },

@@ -2369,12 +2369,10 @@ struct Diag_TypeScript_Interfaces_Cannot_Contain_Static_Blocks {
 
 struct Diag_TypeScript_Generic_Less_Less_Not_Split {
   [[qljs::diag("E0429", Diagnostic_Severity::error)]]  //
-  // clang-format off
-  [[qljs::message("space is required between '<' and '<' inside 'extends' "
-                  "or 'implements' clause",
-                  ARG(expected_space))]]  //
-  // clang-format on
+  [[qljs::message("space is required between '<' and '<' inside {1:headlinese}",
+                  ARG(expected_space), ARG(context))]]  //
   Source_Code_Span expected_space;
+  Statement_Kind context;
 };
 
 struct Diag_TypeScript_Declare_Class_Cannot_Contain_Static_Block_Statement {

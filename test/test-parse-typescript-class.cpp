@@ -1552,7 +1552,8 @@ TEST_F(Test_Parse_TypeScript_Class,
   {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"class C implements I<<T>() => ReturnType<T>> {}"_sv,  //
-        u8"                     ` Diag_TypeScript_Generic_Less_Less_Not_Split"_diag,
+        u8"                     ` Diag_TypeScript_Generic_Less_Less_Not_Split.expected_space"_diag
+        u8"{.context=Statement_Kind::class_implements_clause}"_diag,
         typescript_options);
     EXPECT_THAT(
         p.variable_declarations,

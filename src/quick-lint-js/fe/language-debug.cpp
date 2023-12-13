@@ -19,6 +19,8 @@ std::ostream& operator<<(std::ostream& out, Statement_Kind kind) {
     QLJS_CASE(while_loop)
     QLJS_CASE(with_statement)
     QLJS_CASE(labelled_statement)
+    QLJS_CASE(class_implements_clause)
+    QLJS_CASE(interface_extends_clause)
   }
 #undef QLJS_CASE
   out << "???";

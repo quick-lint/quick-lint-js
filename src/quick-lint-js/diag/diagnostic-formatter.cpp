@@ -46,6 +46,10 @@ Translatable_Message headlinese_statement_kind(Statement_Kind sk) {
     return QLJS_TRANSLATABLE("'with' statement");
   case Statement_Kind::labelled_statement:
     return QLJS_TRANSLATABLE("labelled statement");
+  case Statement_Kind::class_implements_clause:
+    return QLJS_TRANSLATABLE("class 'implements' clause");
+  case Statement_Kind::interface_extends_clause:
+    return QLJS_TRANSLATABLE("interface 'extends' clause");
   }
   QLJS_UNREACHABLE();
 }
@@ -64,6 +68,10 @@ Translatable_Message singular_statement_kind(Statement_Kind sk) {
     return QLJS_TRANSLATABLE("a 'with' statement");
   case Statement_Kind::labelled_statement:
     return QLJS_TRANSLATABLE("a labelled statement");
+  case Statement_Kind::class_implements_clause:
+    return QLJS_TRANSLATABLE("a class's 'implements' clause");
+  case Statement_Kind::interface_extends_clause:
+    return QLJS_TRANSLATABLE("an interface's 'extends' clause");
   }
   QLJS_UNREACHABLE();
 }

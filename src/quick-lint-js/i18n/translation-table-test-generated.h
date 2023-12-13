@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[532] = {
+inline const Translated_String test_translation_table[536] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1668,6 +1668,17 @@ inline const Translated_String test_translation_table[532] = {
         },
     },
     {
+        "a class's 'implements' clause"_translatable,
+        u8"a class's 'implements' clause",
+        {
+            u8"a class's 'implements' clause",
+            u8"a class's 'implements' clause",
+            u8"a class's 'implements' clause",
+            u8"a class's 'implements' clause",
+            u8"a class's 'implements' clause",
+        },
+    },
+    {
         "a decorator exists here before 'export'"_translatable,
         u8"a decorator exists here before 'export'",
         {
@@ -1819,6 +1830,17 @@ inline const Translated_String test_translation_table[532] = {
             u8"an 'if' statement",
             u8"uma instru\u00e7\u00e3o 'if'",
             u8"an 'if' statement",
+        },
+    },
+    {
+        "an interface's 'extends' clause"_translatable,
+        u8"an interface's 'extends' clause",
+        {
+            u8"an interface's 'extends' clause",
+            u8"an interface's 'extends' clause",
+            u8"an interface's 'extends' clause",
+            u8"an interface's 'extends' clause",
+            u8"an interface's 'extends' clause",
         },
     },
     {
@@ -2259,6 +2281,17 @@ inline const Translated_String test_translation_table[532] = {
             u8"children end here",
             u8"os n\u00f3s acabam aqui",
             u8"children end here",
+        },
+    },
+    {
+        "class 'implements' clause"_translatable,
+        u8"class 'implements' clause",
+        {
+            u8"class 'implements' clause",
+            u8"class 'implements' clause",
+            u8"class 'implements' clause",
+            u8"class 'implements' clause",
+            u8"class 'implements' clause",
         },
     },
     {
@@ -3304,6 +3337,17 @@ inline const Translated_String test_translation_table[532] = {
             u8"integer cannot be represented and will be rounded to '{1}'",
             u8"inteiro n\u00e3o pode ser representado e vai ser arredondado para '{1}'",
             u8"integer cannot be represented and will be rounded to '{1}'",
+        },
+    },
+    {
+        "interface 'extends' clause"_translatable,
+        u8"interface 'extends' clause",
+        {
+            u8"interface 'extends' clause",
+            u8"interface 'extends' clause",
+            u8"interface 'extends' clause",
+            u8"interface 'extends' clause",
+            u8"interface 'extends' clause",
         },
     },
     {
@@ -4924,14 +4968,14 @@ inline const Translated_String test_translation_table[532] = {
         },
     },
     {
-        "space is required between '<' and '<' inside 'extends' or 'implements' clause"_translatable,
-        u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
+        "space is required between '<' and '<' inside {1:headlinese}"_translatable,
+        u8"space is required between '<' and '<' inside {1:headlinese}",
         {
-            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
-            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
-            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
-            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
-            u8"space is required between '<' and '<' inside 'extends' or 'implements' clause",
+            u8"space is required between '<' and '<' inside {1:headlinese}",
+            u8"space is required between '<' and '<' inside {1:headlinese}",
+            u8"space is required between '<' and '<' inside {1:headlinese}",
+            u8"space is required between '<' and '<' inside {1:headlinese}",
+            u8"space is required between '<' and '<' inside {1:headlinese}",
         },
     },
     {

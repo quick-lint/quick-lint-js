@@ -201,7 +201,8 @@ void Parser::parse_and_visit_typescript_class_implements(
   }
   this->skip();
 next_implements:
-  this->parse_and_visit_typescript_interface_reference(v);
+  this->parse_and_visit_typescript_interface_reference(
+      v, Statement_Kind::class_implements_clause);
   if (this->peek().type == Token_Type::comma) {
     // implements IBanana, IOrange
     this->skip();
@@ -2072,7 +2073,8 @@ void Parser::parse_and_visit_typescript_interface_extends(
 
   this->skip();
 next_extends:
-  this->parse_and_visit_typescript_interface_reference(v);
+  this->parse_and_visit_typescript_interface_reference(
+      v, Statement_Kind::interface_extends_clause);
   if (this->peek().type == Token_Type::comma) {
     // extends IBanana, IOrange
     this->skip();
@@ -2081,7 +2083,7 @@ next_extends:
 }
 
 void Parser::parse_and_visit_typescript_interface_reference(
-    Parse_Visitor_Base &v) {
+    Parse_Visitor_Base &v, Statement_Kind context) {
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::identifier);
   Identifier ident = this->peek().identifier_name();
   this->skip();
@@ -2109,6 +2111,7 @@ void Parser::parse_and_visit_typescript_interface_reference(
       const Char8 *second_less = this->peek().begin + 1;
       this->diag_reporter_->report(Diag_TypeScript_Generic_Less_Less_Not_Split{
           .expected_space = Source_Code_Span::unit(second_less),
+          .context = context,
       });
     }
     this->parse_and_visit_typescript_generic_arguments(v);
