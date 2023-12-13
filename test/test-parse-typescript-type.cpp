@@ -1928,6 +1928,24 @@ TEST_F(Test_Parse_TypeScript_Type, typeof_generic) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Type,
+       typeof_generic_with_arrow_type_requires_space) {
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"typeof ns.Class<<T>() => ReturnType>"_sv,
+        u8"                ` Diag_TypeScript_Generic_Less_Less_Not_Split.expected_space"_diag
+        u8"{.context=Statement_Kind::typeof_type}"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // ns
+                              "visit_enter_function_scope",
+                              "visit_variable_declaration",  // T
+                              "visit_variable_type_use",     // ReturnType
+                              "visit_exit_function_scope",
+                          }));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Type, typeof_import) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(

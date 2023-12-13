@@ -82,6 +82,10 @@ msgid "interface 'extends' clause"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "'typeof' type"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr ""
 
@@ -111,6 +115,10 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-formatter.cpp
 msgid "an interface's 'extends' clause"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a 'typeof' type"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

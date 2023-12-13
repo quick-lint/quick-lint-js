@@ -613,7 +613,19 @@ again:
         break;
       }
     }
-    if (this->peek().type == Token_Type::less) {
+    if (this->peek().type == Token_Type::less ||
+        this->peek().type == Token_Type::less_less) {
+      // typeof C<T>
+      // typeof C< <T>() => RetType>
+      if (this->peek().type == Token_Type::less_less) {
+        // typeof C<<T>() => RetType>  // Invalid.
+        const Char8 *second_less = this->peek().begin + 1;
+        this->diag_reporter_->report(
+            Diag_TypeScript_Generic_Less_Less_Not_Split{
+                .expected_space = Source_Code_Span::unit(second_less),
+                .context = Statement_Kind::typeof_type,
+            });
+      }
       this->parse_and_visit_typescript_generic_arguments(v);
     }
     maybe_parse_dots_after_generic_arguments();

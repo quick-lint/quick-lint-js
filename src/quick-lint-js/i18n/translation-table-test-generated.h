@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[536] = {
+inline const Translated_String test_translation_table[538] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -865,6 +865,17 @@ inline const Translated_String test_translation_table[536] = {
         },
     },
     {
+        "'typeof' type"_translatable,
+        u8"'typeof' type",
+        {
+            u8"'typeof' type",
+            u8"'typeof' type",
+            u8"'typeof' type",
+            u8"'typeof' type",
+            u8"'typeof' type",
+        },
+    },
+    {
         "'while' loop"_translatable,
         u8"'while' loop",
         {
@@ -1632,6 +1643,17 @@ inline const Translated_String test_translation_table[536] = {
             u8"a 'for' loop",
             u8"um loop 'for'",
             u8"a 'for' loop",
+        },
+    },
+    {
+        "a 'typeof' type"_translatable,
+        u8"a 'typeof' type",
+        {
+            u8"a 'typeof' type",
+            u8"a 'typeof' type",
+            u8"a 'typeof' type",
+            u8"a 'typeof' type",
+            u8"a 'typeof' type",
         },
     },
     {

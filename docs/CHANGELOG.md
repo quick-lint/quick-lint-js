@@ -27,8 +27,9 @@ Semantic Versioning.
     conditional expression with a function in the truthy branch.
     (`cond ? (t) : param => body` continues to be parsed as a conditional
     expression with a function in the falsy branch.)
-  * Using `<<` in an interface's `extends` clause or a class's `implements`
-    clause now reports [E0429][] instead of misleading diagnostics.
+  * Using `<<` in an interface's `extends` clause, in a class's `implements`
+    clause, or in a `typeof` type now reports [E0429][] instead of misleading
+    diagnostics.
 
 ### Fixed
 

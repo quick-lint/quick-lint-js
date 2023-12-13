@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 537;
-constexpr std::size_t translation_table_string_table_size = 80674;
+constexpr std::uint16_t translation_table_mapping_table_size = 539;
+constexpr std::size_t translation_table_string_table_size = 80704;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -102,6 +102,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'this' parameters are not allowed in arrow functions"sv,
           "'type' cannot be used twice in export"sv,
           "'type' cannot be used twice in import"sv,
+          "'typeof' type"sv,
           "'while' loop"sv,
           "'with' statement"sv,
           "'{0} []' is always '{1}'"sv,
@@ -172,6 +173,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript's 'readonly' feature is not allowed in JavaScript code"sv,
           "a 'do-while' loop"sv,
           "a 'for' loop"sv,
+          "a 'typeof' type"sv,
           "a 'while' loop"sv,
           "a 'with' statement"sv,
           "a class statement is not allowed as the body of {1:singular}"sv,

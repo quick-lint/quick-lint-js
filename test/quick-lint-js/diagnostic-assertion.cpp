@@ -554,6 +554,7 @@ std::optional<Statement_Kind> try_parse_statement_kind(String8_View s) {
   QLJS_CASE(labelled_statement)
   QLJS_CASE(class_implements_clause)
   QLJS_CASE(interface_extends_clause)
+  QLJS_CASE(typeof_type)
   return std::nullopt;
 #undef QLJS_CASE
 }

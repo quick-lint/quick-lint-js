@@ -19,6 +19,7 @@ enum class Statement_Kind {
 
   class_implements_clause,
   interface_extends_clause,
+  typeof_type,
 };
 
 std::ostream& operator<<(std::ostream&, Statement_Kind);

@@ -87,7 +87,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 50, 0, 48},                //
         {0, 0, 0, 55, 0, 53},                //
         {0, 0, 0, 48, 0, 38},                //
-        {73, 31, 0, 54, 0, 38},              //
+        {0, 0, 0, 0, 0, 38},                 //
+        {73, 31, 0, 54, 0, 14},              //
         {15, 14, 0, 13, 0, 13},              //
         {0, 0, 0, 19, 0, 17},                //
         {0, 0, 0, 0, 0, 25},                 //
@@ -157,7 +158,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 66, 0, 67},                //
         {56, 22, 0, 65, 0, 66},              //
         {23, 15, 0, 19, 0, 18},              //
-        {18, 18, 0, 14, 0, 13},              //
+        {0, 0, 0, 0, 0, 13},                 //
+        {18, 18, 0, 14, 0, 16},              //
         {20, 16, 0, 16, 0, 15},              //
         {20, 40, 63, 23, 66, 19},            //
         {0, 0, 0, 0, 0, 61},                 //
@@ -1895,6 +1897,7 @@ const Translation_Table translation_data = {
         u8"'this' parameters are not allowed in arrow functions\0"
         u8"'type' cannot be used twice in export\0"
         u8"'type' cannot be used twice in import\0"
+        u8"'typeof' type\0"
         u8"'while' loop\0"
         u8"'with' statement\0"
         u8"'{0} []' is always '{1}'\0"
@@ -1965,6 +1968,7 @@ const Translation_Table translation_data = {
         u8"TypeScript's 'readonly' feature is not allowed in JavaScript code\0"
         u8"a 'do-while' loop\0"
         u8"a 'for' loop\0"
+        u8"a 'typeof' type\0"
         u8"a 'while' loop\0"
         u8"a 'with' statement\0"
         u8"a class statement is not allowed as the body of {1:singular}\0"
