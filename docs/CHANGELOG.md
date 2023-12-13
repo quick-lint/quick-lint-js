@@ -46,6 +46,8 @@ Semantic Versioning.
     an arrow function parameter list.
   * Fixed a crash if certain diagnostics are reported after a TypeScript
     interface. (Implemented by [Rui Serra][].)
+  * `import("modulename").Class<<T>(params) => ReturnType>` in a type is now
+    parsed correctly.
 
 ## 2.18.0 (2023-11-03)
 

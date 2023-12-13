@@ -678,7 +678,8 @@ again:
         break;
       }
     }
-    if (this->peek().type == Token_Type::less) {
+    if (this->peek().type == Token_Type::less ||
+        this->peek().type == Token_Type::less_less) {
       this->parse_and_visit_typescript_generic_arguments(v);
     }
     maybe_parse_dots_after_generic_arguments();

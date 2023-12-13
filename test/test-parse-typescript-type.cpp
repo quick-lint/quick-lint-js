@@ -2065,6 +2065,18 @@ TEST_F(Test_Parse_TypeScript_Type, imported_type) {
                           }));
   }
 
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"import('mymod').MyClass<<T>() => ReturnType>"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",  //
+                              "visit_variable_declaration",  // T
+                              "visit_variable_type_use",     // ReturnType
+                              "visit_exit_function_scope",   //
+                          }));
+  }
+
   test_parse_and_visit_typescript_type_expression(
       u8"import('mymod').MyClass<T>.prop"_sv,  //
       u8"                           ^^^^ Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type.property_name\n"_diag
