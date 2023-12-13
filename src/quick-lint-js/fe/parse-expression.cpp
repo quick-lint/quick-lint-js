@@ -2153,8 +2153,7 @@ next:
     Parser_Transaction transaction = this->begin_transaction();
 
     // If an arrow function has a return type, then the return type must *not*
-    // be parenthesized. Exception: an possibly-parenthesized arrow return type
-    // is okay.
+    // be parenthesized. Exception: an arrow type may be parenthesized.
     //
     // let f = (): (s: any) => string => {};    // OK
     // let g = (): ((s: any) => string) => {};  // OK
