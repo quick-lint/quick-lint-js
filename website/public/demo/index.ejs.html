@@ -76,6 +76,21 @@
         position: absolute;
       }
 
+      .checkbox-list {
+        --checkbox-list-item-padding-x: 0.25rem;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        list-style-type: none;
+        margin: 1rem calc(var(--checkbox-list-item-padding-x) * -1);
+        padding: 0;
+      }
+      .checkbox-list label {
+        white-space: nowrap;
+        padding: 0.25rem var(--checkbox-list-item-padding-x);
+      }
+
       footer {
         border-top: 0;
       }
@@ -113,20 +128,38 @@
 
       <p>
         See how quick-lint-js works right here in your browser! Paste your
-        favorite buggy JavaScript code below:
+        favorite buggy JavaScript or TypeScript code below:
       </p>
 
+      <ul class="checkbox-list">
+        <li>
+          <!-- TODO(#690): Remove '(experimental)'. -->
+          <label
+            ><input type="checkbox" id="enable-typescript" checked /> TypeScript
+            (experimental)</label
+          >
+        </li>
+        <li>
+          <label
+            ><input type="checkbox" id="enable-jsx" checked /> JSX/React</label
+          >
+        </li>
+      </ul>
       <pre class="code-view" id="shadow-code-input"></pre>
       <pre
         class="code-view"
         id="code-input-marks-scroller"
       ><pre id="code-input-marks"></pre></pre>
       <textarea class="code-view" id="code-input" spellcheck="false">
-const occupation = language + " coder";
+const occupation: string = language + " coder";
 const language = "JavaScript";
 occupation = "Senior " + occupation;
 
 console.log(`Welcome, ${ocupation}!`);
+
+function reactHello() {
+  return &lt;h1 className="text-center"&gt;Hello, world!&lt;/h2&gt;;
+}
 </textarea
       >
 

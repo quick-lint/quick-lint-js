@@ -1,7 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import { createProcessFactoryAsync } from "../../wasm/quick-lint-js.js";
+import {
+  LanguageOptions,
+  createProcessFactoryAsync,
+} from "../../wasm/quick-lint-js.js";
 import {} from "../error-box.mjs";
 
 let codeInputElement = document.getElementById("code-input");
@@ -10,6 +13,9 @@ let codeInputMarksScrollerElement = document.getElementById(
   "code-input-marks-scroller"
 );
 let shadowCodeInputElement = document.getElementById("shadow-code-input");
+
+let enableJSXElement = document.getElementById("enable-jsx");
+let enableTypeScriptElement = document.getElementById("enable-typescript");
 
 codeInputElement.addEventListener("scroll", (event) => {
   synchronizeScrollingAndSize();
@@ -158,6 +164,10 @@ createProcessFactoryAsync()
       let input = codeInputElement.value;
       let marks;
       try {
+        doc.setLanguageOptions(
+          (enableTypeScriptElement.checked ? LanguageOptions.TYPESCRIPT : 0) |
+            (enableJSXElement.checked ? LanguageOptions.JSX : 0)
+        );
         doc.setText(input);
         marks = doc.lint();
       } catch (e) {
@@ -170,6 +180,12 @@ createProcessFactoryAsync()
     codeInputElement.addEventListener("input", (event) => {
       lintAndUpdate();
       synchronizeScrollingAndSize();
+    });
+    enableTypeScriptElement.addEventListener("change", (_event) => {
+      lintAndUpdate();
+    });
+    enableJSXElement.addEventListener("change", (_event) => {
+      lintAndUpdate();
     });
     lintAndUpdate();
   })
