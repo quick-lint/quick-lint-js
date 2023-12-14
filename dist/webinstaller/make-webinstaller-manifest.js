@@ -64,6 +64,34 @@ data = data.replace(/\${version}/g, releaseVersion);
 data = data.replace(/\${releaseDate}/g, releaseDate);
 fs.writeFileSync(outputFile, data, "utf8");
 
+//Global manifest
+const versionSpecific = fs.readFileSync(
+  path.join(__dirname, "quick-lint-js.json"),
+  "utf8"
+);
+
+const allVersions = fs.readFileSync(
+  path.join(__dirname, "all-versions-manifest/all-versions-manifest.json"),
+  "utf8"
+);
+
+const versionSpecificData = JSON.parse(versionSpecific);
+const allVersionsData = JSON.parse(allVersions);
+
+const concatenatedArray = allVersionsData.releases.concat(
+  versionSpecificData.releases
+);
+
+allVersionsData.releases = concatenatedArray;
+
+const updatedAllVersionsContent = JSON.stringify(allVersionsData, null, 2);
+
+fs.writeFileSync(
+  "all-versions-manifest/all-versions-manifest.json",
+  updatedAllVersionsContent,
+  "utf8"
+);
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //
