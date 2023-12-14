@@ -163,6 +163,7 @@ const Translation_Table translation_data = {
         {20, 16, 0, 16, 0, 15},              //
         {20, 40, 63, 23, 66, 19},            //
         {0, 0, 0, 0, 0, 61},                 //
+        {0, 0, 0, 0, 0, 27},                 //
         {0, 0, 0, 0, 0, 30},                 //
         {67, 28, 78, 78, 61, 40},            //
         {0, 0, 0, 62, 0, 64},                //
@@ -219,6 +220,7 @@ const Translation_Table translation_data = {
         {72, 31, 71, 68, 56, 61},            //
         {34, 30, 0, 46, 0, 40},              //
         {0, 0, 0, 0, 0, 18},                 //
+        {0, 0, 0, 0, 0, 23},                 //
         {0, 0, 0, 20, 0, 26},                //
         {20, 12, 47, 37, 44, 29},            //
         {47, 34, 39, 35, 0, 30},             //
@@ -1974,6 +1976,7 @@ const Translation_Table translation_data = {
         u8"a 'while' loop\0"
         u8"a 'with' statement\0"
         u8"a class statement is not allowed as the body of {1:singular}\0"
+        u8"a class's 'extends' clause\0"
         u8"a class's 'implements' clause\0"
         u8"a decorator exists here before 'export'\0"
         u8"a function statement is not allowed as the body of {1:singular}\0"
@@ -2030,6 +2033,7 @@ const Translation_Table translation_data = {
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
         u8"children end here\0"
+        u8"class 'extends' clause\0"
         u8"class 'implements' clause\0"
         u8"class is not marked abstract\0"
         u8"classes cannot be named 'let'\0"

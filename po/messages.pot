@@ -78,6 +78,10 @@ msgid "class 'implements' clause"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "class 'extends' clause"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
 msgid "interface 'extends' clause"
 msgstr ""
 
@@ -111,6 +115,10 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-formatter.cpp
 msgid "a class's 'implements' clause"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a class's 'extends' clause"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-formatter.cpp

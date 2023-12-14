@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[540] = {
+inline const Translated_String test_translation_table[542] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1690,6 +1690,17 @@ inline const Translated_String test_translation_table[540] = {
         },
     },
     {
+        "a class's 'extends' clause"_translatable,
+        u8"a class's 'extends' clause",
+        {
+            u8"a class's 'extends' clause",
+            u8"a class's 'extends' clause",
+            u8"a class's 'extends' clause",
+            u8"a class's 'extends' clause",
+            u8"a class's 'extends' clause",
+        },
+    },
+    {
         "a class's 'implements' clause"_translatable,
         u8"a class's 'implements' clause",
         {
@@ -2303,6 +2314,17 @@ inline const Translated_String test_translation_table[540] = {
             u8"children end here",
             u8"os n\u00f3s acabam aqui",
             u8"children end here",
+        },
+    },
+    {
+        "class 'extends' clause"_translatable,
+        u8"class 'extends' clause",
+        {
+            u8"class 'extends' clause",
+            u8"class 'extends' clause",
+            u8"class 'extends' clause",
+            u8"class 'extends' clause",
+            u8"class 'extends' clause",
         },
     },
     {
