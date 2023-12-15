@@ -243,7 +243,7 @@ struct Diag_DTS_Non_Declaring_Statement {
 
 struct Diag_DTS_Var_Cannot_Have_Initializer {
   [[qljs::diag("E0385", Diagnostic_Severity::error)]]  //
-  [[qljs::message("{1} cannot have an initializer is a .d.ts file", ARG(equal),
+  [[qljs::message("{1} cannot have an initializer in a .d.ts file", ARG(equal),
                   ARG(declaring_token))]]  //
   Source_Code_Span equal;
   Source_Code_Span declaring_token;

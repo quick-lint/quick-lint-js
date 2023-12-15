@@ -250,7 +250,7 @@ msgid ".d.ts files cannot contain statements, only declarations"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "{1} cannot have an initializer is a .d.ts file"
+msgid "{1} cannot have an initializer in a .d.ts file"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

@@ -564,7 +564,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "{0} is not the name of a parameter"sv,
           "{0} with no bindings"sv,
           "{1:headlinese} value must be a compile-time constant"sv,
-          "{1} cannot have an initializer is a .d.ts file"sv,
+          "{1} cannot have an initializer in a .d.ts file"sv,
           "~~~ invalid string, do not use outside benchmark ~~~"sv,
   };
   // clang-format on

@@ -5947,14 +5947,14 @@ inline const Translated_String test_translation_table[540] = {
         },
     },
     {
-        "{1} cannot have an initializer is a .d.ts file"_translatable,
-        u8"{1} cannot have an initializer is a .d.ts file",
+        "{1} cannot have an initializer in a .d.ts file"_translatable,
+        u8"{1} cannot have an initializer in a .d.ts file",
         {
-            u8"{1} cannot have an initializer is a .d.ts file",
-            u8"{1} cannot have an initializer is a .d.ts file",
-            u8"{1} cannot have an initializer is a .d.ts file",
-            u8"{1} cannot have an initializer is a .d.ts file",
-            u8"{1} cannot have an initializer is a .d.ts file",
+            u8"{1} cannot have an initializer in a .d.ts file",
+            u8"{1} cannot have an initializer in a .d.ts file",
+            u8"{1} cannot have an initializer in a .d.ts file",
+            u8"{1} cannot have an initializer in a .d.ts file",
+            u8"{1} cannot have an initializer in a .d.ts file",
         },
     },
     {

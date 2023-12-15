@@ -420,7 +420,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 385,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("{1} cannot have an initializer is a .d.ts file"),
+        QLJS_TRANSLATABLE("{1} cannot have an initializer in a .d.ts file"),
       },
       .message_args = {
         {
