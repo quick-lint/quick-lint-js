@@ -50,6 +50,7 @@ Semantic Versioning.
     parsed correctly.
   * Generic call signatures are now parsed correctly when using a semicolon-free
     coding style.
+  * `declare const x = 42;` no longer falsely reports [E0351][] or [E0385][].
 
 ## 2.18.0 (2023-11-03)
 

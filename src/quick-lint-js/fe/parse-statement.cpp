@@ -5160,7 +5160,8 @@ void Parser::parse_and_visit_let_bindings(
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       case Token_Type::equal: {
         Token equal_token = this->peek();
-        if (options.is_declare(this)) {
+        if (options.is_declare(this) &&
+            declaration_kind != Variable_Kind::_const) {
           if (this->options_.typescript_definition_file) {
             this->diag_reporter_->report(Diag_DTS_Var_Cannot_Have_Initializer{
                 .equal = equal_token.span(),

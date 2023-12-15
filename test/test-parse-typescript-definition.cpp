@@ -32,33 +32,36 @@ TEST(Test_Parse_TypeScript_Definition, interface_is_allowed) {
                               typescript_definition_options);
 }
 
-TEST(Test_Parse_TypeScript_Definition, variables_must_have_no_initializer) {
-  test_parse_and_visit_module(u8"export const x;"_sv,  //
+TEST(Test_Parse_TypeScript_Definition,
+     let_and_var_variables_must_have_no_initializer) {
+  test_parse_and_visit_module(u8"export let x;"_sv,  //
                               no_diags, typescript_definition_options);
-  test_parse_and_visit_module(
-      u8"export const x = null;"_sv,  //
-      u8"               ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
-      u8"       ^^^^^ .declaring_token"_diag,
-      typescript_definition_options);
-
-  test_parse_and_visit_module(u8"declare const x;"_sv,  //
-                              no_diags, typescript_definition_options);
-  test_parse_and_visit_module(
-      u8"declare const x = null;"_sv,  //
-      u8"                ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
-      u8"        ^^^^^ .declaring_token"_diag,
-      typescript_definition_options);
-
   test_parse_and_visit_module(
       u8"export let x = null;"_sv,  //
       u8"             ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
       u8"       ^^^ .declaring_token"_diag,
       typescript_definition_options);
+
+  test_parse_and_visit_module(u8"declare let x;"_sv,  //
+                              no_diags, typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"declare let x = null;"_sv,  //
+      u8"              ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
+      u8"        ^^^ .declaring_token"_diag,
+      typescript_definition_options);
+
   test_parse_and_visit_module(
       u8"export var x = null;"_sv,  //
       u8"             ^ Diag_DTS_Var_Cannot_Have_Initializer.equal\n"_diag
       u8"       ^^^ .declaring_token"_diag,
       typescript_definition_options);
+}
+
+TEST(Test_Parse_TypeScript_Definition, const_variables_may_have_initializer) {
+  test_parse_and_visit_module(u8"export const x;"_sv,  //
+                              no_diags, typescript_definition_options);
+  test_parse_and_visit_module(u8"export const x = null;"_sv, no_diags,
+                              typescript_definition_options);
 }
 
 TEST(Test_Parse_TypeScript_Definition, variables_require_export_or_declare) {

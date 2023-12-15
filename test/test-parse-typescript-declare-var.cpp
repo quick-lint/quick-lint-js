@@ -124,7 +124,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Var,
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var_cannot_have_initializer) {
+TEST_F(Test_Parse_TypeScript_Declare_Var,
+       declare_var_or_let_cannot_have_initializer) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare var x = 42;"_sv,  //
@@ -138,17 +139,6 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var_cannot_have_initializer) {
 
   {
     Spy_Visitor p = test_parse_and_visit_statement(
-        u8"declare const x = 42;"_sv,  //
-        u8"                ^ Diag_Declare_Var_Cannot_Have_Initializer.equal\n"_diag
-        u8"^^^^^^^ .declare_keyword\n"_diag
-        u8"        ^^^^^ .declaring_token"_diag,  //
-        typescript_options);
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({const_init_decl(u8"x"_sv)}));
-  }
-
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare let x = 42;"_sv,  //
         u8"              ^ Diag_Declare_Var_Cannot_Have_Initializer.equal\n"_diag
         u8"^^^^^^^ .declare_keyword\n"_diag
@@ -157,6 +147,13 @@ TEST_F(Test_Parse_TypeScript_Declare_Var, declare_var_cannot_have_initializer) {
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({let_init_decl(u8"x"_sv)}));
   }
+}
+
+TEST_F(Test_Parse_TypeScript_Declare_Var, declare_const_may_have_initializer) {
+  test_parse_and_visit_statement(u8"declare const x = 42;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"declare const x;"_sv, no_diags,
+                                 typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Var, newline_before_var_triggers_asi) {
