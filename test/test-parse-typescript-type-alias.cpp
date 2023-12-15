@@ -191,13 +191,6 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_cannot_be_directly_cyclic) {
       typescript_options);
 
   test_parse_and_visit_statement(
-      u8"type T = T.foo;"_sv,
-      u8"         ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
-      u8"     ^ .declaration"_diag
-      u8"{.kind=Variable_Kind::_type_alias}"_diag,
-      typescript_options);
-
-  test_parse_and_visit_statement(
       u8"type T = T<number>;"_sv,
       u8"         ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
       u8"     ^ .declaration"_diag
@@ -241,6 +234,18 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_cannot_be_directly_cyclic) {
       u8"     ^ .declaration"_diag
       u8"{.kind=Variable_Kind::_type_alias}"_diag,
       typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Type_Alias,
+       type_alias_can_reference_namespace_with_same_name) {
+  Spy_Visitor v = test_parse_and_visit_statement(u8"type T = T.foo;"_sv,
+                                                 no_diags, typescript_options);
+  EXPECT_THAT(v.visits, ElementsAreArray({
+                            "visit_variable_declaration",    // T
+                            "visit_enter_type_alias_scope",  //
+                            "visit_variable_namespace_use",  // T (in T.foo)
+                            "visit_exit_type_alias_scope",   //
+                        }));
 }
 
 TEST_F(Test_Parse_TypeScript_Type_Alias,

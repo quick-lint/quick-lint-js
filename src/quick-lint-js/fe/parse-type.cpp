@@ -277,7 +277,7 @@ again:
     }
 
     if (parse_options.type_being_declared.has_value() &&
-        this->peek().type != Token_Type::left_square) {
+        this->peek().type != Token_Type::left_square && !had_dot) {
       // Shallow use.
       if (name.normalized_name() ==
           parse_options.type_being_declared->name.normalized_name()) {

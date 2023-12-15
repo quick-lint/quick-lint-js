@@ -282,13 +282,6 @@ TEST_F(Test_Parse_TypeScript_Generic, extends_cannot_be_directly_cyclic) {
       typescript_options);
 
   test_parse_and_visit_typescript_generic_parameters(
-      u8"<T extends T.foo>"_sv,
-      u8"           ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
-      u8" ^ .declaration"_diag
-      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
-      typescript_options);
-
-  test_parse_and_visit_typescript_generic_parameters(
       u8"<T extends T<number>>"_sv,
       u8"           ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
       u8" ^ .declaration"_diag
@@ -326,6 +319,16 @@ TEST_F(Test_Parse_TypeScript_Generic, extends_cannot_be_directly_cyclic) {
       u8" ^ .declaration"_diag
       u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
       typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Generic,
+       extends_can_reference_namespace_with_same_name_as_declared_variable) {
+  Spy_Visitor v = test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends T.foo>"_sv, no_diags, typescript_options);
+  EXPECT_THAT(v.visits, ElementsAreArray({
+                            "visit_variable_declaration",    // T
+                            "visit_variable_namespace_use",  // T (in T.foo)
+                        }));
 }
 
 TEST_F(Test_Parse_TypeScript_Generic, unexpected_colon_in_parameter_extends) {
