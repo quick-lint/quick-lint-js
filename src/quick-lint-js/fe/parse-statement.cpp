@@ -1863,6 +1863,11 @@ void Parser::parse_and_visit_statement_block_after_left_curly(
 
 void Parser::parse_and_visit_function_declaration(
     Parse_Visitor_Base &v, Function_Declaration_Options options) {
+  Parameter_List_Options parameter_list_options = {
+      // TODO[declare-namespace-function-ASI]: Set is_declare_function to true
+      // only for direct declare, not functions inside a declare namespace.
+      .is_declare_function = options.declare_keyword.has_value(),
+  };
   auto parse_and_visit_declare_function_parameters_and_body =
       [&](std::optional<Source_Code_Span> function_name) -> void {
     // declare function f();  // TypeScript only
@@ -1871,7 +1876,7 @@ void Parser::parse_and_visit_function_declaration(
 
     Function_Parameter_Parse_Result result =
         this->parse_and_visit_function_parameter_list(v, function_name,
-                                                      Parameter_List_Options());
+                                                      parameter_list_options);
     switch (result) {
     case Function_Parameter_Parse_Result::parsed_parameters:
     case Function_Parameter_Parse_Result::missing_parameters:
@@ -1981,7 +1986,7 @@ void Parser::parse_and_visit_function_declaration(
         Function_Guard guard = this->enter_function(options.attributes);
         Function_Parameter_Parse_Result result =
             this->parse_and_visit_function_parameter_list(
-                v, function_name.span(), Parameter_List_Options());
+                v, function_name.span(), parameter_list_options);
         switch (result) {
         case Function_Parameter_Parse_Result::parsed_parameters:
         case Function_Parameter_Parse_Result::missing_parameters:
@@ -2229,6 +2234,7 @@ void Parser::parse_and_visit_declare_class_method_parameters_and_body(
 void Parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
     Parse_Visitor_Base &v, std::optional<Source_Code_Span> name,
     Function_Attributes attributes, Parameter_List_Options options) {
+  QLJS_ASSERT(options.is_interface_method);
   Function_Guard guard = this->enter_function(attributes);
   Function_Parameter_Parse_Result result =
       this->parse_and_visit_function_parameter_list(v, name, options);
@@ -2300,6 +2306,19 @@ Parser::parse_and_visit_function_parameter_list(
           v, TypeScript_Type_Parse_Options{
                  .allow_parenthesized_type = true,
                  .allow_assertion_signature_or_type_predicate = true,
+
+                 // Force ASI before '<' if '<' might be legal after a ';'.
+                 // Otherwise, don't force ASI, improving diagnostics.
+                 //
+                 // declare function f(): C  // Force ASI.
+                 // <Component />;
+                 //
+                 // interface I {
+                 //   f(): C          // Force ASI.
+                 //   <N>(): number;
+                 // }
+                 .stop_parsing_type_at_newline_before_generic_arguments =
+                     options.is_declare_function || options.is_interface_method,
              });
     }
 
@@ -2504,13 +2523,16 @@ void Parser::parse_and_visit_function_parameters(
     case Token_Type::number:
     case Token_Type::reserved_keyword_with_escape_sequence: {
       Expression *parameter = this->parse_expression(
-          v, Precedence{
-                 .commas = false,
-                 .in_operator = true,
-                 .colon_type_annotation = Allow_Type_Annotations::always,
-                 .colon_question_is_typescript_optional_with_type_annotation =
-                     true,
-             });
+          v,
+          Precedence{
+              .commas = false,
+              .in_operator = true,
+              .colon_type_annotation = Allow_Type_Annotations::always,
+              .colon_question_is_typescript_optional_with_type_annotation =
+                  true,
+              .stop_parsing_type_at_newline_before_generic_arguments_in_type_annotation =
+                  false,
+          });
       switch (parameter->kind()) {
       case Expression_Kind::Array:
         if (parameter_property_keyword.has_value()) {

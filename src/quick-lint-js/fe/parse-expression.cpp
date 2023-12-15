@@ -2169,6 +2169,8 @@ next:
                 !is_possibly_arrow_function_return_type_annotation,
             .allow_assertion_signature_or_type_predicate =
                 is_possibly_arrow_function_return_type_annotation,
+            .stop_parsing_type_at_newline_before_generic_arguments =
+                prec.stop_parsing_type_at_newline_before_generic_arguments_in_type_annotation,
         });
     if (prec.colon_type_annotation ==
         Allow_Type_Annotations::

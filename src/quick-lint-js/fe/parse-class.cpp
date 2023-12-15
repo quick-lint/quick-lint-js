@@ -618,7 +618,9 @@ void Parser::parse_and_visit_class_or_interface_member(
           {
             Function_Attributes attributes =
                 function_attributes_from_modifiers(std::nullopt);
-            Parameter_List_Options param_options;
+            Parameter_List_Options param_options = {
+                .is_interface_method = is_interface,
+            };
             if (is_interface) {
               p->parse_and_visit_interface_function_parameters_and_body_no_scope(
                   v, property_name_span, attributes, param_options);
@@ -852,6 +854,7 @@ void Parser::parse_and_visit_class_or_interface_member(
             .is_class_constructor =
                 property_name.has_value() &&
                 property_name->normalized_name() == u8"constructor"_sv,
+            .is_interface_method = is_interface,
         };
         bool is_abstract_method = this->find_modifier(Token_Type::kw_abstract);
         if (declare_keyword.has_value()) {

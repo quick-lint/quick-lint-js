@@ -48,6 +48,8 @@ Semantic Versioning.
     interface. (Implemented by [Rui Serra][].)
   * `import("modulename").Class<<T>(params) => ReturnType>` in a type is now
     parsed correctly.
+  * Generic call signatures are now parsed correctly when using a semicolon-free
+    coding style.
 
 ## 2.18.0 (2023-11-03)
 

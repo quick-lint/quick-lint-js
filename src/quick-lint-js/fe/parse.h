@@ -214,6 +214,11 @@ class Parser {
     // If false, assertion predicates and type predicates are parsed but a
     // diagnostic is reported.
     bool allow_assertion_signature_or_type_predicate = false;
+    // When parsing a generic argument list, if the '<' is preceeded by a
+    // newline, TypeScript always stops parsing the type. quick-lint-js is
+    // smarter. If this boolean is false, quick-lint-js will report a diagnostic
+    // but parse the generic argument list.
+    bool stop_parsing_type_at_newline_before_generic_arguments = true;
   };
 
   void parse_and_visit_typescript_colon_type_expression(Parse_Visitor_Base &v);
@@ -288,6 +293,8 @@ class Parser {
   struct Parameter_List_Options {
     std::optional<Source_Code_Span> declare_class_keyword = std::nullopt;
     bool is_class_constructor = false;
+    bool is_declare_function = false;
+    bool is_interface_method = false;
   };
 
   struct Function_Declaration_Options {
@@ -697,6 +704,12 @@ class Parser {
     // If false, parse '?:' as the conditional operator with no expression in
     // between.
     bool colon_question_is_typescript_optional_with_type_annotation : 1 = false;
+
+    // See
+    // TypeScript_Type_Parse_Options::stop_parsing_type_at_newline_before_generic_arguments.
+    bool
+        stop_parsing_type_at_newline_before_generic_arguments_in_type_annotation : 1 =
+            true;
 
     // Whether we are parsing the expression after 'extends' in a 'class'
     // expression or statement.

@@ -1794,6 +1794,13 @@ struct Diag_Newline_Not_Allowed_Before_Assignment_Assertion_Operator {
   Source_Code_Span field_name;
 };
 
+struct Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type {
+  [[qljs::diag("E0431", Diagnostic_Severity::error)]]  //
+  [[qljs::message("newline is not allowed before '<'",
+                  ARG(less))]]  //
+  Source_Code_Span less;
+};
+
 struct Diag_Number_Literal_Contains_Consecutive_Underscores {
   [[qljs::diag("E0028", Diagnostic_Severity::error)]]  //
   [[qljs::message("number literal contains consecutive underscores",

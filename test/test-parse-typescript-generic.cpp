@@ -1007,6 +1007,155 @@ TEST_F(Test_Parse_TypeScript_Generic,
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"f"}));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Generic,
+       newline_is_not_allowed_before_generic_arguments_in_type) {
+  {
+    // TypeScript triggers ASI, but we shouldn't.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(x: C\n<T>) {}"_sv,  //
+        u8"                 ^ Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type.less"_diag,
+        typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C", u8"T"}));
+  }
+
+  {
+    // ASI should not trigger.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(x: C\n<<T>() => ReturnType>) {}"_sv,  //
+        u8"                 ^ Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type.less"_diag,
+        typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"C", u8"ReturnType"}));
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '<':
+    //
+    // TODO(strager): Intelligently report
+    // Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type instead of
+    // inserting a semicolon.
+    test_parse_and_visit_module(
+        u8"let f = (): C\n<number> => {};"_sv,
+        u8"Diag_TypeScript_Type_Annotation_In_Expression"_diag,
+        u8"Diag_Missing_Arrow_Function_Parameter_List"_diag,
+        u8"Diag_Missing_Expression_Between_Parentheses"_diag,
+        typescript_options);
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '<':
+    //
+    // TODO(strager): Intelligently report
+    // Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type instead of
+    // inserting a semicolon.
+    test_parse_and_visit_module(
+        u8"let f: C\n<number>;"_sv,
+        u8"Diag_Missing_Expression_After_Angle_Type_Assertion"_diag,
+        typescript_options);
+  }
+
+  {
+    // TypeScript triggers ASI, but we shouldn't.
+    test_parse_and_visit_module(
+        u8"function f(): C\n<number> {}"_sv,  //
+        u8"                 ^ Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type.less"_diag,
+        typescript_options);
+  }
+
+  {
+    // TypeScript triggers ASI, but we shouldn't.
+    test_parse_and_visit_module(
+        u8"class C { f(): C\n<number> {} }"_sv,  //
+        u8"                  ^ Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type.less"_diag,
+        typescript_options);
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '<':
+    //
+    // TODO(strager): Intelligently report
+    // Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type instead of
+    // inserting a semicolon.
+    test_parse_and_visit_module(
+        u8"let f = (): C\n<number> => {};"_sv,
+        u8"Diag_TypeScript_Type_Annotation_In_Expression"_diag,
+        u8"Diag_Missing_Arrow_Function_Parameter_List"_diag,
+        u8"Diag_Missing_Expression_Between_Parentheses"_diag,
+        typescript_options);
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '<':
+    //
+    // TODO(strager): Intelligently report
+    // Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type instead of
+    // inserting a semicolon.
+    test_parse_and_visit_module(
+        u8"declare function f(): C\n<number>;"_sv,
+        u8"Diag_Missing_Expression_After_Angle_Type_Assertion"_diag,
+        typescript_options);
+  }
+
+  {
+    // See TODO[declare-namespace-function-ASI].
+    test_parse_and_visit_module(
+        u8"declare namespace ns { function f(): C\n<number>; }"_sv,
+        u8"Diag_Declare_Namespace_Cannot_Contain_Statement"_diag,
+        u8"Diag_Missing_Expression_After_Angle_Type_Assertion"_diag,
+        typescript_options);
+  }
+
+  {
+    // ASI should insert a semicolon between 'f' and '<':
+    test_parse_and_visit_module(
+        u8"let g = x ? (t) : f\n<number> => {};"_sv,  //
+        u8"                              ^^ Diag_Missing_Arrow_Function_Parameter_List.arrow"_diag,  //
+        typescript_options);
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '<':
+    test_parse_and_visit_module(
+        u8"type A = C\n<T>;"_sv,  //
+        u8"               ` Diag_Missing_Expression_After_Angle_Type_Assertion"_diag,  //
+        typescript_options);
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '<':
+    test_parse_and_visit_module(
+        u8"type A = typeof C\n<T>;"_sv,  //
+        u8"                      ` Diag_Missing_Expression_After_Angle_Type_Assertion"_diag,  //
+        typescript_options);
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '<':
+    test_parse_and_visit_module(
+        u8"type A = import('mod').C\n<T>;"_sv,  //
+        u8"                             ` Diag_Missing_Expression_After_Angle_Type_Assertion"_diag,  //
+        typescript_options);
+  }
+
+  {
+    // '<N>' is not a generic argument list. ASI should insert a semicolon
+    // between 'C' and '<N>'.
+    test_parse_and_visit_module(
+        u8"interface C {\n"_sv
+        u8"  f(): C\n"_sv  // ASI.
+        u8"  <N>(): RT;\n"_sv
+        u8"}"_sv,
+        no_diags, typescript_options);
+  }
+
+  {
+    // TypeScript triggers ASI, but we shouldn't.
+    test_parse_and_visit_module(
+        u8"abstract class C { abstract f(): C\n<N>; }"_sv,
+        u8"                                    ^ Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type.less"_diag,
+        typescript_options);
+  }
+}
 }
 }
 

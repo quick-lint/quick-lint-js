@@ -260,7 +260,20 @@ again:
     }
     if (this->peek().type == Token_Type::less ||
         this->peek().type == Token_Type::less_less) {
-      this->parse_and_visit_typescript_generic_arguments(v);
+      if (parse_options.stop_parsing_type_at_newline_before_generic_arguments &&
+          this->peek().has_leading_newline) {
+        // let x: MyType /* ASI */
+        // <h1></h1>;
+      } else {
+        if (this->peek().has_leading_newline) {
+          this->diag_reporter_->report(
+              Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type{
+                  .less = Source_Code_Span(this->peek().begin,
+                                           this->peek().begin + 1),
+              });
+        }
+        this->parse_and_visit_typescript_generic_arguments(v);
+      }
     }
 
     if (parse_options.type_being_declared.has_value() &&
@@ -613,8 +626,9 @@ again:
         break;
       }
     }
-    if (this->peek().type == Token_Type::less ||
-        this->peek().type == Token_Type::less_less) {
+    if (!this->peek().has_leading_newline &&
+        (this->peek().type == Token_Type::less ||
+         this->peek().type == Token_Type::less_less)) {
       // typeof C<T>
       // typeof C< <T>() => RetType>
       if (this->peek().type == Token_Type::less_less) {
@@ -678,8 +692,9 @@ again:
         break;
       }
     }
-    if (this->peek().type == Token_Type::less ||
-        this->peek().type == Token_Type::less_less) {
+    if (!this->peek().has_leading_newline &&
+        (this->peek().type == Token_Type::less ||
+         this->peek().type == Token_Type::less_less)) {
       this->parse_and_visit_typescript_generic_arguments(v);
     }
     maybe_parse_dots_after_generic_arguments();
@@ -922,7 +937,10 @@ void Parser::parse_and_visit_typescript_object_type_expression(
     case Token_Type::less:
       v.visit_enter_function_scope();
       this->parse_and_visit_interface_function_parameters_and_body_no_scope(
-          v, name, Function_Attributes::normal, Parameter_List_Options());
+          v, name, Function_Attributes::normal,
+          Parameter_List_Options{
+              .is_interface_method = true,
+          });
       v.visit_exit_function_scope();
       break;
 
@@ -1098,7 +1116,9 @@ void Parser::parse_and_visit_typescript_object_type_expression(
       v.visit_enter_function_scope();
       this->parse_and_visit_interface_function_parameters_and_body_no_scope(
           v, std::nullopt, Function_Attributes::normal,
-          Parameter_List_Options());
+          Parameter_List_Options{
+              .is_interface_method = true,
+          });
       v.visit_exit_function_scope();
       break;
 

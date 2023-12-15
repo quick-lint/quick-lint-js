@@ -3495,6 +3495,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type
+    {
+      .code = 431,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("newline is not allowed before '<'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type, less), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Number_Literal_Contains_Consecutive_Underscores
     {
       .code = 28,
