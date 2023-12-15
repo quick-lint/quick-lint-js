@@ -226,7 +226,7 @@ msgid "cannot use type directly in its own definition"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "type {1} is being defined here"
+msgid "type {0} is being defined here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

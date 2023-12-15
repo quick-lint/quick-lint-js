@@ -5188,14 +5188,14 @@ inline const Translated_String test_translation_table[540] = {
         },
     },
     {
-        "type {1} is being defined here"_translatable,
-        u8"type {1} is being defined here",
+        "type {0} is being defined here"_translatable,
+        u8"type {0} is being defined here",
         {
-            u8"type {1} is being defined here",
-            u8"type {1} is being defined here",
-            u8"type {1} is being defined here",
-            u8"type {1} is being defined here",
-            u8"type {1} is being defined here",
+            u8"type {0} is being defined here",
+            u8"type {0} is being defined here",
+            u8"type {0} is being defined here",
+            u8"type {0} is being defined here",
+            u8"type {0} is being defined here",
         },
     },
     {

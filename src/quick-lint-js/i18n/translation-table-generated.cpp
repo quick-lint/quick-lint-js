@@ -2292,7 +2292,7 @@ const Translation_Table translation_data = {
         u8"this {0} looks fishy\0"
         u8"try statement starts here\0"
         u8"type predicates are only allowed as function return types\0"
-        u8"type {1} is being defined here\0"
+        u8"type {0} is being defined here\0"
         u8"unclosed block comment\0"
         u8"unclosed class; expected '}' by end of file\0"
         u8"unclosed code block; expected '}' by end of file\0"

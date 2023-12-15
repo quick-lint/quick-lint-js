@@ -332,7 +332,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .severity = Diagnostic_Severity::error,
       .message_formats = {
         QLJS_TRANSLATABLE("cannot use type directly in its own definition"),
-        QLJS_TRANSLATABLE("type {1} is being defined here"),
+        QLJS_TRANSLATABLE("type {0} is being defined here"),
       },
       .message_args = {
         {

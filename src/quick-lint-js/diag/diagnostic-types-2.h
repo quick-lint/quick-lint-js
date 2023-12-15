@@ -197,7 +197,7 @@ struct Diag_Cyclic_TypeScript_Type_Definition {
   [[qljs::diag("E0384", Diagnostic_Severity::error)]]  //
   [[qljs::message("cannot use type directly in its own definition",
                   ARG(use))]]                                            //
-  [[qljs::message("type {1} is being defined here", ARG(declaration))]]  //
+  [[qljs::message("type {0} is being defined here", ARG(declaration))]]  //
   Source_Code_Span use;
   Source_Code_Span declaration;
   Variable_Kind kind;

@@ -495,7 +495,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "this {0} looks fishy"sv,
           "try statement starts here"sv,
           "type predicates are only allowed as function return types"sv,
-          "type {1} is being defined here"sv,
+          "type {0} is being defined here"sv,
           "unclosed block comment"sv,
           "unclosed class; expected '}' by end of file"sv,
           "unclosed code block; expected '}' by end of file"sv,
