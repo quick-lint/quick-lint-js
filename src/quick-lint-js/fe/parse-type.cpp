@@ -258,6 +258,8 @@ again:
     } else {
       v.visit_variable_type_use(name);
     }
+
+    bool had_generic_arguments = false;
     if (this->peek().type == Token_Type::less ||
         this->peek().type == Token_Type::less_less) {
       if (parse_options.stop_parsing_type_at_newline_before_generic_arguments &&
@@ -272,6 +274,7 @@ again:
                                            this->peek().begin + 1),
               });
         }
+        had_generic_arguments = true;
         this->parse_and_visit_typescript_generic_arguments(v);
       }
     }
@@ -281,13 +284,19 @@ again:
       // Shallow use.
       if (name.normalized_name() ==
           parse_options.type_being_declared->name.normalized_name()) {
-        // type T = T;  // Invalid
-        // NOTE[TypeScript-cyclic-type]:
-        this->diag_reporter_->report(Diag_Cyclic_TypeScript_Type_Definition{
-            .use = name.span(),
-            .declaration = parse_options.type_being_declared->name.span(),
-            .kind = parse_options.type_being_declared->kind,
-        });
+        if (parse_options.allow_circular_reference &&
+            parse_options.type_being_declared->has_generic_arguments &&
+            had_generic_arguments) {
+          // type T<U> = U extends infer V ? T<V> : unknown; // Valid TypeScript
+        } else {
+          // type T = T;  // Invalid
+          // NOTE[TypeScript-cyclic-type]:
+          this->diag_reporter_->report(Diag_Cyclic_TypeScript_Type_Definition{
+              .use = name.span(),
+              .declaration = parse_options.type_being_declared->name.span(),
+              .kind = parse_options.type_being_declared->kind,
+          });
+        }
       }
     }
     break;
@@ -780,6 +789,7 @@ again:
     this->parse_and_visit_typescript_type_expression(
         v, TypeScript_Type_Parse_Options{
                .type_being_declared = parse_options.type_being_declared,
+               .allow_circular_reference = true,
            });
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::colon);
     v.visit_exit_conditional_type_scope();
@@ -788,6 +798,7 @@ again:
     this->parse_and_visit_typescript_type_expression(
         v, TypeScript_Type_Parse_Options{
                .type_being_declared = parse_options.type_being_declared,
+               .allow_circular_reference = true,
            });
   }
 }

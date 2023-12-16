@@ -126,6 +126,20 @@ TEST_F(Test_Parse_TypeScript_Type_Alias,
                                  typescript_options);
   test_parse_and_visit_statement(u8"type T = <U>(param: T) => number;"_sv,
                                  no_diags, typescript_options);
+  test_parse_and_visit_statement(u8"type T = Array<number | T>;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T<U> = Array<T<U>>;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T<U> = T<U>[];"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T = string | [string, { [key: string]: any }, ...T[]];"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type Last<T extends Array<any>> = T extends [infer Head] ? Head : T extends [infer _, ...infer Tail] ? Last<Tail> : unknown;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T<U> = U extends infer V ? T<V> : unknown;"_sv, no_diags,
+                                 typescript_options);
+  test_parse_and_visit_statement(u8"type T<U> = [U, T<number>];"_sv, no_diags,
+                                 typescript_options);
 
   // NOTE(strager): These are not a reference of type 'T', but they look like
   // they are.
@@ -199,6 +213,12 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_cannot_be_directly_cyclic) {
   test_parse_and_visit_statement(
       u8"type T<U> = T<number>;"_sv,
       u8"            ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.kind=Variable_Kind::_type_alias}"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"type T<U> = U | T<number>;"_sv,
+      u8"                ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
       u8"     ^ .declaration"_diag
       u8"{.kind=Variable_Kind::_type_alias}"_diag,
       typescript_options);

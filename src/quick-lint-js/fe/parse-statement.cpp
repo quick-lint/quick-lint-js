@@ -3215,7 +3215,9 @@ void Parser::parse_and_visit_typescript_type_alias(
   this->skip();
 
   v.visit_enter_type_alias_scope();
+  bool had_generic_arguments = false;
   if (this->peek().type == Token_Type::less) {
+    had_generic_arguments = true;
     this->parse_and_visit_typescript_generic_parameters(v);
   }
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal);
@@ -3226,6 +3228,7 @@ void Parser::parse_and_visit_typescript_type_alias(
           .type_being_declared = TypeScript_Type_Parse_Options::Declaring_Type{
               .name = name,
               .kind = kind,
+              .has_generic_arguments = had_generic_arguments,
           }});
   v.visit_exit_type_alias_scope();
 
