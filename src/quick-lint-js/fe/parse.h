@@ -854,6 +854,8 @@ class Parser {
   void consume_semicolon_after_statement();
   template <class Missing_Semicolon_Diagnostic>
   void consume_semicolon();
+  template <class Missing_Semicolon_Diagnostic>
+  void consume_semicolon_or_comma();
 
   void error_on_pointless_nullish_coalescing_operator(
       Expression::Binary_Operator *);
@@ -1250,13 +1252,16 @@ Parser::consume_semicolon<Diag_Missing_Semicolon_After_Declare_Class_Method>();
 extern template void
 Parser::consume_semicolon<Diag_Missing_Semicolon_After_Field>();
 extern template void
-Parser::consume_semicolon<Diag_Missing_Semicolon_After_Index_Signature>();
-extern template void
-Parser::consume_semicolon<Diag_Missing_Semicolon_After_Interface_Method>();
-extern template void
 Parser::consume_semicolon<Diag_Missing_Semicolon_After_Statement>();
 extern template void Parser::consume_semicolon<
     Diag_Missing_Semicolon_After_TypeScript_Method_Overload_Signature>();
+
+extern template void
+Parser::consume_semicolon_or_comma<Diag_Missing_Semicolon_After_Field>();
+extern template void Parser::consume_semicolon_or_comma<
+    Diag_Missing_Semicolon_After_Index_Signature>();
+extern template void Parser::consume_semicolon_or_comma<
+    Diag_Missing_Semicolon_After_Interface_Method>();
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -723,15 +723,8 @@ void Parser::parse_and_visit_class_or_interface_member(
           // [key: KeyType]: ValueType;
           case Token_Type::colon:
             p->parse_and_visit_typescript_colon_type_expression(v);
-            if (p->peek().type == Token_Type::comma) {
-              // [key: KeyType]: ValueType,
-              p->skip();
-            } else {
-              // [key: KeyType]: ValueType;
-              // [key: KeyType]: ValueType
-              p->consume_semicolon<
-                  Diag_Missing_Semicolon_After_Index_Signature>();
-            }
+            p->consume_semicolon_or_comma<
+                Diag_Missing_Semicolon_After_Index_Signature>();
             break;
 
           // [key: KeyType];  // Invalid.
@@ -1090,22 +1083,28 @@ void Parser::parse_and_visit_class_or_interface_member(
     }
 
     void parse_field_terminator() {
-      if (p->peek().type == Token_Type::comma) {
-        // interface I { x: number, }
-        if (!this->is_interface) {
+      if (this->is_interface) {
+        // interface I { x; }
+        // interface I { x }
+        // interface I {
+        //   x
+        // }
+        p->consume_semicolon_or_comma<Diag_Missing_Semicolon_After_Field>();
+      } else {
+        if (p->peek().type == Token_Type::comma) {
           // class C { x: number, }  // Invalid.
           p->diag_reporter_->report(Diag_Unexpected_Comma_After_Class_Field{
               .comma = p->peek().span(),
           });
+          p->skip();
+        } else {
+          // class C { x; }
+          // class C { x }
+          // class C {
+          //   x
+          // }
+          p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
         }
-        p->skip();
-      } else {
-        // class C { x; }
-        // class C { x }
-        // class C {
-        //   x
-        // }
-        p->consume_semicolon<Diag_Missing_Semicolon_After_Field>();
       }
     }
 

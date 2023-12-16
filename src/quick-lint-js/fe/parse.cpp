@@ -765,7 +765,33 @@ void Parser::check_body_after_label() {
 
 template <class Missing_Semicolon_Diagnostic>
 void Parser::consume_semicolon() {
+  // See also: Parser::consume_semicolon_or_comma
   switch (this->peek().type) {
+  case Token_Type::semicolon:
+    this->skip();
+    break;
+  case Token_Type::end_of_file:
+  case Token_Type::right_curly:
+    // Automatically insert a semicolon, then consume it.
+    break;
+  default:
+    if (this->peek().has_leading_newline) {
+      // Automatically insert a semicolon, then consume it.
+    } else {
+      this->lexer_.insert_semicolon();
+      this->diag_reporter_->report(
+          Missing_Semicolon_Diagnostic{this->peek().span()});
+      this->skip();
+    }
+    break;
+  }
+}
+
+template <class Missing_Semicolon_Diagnostic>
+void Parser::consume_semicolon_or_comma() {
+  // See also: Parser::consume_semicolon
+  switch (this->peek().type) {
+  case Token_Type::comma:
   case Token_Type::semicolon:
     this->skip();
     break;
@@ -854,13 +880,16 @@ template void
 Parser::consume_semicolon<Diag_Missing_Semicolon_After_Declare_Class_Method>();
 template void Parser::consume_semicolon<Diag_Missing_Semicolon_After_Field>();
 template void
-Parser::consume_semicolon<Diag_Missing_Semicolon_After_Interface_Method>();
-template void
-Parser::consume_semicolon<Diag_Missing_Semicolon_After_Index_Signature>();
+Parser::consume_semicolon<Diag_Missing_Semicolon_After_Statement>();
 template void Parser::consume_semicolon<
     Diag_Missing_Semicolon_After_TypeScript_Method_Overload_Signature>();
+
 template void
-Parser::consume_semicolon<Diag_Missing_Semicolon_After_Statement>();
+Parser::consume_semicolon_or_comma<Diag_Missing_Semicolon_After_Field>();
+template void Parser::consume_semicolon_or_comma<
+    Diag_Missing_Semicolon_After_Index_Signature>();
+template void Parser::consume_semicolon_or_comma<
+    Diag_Missing_Semicolon_After_Interface_Method>();
 
 Parser_Transaction Parser::begin_transaction() {
   return Parser_Transaction(&this->lexer_, &this->diag_reporter_,
