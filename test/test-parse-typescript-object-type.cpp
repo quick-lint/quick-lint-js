@@ -89,7 +89,8 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_basic_properties) {
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Object_Type, object_type_allows_asi_between_properties) {
+TEST_F(Test_Parse_TypeScript_Object_Type,
+       object_type_allows_asi_between_properties) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
         u8"{\n  p1: Type1\n  p2: Type2\n}"_sv, no_diags, typescript_options);
@@ -115,7 +116,8 @@ TEST_F(Test_Parse_TypeScript_Object_Type,
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_readonly_properties) {
+TEST_F(Test_Parse_TypeScript_Object_Type,
+       object_type_with_readonly_properties) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
         u8"{ readonly untypedProperty }"_sv, no_diags, typescript_options);
@@ -132,7 +134,8 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_readonly_properties) 
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_optional_properties) {
+TEST_F(Test_Parse_TypeScript_Object_Type,
+       object_type_with_optional_properties) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
         u8"{ untypedProperty? }"_sv, no_diags, typescript_options);
@@ -475,7 +478,8 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_call_signature) {
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_generic_call_signature) {
+TEST_F(Test_Parse_TypeScript_Object_Type,
+       object_type_with_generic_call_signature) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
         u8"{ <T>(param): ReturnType }"_sv, no_diags, typescript_options);
@@ -493,7 +497,8 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_generic_call_signatur
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_keyword_named_properties) {
+TEST_F(Test_Parse_TypeScript_Object_Type,
+       object_type_with_keyword_named_properties) {
   for (String8 keyword : keywords) {
     {
       Padded_String code(concat(u8"{ "_sv, keyword, u8" }"_sv));

@@ -721,7 +721,8 @@ again:
     this->skip();
   }
 
-  while (this->peek().type == Token_Type::left_square) {
+  while (this->peek().type == Token_Type::left_square &&
+         !this->peek().has_leading_newline) {
     // typeexpr[]
     // typeexpr[Key]
     this->skip();

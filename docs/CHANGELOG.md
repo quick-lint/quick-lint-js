@@ -50,6 +50,8 @@ Semantic Versioning.
     parsed correctly.
   * Generic call signatures are now parsed correctly when using a semicolon-free
     coding style.
+  * Interface index signatures and computed property names in interfaces are now
+    parsed correctly when using a semicolon-free coding style.
   * `declare const x = 42;` no longer falsely reports [E0351][] or [E0385][].
   * `type T = T.thing;` no longer falsely reports [E0384][] ("cannot use type
     directly in its own definition").

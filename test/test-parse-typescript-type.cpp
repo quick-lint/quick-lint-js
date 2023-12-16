@@ -1874,6 +1874,86 @@ TEST_F(Test_Parse_TypeScript_Type, mixed) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"A", u8"B"}));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Type,
+       newline_is_not_allowed_before_index_or_array_operator_in_type) {
+  {
+    test_parse_and_visit_module(
+        u8"interface I {\n"_sv
+        u8"f(): C\n"_sv  // ASI
+        u8"[v](): C;\n"_sv
+        u8"}"_sv,
+        no_diags, typescript_options);
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '[':
+    Spy_Visitor v = test_parse_and_visit_module(
+        u8"type A = C\n[].forEach(f);"_sv, no_diags, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_enter_type_alias_scope",  //
+                              "visit_variable_type_use",       // C
+                              "visit_exit_type_alias_scope",   //
+                              "visit_variable_use",            // f
+                              "visit_end_of_module",           //
+                          }));
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '[':
+    Spy_Visitor v = test_parse_and_visit_module(u8"type A = C\n[T];"_sv,
+                                                no_diags, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_enter_type_alias_scope",  //
+                              "visit_variable_type_use",       // C
+                              "visit_exit_type_alias_scope",   //
+                              "visit_variable_use",            // T
+                              "visit_end_of_module",           //
+                          }));
+  }
+
+  {
+    // ASI should insert a semicolon between 'C' and '[':
+    Spy_Visitor v = test_parse_and_visit_module(u8"type A = typeof C\n[T];"_sv,
+                                                no_diags, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_enter_type_alias_scope",  //
+                              "visit_variable_use",            // C
+                              "visit_exit_type_alias_scope",   //
+                              "visit_variable_use",            // T
+                              "visit_end_of_module",           //
+                          }));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Type, newline_is_allowed_before_tuple_type) {
+  {
+    Spy_Visitor v = test_parse_and_visit_module(u8"type A =\n[T];"_sv, no_diags,
+                                                typescript_options);
+    EXPECT_THAT(v.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_enter_type_alias_scope",  //
+                              "visit_variable_type_use",       // T
+                              "visit_exit_type_alias_scope",   //
+                              "visit_end_of_module",           //
+                          }));
+  }
+
+  {
+    Spy_Visitor v = test_parse_and_visit_module(u8"type A = readonly\n[T];"_sv,
+                                                no_diags, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_enter_type_alias_scope",  //
+                              "visit_variable_type_use",       // T
+                              "visit_exit_type_alias_scope",   //
+                              "visit_end_of_module",           //
+                          }));
+  }
+}
 }
 }
 
