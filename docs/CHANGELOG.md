@@ -30,6 +30,7 @@ Semantic Versioning.
   * Using `<<` in an interface's `extends` clause, in a class's `implements`
     clause, or in a `typeof` type now reports [E0429][] instead of misleading
     diagnostics.
+  * Properties in object literal types can now be named with number literals.
 
 ### Fixed
 
