@@ -54,6 +54,33 @@ TEST_F(Test_Parse_Expression_JSX, intrinsic_element) {
   }
 }
 
+TEST_F(Test_Parse_Expression_JSX,
+       intrinsic_element_can_be_named_const_in_typescript_jsx) {
+  {
+    Test_Parser p(u8"<const />"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(const)");
+  }
+
+  {
+    Test_Parser p(u8"<const {...props}></const>"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(const, spread(var props))");
+  }
+
+  {
+    Test_Parser p(u8"<const attr1 attr2={banana.chocolate}></const>"_sv,
+                  typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(const, dot(var banana, chocolate))");
+  }
+
+  // NOTE(strager): The first prop cannot be assigned with '='. If it is,
+  // TypeScript interprets the tag as a generic parameter list instead. See
+  // NOTE[TypeScript-const-generic-arrow-with-default-string-type] and
+  // NOTE[TypeScript-const-generic-arrow-with-default-object-type].
+}
+
 TEST_F(Test_Parse_Expression_JSX, user_element) {
   {
     Test_Parser p(u8"<MyComponent />"_sv, jsx_options);
@@ -365,6 +392,12 @@ TEST_F(Test_Parse_Expression_JSX,
     Test_Parser p(u8"<T extends={val}></T>"_sv, typescript_jsx_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(T, var val)");
+  }
+
+  {
+    Test_Parser p(u8"<const T extends />"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(const)");
   }
 }
 }

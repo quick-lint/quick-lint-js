@@ -1674,6 +1674,8 @@ next_parameter:
     switch (this->peek().type) {
     // <in T>
     // <in out T>
+    // <const T>
+    case Token_Type::kw_const:
     case Token_Type::kw_in:
     case Token_Type::kw_out:
       modifiers.push_back(Modifier{

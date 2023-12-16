@@ -3465,11 +3465,20 @@ Expression* Parser::parse_jsx_or_typescript_generic_expression(
   if (this->options_.typescript) {
     Lexer_Transaction transaction = this->lexer_.begin_transaction();
     this->skip();
+
+    // <const T,>(params) => {}  // Arrow function.
+    // <const></const>           // Arrow function.
+    // TODO(#690): Should we skip 'in' and 'out' too?
+    bool had_modifier = false;
+    if (this->peek().type == Token_Type::kw_const) {
+      this->skip();
+      had_modifier = true;
+    }
+
     switch (this->peek().type) {
     // <(Type)>expr
     // < | Type>expr
     case Token_Type::ampersand:
-    case Token_Type::left_curly:
     case Token_Type::left_paren:
     case Token_Type::left_square:
     case Token_Type::pipe:
@@ -3478,8 +3487,19 @@ Expression* Parser::parse_jsx_or_typescript_generic_expression(
           v, prec,
           /*is_invalid_due_to_jsx_ambiguity=*/false);
 
+    // <{}>expr              // Cast.
+    // <const {...props} />  // JSX element.
+    case Token_Type::left_curly:
+      if (!had_modifier) {
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        return this->parse_typescript_angle_type_assertion_expression(
+            v, prec,
+            /*is_invalid_due_to_jsx_ambiguity=*/false);
+      }
+      break;
+
     // <Type>expr
-    // <T,>(params) => {}    // Arrow function.
+    // <T,>(params) => {}       // Arrow function.
     // <Component></Component>  // JSX element.
     case Token_Type::identifier:
     case Token_Type::kw_any:

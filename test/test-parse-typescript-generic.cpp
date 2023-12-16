@@ -471,6 +471,54 @@ TEST_F(Test_Parse_TypeScript_Generic, duplicate_variance_specifiers) {
       typescript_options);
 }
 
+TEST_F(Test_Parse_TypeScript_Generic, const_parameter) {
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<const T>"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic,
+       const_parameter_can_be_mixed_with_variance_in_any_order) {
+  for (String8_View test_case : {
+           u8"<in const T>"_sv,
+           u8"<const in T>"_sv,
+           u8"<out const T>"_sv,
+           u8"<const out T>"_sv,
+           u8"<in out const T>"_sv,
+           u8"<in const out T>"_sv,
+           u8"<const in out T>"_sv,
+       }) {
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        test_case, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic, const_parameter_can_be_repeated) {
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
+        u8"<const const const T>"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // T
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv)}));
+  }
+
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<const in const out const T>"_sv, no_diags, typescript_options);
+}
+
 TEST_F(Test_Parse_TypeScript_Generic,
        parameters_can_be_named_contextual_keywords) {
   for (String8 name :

@@ -324,6 +324,61 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
     }
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
+       generic_arrow_with_const_and_comma_is_allowed_in_tsx) {
+  for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<const T,>(param) => {}"_sv, no_diags, o);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                  arrow_param_decl(u8"param"_sv)}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
+       generic_arrow_with_const_and_extends_is_allowed_in_tsx) {
+  for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<const T extends U>(param) => {}"_sv, no_diags, o);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                  arrow_param_decl(u8"param"_sv)}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
+       generic_arrow_with_const_and_default_is_allowed_in_tsx) {
+  for (const Parser_Options& o : {typescript_options, typescript_jsx_options}) {
+    {
+      Spy_Visitor p = test_parse_and_visit_statement(
+          u8"<const T = U>(param) => {}"_sv, no_diags, o);
+      EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                    arrow_param_decl(u8"param"_sv)}));
+    }
+
+    // NOTE[TypeScript-const-generic-arrow-with-default-string-type]:
+    {
+      Spy_Visitor p = test_parse_and_visit_statement(
+          u8"<const T=\"value\">(param) => {}"_sv, no_diags, o);
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                    arrow_param_decl(u8"param"_sv)}));
+    }
+
+    // NOTE[TypeScript-const-generic-arrow-with-default-object-type]:
+    {
+      Spy_Visitor p = test_parse_and_visit_statement(
+          u8"<const T={}>(param) => {}"_sv, no_diags, o);
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                    arrow_param_decl(u8"param"_sv)}));
+    }
+  }
+}
 }
 }
 
