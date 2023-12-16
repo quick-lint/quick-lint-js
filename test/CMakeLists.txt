@@ -167,6 +167,7 @@ quick_lint_js_add_executable(
   test-parse-typescript-interface.cpp
   test-parse-typescript-module.cpp
   test-parse-typescript-namespace.cpp
+  test-parse-typescript-object-type.cpp
   test-parse-typescript-object.cpp
   test-parse-typescript-statement.cpp
   test-parse-typescript-this-parameters.cpp
