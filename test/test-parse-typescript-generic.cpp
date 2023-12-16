@@ -450,6 +450,27 @@ TEST_F(Test_Parse_TypeScript_Generic, variance_specifiers_in_wrong_order) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Generic, duplicate_variance_specifiers) {
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<in in T>"_sv,  //
+      u8"    ^^ Diag_TypeScript_Variance_Keyword_Repeated.second_keyword\n"_diag  //
+      u8" ^^ .first_keyword"_diag,  //
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<out out T>"_sv,  //
+      u8"     ^^^ Diag_TypeScript_Variance_Keyword_Repeated.second_keyword\n"_diag  //
+      u8" ^^^ .first_keyword"_diag,  //
+      typescript_options);
+
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<in out out out T>"_sv,  //
+      u8"            ^^^ Diag_TypeScript_Variance_Keyword_Repeated.second_keyword\n"_diag  //
+      u8"    ^^^ .first_keyword"_diag,  //
+      u8"        ^^^ Diag_TypeScript_Variance_Keyword_Repeated.second_keyword\n"_diag  //
+      u8"    ^^^ .first_keyword"_diag,  //
+      typescript_options);
+}
+
 TEST_F(Test_Parse_TypeScript_Generic,
        parameters_can_be_named_contextual_keywords) {
   for (String8 name :
@@ -507,6 +528,52 @@ TEST_F(Test_Parse_TypeScript_Generic,
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({generic_param_decl(name)}));
     }
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic, parameter_can_be_named_out) {
+  {
+    Spy_Visitor v = test_parse_and_visit_typescript_generic_parameters(
+        u8"<in out out>"_sv, no_diags, typescript_options);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"out"_sv)}));
+  }
+
+  {
+    Spy_Visitor v = test_parse_and_visit_typescript_generic_parameters(
+        u8"<in out>"_sv, no_diags, typescript_options);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"out"_sv)}));
+  }
+
+  {
+    Spy_Visitor v = test_parse_and_visit_typescript_generic_parameters(
+        u8"<in out out, other>"_sv, no_diags, typescript_options);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"out"_sv),
+                                  generic_param_decl(u8"other"_sv)}));
+  }
+
+  {
+    Spy_Visitor v = test_parse_and_visit_typescript_generic_parameters(
+        u8"<in out, other>"_sv, no_diags, typescript_options);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"out"_sv),
+                                  generic_param_decl(u8"other"_sv)}));
+  }
+
+  {
+    Spy_Visitor v = test_parse_and_visit_typescript_generic_parameters(
+        u8"<in out out = Def>"_sv, no_diags, typescript_options);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"out"_sv)}));
+  }
+
+  {
+    Spy_Visitor v = test_parse_and_visit_typescript_generic_parameters(
+        u8"<in out = Def>"_sv, no_diags, typescript_options);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAreArray({generic_param_decl(u8"out"_sv)}));
   }
 }
 

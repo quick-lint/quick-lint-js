@@ -2731,6 +2731,16 @@ struct Diag_TypeScript_Variance_Keywords_In_Wrong_Order {
   Source_Code_Span out_keyword;
 };
 
+struct Diag_TypeScript_Variance_Keyword_Repeated {
+  [[qljs::diag("E0432", Diagnostic_Severity::error)]]  //
+  [[qljs::message("'{0}' variance specifier cannot be listed twice",
+                  ARG(second_keyword))]]  //
+  [[qljs::message("'{0}' already written here",
+                  ARG(first_keyword))]]  //
+  Source_Code_Span first_keyword;
+  Source_Code_Span second_keyword;
+};
+
 struct Diag_Unclosed_Block_Comment {
   [[qljs::diag("E0037", Diagnostic_Severity::error)]]             //
   [[qljs::message("unclosed block comment", ARG(comment_open))]]  //

@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 541;
-constexpr std::size_t translation_table_string_table_size = 80778;
+constexpr std::uint16_t translation_table_mapping_table_size = 543;
+constexpr std::size_t translation_table_string_table_size = 80853;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -107,6 +107,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'with' statement"sv,
           "'{0} []' is always '{1}'"sv,
           "'{0}' access specifier must precede '{1}'"sv,
+          "'{0}' already written here"sv,
           "'{0}' found here"sv,
           "'{0}' here"sv,
           "'{0}' is missing on overloaded method"sv,
@@ -116,6 +117,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'{0}' is not allowed with '{1}'"sv,
           "'{0}' must precede '{1}'"sv,
           "'{0}' operator cannot be used before '**' without parentheses"sv,
+          "'{0}' variance specifier cannot be listed twice"sv,
           "'{1}' is missing on overload signature"sv,
           "'{1}' statement starts here"sv,
           "'}' is not allowed directly in JSX text; write {{'}'} instead"sv,

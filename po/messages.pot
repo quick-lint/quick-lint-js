@@ -1774,6 +1774,14 @@ msgid "'out in' is not allowed; write 'in out' instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'{0}' variance specifier cannot be listed twice"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'{0}' already written here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed block comment"
 msgstr ""
 

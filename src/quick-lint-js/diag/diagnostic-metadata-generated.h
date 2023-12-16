@@ -359,6 +359,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Spread_Element_Cannot_Be_Optional) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Style_Const_Field) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Variance_Keywords_In_Wrong_Order) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Variance_Keyword_Repeated) \
   QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Block_Comment) \
   QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Class_Block) \
   QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Code_Block) \
@@ -453,7 +454,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 439;
+inline constexpr int Diag_Type_Count = 440;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

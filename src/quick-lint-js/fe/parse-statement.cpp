@@ -1662,33 +1662,32 @@ void Parser::parse_and_visit_typescript_generic_parameters(
       this->buffering_visitor_stack_.push();
 
 next_parameter:
-  std::optional<Identifier> in_keyword;
-  std::optional<Identifier> out_keyword;
-
-  if (this->peek().type == Token_Type::kw_in) {
+  // 'in' and 'out' keywords.
+  struct Modifier {
+    Identifier identifier;
+    Token_Type token_type;
+  };
+  Vector<Modifier> modifiers(
+      "parse_and_visit_typescript_generic_parameters modifiers",
+      &this->temporary_memory_);
+  for (;;) {
+    switch (this->peek().type) {
     // <in T>
     // <in out T>
-    in_keyword = this->peek().identifier_name();
-    this->skip();
-  }
-
-  if (this->peek().type == Token_Type::kw_out) {
-    // <out T>
-    // <out>
-    out_keyword = this->peek().identifier_name();
-    this->skip();
-
-    if (!in_keyword.has_value() && this->peek().type == Token_Type::kw_in) {
-      // <out in T>  // Invalid.
-      in_keyword = this->peek().identifier_name();
-      this->diag_reporter_->report(
-          Diag_TypeScript_Variance_Keywords_In_Wrong_Order{
-              .in_keyword = in_keyword->span(),
-              .out_keyword = out_keyword->span(),
-          });
+    case Token_Type::kw_in:
+    case Token_Type::kw_out:
+      modifiers.push_back(Modifier{
+          .identifier = this->peek().identifier_name(),
+          .token_type = this->peek().type,
+      });
       this->skip();
+      break;
+
+    default:
+      goto done_parsing_modifiers;
     }
   }
+done_parsing_modifiers:
 
   std::optional<Identifier> parameter_name;
   switch (this->peek().type) {
@@ -1712,7 +1711,6 @@ next_parameter:
   case Token_Type::kw_module:
   case Token_Type::kw_namespace:
   case Token_Type::kw_of:
-  case Token_Type::kw_out:
   case Token_Type::kw_override:
   case Token_Type::kw_readonly:
   case Token_Type::kw_require:
@@ -1726,18 +1724,62 @@ next_parameter:
     break;
 
   case Token_Type::kw_in:
-    QLJS_PARSER_UNIMPLEMENTED();
+  case Token_Type::kw_out:
+    QLJS_UNREACHABLE();
     break;
 
   default:
-    if (out_keyword.has_value()) {
+    if (!modifiers.empty() &&
+        modifiers.back().token_type == Token_Type::kw_out) {
       // <out>
-      parameter_name = out_keyword;
-      out_keyword = std::nullopt;
+      parameter_name = modifiers.back().identifier;
+      modifiers.pop_back();
     } else {
       QLJS_PARSER_UNIMPLEMENTED();
     }
     break;
+  }
+
+  // Report bad modifiers.
+  {
+    std::optional<Source_Code_Span> first_in_keyword;
+    std::optional<Source_Code_Span> first_out_keyword;
+    bool reported_out_in_misorder = false;
+    for (const Modifier &modifier : modifiers) {
+      if (modifier.token_type == Token_Type::kw_in) {
+        if (first_in_keyword.has_value()) {
+          this->diag_reporter_->report(
+              Diag_TypeScript_Variance_Keyword_Repeated{
+                  .first_keyword = *first_in_keyword,
+                  .second_keyword = modifier.identifier.span(),
+              });
+        } else {
+          first_in_keyword = modifier.identifier.span();
+        }
+      }
+      if (modifier.token_type == Token_Type::kw_out) {
+        if (first_out_keyword.has_value()) {
+          this->diag_reporter_->report(
+              Diag_TypeScript_Variance_Keyword_Repeated{
+                  .first_keyword = *first_out_keyword,
+                  .second_keyword = modifier.identifier.span(),
+              });
+        } else {
+          first_out_keyword = modifier.identifier.span();
+        }
+      }
+      if (!reported_out_in_misorder &&
+          modifier.token_type == Token_Type::kw_in &&
+          first_out_keyword.has_value()) {
+        // <out in T>  // Invalid.
+        this->diag_reporter_->report(
+            Diag_TypeScript_Variance_Keywords_In_Wrong_Order{
+                .in_keyword = modifier.identifier.span(),
+                .out_keyword = *first_out_keyword,
+            });
+        reported_out_in_misorder = true;
+      }
+    }
   }
 
   if (this->peek().type == Token_Type::kw_extends ||

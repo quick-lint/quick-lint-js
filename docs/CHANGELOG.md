@@ -31,6 +31,8 @@ Semantic Versioning.
     clause, or in a `typeof` type now reports [E0429][] instead of misleading
     diagnostics.
   * Properties in object literal types can now be named with number literals.
+  * Repeating `in` or `out` generic parameter modifiers now reports [E0432][]
+    ("'in' or 'out' variance specifier cannot be listed twice").
 
 ### Fixed
 

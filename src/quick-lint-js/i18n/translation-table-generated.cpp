@@ -92,7 +92,8 @@ const Translation_Table translation_data = {
         {15, 14, 0, 13, 0, 13},              //
         {0, 0, 0, 19, 0, 17},                //
         {0, 0, 0, 0, 0, 25},                 //
-        {15, 38, 0, 25, 0, 42},              //
+        {0, 0, 0, 0, 0, 42},                 //
+        {15, 38, 0, 25, 0, 27},              //
         {0, 0, 0, 0, 0, 17},                 //
         {0, 0, 0, 0, 0, 11},                 //
         {15, 17, 0, 22, 0, 38},              //
@@ -102,6 +103,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 32},                 //
         {69, 48, 0, 36, 0, 25},              //
         {0, 0, 0, 0, 0, 62},                 //
+        {0, 0, 0, 0, 0, 48},                 //
         {0, 0, 0, 0, 0, 39},                 //
         {68, 25, 0, 65, 0, 28},              //
         {0, 0, 0, 0, 0, 62},                 //
@@ -1904,6 +1906,7 @@ const Translation_Table translation_data = {
         u8"'with' statement\0"
         u8"'{0} []' is always '{1}'\0"
         u8"'{0}' access specifier must precede '{1}'\0"
+        u8"'{0}' already written here\0"
         u8"'{0}' found here\0"
         u8"'{0}' here\0"
         u8"'{0}' is missing on overloaded method\0"
@@ -1913,6 +1916,7 @@ const Translation_Table translation_data = {
         u8"'{0}' is not allowed with '{1}'\0"
         u8"'{0}' must precede '{1}'\0"
         u8"'{0}' operator cannot be used before '**' without parentheses\0"
+        u8"'{0}' variance specifier cannot be listed twice\0"
         u8"'{1}' is missing on overload signature\0"
         u8"'{1}' statement starts here\0"
         u8"'}' is not allowed directly in JSX text; write {{'}'} instead\0"

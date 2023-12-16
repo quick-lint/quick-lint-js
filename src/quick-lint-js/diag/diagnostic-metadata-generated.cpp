@@ -5243,6 +5243,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Variance_Keyword_Repeated
+    {
+      .code = 432,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'{0}' variance specifier cannot be listed twice"),
+        QLJS_TRANSLATABLE("'{0}' already written here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Variance_Keyword_Repeated, second_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Variance_Keyword_Repeated, first_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Unclosed_Block_Comment
     {
       .code = 37,

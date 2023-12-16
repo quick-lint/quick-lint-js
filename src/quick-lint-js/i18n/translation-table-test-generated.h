@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[540] = {
+inline const Translated_String test_translation_table[542] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -920,6 +920,17 @@ inline const Translated_String test_translation_table[540] = {
         },
     },
     {
+        "'{0}' already written here"_translatable,
+        u8"'{0}' already written here",
+        {
+            u8"'{0}' already written here",
+            u8"'{0}' already written here",
+            u8"'{0}' already written here",
+            u8"'{0}' already written here",
+            u8"'{0}' already written here",
+        },
+    },
+    {
         "'{0}' found here"_translatable,
         u8"'{0}' found here",
         {
@@ -1016,6 +1027,17 @@ inline const Translated_String test_translation_table[540] = {
             u8"'{0}' operator cannot be used before '**' without parentheses",
             u8"operador '{0}' n\u00e3o pode ser usado antes de '**' sem par\u00eanteses",
             u8"'{0}' operator cannot be used before '**' without parentheses",
+        },
+    },
+    {
+        "'{0}' variance specifier cannot be listed twice"_translatable,
+        u8"'{0}' variance specifier cannot be listed twice",
+        {
+            u8"'{0}' variance specifier cannot be listed twice",
+            u8"'{0}' variance specifier cannot be listed twice",
+            u8"'{0}' variance specifier cannot be listed twice",
+            u8"'{0}' variance specifier cannot be listed twice",
+            u8"'{0}' variance specifier cannot be listed twice",
         },
     },
     {
