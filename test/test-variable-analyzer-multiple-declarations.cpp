@@ -98,6 +98,19 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     function_does_not_conflict_with_interface_or_type_alias) {
+  test_parse_and_analyze(u8"type x = null; function x() {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"function x() {}  type x = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+
+  test_parse_and_analyze(u8"interface x {}  function x() {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"function x() {}  interface x {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      namespace_can_appear_after_function_or_class_with_same_name) {
   test_parse_and_analyze(
       u8"function x() {} "_sv

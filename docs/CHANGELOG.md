@@ -61,6 +61,8 @@ Semantic Versioning.
     less buggy.
   * quick-lint-js no longer incorrectly reports [E0384][] ("cannot use type
     directly in its own definition") when using `extends ? :`.
+  * Making a type alias and a function with the same name no longer falsely
+    reports [E0034][] ("redeclaration of variable").
 
 ## 2.18.0 (2023-11-03)
 

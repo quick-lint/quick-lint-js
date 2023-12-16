@@ -1091,6 +1091,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (kind == VK::_enum               && other_kind == VK::_enum) ||
       (kind == VK::_enum               && other_kind == VK::_namespace) ||
       (kind == VK::_function           && other_kind == VK::_function) ||
+      (kind == VK::_function           && other_kind == VK::_type_alias) ||
       (kind == VK::_function           && other_kind == VK::_var) ||
       (kind == VK::_function           && other_kind_is_parameter) ||
       (kind == VK::_import             && other_kind == VK::_interface) ||
@@ -1111,6 +1112,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (kind == VK::_namespace          && other_kind == VK::_type_alias) ||
       (kind == VK::_namespace          && other_kind == VK::_var) ||
       (kind == VK::_type_alias         && other_kind == VK::_const) ||
+      (kind == VK::_type_alias         && other_kind == VK::_function) ||
       (kind == VK::_type_alias         && other_kind == VK::_let) ||
       (kind == VK::_type_alias         && other_kind == VK::_namespace) ||
       (kind == VK::_type_alias         && other_kind == VK::_var) ||
