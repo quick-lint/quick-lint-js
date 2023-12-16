@@ -127,6 +127,24 @@ TEST_F(Test_Parse_TypeScript_Type_Alias,
   test_parse_and_visit_statement(u8"type T = <U>(param: T) => number;"_sv,
                                  no_diags, typescript_options);
 
+  // See NOTE[TypeScript-extends-cycle].
+  // No cycle:
+  test_parse_and_visit_statement(
+      u8"type T = number extends string ? T : false;"_sv, no_diags,
+      typescript_options);
+  // No cycle:
+  test_parse_and_visit_statement(
+      u8"type T = number extends number ? true : T;"_sv, no_diags,
+      typescript_options);
+  // Cycle (but we don't diagnose):
+  test_parse_and_visit_statement(
+      u8"type T = number extends number ? T : false;"_sv, no_diags,
+      typescript_options);
+  // Cycle (but we don't diagnose):
+  test_parse_and_visit_statement(
+      u8"type T = number extends string ? true : T;"_sv, no_diags,
+      typescript_options);
+
   // NOTE(strager): These are not a reference of type 'T', but they look like
   // they are.
   test_parse_and_visit_statement(u8"type T = (T) => number;"_sv, no_diags,
@@ -212,18 +230,6 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_cannot_be_directly_cyclic) {
   test_parse_and_visit_statement(
       u8"type T = number extends T ? true : false;"_sv,
       u8"                        ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
-      u8"     ^ .declaration"_diag
-      u8"{.kind=Variable_Kind::_type_alias}"_diag,
-      typescript_options);
-  test_parse_and_visit_statement(
-      u8"type T = number extends number ? T : false;"_sv,
-      u8"                                 ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
-      u8"     ^ .declaration"_diag
-      u8"{.kind=Variable_Kind::_type_alias}"_diag,
-      typescript_options);
-  test_parse_and_visit_statement(
-      u8"type T = number extends number ? true : T;"_sv,
-      u8"                                        ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
       u8"     ^ .declaration"_diag
       u8"{.kind=Variable_Kind::_type_alias}"_diag,
       typescript_options);

@@ -1262,6 +1262,8 @@ extern template void Parser::consume_semicolon_or_comma<
     Diag_Missing_Semicolon_After_Index_Signature>();
 extern template void Parser::consume_semicolon_or_comma<
     Diag_Missing_Semicolon_After_Interface_Method>();
+extern template void Parser::consume_semicolon_or_comma<
+    Diag_Missing_Separator_Between_Object_Type_Entries>();
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

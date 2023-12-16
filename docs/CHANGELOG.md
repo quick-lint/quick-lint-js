@@ -57,6 +57,10 @@ Semantic Versioning.
     directly in its own definition").
   * Interface methods and index signatures can now end in `,` (in addition to
     `;`).
+  * Parsing of `;` and `,` between and after properties in object types is much
+    less buggy.
+  * quick-lint-js no longer incorrectly reports [E0384][] ("cannot use type
+    directly in its own definition") when using `extends ? :`.
 
 ## 2.18.0 (2023-11-03)
 

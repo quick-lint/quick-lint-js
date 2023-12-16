@@ -890,6 +890,8 @@ template void Parser::consume_semicolon_or_comma<
     Diag_Missing_Semicolon_After_Index_Signature>();
 template void Parser::consume_semicolon_or_comma<
     Diag_Missing_Semicolon_After_Interface_Method>();
+template void Parser::consume_semicolon_or_comma<
+    Diag_Missing_Separator_Between_Object_Type_Entries>();
 
 Parser_Transaction Parser::begin_transaction() {
   return Parser_Transaction(&this->lexer_, &this->diag_reporter_,

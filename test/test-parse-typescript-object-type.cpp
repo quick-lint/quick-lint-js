@@ -90,20 +90,85 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_basic_properties) {
 }
 
 TEST_F(Test_Parse_TypeScript_Object_Type,
-       object_type_allows_asi_between_properties) {
-  {
-    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
-        u8"{\n  p1: Type1\n  p2: Type2\n}"_sv, no_diags, typescript_options);
-    EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_type_use",  // Type1
-                              "visit_variable_type_use",  // Type2
-                          }));
-    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type1", u8"Type2"}));
-  }
+       properties_allow_trailing_semicolon_or_comma_or_asi) {
+  // ASI due to '}':
+  test_parse_and_visit_typescript_type_expression(u8"{ f: Type }"_sv, no_diags,
+                                                  typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ f2 }"_sv, no_diags,
+                                                  typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ m(): Type }"_sv,
+                                                  no_diags, typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ m2() }"_sv, no_diags,
+                                                  typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ [v]: Type }"_sv,
+                                                  no_diags, typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ [v2] }"_sv, no_diags,
+                                                  typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ [v3](): Type }"_sv,
+                                                  no_diags, typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ [v4]() }"_sv, no_diags,
+                                                  typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ (): Type }"_sv, no_diags,
+                                                  typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ () }"_sv, no_diags,
+                                                  typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ <T>(): Type }"_sv,
+                                                  no_diags, typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ <T>() }"_sv, no_diags,
+                                                  typescript_options);
+
+  test_parse_and_visit_typescript_type_expression(
+      u8"{\n"_sv
+      u8"  f: Type\n"_sv       // ASI
+      u8"  f2\n"_sv            // ASI
+      u8"  m(): Type\n"_sv     // ASI
+      u8"  m2()\n"_sv          // ASI
+      u8"  [v]: Type\n"_sv     // ASI
+      u8"  [v2]\n"_sv          // ASI
+      u8"  [v3](): Type\n"_sv  // ASI
+      u8"  [v4]()\n"_sv        // ASI
+      u8"  (): Type\n"_sv      // ASI
+      u8"  ()\n"_sv            // ASI
+      u8"  <T>(): Type\n"_sv   // ASI
+      u8"  <T>()\n"_sv         // ASI
+      u8"  lastField;"_sv
+      u8"}"_sv,
+      no_diags, typescript_options);
+  test_parse_and_visit_typescript_type_expression(
+      u8"{\n"_sv
+      u8"  f: Type;"_sv
+      u8"  f2;"_sv
+      u8"  m(): Type;"_sv
+      u8"  m2();"_sv
+      u8"  [v]: Type;"_sv
+      u8"  [v2];"_sv
+      u8"  [v3](): Type;"_sv
+      u8"  [v4]();"_sv
+      u8"  (): Type;"_sv
+      u8"  ();"_sv
+      u8"  <T>(): Type;"_sv
+      u8"  <T>();"_sv
+      u8"}"_sv,
+      no_diags, typescript_options);
+  test_parse_and_visit_typescript_type_expression(
+      u8"{\n"_sv
+      u8"  f: Type,"_sv
+      u8"  f2,"_sv
+      u8"  m(): Type,"_sv
+      u8"  m2(),"_sv
+      u8"  [v]: Type,"_sv
+      u8"  [v2],"_sv
+      u8"  [v3](): Type,"_sv
+      u8"  [v4](),"_sv
+      u8"  (): Type,"_sv
+      u8"  (),"_sv
+      u8"  <T>(): Type,"_sv
+      u8"  <T>(),"_sv
+      u8"}"_sv,
+      no_diags, typescript_options);
 }
 
-TEST_F(Test_Parse_TypeScript_Object_Type,
-       object_type_requires_separator_between_properties) {
+TEST_F(Test_Parse_TypeScript_Object_Type, properties_require_terminator) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
         u8"{ p1: Type1 p2: Type2 }"_sv,  //
@@ -113,6 +178,15 @@ TEST_F(Test_Parse_TypeScript_Object_Type,
                               "visit_variable_type_use",  // Type1
                               "visit_variable_type_use",  // Type2
                           }));
+  }
+
+  {
+    // TODO(strager): Improve this diagnostic.
+    // Diag_Missing_Separator_Between_Object_Type_Entries would be better.
+    test_parse_and_visit_typescript_type_expression(
+        u8"{ m() n() }"_sv,                                             //
+        u8"     ` Diag_Missing_Semicolon_After_Interface_Method"_diag,  //
+        typescript_options);
   }
 }
 

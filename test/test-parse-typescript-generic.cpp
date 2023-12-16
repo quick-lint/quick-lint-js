@@ -211,6 +211,23 @@ TEST_F(Test_Parse_TypeScript_Generic, extends_can_be_cyclic_with_indirection) {
   test_parse_and_visit_typescript_generic_parameters(
       u8"<T extends <U>(param: T) => number>"_sv, no_diags, typescript_options);
 
+  // See NOTE[TypeScript-extends-cycle].
+  // No cycle:
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends number extends string ? T : false>"_sv, no_diags,
+      typescript_options);
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends number extends number ? true : T>"_sv, no_diags,
+      typescript_options);
+  // Cycle:
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends number extends number ? T : false>"_sv, no_diags,
+      typescript_options);
+  // Cycle:
+  test_parse_and_visit_typescript_generic_parameters(
+      u8"<T extends number extends string ? true : T>"_sv, no_diags,
+      typescript_options);
+
   // NOTE(strager): These are not a reference of type 'T', but they look like
   // they are.
   test_parse_and_visit_typescript_generic_parameters(
@@ -297,18 +314,6 @@ TEST_F(Test_Parse_TypeScript_Generic, extends_cannot_be_directly_cyclic) {
   test_parse_and_visit_typescript_generic_parameters(
       u8"<T extends number extends T ? true : false>"_sv,
       u8"                          ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
-      u8" ^ .declaration"_diag
-      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
-      typescript_options);
-  test_parse_and_visit_typescript_generic_parameters(
-      u8"<T extends number extends number ? T : false>"_sv,
-      u8"                                   ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
-      u8" ^ .declaration"_diag
-      u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
-      typescript_options);
-  test_parse_and_visit_typescript_generic_parameters(
-      u8"<T extends number extends number ? true : T>"_sv,
-      u8"                                          ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
       u8" ^ .declaration"_diag
       u8"{.kind=Variable_Kind::_generic_parameter}"_diag,
       typescript_options);

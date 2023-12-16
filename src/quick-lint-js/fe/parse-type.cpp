@@ -754,6 +754,15 @@ again:
     // T extends T ? T : T
     this->skip();
 
+    // NOTE[TypeScript-extends-cycle]: TypeScript allows a cycle syntactically
+    // if the cycling branch isn't taken. In the following example, there is no
+    // cycle because 'number extends string' is always false:
+    //
+    //   // Equivalent to: type T = Taco;
+    //   type T = number extends string ? T : Taco;
+    //
+    // Be conservative and don't diagnose cycles with 'extends' in the branches.
+
     Stacked_Buffering_Visitor infer_visitor =
         this->buffering_visitor_stack_.push();
 
@@ -780,7 +789,8 @@ again:
     infer_visitor.visitor().move_into(v);
     this->parse_and_visit_typescript_type_expression(
         v, TypeScript_Type_Parse_Options{
-               .type_being_declared = parse_options.type_being_declared,
+               // See NOTE[TypeScript-extends-cycle].
+               .type_being_declared = std::nullopt,
            });
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::colon);
     v.visit_exit_conditional_type_scope();
@@ -788,7 +798,8 @@ again:
     this->skip();
     this->parse_and_visit_typescript_type_expression(
         v, TypeScript_Type_Parse_Options{
-               .type_being_declared = parse_options.type_being_declared,
+               // See NOTE[TypeScript-extends-cycle].
+               .type_being_declared = std::nullopt,
            });
   }
 }
@@ -930,6 +941,8 @@ void Parser::parse_and_visit_typescript_object_type_expression(
     // { prop: Type }
     case Token_Type::colon:
       this->parse_and_visit_typescript_colon_type_expression(v);
+      this->consume_semicolon_or_comma<
+          Diag_Missing_Separator_Between_Object_Type_Entries>();
       break;
 
     // { method() }
@@ -945,40 +958,26 @@ void Parser::parse_and_visit_typescript_object_type_expression(
       v.visit_exit_function_scope();
       break;
 
-    case Token_Type::comma:
+    end_of_property:
     case Token_Type::right_curly:
       break;
 
+    case Token_Type::comma:
+    case Token_Type::semicolon:
+      this->skip();
+      break;
+
     default:
+      if (this->peek().has_leading_newline) {
+        // ASI after property name.
+        goto end_of_property;
+      }
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
   };
 
-  bool is_first = true;
   for (;;) {
-    if (!is_first) {
-      switch (this->peek().type) {
-      case Token_Type::comma:
-      case Token_Type::semicolon:
-        this->skip();
-        break;
-
-      case Token_Type::right_curly:
-        break;
-
-      default:
-        if (!this->peek().has_leading_newline) {
-          this->diag_reporter_->report(
-              Diag_Missing_Separator_Between_Object_Type_Entries{
-                  .expected_separator = Source_Code_Span::unit(
-                      this->lexer_.end_of_previous_token()),
-              });
-        }
-        break;
-      }
-    }
-
     switch (this->peek().type) {
     // { readonly prop: Type }
     case Token_Type::kw_readonly:
@@ -1131,7 +1130,6 @@ void Parser::parse_and_visit_typescript_object_type_expression(
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
-    is_first = false;
   }
 }
 
