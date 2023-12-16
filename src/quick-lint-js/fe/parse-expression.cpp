@@ -3497,14 +3497,31 @@ Expression* Parser::parse_jsx_or_typescript_generic_expression(
       this->skip();
       switch (this->peek().type) {
       // <T,>() => {}                 // Generic arrow function.
-      // <T extends U>(params) => {}  // Generic arrow function.
       // <T = U>(params) => {}        // Generic arrow function.
       case Token_Type::comma:
       case Token_Type::equal:
-      case Token_Type::kw_extends:
         this->lexer_.roll_back_transaction(std::move(transaction));
         return this->parse_typescript_generic_arrow_expression(v,
                                                                /*prec=*/prec);
+
+      // <T extends U>(params) => {}  // Generic arrow function.
+      // <T extends />                // JSX element.
+      case Token_Type::kw_extends:
+        this->skip();
+        switch (this->peek().type) {
+        // <T extends />
+        case Token_Type::equal:
+        case Token_Type::greater:
+        case Token_Type::slash:
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          break;
+        // <T extends U>(params) => {}
+        default:
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          return this->parse_typescript_generic_arrow_expression(v,
+                                                                 /*prec=*/prec);
+        }
+        break;
 
       // <T>() => {}  // Generic arrow function.
       // <T>expr      // Cast.

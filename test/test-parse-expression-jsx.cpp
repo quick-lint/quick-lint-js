@@ -340,6 +340,33 @@ TEST_F(Test_Parse_Expression_JSX, jsx_with_binary_operator) {
     ASSERT_EQ(summarize(ast), "binary(var x, jsxelement(div))");
   }
 }
+
+TEST_F(Test_Parse_Expression_JSX,
+       element_which_almost_looks_like_typescript_generic_parameter_list) {
+  {
+    Test_Parser p(u8"<T extends />"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(T)");
+  }
+
+  {
+    Test_Parser p(u8"<T extends></T>"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(T)");
+  }
+
+  {
+    Test_Parser p(u8"<T extends=\"val\"></T>"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(T)");
+  }
+
+  {
+    Test_Parser p(u8"<T extends={val}></T>"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(T, var val)");
+  }
+}
 }
 }
 

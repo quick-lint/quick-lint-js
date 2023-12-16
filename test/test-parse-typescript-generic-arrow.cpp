@@ -262,6 +262,15 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
 
     {
       Spy_Visitor p = test_parse_and_visit_statement(
+          u8"<T extends {notProps}>(param) => {}"_sv, no_diags, o);
+      EXPECT_THAT(p.variable_uses, IsEmpty());
+      EXPECT_THAT(p.variable_declarations,
+                  ElementsAreArray({generic_param_decl(u8"T"_sv),
+                                    arrow_param_decl(u8"param"_sv)}));
+    }
+
+    {
+      Spy_Visitor p = test_parse_and_visit_statement(
           u8"async <T extends U>() => { await myPromise; }"_sv, no_diags, o);
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //

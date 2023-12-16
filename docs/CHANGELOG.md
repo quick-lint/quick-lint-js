@@ -68,6 +68,7 @@ Semantic Versioning.
     reports [E0034][] ("redeclaration of variable").
   * `T extends () => RT ? A : B` no longer falsely reports [E0348][] ("invalid
     usage of ? as a prefix or suffix in the a type " expression").
+  * `<T extends />` is now correctly parsed as a JSX element.
 
 ## 2.18.0 (2023-11-03)
 
