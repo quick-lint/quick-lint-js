@@ -1442,7 +1442,20 @@ TEST_F(Test_Parse_TypeScript_Interface,
       javascript_options);
 }
 
-TEST_F(Test_Parse_TypeScript_Interface, method_requires_semicolon_or_asi) {
+TEST_F(Test_Parse_TypeScript_Interface,
+       method_requires_comma_or_semicolon_or_asi) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { f(); g(); }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"f", u8"g"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { f(), g(), }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"f", u8"g"}));
+  }
+
   {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I {\n"

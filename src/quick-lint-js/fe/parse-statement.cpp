@@ -2241,7 +2241,14 @@ void Parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
   switch (result) {
   case Function_Parameter_Parse_Result::missing_parameters_ignore_body:
   case Function_Parameter_Parse_Result::parsed_parameters_missing_body:
-    this->consume_semicolon<Diag_Missing_Semicolon_After_Interface_Method>();
+    if (this->peek().type == Token_Type::comma) {
+      // f(): void,
+      this->skip();
+    } else {
+      // f(): void;
+      // f(): void
+      this->consume_semicolon<Diag_Missing_Semicolon_After_Interface_Method>();
+    }
     break;
 
   case Function_Parameter_Parse_Result::parsed_parameters:
