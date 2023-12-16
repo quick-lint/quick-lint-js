@@ -3742,12 +3742,24 @@ Expression* Parser::parse_jsx_element_or_fragment(Parse_Visitor_Base& v,
   }
   const Char8* tag_end = this->lexer_.end_of_previous_token();
 
+  // <Component<T> />  // TypeScript only.
+  if (this->peek().type == Token_Type::less ||
+      this->peek().type == Token_Type::less_less) {
+    this->parse_and_visit_typescript_generic_arguments(v);
+  }
+
   bool is_intrinsic =
       tag && (tag_namespace || Expression::JSX_Element::is_intrinsic(*tag));
 
 next_attribute:
   switch (this->peek().type) {
-  // <current attribute='value'>
+  // NOTE[JSX-keyword-after-TypeScript-generic]: Normally, JS/TS keywords would
+  // appear as Token_Type::identifier here. However, when parsing
+  // '<C<T> class="" />' in TypeScript, the 'class' following '>' is parsed as a
+  // keyword. This is because parse_and_visit_typescript_generic_arguments calls
+  // this->skip() rather than this->skip_in_jsx(). That's why we need to check
+  // for keywords here.
+  QLJS_CASE_KEYWORD:
   case Token_Type::identifier: {
     Identifier attribute = this->peek().identifier_name();
     bool has_namespace = false;

@@ -810,6 +810,53 @@ TEST_F(Test_Parse_TypeScript_Generic,
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Generic, jsx_element) {
+  {
+    Test_Parser p(u8"<MyComponent<Param> />"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(MyComponent)");
+    EXPECT_THAT(p.visits, ElementsAreArray({"visit_variable_type_use"}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Param"_sv}));
+  }
+
+  {
+    Test_Parser p(u8"<MyComponent<<T>() => ReturnType> />"_sv,
+                  typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(MyComponent)");
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",  //
+                              "visit_variable_declaration",  // T
+                              "visit_variable_type_use",     // ReturnType
+                              "visit_exit_function_scope",   //
+                          }));
+  }
+
+  {
+    // '>>' should be split.
+    Test_Parser p(u8"<MyComponent<Param>></MyComponent>"_sv,
+                  typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(MyComponent)");
+  }
+
+  {
+    // '>>>' should be split.
+    Test_Parser p(u8"<MyComponent<C<P>>></MyComponent>"_sv,
+                  typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(MyComponent)");
+  }
+
+  {
+    // 'as' should be treated as an attribute name, not a keyword.
+    // See NOTE[JSX-keyword-after-TypeScript-generic].
+    Test_Parser p(u8"<C<T> as={value} />"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(C, var value)");
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Generic,
        generic_arguments_less_and_greater_are_operators_in_javascript) {
   {
@@ -1075,6 +1122,13 @@ TEST_F(Test_Parse_TypeScript_Generic,
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({generic_param_decl(u8"T"), let_init_decl(u8"f")}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<Component\n<T> />;"_sv, no_diags, typescript_jsx_options);
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"T"_sv, u8"Component"_sv}));
   }
 }
 
