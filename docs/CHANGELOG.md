@@ -63,6 +63,8 @@ Semantic Versioning.
     directly in its own definition") when using `extends ? :`.
   * Making a type alias and a function with the same name no longer falsely
     reports [E0034][] ("redeclaration of variable").
+  * `T extends () => RT ? A : B` no longer falsely reports [E0348][] ("invalid
+    usage of ? as a prefix or suffix in the a type " expression").
 
 ## 2.18.0 (2023-11-03)
 

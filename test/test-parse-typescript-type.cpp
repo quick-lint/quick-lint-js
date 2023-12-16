@@ -1588,6 +1588,24 @@ TEST_F(Test_Parse_TypeScript_Type, extends_condition) {
         ElementsAreArray({u8"Derived", u8"DK", u8"Base", u8"BK", u8"TrueType",
                           u8"TK", u8"FalseType", u8"FK"}));
   }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"T extends (param: ParamType) => ReturnType ? TrueType : FalseType"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",     // T
+                              "visit_enter_function_scope",  //
+                              "visit_variable_type_use",     // ParamType
+                              "visit_variable_declaration",  // param
+                              "visit_variable_type_use",     // ReturnType
+                              "visit_exit_function_scope",   //
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_type_use",             // TrueType
+                              "visit_exit_conditional_type_scope",   //
+                              "visit_variable_type_use",  // FalseType
+                          }));
+  }
 }
 
 TEST_F(Test_Parse_TypeScript_Type, conditional_type_with_infer) {

@@ -836,6 +836,11 @@ void Parser::
   this->skip();
   this->parse_and_visit_typescript_type_expression(
       v, TypeScript_Type_Parse_Options{
+             // TODO(strager): Report
+             // Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void (i.e.
+             // set parse_question_as_invalid to true) if we are not inside an
+             // 'extends' clause.
+             .parse_question_as_invalid = false,
              .allow_parenthesized_type = false,
              .allow_assertion_signature_or_type_predicate = true,
          });
