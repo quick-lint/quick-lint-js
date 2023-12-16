@@ -278,6 +278,54 @@ TEST(Test_TypeScript_Test, typescript_definition_file) {
   EXPECT_FALSE(options->jsx);
 }
 
+TEST(Test_TypeScript_Test, javascript_file_is_linted) {
+  {
+    Padded_String file(
+        u8"JavaScript code\n"_sv
+        u8"// @filename: hello.js\n"_sv
+        u8"more JavaScript code"_sv);
+    TypeScript_Test_Units units =
+        extract_units_from_typescript_test(std::move(file), u8"hello.js");
+    ASSERT_EQ(units.size(), 2);
+
+    std::optional<Linter_Options> options = units[0].get_linter_options();
+    ASSERT_TRUE(options.has_value());
+    EXPECT_FALSE(options->typescript);
+    // FIXME(strager): Should we only set jsx=true if a @jsx directive is
+    // present?
+    EXPECT_TRUE(options->jsx);
+
+    options = units[1].get_linter_options();
+    ASSERT_TRUE(options.has_value());
+    EXPECT_FALSE(options->typescript);
+    // FIXME(strager): Should we only set jsx=true if a @jsx directive is
+    // present?
+    EXPECT_TRUE(options->jsx);
+  }
+}
+
+TEST(Test_TypeScript_Test, javascript_react_file_is_linted) {
+  {
+    Padded_String file(
+        u8"JavaScript code\n"_sv
+        u8"// @filename: hello.jsx\n"_sv
+        u8"more JavaScript code"_sv);
+    TypeScript_Test_Units units =
+        extract_units_from_typescript_test(std::move(file), u8"hello.jsx");
+    ASSERT_EQ(units.size(), 2);
+
+    std::optional<Linter_Options> options = units[0].get_linter_options();
+    ASSERT_TRUE(options.has_value());
+    EXPECT_FALSE(options->typescript);
+    EXPECT_TRUE(options->jsx);
+
+    options = units[1].get_linter_options();
+    ASSERT_TRUE(options.has_value());
+    EXPECT_FALSE(options->typescript);
+    EXPECT_TRUE(options->jsx);
+  }
+}
+
 TEST(Test_TypeScript_Test, markdown_unit_is_ignored) {
   Padded_String file(
       u8"// @filename: a.ts\n"_sv
