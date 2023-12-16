@@ -53,7 +53,8 @@ Semantic Versioning.
   * `declare const x = 42;` no longer falsely reports [E0351][] or [E0385][].
   * `type T = T.thing;` no longer falsely reports [E0384][] ("cannot use type
     directly in its own definition").
-  * Interface methods can now end in `,` (in addition to `;`).
+  * Interface methods and index signatures can now end in `,` (in addition to
+    `;`).
 
 ## 2.18.0 (2023-11-03)
 

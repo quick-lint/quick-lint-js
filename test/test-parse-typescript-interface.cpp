@@ -728,7 +728,24 @@ TEST_F(Test_Parse_TypeScript_Interface, index_signature_cannot_be_a_method) {
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Interface, index_signature_requires_semicolon) {
+TEST_F(Test_Parse_TypeScript_Interface,
+       index_signature_requires_semicolon_or_comma_or_asi) {
+  test_parse_and_visit_statement(
+      u8"interface I { [key: KeyType]: ValueType; method(); }"_sv, no_diags,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"interface I { [key: KeyType]: ValueType, method(); }"_sv, no_diags,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"interface I { [key: KeyType]: ValueType }"_sv,  // ASI
+      no_diags, typescript_options);
+  test_parse_and_visit_statement(
+      u8"interface I {\n"_sv
+      u8"  [key: KeyType]: ValueType\n"_sv  // ASI
+      u8"  method();\n"_sv
+      u8"}"_sv,
+      no_diags, typescript_options);
+
   {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I { [key: KeyType]: ValueType method(); }"_sv,  //

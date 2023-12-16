@@ -723,8 +723,15 @@ void Parser::parse_and_visit_class_or_interface_member(
           // [key: KeyType]: ValueType;
           case Token_Type::colon:
             p->parse_and_visit_typescript_colon_type_expression(v);
-            p->consume_semicolon<
-                Diag_Missing_Semicolon_After_Index_Signature>();
+            if (p->peek().type == Token_Type::comma) {
+              // [key: KeyType]: ValueType,
+              p->skip();
+            } else {
+              // [key: KeyType]: ValueType;
+              // [key: KeyType]: ValueType
+              p->consume_semicolon<
+                  Diag_Missing_Semicolon_After_Index_Signature>();
+            }
             break;
 
           // [key: KeyType];  // Invalid.
