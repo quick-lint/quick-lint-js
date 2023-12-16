@@ -35,6 +35,8 @@ constexpr String8_View ignored_tests[] = {
 
     // This test correctly emits E0196 (a warning).
     // TODO(strager): Disable E0196 for this test but still check this test.
+    u8"/downlevelLetConst14.ts"sv,
+    u8"/downlevelLetConst15.ts"sv,
     u8"/initializePropertiesWithRenamedLet.ts"sv,
 
     // These tests correctly emit E0427 (a warning).
