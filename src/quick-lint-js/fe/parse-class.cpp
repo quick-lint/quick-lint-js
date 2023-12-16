@@ -728,13 +728,15 @@ void Parser::parse_and_visit_class_or_interface_member(
             break;
 
           // [key: KeyType];  // Invalid.
+          // [key: KeyType],  // Invalid.
+          case Token_Type::comma:
           case Token_Type::semicolon:
-          missing_type_for_index_signature:
             p->diag_reporter_->report(
                 Diag_TypeScript_Index_Signature_Needs_Type{
                     .expected_type = Source_Code_Span::unit(
                         p->lexer_.end_of_previous_token()),
                 });
+            p->skip();
             break;
 
           // [key: KeyType]  // Invalid.
@@ -761,7 +763,11 @@ void Parser::parse_and_visit_class_or_interface_member(
           // [key: KeyType] method();  // Invalid.
           default:
             if (p->peek().has_leading_newline) {
-              goto missing_type_for_index_signature;
+              p->diag_reporter_->report(
+                  Diag_TypeScript_Index_Signature_Needs_Type{
+                      .expected_type = Source_Code_Span::unit(
+                          p->lexer_.end_of_previous_token()),
+                  });
             } else {
               QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
             }

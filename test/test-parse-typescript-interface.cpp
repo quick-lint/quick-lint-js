@@ -684,6 +684,13 @@ TEST_F(Test_Parse_TypeScript_Interface, index_signature_requires_type) {
   }
 
   {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I { [key: KeyType], method(); }"_sv,  //
+        u8"                            ` Diag_TypeScript_Index_Signature_Needs_Type"_diag,  //
+        typescript_options);
+  }
+
+  {
     // ASI
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I { [key: KeyType]\n  method(); }"_sv,  //
