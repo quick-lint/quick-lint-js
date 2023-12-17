@@ -1683,6 +1683,11 @@ next_parameter:
           .token_type = this->peek().type,
       });
       this->skip();
+      if (this->lexer_.peek().has_leading_newline) {
+        this->diag_reporter_->report(
+            Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers{
+                .modifier = modifiers.back().identifier.span()});
+      }
       break;
 
     default:

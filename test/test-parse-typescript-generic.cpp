@@ -1333,6 +1333,33 @@ TEST_F(Test_Parse_TypeScript_Generic,
         typescript_options);
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Generic,
+       newline_is_not_allowed_after_in_out_const_modifiers) {
+  {
+    test_parse_and_visit_module(
+        u8"class C<in\nT> {}"_sv,  //
+        u8"        ^^ Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers.modifier"_diag,  //
+        typescript_options);
+    test_parse_and_visit_module(
+        u8"class C<out\nT> {}"_sv,  //
+        u8"        ^^^ Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers.modifier"_diag,  //
+        typescript_options);
+    test_parse_and_visit_module(
+        u8"class C<const\nT> {}"_sv,  //
+        u8"        ^^^^^ Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers.modifier"_diag,  //
+        typescript_options);
+  }
+
+  {
+    test_parse_and_visit_module(u8"class C<in T> {}"_sv, no_diags,
+                                typescript_options);
+    test_parse_and_visit_module(u8"class C<out T> {}"_sv, no_diags,
+                                typescript_options);
+    test_parse_and_visit_module(u8"class C<const T> {}"_sv, no_diags,
+                                typescript_options);
+  }
+}
 }
 }
 

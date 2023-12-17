@@ -3509,6 +3509,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers
+    {
+      .code = 433,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("newline is not allowed after '{0}' modifier in generic parameter"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers, modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Number_Literal_Contains_Consecutive_Underscores
     {
       .code = 28,

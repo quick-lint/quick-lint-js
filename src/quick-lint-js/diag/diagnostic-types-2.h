@@ -1801,6 +1801,14 @@ struct Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type {
   Source_Code_Span less;
 };
 
+struct Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers {
+  [[qljs::diag("E0433", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "newline is not allowed after '{0}' modifier in generic parameter",
+      ARG(modifier))]]  //
+  Source_Code_Span modifier;
+};
+
 struct Diag_Number_Literal_Contains_Consecutive_Underscores {
   [[qljs::diag("E0028", Diagnostic_Severity::error)]]  //
   [[qljs::message("number literal contains consecutive underscores",
