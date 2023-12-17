@@ -18,6 +18,7 @@ Semantic Versioning.
   to `export {... as default};` statements.
 * TypeScript support (still experimental):
   * `export as namespace` statements are now parsed.
+  * Const generic parameters (`<const T>`) are now parsed.
   * Assertion signatures (`function f(param): asserts param`) are now parsed.
   * If a type predicate appears outside a return type, quick-lint-js now reports
     [E0426][] ("type predicates are only allowed as function return types").
@@ -29,7 +30,7 @@ Semantic Versioning.
     expression with a function in the falsy branch.)
   * Using `<<` in an interface's `extends` clause, in a class's `implements`
     clause, or in a `typeof` type now reports [E0429][] instead of misleading
-    diagnostics.
+    diagnostics. (Implemented by [strager][] and [Ariel Don][].)
   * Properties in object literal types can now be named with number literals.
   * Repeating `in` or `out` generic parameter modifiers now reports [E0432][]
     ("'in' or 'out' variance specifier cannot be listed twice").
@@ -69,7 +70,9 @@ Semantic Versioning.
   * `T extends () => RT ? A : B` no longer falsely reports [E0348][] ("invalid
     usage of ? as a prefix or suffix in the a type " expression").
   * `<T extends />` is now correctly parsed as a JSX element.
-  * `interface I { get: any }` no longer reports [E0054][] ("unexpected token").
+  * `interface I { get: any; }` (field named `get` with a type annotation) no
+    longer reports [E0054][] ("unexpected token"). (Implemented by [Rui
+    Serra][].)
 
 ## 2.18.0 (2023-11-03)
 
@@ -1224,6 +1227,7 @@ Beta release.
 [mirabellier]: https://github.com/mirabellierr
 [ooblegork]: https://github.com/ooblegork
 [pedrobl1718]: https://github.com/pedrobl85
+[strager]: https://github.com/strager
 [tiagovla]: https://github.com/tiagovla
 [toastin0]: https://github.com/toastin0
 [wagner riffel]: https://github.com/wgrr
