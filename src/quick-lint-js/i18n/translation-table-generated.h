@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 543;
-constexpr std::size_t translation_table_string_table_size = 80853;
+constexpr std::uint16_t translation_table_mapping_table_size = 545;
+constexpr std::size_t translation_table_string_table_size = 80903;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -179,6 +179,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "a 'while' loop"sv,
           "a 'with' statement"sv,
           "a class statement is not allowed as the body of {1:singular}"sv,
+          "a class's 'extends' clause"sv,
           "a class's 'implements' clause"sv,
           "a decorator exists here before 'export'"sv,
           "a function statement is not allowed as the body of {1:singular}"sv,
@@ -235,6 +236,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "catch variable can only be typed as '*', 'any', or 'unknown'"sv,
           "character is not allowed in identifiers"sv,
           "children end here"sv,
+          "class 'extends' clause"sv,
           "class 'implements' clause"sv,
           "class is not marked abstract"sv,
           "classes cannot be named 'let'"sv,

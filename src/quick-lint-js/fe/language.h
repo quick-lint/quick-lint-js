@@ -18,6 +18,7 @@ enum class Statement_Kind {
   labelled_statement,
 
   class_implements_clause,
+  class_extends_clause,
   interface_extends_clause,
   typeof_type,
 };

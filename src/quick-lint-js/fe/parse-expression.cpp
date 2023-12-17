@@ -1511,9 +1511,22 @@ next:
   case Token_Type::less:
   case Token_Type::less_less:
     if (this->options_.typescript) {
+      // class C< <T>() => RetType> // Valid.
+      // class C<<T>() => RetType>  // Invalid.
+      if (prec.in_class_extends_clause &&
+          this->peek().type == Token_Type::less_less) {
+        this->diag_reporter_->report(
+            Diag_TypeScript_Generic_Less_Less_Not_Split{
+                .expected_space =
+                    Source_Code_Span::unit(this->peek().begin + 1),
+                .context = Statement_Kind::class_extends_clause,
+            });
+      }
+
       bool parsed_as_generic_arguments;
       Stacked_Buffering_Visitor generic_arguments_visits =
           this->buffering_visitor_stack_.push();
+
       this->try_parse(
           [&] {
             bool parsed_without_fatal_error = this->catch_fatal_parse_errors(

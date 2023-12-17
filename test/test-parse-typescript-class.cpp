@@ -1546,7 +1546,6 @@ TEST_F(Test_Parse_TypeScript_Class, implement_multiple_things) {
               ElementsAreArray({u8"Apple", u8"Banana", u8"Carrot"}));
 }
 
-// TODO(#1114): Report the same diagnostic for 'extends'.
 TEST_F(Test_Parse_TypeScript_Class,
        implements_generic_with_arrow_type_requires_space) {
   {
@@ -1571,6 +1570,33 @@ TEST_F(Test_Parse_TypeScript_Class,
         ElementsAreArray({generic_param_decl(u8"T"), class_decl(u8"C")}));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"I", u8"ReturnType", u8"T"}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Class,
+       extends_generic_with_arrow_type_requires_space) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export class C extends I<<T>() => ReturnType<T>> {}"_sv,  //
+        u8"                         ` Diag_TypeScript_Generic_Less_Less_Not_Split.expected_space"_diag
+        u8"{.context=Statement_Kind::class_extends_clause}"_diag,
+        typescript_options);
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({generic_param_decl(u8"T"), class_decl(u8"C")}));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"ReturnType", u8"T", u8"I"}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export class C extends I< <T>() => ReturnType<T>> {}"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(
+        p.variable_declarations,
+        ElementsAreArray({generic_param_decl(u8"T"), class_decl(u8"C")}));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"ReturnType", u8"T", u8"I"}));
   }
 }
 
