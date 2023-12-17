@@ -69,6 +69,7 @@ Semantic Versioning.
   * `T extends () => RT ? A : B` no longer falsely reports [E0348][] ("invalid
     usage of ? as a prefix or suffix in the a type " expression").
   * `<T extends />` is now correctly parsed as a JSX element.
+  * `interface I { get: any }` no longer reports [E0054][] ("unexpected token").
 
 ## 2.18.0 (2023-11-03)
 

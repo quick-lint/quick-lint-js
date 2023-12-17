@@ -837,6 +837,15 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_keyword_property) {
         p.parse_and_visit_statement();
         EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
       }
+
+      {
+        Test_Parser p(
+            concat(u8"interface I { "_sv, keyword, suffix, u8": any; }"_sv),
+            typescript_options);
+        SCOPED_TRACE(p.code);
+        p.parse_and_visit_statement();
+        EXPECT_THAT(p.property_declarations, ElementsAreArray({keyword}));
+      }
     }
 
     for (String8_View keyword : strict_reserved_keywords) {

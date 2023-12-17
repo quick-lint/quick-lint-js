@@ -578,9 +578,11 @@ void Parser::parse_and_visit_class_or_interface_member(
       // async?() {}
       // class C { get }  // Field named 'get'
       // get = init;
+      // set: any
       case Token_Type::equal:
       case Token_Type::question:
       case Token_Type::right_curly:
+      case Token_Type::colon:
         if (!this->overload_signatures.empty()) {
           // class C { method(); }  // Invalid.
           this->error_on_overload_signatures();
