@@ -3585,7 +3585,9 @@ Expression* Parser::parse_jsx_or_typescript_generic_expression(
         break;
       }
 
-      // <T | U>expr  // Cast.
+      // <T | U>expr  // Type assertion.
+      // <T[]>expr    // Type assertion.
+      case Token_Type::left_square:
       case Token_Type::pipe:
         this->lexer_.roll_back_transaction(std::move(transaction));
         return this->parse_typescript_angle_type_assertion_expression(
@@ -4093,6 +4095,8 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
     this->skip();
     switch (this->peek().type) {
     // <T | U>expr
+    // <T[]>expr
+    case Token_Type::left_square:
     case Token_Type::pipe:
       this->lexer_.roll_back_transaction(std::move(transaction));
       return parse_as_type_assertion();

@@ -94,6 +94,7 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
            u8"< | Type>(expr);"_sv,
            u8"< & Type>(expr);"_sv,
            u8"<[Type]>(expr);"_sv,
+           u8"<Type[]>(expr);"_sv,
            u8"<{k: Type}>(expr);"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
