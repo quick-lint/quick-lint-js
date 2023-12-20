@@ -76,8 +76,7 @@ Semantic Versioning.
   * `interface I { get: any; }` (field named `get` with a type annotation) no
     longer reports [E0054][] ("unexpected token"). (Implemented by [Rui
     Serra][].)
-  * In type assertions, certain types (array types, generic arrow types, and
-    type references with a namespace) such as in `<string[]>expr` and
+  * In type assertions, certain types such as in `<string[]>expr` and
     `< <T>() => RT>expr`, are no longer incorrectly interpreted as JSX.
 
 ## 2.18.0 (2023-11-03)
