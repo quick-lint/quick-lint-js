@@ -107,6 +107,18 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type", u8"expr"}));
   }
 
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"< <T>() => RT>expr;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",  //
+                              "visit_variable_declaration",  // T
+                              "visit_variable_type_use",     // RT
+                              "visit_exit_function_scope",   //
+                              "visit_variable_use",          // expr
+                          }));
+  }
+
   for (const String8& type :
        typescript_builtin_type_keywords | typescript_special_type_keywords) {
     Test_Parser p(concat(u8"<"_sv, type, u8">expr;"_sv), typescript_options);

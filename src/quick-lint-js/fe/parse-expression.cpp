@@ -3491,9 +3491,11 @@ Expression* Parser::parse_jsx_or_typescript_generic_expression(
     switch (this->peek().type) {
     // <(Type)>expr
     // < | Type>expr
+    // < <T>(param) => ReturnType>expr
     case Token_Type::ampersand:
     case Token_Type::left_paren:
     case Token_Type::left_square:
+    case Token_Type::less:
     case Token_Type::pipe:
       this->lexer_.roll_back_transaction(std::move(transaction));
       return this->parse_typescript_angle_type_assertion_expression(
