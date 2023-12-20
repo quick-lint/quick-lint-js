@@ -547,35 +547,19 @@ function testIsIDStart() {
     assert.ok(!isIDStart(codePoint), codePoint.toString(16));
   }
 
-  // No (disallowed)
+  // Not included or explicitly excluded:
   assert.ok(!isIDStart(0x2460)); // CIRCLED DIGIT ONE (No)
-
-  // Pc (disallowed)
   assert.ok(!isIDStart(0x005f)); // LOW LINE (Pc)
   assert.ok(!isIDStart(0x203f)); // UNDERTIE (Pc)
-
-  // Pd (disallowed)
   assert.ok(!isIDStart(0x1400)); // CANADIAN SYLLABICS HYPHEN (Pd)
-
-  // Sc (disallowed)
   assert.ok(!isIDStart(0x20a0)); // EURO-CURRENCY SIGN (Sc)
   assert.ok(!isIDStart(0x0024)); // DOLLAR SIGN (Sc)
-
-  // Me (disallowed)
   assert.ok(!isIDStart(0x20dd)); // COMBINING ENCLOSING CIRCLE (Me)
-
-  // Mn (disallowed)
   assert.ok(!isIDStart(0x20f0)); // COMBINING ASTERISK ABOVE (Mn)
-
-  // Nd (disallowed)
   assert.ok(!isIDStart(0xa627)); // VAI DIGIT SEVEN (Nd)
-
-  // Cf (disallowed)
   assert.ok(!isIDStart(0x200c)); // ZERO WIDTH NON-JOINER (Cf)
   assert.ok(!isIDStart(0x200d)); // ZERO WIDTH JOINER (Cf)
   assert.ok(!isIDStart(0x202c)); // POP DIRECTIONAL FORMATTING (Cf)
-
-  // Other_ID_Continue (disallowed)
   for (let codePoint of OTHER_ID_CONTINUE_CODE_POINTS) {
     assert.ok(!isIDStart(codePoint), codePoint.toString(16));
   }
@@ -628,20 +612,12 @@ function testIsIDContinue() {
     assert.ok(!isIDContinue(codePoint), codePoint.toString(16));
   }
 
-  // No (disallowed)
+  // Not included or explicitly excluded:
   assert.ok(!isIDContinue(0x2460)); // CIRCLED DIGIT ONE (No)
-
-  // Pd (disallowed)
   assert.ok(!isIDContinue(0x1400)); // CANADIAN SYLLABICS HYPHEN (Pd)
-
-  // Sc (disallowed)
   assert.ok(!isIDContinue(0x20a0)); // EURO-CURRENCY SIGN (Sc)
   assert.ok(!isIDContinue(0x0024)); // DOLLAR SIGN (Sc)
-
-  // Me (disallowed)
   assert.ok(!isIDContinue(0x20dd)); // COMBINING ENCLOSING CIRCLE (Me)
-
-  // Cf (disallowed)
   assert.ok(!isIDContinue(0x200c)); // ZERO WIDTH NON-JOINER (Cf)
   assert.ok(!isIDContinue(0x200d)); // ZERO WIDTH JOINER (Cf)
   assert.ok(!isIDContinue(0x202c)); // POP DIRECTIONAL FORMATTING (Cf)
@@ -682,33 +658,17 @@ function testIsJSIdentifierStart() {
     assert.ok(!isJSIdentifierStart(codePoint), codePoint.toString(16));
   }
 
-  // No (disallowed)
+  // Not included or explicitly excluded:
   assert.ok(!isJSIdentifierStart(0x2460)); // CIRCLED DIGIT ONE (No)
-
-  // Pc (disallowed)
   assert.ok(!isJSIdentifierStart(0x203f)); // UNDERTIE (Pc)
-
-  // Pd (disallowed)
   assert.ok(!isJSIdentifierStart(0x1400)); // CANADIAN SYLLABICS HYPHEN (Pd)
-
-  // Sc (disallowed)
   assert.ok(!isJSIdentifierStart(0x20a0)); // EURO-CURRENCY SIGN (Sc)
-
-  // Me (disallowed)
   assert.ok(!isJSIdentifierStart(0x20dd)); // COMBINING ENCLOSING CIRCLE (Me)
-
-  // Mn (disallowed)
   assert.ok(!isJSIdentifierStart(0x20f0)); // COMBINING ASTERISK ABOVE (Mn)
-
-  // Nd (disallowed)
   assert.ok(!isJSIdentifierStart(0xa627)); // VAI DIGIT SEVEN (Nd)
-
-  // Cf (disallowed)
   assert.ok(!isJSIdentifierStart(0x200c)); // ZERO WIDTH NON-JOINER (Cf)
   assert.ok(!isJSIdentifierStart(0x200d)); // ZERO WIDTH JOINER (Cf)
   assert.ok(!isJSIdentifierStart(0x202c)); // POP DIRECTIONAL FORMATTING (Cf)
-
-  // Other_ID_Continue (disallowed)
   for (let codePoint of OTHER_ID_CONTINUE_CODE_POINTS) {
     assert.ok(!isJSIdentifierStart(codePoint), codePoint.toString(16));
   }
@@ -768,19 +728,11 @@ function testIsJSIdentifierPart() {
     assert.ok(!isJSIdentifierPart(codePoint), codePoint.toString(16));
   }
 
-  // No (disallowed)
+  // Not included or explicitly excluded:
   assert.ok(!isJSIdentifierPart(0x2460)); // CIRCLED DIGIT ONE (No)
-
-  // Pd (disallowed)
   assert.ok(!isJSIdentifierPart(0x1400)); // CANADIAN SYLLABICS HYPHEN (Pd)
-
-  // Sc (disallowed)
   assert.ok(!isJSIdentifierPart(0x20a0)); // EURO-CURRENCY SIGN (Sc)
-
-  // Me (disallowed)
   assert.ok(!isJSIdentifierPart(0x20dd)); // COMBINING ENCLOSING CIRCLE (Me)
-
-  // Cf (disallowed)
   assert.ok(!isJSIdentifierPart(0x202c)); // POP DIRECTIONAL FORMATTING (Cf)
 }
 
