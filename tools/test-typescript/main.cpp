@@ -45,6 +45,10 @@ constexpr String8_View ignored_tests[] = {
     u8"/downlevelLetConst15.ts"sv,
     u8"/initializePropertiesWithRenamedLet.ts"sv,
 
+    // This test correctly emits E0266 (a warning).
+    // TODO(strager): Disable E0266 for this test but still check this test.
+    u8"/castOfAwait.ts"sv,
+
     // These tests correctly emit E0427 (a warning).
     // TODO(strager): Disable E0427 for all tests and don't ignore these tests.
     u8"/es5-asyncFunctionSwitchStatements.ts"_sv,
