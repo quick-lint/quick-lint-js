@@ -52,8 +52,8 @@ namespace quick_lint_js {
 
   output.write(
     `\
-static_assert(lexer::unicode_table_chunk_size == ${chunkSize});
-static_assert(std::is_same_v<lexer::unicode_table_chunk_index_type, ${chunkIndexType}>);
+static_assert(Lexer::unicode_table_chunk_size == ${chunkSize});
+static_assert(std::is_same_v<Lexer::Unicode_Table_Chunk_Index_Type, ${chunkIndexType}>);
 
 `
   );
@@ -98,14 +98,14 @@ static_assert(std::is_same_v<lexer::unicode_table_chunk_index_type, ${chunkIndex
 
   assert.ok(chunkDataToIndex.size <= maxChunkIndex);
 
-  output.write("const std::uint8_t lexer::unicode_tables_chunks[] = {\n");
+  output.write("const std::uint8_t Lexer::unicode_tables_chunks[] = {\n");
   output.write(dumpBitTableToString(allChunks, { indentation: "  " }));
   console.log(`unicode_tables_chunks_size = ${allChunks.length}`);
   output.write("\n};\n\n");
 
   function dumpChunkIndexesTable(name, data /*: Array<bool> */) {
     output.write(
-      `const lexer::unicode_table_chunk_index_type lexer::${name}[] = {\n`
+      `const Lexer::Unicode_Table_Chunk_Index_Type Lexer::${name}[] = {\n`
     );
     let chunkIndexes = chunk(data, chunkSize).map((c) =>
       chunkDataToIndex.get(boolsToBigInt(c))
@@ -115,7 +115,7 @@ static_assert(std::is_same_v<lexer::unicode_table_chunk_index_type, ${chunkIndex
     console.log(`${name}_size = ${chunkIndexes.length}`);
     output.write("\n};\n");
     output.write(
-      `static_assert(lexer::${name}_size == sizeof(lexer::${name}));\n`
+      `static_assert(Lexer::${name}_size == sizeof(Lexer::${name}));\n`
     );
   }
 
