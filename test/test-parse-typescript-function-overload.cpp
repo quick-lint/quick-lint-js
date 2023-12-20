@@ -539,6 +539,62 @@ TEST_F(Test_Parse_TypeScript_Function_Overload,
         });
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Function_Overload,
+       default_modifier_is_ignored_on_signatures) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default function f(); export function f() {}"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default async function f(); export function f() {}"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+
+  if ((false)) {  // FIXME(#1127)
+    // This should not report Diag_Multiple_Export_Defaults.
+    test_parse_and_visit_module(
+        u8"export default function f();\n"_sv
+        u8"export function f() {}\n"_sv  // Not a default export.
+        u8"export default class C {}"_sv,
+        no_diags, typescript_options);
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Function_Overload,
+       default_modifier_is_optional_on_signatures) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export default function f(); export default function f() {}"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"export function f(); export default function f() {}"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+
+  test_parse_and_visit_module(
+      u8"export default function f(); export default function f() {}  export default class C {}"_sv,
+      u8"Diag_Multiple_Export_Defaults"_diag, typescript_options);
+  if ((false)) {  // FIXME(#1127)
+    test_parse_and_visit_module(
+        u8"export function f(); export default function f() {}  export default class C {}"_sv,
+        u8"Diag_Multiple_Export_Defaults"_diag, typescript_options);
+  }
+}
 }
 }
 

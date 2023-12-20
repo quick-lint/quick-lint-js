@@ -1058,7 +1058,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
                    .async_keyword = async_token.span(),
                    .declare_keyword =
                        options.declare_context.maybe_declare_keyword_span(),
-                   // TODO(strager): Set .export_keyword.
+                   .export_keyword = export_token_span,
                });
       } else {
         this->lexer_.roll_back_transaction(std::move(transaction));
@@ -1130,7 +1130,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
                  .async_keyword = std::nullopt,
                  .declare_keyword =
                      options.declare_context.maybe_declare_keyword_span(),
-                 // TODO(strager): Set .export_keyword.
+                 .export_keyword = export_token_span,
              });
       break;
 
@@ -2817,6 +2817,15 @@ Parser::parse_end_of_typescript_overload_signature(
   second_function_expected_export = Source_Code_Span::unit(this->peek().begin);
   if (this->peek().type == Token_Type::kw_export) {
     second_function_export_keyword = this->peek().span();
+    this->skip();
+  }
+
+  if (this->peek().type == Token_Type::kw_default) {
+    // export default function f(); export default function f() {}
+    if (!second_function_export_keyword.has_value()) {
+      // function f(); default function f() {}  // Invalid.
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
     this->skip();
   }
 
