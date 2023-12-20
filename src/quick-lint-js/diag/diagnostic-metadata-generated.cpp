@@ -3016,6 +3016,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Missing_Parameter_Name
+    {
+      .code = 438,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("missing parameter name"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_Parameter_Name, expected_parameter_name), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Missing_Separator_Between_Object_Type_Entries
     {
       .code = 257,

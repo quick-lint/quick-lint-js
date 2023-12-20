@@ -511,6 +511,27 @@ TEST_F(Test_Parse_Decorator,
       typescript_options);
 }
 
+TEST_F(Test_Parse_Decorator, parameter_decorator_requires_parameter_name) {
+  test_parse_and_visit_statement(
+      u8"class C { f(@d1) {} }"_sv,  //
+      u8"               ` Diag_Missing_Parameter_Name.expected_parameter_name"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"class C { f(@d1 ,) {} }"_sv,  //
+      u8"                ` Diag_Missing_Parameter_Name.expected_parameter_name"_diag,
+      typescript_options);
+  if ((false)) {  // TODO(#1126)
+    test_parse_and_visit_statement(
+        u8"class C { f(@d1 = 42) {} }"_sv,  //
+        u8"                ` Diag_Missing_Parameter_Name.expected_parameter_name"_diag,
+        typescript_options);
+    test_parse_and_visit_statement(
+        u8"class C { f(@d1: Type) {} }"_sv,  //
+        u8"               ` Diag_Missing_Parameter_Name.expected_parameter_name"_diag,
+        typescript_options);
+  }
+}
+
 TEST_F(Test_Parse_Decorator,
        typescript_parameter_decorator_is_not_allowed_in_javascript) {
   test_parse_and_visit_statement(

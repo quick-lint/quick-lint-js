@@ -2438,6 +2438,18 @@ void Parser::parse_and_visit_function_parameters(
       comma_span = this->peek().span();
       this->skip();
     }
+    if (this->peek().type == Token_Type::right_paren) {
+      if (last_parameter_spread_span.has_value()) {
+        // function f(...args,)  // Trailing comma is illegal.
+        QLJS_ASSERT(comma_span.has_value());
+        this->diag_reporter_->report(
+            Diag_Comma_Not_Allowed_After_Spread_Parameter{
+                .comma = *comma_span,
+                .spread = *last_parameter_spread_span,
+            });
+      }
+      goto done;
+    }
 
     auto is_after_parameter_name = [this]() -> bool {
       switch (this->peek().type) {
@@ -2446,6 +2458,7 @@ void Parser::parse_and_visit_function_parameters(
       // function foo(paramName) {}
       case Token_Type::colon:
       case Token_Type::comma:
+      case Token_Type::equal:
       case Token_Type::right_paren:
         return true;
 
@@ -2694,19 +2707,15 @@ void Parser::parse_and_visit_function_parameters(
       }
       break;
     }
-    case Token_Type::right_paren:
-      if (last_parameter_spread_span.has_value()) {
-        // function f(...args,)  // Trailing comma is illegal.
-        QLJS_ASSERT(comma_span.has_value());
-        this->diag_reporter_->report(
-            Diag_Comma_Not_Allowed_After_Spread_Parameter{
-                .comma = *comma_span,
-                .spread = *last_parameter_spread_span,
-            });
-      }
-      goto done;
     default:
-      QLJS_PARSER_UNIMPLEMENTED();
+      if (is_after_parameter_name()) {
+        this->diag_reporter_->report(Diag_Missing_Parameter_Name{
+            .expected_parameter_name =
+                Source_Code_Span::unit(this->peek().begin),
+        });
+      } else {
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
       break;
     }
     first_parameter = false;

@@ -1062,6 +1062,10 @@ msgid "missing operand for operator"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "missing parameter name"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing ',', ';', or newline between object type entries"
 msgstr ""
 

@@ -1547,6 +1547,12 @@ struct Diag_Missing_Operand_For_Operator {
   Source_Code_Span where;
 };
 
+struct Diag_Missing_Parameter_Name {
+  [[qljs::diag("E0438", Diagnostic_Severity::error)]]                        //
+  [[qljs::message("missing parameter name", ARG(expected_parameter_name))]]  //
+  Source_Code_Span expected_parameter_name;
+};
+
 struct Diag_Missing_Separator_Between_Object_Type_Entries {
   [[qljs::diag("E0257", Diagnostic_Severity::error)]]  //
   [[qljs::message("missing ',', ';', or newline between object type entries",

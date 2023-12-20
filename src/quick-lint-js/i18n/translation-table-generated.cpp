@@ -397,7 +397,8 @@ const Translation_Table translation_data = {
         {37, 53, 35, 35, 37, 34},            //
         {44, 29, 47, 43, 43, 41},            //
         {28, 48, 38, 17, 30, 29},            //
-        {52, 31, 64, 55, 48, 55},            //
+        {0, 0, 0, 0, 0, 55},                 //
+        {52, 31, 64, 55, 48, 23},            //
         {37, 26, 0, 40, 0, 38},              //
         {40, 46, 0, 56, 0, 50},              //
         {0, 0, 0, 52, 0, 44},                //
@@ -2220,6 +2221,7 @@ const Translation_Table translation_data = {
         u8"missing name or parentheses for function\0"
         u8"missing operand for operator\0"
         u8"missing operator between expression and arrow function\0"
+        u8"missing parameter name\0"
         u8"missing parameters for arrow function\0"
         u8"missing parentheses around left-hand side of '**'\0"
         u8"missing parentheses around operand of '{0}'\0"

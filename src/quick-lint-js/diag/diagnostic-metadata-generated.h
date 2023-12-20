@@ -212,6 +212,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Name_Of_Exported_Function) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Name_Or_Parentheses_For_Function) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Operand_For_Operator) \
+  QLJS_DIAG_TYPE_NAME(Diag_Missing_Parameter_Name) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Separator_Between_Object_Type_Entries) \
   QLJS_DIAG_TYPE_NAME(Diag_Redundant_Delete_Statement_On_Variable) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_If_After_Else) \
@@ -459,7 +460,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 445;
+inline constexpr int Diag_Type_Count = 446;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

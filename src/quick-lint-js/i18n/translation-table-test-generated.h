@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[551] = {
+inline const Translated_String test_translation_table[552] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4272,6 +4272,17 @@ inline const Translated_String test_translation_table[551] = {
             u8"op\u00e9rateur manquant entre l'expression et la fonction fl\u00e9ch\u00e9e",
             u8"falta o operador entre a express\u00e3o e a arrow function",
             u8"saknar operat\u00f6r mellan uttryck och pilfunktion",
+        },
+    },
+    {
+        "missing parameter name"_translatable,
+        u8"missing parameter name",
+        {
+            u8"missing parameter name",
+            u8"missing parameter name",
+            u8"missing parameter name",
+            u8"missing parameter name",
+            u8"missing parameter name",
         },
     },
     {
