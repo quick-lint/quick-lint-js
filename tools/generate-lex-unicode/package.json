@@ -3,7 +3,8 @@
     "fmt": "prettier --write '*.js' '*.json'"
   },
   "dependencies": {
-    "@unicode/unicode-15.0.0": "*"
+    "@unicode/unicode-15.0.0": "*",
+    "@unicode/unicode-15.1.0": "*"
   },
   "devDependencies": {
     "prettier": "^2.8.4"

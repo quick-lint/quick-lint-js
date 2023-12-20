@@ -3,9 +3,14 @@
 
 
 "@unicode/unicode-15.0.0@*":
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/@unicode/unicode-15.0.0/-/unicode-15.0.0-1.3.1.tgz#6d2d9b4ac73a5227122ede626a7977556decf81d"
-  integrity sha512-zxm5Cx0v9vGxFOM8tVuArWHxxJTk+stiLA+ZHKt2mJO3HHmM6uN8OFcDGuvcix3MqguQ75am0XvpUgEz4P4vFw==
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@unicode/unicode-15.0.0/-/unicode-15.0.0-1.5.2.tgz#5350ad022050ca5e165f8352d9f971d418c99deb"
+  integrity sha512-PepMvMxf9j4sp4bZn7W9JJoMxynHk66ZPCsx6n3v47T5vmM+qfIy0z1MMU+EDmRZr2cvs1aT9ZwUEMRPVXR23g==
+
+"@unicode/unicode-15.1.0@*":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@unicode/unicode-15.1.0/-/unicode-15.1.0-1.5.2.tgz#0358d05ab99a7d05c12c68cc2123cf124c34beb9"
+  integrity sha512-7PAgnShDr8ziK6XeHB/TUVFboDFEhaQKKyrw55/Kx9o6AQDy1s7dJ9KRpRerW9nrR5qMGUQvOqTXOAek6ZIXkg==
 
 prettier@^2.8.4:
   version "2.8.4"

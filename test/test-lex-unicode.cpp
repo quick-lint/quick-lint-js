@@ -24,11 +24,14 @@ std::string pretty(char32_t c) {
 }
 
 bool icu_data_is_valid() {
-  std::uint8_t minimum_unicode_version = 15;
+  std::uint8_t minimum_unicode_major_version = 15;
+  std::uint8_t minimum_unicode_minor_version = 1;
 
   UVersionInfo version;
   ::u_getUnicodeVersion(version);
-  if (version[0] >= minimum_unicode_version) {
+  if (version[0] > minimum_unicode_major_version ||
+      (version[0] == minimum_unicode_major_version &&
+       version[1] >= minimum_unicode_minor_version)) {
     return true;
   }
 
@@ -37,9 +40,9 @@ bool icu_data_is_valid() {
     std::fprintf(stderr,
                  "warning: The ICU library has data for Unicode version "
                  "%u.%u.%u.%u, which is too old. Upgrade ICU to Unicode "
-                 "version %u or newer. Skipping tests...\n",
+                 "version %u.%u or newer. Skipping tests...\n",
                  version[0], version[1], version[2], version[3],
-                 minimum_unicode_version);
+                 minimum_unicode_major_version, minimum_unicode_minor_version);
     did_log_warning = true;
   }
   return false;

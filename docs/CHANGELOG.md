@@ -10,6 +10,7 @@ Semantic Versioning.
 
 ### Added
 
+* Unicode 15.1 is now supported, including new CJK code points in identifiers.
 * Missing `break;` (or `return;` or `throw ...;` or `// fallthrough`) after a
   clause in `switch` statement now reports [E0427][] ("missing 'break;' or '//
   fallthrough' comment between statement and 'case'"). (Implemented by [Yash

@@ -169,34 +169,34 @@ function isIDContinue(codePoint) {
 }
 
 let ID_START_CODE_POINTS = new Set(
-  require("@unicode/unicode-15.0.0/Binary_Property/ID_Start/code-points.js")
+  require("@unicode/unicode-15.1.0/Binary_Property/ID_Start/code-points.js")
 );
 let ID_CONTINUE_CODE_POINTS = new Set(
-  require("@unicode/unicode-15.0.0/Binary_Property/ID_Continue/code-points.js")
+  require("@unicode/unicode-15.1.0/Binary_Property/ID_Continue/code-points.js")
 );
 
 // Pattern_White_Space
-// https://www.unicode.org/Public/11.0.0/ucd/PropList.txt
+// https://www.unicode.org/Public/15.1.0/ucd/PropList.txt
 let PATTERN_WHITE_SPACE_CODE_POINTS = new Set([
   0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x0020, 0x0085, 0x200e, 0x200f,
   0x2028, 0x2029,
 ]);
 
 // Other_ID_Start
-// https://www.unicode.org/Public/11.0.0/ucd/PropList.txt
+// https://www.unicode.org/Public/15.1.0/ucd/PropList.txt
 let OTHER_ID_START_CODE_POINTS = new Set([
   0x1885, 0x1886, 0x2118, 0x212e, 0x309b, 0x309c,
 ]);
 
 // Other_ID_Continue
-// https://www.unicode.org/Public/11.0.0/ucd/PropList.txt
+// https://www.unicode.org/Public/15.1.0/ucd/PropList.txt
 let OTHER_ID_CONTINUE_CODE_POINTS = new Set([
   0x00b7, 0x0387, 0x1369, 0x136a, 0x136b, 0x136c, 0x136d, 0x136e, 0x136f,
-  0x1370, 0x1371, 0x19da,
+  0x1370, 0x1371, 0x19da, 0x200c, 0x200d, 0x30fb, 0xff65,
 ]);
 
 // Pattern_Syntax
-// https://www.unicode.org/Public/11.0.0/ucd/PropList.txt
+// https://www.unicode.org/Public/15.1.0/ucd/PropList.txt
 let PATTERN_SYNTAX_CODE_POINTS = new Set([
   0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029,
   0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f, 0x003a, 0x003b, 0x003c,
@@ -537,6 +537,8 @@ function testIsIDStart() {
   assert.ok(isIDStart(0x309b)); // KATAKANA-HIRAGANA VOICED SOUND MARK
   assert.ok(isIDStart(0x309c)); // KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK
 
+  assert.ok(isIDStart(0x2ee5d));
+
   // Pattern_Syntax (disallowed)
   for (let codePoint of PATTERN_SYNTAX_CODE_POINTS) {
     assert.ok(!isIDStart(codePoint), codePoint.toString(16));
@@ -618,8 +620,6 @@ function testIsIDContinue() {
   assert.ok(!isIDContinue(0x20a0)); // EURO-CURRENCY SIGN (Sc)
   assert.ok(!isIDContinue(0x0024)); // DOLLAR SIGN (Sc)
   assert.ok(!isIDContinue(0x20dd)); // COMBINING ENCLOSING CIRCLE (Me)
-  assert.ok(!isIDContinue(0x200c)); // ZERO WIDTH NON-JOINER (Cf)
-  assert.ok(!isIDContinue(0x200d)); // ZERO WIDTH JOINER (Cf)
   assert.ok(!isIDContinue(0x202c)); // POP DIRECTIONAL FORMATTING (Cf)
 }
 
