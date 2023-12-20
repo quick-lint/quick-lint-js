@@ -124,6 +124,132 @@ TEST_F(Test_Parse_TypeScript_Function_Overload, function_overload_signatures) {
 }
 
 TEST_F(Test_Parse_TypeScript_Function_Overload,
+       exported_function_overload_signatures) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export function f();\n"_sv
+        u8"export function f() {}"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+
+  {
+    // ASI
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export function f()\n"_sv
+        u8"export function f() {}"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_exit_function_scope",        //
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // f
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export function f(a: number);\n"_sv
+        u8"export function f(a: string);\n"_sv
+        u8"export function f(a: number | string) {}"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.variable_declarations, ElementsAreArray({
+                                             func_param_decl(u8"a"_sv),
+                                             func_param_decl(u8"a"_sv),
+                                             func_param_decl(u8"a"_sv),
+                                             function_decl(u8"f"_sv),
+                                         }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export function f();\n"_sv
+        u8"export async function f() { await(myPromise); }"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export async function f();\n"_sv
+        u8"export function f() { await(myPromise); }"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"await", u8"myPromise"}))
+        << "'async' keyword should not apply to implementation";
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Function_Overload, mismatched_export_modifier) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export function f(); function f() {}"_sv,  //
+        u8"                     ` Diag_Missing_Export_For_Function_With_Overload_Signature.expected_export\n"_diag
+        u8"^^^^^^ .existing_export",
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"function f(); export function f() {}"_sv,  //
+        u8"              ^^^^^^ Diag_Missing_Export_For_Function_With_Overload_Signature.existing_export\n"_diag
+        u8"` .expected_export",
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({function_decl(u8"f"_sv)}));
+  }
+
+  // -e-
+
+  test_parse_and_visit_statement(
+      u8"export function f(); export function f(); function f() {}"_sv,  //
+      u8"                                          ` Diag_Missing_Export_For_Function_With_Overload_Signature.expected_export\n"_diag
+      u8"^^^^^^ .existing_export",
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"export function f(); function f(); export function f() {}"_sv,  //
+      u8"                     ` Diag_Missing_Export_For_Function_With_Overload_Signature.expected_export\n"_diag
+      u8"^^^^^^ .existing_export",
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"export function f(); function f(); function f() {}"_sv,  //
+      u8"                                   ` Diag_Missing_Export_For_Function_With_Overload_Signature.expected_export\n"_diag
+      u8"^^^^^^ .existing_export",
+      u8"                     ` Diag_Missing_Export_For_Function_With_Overload_Signature.expected_export\n"_diag
+      u8"^^^^^^ .existing_export",
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"function f(); export function f(); export function f() {}"_sv,  //
+      u8"              ^^^^^^ Diag_Missing_Export_For_Function_With_Overload_Signature.existing_export\n"_diag
+      u8"` .expected_export",
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"function f(); export function f(); function f() {}"_sv,  //
+      u8"              ^^^^^^ Diag_Missing_Export_For_Function_With_Overload_Signature.existing_export\n"_diag
+      u8"                                   ` .expected_export",
+      u8"              ^^^^^^ Diag_Missing_Export_For_Function_With_Overload_Signature.existing_export\n"_diag
+      u8"` .expected_export",
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"function f(); function f(); export function f() {}"_sv,  //
+      u8"                            ^^^^^^ Diag_Missing_Export_For_Function_With_Overload_Signature.existing_export\n"_diag
+      u8"              ` .expected_export",
+      u8"                            ^^^^^^ Diag_Missing_Export_For_Function_With_Overload_Signature.existing_export\n"_diag
+      u8"` .expected_export",
+      typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Function_Overload,
        function_overload_signature_with_wrong_name) {
   {
     Test_Parser p(

@@ -36,6 +36,7 @@ Semantic Versioning.
     ("'in' or 'out' variance specifier cannot be listed twice").
   * Negative number literals are now parsed in types.
   * Parameter decorators are now parsed.
+  * Overload signatures are now allowed on exported functions.
 
 ### Fixed
 

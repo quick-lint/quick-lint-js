@@ -986,6 +986,14 @@ msgid "missing '=' after variable"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "missing 'export' keyword for function"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "'export' must be on either all function signatures or none of them"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing expression between parentheses"
 msgstr ""
 

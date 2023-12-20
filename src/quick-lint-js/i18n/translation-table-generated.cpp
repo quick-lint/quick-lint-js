@@ -69,7 +69,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 91},                 //
         {0, 0, 0, 0, 0, 62},                 //
         {0, 0, 0, 0, 0, 64},                 //
-        {0, 0, 0, 39, 0, 22},                //
+        {0, 0, 0, 0, 0, 22},                 //
+        {0, 0, 0, 39, 0, 67},                //
         {30, 39, 0, 46, 0, 38},              //
         {0, 0, 0, 0, 0, 11},                 //
         {0, 0, 0, 11, 0, 64},                //
@@ -353,7 +354,8 @@ const Translation_Table translation_data = {
         {34, 44, 0, 36, 0, 38},              //
         {58, 48, 46, 50, 28, 52},            //
         {0, 0, 0, 0, 0, 27},                 //
-        {0, 40, 0, 28, 0, 74},               //
+        {0, 0, 0, 0, 0, 74},                 //
+        {0, 40, 0, 28, 0, 38},               //
         {29, 22, 33, 28, 26, 26},            //
         {0, 0, 0, 55, 0, 51},                //
         {48, 27, 63, 27, 0, 24},             //
@@ -1893,6 +1895,7 @@ const Translation_Table translation_data = {
         u8"'export as namespace' is not allowed in a namespace or module\0"
         u8"'export as namespace' is only allowed in TypeScript .d.ts files\0"
         u8"'export' keyword here\0"
+        u8"'export' must be on either all function signatures or none of them\0"
         u8"'extends' must be before 'implements'\0"
         u8"'for' loop\0"
         u8"'function async' is not allowed; write 'async function' instead\0"
@@ -2177,6 +2180,7 @@ const Translation_Table translation_data = {
         u8"missing '<>' and '</>' to enclose multiple children\0"
         u8"missing '=' after variable\0"
         u8"missing 'break;' or '// fallthrough' comment between statement and 'case'\0"
+        u8"missing 'export' keyword for function\0"
         u8"missing 'if' after 'else'\0"
         u8"missing 'while (condition)' for do-while statement\0"
         u8"missing TypeScript type\0"

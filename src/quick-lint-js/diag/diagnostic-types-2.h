@@ -1420,6 +1420,17 @@ struct Diag_Missing_Equal_After_Variable {
   Source_Code_Span expected_equal;
 };
 
+struct Diag_Missing_Export_For_Function_With_Overload_Signature {
+  [[qljs::diag("E0439", Diagnostic_Severity::error)]]  //
+  [[qljs::message("missing 'export' keyword for function",
+                  ARG(expected_export))]]  //
+  [[qljs::message(
+      "'export' must be on either all function signatures or none of them",
+      ARG(existing_export))]]  //
+  Source_Code_Span expected_export;
+  Source_Code_Span existing_export;
+};
+
 struct Diag_Missing_Expression_Between_Parentheses {
   [[qljs::diag("E0078", Diagnostic_Severity::error)]]  //
   [[qljs::message("missing expression between parentheses",

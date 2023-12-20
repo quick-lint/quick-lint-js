@@ -1058,6 +1058,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
                    .async_keyword = async_token.span(),
                    .declare_keyword =
                        options.declare_context.maybe_declare_keyword_span(),
+                   // TODO(strager): Set .export_keyword.
                });
       } else {
         this->lexer_.roll_back_transaction(std::move(transaction));
@@ -1129,6 +1130,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
                  .async_keyword = std::nullopt,
                  .declare_keyword =
                      options.declare_context.maybe_declare_keyword_span(),
+                 // TODO(strager): Set .export_keyword.
              });
       break;
 
@@ -1303,6 +1305,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
                .require_name = Name_Requirement::required_for_export,
                .async_keyword = async_token_span,
                .declare_keyword = declare_keyword,
+               .export_keyword = export_token_span,
            });
     break;
   }
@@ -1318,6 +1321,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
                .async_keyword = std::nullopt,
                .declare_keyword =
                    options.declare_context.maybe_declare_keyword_span(),
+               .export_keyword = export_token_span,
            });
     break;
 
@@ -2024,6 +2028,23 @@ void Parser::parse_and_visit_function_declaration(
         "parse_and_visit_function_declaration overload_names",
         &this->temporary_memory_);
 
+    // For each signature without an 'export' keyword, this Vector contains
+    // where the missing 'export' keyword would belong. This is used to report
+    // Diag_Missing_Export_For_Function_With_Overload_Signature.
+    Vector<Source_Code_Span> missing_export_locations(
+        "parse_and_visit_function_declaration missing_export_locations",
+        &this->temporary_memory_);
+    // A found 'export' keyword, if any.
+    std::optional<Source_Code_Span> found_export_keyword = std::nullopt;
+    if (this->options_.typescript) {
+      if (options.export_keyword.has_value()) {
+        found_export_keyword = *options.export_keyword;
+      } else {
+        missing_export_locations.push_back(
+            Source_Code_Span::unit(options.begin));
+      }
+    }
+
   next_overload:
     if (options.declare_keyword.has_value() ||
         this->options_.typescript_definition_file) {
@@ -2059,6 +2080,17 @@ void Parser::parse_and_visit_function_declaration(
                         .generator_star = *generator_star,
                     });
               }
+
+              if (!found_export_keyword.has_value() &&
+                  r.second_function_export_keyword.has_value()) {
+                found_export_keyword = *r.second_function_export_keyword;
+              }
+              if (!r.second_function_export_keyword.has_value() &&
+                  r.second_function_expected_export.has_value()) {
+                missing_export_locations.push_back(
+                    *r.second_function_expected_export);
+              }
+
               v.visit_exit_function_scope();
               options.attributes = r.second_function_attributes;
               generator_star = r.second_function_generator_star;
@@ -2113,6 +2145,16 @@ void Parser::parse_and_visit_function_declaration(
           }
         }
         function_name = overload_names[overload_names.size() - 1];
+      }
+
+      if (found_export_keyword.has_value()) {
+        for (Source_Code_Span missing_export : missing_export_locations) {
+          this->diag_reporter_->report(
+              Diag_Missing_Export_For_Function_With_Overload_Signature{
+                  .expected_export = missing_export,
+                  .existing_export = *found_export_keyword,
+              });
+        }
       }
     }
 
@@ -2747,7 +2789,10 @@ Parser::parse_end_of_typescript_overload_signature(
   Lexer_Transaction transaction = this->lexer_.begin_transaction();
   Function_Attributes second_function_attributes = Function_Attributes::normal;
 
-  std::optional<Source_Code_Span> second_function_generator_star;
+  std::optional<Source_Code_Span> second_function_generator_star = std::nullopt;
+  std::optional<Source_Code_Span> second_function_export_keyword = std::nullopt;
+  std::optional<Source_Code_Span> second_function_expected_export =
+      std::nullopt;
 
   auto roll_back_missing_body = [&]() -> Overload_Signature_Parse_Result {
     this->lexer_.roll_back_transaction(std::move(transaction));
@@ -2756,6 +2801,8 @@ Parser::parse_end_of_typescript_overload_signature(
         .has_missing_body_error = true,
         .second_function_attributes = second_function_attributes,
         .second_function_generator_star = second_function_generator_star,
+        .second_function_export_keyword = second_function_export_keyword,
+        .second_function_expected_export = second_function_expected_export,
     };
   };
 
@@ -2765,6 +2812,12 @@ Parser::parse_end_of_typescript_overload_signature(
     this->skip();
   } else if (!this->peek().has_leading_newline) {
     return roll_back_missing_body();
+  }
+
+  second_function_expected_export = Source_Code_Span::unit(this->peek().begin);
+  if (this->peek().type == Token_Type::kw_export) {
+    second_function_export_keyword = this->peek().span();
+    this->skip();
   }
 
   std::optional<Source_Code_Span> async_keyword;
@@ -2826,6 +2879,8 @@ Parser::parse_end_of_typescript_overload_signature(
       .second_function_name = second_function_name,
       .second_function_attributes = second_function_attributes,
       .second_function_generator_star = second_function_generator_star,
+      .second_function_export_keyword = second_function_export_keyword,
+      .second_function_expected_export = second_function_expected_export,
   };
 }
 

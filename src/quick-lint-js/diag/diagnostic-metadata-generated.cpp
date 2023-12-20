@@ -2756,6 +2756,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Missing_Export_For_Function_With_Overload_Signature
+    {
+      .code = 439,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("missing 'export' keyword for function"),
+        QLJS_TRANSLATABLE("'export' must be on either all function signatures or none of them"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_Export_For_Function_With_Overload_Signature, expected_export), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_Export_For_Function_With_Overload_Signature, existing_export), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Missing_Expression_Between_Parentheses
     {
       .code = 78,

@@ -194,6 +194,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Condition_For_Switch_Statement) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Dots_For_Attribute_Spread) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Equal_After_Variable) \
+  QLJS_DIAG_TYPE_NAME(Diag_Missing_Export_For_Function_With_Overload_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Expression_Between_Parentheses) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_For_Loop_Header) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_For_Loop_Rhs_Or_Components_After_Expression) \
@@ -460,7 +461,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 446;
+inline constexpr int Diag_Type_Count = 447;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

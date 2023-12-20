@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 553;
-constexpr std::size_t translation_table_string_table_size = 81270;
+constexpr std::uint16_t translation_table_mapping_table_size = 555;
+constexpr std::size_t translation_table_string_table_size = 81375;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -84,6 +84,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'export as namespace' is not allowed in a namespace or module"sv,
           "'export as namespace' is only allowed in TypeScript .d.ts files"sv,
           "'export' keyword here"sv,
+          "'export' must be on either all function signatures or none of them"sv,
           "'extends' must be before 'implements'"sv,
           "'for' loop"sv,
           "'function async' is not allowed; write 'async function' instead"sv,
@@ -368,6 +369,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing '<>' and '</>' to enclose multiple children"sv,
           "missing '=' after variable"sv,
           "missing 'break;' or '// fallthrough' comment between statement and 'case'"sv,
+          "missing 'export' keyword for function"sv,
           "missing 'if' after 'else'"sv,
           "missing 'while (condition)' for do-while statement"sv,
           "missing TypeScript type"sv,

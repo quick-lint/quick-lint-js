@@ -306,6 +306,7 @@ class Parser {
     std::optional<Source_Code_Span> async_keyword;
     // TypeScript 'declare', either direct or from 'declare namespace'.
     std::optional<Source_Code_Span> declare_keyword;
+    std::optional<Source_Code_Span> export_keyword;
   };
 
   void parse_and_visit_function_declaration(
@@ -377,6 +378,16 @@ class Parser {
     // the span of the second function's '*' (or nullopt if it doesn't have a
     // '*').
     std::optional<Source_Code_Span> second_function_generator_star;
+
+    // If is_overload_signature is true, then second_function_export_keyword is
+    // the span of the second function's 'export' modifier (or nullopt if it
+    // doesn't have a 'export').
+    std::optional<Source_Code_Span> second_function_export_keyword;
+
+    // If is_overload_signature is true, then second_function_expected_export is
+    // the empty span where the 'export' keyword should be written if it is
+    // missing.
+    std::optional<Source_Code_Span> second_function_expected_export;
   };
 
   // Given the following code:

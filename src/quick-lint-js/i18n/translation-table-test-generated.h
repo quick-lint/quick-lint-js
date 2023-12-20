@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[552] = {
+inline const Translated_String test_translation_table[554] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -664,6 +664,17 @@ inline const Translated_String test_translation_table[552] = {
             u8"'export' keyword here",
             u8"'export' keyword here",
             u8"'export' keyword here",
+        },
+    },
+    {
+        "'export' must be on either all function signatures or none of them"_translatable,
+        u8"'export' must be on either all function signatures or none of them",
+        {
+            u8"'export' must be on either all function signatures or none of them",
+            u8"'export' must be on either all function signatures or none of them",
+            u8"'export' must be on either all function signatures or none of them",
+            u8"'export' must be on either all function signatures or none of them",
+            u8"'export' must be on either all function signatures or none of them",
         },
     },
     {
@@ -3788,6 +3799,17 @@ inline const Translated_String test_translation_table[552] = {
             u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
             u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
             u8"missing 'break;' or '// fallthrough' comment between statement and 'case'",
+        },
+    },
+    {
+        "missing 'export' keyword for function"_translatable,
+        u8"missing 'export' keyword for function",
+        {
+            u8"missing 'export' keyword for function",
+            u8"missing 'export' keyword for function",
+            u8"missing 'export' keyword for function",
+            u8"missing 'export' keyword for function",
+            u8"missing 'export' keyword for function",
         },
     },
     {
