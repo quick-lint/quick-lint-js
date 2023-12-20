@@ -3558,8 +3558,19 @@ Expression* Parser::parse_jsx_or_typescript_generic_expression(
         }
         break;
 
+      // <ns.T>expr     // Type assertion.
+      // <ns.T></ns.T>  // JSX element.
+      case Token_Type::dot:
+        if (!this->options_.jsx) {
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          return this->parse_typescript_angle_type_assertion_expression(
+              v, prec,
+              /*is_invalid_due_to_jsx_ambiguity=*/false);
+        }
+        break;
+
       // <T>() => {}  // Generic arrow function.
-      // <T>expr      // Cast.
+      // <T>expr      // Type assertion.
       // <T></T>      // JSX element.
       case Token_Type::greater: {
         if (!this->options_.jsx) {
@@ -4098,6 +4109,8 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
     switch (this->peek().type) {
     // <T | U>expr
     // <T[]>expr
+    // <ns.T>expr
+    case Token_Type::dot:
     case Token_Type::left_square:
     case Token_Type::pipe:
       this->lexer_.roll_back_transaction(std::move(transaction));
