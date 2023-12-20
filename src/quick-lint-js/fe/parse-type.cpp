@@ -122,6 +122,13 @@ again:
     this->skip();
     break;
 
+  // -42
+  case Token_Type::minus:
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::number);
+    this->skip();
+    break;
+
   // any
   // any is Type
   case Token_Type::kw_any:

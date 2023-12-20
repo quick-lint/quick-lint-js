@@ -306,6 +306,7 @@ TEST_F(Test_Parse_TypeScript_Type, this_type) {
 TEST_F(Test_Parse_TypeScript_Type, literal_type) {
   for (String8_View code : {
            u8"42"_sv,
+           u8"-69"_sv,
            u8"'hello'"_sv,
            u8"null"_sv,
            u8"true"_sv,
