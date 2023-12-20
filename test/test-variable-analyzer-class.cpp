@@ -53,6 +53,23 @@ TEST(Test_Variable_Analyzer_Class,
   test_parse_and_analyze(u8"class C { prop = new B(); }  class B {}"_sv,
                          no_diags, javascript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Class, class_decorator_can_reference_class) {
+  test_parse_and_analyze(
+      u8"function myDecorator() {}\n"_sv
+      u8"@myDecorator(C) class C {}"_sv,
+      no_diags, javascript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"@C.decorate class C { static decorate() {} }"_sv,
+                         no_diags, javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"function myDecorator() {}\n"_sv
+      u8"export @myDecorator(C) class C {}"_sv,
+      no_diags, javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"function myDecorator() {}\n"_sv
+      u8"export default @myDecorator(C) class C {}"_sv,
+      no_diags, javascript_analyze_options, default_globals);
+}
 }
 }
 

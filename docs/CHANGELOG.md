@@ -39,6 +39,7 @@ Semantic Versioning.
 
 ### Fixed
 
+* Class decorators may now reference the class by name.
 * TypeScript support (still experimental):
   * Types named `await`, `implements`, `interface`, `let`, `package`, `private`,
     `protected`, `public`, `static`, and `yield` are now recognized in type

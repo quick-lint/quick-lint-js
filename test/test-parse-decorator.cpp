@@ -22,11 +22,11 @@ TEST_F(Test_Parse_Decorator, class_statement_decorator) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"@myDecorator\nclass C {}"_sv, no_diags, javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use",            // myDecorator
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_variable_use",            // myDecorator
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
   }
@@ -58,11 +58,11 @@ TEST_F(Test_Parse_Decorator, export_class_decorator) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"export @myDecorator class C {}"_sv, no_diags, javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use",            // myDecorator
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_variable_use",            // myDecorator
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
   }
@@ -71,11 +71,11 @@ TEST_F(Test_Parse_Decorator, export_class_decorator) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"@myDecorator export class C {}"_sv, no_diags, javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use",            // myDecorator
                               "visit_enter_class_scope",       // class
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_variable_use",            // myDecorator
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
   }
@@ -87,11 +87,11 @@ TEST_F(Test_Parse_Decorator, export_default_class_decorator) {
         u8"export default @myDecorator class C {}"_sv, no_diags,
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use",            // myDecorator
                               "visit_enter_class_scope",       // C
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
+                              "visit_variable_use",            // myDecorator
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
   }
@@ -101,10 +101,10 @@ TEST_F(Test_Parse_Decorator, export_default_class_decorator) {
         u8"export default @myDecorator class {}"_sv, no_diags,
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use",            // myDecorator
                               "visit_enter_class_scope",       // class
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
+                              "visit_variable_use",            // myDecorator
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
   }
@@ -114,10 +114,10 @@ TEST_F(Test_Parse_Decorator, export_default_class_decorator) {
         u8"@myDecorator export default class {}"_sv, no_diags,
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use",            // myDecorator
                               "visit_enter_class_scope",       // class
                               "visit_enter_class_scope_body",  // {
                               "visit_exit_class_scope",        // }
+                              "visit_variable_use",            // myDecorator
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
   }
@@ -131,7 +131,7 @@ TEST_F(Test_Parse_Decorator,
         u8"           ^ Diag_Decorator_Before_And_After_Export_Keyword.decorator_at_after\n"_diag
         u8"^ .decorator_at_before"_diag,
         javascript_options);
-    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"d1"_sv, u8"d2"_sv}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"d2"_sv, u8"d1"_sv}));
   }
 
   {
@@ -140,7 +140,7 @@ TEST_F(Test_Parse_Decorator,
         u8"                   ^ Diag_Decorator_Before_And_After_Export_Keyword.decorator_at_after\n"_diag
         u8"^ .decorator_at_before"_diag,
         javascript_options);
-    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"d1"_sv, u8"d2"_sv}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"d2"_sv, u8"d1"_sv}));
   }
 }
 

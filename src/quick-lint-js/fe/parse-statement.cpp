@@ -1011,6 +1011,8 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
   this->skip();
 
   std::optional<Source_Code_Span> typescript_type_only_keyword;
+  Stacked_Buffering_Visitor deferred_visits =
+      this->buffering_visitor_stack_.push();
 
   switch (this->peek().type) {
     // export default class C {}
@@ -1085,7 +1087,8 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
                 .decorator_at_after = this->peek().span(),
             });
       }
-      this->parse_and_visit_one_or_more_decorators(v);
+      // See NOTE[class-decorator-deferred-visits].
+      this->parse_and_visit_one_or_more_decorators(deferred_visits.visitor());
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_class);
       goto parse_default_class;
 
@@ -1340,7 +1343,8 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
               .decorator_at_after = this->peek().span(),
           });
     }
-    this->parse_and_visit_one_or_more_decorators(v);
+    // See NOTE[class-decorator-deferred-visits].
+    this->parse_and_visit_one_or_more_decorators(deferred_visits.visitor());
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_class);
     goto parse_class;
 
@@ -1577,6 +1581,9 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     });
     break;
   }
+
+  // See NOTE[class-decorator-deferred-visits].
+  deferred_visits.visitor().move_into(v);
 }
 
 void Parser::found_default_export(Source_Code_Span default_keyword,
@@ -2892,7 +2899,9 @@ void Parser::parse_and_visit_one_or_more_decorators(Parse_Visitor_Base &v) {
 void Parser::parse_and_visit_decorator_statement(Parse_Visitor_Base &v) {
   QLJS_ASSERT(this->peek().type == Token_Type::at);
   Source_Code_Span decorator_at = this->peek().span();
-  this->parse_and_visit_one_or_more_decorators(v);
+  Stacked_Buffering_Visitor decorator_visits =
+      this->buffering_visitor_stack_.push();
+  this->parse_and_visit_one_or_more_decorators(decorator_visits.visitor());
 
   switch (this->peek().type) {
   case Token_Type::kw_class:
@@ -2913,6 +2922,9 @@ void Parser::parse_and_visit_decorator_statement(Parse_Visitor_Base &v) {
     QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
+  // NOTE[class-decorator-deferred-visits]: Decorators are executed after the
+  // class's definition.
+  decorator_visits.visitor().move_into(v);
 }
 
 void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
