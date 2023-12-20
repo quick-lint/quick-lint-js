@@ -35,6 +35,7 @@ Semantic Versioning.
   * Repeating `in` or `out` generic parameter modifiers now reports [E0432][]
     ("'in' or 'out' variance specifier cannot be listed twice").
   * Negative number literals are now parsed in types.
+  * Parameter decorators are now parsed.
 
 ### Fixed
 

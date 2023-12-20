@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[544] = {
+inline const Translated_String test_translation_table[551] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -279,6 +279,17 @@ inline const Translated_String test_translation_table[544] = {
             u8"'^' is the XOR operator; to exponentiate, use '**' instead",
             u8"'^' is the XOR operator; to exponentiate, use '**' instead",
             u8"'^' is the XOR operator; to exponentiate, use '**' instead",
+        },
+    },
+    {
+        "'abstract' here"_translatable,
+        u8"'abstract' here",
+        {
+            u8"'abstract' here",
+            u8"'abstract' here",
+            u8"'abstract' here",
+            u8"'abstract' here",
+            u8"'abstract' here",
         },
     },
     {
@@ -1522,6 +1533,17 @@ inline const Translated_String test_translation_table[544] = {
             u8"TypeScript overload signature can only have one semicolon",
             u8"TypeScript overload signature can only have one semicolon",
             u8"TypeScript overload signature can only have one semicolon",
+        },
+    },
+    {
+        "TypeScript parameter decorators are not allowed in JavaScript"_translatable,
+        u8"TypeScript parameter decorators are not allowed in JavaScript",
+        {
+            u8"TypeScript parameter decorators are not allowed in JavaScript",
+            u8"TypeScript parameter decorators are not allowed in JavaScript",
+            u8"TypeScript parameter decorators are not allowed in JavaScript",
+            u8"TypeScript parameter decorators are not allowed in JavaScript",
+            u8"TypeScript parameter decorators are not allowed in JavaScript",
         },
     },
     {
@@ -4495,6 +4517,17 @@ inline const Translated_String test_translation_table[544] = {
         },
     },
     {
+        "move the parameter decorator before '{0}' here"_translatable,
+        u8"move the parameter decorator before '{0}' here",
+        {
+            u8"move the parameter decorator before '{0}' here",
+            u8"move the parameter decorator before '{0}' here",
+            u8"move the parameter decorator before '{0}' here",
+            u8"move the parameter decorator before '{0}' here",
+            u8"move the parameter decorator before '{0}' here",
+        },
+    },
+    {
         "namespace starts here"_translatable,
         u8"namespace starts here",
         {
@@ -4822,6 +4855,50 @@ inline const Translated_String test_translation_table[544] = {
             u8"overloaded method is marked '{0}'",
             u8"overloaded method is marked '{0}'",
             u8"overloaded method is marked '{0}'",
+        },
+    },
+    {
+        "parameter decorator must be before other modifiers"_translatable,
+        u8"parameter decorator must be before other modifiers",
+        {
+            u8"parameter decorator must be before other modifiers",
+            u8"parameter decorator must be before other modifiers",
+            u8"parameter decorator must be before other modifiers",
+            u8"parameter decorator must be before other modifiers",
+            u8"parameter decorator must be before other modifiers",
+        },
+    },
+    {
+        "parameter decorators are not allowed in 'declare class'"_translatable,
+        u8"parameter decorators are not allowed in 'declare class'",
+        {
+            u8"parameter decorators are not allowed in 'declare class'",
+            u8"parameter decorators are not allowed in 'declare class'",
+            u8"parameter decorators are not allowed in 'declare class'",
+            u8"parameter decorators are not allowed in 'declare class'",
+            u8"parameter decorators are not allowed in 'declare class'",
+        },
+    },
+    {
+        "parameter decorators are not allowed in abstract methods"_translatable,
+        u8"parameter decorators are not allowed in abstract methods",
+        {
+            u8"parameter decorators are not allowed in abstract methods",
+            u8"parameter decorators are not allowed in abstract methods",
+            u8"parameter decorators are not allowed in abstract methods",
+            u8"parameter decorators are not allowed in abstract methods",
+            u8"parameter decorators are not allowed in abstract methods",
+        },
+    },
+    {
+        "parameter decorators are only allowed in class methods"_translatable,
+        u8"parameter decorators are only allowed in class methods",
+        {
+            u8"parameter decorators are only allowed in class methods",
+            u8"parameter decorators are only allowed in class methods",
+            u8"parameter decorators are only allowed in class methods",
+            u8"parameter decorators are only allowed in class methods",
+            u8"parameter decorators are only allowed in class methods",
         },
     },
     {

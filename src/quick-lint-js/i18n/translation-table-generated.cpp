@@ -35,6 +35,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 37},                 //
         {0, 0, 0, 0, 0, 14},                 //
         {0, 0, 0, 0, 0, 59},                 //
+        {0, 0, 0, 0, 0, 16},                 //
         {0, 0, 0, 0, 0, 58},                 //
         {0, 0, 0, 0, 0, 56},                 //
         {0, 0, 0, 36, 0, 45},                //
@@ -148,6 +149,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 71, 0, 61},                //
         {0, 0, 0, 0, 0, 66},                 //
         {0, 0, 0, 0, 0, 58},                 //
+        {0, 0, 0, 0, 0, 62},                 //
         {0, 0, 0, 0, 0, 62},                 //
         {0, 0, 0, 80, 0, 56},                //
         {0, 0, 0, 58, 0, 48},                //
@@ -418,6 +420,7 @@ const Translation_Table translation_data = {
         {20, 29, 0, 26, 0, 22},              //
         {0, 0, 0, 52, 0, 48},                //
         {0, 0, 0, 0, 0, 51},                 //
+        {0, 0, 0, 0, 0, 47},                 //
         {69, 26, 0, 59, 0, 22},              //
         {0, 0, 0, 46, 0, 39},                //
         {0, 0, 0, 0, 0, 40},                 //
@@ -448,6 +451,10 @@ const Translation_Table translation_data = {
         {0, 0, 0, 68, 0, 64},                //
         {0, 0, 0, 0, 0, 40},                 //
         {0, 0, 0, 0, 0, 34},                 //
+        {0, 0, 0, 0, 0, 51},                 //
+        {0, 0, 0, 0, 0, 56},                 //
+        {0, 0, 0, 0, 0, 57},                 //
+        {0, 0, 0, 0, 0, 55},                 //
         {0, 0, 0, 0, 0, 56},                 //
         {0, 0, 0, 0, 0, 60},                 //
         {0, 0, 0, 0, 0, 48},                 //
@@ -1850,6 +1857,7 @@ const Translation_Table translation_data = {
         u8"'?' creates a conditional expression\0"
         u8"'?' goes here\0"
         u8"'^' is the XOR operator; to exponentiate, use '**' instead\0"
+        u8"'abstract' here\0"
         u8"'accessor' is not allowed for TypeScript interface fields\0"
         u8"'accessor' keyword is not allowed on getters or setters\0"
         u8"'accessor' keyword is not allowed on methods\0"
@@ -1963,6 +1971,7 @@ const Translation_Table translation_data = {
         u8"TypeScript optional parameters are not allowed in JavaScript\0"
         u8"TypeScript optional properties are not allowed in JavaScript code\0"
         u8"TypeScript overload signature can only have one semicolon\0"
+        u8"TypeScript parameter decorators are not allowed in JavaScript\0"
         u8"TypeScript parameter properties are not allowed in JavaScript\0"
         u8"TypeScript requires whitespace between '>' and '=' here\0"
         u8"TypeScript type annotation requires parentheses\0"
@@ -2233,6 +2242,7 @@ const Translation_Table translation_data = {
         u8"missing variable name\0"
         u8"misspelled React attribute; write '{1}' instead\0"
         u8"move the 'extends' clause before 'implements' here\0"
+        u8"move the parameter decorator before '{0}' here\0"
         u8"namespace starts here\0"
         u8"new variable shadows existing variable\0"
         u8"newline is not allowed after 'abstract'\0"
@@ -2263,6 +2273,10 @@ const Translation_Table translation_data = {
         u8"overload signature must match modifiers on this overload method\0"
         u8"overloaded function '{0}' declared here\0"
         u8"overloaded method is marked '{0}'\0"
+        u8"parameter decorator must be before other modifiers\0"
+        u8"parameter decorators are not allowed in 'declare class'\0"
+        u8"parameter decorators are not allowed in abstract methods\0"
+        u8"parameter decorators are only allowed in class methods\0"
         u8"parameter properties are not allowed in 'declare class'\0"
         u8"parameter properties are only allowed in class constructors\0"
         u8"parameter properties cannot be a rest parameter\0"

@@ -3666,6 +3666,74 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Parameter_Decorator_In_Abstract_Method
+    {
+      .code = 437,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("parameter decorators are not allowed in abstract methods"),
+        QLJS_TRANSLATABLE("'abstract' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Parameter_Decorator_In_Abstract_Method, decorator_at), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Parameter_Decorator_In_Abstract_Method, abstract_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Parameter_Decorator_In_Declare_Class
+    {
+      .code = 436,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("parameter decorators are not allowed in 'declare class'"),
+        QLJS_TRANSLATABLE("'declare' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Parameter_Decorator_In_Declare_Class, decorator_at), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Parameter_Decorator_In_Declare_Class, declare_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Parameter_Decorator_In_Non_Class_Method
+    {
+      .code = 435,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("parameter decorators are only allowed in class methods"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Parameter_Decorator_In_Non_Class_Method, decorator_at), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Parameter_Decorator_Must_Preceed_Modifiers
+    {
+      .code = 434,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("parameter decorator must be before other modifiers"),
+        QLJS_TRANSLATABLE("move the parameter decorator before '{0}' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Parameter_Decorator_Must_Preceed_Modifiers, decorator_at), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Parameter_Decorator_Must_Preceed_Modifiers, modifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Private_Properties_Are_Not_Allowed_In_Object_Literals
     {
       .code = 156,
@@ -4911,6 +4979,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch, method_access_specifier), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Parameter_Decorator_Not_Allowed_In_JavaScript
+    {
+      .code = 433,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("TypeScript parameter decorators are not allowed in JavaScript"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Parameter_Decorator_Not_Allowed_In_JavaScript, at), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

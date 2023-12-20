@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 545;
-constexpr std::size_t translation_table_string_table_size = 80903;
+constexpr std::uint16_t translation_table_mapping_table_size = 552;
+constexpr std::size_t translation_table_string_table_size = 81247;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -49,6 +49,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'?' creates a conditional expression"sv,
           "'?' goes here"sv,
           "'^' is the XOR operator; to exponentiate, use '**' instead"sv,
+          "'abstract' here"sv,
           "'accessor' is not allowed for TypeScript interface fields"sv,
           "'accessor' keyword is not allowed on getters or setters"sv,
           "'accessor' keyword is not allowed on methods"sv,
@@ -162,6 +163,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript optional parameters are not allowed in JavaScript"sv,
           "TypeScript optional properties are not allowed in JavaScript code"sv,
           "TypeScript overload signature can only have one semicolon"sv,
+          "TypeScript parameter decorators are not allowed in JavaScript"sv,
           "TypeScript parameter properties are not allowed in JavaScript"sv,
           "TypeScript requires whitespace between '>' and '=' here"sv,
           "TypeScript type annotation requires parentheses"sv,
@@ -432,6 +434,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing variable name"sv,
           "misspelled React attribute; write '{1}' instead"sv,
           "move the 'extends' clause before 'implements' here"sv,
+          "move the parameter decorator before '{0}' here"sv,
           "namespace starts here"sv,
           "new variable shadows existing variable"sv,
           "newline is not allowed after 'abstract'"sv,
@@ -462,6 +465,10 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "overload signature must match modifiers on this overload method"sv,
           "overloaded function '{0}' declared here"sv,
           "overloaded method is marked '{0}'"sv,
+          "parameter decorator must be before other modifiers"sv,
+          "parameter decorators are not allowed in 'declare class'"sv,
+          "parameter decorators are not allowed in abstract methods"sv,
+          "parameter decorators are only allowed in class methods"sv,
           "parameter properties are not allowed in 'declare class'"sv,
           "parameter properties are only allowed in class constructors"sv,
           "parameter properties cannot be a rest parameter"sv,

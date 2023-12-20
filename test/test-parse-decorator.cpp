@@ -455,6 +455,99 @@ TEST_F(Test_Parse_Decorator,
       u8"          ^ .decorator_at"_diag,
       typescript_options);
 }
+
+TEST_F(Test_Parse_Decorator, typescript_parameter_decorator) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { foo(@myDecorator param) {} }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_enter_function_scope",    // foo
+                              // FIXME(#1124): TypeScript hoists decorator
+                              // variable uses outside the parameter list. This
+                              // visit_variable_use should be before or after
+                              // the method, not inside.
+                              "visit_variable_use",               // myDecorator
+                              "visit_variable_declaration",       // param
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_property_declaration",       // foo
+                              "visit_exit_class_scope",           // }
+                              "visit_variable_declaration",       // C
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myDecorator"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { foo(@firstDecorator @secondDecorator(x) @(thirdDecorator.y) param) {} }"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"firstDecorator"_sv, u8"secondDecorator"_sv,
+                                  u8"x"_sv, u8"thirdDecorator"_sv}));
+  }
+}
+
+TEST_F(Test_Parse_Decorator,
+       typescript_parameter_decorator_must_preceed_modifiers) {
+  test_parse_and_visit_statement(
+      u8"class C { constructor(@dec public param) {} }"_sv, no_diags,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"class C { constructor(@dec readonly param) {} }"_sv, no_diags,
+      typescript_options);
+
+  test_parse_and_visit_statement(
+      u8"class C { constructor(readonly @dec param) {} }"_sv,
+      u8"                               ^ Diag_Parameter_Decorator_Must_Preceed_Modifiers.decorator_at\n"_diag
+      u8"                      ^^^^^^^^ .modifier"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"class C { constructor(public @dec param) {} }"_sv,
+      u8"                             ^ Diag_Parameter_Decorator_Must_Preceed_Modifiers.decorator_at\n"_diag
+      u8"                      ^^^^^^ .modifier"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_Decorator,
+       typescript_parameter_decorator_is_not_allowed_in_javascript) {
+  test_parse_and_visit_statement(
+      u8"class C { foo(@myDecorator param) {} }"_sv,  //
+      u8"              ^ Diag_TypeScript_Parameter_Decorator_Not_Allowed_In_JavaScript.at"_diag,
+      javascript_options);
+}
+
+TEST_F(Test_Parse_Decorator,
+       parameter_decorator_is_not_allowed_in_non_class_function) {
+  test_parse_and_visit_statement(
+      u8"function f(@myDecorator param) {}"_sv,  //
+      u8"           ^ Diag_Parameter_Decorator_In_Non_Class_Method.decorator_at"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"interface I { f(@myDecorator param); }"_sv,  //
+      u8"                ^ Diag_Parameter_Decorator_In_Non_Class_Method.decorator_at"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_Decorator,
+       parameter_decorator_is_not_allowed_in_declare_class) {
+  test_parse_and_visit_statement(
+      u8"declare class C { f(@myDecorator param); }"_sv,  //
+      u8"                    ^ Diag_Parameter_Decorator_In_Declare_Class.decorator_at\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_Decorator,
+       parameter_decorator_is_not_allowed_in_abstract_method) {
+  test_parse_and_visit_statement(
+      u8"abstract class C { abstract f(@myDecorator param); }"_sv,  //
+      u8"                              ^ Diag_Parameter_Decorator_In_Abstract_Method.decorator_at\n"_diag
+      u8"                   ^^^^^^^^ .abstract_keyword"_diag,
+      typescript_options);
+}
 }
 }
 

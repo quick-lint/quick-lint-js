@@ -292,8 +292,10 @@ class Parser {
 
   struct Parameter_List_Options {
     std::optional<Source_Code_Span> declare_class_keyword = std::nullopt;
+    std::optional<Source_Code_Span> abstract_method_keyword = std::nullopt;
     bool is_class_constructor = false;
     bool is_declare_function = false;
+    bool is_class_method = false;
     bool is_interface_method = false;
   };
 

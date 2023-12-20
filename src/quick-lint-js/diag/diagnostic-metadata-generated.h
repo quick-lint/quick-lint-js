@@ -255,6 +255,10 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Optional_Parameter_Cannot_Have_Initializer) \
   QLJS_DIAG_TYPE_NAME(Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter) \
   QLJS_DIAG_TYPE_NAME(Diag_Integer_Literal_Will_Lose_Precision) \
+  QLJS_DIAG_TYPE_NAME(Diag_Parameter_Decorator_In_Abstract_Method) \
+  QLJS_DIAG_TYPE_NAME(Diag_Parameter_Decorator_In_Declare_Class) \
+  QLJS_DIAG_TYPE_NAME(Diag_Parameter_Decorator_In_Non_Class_Method) \
+  QLJS_DIAG_TYPE_NAME(Diag_Parameter_Decorator_Must_Preceed_Modifiers) \
   QLJS_DIAG_TYPE_NAME(Diag_Private_Properties_Are_Not_Allowed_In_Object_Literals) \
   QLJS_DIAG_TYPE_NAME(Diag_Readonly_Static_Field) \
   QLJS_DIAG_TYPE_NAME(Diag_Redeclaration_Of_Global_Variable) \
@@ -337,6 +341,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Optional_Tuple_Element_Cannot_Follow_Spread_Element) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Parameter_Decorator_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Parameter_Property_Cannot_Be_Rest) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Parameter_Property_Not_Allowed_In_Declare_Class) \
@@ -454,7 +459,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 440;
+inline constexpr int Diag_Type_Count = 445;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

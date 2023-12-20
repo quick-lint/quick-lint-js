@@ -621,6 +621,10 @@ void Parser::parse_and_visit_class_or_interface_member(
             Function_Attributes attributes =
                 function_attributes_from_modifiers(std::nullopt);
             Parameter_List_Options param_options = {
+                // FIXME(strager): Shouldn't we possibly set
+                // declare_class_keyword?
+                .abstract_method_keyword = this->maybe_abstract_keyword_span(),
+                .is_class_method = !is_interface,
                 .is_interface_method = is_interface,
             };
             if (is_interface) {
@@ -859,9 +863,11 @@ void Parser::parse_and_visit_class_or_interface_member(
             function_attributes_from_modifiers(property_name);
         Parameter_List_Options param_options = {
             .declare_class_keyword = declare_keyword,
+            .abstract_method_keyword = this->maybe_abstract_keyword_span(),
             .is_class_constructor =
                 property_name.has_value() &&
                 property_name->normalized_name() == u8"constructor"_sv,
+            .is_class_method = !is_interface,
             .is_interface_method = is_interface,
         };
         bool is_abstract_method = this->find_modifier(Token_Type::kw_abstract);
@@ -1125,6 +1131,14 @@ void Parser::parse_and_visit_class_or_interface_member(
       if (!has_async && has_star) return Function_Attributes::generator;
       if (!has_async && !has_star) return Function_Attributes::normal;
       QLJS_UNREACHABLE();
+    }
+
+    std::optional<Source_Code_Span> maybe_abstract_keyword_span() const {
+      const Modifier *abstract = this->find_modifier(Token_Type::kw_abstract);
+      if (abstract == nullptr) {
+        return std::nullopt;
+      }
+      return abstract->span;
     }
 
     void check_modifiers_for_field_without_type_annotation(

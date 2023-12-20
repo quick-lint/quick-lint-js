@@ -2449,10 +2449,12 @@ void Parser::parse_and_visit_function_parameters(
       case Token_Type::right_paren:
         return true;
 
-      // constructor(paramName myField) {}    // TypeScript only.
-      // constructor(paramName [myField]) {}  // Invalid.
+      // constructor(paramName myField) {}     // TypeScript only.
+      // constructor(paramName [myField]) {}   // Invalid.
+      // constructor(paramName @decorator) {}  // Invalid.
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+      case Token_Type::at:
       case Token_Type::dot_dot_dot:
       case Token_Type::identifier:
       case Token_Type::kw_await:
@@ -2499,6 +2501,39 @@ void Parser::parse_and_visit_function_parameters(
         this->lexer_.commit_transaction(std::move(transaction));
       }
     };
+
+    if (this->peek().type == Token_Type::at) {
+      // class C { method(@myDecorator parameter) {} }  // TypeScript only.
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(
+            Diag_TypeScript_Parameter_Decorator_Not_Allowed_In_JavaScript{
+                .at = this->peek().span(),
+            });
+      } else {
+        if (!options.is_class_method) {
+          this->diag_reporter_->report(
+              Diag_Parameter_Decorator_In_Non_Class_Method{
+                  .decorator_at = this->peek().span(),
+              });
+        }
+        if (options.declare_class_keyword.has_value()) {
+          this->diag_reporter_->report(
+              Diag_Parameter_Decorator_In_Declare_Class{
+                  .decorator_at = this->peek().span(),
+                  .declare_keyword = *options.declare_class_keyword,
+              });
+        }
+        if (options.abstract_method_keyword.has_value()) {
+          this->diag_reporter_->report(
+              Diag_Parameter_Decorator_In_Abstract_Method{
+                  .decorator_at = this->peek().span(),
+                  .abstract_keyword = *options.abstract_method_keyword,
+              });
+        }
+      }
+      this->parse_and_visit_one_or_more_decorators(v);
+    }
+
     switch (this->peek().type) {
     // function foo(public) {}
     // constructor(public myField) {}  // TypeScript only.
@@ -2548,6 +2583,17 @@ void Parser::parse_and_visit_function_parameters(
           break;
         }
       }
+    }
+
+    if (this->peek().type == Token_Type::at) {
+      // class C { method(readonly @myDecorator parameter) {} }  // Invalid.
+      QLJS_ASSERT(parameter_property_keyword.has_value());
+      this->diag_reporter_->report(
+          Diag_Parameter_Decorator_Must_Preceed_Modifiers{
+              .modifier = *parameter_property_keyword,
+              .decorator_at = this->peek().span(),
+          });
+      this->parse_and_visit_one_or_more_decorators(v);
     }
 
     switch (this->peek().type) {

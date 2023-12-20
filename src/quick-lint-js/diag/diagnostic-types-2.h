@@ -1885,6 +1885,43 @@ struct Diag_Integer_Literal_Will_Lose_Precision {
   String8_View rounded_val;
 };
 
+struct Diag_Parameter_Decorator_In_Abstract_Method {
+  [[qljs::diag("E0437", Diagnostic_Severity::error)]]  //
+  [[qljs::message("parameter decorators are not allowed in abstract methods",
+                  ARG(decorator_at))]]  //
+  [[qljs::message("'abstract' here",
+                  ARG(abstract_keyword))]]  //
+  Source_Code_Span decorator_at;
+  Source_Code_Span abstract_keyword;
+};
+
+struct Diag_Parameter_Decorator_In_Declare_Class {
+  [[qljs::diag("E0436", Diagnostic_Severity::error)]]  //
+  [[qljs::message("parameter decorators are not allowed in 'declare class'",
+                  ARG(decorator_at))]]  //
+  [[qljs::message("'declare' here",
+                  ARG(declare_keyword))]]  //
+  Source_Code_Span decorator_at;
+  Source_Code_Span declare_keyword;
+};
+
+struct Diag_Parameter_Decorator_In_Non_Class_Method {
+  [[qljs::diag("E0435", Diagnostic_Severity::error)]]  //
+  [[qljs::message("parameter decorators are only allowed in class methods",
+                  ARG(decorator_at))]]  //
+  Source_Code_Span decorator_at;
+};
+
+struct Diag_Parameter_Decorator_Must_Preceed_Modifiers {
+  [[qljs::diag("E0434", Diagnostic_Severity::error)]]  //
+  [[qljs::message("parameter decorator must be before other modifiers",
+                  ARG(decorator_at))]]  //
+  [[qljs::message("move the parameter decorator before '{0}' here",
+                  ARG(modifier))]]  //
+  Source_Code_Span modifier;
+  Source_Code_Span decorator_at;
+};
+
 struct Diag_Private_Properties_Are_Not_Allowed_In_Object_Literals {
   [[qljs::diag("E0156", Diagnostic_Severity::error)]]  //
   [[qljs::message("private properties are not allowed in object literals",
@@ -2555,6 +2592,14 @@ struct Diag_TypeScript_Overload_Signature_Access_Specifier_Mismatch {
                   ARG(method_access_specifier))]]  //
   Source_Code_Span method_access_specifier;
   Source_Code_Span signature_access_specifier;
+};
+
+struct Diag_TypeScript_Parameter_Decorator_Not_Allowed_In_JavaScript {
+  [[qljs::diag("E0433", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "TypeScript parameter decorators are not allowed in JavaScript",
+      ARG(at))]]  //
+  Source_Code_Span at;
 };
 
 struct Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured {
