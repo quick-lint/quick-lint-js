@@ -261,6 +261,19 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     // The module scope always exists, except possibly at the end of linting.
     Scope &module_scope();
 
+    // An augmentation of Variable_Analyzer::global_scope_ which is modifiable
+    // by the user's code.
+    //
+    // Variables are declared into the shadow global scope using TypeScript's
+    // 'declare global' feature.
+    //
+    // Variables in the shadow global scope shadow/override global variables,
+    // hence its name.
+    //
+    // The shadow global scope always exists, except possibly at the end of
+    // linting.
+    Scope &shadow_global_scope();
+
     Scope &current_scope();
     Scope &parent_scope();
 
@@ -338,6 +351,9 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   // 'declare' keyword.
   bool in_typescript_ambient_context() const;
 
+  // Returns true if we are inside a TypeScript 'declare global' scope.
+  bool in_typescript_declare_global_scope() const;
+
   Scopes scopes_;
 
   // The scope which holds properties of the globalThis object.
@@ -350,6 +366,10 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   // If greater than zero, this is a TypeScript ambient context introduced
   // with the 'declare' keyword.
   unsigned typescript_ambient_context_depth_ = 0;
+
+  // If greater than zero, we are inside a TypeScript 'declare global' scope,
+  // thus declared variables should be hoisted into the global scope.
+  unsigned typescript_declare_global_scope_depth_ = 0;
 
   Diag_Reporter *diag_reporter_;
 

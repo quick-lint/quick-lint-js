@@ -91,6 +91,10 @@ Semantic Versioning.
     that the inferred variable was redeclared.
   * `class implements I {}` is now parsed as a class with no name rather than a
     class with the name `implements`.
+  * Variables declared inside a `declare global` block are now correctly
+    declared as global variables instead of module variables. This means that
+    variables inside a `declare global` block can be shadowed by module
+    variables without diagnostics.
 
 ## 2.18.0 (2023-11-03)
 

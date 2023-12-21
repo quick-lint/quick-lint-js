@@ -34,6 +34,27 @@ TEST(Test_Variable_Analyzer_Declare,
       u8"class Base {}"_sv,
       no_diags, typescript_analyze_options, default_globals);
 }
+
+TEST(
+    Test_Variable_Analyzer_Declare,
+    typescript_declare_global_variables_are_usable_before_or_after_declaration) {
+  test_parse_and_analyze(u8"x;  declare global { const x; }"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"declare global { const x; }  x;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Declare,
+     typescript_declare_global_variables_are_shadowable) {
+  // This should not report Diag_Redeclaration_Of_Variable or
+  // Diag_Assignment_To_Const_Variable.
+  test_parse_and_analyze(u8"let x;  x = 42;  declare global { const x; }"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"let x;  declare global { const x; }  x = 42;"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"declare global { const x; }  let x; x = 42;"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+}
 }
 }
 

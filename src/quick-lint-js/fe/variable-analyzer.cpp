@@ -139,6 +139,7 @@ void Variable_Analyzer::visit_enter_conditional_type_scope() {
 
 void Variable_Analyzer::visit_enter_declare_global_scope() {
   this->visit_enter_declare_scope();
+  this->typescript_declare_global_scope_depth_ += 1;
 }
 
 void Variable_Analyzer::visit_enter_declare_scope() {
@@ -221,6 +222,8 @@ void Variable_Analyzer::visit_exit_conditional_type_scope() {
 }
 
 void Variable_Analyzer::visit_exit_declare_global_scope() {
+  QLJS_ASSERT(this->typescript_declare_global_scope_depth_ > 0);
+  this->typescript_declare_global_scope_depth_ -= 1;
   this->visit_exit_declare_scope();
 }
 
@@ -296,7 +299,9 @@ void Variable_Analyzer::visit_property_declaration(
 void Variable_Analyzer::visit_variable_declaration(
     Identifier name, Variable_Kind kind, Variable_Declaration_Flags flags) {
   this->declare_variable(
-      /*scope=*/this->current_scope(),
+      /*scope=*/this->in_typescript_declare_global_scope()
+          ? this->scopes_.shadow_global_scope()
+          : this->current_scope(),
       /*name=*/name,
       /*kind=*/kind,
       /*declared_scope=*/Declared_Variable_Scope::declared_in_current_scope,
@@ -511,8 +516,8 @@ void Variable_Analyzer::add_variable_use_to_current_scope(Used_Variable &&var) {
 }
 
 void Variable_Analyzer::visit_end_of_module() {
-  // We expect only the module scope.
-  QLJS_ASSERT(this->scopes_.size() == 1);
+  // We expect only the module scope and the shadow global scope.
+  QLJS_ASSERT(this->scopes_.size() == 2);
 
   Variable_Analyzer::Global_Scope &global_scope = this->global_scope_;
 
@@ -522,6 +527,13 @@ void Variable_Analyzer::visit_end_of_module() {
                                                                   var);
   }
 
+  // Move variables from the module scope to the shadow global scope.
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/false,
+      /*consume_arguments=*/false);
+  this->scopes_.pop();
+
+  // Move variables from the shadow global scope to the immutable global scope.
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/global_scope,
       /*allow_variable_use_before_declaration=*/false,
@@ -1005,6 +1017,10 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
 
 void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
     const Global_Scope &scope, const Declared_Variable &var) const {
+  // FIXME(#1129): Imagine a global variable is declared as non-shadowable in
+  // quick-lint-js.config, and is also declared with 'declare global' in the
+  // source file. Should we treat that variable as shadowable? Or should we
+  // error on the 'declare global'?
   std::optional<Global_Declared_Variable> already_declared_variable =
       scope.declared_variables.find(var.declaration);
   if (already_declared_variable) {
@@ -1193,6 +1209,10 @@ bool Variable_Analyzer::in_typescript_ambient_context() const {
   return this->typescript_ambient_context_depth_ > 0;
 }
 
+bool Variable_Analyzer::in_typescript_declare_global_scope() const {
+  return this->typescript_declare_global_scope_depth_ > 0;
+}
+
 bool Variable_Analyzer::Declared_Variable::is_runtime() const {
   return quick_lint_js::is_runtime(kind);
 }
@@ -1304,10 +1324,15 @@ void Variable_Analyzer::Scope::clear() {
 }
 
 Variable_Analyzer::Scopes::Scopes() {
+  this->push();  // shadow_global_scope
   this->push();  // module_scope
 }
 
 Variable_Analyzer::Scope &Variable_Analyzer::Scopes::module_scope() {
+  return this->scopes_[1];
+}
+
+Variable_Analyzer::Scope &Variable_Analyzer::Scopes::shadow_global_scope() {
   return this->scopes_[0];
 }
 
