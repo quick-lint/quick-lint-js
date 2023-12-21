@@ -194,6 +194,36 @@ TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_typescript_enum) {
       typescript_analyze_options, default_globals);
 }
 
+TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_typescript_import_alias) {
+  test_parse_and_analyze(
+      u8"namespace A {}  import B = A;  B = null;"_sv,  //
+      u8"                               ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"                       ^ .declaration"_diag
+      u8"{.var_kind=Variable_Kind::_import_alias}"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"namespace A {}  B = null; import B = A;"_sv,  //
+      u8"                                 ^ Diag_Assignment_To_Const_Variable_Before_Its_Declaration.declaration\n"_diag
+      u8"                ^ .assignment"_diag
+      u8"{.var_kind=Variable_Kind::_import_alias}"_diag,
+      typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_typescript_namespace) {
+  test_parse_and_analyze(
+      u8"namespace ns {}  ns = null;"_sv,  //
+      u8"                 ^^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"          ^^ .declaration"_diag
+      u8"{.var_kind=Variable_Kind::_namespace}"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"ns = null; namespace ns {}"_sv,  //
+      u8"                     ^^ Diag_Assignment_To_Const_Variable_Before_Its_Declaration.declaration\n"_diag
+      u8"^^ .assignment"_diag
+      u8"{.var_kind=Variable_Kind::_namespace}"_diag,
+      typescript_analyze_options, default_globals);
+}
+
 TEST(Test_Variable_Analyzer_Assign, can_assign_to_class) {
   test_parse_and_analyze(u8"class C {}  C = null;"_sv, no_diags,
                          javascript_analyze_options, default_globals);

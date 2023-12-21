@@ -822,6 +822,8 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
   unassignable_lexical_variable:
   case Variable_Kind::_const:
   case Variable_Kind::_enum:
+  case Variable_Kind::_import_alias:
+  case Variable_Kind::_namespace:
     if (is_global_variable) {
       this->diag_reporter_->report(Diag_Assignment_To_Const_Global_Variable{
           .assignment = assignment.span()});
@@ -892,16 +894,10 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
   case Variable_Kind::_generic_parameter:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
-  case Variable_Kind::_import_alias:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
-    break;
   case Variable_Kind::_import_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case Variable_Kind::_infer_type:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
-    break;
-  case Variable_Kind::_namespace:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case Variable_Kind::_type_alias:
