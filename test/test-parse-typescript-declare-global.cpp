@@ -20,8 +20,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Global,
       u8"        ^^^^^^ Diag_TypeScript_Global_Block_Not_Allowed_In_JavaScript"_diag,  //
       javascript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
-                            "visit_enter_declare_scope",  //
-                            "visit_exit_declare_scope",   //
+                            "visit_enter_declare_global_scope",  //
+                            "visit_exit_declare_global_scope",   //
                         }));
 }
 
@@ -29,8 +29,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Global, empty_declare_global) {
   Spy_Visitor p = test_parse_and_visit_statement(u8"declare global {}"_sv,  //
                                                  no_diags, typescript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
-                            "visit_enter_declare_scope",  //
-                            "visit_exit_declare_scope",   //
+                            "visit_enter_declare_global_scope",  //
+                            "visit_exit_declare_global_scope",   //
                         }));
 }
 
@@ -39,11 +39,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Global, can_contain_variables) {
       u8"declare global { var x; const y; let z; }"_sv,  //
       no_diags, typescript_options);
   EXPECT_THAT(p.visits, ElementsAreArray({
-                            "visit_enter_declare_scope",   //
-                            "visit_variable_declaration",  // x
-                            "visit_variable_declaration",  // y
-                            "visit_variable_declaration",  // z
-                            "visit_exit_declare_scope",    //
+                            "visit_enter_declare_global_scope",  //
+                            "visit_variable_declaration",        // x
+                            "visit_variable_declaration",        // y
+                            "visit_variable_declaration",        // z
+                            "visit_exit_declare_global_scope",   //
                         }));
 }
 
@@ -51,13 +51,14 @@ TEST_F(Test_Parse_TypeScript_Declare_Global, can_contain_namespaces) {
   Spy_Visitor p = test_parse_and_visit_statement(
       u8"declare global { namespace ns { } }"_sv,  //
       no_diags, typescript_options);
-  EXPECT_THAT(p.visits, ElementsAreArray({
-                            "visit_enter_declare_scope",    // declare global {
-                            "visit_enter_namespace_scope",  // namespace ns {
-                            "visit_exit_namespace_scope",   // namespace ns }
-                            "visit_variable_declaration",   // ns
-                            "visit_exit_declare_scope",     // declare global {
-                        }));
+  EXPECT_THAT(p.visits,
+              ElementsAreArray({
+                  "visit_enter_declare_global_scope",  // declare global {
+                  "visit_enter_namespace_scope",       // namespace ns {
+                  "visit_exit_namespace_scope",        // namespace ns }
+                  "visit_variable_declaration",        // ns
+                  "visit_exit_declare_global_scope",   // declare global {
+              }));
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_Global, allowed_inside_declare_module) {
@@ -67,8 +68,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Global, allowed_inside_declare_module) {
   EXPECT_THAT(p.visits, ElementsAreArray({
                             "visit_enter_declare_scope",    // namespace ns {
                             "visit_enter_namespace_scope",  // namespace ns {
-                            "visit_exit_namespace_scope",   // namespace ns }
-                            "visit_exit_declare_scope",     // namespace ns }
+                            "visit_enter_declare_global_scope",  // global {
+                            "visit_exit_declare_global_scope",   // }
+                            "visit_exit_namespace_scope",  // namespace ns }
+                            "visit_exit_declare_scope",    // namespace ns }
                         }));
 }
 

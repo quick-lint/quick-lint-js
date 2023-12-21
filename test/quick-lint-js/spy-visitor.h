@@ -265,6 +265,10 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
     this->visits.emplace_back("visit_enter_conditional_type_scope");
   }
 
+  void visit_enter_declare_global_scope() override {
+    this->visits.emplace_back("visit_enter_declare_global_scope");
+  }
+
   void visit_enter_declare_scope() override {
     this->visits.emplace_back("visit_enter_declare_scope");
   }
@@ -326,6 +330,10 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
 
   void visit_exit_conditional_type_scope() override {
     this->visits.emplace_back("visit_exit_conditional_type_scope");
+  }
+
+  void visit_exit_declare_global_scope() override {
+    this->visits.emplace_back("visit_exit_declare_global_scope");
   }
 
   void visit_exit_declare_scope() override {

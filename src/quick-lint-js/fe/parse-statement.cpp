@@ -6189,9 +6189,7 @@ void Parser::parse_and_visit_declare_statement(
 
   // declare global { /* ... */ }
   case Token_Type::kw_global:
-    maybe_visit_enter_declare_scope();
     this->parse_and_visit_declare_global(v, declare_context);
-    maybe_visit_exit_declare_scope();
     break;
 
   // declare:  // Label.
@@ -6223,6 +6221,7 @@ void Parser::parse_and_visit_declare_global(
             .namespace_keyword = *this->in_typescript_namespace_or_module_,
         });
   }
+  v.visit_enter_declare_global_scope();
   this->parse_and_visit_typescript_declare_block(
       v, TypeScript_Declare_Context{
              .declare_namespace_declare_keyword =
@@ -6230,6 +6229,7 @@ void Parser::parse_and_visit_declare_global(
              .direct_declare_keyword = std::nullopt,
              .in_module = false,
          });
+  v.visit_exit_declare_global_scope();
 }
 
 bool Parser::is_declare_statement_start_token(Token_Type token_type) {

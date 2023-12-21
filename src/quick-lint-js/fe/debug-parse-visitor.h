@@ -54,6 +54,11 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
     this->output_->flush();
   }
 
+  void visit_enter_declare_global_scope() override {
+    this->output_->append_copy(u8"entered declare global scope\n"_sv);
+    this->output_->flush();
+  }
+
   void visit_enter_declare_scope() override {
     this->output_->append_copy(u8"entered declare scope\n"_sv);
     this->output_->flush();
@@ -126,6 +131,11 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
 
   void visit_exit_conditional_type_scope() override {
     this->output_->append_copy(u8"exited conditional scope\n"_sv);
+    this->output_->flush();
+  }
+
+  void visit_exit_declare_global_scope() override {
+    this->output_->append_copy(u8"exited declare global scope\n"_sv);
     this->output_->flush();
   }
 

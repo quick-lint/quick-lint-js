@@ -137,6 +137,10 @@ void Variable_Analyzer::visit_enter_conditional_type_scope() {
   this->scopes_.push();
 }
 
+void Variable_Analyzer::visit_enter_declare_global_scope() {
+  this->visit_enter_declare_scope();
+}
+
 void Variable_Analyzer::visit_enter_declare_scope() {
   this->typescript_ambient_context_depth_ += 1;
 }
@@ -214,6 +218,10 @@ void Variable_Analyzer::visit_exit_conditional_type_scope() {
       /*allow_variable_use_before_declaration=*/false,
       /*consume_arguments=*/false);
   this->scopes_.pop();
+}
+
+void Variable_Analyzer::visit_exit_declare_global_scope() {
+  this->visit_exit_declare_scope();
 }
 
 void Variable_Analyzer::visit_exit_declare_scope() {

@@ -48,6 +48,11 @@ class Multi_Parse_Visitor final : public Parse_Visitor_Base {
     this->visitor_2_->visit_enter_conditional_type_scope();
   }
 
+  void visit_enter_declare_global_scope() override {
+    this->visitor_1_->visit_enter_declare_global_scope();
+    this->visitor_2_->visit_enter_declare_global_scope();
+  }
+
   void visit_enter_declare_scope() override {
     this->visitor_1_->visit_enter_declare_scope();
     this->visitor_2_->visit_enter_declare_scope();
@@ -121,6 +126,11 @@ class Multi_Parse_Visitor final : public Parse_Visitor_Base {
   void visit_exit_conditional_type_scope() override {
     this->visitor_1_->visit_exit_conditional_type_scope();
     this->visitor_2_->visit_exit_conditional_type_scope();
+  }
+
+  void visit_exit_declare_global_scope() override {
+    this->visitor_1_->visit_exit_declare_global_scope();
+    this->visitor_2_->visit_exit_declare_global_scope();
   }
 
   void visit_exit_declare_scope() override {
