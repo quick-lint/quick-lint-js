@@ -193,6 +193,28 @@ TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_typescript_enum) {
       u8"{.var_kind=Variable_Kind::_enum}"_diag,
       typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Assign, can_assign_to_class) {
+  test_parse_and_analyze(u8"class C {}  C = null;"_sv, no_diags,
+                         javascript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_class_before_declaration) {
+  test_parse_and_analyze(
+      u8"C = null; class C {}"_sv,  //
+      u8"                ^ Diag_Assignment_Before_Variable_Declaration.declaration\n"_diag
+      u8"^ .assignment"_diag,
+      javascript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_class_in_typescript) {
+  test_parse_and_analyze(
+      u8"class C {}  C = null;"_sv,  //
+      u8"            ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"      ^ .declaration"_diag
+      u8"{.var_kind=Variable_Kind::_class}"_diag,
+      typescript_analyze_options, default_globals);
+}
 }
 }
 

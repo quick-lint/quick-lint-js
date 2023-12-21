@@ -811,6 +811,15 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
   }
 
   switch (kind) {
+  case Variable_Kind::_class:
+    if (this->options_.can_assign_to_class) {
+      goto assignable_lexical_variable;
+    } else {
+      goto unassignable_lexical_variable;
+    }
+    break;
+
+  unassignable_lexical_variable:
   case Variable_Kind::_const:
   case Variable_Kind::_enum:
     if (is_global_variable) {
@@ -832,6 +841,7 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
       }
     }
     break;
+
   case Variable_Kind::_import:
     // Avoid false positive when building GCC 8 Release
     // TODO(#1069): Remove when we upgrade to a working GCC.
@@ -846,7 +856,8 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
 
     QLJS_WARNING_POP
     break;
-  case Variable_Kind::_class:
+
+  assignable_lexical_variable:
   case Variable_Kind::_let:
     if (is_assigned_before_declaration) {
       QLJS_WARNING_PUSH
@@ -860,6 +871,7 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
       QLJS_WARNING_POP
     }
     break;
+
   // FIXME(strager): Assigning to an arrow or function parameter before
   // declaration is not legal.
   case Variable_Kind::_arrow_parameter:

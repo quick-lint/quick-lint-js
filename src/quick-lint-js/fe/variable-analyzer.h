@@ -28,6 +28,13 @@ struct Variable_Analyzer_Options {
   //
   // If false, eval is not supposed to declare variables, like in TypeScript.
   bool eval_can_declare_variables = true;
+
+  // If true, assigning to a 'class'-declared variable is legal, like in vanilla
+  // JavaScript.
+  //
+  // If false, assigning to a 'class'-declared variable is invalid, like in
+  // TypeScript.
+  bool can_assign_to_class = true;
 };
 
 // A variable_analyzer is a parse_visitor which implements variable lookup

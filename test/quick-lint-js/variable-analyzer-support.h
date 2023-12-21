@@ -21,10 +21,12 @@ constexpr Variable_Analyzer_Options javascript_var_options =
         .eval_can_declare_variables = true,
     };
 
+// TODO(strager): Deduplicate with parse_and_lint.
 constexpr Variable_Analyzer_Options typescript_var_options =
     Variable_Analyzer_Options{
         .allow_deleting_typescript_variable = false,
         .eval_can_declare_variables = false,
+        .can_assign_to_class = false,
     };
 
 struct Test_Parse_And_Analyze_Options {

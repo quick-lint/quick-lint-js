@@ -37,6 +37,8 @@ void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
       Variable_Analyzer_Options{
           .allow_deleting_typescript_variable = !options.typescript,
           .eval_can_declare_variables = !options.typescript,
+          // TODO(strager): Deduplicate with typescript_var_options in tests.
+          .can_assign_to_class = !options.typescript,
       });
 
 #if defined(__EMSCRIPTEN__)

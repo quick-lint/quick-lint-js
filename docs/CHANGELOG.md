@@ -38,6 +38,7 @@ Semantic Versioning.
   * Negative number literals are now parsed in types.
   * Parameter decorators are now parsed.
   * Overload signatures are now allowed on exported functions.
+  * Assigning to a class now reports [E0003][] ("cannot assign to class").
 
 ### Fixed
 
