@@ -710,9 +710,8 @@ TEST_F(Test_Parse_TypeScript_Module, export_import_alias) {
                               "visit_variable_namespace_use",  // B
                               "visit_end_of_module",
                           }));
-    // TODO(#793): Emit a import alias declaration instead.
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_decl(u8"A"_sv)}));
+                ElementsAreArray({import_alias_decl(u8"A"_sv)}));
   }
 }
 

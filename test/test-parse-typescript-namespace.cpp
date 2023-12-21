@@ -633,11 +633,8 @@ TEST_F(Test_Parse_TypeScript_Namespace, namespace_alias) {
                               "visit_variable_declaration",    // A
                               "visit_variable_namespace_use",  // ns
                           }));
-    // TODO(#793): Instead of emitting an import declaration, we should emit a
-    // import alias declaration. Use-before-declaration is okay for ES imports,
-    // but is problematic for namespace aliases.
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_decl(u8"A"_sv)}));
+                ElementsAreArray({import_alias_decl(u8"A"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 }
@@ -681,9 +678,8 @@ TEST_F(Test_Parse_TypeScript_Namespace, import_alias_of_namespace_member) {
                               "visit_variable_namespace_use",  // ns
                               "visit_end_of_module",
                           }));
-    // TODO(#793): Emit a import alias declaration instead.
     EXPECT_THAT(p.variable_declarations,
-                ElementsAreArray({import_decl(u8"A"_sv)}));
+                ElementsAreArray({import_alias_decl(u8"A"_sv)}));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 

@@ -4503,6 +4503,16 @@ void Parser::parse_and_visit_import(
   this->skip();
 
   bool possibly_typescript_import_alias = false;
+  // For 'import fs from "node:fs";', declared_variable is 'fs'.
+  std::optional<Identifier> declared_variable = std::nullopt;
+  auto declare_variable_if_needed = [&](Variable_Kind kind) {
+    if (declared_variable.has_value()) {
+      v.visit_variable_declaration(*declared_variable, kind,
+                                   Variable_Declaration_Flags::none);
+      declared_variable = std::nullopt;  // Prevent double declaration.
+    }
+  };
+
   switch (this->peek().type) {
     // import var from "module";  // Invalid.
   QLJS_CASE_STRICT_RESERVED_KEYWORD:
@@ -4534,11 +4544,10 @@ void Parser::parse_and_visit_import(
       this->diag_reporter_->report(
           Diag_Cannot_Import_Let{.import_name = this->peek().span()});
     }
-    v.visit_variable_declaration(this->peek().identifier_name(),
-                                 Variable_Kind::_import,
-                                 Variable_Declaration_Flags::none);
+    declared_variable = this->peek().identifier_name();
     this->skip();
     if (this->peek().type == Token_Type::comma) {
+      declare_variable_if_needed(Variable_Kind::_import);
       this->skip();
       switch (this->peek().type) {
         // import fs, {readFile} from "fs";
@@ -4694,10 +4703,12 @@ void Parser::parse_and_visit_import(
 
   switch (this->peek().type) {
   case Token_Type::kw_from:
+    declare_variable_if_needed(Variable_Kind::_import);
     this->skip();
     break;
 
   case Token_Type::string:
+    declare_variable_if_needed(Variable_Kind::_import);
     this->diag_reporter_->report(Diag_Expected_From_Before_Module_Specifier{
         .module_specifier = this->peek().span(),
     });
@@ -4725,6 +4736,9 @@ void Parser::parse_and_visit_import(
         if (this->peek().type == Token_Type::left_paren &&
             namespace_name.normalized_name() == u8"require"_sv) {
           // import fs = require("fs");
+          // FIXME(strager): Should this behave like an import or an import
+          // alias or some other kind?
+          declare_variable_if_needed(Variable_Kind::_import);
           if (declare_context.declare_namespace_declare_keyword.has_value() &&
               !declare_context.in_module) {
             this->diag_reporter_->report(
@@ -4743,6 +4757,7 @@ void Parser::parse_and_visit_import(
         } else {
           // import myns = ns;
           // import C = ns.C;
+          declare_variable_if_needed(Variable_Kind::_import_alias);
           v.visit_variable_namespace_use(namespace_name);
           while (this->peek().type == Token_Type::dot) {
             this->skip();
@@ -4762,6 +4777,7 @@ void Parser::parse_and_visit_import(
       }
 
       default:
+        declare_variable_if_needed(Variable_Kind::_import);
         QLJS_PARSER_UNIMPLEMENTED();
         break;
       }
@@ -4769,8 +4785,11 @@ void Parser::parse_and_visit_import(
       this->consume_semicolon_after_statement();
       return;
     }
+
+    declare_variable_if_needed(Variable_Kind::_import);
     [[fallthrough]];
   default:
+    declare_variable_if_needed(Variable_Kind::_import);
     this->diag_reporter_->report(Diag_Expected_From_And_Module_Specifier{
         .where = Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
