@@ -4,6 +4,7 @@
 #include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/language.h>
@@ -183,6 +184,88 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
       u8"declare function C(); class C {}"_sv,  //
       u8"                            ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
       u8"                 ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     import_alias_does_not_conflict_with_most_other_things) {
+  for (String8_View other_thing : {
+           u8"class A {}"_sv,
+           u8"const A = 42;"_sv,
+           u8"function A() {}"_sv,
+           u8"interface A {}"_sv,
+           u8"let A;"_sv,
+           u8"type A = null;"_sv,
+           u8"var A;"_sv,
+       }) {
+    test_parse_and_analyze(
+        concat(u8"namespace ns {}  import A = ns; "_sv, other_thing), no_diags,
+        typescript_analyze_options, default_globals);
+    test_parse_and_analyze(
+        concat(u8"namespace ns {}  "_sv, other_thing, u8" import A = ns;"_sv),
+        no_diags, typescript_analyze_options, default_globals);
+  }
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     import_alias_conflicts_with_import) {
+  test_parse_and_analyze(
+      u8"namespace ns {}  import A = ns; import A from 'mod';"_sv,  //
+      u8"                                       ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                        ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"namespace ns {}  import A from 'mod'; import A = ns;"_sv,  //
+      u8"                                             ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                        ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+
+  test_parse_and_analyze(
+      u8"namespace ns {}  import A = ns; import A = require('mod');"_sv,  //
+      u8"                                       ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                        ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"namespace ns {}  import A = require('mod'); import A = ns;"_sv,  //
+      u8"                                                   ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                        ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     import_alias_conflicts_with_import_alias) {
+  test_parse_and_analyze(
+      u8"namespace ns1 {}  namespace ns2 {}  import A = ns1; import A = ns2;"_sv,  //
+      u8"                                                           ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                                           ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     import_alias_conflicts_with_namespace) {
+  test_parse_and_analyze(
+      u8"namespace ns {}  import A = ns; namespace A {}"_sv,  //
+      u8"                                          ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                        ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"namespace ns {}  namespace A {}  import A = ns;"_sv,  //
+      u8"                                        ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                           ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     import_alias_conflicts_with_enum) {
+  test_parse_and_analyze(
+      u8"namespace ns {}  import A = ns; enum A {}"_sv,  //
+      u8"                                     ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                        ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"namespace ns {}  enum A {}  import A = ns;"_sv,  //
+      u8"                                   ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                      ^ .original_declaration"_diag,
       typescript_analyze_options, default_globals);
 }
 }

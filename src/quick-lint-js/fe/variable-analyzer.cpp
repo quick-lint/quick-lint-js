@@ -1059,7 +1059,6 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
   case VK::_interface:
     break;
   case VK::_import_alias:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case VK::_import_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
@@ -1083,22 +1082,34 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
 
   bool redeclaration_ok =
       // clang-format off
+      (kind == VK::_class              && other_kind == VK::_import_alias) ||
       (kind == VK::_class              && other_kind == VK::_interface) ||
+      (kind == VK::_const              && other_kind == VK::_import_alias) ||
       (kind == VK::_const              && other_kind == VK::_namespace) ||
       (kind == VK::_const              && other_kind == VK::_type_alias) ||
       (kind == VK::_enum               && other_kind == VK::_catch) ||
       (kind == VK::_enum               && other_kind == VK::_enum) ||
       (kind == VK::_enum               && other_kind == VK::_namespace) ||
       (kind == VK::_function           && other_kind == VK::_function) ||
+      (kind == VK::_function           && other_kind == VK::_import_alias) ||
       (kind == VK::_function           && other_kind == VK::_type_alias) ||
       (kind == VK::_function           && other_kind == VK::_var) ||
       (kind == VK::_function           && other_kind_is_parameter) ||
       (kind == VK::_import             && other_kind == VK::_interface) ||
+      (kind == VK::_import_alias       && other_kind == VK::_class) ||
+      (kind == VK::_import_alias       && other_kind == VK::_const) ||
+      (kind == VK::_import_alias       && other_kind == VK::_function) ||
+      (kind == VK::_import_alias       && other_kind == VK::_interface) ||
+      (kind == VK::_import_alias       && other_kind == VK::_let) ||
+      (kind == VK::_import_alias       && other_kind == VK::_type_alias) ||
+      (kind == VK::_import_alias       && other_kind == VK::_var) ||
       (kind == VK::_interface          && other_kind == VK::_class) ||
       (kind == VK::_interface          && other_kind == VK::_import) ||
+      (kind == VK::_interface          && other_kind == VK::_import_alias) ||
       (kind == VK::_interface          && other_kind == VK::_interface) ||
       (kind == VK::_interface          && other_kind == VK::_namespace) ||
       (kind == VK::_interface          && !is_type(other_kind)) ||
+      (kind == VK::_let                && other_kind == VK::_import_alias) ||
       (kind == VK::_let                && other_kind == VK::_namespace) ||
       (kind == VK::_let                && other_kind == VK::_type_alias) ||
       (kind == VK::_namespace          && other_kind == VK::_class) ||
@@ -1112,11 +1123,13 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (kind == VK::_namespace          && other_kind == VK::_var) ||
       (kind == VK::_type_alias         && other_kind == VK::_const) ||
       (kind == VK::_type_alias         && other_kind == VK::_function) ||
+      (kind == VK::_type_alias         && other_kind == VK::_import_alias) ||
       (kind == VK::_type_alias         && other_kind == VK::_let) ||
       (kind == VK::_type_alias         && other_kind == VK::_namespace) ||
       (kind == VK::_type_alias         && other_kind == VK::_var) ||
       (kind == VK::_var                && other_kind == VK::_catch) ||
       (kind == VK::_var                && other_kind == VK::_function) ||
+      (kind == VK::_var                && other_kind == VK::_import_alias) ||
       (kind == VK::_var                && other_kind == VK::_namespace) ||
       (kind == VK::_var                && other_kind == VK::_type_alias) ||
       (kind == VK::_var                && other_kind == VK::_var) ||

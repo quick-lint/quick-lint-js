@@ -83,6 +83,8 @@ Semantic Versioning.
     `< <T>() => RT>expr`, are no longer incorrectly interpreted as JSX.
   * Assigning to an enum or namespace no longer crashes quick-lint-js with an
     assertion failure.
+  * `import A = ns; class A {}` no longer crashes or falsely reports that `A`
+    was redeclared.
 
 ## 2.18.0 (2023-11-03)
 
