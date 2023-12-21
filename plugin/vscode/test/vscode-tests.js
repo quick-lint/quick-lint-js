@@ -350,7 +350,7 @@ tests = {
             target: "https://quick-lint-js.com/errors/E0003/",
             value: "E0003",
           },
-          message: "assignment to const variable",
+          message: "cannot assign to a const variable",
           severity: vscode.DiagnosticSeverity.Error,
           source: "quick-lint-js",
           startLine: 1,

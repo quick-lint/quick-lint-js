@@ -178,6 +178,21 @@ TEST(Test_Variable_Analyzer_Assign,
       u8"var x;"_sv,  // x is hoisted.
       no_diags, javascript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_typescript_enum) {
+  test_parse_and_analyze(
+      u8"enum E {}  E = null;"_sv,  //
+      u8"           ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag
+      u8"     ^ .declaration"_diag
+      u8"{.var_kind=Variable_Kind::_enum}"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"E = null; enum E {}"_sv,  //
+      u8"               ^ Diag_Assignment_To_Const_Variable_Before_Its_Declaration.declaration\n"_diag
+      u8"^ .assignment"_diag
+      u8"{.var_kind=Variable_Kind::_enum}"_diag,
+      typescript_analyze_options, default_globals);
+}
 }
 }
 

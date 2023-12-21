@@ -129,6 +129,142 @@ msgstr ""
 msgid "a 'typeof' type"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "parameter"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "catch variable"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "class"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "const variable"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "enum"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "function"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "generic parameter"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "imported variable"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "import alias"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "imported type"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "index signature parameter"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "type"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "interface"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "let variable"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "namespace"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "type alias"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "variable"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a parameter"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a catch variable"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a class"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a const variable"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "an enum"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a function"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a generic parameter"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "an imported variable"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "an import alias"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "an imported type"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "an index signature parameter"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a type"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "an interface"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a let variable"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a namespace"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a type alias"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-formatter.cpp
+msgid "a variable"
+msgstr ""
+
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "abstract fields cannot have default values"
 msgstr ""
@@ -190,11 +326,11 @@ msgid "assignment to const global variable"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "assignment to const variable"
+msgid "cannot assign to {1:singular}"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "const variable declared here"
+msgid "{1:headlinese} declared here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
@@ -207,6 +343,10 @@ msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "assignment to const variable before its declaration"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "const variable declared here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

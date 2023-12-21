@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[554] = {
+inline const Translated_String test_translation_table[589] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1734,6 +1734,28 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "a catch variable"_translatable,
+        u8"a catch variable",
+        {
+            u8"a catch variable",
+            u8"a catch variable",
+            u8"a catch variable",
+            u8"a catch variable",
+            u8"a catch variable",
+        },
+    },
+    {
+        "a class"_translatable,
+        u8"a class",
+        {
+            u8"a class",
+            u8"a class",
+            u8"a class",
+            u8"a class",
+            u8"a class",
+        },
+    },
+    {
         "a class statement is not allowed as the body of {1:singular}"_translatable,
         u8"a class statement is not allowed as the body of {1:singular}",
         {
@@ -1767,6 +1789,17 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "a const variable"_translatable,
+        u8"a const variable",
+        {
+            u8"a const variable",
+            u8"a const variable",
+            u8"a const variable",
+            u8"a const variable",
+            u8"a const variable",
+        },
+    },
+    {
         "a decorator exists here before 'export'"_translatable,
         u8"a decorator exists here before 'export'",
         {
@@ -1775,6 +1808,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"a decorator exists here before 'export'",
             u8"a decorator exists here before 'export'",
             u8"a decorator exists here before 'export'",
+        },
+    },
+    {
+        "a function"_translatable,
+        u8"a function",
+        {
+            u8"a function",
+            u8"a function",
+            u8"a function",
+            u8"a function",
+            u8"a function",
         },
     },
     {
@@ -1789,6 +1833,17 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "a generic parameter"_translatable,
+        u8"a generic parameter",
+        {
+            u8"a generic parameter",
+            u8"a generic parameter",
+            u8"a generic parameter",
+            u8"a generic parameter",
+            u8"a generic parameter",
+        },
+    },
+    {
         "a labelled statement"_translatable,
         u8"a labelled statement",
         {
@@ -1800,6 +1855,17 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "a let variable"_translatable,
+        u8"a let variable",
+        {
+            u8"a let variable",
+            u8"a let variable",
+            u8"a let variable",
+            u8"a let variable",
+            u8"a let variable",
+        },
+    },
+    {
         "a lexical declaration is not allowed as the body of {1:singular}"_translatable,
         u8"a lexical declaration is not allowed as the body of {1:singular}",
         {
@@ -1808,6 +1874,61 @@ inline const Translated_String test_translation_table[554] = {
             u8"une d\u00e9claration lexicale ne peut constituer le corps de {1:singular}",
             u8"uma declara\u00e7\u00e3o l\u00e9xica n\u00e3o \u00e9 permitida como o conte\u00fado de {1:singular}",
             u8"lexikaliskt deklaration \u00e4r inte till\u00e5tet inuti ett stycke av {1:singular}",
+        },
+    },
+    {
+        "a namespace"_translatable,
+        u8"a namespace",
+        {
+            u8"a namespace",
+            u8"a namespace",
+            u8"a namespace",
+            u8"a namespace",
+            u8"a namespace",
+        },
+    },
+    {
+        "a parameter"_translatable,
+        u8"a parameter",
+        {
+            u8"a parameter",
+            u8"a parameter",
+            u8"a parameter",
+            u8"a parameter",
+            u8"a parameter",
+        },
+    },
+    {
+        "a type"_translatable,
+        u8"a type",
+        {
+            u8"a type",
+            u8"a type",
+            u8"a type",
+            u8"a type",
+            u8"a type",
+        },
+    },
+    {
+        "a type alias"_translatable,
+        u8"a type alias",
+        {
+            u8"a type alias",
+            u8"a type alias",
+            u8"a type alias",
+            u8"a type alias",
+            u8"a type alias",
+        },
+    },
+    {
+        "a variable"_translatable,
+        u8"a variable",
+        {
+            u8"a variable",
+            u8"a variable",
+            u8"a variable",
+            u8"a variable",
+            u8"a variable",
         },
     },
     {
@@ -1921,6 +2042,72 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "an enum"_translatable,
+        u8"an enum",
+        {
+            u8"an enum",
+            u8"an enum",
+            u8"an enum",
+            u8"an enum",
+            u8"an enum",
+        },
+    },
+    {
+        "an import alias"_translatable,
+        u8"an import alias",
+        {
+            u8"an import alias",
+            u8"an import alias",
+            u8"an import alias",
+            u8"an import alias",
+            u8"an import alias",
+        },
+    },
+    {
+        "an imported type"_translatable,
+        u8"an imported type",
+        {
+            u8"an imported type",
+            u8"an imported type",
+            u8"an imported type",
+            u8"an imported type",
+            u8"an imported type",
+        },
+    },
+    {
+        "an imported variable"_translatable,
+        u8"an imported variable",
+        {
+            u8"an imported variable",
+            u8"an imported variable",
+            u8"an imported variable",
+            u8"an imported variable",
+            u8"an imported variable",
+        },
+    },
+    {
+        "an index signature parameter"_translatable,
+        u8"an index signature parameter",
+        {
+            u8"an index signature parameter",
+            u8"an index signature parameter",
+            u8"an index signature parameter",
+            u8"an index signature parameter",
+            u8"an index signature parameter",
+        },
+    },
+    {
+        "an interface"_translatable,
+        u8"an interface",
+        {
+            u8"an interface",
+            u8"an interface",
+            u8"an interface",
+            u8"an interface",
+            u8"an interface",
+        },
+    },
+    {
         "an interface's 'extends' clause"_translatable,
         u8"an interface's 'extends' clause",
         {
@@ -2006,17 +2193,6 @@ inline const Translated_String test_translation_table[554] = {
             u8"affectation \u00e0 une variable globale constante",
             u8"atribui\u00e7\u00e3o para vari\u00e1vel global constante",
             u8"tilldelar till global konstant variabel",
-        },
-    },
-    {
-        "assignment to const variable"_translatable,
-        u8"assignment to const variable",
-        {
-            u8"Zuweisung an konstante Variable",
-            u8"what part of CONSTant do you not understand?",
-            u8"affectation \u00e0 une variable constante",
-            u8"atribui\u00e7\u00e3o para vari\u00e1vel constante",
-            u8"tilldelar till konstant variabel",
         },
     },
     {
@@ -2160,6 +2336,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"impossible d'affecter la variable de boucle dans une boucle for of/in",
             u8"n\u00e3o \u00e9 poss\u00edvel atribuir para vari\u00e1vel do loop em um loop for of/in",
             u8"cannot assign to loop variable in for of/in loop",
+        },
+    },
+    {
+        "cannot assign to {1:singular}"_translatable,
+        u8"cannot assign to {1:singular}",
+        {
+            u8"cannot assign to {1:singular}",
+            u8"cannot assign to {1:singular}",
+            u8"cannot assign to {1:singular}",
+            u8"cannot assign to {1:singular}",
+            u8"cannot assign to {1:singular}",
         },
     },
     {
@@ -2339,6 +2526,17 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "catch variable"_translatable,
+        u8"catch variable",
+        {
+            u8"catch variable",
+            u8"catch variable",
+            u8"catch variable",
+            u8"catch variable",
+            u8"catch variable",
+        },
+    },
+    {
         "catch variable can only be typed as '*', 'any', or 'unknown'"_translatable,
         u8"catch variable can only be typed as '*', 'any', or 'unknown'",
         {
@@ -2369,6 +2567,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"children end here",
             u8"os n\u00f3s acabam aqui",
             u8"children end here",
+        },
+    },
+    {
+        "class"_translatable,
+        u8"class",
+        {
+            u8"class",
+            u8"class",
+            u8"class",
+            u8"class",
+            u8"class",
         },
     },
     {
@@ -2490,6 +2699,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"les champs const dans des classes ne sont autoris\u00e9s qu'avec TypeScript, et pas JavaScript",
             u8"campos constantes dentro de classes s\u00f3 s\u00e3o permitidos em TypeScript, n\u00e3o em JavaScript",
             u8"const fields within classes are only allowed in TypeScript, not JavaScript",
+        },
+    },
+    {
+        "const variable"_translatable,
+        u8"const variable",
+        {
+            u8"const variable",
+            u8"const variable",
+            u8"const variable",
+            u8"const variable",
+            u8"const variable",
         },
     },
     {
@@ -2666,6 +2886,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"duplicated case clause in switch statement",
             u8"duplicated case clause in switch statement",
             u8"duplicated case clause in switch statement",
+        },
+    },
+    {
+        "enum"_translatable,
+        u8"enum",
+        {
+            u8"enum",
+            u8"enum",
+            u8"enum",
+            u8"enum",
+            u8"enum",
         },
     },
     {
@@ -3109,6 +3340,17 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "function"_translatable,
+        u8"function",
+        {
+            u8"function",
+            u8"function",
+            u8"function",
+            u8"function",
+            u8"function",
+        },
+    },
+    {
         "function call started here"_translatable,
         u8"function call started here",
         {
@@ -3263,6 +3505,17 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "generic parameter"_translatable,
+        u8"generic parameter",
+        {
+            u8"generic parameter",
+            u8"generic parameter",
+            u8"generic parameter",
+            u8"generic parameter",
+            u8"generic parameter",
+        },
+    },
+    {
         "getters and setters cannot be generators"_translatable,
         u8"getters and setters cannot be generators",
         {
@@ -3340,6 +3593,39 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "import alias"_translatable,
+        u8"import alias",
+        {
+            u8"import alias",
+            u8"import alias",
+            u8"import alias",
+            u8"import alias",
+            u8"import alias",
+        },
+    },
+    {
+        "imported type"_translatable,
+        u8"imported type",
+        {
+            u8"imported type",
+            u8"imported type",
+            u8"imported type",
+            u8"imported type",
+            u8"imported type",
+        },
+    },
+    {
+        "imported variable"_translatable,
+        u8"imported variable",
+        {
+            u8"imported variable",
+            u8"imported variable",
+            u8"imported variable",
+            u8"imported variable",
+            u8"imported variable",
+        },
+    },
+    {
         "imported variable declared here"_translatable,
         u8"imported variable declared here",
         {
@@ -3370,6 +3656,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"index signature must be a field, not a method",
             u8"index signature precisa ser um campo, n\u00e3o um m\u00e9todo",
             u8"index signature must be a field, not a method",
+        },
+    },
+    {
+        "index signature parameter"_translatable,
+        u8"index signature parameter",
+        {
+            u8"index signature parameter",
+            u8"index signature parameter",
+            u8"index signature parameter",
+            u8"index signature parameter",
+            u8"index signature parameter",
         },
     },
     {
@@ -3436,6 +3733,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"integer cannot be represented and will be rounded to '{1}'",
             u8"inteiro n\u00e3o pode ser representado e vai ser arredondado para '{1}'",
             u8"integer cannot be represented and will be rounded to '{1}'",
+        },
+    },
+    {
+        "interface"_translatable,
+        u8"interface",
+        {
+            u8"interface",
+            u8"interface",
+            u8"interface",
+            u8"interface",
+            u8"interface",
         },
     },
     {
@@ -3623,6 +3931,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"une instruction let ne peut d\u00e9clarer de variables nomm\u00e9es 'let'",
             u8"instru\u00e7\u00e3o let n\u00e3o pode declarar uma vari\u00e1vel chamada 'let'",
             u8"let p\u00e5st\u00e5ende kan inte deklareras med namnet 'let'",
+        },
+    },
+    {
+        "let variable"_translatable,
+        u8"let variable",
+        {
+            u8"let variable",
+            u8"let variable",
+            u8"let variable",
+            u8"let variable",
+            u8"let variable",
         },
     },
     {
@@ -4561,6 +4880,17 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "namespace"_translatable,
+        u8"namespace",
+        {
+            u8"namespace",
+            u8"namespace",
+            u8"namespace",
+            u8"namespace",
+            u8"namespace",
+        },
+    },
+    {
         "namespace starts here"_translatable,
         u8"namespace starts here",
         {
@@ -4888,6 +5218,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"overloaded method is marked '{0}'",
             u8"overloaded method is marked '{0}'",
             u8"overloaded method is marked '{0}'",
+        },
+    },
+    {
+        "parameter"_translatable,
+        u8"parameter",
+        {
+            u8"parameter",
+            u8"parameter",
+            u8"parameter",
+            u8"parameter",
+            u8"parameter",
         },
     },
     {
@@ -5328,6 +5669,28 @@ inline const Translated_String test_translation_table[554] = {
             u8"l'instruction try d\u00e9bute ici",
             u8"instru\u00e7\u00e3o try iniciou aqui",
             u8"try sats startar h\u00e4r",
+        },
+    },
+    {
+        "type"_translatable,
+        u8"type",
+        {
+            u8"type",
+            u8"type",
+            u8"type",
+            u8"type",
+            u8"type",
+        },
+    },
+    {
+        "type alias"_translatable,
+        u8"type alias",
+        {
+            u8"type alias",
+            u8"type alias",
+            u8"type alias",
+            u8"type alias",
+            u8"type alias",
         },
     },
     {
@@ -5903,6 +6266,17 @@ inline const Translated_String test_translation_table[554] = {
         },
     },
     {
+        "variable"_translatable,
+        u8"variable",
+        {
+            u8"variable",
+            u8"variable",
+            u8"variable",
+            u8"variable",
+            u8"variable",
+        },
+    },
+    {
         "variable already declared here"_translatable,
         u8"variable already declared here",
         {
@@ -6087,6 +6461,17 @@ inline const Translated_String test_translation_table[554] = {
             u8"{0} sans liaisons",
             u8"{0} sem bindings",
             u8"{0} utan bindningar",
+        },
+    },
+    {
+        "{1:headlinese} declared here"_translatable,
+        u8"{1:headlinese} declared here",
+        {
+            u8"{1:headlinese} declared here",
+            u8"{1:headlinese} declared here",
+            u8"{1:headlinese} declared here",
+            u8"{1:headlinese} declared here",
+            u8"{1:headlinese} declared here",
         },
     },
     {

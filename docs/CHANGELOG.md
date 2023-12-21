@@ -80,6 +80,8 @@ Semantic Versioning.
     Serra][].)
   * In type assertions, certain types such as in `<string[]>expr` and
     `< <T>() => RT>expr`, are no longer incorrectly interpreted as JSX.
+  * Assigning to an enum no longer crashes quick-lint-js with an assertion
+    failure.
 
 ## 2.18.0 (2023-11-03)
 

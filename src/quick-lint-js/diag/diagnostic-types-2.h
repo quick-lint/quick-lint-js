@@ -131,9 +131,11 @@ struct Diag_Assignment_To_Const_Global_Variable {
 };
 
 struct Diag_Assignment_To_Const_Variable {
-  [[qljs::diag("E0003", Diagnostic_Severity::error)]]                  //
-  [[qljs::message("assignment to const variable", ARG(assignment))]]   //
-  [[qljs::message("const variable declared here", ARG(declaration))]]  //
+  [[qljs::diag("E0003", Diagnostic_Severity::error)]]  //
+  [[qljs::message("cannot assign to {1:singular}", ARG(assignment),
+                  ARG(var_kind))]]  //
+  [[qljs::message("{1:headlinese} declared here", ARG(declaration),
+                  ARG(var_kind))]]  //
   Source_Code_Span declaration;
   Source_Code_Span assignment;
   Variable_Kind var_kind;

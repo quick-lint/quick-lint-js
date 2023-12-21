@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const Translation_Table translation_data = {
     .mapping_table = Translation_Table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0, 0},                  //
-        {1, 11622, 20677, 31328, 0, 57151},  //
+        {1, 11590, 20600, 31213, 0, 56965},  //
         {50, 61, 79, 49, 0, 40},             //
         {62, 74, 53, 53, 0, 46},             //
         {76, 89, 80, 58, 0, 61},             //
@@ -22,7 +22,7 @@ const Translation_Table translation_data = {
         {31, 56, 0, 32, 0, 9},               //
         {0, 0, 0, 0, 0, 67},                 //
         {0, 0, 0, 70, 0, 26},                //
-        {79, 25, 30, 63, 49593, 66},         //
+        {79, 25, 30, 63, 49440, 66},         //
         {0, 0, 0, 0, 0, 97},                 //
         {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 0, 0, 75},                 //
@@ -166,14 +166,25 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 13},                 //
         {18, 18, 0, 14, 0, 16},              //
         {20, 16, 0, 16, 0, 15},              //
-        {20, 40, 63, 23, 66, 19},            //
+        {0, 0, 0, 0, 0, 19},                 //
+        {0, 0, 0, 0, 0, 17},                 //
+        {20, 40, 63, 23, 66, 8},             //
         {0, 0, 0, 0, 0, 61},                 //
         {0, 0, 0, 0, 0, 27},                 //
         {0, 0, 0, 0, 0, 30},                 //
-        {67, 28, 78, 78, 61, 40},            //
-        {0, 0, 0, 62, 0, 64},                //
-        {66, 50, 74, 26, 65, 21},            //
-        {77, 41, 0, 0, 0, 65},               //
+        {0, 0, 0, 0, 0, 17},                 //
+        {0, 0, 0, 0, 0, 40},                 //
+        {67, 28, 78, 78, 61, 11},            //
+        {0, 0, 0, 0, 0, 64},                 //
+        {0, 0, 0, 62, 0, 20},                //
+        {0, 0, 0, 0, 0, 21},                 //
+        {66, 50, 74, 26, 65, 15},            //
+        {0, 0, 0, 0, 0, 65},                 //
+        {0, 0, 0, 0, 0, 12},                 //
+        {0, 0, 0, 0, 0, 12},                 //
+        {0, 0, 0, 0, 0, 7},                  //
+        {0, 0, 0, 0, 0, 13},                 //
+        {77, 41, 0, 0, 0, 11},               //
         {0, 0, 0, 76, 0, 14},                //
         {0, 0, 0, 49, 0, 43},                //
         {0, 0, 0, 56, 0, 42},                //
@@ -184,6 +195,12 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 37},                 //
         {14, 14, 0, 64, 0, 29},              //
         {0, 0, 0, 0, 0, 18},                 //
+        {0, 0, 0, 0, 0, 8},                  //
+        {0, 0, 0, 0, 0, 16},                 //
+        {0, 0, 0, 0, 0, 17},                 //
+        {0, 0, 0, 0, 0, 21},                 //
+        {0, 0, 0, 0, 0, 29},                 //
+        {0, 0, 0, 0, 0, 13},                 //
         {0, 26, 0, 21, 0, 32},               //
         {18, 53, 70, 52, 76, 53},            //
         {19, 30, 21, 19, 19, 19},            //
@@ -192,7 +209,6 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 59},                 //
         {80, 64, 90, 59, 56, 66},            //
         {40, 33, 46, 45, 40, 36},            //
-        {32, 45, 38, 38, 33, 29},            //
         {48, 49, 0, 60, 0, 52},              //
         {34, 32, 60, 38, 51, 32},            //
         {0, 0, 0, 43, 0, 34},                //
@@ -205,7 +221,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 50},                 //
         {73, 51, 90, 53, 0, 48},             //
         {54, 29, 70, 63, 0, 47},             //
-        {66, 38, 70, 71, 49, 49},            //
+        {0, 0, 0, 0, 0, 49},                 //
+        {66, 38, 70, 71, 49, 30},            //
         {62, 81, 69, 64, 48, 45},            //
         {65, 37, 77, 68, 54, 49},            //
         {61, 28, 73, 69, 63, 57},            //
@@ -221,10 +238,12 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 37},                 //
         {0, 0, 0, 0, 0, 43},                 //
         {0, 0, 0, 0, 0, 62},                 //
-        {0, 0, 0, 50, 0, 47},                //
+        {0, 0, 0, 0, 0, 47},                 //
+        {0, 0, 0, 50, 0, 15},                //
         {72, 31, 71, 68, 56, 61},            //
         {34, 30, 0, 46, 0, 40},              //
         {0, 0, 0, 0, 0, 18},                 //
+        {0, 0, 0, 0, 0, 6},                  //
         {0, 0, 0, 0, 0, 23},                 //
         {0, 0, 0, 20, 0, 26},                //
         {20, 12, 47, 37, 44, 29},            //
@@ -235,7 +254,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 60, 0, 45},                //
         {0, 0, 0, 64, 0, 50},                //
         {58, 31, 67, 69, 0, 43},             //
-        {90, 38, 91, 90, 53, 75},            //
+        {0, 0, 0, 0, 0, 75},                 //
+        {90, 38, 91, 90, 53, 15},            //
         {0, 0, 0, 0, 0, 29},                 //
         {0, 0, 0, 0, 0, 43},                 //
         {41, 16, 34, 35, 34, 45},            //
@@ -251,7 +271,8 @@ const Translation_Table translation_data = {
         {47, 58, 59, 52, 39, 48},            //
         {51, 26, 71, 60, 46, 49},            //
         {0, 0, 0, 0, 0, 31},                 //
-        {0, 0, 0, 33, 0, 43},                //
+        {0, 0, 0, 0, 0, 43},                 //
+        {0, 0, 0, 33, 0, 5},                 //
         {0, 0, 0, 47, 0, 35},                //
         {31, 20, 35, 43, 34, 30},            //
         {64, 53, 0, 54, 0, 48},              //
@@ -291,7 +312,8 @@ const Translation_Table translation_data = {
         {61, 59, 69, 43, 41, 46},            //
         {61, 26, 69, 43, 41, 46},            //
         {53, 51, 0, 0, 0, 51},               //
-        {27, 25, 64, 54, 59, 25},            //
+        {0, 0, 0, 0, 0, 25},                 //
+        {27, 25, 64, 54, 59, 9},             //
         {29, 17, 31, 33, 0, 27},             //
         {68, 28, 70, 45, 30, 55},            //
         {0, 0, 0, 24, 0, 23},                //
@@ -306,22 +328,28 @@ const Translation_Table translation_data = {
         {84, 28, 66, 75, 25, 54},            //
         {0, 0, 0, 70, 0, 52},                //
         {0, 0, 0, 0, 0, 45},                 //
+        {0, 0, 0, 0, 0, 18},                 //
         {0, 0, 0, 0, 0, 41},                 //
         {70, 27, 0, 57, 0, 52},              //
         {0, 0, 0, 5, 0, 5},                  //
         {5, 11, 66, 52, 54, 42},             //
         {41, 33, 48, 38, 36, 33},            //
         {42, 24, 59, 53, 33, 47},            //
-        {46, 52, 0, 57, 0, 48},              //
+        {0, 0, 0, 0, 0, 48},                 //
+        {0, 0, 0, 0, 0, 13},                 //
+        {0, 0, 0, 0, 0, 14},                 //
+        {46, 52, 0, 57, 0, 18},              //
         {43, 18, 70, 35, 40, 32},            //
         {0, 0, 0, 147, 0, 147},              //
-        {0, 0, 0, 54, 0, 46},                //
+        {0, 0, 0, 0, 0, 46},                 //
+        {0, 0, 0, 54, 0, 26},                //
         {0, 0, 0, 0, 0, 38},                 //
         {175, 14, 144, 48, 175, 18},         //
         {0, 0, 0, 30, 0, 32},                //
         {0, 0, 0, 0, 0, 24},                 //
         {0, 30, 0, 26, 0, 22},               //
         {0, 0, 0, 0, 0, 59},                 //
+        {0, 0, 0, 0, 0, 10},                 //
         {0, 0, 0, 68, 0, 27},                //
         {0, 0, 0, 75, 0, 61},                //
         {0, 0, 0, 81, 0, 56},                //
@@ -338,7 +366,8 @@ const Translation_Table translation_data = {
         {63, 28, 67, 78, 46, 58},            //
         {54, 5, 62, 42, 52, 39},             //
         {61, 50, 75, 49, 64, 50},            //
-        {50, 22, 0, 63, 0, 51},              //
+        {0, 0, 0, 0, 0, 51},                 //
+        {50, 22, 0, 63, 0, 13},              //
         {0, 0, 0, 0, 0, 45},                 //
         {0, 0, 0, 0, 0, 19},                 //
         {0, 0, 0, 46, 0, 35},                //
@@ -424,6 +453,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 52, 0, 48},                //
         {0, 0, 0, 0, 0, 51},                 //
         {0, 0, 0, 0, 0, 47},                 //
+        {0, 0, 0, 0, 0, 10},                 //
         {69, 26, 0, 59, 0, 22},              //
         {0, 0, 0, 46, 0, 39},                //
         {0, 0, 0, 0, 0, 40},                 //
@@ -454,6 +484,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 68, 0, 64},                //
         {0, 0, 0, 0, 0, 40},                 //
         {0, 0, 0, 0, 0, 34},                 //
+        {0, 0, 0, 0, 0, 10},                 //
         {0, 0, 0, 0, 0, 51},                 //
         {0, 0, 0, 0, 0, 56},                 //
         {0, 0, 0, 0, 0, 57},                 //
@@ -494,6 +525,8 @@ const Translation_Table translation_data = {
         {50, 25, 0, 70, 0, 78},              //
         {33, 21, 74, 25, 44, 21},            //
         {0, 0, 0, 0, 0, 26},                 //
+        {0, 0, 0, 0, 0, 5},                  //
+        {0, 0, 0, 0, 0, 11},                 //
         {0, 0, 0, 0, 0, 58},                 //
         {27, 19, 30, 29, 22, 31},            //
         {25, 50, 0, 36, 0, 23},              //
@@ -545,7 +578,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 59, 0, 70},                //
         {0, 0, 0, 47, 0, 60},                //
         {0, 0, 0, 55, 0, 59},                //
-        {57, 29, 48, 46, 41, 59},            //
+        {0, 0, 0, 0, 0, 59},                 //
+        {57, 29, 48, 46, 41, 9},             //
         {37, 26, 31, 33, 35, 31},            //
         {0, 0, 0, 0, 0, 41},                 //
         {38, 49, 41, 44, 37, 37},            //
@@ -562,7 +596,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 44, 0, 48},                //
         {0, 0, 0, 43, 0, 42},                //
         {47, 55, 72, 36, 48, 35},            //
-        {0, 0, 0, 17, 0, 21},                //
+        {0, 0, 0, 0, 0, 21},                 //
+        {0, 0, 0, 17, 0, 29},                //
         {0, 0, 0, 0, 0, 53},                 //
         {0, 15, 0, 72, 0, 47},               //
     }}),
@@ -614,7 +649,6 @@ const Translation_Table translation_data = {
         u8"Arrow ist hier\0"
         u8"Zuweisung an 'async' in einer for-of-Schleife erfordert Verwendung von Klammern\0"
         u8"Zuweisung an globale konstante Variable\0"
-        u8"Zuweisung an konstante Variable\0"
         u8"Zuweisung an konstante Variable vor Deklaration\0"
         u8"Zuweisung an importierte Variable\0"
         u8"Zuweisung an nicht deklarierte Variable\0"
@@ -871,7 +905,6 @@ const Translation_Table translation_data = {
         u8"move this up\0"
         u8"just stop using variables called 'async'. There. Problem solved\0"
         u8"the global's CONSTant, you dweeb\0"
-        u8"what part of CONSTant do you not understand?\0"
         u8"why are you assignin' before you be makin'? \U0001f90f\0"
         u8"you said 'import', not 'extort'\0"
         u8"you're putting that where exactly?\0"
@@ -1108,7 +1141,6 @@ const Translation_Table translation_data = {
         u8"la fl\u00e8che est ici\0"
         u8"une affectation de type 'async' dans une boucle for-of n\u00e9cessite l'usage de parenth\u00e8ses\0"
         u8"affectation \u00e0 une variable globale constante\0"
-        u8"affectation \u00e0 une variable constante\0"
         u8"affectation \u00e0 une variable constante avant sa d\u00e9claration\0"
         u8"affectation \u00e0 une variable non d\u00e9clar\u00e9e\0"
         u8"le litt\u00e9ral num\u00e9rique binaire n'a pas de chiffres\0"
@@ -1383,7 +1415,6 @@ const Translation_Table translation_data = {
         u8"arrow est\u00e1 aqui\0"
         u8"atribuir para 'async' em um loop for-of requer par\u00eanteses\0"
         u8"atribui\u00e7\u00e3o para vari\u00e1vel global constante\0"
-        u8"atribui\u00e7\u00e3o para vari\u00e1vel constante\0"
         u8"atribui\u00e7\u00e3o para vari\u00e1vel constante antes da declara\u00e7\u00e3o\0"
         u8"atribui\u00e7\u00e3o para vari\u00e1vel importada\0"
         u8"atribui\u00e7\u00e3o para vari\u00e1vel n\u00e3o declarada\0"
@@ -1678,7 +1709,6 @@ const Translation_Table translation_data = {
         u8"pilen \u00e4r h\u00e4r\0"
         u8"tilldelning av 'async' i for-of loop kr\u00e4ver paranteser\0"
         u8"tilldelar till global konstant variabel\0"
-        u8"tilldelar till konstant variabel\0"
         u8"tilldelar konstant variable f\u00f6re dens deklaration\0"
         u8"tilldelar v\u00e4rde till variabel f\u00f6re deklaration\0"
         u8"bin\u00e4ra nummerlitteraler has inga siffror\0"
@@ -1992,13 +2022,24 @@ const Translation_Table translation_data = {
         u8"a 'typeof' type\0"
         u8"a 'while' loop\0"
         u8"a 'with' statement\0"
+        u8"a catch variable\0"
+        u8"a class\0"
         u8"a class statement is not allowed as the body of {1:singular}\0"
         u8"a class's 'extends' clause\0"
         u8"a class's 'implements' clause\0"
+        u8"a const variable\0"
         u8"a decorator exists here before 'export'\0"
+        u8"a function\0"
         u8"a function statement is not allowed as the body of {1:singular}\0"
+        u8"a generic parameter\0"
         u8"a labelled statement\0"
+        u8"a let variable\0"
         u8"a lexical declaration is not allowed as the body of {1:singular}\0"
+        u8"a namespace\0"
+        u8"a parameter\0"
+        u8"a type\0"
+        u8"a type alias\0"
+        u8"a variable\0"
         u8"a {{0} b }} c\0"
         u8"abstract fields cannot have default values\0"
         u8"abstract methods cannot be marked 'async'\0"
@@ -2009,6 +2050,12 @@ const Translation_Table translation_data = {
         u8"abstract properties cannot be static\0"
         u8"accessors cannot be optional\0"
         u8"an 'if' statement\0"
+        u8"an enum\0"
+        u8"an import alias\0"
+        u8"an imported type\0"
+        u8"an imported variable\0"
+        u8"an index signature parameter\0"
+        u8"an interface\0"
         u8"an interface's 'extends' clause\0"
         u8"another invalid string, do not use outside benchmark\0"
         u8"array started here\0"
@@ -2017,7 +2064,6 @@ const Translation_Table translation_data = {
         u8"assigning to 'async' in a for-of loop requires parentheses\0"
         u8"assignment assertion is not allowed on fields be marked 'declare'\0"
         u8"assignment to const global variable\0"
-        u8"assignment to const variable\0"
         u8"assignment to const variable before its declaration\0"
         u8"assignment to imported variable\0"
         u8"assignment to undeclared variable\0"
@@ -2031,6 +2077,7 @@ const Translation_Table translation_data = {
         u8"cannot 'export default' from inside a namespace\0"
         u8"cannot access private identifier outside class\0"
         u8"cannot assign to loop variable in for of/in loop\0"
+        u8"cannot assign to {1:singular}\0"
         u8"cannot declare 'await' inside async function\0"
         u8"cannot declare 'yield' inside generator function\0"
         u8"cannot declare and export variable with 'export default'\0"
@@ -2047,9 +2094,11 @@ const Translation_Table translation_data = {
         u8"cannot use 'declare' keyword with 'import'\0"
         u8"cannot use multiple `export default` statements in one module\0"
         u8"cannot use type directly in its own definition\0"
+        u8"catch variable\0"
         u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
         u8"children end here\0"
+        u8"class\0"
         u8"class 'extends' clause\0"
         u8"class 'implements' clause\0"
         u8"class is not marked abstract\0"
@@ -2061,6 +2110,7 @@ const Translation_Table translation_data = {
         u8"computed enum member name must be a simple string\0"
         u8"computed value disables enum autoincrement\0"
         u8"const fields within classes are only allowed in TypeScript, not JavaScript\0"
+        u8"const variable\0"
         u8"const variable declared here\0"
         u8"containing 'declare namespace' starts here\0"
         u8"containing namespace or module declared here\0"
@@ -2077,6 +2127,7 @@ const Translation_Table translation_data = {
         u8"do-while loop needs parentheses around condition\0"
         u8"do-while statement starts here\0"
         u8"duplicated case clause in switch statement\0"
+        u8"enum\0"
         u8"enum member name cannot be numeric\0"
         u8"enum member needs initializer\0"
         u8"escaped character is not allowed in identifiers\0"
@@ -2117,6 +2168,7 @@ const Translation_Table translation_data = {
         u8"for-of loop expression cannot have semicolons\0"
         u8"forwarding exports are only allowed in export-from\0"
         u8"free {1} and {0} {1} {2}\0"
+        u8"function\0"
         u8"function call started here\0"
         u8"function called before declaration in block scope: {0}\0"
         u8"function declared here\0"
@@ -2131,6 +2183,7 @@ const Translation_Table translation_data = {
         u8"generator function '*' belongs after keyword function\0"
         u8"generator function '*' belongs before function name\0"
         u8"generic arrow function needs ',' here in TSX\0"
+        u8"generic parameter\0"
         u8"getters and setters cannot be generators\0"
         u8"getters and setters cannot have overload signatures\0"
         u8"here\0"
@@ -2138,15 +2191,20 @@ const Translation_Table translation_data = {
         u8"hex number literal has no digits\0"
         u8"if statement is missing '{1}' around condition\0"
         u8"if statement needs parentheses around condition\0"
+        u8"import alias\0"
+        u8"imported type\0"
+        u8"imported variable\0"
         u8"imported variable declared here\0"
         u8"incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'\0"
         u8"index signature must be a field, not a method\0"
+        u8"index signature parameter\0"
         u8"index signatures require a value type\0"
         u8"index starts here\0"
         u8"indexing requires an expression\0"
         u8"initializer starts here\0"
         u8"inside namespace here\0"
         u8"integer cannot be represented and will be rounded to '{1}'\0"
+        u8"interface\0"
         u8"interface 'extends' clause\0"
         u8"interface properties are always public and cannot be private\0"
         u8"interface properties cannot be marked public explicitly\0"
@@ -2164,6 +2222,7 @@ const Translation_Table translation_data = {
         u8"legacy octal literal may not be BigInt\0"
         u8"legacy octal literals may not contain underscores\0"
         u8"let statement cannot declare variables named 'let'\0"
+        u8"let variable\0"
         u8"lower case letters compared with toUpperCase\0"
         u8"method starts here\0"
         u8"methods cannot be marked 'declare'\0"
@@ -2249,6 +2308,7 @@ const Translation_Table translation_data = {
         u8"misspelled React attribute; write '{1}' instead\0"
         u8"move the 'extends' clause before 'implements' here\0"
         u8"move the parameter decorator before '{0}' here\0"
+        u8"namespace\0"
         u8"namespace starts here\0"
         u8"new variable shadows existing variable\0"
         u8"newline is not allowed after 'abstract'\0"
@@ -2279,6 +2339,7 @@ const Translation_Table translation_data = {
         u8"overload signature must match modifiers on this overload method\0"
         u8"overloaded function '{0}' declared here\0"
         u8"overloaded method is marked '{0}'\0"
+        u8"parameter\0"
         u8"parameter decorator must be before other modifiers\0"
         u8"parameter decorators are not allowed in 'declare class'\0"
         u8"parameter decorators are not allowed in abstract methods\0"
@@ -2319,6 +2380,8 @@ const Translation_Table translation_data = {
         u8"this tuple type is a named tuple type because at least one element has a name\0"
         u8"this {0} looks fishy\0"
         u8"try statement starts here\0"
+        u8"type\0"
+        u8"type alias\0"
         u8"type predicates are only allowed as function return types\0"
         u8"type {0} is being defined here\0"
         u8"unclosed block comment\0"
@@ -2371,6 +2434,7 @@ const Translation_Table translation_data = {
         u8"using '{0}' against an array literal does not compare items\0"
         u8"using '{0}' against an arrow function always returns '{1}'\0"
         u8"using '{0}' against an object literal always returns '{1}'\0"
+        u8"variable\0"
         u8"variable already declared here\0"
         u8"variable assigned before its declaration\0"
         u8"variable assignment to self is no-op\0"
@@ -2388,6 +2452,7 @@ const Translation_Table translation_data = {
         u8"{0} classes are not allowed in JavaScript\0"
         u8"{0} is not the name of a parameter\0"
         u8"{0} with no bindings\0"
+        u8"{1:headlinese} declared here\0"
         u8"{1:headlinese} value must be a compile-time constant\0"
         u8"{1} cannot have an initializer in a .d.ts file\0"
         u8"~~~ invalid string, do not use outside benchmark ~~~",

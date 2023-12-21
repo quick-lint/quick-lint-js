@@ -207,15 +207,17 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 3,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("assignment to const variable"),
-        QLJS_TRANSLATABLE("const variable declared here"),
+        QLJS_TRANSLATABLE("cannot assign to {1:singular}"),
+        QLJS_TRANSLATABLE("{1:headlinese} declared here"),
       },
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Assignment_To_Const_Variable, assignment), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Assignment_To_Const_Variable, var_kind), Diagnostic_Arg_Type::variable_kind),
         },
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_Assignment_To_Const_Variable, declaration), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Assignment_To_Const_Variable, var_kind), Diagnostic_Arg_Type::variable_kind),
         },
       },
     },

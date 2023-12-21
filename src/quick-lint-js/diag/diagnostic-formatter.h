@@ -22,6 +22,8 @@ namespace quick_lint_js {
 String8_View headlinese_enum_kind(Enum_Kind);
 Translatable_Message headlinese_statement_kind(Statement_Kind);
 Translatable_Message singular_statement_kind(Statement_Kind);
+Translatable_Message headlinese_variable_kind(Variable_Kind);
+Translatable_Message singular_variable_kind(Variable_Kind);
 
 class Diagnostic_Formatter_Base {
  public:

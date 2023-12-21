@@ -84,6 +84,94 @@ Translatable_Message singular_statement_kind(Statement_Kind sk) {
   QLJS_UNREACHABLE();
 }
 
+Translatable_Message headlinese_variable_kind(Variable_Kind vk) {
+  switch (vk) {
+  case Variable_Kind::_arrow_parameter:
+    return QLJS_TRANSLATABLE("parameter");
+  case Variable_Kind::_catch:
+    return QLJS_TRANSLATABLE("catch variable");
+  case Variable_Kind::_class:
+    return QLJS_TRANSLATABLE("class");
+  case Variable_Kind::_const:
+    return QLJS_TRANSLATABLE("const variable");
+  case Variable_Kind::_enum:
+    return QLJS_TRANSLATABLE("enum");
+  case Variable_Kind::_function:
+    return QLJS_TRANSLATABLE("function");
+  case Variable_Kind::_function_parameter:
+    return QLJS_TRANSLATABLE("parameter");
+  case Variable_Kind::_function_type_parameter:
+    return QLJS_TRANSLATABLE("parameter");
+  case Variable_Kind::_generic_parameter:
+    return QLJS_TRANSLATABLE("generic parameter");
+  case Variable_Kind::_import:
+    return QLJS_TRANSLATABLE("imported variable");
+  case Variable_Kind::_import_alias:
+    return QLJS_TRANSLATABLE("import alias");
+  case Variable_Kind::_import_type:
+    return QLJS_TRANSLATABLE("imported type");
+  case Variable_Kind::_index_signature_parameter:
+    return QLJS_TRANSLATABLE("index signature parameter");
+  case Variable_Kind::_infer_type:
+    return QLJS_TRANSLATABLE("type");
+  case Variable_Kind::_interface:
+    return QLJS_TRANSLATABLE("interface");
+  case Variable_Kind::_let:
+    return QLJS_TRANSLATABLE("let variable");
+  case Variable_Kind::_namespace:
+    return QLJS_TRANSLATABLE("namespace");
+  case Variable_Kind::_type_alias:
+    return QLJS_TRANSLATABLE("type alias");
+  case Variable_Kind::_var:
+    return QLJS_TRANSLATABLE("variable");
+  }
+  QLJS_UNREACHABLE();
+}
+
+Translatable_Message singular_variable_kind(Variable_Kind vk) {
+  switch (vk) {
+  case Variable_Kind::_arrow_parameter:
+    return QLJS_TRANSLATABLE("a parameter");
+  case Variable_Kind::_catch:
+    return QLJS_TRANSLATABLE("a catch variable");
+  case Variable_Kind::_class:
+    return QLJS_TRANSLATABLE("a class");
+  case Variable_Kind::_const:
+    return QLJS_TRANSLATABLE("a const variable");
+  case Variable_Kind::_enum:
+    return QLJS_TRANSLATABLE("an enum");
+  case Variable_Kind::_function:
+    return QLJS_TRANSLATABLE("a function");
+  case Variable_Kind::_function_parameter:
+    return QLJS_TRANSLATABLE("a parameter");
+  case Variable_Kind::_function_type_parameter:
+    return QLJS_TRANSLATABLE("a parameter");
+  case Variable_Kind::_generic_parameter:
+    return QLJS_TRANSLATABLE("a generic parameter");
+  case Variable_Kind::_import:
+    return QLJS_TRANSLATABLE("an imported variable");
+  case Variable_Kind::_import_alias:
+    return QLJS_TRANSLATABLE("an import alias");
+  case Variable_Kind::_import_type:
+    return QLJS_TRANSLATABLE("an imported type");
+  case Variable_Kind::_index_signature_parameter:
+    return QLJS_TRANSLATABLE("an index signature parameter");
+  case Variable_Kind::_infer_type:
+    return QLJS_TRANSLATABLE("a type");
+  case Variable_Kind::_interface:
+    return QLJS_TRANSLATABLE("an interface");
+  case Variable_Kind::_let:
+    return QLJS_TRANSLATABLE("a let variable");
+  case Variable_Kind::_namespace:
+    return QLJS_TRANSLATABLE("a namespace");
+  case Variable_Kind::_type_alias:
+    return QLJS_TRANSLATABLE("a type alias");
+  case Variable_Kind::_var:
+    return QLJS_TRANSLATABLE("a variable");
+  }
+  QLJS_UNREACHABLE();
+}
+
 Diagnostic_Formatter_Base::Diagnostic_Formatter_Base(Translator t)
     : translator_(t) {}
 
@@ -141,11 +229,14 @@ String8_View Diagnostic_Formatter_Base::expand_argument_headlinese(
     return this->translator_.translate(headlinese_statement_kind(
         *reinterpret_cast<const Statement_Kind*>(arg_data)));
 
+  case Diagnostic_Arg_Type::variable_kind:
+    return this->translator_.translate(headlinese_variable_kind(
+        *reinterpret_cast<const Variable_Kind*>(arg_data)));
+
   case Diagnostic_Arg_Type::char8:
   case Diagnostic_Arg_Type::invalid:
   case Diagnostic_Arg_Type::source_code_span:
   case Diagnostic_Arg_Type::string8_view:
-  case Diagnostic_Arg_Type::variable_kind:
     QLJS_UNREACHABLE();
   }
   QLJS_UNREACHABLE();
@@ -164,11 +255,14 @@ String8_View Diagnostic_Formatter_Base::expand_argument_singular(
     QLJS_UNIMPLEMENTED();
     break;
 
+  case Diagnostic_Arg_Type::variable_kind:
+    return this->translator_.translate(singular_variable_kind(
+        *reinterpret_cast<const Variable_Kind*>(arg_data)));
+
   case Diagnostic_Arg_Type::char8:
   case Diagnostic_Arg_Type::invalid:
   case Diagnostic_Arg_Type::source_code_span:
   case Diagnostic_Arg_Type::string8_view:
-  case Diagnostic_Arg_Type::variable_kind:
     QLJS_UNREACHABLE();
   }
   QLJS_UNREACHABLE();

@@ -812,6 +812,7 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
 
   switch (kind) {
   case Variable_Kind::_const:
+  case Variable_Kind::_enum:
     if (is_global_variable) {
       this->diag_reporter_->report(Diag_Assignment_To_Const_Global_Variable{
           .assignment = assignment.span()});
@@ -875,9 +876,6 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
   case Variable_Kind::_interface:
     // Interfaces can't be assigned to.
     QLJS_UNREACHABLE();
-    break;
-  case Variable_Kind::_enum:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case Variable_Kind::_generic_parameter:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
