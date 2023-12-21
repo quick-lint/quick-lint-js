@@ -95,7 +95,6 @@ TEST(Test_Variable_Analyzer_Parse,
   Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   Parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
-  l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
 }
@@ -107,7 +106,6 @@ TEST(Test_Variable_Analyzer_Parse, typeof_with_conditional_operator) {
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     Parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
-    l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
   }
@@ -126,7 +124,6 @@ TEST(Test_Variable_Analyzer_Parse, prefix_plusplus_on_const_variable) {
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     Parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
-    l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
   }
@@ -139,7 +136,6 @@ TEST(Test_Variable_Analyzer_Parse, prefix_plusplus_plus_operand) {
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     Parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
-    l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
   }
@@ -157,7 +153,6 @@ TEST(Test_Variable_Analyzer_Parse, use_await_label_in_non_async_function) {
   Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   Parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
-  l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
 }
@@ -168,7 +163,6 @@ TEST(Test_Variable_Analyzer_Parse, use_yield_label_in_non_generator_function) {
   Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   Parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
-  l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
 }
@@ -181,7 +175,6 @@ TEST(Test_Variable_Analyzer_Parse, escape_sequence_in_keyword_identifier) {
   Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   Parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
-  l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
               ElementsAreArray({
@@ -196,7 +189,6 @@ TEST(Test_Variable_Analyzer_Parse, delete_local_variable) {
   Variable_Analyzer l(&v, &default_globals, javascript_var_options);
   Parser p(&input, &v, javascript_options);
   p.parse_and_visit_module(l);
-  l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
               ElementsAreArray({
@@ -216,7 +208,6 @@ TEST(Test_Variable_Analyzer_Parse, extends_self) {
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     Parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
-    l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, ElementsAreArray({
                               DIAG_TYPE(Diag_Variable_Used_Before_Declaration),
@@ -233,7 +224,6 @@ TEST(Test_Variable_Analyzer_Parse, extends_self) {
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     Parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
-    l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, ElementsAreArray({
                               DIAG_TYPE(Diag_Variable_Used_Before_Declaration),
@@ -250,7 +240,6 @@ TEST(Test_Variable_Analyzer_Parse, extends_self) {
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     Parser p(&input, &v, javascript_options);
     p.parse_and_visit_module(l);
-    l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, ElementsAreArray({
                               DIAG_TYPE(Diag_Variable_Used_Before_Declaration),
@@ -266,7 +255,6 @@ TEST(Test_Variable_Analyzer_Parse,
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     Parser p(&input, &v, typescript_options);
     p.parse_and_visit_module(l);
-    l.visit_end_of_module();
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -276,7 +264,6 @@ TEST(Test_Variable_Analyzer_Parse,
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     Parser p(&input, &v, typescript_options);
     p.parse_and_visit_module(l);
-    l.visit_end_of_module();
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
