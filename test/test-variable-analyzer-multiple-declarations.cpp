@@ -268,6 +268,67 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
       u8"                      ^ .original_declaration"_diag,
       typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     imported_type_always_conflicts_with_things_declaring_types) {
+  for (String8_View other_thing : {
+           u8"class T {}"_sv,
+           u8"enum T {}"_sv,
+           u8"import T from 'othermod';"_sv,
+           u8"import T = require('othermod');"_sv,
+           u8"import {type T} from 'othermod';"_sv,
+           u8"interface T {}"_sv,
+           u8"type T = null;"_sv,
+       }) {
+    test_parse_and_analyze(
+        concat(u8"import {type T} from 'mod'; "_sv, other_thing),
+        u8"Diag_Redeclaration_Of_Variable"_diag, typescript_analyze_options,
+        default_globals);
+    test_parse_and_analyze(
+        concat(other_thing, u8" import {type T} from 'mod';"_sv),
+        u8"Diag_Redeclaration_Of_Variable"_diag, typescript_analyze_options,
+        default_globals);
+  }
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     imported_type_might_not_conflict_with_runtime_only_declarations) {
+  // These things conflict when importing a class, but do not conflict when
+  // importing an interface or type alias:
+  for (String8_View other_thing : {
+           u8"const T = 42;"_sv,
+           u8"function T() {}"_sv,
+           u8"let T;"_sv,
+           u8"var T;"_sv,
+           // This is a non-empty namespace. For an empty namespace, see
+           // imported_type_never_conflicts_with_empty_namespace.
+           u8"namespace T {;}"_sv,
+       }) {
+    test_parse_and_analyze(
+        concat(u8"import {type T} from 'mod'; "_sv, other_thing), no_diags,
+        typescript_analyze_options, default_globals);
+    test_parse_and_analyze(
+        concat(other_thing, u8" import {type T} from 'mod';"_sv), no_diags,
+        typescript_analyze_options, default_globals);
+  }
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     imported_type_never_conflicts_with_empty_namespace) {
+  test_parse_and_analyze(u8"import {type T} from 'mod'; namespace T {}"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"namespace T {}  import {type T} from 'mod';"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     typescript_infer_can_be_repeated_in_one_extends_clause) {
+  test_parse_and_analyze(
+      u8"class A<T> {}\n"_sv
+      u8"class B<T> {}\n"_sv
+      u8"type T<U> = U extends A<infer I> | B<infer I> ? I : null"_sv,
+      no_diags, typescript_analyze_options, default_globals);
+}
 }
 }
 

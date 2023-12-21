@@ -85,6 +85,10 @@ Semantic Versioning.
     assertion failure.
   * `import A = ns; class A {}` no longer crashes or falsely reports that `A`
     was redeclared.
+  * `import {type A from 'mod'}; let A;` no longer crashes or falsely reports
+    that `A` was redeclared.
+  * `extends` checks with multiple `infer`s no longer crash or falsely report
+    that the inferred variable was redeclared.
 
 ## 2.18.0 (2023-11-03)
 
