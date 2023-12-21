@@ -887,21 +887,14 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
   case Variable_Kind::_var:
     // Use before declaration is okay.
     break;
-  case Variable_Kind::_interface:
-    // Interfaces can't be assigned to.
-    QLJS_UNREACHABLE();
-    break;
+
   case Variable_Kind::_generic_parameter:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
-    break;
   case Variable_Kind::_import_type:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
-    break;
   case Variable_Kind::_infer_type:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
-    break;
+  case Variable_Kind::_interface:
   case Variable_Kind::_type_alias:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    // Type-only variables can't be assigned to.
+    QLJS_UNREACHABLE();
     break;
   }
 }
