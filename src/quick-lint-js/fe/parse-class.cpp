@@ -101,8 +101,16 @@ std::optional<Identifier> Parser::parse_class_and_optional_name() {
     }
     goto class_name;
 
-  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
-    // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+    // const C = class implements I {};  // TypeScript only.
+  case Token_Type::kw_implements:
+    return std::nullopt;
+
+  case Token_Type::kw_interface:
+  case Token_Type::kw_package:
+  case Token_Type::kw_private:
+  case Token_Type::kw_protected:
+  case Token_Type::kw_public:
+    // TODO(#73): Disallow 'protected', etc. in strict mode.
     [[fallthrough]];
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case Token_Type::identifier:

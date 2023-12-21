@@ -1708,29 +1708,31 @@ TEST_F(Test_Parse_Var, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(p.enter_named_function_scopes, ElementsAreArray({name}));
     }
 
-    {
-      Test_Parser p(concat(u8"class "_sv, name, u8" {}"_sv));
-      auto guard = p.enter_function(Function_Attributes::normal);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_enter_class_scope",       //
-                                "visit_enter_class_scope_body",  //
-                                "visit_exit_class_scope",
-                                "visit_variable_declaration",  // (name)
-                            }));
-      EXPECT_THAT(p.variable_declarations,
-                  ElementsAreArray({class_decl(name)}));
-    }
+    if (name != u8"implements"_sv) {
+      {
+        Test_Parser p(concat(u8"class "_sv, name, u8" {}"_sv));
+        auto guard = p.enter_function(Function_Attributes::normal);
+        p.parse_and_visit_statement();
+        EXPECT_THAT(p.visits, ElementsAreArray({
+                                  "visit_enter_class_scope",       //
+                                  "visit_enter_class_scope_body",  //
+                                  "visit_exit_class_scope",
+                                  "visit_variable_declaration",  // (name)
+                              }));
+        EXPECT_THAT(p.variable_declarations,
+                    ElementsAreArray({class_decl(name)}));
+      }
 
-    {
-      Test_Parser p(concat(u8"(class "_sv, name, u8" {})"_sv));
-      auto guard = p.enter_function(Function_Attributes::normal);
-      p.parse_and_visit_statement();
-      EXPECT_THAT(p.visits, ElementsAreArray({
-                                "visit_enter_class_scope",       // {
-                                "visit_enter_class_scope_body",  // (name)
-                                "visit_exit_class_scope",        // }
-                            }));
+      {
+        Test_Parser p(concat(u8"(class "_sv, name, u8" {})"_sv));
+        auto guard = p.enter_function(Function_Attributes::normal);
+        p.parse_and_visit_statement();
+        EXPECT_THAT(p.visits, ElementsAreArray({
+                                  "visit_enter_class_scope",       // {
+                                  "visit_enter_class_scope_body",  // (name)
+                                  "visit_exit_class_scope",        // }
+                              }));
+      }
     }
 
     {

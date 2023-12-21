@@ -89,6 +89,8 @@ Semantic Versioning.
     that `A` was redeclared.
   * `extends` checks with multiple `infer`s no longer crash or falsely report
     that the inferred variable was redeclared.
+  * `class implements I {}` is now parsed as a class with no name rather than a
+    class with the name `implements`.
 
 ## 2.18.0 (2023-11-03)
 

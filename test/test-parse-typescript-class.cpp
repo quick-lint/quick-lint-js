@@ -1600,6 +1600,40 @@ TEST_F(Test_Parse_TypeScript_Class,
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Class, class_name_can_be_omitted_in_expression) {
+  {
+    Spy_Visitor p = test_parse_and_visit_expression(u8"class {}"_sv, no_diags,
+                                                    typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // {
+                              "visit_enter_class_scope_body",  // C
+                              "visit_exit_class_scope",        // }
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"class extends Base {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // {
+                              "visit_variable_use",            // Base
+                              "visit_enter_class_scope_body",  // C
+                              "visit_exit_class_scope",        // }
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"class implements I {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // {
+                              "visit_variable_type_use",       // I
+                              "visit_enter_class_scope_body",  // C
+                              "visit_exit_class_scope",        // }
+                          }));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Class, parameter_property_in_constructor) {
   {
     Spy_Visitor p = test_parse_and_visit_module(
