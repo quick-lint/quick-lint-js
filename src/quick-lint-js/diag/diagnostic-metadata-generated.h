@@ -247,6 +247,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Type_Keyword) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Before_Assignment_Assertion_Operator) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type) \
+  QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers) \
   QLJS_DIAG_TYPE_NAME(Diag_Number_Literal_Contains_Consecutive_Underscores) \
   QLJS_DIAG_TYPE_NAME(Diag_Number_Literal_Contains_Trailing_Underscores) \
   QLJS_DIAG_TYPE_NAME(Diag_Octal_Literal_May_Not_Have_Exponent) \
@@ -461,7 +462,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 447;
+inline constexpr int Diag_Type_Count = 448;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

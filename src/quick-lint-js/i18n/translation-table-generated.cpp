@@ -461,6 +461,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 52, 0, 41},                //
         {0, 0, 0, 0, 0, 36},                 //
         {0, 0, 0, 0, 0, 35},                 //
+        {0, 0, 0, 0, 0, 65},                 //
         {0, 0, 0, 47, 0, 34},                //
         {52, 31, 25, 61, 21, 54},            //
         {0, 0, 0, 0, 0, 73},                 //
@@ -2316,6 +2317,7 @@ const Translation_Table translation_data = {
         u8"newline is not allowed after 'interface'\0"
         u8"newline is not allowed after 'type'\0"
         u8"newline is not allowed after '{0}'\0"
+        u8"newline is not allowed after '{0}' modifier in generic parameter\0"
         u8"newline is not allowed before '<'\0"
         u8"newline is not allowed between 'async' and 'function'\0"
         u8"newline is not allowed between 'async' and arrow function parameter list\0"

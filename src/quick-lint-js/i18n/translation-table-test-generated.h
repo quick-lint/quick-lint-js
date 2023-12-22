@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[589] = {
+inline const Translated_String test_translation_table[590] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4965,6 +4965,17 @@ inline const Translated_String test_translation_table[589] = {
             u8"newline is not allowed after '{0}'",
             u8"newline is not allowed after '{0}'",
             u8"newline is not allowed after '{0}'",
+        },
+    },
+    {
+        "newline is not allowed after '{0}' modifier in generic parameter"_translatable,
+        u8"newline is not allowed after '{0}' modifier in generic parameter",
+        {
+            u8"newline is not allowed after '{0}' modifier in generic parameter",
+            u8"newline is not allowed after '{0}' modifier in generic parameter",
+            u8"newline is not allowed after '{0}' modifier in generic parameter",
+            u8"newline is not allowed after '{0}' modifier in generic parameter",
+            u8"newline is not allowed after '{0}' modifier in generic parameter",
         },
     },
     {
