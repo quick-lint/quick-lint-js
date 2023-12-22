@@ -35,6 +35,9 @@ Semantic Versioning.
   * Properties in object literal types can now be named with number literals.
   * Repeating `in` or `out` generic parameter modifiers now reports [E0432][]
     ("'in' or 'out' variance specifier cannot be listed twice").
+  * Writing a newline after an `in`, `out`, or `const` generic parameter
+    modifier now reports [E0440][] ("newline is not allowed after 'in' modifier
+    in generic parameter"). (Implemented by [Ariel Don][].)
   * Negative number literals are now parsed in types.
   * Parameter decorators are now parsed.
   * Overload signatures are now allowed on exported functions.
