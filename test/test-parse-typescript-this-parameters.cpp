@@ -42,7 +42,9 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_normal_functions) {
         u8"function f(this: MyType) {}"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       // f
+                              "visit_enter_type_scope",           // :
                               "visit_variable_type_use",          // MyType
+                              "visit_exit_type_scope",            //
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                               "visit_variable_declaration",       // f

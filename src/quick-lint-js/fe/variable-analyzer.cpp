@@ -397,11 +397,22 @@ void Variable_Analyzer::visit_variable_assignment(Identifier name) {
   }
 }
 
-void Variable_Analyzer::visit_variable_assertion_signature_use([
-    [maybe_unused]] Identifier name) {
-  QLJS_ASSERT(!this->scopes_.empty());
-  Scope &current_scope = this->current_scope();
-  Declared_Variable *var = current_scope.declared_variables.find_runtime(name);
+void Variable_Analyzer::visit_variable_assertion_signature_use(
+    Identifier name) {
+  // The parser always wraps visit_variable_type_predicate_use in
+  // visit_enter_type_scope and visit_exit_type_scope:
+  //
+  // visit_enter_function_scope
+  //   visit_variable_declaration  // someParameter
+  //   visit_enter_type_scope
+  //     visit_variable_type_predicate_use  // someParameter
+  //   visit_exit_type_scope
+  //   visit_enter_function_scope_body
+  // visit_exit_function_scope
+  //
+  // Look for parameters in the function scope, not in the type scope.
+  Scope &function_scope = this->parent_scope();
+  Declared_Variable *var = function_scope.declared_variables.find_runtime(name);
   if (var) {
     // FIXME(strager): Should we mark the parameter as used?
   } else {
@@ -451,9 +462,20 @@ void Variable_Analyzer::visit_variable_namespace_use(Identifier) {
 }
 
 void Variable_Analyzer::visit_variable_type_predicate_use(Identifier name) {
-  QLJS_ASSERT(!this->scopes_.empty());
-  Scope &current_scope = this->current_scope();
-  Declared_Variable *var = current_scope.declared_variables.find_runtime(name);
+  // The parser always wraps visit_variable_type_predicate_use in
+  // visit_enter_type_scope and visit_exit_type_scope:
+  //
+  // visit_enter_function_scope
+  //   visit_variable_declaration  // someParameter
+  //   visit_enter_type_scope
+  //     visit_variable_type_predicate_use  // someParameter
+  //   visit_exit_type_scope
+  //   visit_enter_function_scope_body
+  // visit_exit_function_scope
+  //
+  // Look for parameters in the function scope, not in the type scope.
+  Scope &function_scope = this->parent_scope();
+  Declared_Variable *var = function_scope.declared_variables.find_runtime(name);
   if (var) {
     // FIXME(strager): Should we mark the parameter as used?
   } else {

@@ -1684,7 +1684,9 @@ TEST_F(Test_Parse_Var, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(p.visits,
                   ElementsAreArray({
                       "visit_enter_function_scope",       //
+                      "visit_enter_type_scope",           // :
                       "visit_variable_type_use",          // ParamType
+                      "visit_exit_type_scope",            //
                       "visit_variable_declaration",       // (name)
                       "visit_enter_function_scope_body",  // {
                       "visit_exit_function_scope",        // }

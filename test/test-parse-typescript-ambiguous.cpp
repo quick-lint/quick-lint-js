@@ -30,7 +30,9 @@ TEST_F(Test_Parse_TypeScript_Ambiguous, use_generic_variable_named_async) {
     Spy_Visitor p = test_parse_and_visit_statement(u8"async<T>();"_sv, no_diags,
                                                    typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                               "visit_variable_use",       // async
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"async"}));
@@ -40,7 +42,9 @@ TEST_F(Test_Parse_TypeScript_Ambiguous, use_generic_variable_named_async) {
     Spy_Visitor p = test_parse_and_visit_statement(u8"async<T>;"_sv, no_diags,
                                                    typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                               "visit_variable_use",       // async
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T", u8"async"}));

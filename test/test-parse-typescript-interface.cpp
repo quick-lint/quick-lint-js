@@ -151,7 +151,9 @@ TEST_F(Test_Parse_TypeScript_Interface, extends_generic) {
                             "visit_variable_declaration",   // I
                             "visit_enter_interface_scope",  // I
                             "visit_variable_type_use",      // A
+                            "visit_enter_type_scope",       // extends
                             "visit_variable_type_use",      // B
+                            "visit_exit_type_scope",        // >
                             "visit_exit_interface_scope",   // I
                             "visit_end_of_module",
                         }));
@@ -523,7 +525,9 @@ TEST_F(Test_Parse_TypeScript_Interface, field_with_type) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // I
+                              "visit_enter_type_scope",       // :
                               "visit_variable_type_use",      // FieldType
+                              "visit_exit_type_scope",        //
                               "visit_property_declaration",   // fieldName
                               "visit_exit_interface_scope",   // I
                           }));
@@ -614,7 +618,9 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_methods) {
                               "visit_enter_interface_scope",  // {
                               "visit_variable_declaration",   // T
                               "visit_enter_function_scope",   //
+                              "visit_enter_type_scope",       // :
                               "visit_variable_type_use",      // T
+                              "visit_exit_type_scope",        //
                               "visit_exit_function_scope",    //
                               "visit_property_declaration",   // get
                               "visit_exit_interface_scope",   // }
@@ -631,9 +637,13 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_index_signature) {
                               "visit_variable_declaration",         // I
                               "visit_enter_interface_scope",        // I
                               "visit_enter_index_signature_scope",  //
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // KeyType
+                              "visit_exit_type_scope",              //
                               "visit_variable_declaration",         // key
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // ValueType
+                              "visit_exit_type_scope",              //
                               "visit_exit_index_signature_scope",   //
                               "visit_exit_interface_scope",         // I
                           }));
@@ -651,15 +661,18 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_index_signature) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"interface I { [key: KeyType]: ValueType; }"_sv,              //
         u8"Diag_TypeScript_Interfaces_Not_Allowed_In_JavaScript"_diag,  //
-
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",         // I
                               "visit_enter_interface_scope",        // I
                               "visit_enter_index_signature_scope",  //
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // KeyType
+                              "visit_exit_type_scope",              //
                               "visit_variable_declaration",         // key
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // ValueType
+                              "visit_exit_type_scope",              //
                               "visit_exit_index_signature_scope",   //
                               "visit_exit_interface_scope",         // I
                           }));
@@ -676,7 +689,9 @@ TEST_F(Test_Parse_TypeScript_Interface, index_signature_requires_type) {
                               "visit_variable_declaration",         // I
                               "visit_enter_interface_scope",        // I
                               "visit_enter_index_signature_scope",  //
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // KeyType
+                              "visit_exit_type_scope",              //
                               "visit_variable_declaration",         // key
                               "visit_exit_index_signature_scope",   //
                               "visit_exit_interface_scope",         // I
@@ -700,7 +715,9 @@ TEST_F(Test_Parse_TypeScript_Interface, index_signature_requires_type) {
                               "visit_variable_declaration",         // I
                               "visit_enter_interface_scope",        // I
                               "visit_enter_index_signature_scope",  //
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // KeyType
+                              "visit_exit_type_scope",              //
                               "visit_variable_declaration",         // key
                               "visit_exit_index_signature_scope",   //
                               "visit_enter_function_scope",         // method
@@ -722,7 +739,9 @@ TEST_F(Test_Parse_TypeScript_Interface, index_signature_cannot_be_a_method) {
                     "visit_variable_declaration",         // I
                     "visit_enter_interface_scope",        // I
                     "visit_enter_index_signature_scope",  //
+                    "visit_enter_type_scope",             // :
                     "visit_variable_type_use",            // KeyType
+                    "visit_exit_type_scope",              //
                     "visit_variable_declaration",         // key
                     // TODO(strager): Don't emit visit_property_declaration.
                     "visit_enter_function_scope",        //
@@ -762,9 +781,13 @@ TEST_F(Test_Parse_TypeScript_Interface,
                               "visit_variable_declaration",         // I
                               "visit_enter_interface_scope",        // I
                               "visit_enter_index_signature_scope",  //
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // KeyType
+                              "visit_exit_type_scope",              //
                               "visit_variable_declaration",         // key
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // ValueType
+                              "visit_exit_type_scope",              //
                               "visit_exit_index_signature_scope",   //
                               "visit_enter_function_scope",         // method
                               "visit_exit_function_scope",          // method
@@ -1404,7 +1427,9 @@ TEST_F(Test_Parse_TypeScript_Interface, generic_interface) {
                               "visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  // I
                               "visit_variable_declaration",   // T
+                              "visit_enter_type_scope",       // :
                               "visit_variable_type_use",      // T
+                              "visit_exit_type_scope",        //
                               "visit_property_declaration",   // field
                               "visit_exit_interface_scope",   // I
                           }));

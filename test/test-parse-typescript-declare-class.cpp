@@ -249,6 +249,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                               "visit_enter_class_scope",       // {
                               "visit_enter_class_scope_body",  // C
                               "visit_enter_function_scope",    // myProperty
+                              "visit_enter_type_scope",        // :
+                              "visit_exit_type_scope",         //
                               "visit_exit_function_scope",     // myProperty
                               "visit_property_declaration",    //
                               "visit_exit_class_scope",        // }
@@ -267,7 +269,11 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                               "visit_enter_class_scope",       // {
                               "visit_enter_class_scope_body",  // C
                               "visit_enter_function_scope",    // myProperty
+                              "visit_enter_type_scope",        // :
+                              "visit_exit_type_scope",         //
                               "visit_variable_declaration",    // value
+                              "visit_enter_type_scope",        // :
+                              "visit_exit_type_scope",         //
                               "visit_exit_function_scope",     // myProperty
                               "visit_property_declaration",    //
                               "visit_exit_class_scope",        // }
@@ -347,6 +353,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                               "visit_enter_class_scope",       // {
                               "visit_enter_class_scope_body",  // C
                               "visit_property_declaration",    // myField
+                              "visit_enter_type_scope",        // :
+                              "visit_exit_type_scope",         //
                               "visit_property_declaration",    // myOtherField
                               "visit_exit_class_scope",        // }
                               "visit_variable_declaration",    // C
@@ -453,9 +461,13 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                               "visit_enter_class_scope",            // C
                               "visit_enter_class_scope_body",       //
                               "visit_enter_index_signature_scope",  //
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // KeyType
+                              "visit_exit_type_scope",              //
                               "visit_variable_declaration",         // key
+                              "visit_enter_type_scope",             // :
                               "visit_variable_type_use",            // ValueType
+                              "visit_exit_type_scope",              //
                               "visit_exit_index_signature_scope",   //
                               "visit_exit_class_scope",             // C
                               "visit_variable_declaration",         // C
@@ -486,6 +498,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                     "visit_enter_class_scope",       // C
                     "visit_enter_class_scope_body",  //
                     "visit_enter_function_scope",    // (call signature)
+                    "visit_enter_type_scope",        // :
+                    "visit_exit_type_scope",         //
                     "visit_exit_function_scope",     // (call signature)
                     "visit_property_declaration",    // (call signature)
                     "visit_exit_class_scope",        // C

@@ -62,7 +62,9 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow, generic_arrow_function) {
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // Type
                               "visit_variable_declaration",       // param
+                              "visit_enter_type_scope",           // :
                               "visit_variable_type_use",          // ReturnType
+                              "visit_exit_type_scope",            //
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
@@ -230,7 +232,9 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       //
                               "visit_variable_declaration",       // param
+                              "visit_enter_type_scope",           // :
                               "visit_variable_type_use",          // ReturnType
+                              "visit_exit_type_scope",            //
                               "visit_enter_function_scope_body",  // {
                               "visit_exit_function_scope",        // }
                           }));
@@ -249,7 +253,9 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
                                 "visit_variable_declaration",       // T
+                                "visit_enter_type_scope",           // extends
                                 "visit_variable_type_use",          // U
+                                "visit_exit_type_scope",            //
                                 "visit_variable_declaration",       // param
                                 "visit_enter_function_scope_body",  // {
                                 "visit_exit_function_scope",        // }
@@ -275,7 +281,9 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
                                 "visit_variable_declaration",       // T
+                                "visit_enter_type_scope",           // extends
                                 "visit_variable_type_use",          // U
+                                "visit_exit_type_scope",            //
                                 "visit_enter_function_scope_body",  // {
                                 "visit_variable_use",               // myPromise
                                 "visit_exit_function_scope",        // }
@@ -295,7 +303,9 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
           u8"<T = U>(param) => {}"_sv, no_diags, o);
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
+                                "visit_enter_type_scope",           // =
                                 "visit_variable_type_use",          // U
+                                "visit_exit_type_scope",            //
                                 "visit_variable_declaration",       // T
                                 "visit_variable_declaration",       // param
                                 "visit_enter_function_scope_body",  // {
@@ -312,7 +322,9 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
           u8"async <T = U>() => { await myPromise; }"_sv, no_diags, o);
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_enter_function_scope",       //
+                                "visit_enter_type_scope",           // =
                                 "visit_variable_type_use",          // U
+                                "visit_exit_type_scope",            //
                                 "visit_variable_declaration",       // T
                                 "visit_enter_function_scope_body",  // {
                                 "visit_variable_use",               // myPromise

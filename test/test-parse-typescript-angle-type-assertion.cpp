@@ -35,7 +35,9 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     EXPECT_EQ(summarize(ast->child_0()), "var expr");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"<Type>expr"_sv));
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // <
                               "visit_variable_type_use",
+                              "visit_exit_type_scope",  // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type"}));
   }
@@ -57,7 +59,9 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     Spy_Visitor p = test_parse_and_visit_statement(u8"f(<T>x);"_sv, no_diags,
                                                    typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                               "visit_variable_use",       // f
                               "visit_variable_use",       // x
                           }));
@@ -68,7 +72,9 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"(<T>lhs) = rhs;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",     // <
                               "visit_variable_type_use",    // T
+                              "visit_exit_type_scope",      // >
                               "visit_variable_use",         // rhs
                               "visit_variable_assignment",  // lhs
                           }));
@@ -80,8 +86,10 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"<Type1 | Type2>(expr);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // Type1
                               "visit_variable_type_use",  // Type2
+                              "visit_exit_type_scope",    // >
                               "visit_variable_use",       // expr
                           }));
     EXPECT_THAT(p.variable_uses,
@@ -92,8 +100,10 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"<Type1 & Type2>(expr);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // Type1
                               "visit_variable_type_use",  // Type2
+                              "visit_exit_type_scope",    // >
                               "visit_variable_use",       // expr
                           }));
     EXPECT_THAT(p.variable_uses,
@@ -113,7 +123,9 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     Test_Parser p(code, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // Type
+                              "visit_exit_type_scope",    // >
                               "visit_variable_use",       // expr
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type", u8"expr"}));
@@ -123,10 +135,12 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"< <T>() => RT>expr;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // <
                               "visit_enter_function_scope",  //
                               "visit_variable_declaration",  // T
                               "visit_variable_type_use",     // RT
                               "visit_exit_function_scope",   //
+                              "visit_exit_type_scope",       // >
                               "visit_variable_use",          // expr
                           }));
   }
@@ -135,7 +149,9 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"<ns.Type>expr;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",        // <
                               "visit_variable_namespace_use",  // ns
+                              "visit_exit_type_scope",         // >
                               "visit_variable_use",            // expr
                           }));
   }
@@ -146,7 +162,9 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use",  // expr
+                              "visit_enter_type_scope",  // <
+                              "visit_exit_type_scope",   // >
+                              "visit_variable_use",      // expr
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"expr"}));
   }
@@ -177,7 +195,9 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(typeassert(var x), var y, var z)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // <
                               "visit_variable_type_use",
+                              "visit_exit_type_scope",  // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type"}));
   }
@@ -210,8 +230,10 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
         u8"                     ` .expected_as"_diag,  //
         typescript_jsx_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // Type1
                               "visit_variable_type_use",  // Type2
+                              "visit_exit_type_scope",    // >
                               "visit_variable_use",       // expr
                           }));
   }
@@ -223,7 +245,9 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion,
         u8"            ` .expected_as"_diag,  //
         typescript_jsx_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // Type
+                              "visit_exit_type_scope",    // >
                               "visit_variable_use",       // expr
                           }));
   }

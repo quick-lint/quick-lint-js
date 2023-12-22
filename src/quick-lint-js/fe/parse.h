@@ -224,6 +224,9 @@ class Parser {
   void parse_and_visit_typescript_colon_type_expression(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_colon_type_expression(
       Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
+  void parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v);
+  void parse_and_visit_typescript_type_expression(
+      Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
   // The _no_scope variant does not emit visit_enter_type_scope or
   // visit_exit_type_scope.
   void parse_and_visit_typescript_type_expression_no_scope(
@@ -265,6 +268,8 @@ class Parser {
   void maybe_visit_assignment(Expression *ast, Parse_Visitor_Base &v);
 
   void parse_and_visit_typescript_generic_arguments(Parse_Visitor_Base &v);
+  void parse_and_visit_typescript_generic_arguments_no_scope(
+      Parse_Visitor_Base &v);
 
  public:  // For testing only.
   void parse_and_visit_typescript_generic_parameters(Parse_Visitor_Base &v);

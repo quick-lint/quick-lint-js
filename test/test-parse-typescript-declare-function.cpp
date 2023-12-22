@@ -171,6 +171,8 @@ TEST_F(Test_Parse_TypeScript_Declare_Function,
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_declare_scope",   //
                               "visit_enter_function_scope",  // (function_name)
+                              "visit_enter_type_scope",      // :
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",   // (function_name)
                               "visit_variable_declaration",  // (function_name)
                               "visit_exit_declare_scope",    //

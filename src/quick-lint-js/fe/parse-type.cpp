@@ -44,7 +44,21 @@ void Parser::parse_and_visit_typescript_colon_type_expression(
 void Parser::parse_and_visit_typescript_colon_type_expression(
     Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &parse_options) {
   this->parse_typescript_colon_for_type();
+  this->parse_and_visit_typescript_type_expression(v, parse_options);
+}
+
+void Parser::parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v) {
+  v.visit_enter_type_scope();
+  this->parse_and_visit_typescript_type_expression_no_scope(
+      v, TypeScript_Type_Parse_Options());
+  v.visit_exit_type_scope();
+}
+
+void Parser::parse_and_visit_typescript_type_expression(
+    Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &parse_options) {
+  v.visit_enter_type_scope();
   this->parse_and_visit_typescript_type_expression_no_scope(v, parse_options);
+  v.visit_exit_type_scope();
 }
 
 void Parser::parse_and_visit_typescript_type_expression_no_scope(
@@ -280,7 +294,7 @@ again:
                                            this->peek().begin + 1),
               });
         }
-        this->parse_and_visit_typescript_generic_arguments(v);
+        this->parse_and_visit_typescript_generic_arguments_no_scope(v);
       }
     }
 
@@ -648,7 +662,7 @@ again:
                 .context = Statement_Kind::typeof_type,
             });
       }
-      this->parse_and_visit_typescript_generic_arguments(v);
+      this->parse_and_visit_typescript_generic_arguments_no_scope(v);
     }
     maybe_parse_dots_after_generic_arguments();
     break;
@@ -703,7 +717,7 @@ again:
     if (!this->peek().has_leading_newline &&
         (this->peek().type == Token_Type::less ||
          this->peek().type == Token_Type::less_less)) {
-      this->parse_and_visit_typescript_generic_arguments(v);
+      this->parse_and_visit_typescript_generic_arguments_no_scope(v);
     }
     maybe_parse_dots_after_generic_arguments();
     break;
@@ -953,7 +967,8 @@ void Parser::parse_and_visit_typescript_object_type_expression(
     switch (this->peek().type) {
     // { prop: Type }
     case Token_Type::colon:
-      this->parse_and_visit_typescript_colon_type_expression(v);
+      this->skip();
+      this->parse_and_visit_typescript_type_expression_no_scope(v);
       this->consume_semicolon_or_comma<
           Diag_Missing_Separator_Between_Object_Type_Entries>();
       break;
@@ -1066,12 +1081,15 @@ void Parser::parse_and_visit_typescript_object_type_expression(
         switch (this->peek().type) {
         // { [key: Type]: Type }
         case Token_Type::colon:
+          this->skip();
           is_index_signature = true;
           v.visit_enter_index_signature_scope();
-          this->parse_and_visit_typescript_colon_type_expression(v);
+          this->parse_and_visit_typescript_type_expression_no_scope(v);
           v.visit_variable_declaration(
               ident, Variable_Kind::_index_signature_parameter,
               Variable_Declaration_Flags::none);
+          // TODO(strager): Report Diag_TypeScript_Index_Signature_Needs_Type if
+          // ':' is missing.
           break;
 
         // { [key in Type]: Type }
@@ -1441,6 +1459,13 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
 }
 
 void Parser::parse_and_visit_typescript_generic_arguments(
+    Parse_Visitor_Base &v) {
+  v.visit_enter_type_scope();
+  this->parse_and_visit_typescript_generic_arguments_no_scope(v);
+  v.visit_exit_type_scope();
+}
+
+void Parser::parse_and_visit_typescript_generic_arguments_no_scope(
     Parse_Visitor_Base &v) {
   QLJS_ASSERT(this->peek().type == Token_Type::less ||
               this->peek().type == Token_Type::less_less);

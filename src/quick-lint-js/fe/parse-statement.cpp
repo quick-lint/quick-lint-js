@@ -1807,7 +1807,7 @@ done_parsing_modifiers:
           });
     }
     this->skip();
-    this->parse_and_visit_typescript_type_expression_no_scope(
+    this->parse_and_visit_typescript_type_expression(
         extends_visits.visitor(),
         TypeScript_Type_Parse_Options{
             .type_being_declared =
@@ -1821,7 +1821,7 @@ done_parsing_modifiers:
   if (this->peek().type == Token_Type::equal) {
     // <T = Default>
     this->skip();
-    this->parse_and_visit_typescript_type_expression_no_scope(v);
+    this->parse_and_visit_typescript_type_expression(v);
   }
 
   QLJS_ASSERT(parameter_name.has_value());

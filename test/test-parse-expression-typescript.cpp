@@ -39,7 +39,9 @@ TEST_F(Test_Parse_Expression_TypeScript, type_annotation) {
     Spy_Visitor v;
     expression_cast<Expression::Type_Annotated*>(ast)->visit_type_annotation(v);
     EXPECT_THAT(v.visits, ElementsAreArray({
-                              "visit_variable_type_use",
+                              "visit_enter_type_scope",   //
+                              "visit_variable_type_use",  //
+                              "visit_exit_type_scope",    //
                           }));
     EXPECT_THAT(v.variable_uses, ElementsAreArray({u8"Type"}));
   }
@@ -248,7 +250,9 @@ TEST_F(Test_Parse_Expression_TypeScript, as_type_assertion) {
     Spy_Visitor p = test_parse_and_visit_statement(u8"f(x as T);"_sv, no_diags,
                                                    typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // as
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    //
                               "visit_variable_use",       // f
                               "visit_variable_use",       // x
                           }));
@@ -259,7 +263,9 @@ TEST_F(Test_Parse_Expression_TypeScript, as_type_assertion) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"(lhs as T) = rhs;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",     // as
                               "visit_variable_type_use",    // T
+                              "visit_exit_type_scope",      //
                               "visit_variable_use",         // rhs
                               "visit_variable_assignment",  // lhs
                           }));
@@ -274,7 +280,9 @@ TEST_F(Test_Parse_Expression_TypeScript, as_type_assertion) {
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x as y"_sv));
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // as
                               "visit_variable_type_use",
+                              "visit_exit_type_scope",  //
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"y"}));
   }
@@ -284,7 +292,9 @@ TEST_F(Test_Parse_Expression_TypeScript, as_type_assertion) {
     Expression* ast = p.parse_expression();
     EXPECT_THAT(summarize(ast), "cond(as(var x), var y, var z)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // as
                               "visit_variable_type_use",
+                              "visit_exit_type_scope",  //
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
@@ -428,7 +438,9 @@ TEST_F(Test_Parse_Expression_TypeScript, satisfies) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"f(x satisfies T);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // satisfies
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    //
                               "visit_variable_use",       // f
                               "visit_variable_use",       // x
                           }));
@@ -439,7 +451,9 @@ TEST_F(Test_Parse_Expression_TypeScript, satisfies) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"(lhs satisfies T) = rhs;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",     // satisfies
                               "visit_variable_type_use",    // T
+                              "visit_exit_type_scope",      //
                               "visit_variable_use",         // rhs
                               "visit_variable_assignment",  // lhs
                           }));
@@ -454,7 +468,9 @@ TEST_F(Test_Parse_Expression_TypeScript, satisfies) {
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x satisfies y"_sv));
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // satisfies
                               "visit_variable_type_use",
+                              "visit_exit_type_scope",  //
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"y"}));
   }
@@ -464,7 +480,9 @@ TEST_F(Test_Parse_Expression_TypeScript, satisfies) {
     Expression* ast = p.parse_expression();
     EXPECT_THAT(summarize(ast), "cond(satisfies(var x), var y, var z)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // satisfies
                               "visit_variable_type_use",
+                              "visit_exit_type_scope",  //
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }

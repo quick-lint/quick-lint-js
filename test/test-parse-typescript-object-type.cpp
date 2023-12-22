@@ -230,7 +230,9 @@ TEST_F(Test_Parse_TypeScript_Object_Type,
         u8"{ method?(): Type }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // method
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // Type
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",   // method
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Type"}));
@@ -252,7 +254,9 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_method) {
         u8"{ method(param: Type) }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // method
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // Type
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // param
                               "visit_exit_function_scope",   // method
                           }));
@@ -263,7 +267,9 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_method) {
         u8"{ method(): ReturnType }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // method
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",   // method
                           }));
   }
@@ -298,7 +304,9 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_getter) {
         u8"{ get prop(): ReturnType }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // get prop
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",   // get prop
                           }));
   }
@@ -320,7 +328,9 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_setter) {
         u8"{ set prop(value: Type) }"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  // set prop
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // Type
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // value
                               "visit_exit_function_scope",   // set prop
                           }));
@@ -540,9 +550,13 @@ TEST_F(Test_Parse_TypeScript_Object_Type, object_type_with_call_signature) {
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // ParamType
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // param
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -561,7 +575,9 @@ TEST_F(Test_Parse_TypeScript_Object_Type,
                               "visit_enter_function_scope",  //
                               "visit_variable_declaration",  // T
                               "visit_variable_declaration",  // param
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",
                           }));
     EXPECT_THAT(p.variable_declarations,

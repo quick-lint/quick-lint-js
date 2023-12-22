@@ -168,8 +168,10 @@ TEST_F(Test_Parse_TypeScript_Type, greater_equal_token_is_split) {
     Spy_Visitor p = test_parse_and_visit_module(u8"let x: A<B>= y"_sv, no_diags,
                                                 typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // A
                               "visit_variable_type_use",     // B
+                              "visit_exit_type_scope",       //
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                               "visit_end_of_module",         //
@@ -182,9 +184,11 @@ TEST_F(Test_Parse_TypeScript_Type, greater_equal_token_is_split) {
     Spy_Visitor p = test_parse_and_visit_module(u8"let x: A<B<C>>= y"_sv,
                                                 no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // A
                               "visit_variable_type_use",     // B
                               "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                               "visit_end_of_module",         //
@@ -198,10 +202,12 @@ TEST_F(Test_Parse_TypeScript_Type, greater_equal_token_is_split) {
     Spy_Visitor p = test_parse_and_visit_module(u8"let x: A<B<C<D>>>= y"_sv,
                                                 no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // A
                               "visit_variable_type_use",     // B
                               "visit_variable_type_use",     // C
                               "visit_variable_type_use",     // D
+                              "visit_exit_type_scope",       //
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                               "visit_end_of_module",         //
@@ -959,7 +965,9 @@ TEST_F(Test_Parse_TypeScript_Type, arrow_function) {
         u8"(param: ParamType) => ReturnType"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // ParamType
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // param
                               "visit_variable_type_use",     // ReturnType
                               "visit_exit_function_scope",
@@ -994,7 +1002,9 @@ TEST_F(Test_Parse_TypeScript_Type, arrow_function) {
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // ParamType
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // param
                               "visit_variable_type_use",     // ReturnType
                               "visit_exit_function_scope",
@@ -1011,7 +1021,9 @@ TEST_F(Test_Parse_TypeScript_Type, arrow_function) {
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // ParamsType
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // params
                               "visit_variable_type_use",     // ReturnType
                               "visit_exit_function_scope",
@@ -1597,7 +1609,9 @@ TEST_F(Test_Parse_TypeScript_Type, extends_condition) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_type_use",     // T
                               "visit_enter_function_scope",  //
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // ParamType
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // param
                               "visit_variable_type_use",     // ReturnType
                               "visit_exit_function_scope",   //

@@ -33,7 +33,9 @@ TEST_F(Test_Parse_TypeScript_Var, let_can_have_type_annotation) {
     Spy_Visitor p = test_parse_and_visit_statement(u8"let x: C;"_sv, no_diags,
                                                    typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // x
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -45,7 +47,9 @@ TEST_F(Test_Parse_TypeScript_Var, let_can_have_type_annotation) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"let x: C = init;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
                               "visit_variable_use",          // init
                               "visit_variable_declaration",  // x
                           }));
@@ -57,7 +61,9 @@ TEST_F(Test_Parse_TypeScript_Var, let_can_have_type_annotation) {
         u8"let [x, y, z]: Array = init;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",          // init
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // Array
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // x
                               "visit_variable_declaration",  // y
                               "visit_variable_declaration",  // z
@@ -69,7 +75,9 @@ TEST_F(Test_Parse_TypeScript_Var, let_can_have_type_annotation) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"let {p1, p2: x, p3 = y}: T;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // T
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // p1
                               "visit_variable_declaration",  // p2
                               "visit_variable_use",          // y
@@ -85,7 +93,9 @@ TEST_F(Test_Parse_TypeScript_Var, for_loop_init_can_have_type_annotation) {
         u8"for (let i: N = 0; ;);"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // N
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // i
                               "visit_exit_for_scope",
                           }));
@@ -100,7 +110,9 @@ TEST_F(Test_Parse_TypeScript_Var,
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // xs
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // x
                               "visit_exit_for_scope",
                           }));
@@ -112,7 +124,9 @@ TEST_F(Test_Parse_TypeScript_Var,
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // xs
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // x
                               "visit_exit_for_scope",
                           }));
@@ -127,7 +141,9 @@ TEST_F(Test_Parse_TypeScript_Var,
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // xs
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // x
                               "visit_exit_for_scope",
                           }));
@@ -139,7 +155,9 @@ TEST_F(Test_Parse_TypeScript_Var,
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_for_scope",       //
                               "visit_variable_use",          // xs
+                              "visit_enter_type_scope",      // :
                               "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // x
                               "visit_exit_for_scope",
                           }));
@@ -177,7 +195,8 @@ TEST_F(Test_Parse_TypeScript_Var,
                               "visit_variable_declaration",  // e
                               "visit_exit_block_scope",      // } catch
                           }))
-        << "SomeType should be ignored (no visit_variable_type_use)";
+        << "SomeType should be ignored (no visit_variable_type_use or "
+           "visit_enter_type_scope/visit_exit_type_scope)";
   }
 }
 
@@ -195,7 +214,8 @@ TEST_F(Test_Parse_TypeScript_Var,
                               "visit_variable_declaration",  // e
                               "visit_exit_block_scope",      // } catch
                           }))
-        << "type should be ignored (no visit_variable_type_use)";
+        << "type should be ignored (no visit_variable_type_use or "
+           "visit_enter_type_scope/visit_exit_type_scope)";
     assert_diagnostics(
         p.code, p.errors,
         {

@@ -177,7 +177,9 @@ TEST_F(Test_Parse_TypeScript_Generic, parameter_list_extends) {
         u8"<T extends U>"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // extends
                               "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
@@ -332,7 +334,9 @@ TEST_F(Test_Parse_TypeScript_Generic,
       u8"<T extends T.foo>"_sv, no_diags, typescript_options);
   EXPECT_THAT(v.visits, ElementsAreArray({
                             "visit_variable_declaration",    // T
+                            "visit_enter_type_scope",        // extends
                             "visit_variable_namespace_use",  // T (in T.foo)
+                            "visit_exit_type_scope",         //
                         }));
 }
 
@@ -344,7 +348,9 @@ TEST_F(Test_Parse_TypeScript_Generic, unexpected_colon_in_parameter_extends) {
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // extends
                               "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
@@ -357,7 +363,9 @@ TEST_F(Test_Parse_TypeScript_Generic, type_parameter_default) {
     Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
         u8"<T = U>"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // =
                               "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // T
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -371,9 +379,13 @@ TEST_F(Test_Parse_TypeScript_Generic, type_parameter_default_with_extends) {
     Spy_Visitor p = test_parse_and_visit_typescript_generic_parameters(
         u8"<T extends U = Def>"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // =
                               "visit_variable_type_use",     // Def
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // extends
                               "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       //
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({generic_param_decl(u8"T"_sv)}));
@@ -390,13 +402,21 @@ TEST_F(Test_Parse_TypeScript_Generic,
         u8"<P1 extends E1 = D1, P2 extends E2 = D2>"_sv, no_diags,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // =
                               "visit_variable_type_use",     // D1
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // P1
+                              "visit_enter_type_scope",      // =
                               "visit_variable_type_use",     // D2
+                              "visit_exit_type_scope",       //
                               "visit_variable_declaration",  // P2
                               // All extends clauses follow:
+                              "visit_enter_type_scope",   // extends
                               "visit_variable_type_use",  // E1
+                              "visit_exit_type_scope",    //
+                              "visit_enter_type_scope",   // extends
                               "visit_variable_type_use",  // E2
+                              "visit_exit_type_scope",    //
                           }));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"D1", u8"D2", u8"E1", u8"E2"}));
@@ -631,7 +651,9 @@ TEST_F(Test_Parse_TypeScript_Generic, function_call_with_generic_arguments) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
@@ -642,10 +664,12 @@ TEST_F(Test_Parse_TypeScript_Generic, function_call_with_generic_arguments) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // <
                               "visit_enter_function_scope",  //
                               "visit_variable_declaration",  // Param
                               "visit_variable_type_use",     // ReturnType
                               "visit_exit_function_scope",
+                              "visit_exit_type_scope",  // >
                           }));
   }
 
@@ -654,7 +678,9 @@ TEST_F(Test_Parse_TypeScript_Generic, function_call_with_generic_arguments) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
@@ -671,7 +697,9 @@ TEST_F(Test_Parse_TypeScript_Generic, function_call_with_generic_arguments) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var foo)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
@@ -681,7 +709,9 @@ TEST_F(Test_Parse_TypeScript_Generic, function_call_with_generic_arguments) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var foo, var baz)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
@@ -693,7 +723,9 @@ TEST_F(Test_Parse_TypeScript_Generic, new_with_generic_arguments) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
@@ -703,7 +735,9 @@ TEST_F(Test_Parse_TypeScript_Generic, new_with_generic_arguments) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
@@ -713,7 +747,9 @@ TEST_F(Test_Parse_TypeScript_Generic, new_with_generic_arguments) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo, var p)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
@@ -725,10 +761,12 @@ TEST_F(Test_Parse_TypeScript_Generic, new_with_generic_arguments) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // <
                               "visit_enter_function_scope",  //
                               "visit_variable_declaration",  // Param
                               "visit_variable_type_use",     // ReturnType
                               "visit_exit_function_scope",
+                              "visit_exit_type_scope",  // >
                           }));
   }
 }
@@ -804,7 +842,9 @@ TEST_F(Test_Parse_TypeScript_Generic,
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), tc.expected_ast);
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // <
                               "visit_variable_type_use",
+                              "visit_exit_type_scope",  // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({tc.variable_type_use}));
   }
@@ -815,7 +855,11 @@ TEST_F(Test_Parse_TypeScript_Generic, jsx_element) {
     Test_Parser p(u8"<MyComponent<Param> />"_sv, typescript_jsx_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(MyComponent)");
-    EXPECT_THAT(p.visits, ElementsAreArray({"visit_variable_type_use"}));
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // <
+                              "visit_variable_type_use",
+                              "visit_exit_type_scope",  // >
+                          }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Param"_sv}));
   }
 
@@ -825,10 +869,12 @@ TEST_F(Test_Parse_TypeScript_Generic, jsx_element) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(MyComponent)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // <
                               "visit_enter_function_scope",  //
                               "visit_variable_declaration",  // T
                               "visit_variable_type_use",     // ReturnType
                               "visit_exit_function_scope",   //
+                              "visit_exit_type_scope",       // >
                           }));
   }
 
@@ -981,7 +1027,9 @@ TEST_F(
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv}));
     assert_diagnostics(
@@ -996,8 +1044,10 @@ TEST_F(
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
                               "visit_variable_type_use",  // U
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv, u8"U"_sv}));
     assert_diagnostics(
@@ -1012,9 +1062,11 @@ TEST_F(
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var foo, var rhs)");
     EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
                               "visit_variable_type_use",  // T
                               "visit_variable_type_use",  // U
                               "visit_variable_type_use",  // V
+                              "visit_exit_type_scope",    // >
                           }));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"T"_sv, u8"U"_sv, u8"V"_sv}));
