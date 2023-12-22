@@ -1,8 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-// This file is intentionally empty. It is needed to make CMake's add_library
-// function happy.
+// This file is needed to make CMake's add_library function happy.
+
+// For an explanation for why we need this symbol, see
+// NOTE[empty-library-symbol].
+extern char this_variable_exists_to_work_around_macos_toolchain_bugs;
+char this_variable_exists_to_work_around_macos_toolchain_bugs;
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

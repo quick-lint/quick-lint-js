@@ -1219,7 +1219,9 @@ def parse_text_link_map(raw_link_map: str) -> LinkMap:
                 if match is not None:
                     linked_archives.add(match.group("file"))
             elif state == "MACHO_OBJECT_FILES":
-                match = re.match(r"^\[[0-9 ]+\] (?P<file>.*)\((?P<object>.*)\)$", line)
+                match = re.match(
+                    r"^\[[0-9 ]+\] (?P<file>.*?)(?:\[\d+\])?\((?P<object>.*)\)$", line
+                )
                 if match is not None:
                     linked_archives.add(match.group("file"))
             elif state == "NONE":
@@ -1401,6 +1403,39 @@ class TestLD64LinkMap(unittest.TestCase):
         self.assertEqual(
             link_map.linked_archives,
             {"/usr/local/opt/llvm/lib/libc++.a", "/usr/local/opt/llvm/lib/libc++abi.a"},
+        )
+
+
+class TestDyldLinkMap(unittest.TestCase):
+    """Test Apple's macOS linker introduced in Xcode 15."""
+
+    def test_small_link_map(self) -> None:
+        raw_link_map = """\
+# Path: quick-lint-js
+# Arch: arm64
+# Object files:
+[  0] linker synthesized
+[  1] tlv-file
+[  2] inits-file
+[  3] /Users/strager/Projects/quick-lint-js-sl/build/src/CMakeFiles/quick-lint-js.dir/quick-lint-js/cli/main.cpp.o
+[  4] src/libquick-lint-js-lib.a[4](emacs-lisp-diag-reporter.cpp.o)
+[ 89] vendor/simdjson/libsimdjson.a[2](simdjson.cpp.o)
+[ 90] /opt/homebrew/Cellar/llvm/17.0.6/lib/c++/libc++.1.0.dylib
+[ 91] /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk/usr/lib/system/libsystem_c.tbd
+# Sections:
+# Address	Size    	Segment	Section
+0x100002C10	0x001FB1E4	__TEXT	__text
+0x1001FDDF4	0x00005304	__TEXT	__stubs
+# Symbols:
+# Address	Size    	File  Name
+0x100002C10	0x00000028	[  3] _main
+0x100002C38	0x00000014	[  3] __ZN13quick_lint_js12_GLOBAL__N_14initEv
+0x100002C4C	0x0000005C	[  3] __ZN13quick_lint_js12_GLOBAL__N_13runEiPPc
+"""
+        link_map = parse_text_link_map(raw_link_map)
+        self.assertEqual(
+            link_map.linked_archives,
+            {"src/libquick-lint-js-lib.a", "vendor/simdjson/libsimdjson.a"},
         )
 
 

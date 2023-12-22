@@ -166,11 +166,7 @@ find_package(PythonInterp 3)  # Force Python 3 (instead of Python 2).
 # quick_lint_js_add_library.
 include(QuickLintJSTarget)
 find_package(Threads REQUIRED)
-quick_lint_js_add_library(
-  quick-lint-js-precompiled-headers
-  STATIC
-  website/wasm/empty.cpp
-)
+quick_lint_js_add_empty_cxx_library(quick-lint-js-precompiled-headers)
 target_link_libraries(
   quick-lint-js-precompiled-headers
   PUBLIC

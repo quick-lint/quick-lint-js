@@ -10,7 +10,7 @@ set(VSCODE_DIST_DIR dist)
 
 if (EMSCRIPTEN)
   # TODO(strager): Rename.
-  quick_lint_js_add_executable(quick-lint-js-vscode empty.cpp)
+  quick_lint_js_add_empty_executable(quick-lint-js-vscode)
   target_link_libraries(
     quick-lint-js-vscode
     PRIVATE
