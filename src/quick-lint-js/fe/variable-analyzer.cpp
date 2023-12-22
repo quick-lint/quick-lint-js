@@ -669,7 +669,7 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
       //
       //   // 'B' is in variables_used_in_descendant_scope, not in
       //   // variables_used.
-      //   declare A extends B {}
+      //   declare class A extends B {}
       QLJS_ASSERT(current_scope.variables_used.empty());
     }
     for (const Used_Variable &used_var : current_scope.variables_used) {
