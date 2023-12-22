@@ -27,10 +27,10 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias) {
     Spy_Visitor p = test_parse_and_visit_statement(u8"type T = U;"_sv, no_diags,
                                                    typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // T
-                              "visit_enter_type_alias_scope",  // T
-                              "visit_variable_type_use",       // U
-                              "visit_exit_type_alias_scope",   // T
+                              "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // T
+                              "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       // T
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
     EXPECT_THAT(p.variable_declarations,
@@ -41,11 +41,11 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"type MyAlias<T> = U;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // MyAlias
-                              "visit_enter_type_alias_scope",  // MyAlias
-                              "visit_variable_declaration",    // T
-                              "visit_variable_type_use",       // U
-                              "visit_exit_type_alias_scope",   // MyAlias
+                              "visit_variable_declaration",  // MyAlias
+                              "visit_enter_type_scope",      // MyAlias
+                              "visit_variable_declaration",  // T
+                              "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       // MyAlias
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"U"}));
     EXPECT_THAT(p.variable_declarations,
@@ -59,10 +59,10 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_requires_semicolon_or_asi) {
     Spy_Visitor p = test_parse_and_visit_statement(u8"type T = U"_sv, no_diags,
                                                    typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // T
-                              "visit_enter_type_alias_scope",  // T
-                              "visit_variable_type_use",       // U
-                              "visit_exit_type_alias_scope",   // T
+                              "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // T
+                              "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       // T
                           }));
   }
 
@@ -70,14 +70,14 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_requires_semicolon_or_asi) {
     Spy_Visitor p = test_parse_and_visit_module(u8"type T = U\ntype V = W;"_sv,
                                                 no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // T
-                              "visit_enter_type_alias_scope",  // T
-                              "visit_variable_type_use",       // U
-                              "visit_exit_type_alias_scope",   // T
-                              "visit_variable_declaration",    // V
-                              "visit_enter_type_alias_scope",  // V
-                              "visit_variable_type_use",       // W
-                              "visit_exit_type_alias_scope",   // V
+                              "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // T
+                              "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       // T
+                              "visit_variable_declaration",  // V
+                              "visit_enter_type_scope",      // V
+                              "visit_variable_type_use",     // W
+                              "visit_exit_type_scope",       // V
                               "visit_end_of_module",
                           }));
   }
@@ -88,14 +88,14 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_requires_semicolon_or_asi) {
         u8"          ` Diag_Missing_Semicolon_After_Statement"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // T
-                              "visit_enter_type_alias_scope",  // T
-                              "visit_variable_type_use",       // U
-                              "visit_exit_type_alias_scope",   // T
-                              "visit_variable_declaration",    // V
-                              "visit_enter_type_alias_scope",  // V
-                              "visit_variable_type_use",       // W
-                              "visit_exit_type_alias_scope",   // V
+                              "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // T
+                              "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       // T
+                              "visit_variable_declaration",  // V
+                              "visit_enter_type_scope",      // V
+                              "visit_variable_type_use",     // W
+                              "visit_exit_type_scope",       // V
                               "visit_end_of_module",
                           }));
   }
@@ -248,9 +248,9 @@ TEST_F(Test_Parse_TypeScript_Type_Alias,
                                                  no_diags, typescript_options);
   EXPECT_THAT(v.visits, ElementsAreArray({
                             "visit_variable_declaration",    // T
-                            "visit_enter_type_alias_scope",  //
+                            "visit_enter_type_scope",        //
                             "visit_variable_namespace_use",  // T (in T.foo)
-                            "visit_exit_type_alias_scope",   //
+                            "visit_exit_type_scope",         //
                         }));
 }
 
@@ -269,10 +269,10 @@ TEST_F(Test_Parse_TypeScript_Type_Alias,
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // (name)
-                              "visit_enter_type_alias_scope",  // (name)
-                              "visit_variable_type_use",       // T
-                              "visit_exit_type_alias_scope",   // (name)
+                              "visit_variable_declaration",  // (name)
+                              "visit_enter_type_scope",      // (name)
+                              "visit_variable_type_use",     // T
+                              "visit_exit_type_scope",       // (name)
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({type_alias_decl(name)}));
@@ -301,10 +301,10 @@ TEST_F(Test_Parse_TypeScript_Type_Alias, type_alias_not_allowed_in_javascript) {
         u8"^^^^ Diag_TypeScript_Type_Alias_Not_Allowed_In_JavaScript"_diag,  //
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // T
-                              "visit_enter_type_alias_scope",  // (name)
-                              "visit_variable_type_use",       // U
-                              "visit_exit_type_alias_scope",   // (name)
+                              "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // (name)
+                              "visit_variable_type_use",     // U
+                              "visit_exit_type_scope",       // (name)
                           }));
   }
 }

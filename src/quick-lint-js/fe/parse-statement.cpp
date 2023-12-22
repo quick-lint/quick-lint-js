@@ -3390,7 +3390,7 @@ void Parser::parse_and_visit_typescript_type_alias(
   v.visit_variable_declaration(name, kind, Variable_Declaration_Flags::none);
   this->skip();
 
-  v.visit_enter_type_alias_scope();
+  v.visit_enter_type_scope();
   if (this->peek().type == Token_Type::less) {
     this->parse_and_visit_typescript_generic_parameters(v);
   }
@@ -3403,7 +3403,7 @@ void Parser::parse_and_visit_typescript_type_alias(
               .name = name,
               .kind = kind,
           }});
-  v.visit_exit_type_alias_scope();
+  v.visit_exit_type_scope();
 
   this->consume_semicolon_after_statement();
 }

@@ -179,7 +179,7 @@ void Variable_Analyzer::visit_enter_named_function_scope(
 
 void Variable_Analyzer::visit_enter_namespace_scope() { this->scopes_.push(); }
 
-void Variable_Analyzer::visit_enter_type_alias_scope() { this->scopes_.push(); }
+void Variable_Analyzer::visit_enter_type_scope() { this->scopes_.push(); }
 
 void Variable_Analyzer::visit_exit_block_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
@@ -281,7 +281,7 @@ void Variable_Analyzer::visit_exit_namespace_scope() {
   this->scopes_.pop();
 }
 
-void Variable_Analyzer::visit_exit_type_alias_scope() {
+void Variable_Analyzer::visit_exit_type_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,

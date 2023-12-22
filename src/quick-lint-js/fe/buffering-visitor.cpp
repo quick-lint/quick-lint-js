@@ -71,7 +71,7 @@ void Buffering_Visitor::copy_into(Parse_Visitor_Base &target) const {
       target.visit_enter_namespace_scope();
       break;
     case Visit_Kind::enter_type_alias_scope:
-      target.visit_enter_type_alias_scope();
+      target.visit_enter_type_scope();
       break;
     case Visit_Kind::exit_block_scope:
       target.visit_exit_block_scope();
@@ -113,7 +113,7 @@ void Buffering_Visitor::copy_into(Parse_Visitor_Base &target) const {
       target.visit_exit_namespace_scope();
       break;
     case Visit_Kind::exit_type_alias_scope:
-      target.visit_exit_type_alias_scope();
+      target.visit_exit_type_scope();
       break;
     case Visit_Kind::keyword_variable_use:
       target.visit_keyword_variable_use(v.name);
@@ -231,7 +231,7 @@ void Buffering_Visitor::visit_enter_namespace_scope() {
   this->add(Visit_Kind::enter_namespace_scope);
 }
 
-void Buffering_Visitor::visit_enter_type_alias_scope() {
+void Buffering_Visitor::visit_enter_type_scope() {
   this->add(Visit_Kind::enter_type_alias_scope);
 }
 
@@ -287,7 +287,7 @@ void Buffering_Visitor::visit_exit_namespace_scope() {
   this->add(Visit_Kind::exit_namespace_scope);
 }
 
-void Buffering_Visitor::visit_exit_type_alias_scope() {
+void Buffering_Visitor::visit_exit_type_scope() {
   this->add(Visit_Kind::exit_type_alias_scope);
 }
 

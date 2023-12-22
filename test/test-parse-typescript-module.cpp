@@ -674,10 +674,10 @@ TEST_F(Test_Parse_TypeScript_Module, export_type_alias) {
     Spy_Visitor p = test_parse_and_visit_module(u8"export type T = C;"_sv,
                                                 no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // T
-                              "visit_enter_type_alias_scope",  //
-                              "visit_variable_type_use",       // C
-                              "visit_exit_type_alias_scope",   //
+                              "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      //
+                              "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_declarations,
@@ -693,9 +693,9 @@ TEST_F(Test_Parse_TypeScript_Module,
         u8"       ^^^^ Diag_Newline_Not_Allowed_After_Type_Keyword"_diag,  //
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // A
-                              "visit_enter_type_alias_scope",  //
-                              "visit_exit_type_alias_scope",   //
+                              "visit_variable_declaration",  // A
+                              "visit_enter_type_scope",      //
+                              "visit_exit_type_scope",       //
                               "visit_end_of_module",
                           }));
   }

@@ -306,8 +306,8 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
     this->visits.emplace_back("visit_enter_namespace_scope");
   }
 
-  void visit_enter_type_alias_scope() override {
-    this->visits.emplace_back("visit_enter_type_alias_scope");
+  void visit_enter_type_scope() override {
+    this->visits.emplace_back("visit_enter_type_scope");
   }
 
   std::vector<String8> enter_named_function_scopes;
@@ -364,8 +364,8 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
     this->visits.emplace_back("visit_exit_namespace_scope");
   }
 
-  void visit_exit_type_alias_scope() override {
-    this->visits.emplace_back("visit_exit_type_alias_scope");
+  void visit_exit_type_scope() override {
+    this->visits.emplace_back("visit_exit_type_scope");
   }
 
   void visit_keyword_variable_use(Identifier name) override {

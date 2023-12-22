@@ -104,7 +104,7 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
     this->output_->flush();
   }
 
-  void visit_enter_type_alias_scope() override {
+  void visit_enter_type_scope() override {
     this->output_->append_copy(u8"entered type alias scope\n"_sv);
     this->output_->flush();
   }
@@ -174,7 +174,7 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
     this->output_->flush();
   }
 
-  void visit_exit_type_alias_scope() override {
+  void visit_exit_type_scope() override {
     this->output_->append_copy(u8"exited type alias scope\n"_sv);
     this->output_->flush();
   }

@@ -1910,12 +1910,12 @@ TEST_F(Test_Parse_TypeScript_Type,
     Spy_Visitor v = test_parse_and_visit_module(
         u8"type A = C\n[].forEach(f);"_sv, no_diags, typescript_options);
     EXPECT_THAT(v.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // A
-                              "visit_enter_type_alias_scope",  //
-                              "visit_variable_type_use",       // C
-                              "visit_exit_type_alias_scope",   //
-                              "visit_variable_use",            // f
-                              "visit_end_of_module",           //
+                              "visit_variable_declaration",  // A
+                              "visit_enter_type_scope",      //
+                              "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
+                              "visit_variable_use",          // f
+                              "visit_end_of_module",         //
                           }));
   }
 
@@ -1924,12 +1924,12 @@ TEST_F(Test_Parse_TypeScript_Type,
     Spy_Visitor v = test_parse_and_visit_module(u8"type A = C\n[T];"_sv,
                                                 no_diags, typescript_options);
     EXPECT_THAT(v.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // A
-                              "visit_enter_type_alias_scope",  //
-                              "visit_variable_type_use",       // C
-                              "visit_exit_type_alias_scope",   //
-                              "visit_variable_use",            // T
-                              "visit_end_of_module",           //
+                              "visit_variable_declaration",  // A
+                              "visit_enter_type_scope",      //
+                              "visit_variable_type_use",     // C
+                              "visit_exit_type_scope",       //
+                              "visit_variable_use",          // T
+                              "visit_end_of_module",         //
                           }));
   }
 
@@ -1938,12 +1938,12 @@ TEST_F(Test_Parse_TypeScript_Type,
     Spy_Visitor v = test_parse_and_visit_module(u8"type A = typeof C\n[T];"_sv,
                                                 no_diags, typescript_options);
     EXPECT_THAT(v.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // A
-                              "visit_enter_type_alias_scope",  //
-                              "visit_variable_use",            // C
-                              "visit_exit_type_alias_scope",   //
-                              "visit_variable_use",            // T
-                              "visit_end_of_module",           //
+                              "visit_variable_declaration",  // A
+                              "visit_enter_type_scope",      //
+                              "visit_variable_use",          // C
+                              "visit_exit_type_scope",       //
+                              "visit_variable_use",          // T
+                              "visit_end_of_module",         //
                           }));
   }
 }
@@ -1953,11 +1953,11 @@ TEST_F(Test_Parse_TypeScript_Type, newline_is_allowed_before_tuple_type) {
     Spy_Visitor v = test_parse_and_visit_module(u8"type A =\n[T];"_sv, no_diags,
                                                 typescript_options);
     EXPECT_THAT(v.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // A
-                              "visit_enter_type_alias_scope",  //
-                              "visit_variable_type_use",       // T
-                              "visit_exit_type_alias_scope",   //
-                              "visit_end_of_module",           //
+                              "visit_variable_declaration",  // A
+                              "visit_enter_type_scope",      //
+                              "visit_variable_type_use",     // T
+                              "visit_exit_type_scope",       //
+                              "visit_end_of_module",         //
                           }));
   }
 
@@ -1965,11 +1965,11 @@ TEST_F(Test_Parse_TypeScript_Type, newline_is_allowed_before_tuple_type) {
     Spy_Visitor v = test_parse_and_visit_module(u8"type A = readonly\n[T];"_sv,
                                                 no_diags, typescript_options);
     EXPECT_THAT(v.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // A
-                              "visit_enter_type_alias_scope",  //
-                              "visit_variable_type_use",       // T
-                              "visit_exit_type_alias_scope",   //
-                              "visit_end_of_module",           //
+                              "visit_variable_declaration",  // A
+                              "visit_enter_type_scope",      //
+                              "visit_variable_type_use",     // T
+                              "visit_exit_type_scope",       //
+                              "visit_end_of_module",         //
                           }));
   }
 }

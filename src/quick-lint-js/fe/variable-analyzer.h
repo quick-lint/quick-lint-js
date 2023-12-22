@@ -69,7 +69,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   void visit_enter_interface_scope() override;
   void visit_enter_named_function_scope(Identifier) override;
   void visit_enter_namespace_scope() override;
-  void visit_enter_type_alias_scope() override;
+  void visit_enter_type_scope() override;
   void visit_exit_block_scope() override;
   void visit_exit_with_scope() override;
   void visit_exit_class_construct_scope() override;
@@ -83,7 +83,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   void visit_exit_index_signature_scope() override;
   void visit_exit_interface_scope() override;
   void visit_exit_namespace_scope() override;
-  void visit_exit_type_alias_scope() override;
+  void visit_exit_type_scope() override;
   void visit_keyword_variable_use(Identifier name) override;
   void visit_property_declaration(const std::optional<Identifier> &) override;
   void visit_variable_declaration(Identifier name, Variable_Kind kind,

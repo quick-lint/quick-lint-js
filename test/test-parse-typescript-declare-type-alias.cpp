@@ -34,10 +34,10 @@ TEST_F(Test_Parse_TypeScript_Declare_Type_Alias, declare_type_acts_like_type) {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"declare type MyType = OtherType;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_declaration",    // MyType
-                              "visit_enter_type_alias_scope",  //
-                              "visit_variable_type_use",       // OtherType
-                              "visit_exit_type_alias_scope",   //
+                              "visit_variable_declaration",  // MyType
+                              "visit_enter_type_scope",      //
+                              "visit_variable_type_use",     // OtherType
+                              "visit_exit_type_scope",       //
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"OtherType"_sv}));
     EXPECT_THAT(p.variable_declarations,
@@ -51,12 +51,12 @@ TEST_F(Test_Parse_TypeScript_Declare_Type_Alias,
     Spy_Visitor p = test_parse_and_visit_module(
         u8"declare\ntype MyType = OtherType;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
-                              "visit_variable_use",            // declare
-                              "visit_variable_declaration",    // MyType
-                              "visit_enter_type_alias_scope",  //
-                              "visit_variable_type_use",       // OtherType
-                              "visit_exit_type_alias_scope",   //
-                              "visit_end_of_module",           //
+                              "visit_variable_use",          // declare
+                              "visit_variable_declaration",  // MyType
+                              "visit_enter_type_scope",      //
+                              "visit_variable_type_use",     // OtherType
+                              "visit_exit_type_scope",       //
+                              "visit_end_of_module",         //
                           }));
     EXPECT_THAT(p.variable_uses,
                 ElementsAreArray({u8"declare"_sv, u8"OtherType"_sv}));
