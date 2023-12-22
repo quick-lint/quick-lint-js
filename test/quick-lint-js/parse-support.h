@@ -122,8 +122,10 @@ class Test_Parser {
         this->errors_);
   }
 
+  // Does not emit visit_enter_type_scope or visit_exit_type_scope.
   void parse_and_visit_typescript_type_expression() {
-    this->parser_.parse_and_visit_typescript_type_expression(this->errors_);
+    this->parser_.parse_and_visit_typescript_type_expression_no_scope(
+        this->errors_);
   }
 
   void parse_and_visit_typescript_generic_parameters() {
@@ -264,9 +266,12 @@ Spy_Visitor test_parse_and_visit_expression(
     String8_View input, Span<const Diagnostic_Assertion>, Parser_Options,
     Source_Location caller = Source_Location::current());
 
-// Create a Parser and call Parser::parse_and_visit_typescript_type_expression.
-// Assert that exactly the given diagnostics were emitted. See
-// NOTE[_diag-syntax] for examples.
+// Create a Parser and call
+// Parser::parse_and_visit_typescript_type_expression_no_scope. Assert that
+// exactly the given diagnostics were emitted. See NOTE[_diag-syntax] for
+// examples.
+//
+// Does not emit visit_enter_type_scope or visit_exit_type_scope.
 Spy_Visitor test_parse_and_visit_typescript_type_expression(
     String8_View input, No_Diags_Tag, Parser_Options,
     Source_Location caller = Source_Location::current());

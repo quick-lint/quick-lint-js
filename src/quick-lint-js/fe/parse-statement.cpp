@@ -1807,7 +1807,7 @@ done_parsing_modifiers:
           });
     }
     this->skip();
-    this->parse_and_visit_typescript_type_expression(
+    this->parse_and_visit_typescript_type_expression_no_scope(
         extends_visits.visitor(),
         TypeScript_Type_Parse_Options{
             .type_being_declared =
@@ -1821,7 +1821,7 @@ done_parsing_modifiers:
   if (this->peek().type == Token_Type::equal) {
     // <T = Default>
     this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
+    this->parse_and_visit_typescript_type_expression_no_scope(v);
   }
 
   QLJS_ASSERT(parameter_name.has_value());
@@ -3396,7 +3396,7 @@ void Parser::parse_and_visit_typescript_type_alias(
   }
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal);
   this->skip();
-  this->parse_and_visit_typescript_type_expression(
+  this->parse_and_visit_typescript_type_expression_no_scope(
       v,
       TypeScript_Type_Parse_Options{
           .type_being_declared = TypeScript_Type_Parse_Options::Declaring_Type{
@@ -3844,7 +3844,7 @@ bool Parser::parse_and_visit_catch_or_finally_or_both(Parse_Visitor_Base &v) {
 
         default: {
           const Char8 *type_expression_begin = this->peek().begin;
-          this->parse_and_visit_typescript_type_expression(
+          this->parse_and_visit_typescript_type_expression_no_scope(
               Null_Visitor::instance);
           const Char8 *type_expression_end =
               this->lexer_.end_of_previous_token();

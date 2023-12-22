@@ -2278,7 +2278,7 @@ next:
     } else {
       // x as Type
       // x satisfies Type
-      this->parse_and_visit_typescript_type_expression(
+      this->parse_and_visit_typescript_type_expression_no_scope(
           v,
           TypeScript_Type_Parse_Options{
               // A trailing '?' might be the start of a conditional expression:
@@ -4078,7 +4078,7 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
   this->skip();
 
   auto parse_as_type_assertion = [&]() -> Expression* {
-    this->parse_and_visit_typescript_type_expression(v);
+    this->parse_and_visit_typescript_type_expression_no_scope(v);
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::greater);
     const Char8* greater_end = this->peek().end;

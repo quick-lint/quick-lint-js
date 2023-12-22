@@ -44,15 +44,16 @@ void Parser::parse_and_visit_typescript_colon_type_expression(
 void Parser::parse_and_visit_typescript_colon_type_expression(
     Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &parse_options) {
   this->parse_typescript_colon_for_type();
-  this->parse_and_visit_typescript_type_expression(v, parse_options);
+  this->parse_and_visit_typescript_type_expression_no_scope(v, parse_options);
 }
 
-void Parser::parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v) {
-  this->parse_and_visit_typescript_type_expression(
+void Parser::parse_and_visit_typescript_type_expression_no_scope(
+    Parse_Visitor_Base &v) {
+  this->parse_and_visit_typescript_type_expression_no_scope(
       v, TypeScript_Type_Parse_Options());
 }
 
-void Parser::parse_and_visit_typescript_type_expression(
+void Parser::parse_and_visit_typescript_type_expression_no_scope(
     Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &parse_options) {
   Depth_Guard guard(this);
   TypeScript_Only_Construct_Guard ts_guard =
@@ -241,7 +242,7 @@ again:
                 .is_keyword = is_keyword,
             });
       }
-      this->parse_and_visit_typescript_type_expression(v);
+      this->parse_and_visit_typescript_type_expression_no_scope(v);
       return;
     }
 
@@ -433,7 +434,7 @@ again:
       // T extends infer U extends X ? V : W
       //                   ^^^^^^^
       this->skip();
-      this->parse_and_visit_typescript_type_expression(
+      this->parse_and_visit_typescript_type_expression_no_scope(
           v, TypeScript_Type_Parse_Options{
                  .parse_question_as_invalid = false,
              });
@@ -665,7 +666,7 @@ again:
     }
     // keyof Type
     this->lexer_.commit_transaction(std::move(transaction));
-    this->parse_and_visit_typescript_type_expression(v, parse_options);
+    this->parse_and_visit_typescript_type_expression_no_scope(v, parse_options);
     break;
   }
 
@@ -737,7 +738,7 @@ again:
       is_array_type = true;
       this->skip();
     } else {
-      this->parse_and_visit_typescript_type_expression(v);
+      this->parse_and_visit_typescript_type_expression_no_scope(v);
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_square);
       this->skip();
     }
@@ -778,7 +779,7 @@ again:
     this->fatal_parse_error_stack_.try_finally(
         [&]() -> void {
           this->typescript_infer_declaration_buffer_ = &infer_visitor.visitor();
-          this->parse_and_visit_typescript_type_expression(
+          this->parse_and_visit_typescript_type_expression_no_scope(
               v, TypeScript_Type_Parse_Options{
                      .type_being_declared = parse_options.type_being_declared,
                      .parse_question_as_invalid = false,
@@ -794,7 +795,7 @@ again:
 
     v.visit_enter_conditional_type_scope();
     infer_visitor.visitor().move_into(v);
-    this->parse_and_visit_typescript_type_expression(
+    this->parse_and_visit_typescript_type_expression_no_scope(
         v, TypeScript_Type_Parse_Options{
                // See NOTE[TypeScript-extends-cycle].
                .type_being_declared = std::nullopt,
@@ -803,7 +804,7 @@ again:
     v.visit_exit_conditional_type_scope();
 
     this->skip();
-    this->parse_and_visit_typescript_type_expression(
+    this->parse_and_visit_typescript_type_expression_no_scope(
         v, TypeScript_Type_Parse_Options{
                // See NOTE[TypeScript-extends-cycle].
                .type_being_declared = std::nullopt,
@@ -841,7 +842,7 @@ void Parser::
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
   this->skip();
-  this->parse_and_visit_typescript_type_expression(
+  this->parse_and_visit_typescript_type_expression_no_scope(
       v, TypeScript_Type_Parse_Options{
              // TODO(strager): Report
              // Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void (i.e.
@@ -875,7 +876,7 @@ Parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
         Stacked_Buffering_Visitor params_visitor =
             this->buffering_visitor_stack_.push();
         const Char8 *old_begin = this->peek().begin;
-        this->parse_and_visit_typescript_type_expression(
+        this->parse_and_visit_typescript_type_expression_no_scope(
             params_visitor.visitor(),
             TypeScript_Type_Parse_Options{
                 .type_being_declared = parse_options.type_being_declared,
@@ -1078,12 +1079,12 @@ void Parser::parse_and_visit_typescript_object_type_expression(
           this->skip();
           is_index_signature = true;
           v.visit_enter_index_signature_scope();
-          this->parse_and_visit_typescript_type_expression(v);
+          this->parse_and_visit_typescript_type_expression_no_scope(v);
           v.visit_variable_declaration(ident, Variable_Kind::_generic_parameter,
                                        Variable_Declaration_Flags::none);
           if (this->peek().type == Token_Type::kw_as) {
             this->skip();
-            this->parse_and_visit_typescript_type_expression(v);
+            this->parse_and_visit_typescript_type_expression_no_scope(v);
           }
           break;
 
@@ -1153,7 +1154,7 @@ void Parser::parse_and_visit_typescript_template_type_expression(
     QLJS_ASSERT(this->peek().type == Token_Type::incomplete_template);
     // TODO(strager): report_errors_for_escape_sequences_in_template
     this->skip();
-    this->parse_and_visit_typescript_type_expression(v, parse_options);
+    this->parse_and_visit_typescript_type_expression_no_scope(v, parse_options);
     switch (this->peek().type) {
     case Token_Type::right_curly:
       this->lexer_.skip_in_template(template_begin);
@@ -1239,7 +1240,7 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
               .colon = colon_span,
           });
       this->skip();
-      this->parse_and_visit_typescript_type_expression(
+      this->parse_and_visit_typescript_type_expression_no_scope(
           v, TypeScript_Type_Parse_Options{
                  .parse_question_as_invalid = false,
              });
@@ -1329,7 +1330,7 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
           this->skip();
         }
 
-        this->parse_and_visit_typescript_type_expression(
+        this->parse_and_visit_typescript_type_expression_no_scope(
             v, TypeScript_Type_Parse_Options{
                    .parse_question_as_invalid = false,
                });
@@ -1353,7 +1354,7 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
         }
         first_unnamed_element_begin = this->peek().begin;
 
-        this->parse_and_visit_typescript_type_expression(
+        this->parse_and_visit_typescript_type_expression_no_scope(
             v, TypeScript_Type_Parse_Options{
                    .parse_question_as_invalid = false,
                });
@@ -1364,7 +1365,7 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
     // [(Type)]
     default:
       first_unnamed_element_begin = this->peek().begin;
-      this->parse_and_visit_typescript_type_expression(
+      this->parse_and_visit_typescript_type_expression_no_scope(
           v, TypeScript_Type_Parse_Options{
                  .parse_question_as_invalid = false,
              });
@@ -1452,10 +1453,10 @@ void Parser::parse_and_visit_typescript_generic_arguments(
     this->skip();
   }
 
-  this->parse_and_visit_typescript_type_expression(v);
+  this->parse_and_visit_typescript_type_expression_no_scope(v);
   while (this->peek().type == Token_Type::comma) {
     this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
+    this->parse_and_visit_typescript_type_expression_no_scope(v);
   }
 
   switch (this->peek().type) {

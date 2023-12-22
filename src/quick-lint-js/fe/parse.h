@@ -224,8 +224,11 @@ class Parser {
   void parse_and_visit_typescript_colon_type_expression(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_colon_type_expression(
       Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
-  void parse_and_visit_typescript_type_expression(Parse_Visitor_Base &v);
-  void parse_and_visit_typescript_type_expression(
+  // The _no_scope variant does not emit visit_enter_type_scope or
+  // visit_exit_type_scope.
+  void parse_and_visit_typescript_type_expression_no_scope(
+      Parse_Visitor_Base &v);
+  void parse_and_visit_typescript_type_expression_no_scope(
       Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
 
   enum class TypeScript_Type_Arrow_Or_Paren {

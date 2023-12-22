@@ -1042,7 +1042,7 @@ void Parser::parse_and_visit_class_or_interface_member(
         } else {
           p->parse_typescript_colon_for_type();
         }
-        p->parse_and_visit_typescript_type_expression(v);
+        p->parse_and_visit_typescript_type_expression_no_scope(v);
 
         if (p->peek().type == Token_Type::equal) {
           this->parse_field_initializer();
