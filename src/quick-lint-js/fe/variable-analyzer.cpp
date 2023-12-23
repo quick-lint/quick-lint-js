@@ -502,19 +502,8 @@ void Variable_Analyzer::visit_variable_use(Identifier name,
                                            Used_Variable_Kind use_kind) {
   QLJS_ASSERT(!this->scopes_.empty());
   Scope &current_scope = this->current_scope();
-  Declared_Variable *var = [&] {
-    bool is_runtime = Variable_Analyzer::is_runtime(use_kind);
-    bool is_type = Variable_Analyzer::is_type(use_kind);
-    if (is_runtime && is_type) {
-      return current_scope.declared_variables.find_runtime_or_type(name);
-    } else if (is_type) {
-      return current_scope.declared_variables.find_type(name);
-    } else if (is_runtime) {
-      return current_scope.declared_variables.find_runtime(name);
-    } else {
-      QLJS_UNREACHABLE();
-    }
-  }();
+  Declared_Variable *var = current_scope.declared_variables.find(
+      name, Variable_Analyzer::is_runtime_or_type(use_kind));
   if (var) {
     var->is_used = true;
   } else {
@@ -580,12 +569,8 @@ void Variable_Analyzer::visit_end_of_module() {
     // If a variable appears in declared_variables, then
     // propagate_variable_uses_to_parent_scope should have already removed it
     // from variables_used and variables_used_in_descendant_scope.
-    if (is_runtime(var.kind)) {
-      QLJS_ASSERT(!global_scope.declared_variables.find_runtime(var.name));
-    }
-    if (is_type(var.kind)) {
-      QLJS_ASSERT(!global_scope.declared_variables.find_type(var.name));
-    }
+    QLJS_ASSERT(!global_scope.declared_variables.find(
+        var.name, is_runtime_or_type(var.kind)));
 
     // TODO(#690): This should not affect type uses.
     return is_variable_declared_by_typeof(var);
@@ -683,26 +668,11 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
       QLJS_ASSERT(current_scope.variables_used.empty());
     }
     for (const Used_Variable &used_var : current_scope.variables_used) {
-      Found_Variable_Type var = {};
-
-      bool is_runtime = used_var.is_runtime();
-      bool is_type = used_var.is_type();
-      if (is_runtime && is_type) {
-        QLJS_ASSERT(!current_scope.declared_variables.find_runtime_or_type(
-            used_var.name));
-        var =
-            parent_scope.declared_variables.find_runtime_or_type(used_var.name);
-      } else if (is_type) {
-        QLJS_ASSERT(!current_scope.declared_variables.find_type(used_var.name));
-        var = parent_scope.declared_variables.find_type(used_var.name);
-      } else if (is_runtime) {
-        QLJS_ASSERT(
-            !current_scope.declared_variables.find_runtime(used_var.name));
-        var = parent_scope.declared_variables.find_runtime(used_var.name);
-      } else {
-        QLJS_UNREACHABLE();
-      }
-
+      Is_Runtime_Or_Type find_options = used_var.is_runtime_or_type();
+      QLJS_ASSERT(
+          !current_scope.declared_variables.find(used_var.name, find_options));
+      Found_Variable_Type var =
+          parent_scope.declared_variables.find(used_var.name, find_options);
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         this->report_errors_for_variable_use(
@@ -726,20 +696,8 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
 
     for (const Used_Variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
-      Found_Variable_Type var = {};
-      bool is_runtime = used_var.is_runtime();
-      bool is_type = used_var.is_type();
-      if (is_runtime && is_type) {
-        var =
-            parent_scope.declared_variables.find_runtime_or_type(used_var.name);
-      } else if (is_type) {
-        var = parent_scope.declared_variables.find_type(used_var.name);
-      } else if (is_runtime) {
-        var = parent_scope.declared_variables.find_runtime(used_var.name);
-      } else {
-        QLJS_UNREACHABLE();
-      }
-
+      Found_Variable_Type var = parent_scope.declared_variables.find(
+          used_var.name, used_var.is_runtime_or_type());
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         this->report_errors_for_variable_use(
@@ -1241,6 +1199,11 @@ bool Variable_Analyzer::Used_Variable::is_type() const {
   return Variable_Analyzer::is_type(this->kind);
 }
 
+Is_Runtime_Or_Type Variable_Analyzer::Used_Variable::is_runtime_or_type()
+    const {
+  return Variable_Analyzer::is_runtime_or_type(this->kind);
+}
+
 bool Variable_Analyzer::is_runtime(Used_Variable_Kind kind) {
   switch (kind) {
   case Used_Variable_Kind::_delete:
@@ -1271,6 +1234,14 @@ bool Variable_Analyzer::is_type(Used_Variable_Kind kind) {
   QLJS_UNREACHABLE();
 }
 
+Is_Runtime_Or_Type Variable_Analyzer::is_runtime_or_type(
+    Used_Variable_Kind kind) {
+  return Is_Runtime_Or_Type{
+      .is_runtime = is_runtime(kind),
+      .is_type = is_type(kind),
+  };
+}
+
 Variable_Analyzer::Declared_Variable *
 Variable_Analyzer::Declared_Variable_Set::add_variable_declaration(
     const Declared_Variable &variable) {
@@ -1279,17 +1250,19 @@ Variable_Analyzer::Declared_Variable_Set::add_variable_declaration(
 }
 
 const Variable_Analyzer::Declared_Variable *
-Variable_Analyzer::Declared_Variable_Set::find_runtime_or_type(
-    Identifier name) const {
-  return const_cast<Declared_Variable_Set *>(this)->find_runtime_or_type(name);
+Variable_Analyzer::Declared_Variable_Set::find(
+    Identifier name, Is_Runtime_Or_Type options) const {
+  return const_cast<Declared_Variable_Set *>(this)->find(name, options);
 }
 
 Variable_Analyzer::Declared_Variable *
-Variable_Analyzer::Declared_Variable_Set::find_runtime_or_type(
-    Identifier name) {
+Variable_Analyzer::Declared_Variable_Set::find(Identifier name,
+                                               Is_Runtime_Or_Type options) {
   String8_View name_view = name.normalized_name();
   for (Declared_Variable &var : this->variables_) {
-    if (var.declaration.normalized_name() == name_view) {
+    if ((var.is_runtime() == options.is_runtime ||
+         var.is_type() == options.is_type) &&
+        var.declaration.normalized_name() == name_view) {
       return &var;
     }
   }
@@ -1298,24 +1271,10 @@ Variable_Analyzer::Declared_Variable_Set::find_runtime_or_type(
 
 Variable_Analyzer::Declared_Variable *
 Variable_Analyzer::Declared_Variable_Set::find_runtime(Identifier name) {
-  String8_View name_view = name.normalized_name();
-  for (Declared_Variable &var : this->variables_) {
-    if (var.is_runtime() && var.declaration.normalized_name() == name_view) {
-      return &var;
-    }
-  }
-  return nullptr;
-}
-
-Variable_Analyzer::Declared_Variable *
-Variable_Analyzer::Declared_Variable_Set::find_type(Identifier name) {
-  String8_View name_view = name.normalized_name();
-  for (Declared_Variable &var : this->variables_) {
-    if (var.is_type() && var.declaration.normalized_name() == name_view) {
-      return &var;
-    }
-  }
-  return nullptr;
+  return this->find(name, Is_Runtime_Or_Type{
+                              .is_runtime = true,
+                              .is_type = false,
+                          });
 }
 
 void Variable_Analyzer::Declared_Variable_Set::clear() {

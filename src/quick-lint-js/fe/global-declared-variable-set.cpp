@@ -81,20 +81,21 @@ Global_Declared_Variable_Set::find_runtime_or_type(String8_View name) const {
   return std::nullopt;
 }
 
-std::optional<Global_Declared_Variable>
-Global_Declared_Variable_Set::find_runtime(Identifier name) const {
+std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find(
+    Identifier name, Is_Runtime_Or_Type options) const {
   std::optional<Global_Declared_Variable> var =
       this->find_runtime_or_type(name);
-  if (var.has_value() && var->is_type_only) {
+  if (!var.has_value()) {
     return std::nullopt;
   }
-  return var;
-}
-
-std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find_type(
-    Identifier name) const {
   // TODO(#690): Do not treat all globals as type-visible.
-  return this->find_runtime_or_type(name);
+  bool var_is_type = true;
+  bool var_is_runtime = !var->is_type_only;
+  if (var_is_type == options.is_type || var_is_runtime == options.is_runtime) {
+    return var;
+  } else {
+    return std::nullopt;
+  }
 }
 
 void Global_Declared_Variable_Set::clear() {

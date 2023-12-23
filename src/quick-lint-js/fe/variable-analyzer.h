@@ -157,6 +157,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
 
   static bool is_runtime(Used_Variable_Kind);
   static bool is_type(Used_Variable_Kind);
+  static Is_Runtime_Or_Type is_runtime_or_type(Used_Variable_Kind);
 
   struct Used_Variable {
     explicit Used_Variable(Identifier name, Used_Variable_Kind kind)
@@ -182,6 +183,8 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     // Returns false if this variable was used in a run-time expression.
     bool is_type() const;
 
+    Is_Runtime_Or_Type is_runtime_or_type() const;
+
     Identifier name;
     const Char8 *delete_keyword_begin;  // Used_Variable_Kind::_delete only
     Used_Variable_Kind kind;
@@ -193,16 +196,18 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
 
     Declared_Variable *add_variable_declaration(const Declared_Variable &);
 
-    const Declared_Variable *find_runtime_or_type(Identifier name) const;
-    Declared_Variable *find_runtime_or_type(Identifier name);
+    // Find a variable, if any, which matches the given filter.
+    //
+    // * Ignores types-only variables (e.g. interfaces) if options.is_type is
+    //   false.
+    // * Ignores runtime-only variables (e.g. functions) if options.is_runtime
+    //   is false.
+    const Declared_Variable *find(Identifier name,
+                                  Is_Runtime_Or_Type options) const;
+    Declared_Variable *find(Identifier name, Is_Runtime_Or_Type options);
 
-    // Like find_runtime_or_type, but ignores type-only variables (e.g.
-    // interfaces).
+    // Like find(name, {.is_runtime = true, .is_type = false}).
     Declared_Variable *find_runtime(Identifier name);
-
-    // Like find_runtime_or_type, but ignores runtime-only variables (e.g.
-    // functions).
-    Declared_Variable *find_type(Identifier name);
 
     void clear();
 

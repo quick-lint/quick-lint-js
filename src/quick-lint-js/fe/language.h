@@ -112,6 +112,12 @@ enum class Function_Attributes {
 };
 
 std::ostream& operator<<(std::ostream&, Function_Attributes);
+
+struct Is_Runtime_Or_Type {
+  // Invariant: is_runtime || is_type
+  bool is_runtime;
+  bool is_type;
+};
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

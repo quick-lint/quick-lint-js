@@ -42,16 +42,15 @@ class Global_Declared_Variable_Set {
   void reserve_more_global_variables(std::size_t extra_count,
                                      bool is_shadowable, bool is_writable);
 
+  // See Variable_Analyzer::Declared_Variable_Set::find.
+  std::optional<Global_Declared_Variable> find(
+      Identifier name, Is_Runtime_Or_Type options) const;
+
+  // Like find(name, {.is_runtime = true, .is_type = true}).
   std::optional<Global_Declared_Variable> find_runtime_or_type(
       Identifier name) const;
   std::optional<Global_Declared_Variable> find_runtime_or_type(
       String8_View name) const;
-
-  // See Variable_Analyzer::Declared_Variable_Set::find_runtime.
-  std::optional<Global_Declared_Variable> find_runtime(Identifier name) const;
-
-  // See Variable_Analyzer::Declared_Variable_Set::find_type.
-  std::optional<Global_Declared_Variable> find_type(Identifier name) const;
 
   // Return this Global_Declared_Variable_Set to its default-constructed state.
   void clear();
