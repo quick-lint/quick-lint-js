@@ -1002,19 +1002,24 @@ void Variable_Analyzer::report_errors_for_variable_use(
 
 void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
     const Variable_Analyzer::Scope &scope, const Declared_Variable &var) const {
-  const Declared_Variable *already_declared_variable =
-      scope.declared_variables.find(var.declaration);
-  if (already_declared_variable) {
-    this->report_error_if_variable_declaration_conflicts(
-        /*already_declared_var=*/
-        Declared_Variable_Options{
-            .name = &already_declared_variable->declaration,
-            .kind = already_declared_variable->kind,
-            .declaration_scope = already_declared_variable->declaration_scope,
-            .flags = already_declared_variable->flags,
-            .ambient = already_declared_variable->ambient,
-        },
-        /*newly_declared_var=*/var);
+  String8_View name = var.declaration.normalized_name();
+  for (const Declared_Variable &declared_var : scope.declared_variables) {
+    if (declared_var.declaration.normalized_name() == name) {
+      bool did_report_error =
+          this->report_error_if_variable_declaration_conflicts(
+              /*already_declared_var=*/
+              Declared_Variable_Options{
+                  .name = &declared_var.declaration,
+                  .kind = declared_var.kind,
+                  .declaration_scope = declared_var.declaration_scope,
+                  .flags = declared_var.flags,
+                  .ambient = declared_var.ambient,
+              },
+              /*newly_declared_var=*/var);
+      if (did_report_error) {
+        break;
+      }
+    }
   }
 }
 
@@ -1043,7 +1048,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
   }
 }
 
-void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
+bool Variable_Analyzer::report_error_if_variable_declaration_conflicts(
     const Declared_Variable_Options &already_declared_var,
     const Declared_Variable &newly_declared_var) const {
   using VK = Variable_Kind;
@@ -1206,6 +1211,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       });
     }
   }
+  return !redeclaration_ok;
 }
 
 bool Variable_Analyzer::in_typescript_ambient_context() const {

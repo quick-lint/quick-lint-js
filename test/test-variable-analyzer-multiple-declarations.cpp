@@ -329,6 +329,32 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
       u8"type T<U> = U extends A<infer I> | B<infer I> ? I : null"_sv,
       no_diags, typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     redeclaration_check_considers_all_previous_declarations) {
+  // 'type X' should be ignored when checking 'let X':
+  test_parse_and_analyze(
+      u8"type X = null; let X; let X;"_sv,  //
+      u8"                          ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"                   ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"let X; type X = null; let X;"_sv,  //
+      u8"                          ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"    ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+  // 'let X' should be ignored when checking 'type X':
+  test_parse_and_analyze(
+      u8"let X; type X = null; type X = null;"_sv,  //
+      u8"                           ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"            ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"type X = null; let X; type X = null;"_sv,  //
+      u8"                           ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"     ^ .original_declaration"_diag,
+      typescript_analyze_options, default_globals);
+}
 }
 }
 

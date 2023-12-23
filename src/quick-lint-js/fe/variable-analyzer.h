@@ -343,7 +343,8 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
       const Scope &scope, const Declared_Variable &var) const;
   void report_error_if_variable_declaration_conflicts_in_scope(
       const Global_Scope &scope, const Declared_Variable &var) const;
-  void report_error_if_variable_declaration_conflicts(
+  // Returns true if the variable did conflict (thus a diagnostic was reported).
+  bool report_error_if_variable_declaration_conflicts(
       const Declared_Variable_Options &already_declared_var,
       const Declared_Variable &newly_declared_var) const;
 
