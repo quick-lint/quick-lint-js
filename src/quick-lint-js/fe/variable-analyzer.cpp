@@ -1192,11 +1192,11 @@ bool Variable_Analyzer::Declared_Variable::is_type() const {
 }
 
 bool Variable_Analyzer::Used_Variable::is_runtime() const {
-  return Variable_Analyzer::is_runtime(this->kind);
+  return Variable_Analyzer::is_runtime_or_type(this->kind).is_runtime;
 }
 
 bool Variable_Analyzer::Used_Variable::is_type() const {
-  return Variable_Analyzer::is_type(this->kind);
+  return Variable_Analyzer::is_runtime_or_type(this->kind).is_type;
 }
 
 Is_Runtime_Or_Type Variable_Analyzer::Used_Variable::is_runtime_or_type()
@@ -1204,42 +1204,21 @@ Is_Runtime_Or_Type Variable_Analyzer::Used_Variable::is_runtime_or_type()
   return Variable_Analyzer::is_runtime_or_type(this->kind);
 }
 
-bool Variable_Analyzer::is_runtime(Used_Variable_Kind kind) {
-  switch (kind) {
-  case Used_Variable_Kind::_delete:
-  case Used_Variable_Kind::_export:
-  case Used_Variable_Kind::_export_default:
-  case Used_Variable_Kind::_typeof:
-  case Used_Variable_Kind::assignment:
-  case Used_Variable_Kind::use:
-    return true;
-  case Used_Variable_Kind::type:
-    return false;
-  }
-  QLJS_UNREACHABLE();
-}
-
-bool Variable_Analyzer::is_type(Used_Variable_Kind kind) {
-  switch (kind) {
-  case Used_Variable_Kind::_export:
-  case Used_Variable_Kind::_export_default:
-  case Used_Variable_Kind::type:
-    return true;
-  case Used_Variable_Kind::_delete:
-  case Used_Variable_Kind::_typeof:
-  case Used_Variable_Kind::assignment:
-  case Used_Variable_Kind::use:
-    return false;
-  }
-  QLJS_UNREACHABLE();
-}
-
 Is_Runtime_Or_Type Variable_Analyzer::is_runtime_or_type(
     Used_Variable_Kind kind) {
-  return Is_Runtime_Or_Type{
-      .is_runtime = is_runtime(kind),
-      .is_type = is_type(kind),
-  };
+  switch (kind) {
+  case Used_Variable_Kind::_delete:
+  case Used_Variable_Kind::_typeof:
+  case Used_Variable_Kind::assignment:
+  case Used_Variable_Kind::use:
+    return Is_Runtime_Or_Type{.is_runtime = true, .is_type = false};
+  case Used_Variable_Kind::_export:
+  case Used_Variable_Kind::_export_default:
+    return Is_Runtime_Or_Type{.is_runtime = true, .is_type = true};
+  case Used_Variable_Kind::type:
+    return Is_Runtime_Or_Type{.is_runtime = false, .is_type = true};
+  }
+  QLJS_UNREACHABLE();
 }
 
 Variable_Analyzer::Declared_Variable *

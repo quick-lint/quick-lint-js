@@ -155,8 +155,6 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     use,
   };
 
-  static bool is_runtime(Used_Variable_Kind);
-  static bool is_type(Used_Variable_Kind);
   static Is_Runtime_Or_Type is_runtime_or_type(Used_Variable_Kind);
 
   struct Used_Variable {
