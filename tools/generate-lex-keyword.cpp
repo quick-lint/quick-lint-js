@@ -120,9 +120,11 @@ class Table_Seed {
 
   void next() { this->seed_ += 1; }
 
- private:
-  // Arbitrary.
-  Keyword_Lexer::Seed_Type seed_ = 0x811c9dc5;  // FNV-1a 32-bit basis.
+ public:
+  // This number is arbitrary. However (at least at the time I am writing this
+  // comment) this seed makes the hash table generation work first try, so use
+  // this good seed to speed up table generation.
+  Keyword_Lexer::Seed_Type seed_ = 2'554'672U;
 };
 
 struct Hash_Table {
@@ -145,7 +147,11 @@ struct Hash_Table {
     }
   };
 
+  explicit Hash_Table(std::uint32_t table_size_shift)
+      : entries(1 << table_size_shift), table_size_shift(table_size_shift) {}
+
   std::vector<Table_Entry> entries;
+  std::uint32_t table_size_shift;
   std::uint32_t current_generation = 0;
   Table_Seed seed;
 
@@ -154,10 +160,8 @@ struct Hash_Table {
     for (std::string_view key : keys) {
       Keyword_Lexer::Selection_Type selection =
           Keyword_Lexer::select(key.data(), key.size());
-      Keyword_Lexer::Hash_Type hash =
-          Keyword_Lexer::mix(selection, this->seed.get());
-      Keyword_Lexer::Hash_Type index =
-          static_cast<Keyword_Lexer::Hash_Type>(hash % this->entries.size());
+      Keyword_Lexer::Hash_Type index = Keyword_Lexer::mix_and_reduce(
+          selection, this->seed.get(), this->table_size_shift);
       Table_Entry& entry = this->entries[index];
       if (entry.is_taken(this->current_generation)) {
         return false;
@@ -169,13 +173,13 @@ struct Hash_Table {
 };
 
 Hash_Table make_hash_table(const std::vector<std::string_view>& keys) {
-  constexpr int attempts_per_table_size = 80'000;
-  constexpr std::size_t max_table_size = 1024;
+  constexpr int attempts_per_table_size = 5'000'000;
+  constexpr std::uint32_t min_table_size_shift = 8;
+  constexpr std::uint32_t max_table_size_shift = 8;
 
-  std::size_t table_size = bit_ceil(keys.size());
+  std::uint32_t table_size_shift = min_table_size_shift;
   for (;;) {
-    Hash_Table t;
-    t.entries.resize(table_size);
+    Hash_Table t(table_size_shift);
     for (int attempt = 0; attempt < attempts_per_table_size; ++attempt) {
       if (t.try_fill(keys)) {
         return t;
@@ -183,15 +187,15 @@ Hash_Table make_hash_table(const std::vector<std::string_view>& keys) {
       t.seed.next();
     }
 
-    std::size_t next_table_size = table_size * 2;
-    if (next_table_size > max_table_size) {
+    std::uint32_t next_table_size_shift = table_size_shift + 1;
+    if (next_table_size_shift > max_table_size_shift) {
       std::fprintf(stderr,
                    "error: failed to generate table; gave up after trying "
-                   "table size %zu\n",
-                   table_size);
+                   "table size %llu\n",
+                   1ULL << table_size_shift);
       std::exit(1);
     }
-    table_size = next_table_size;
+    table_size_shift = next_table_size_shift;
   }
 }
 
@@ -252,6 +256,9 @@ namespace {
 
   out.append_literal(u8"constexpr std::size_t hash_table_size = "_sv);
   out.append_decimal_integer(t.entries.size());
+  out.append_literal(u8"LLU;\n"_sv);
+  out.append_literal(u8"constexpr std::size_t hash_table_size_shift = "_sv);
+  out.append_decimal_integer(t.table_size_shift);
   out.append_literal(u8"LLU;\n"_sv);
   out.append_literal(u8"constexpr std::size_t string_table_size = "_sv);
   out.append_decimal_integer(strings.data.size());
@@ -325,14 +332,14 @@ struct Tables_Type {
       u8R"(
 }
 
-Token_Type Lexer::identifier_token_type(String8_View identifier) {
+[[gnu::noinline]] Token_Type Lexer::identifier_token_type(
+    String8_View identifier) {
   std::size_t identifier_size = identifier.size();
 
   Keyword_Lexer::Selection_Type selection =
       Keyword_Lexer::select(identifier.data(), identifier_size);
-  Keyword_Lexer::Hash_Type hash = Keyword_Lexer::mix(selection, hash_seed);
-  Keyword_Lexer::Hash_Type index =
-      static_cast<Keyword_Lexer::Hash_Type>(hash % hash_table_size);
+  Keyword_Lexer::Hash_Type index = Keyword_Lexer::mix_and_reduce(
+      selection, hash_seed, hash_table_size_shift);
 
   const Entry& e = tables.hash_table[index];
   const Char8* e_key = &tables.string_table[e.key_index];

@@ -13,7 +13,7 @@ namespace quick_lint_js {
 struct Keyword_Lexer {
   using Selection_Type = std::uint32_t;
   using Hash_Type = std::uint32_t;
-  using Seed_Type = std::uint64_t;
+  using Seed_Type = std::uint32_t;
 
   static constexpr int padding_size = 17;
 
@@ -71,20 +71,21 @@ struct Keyword_Lexer {
 #endif
 
   // Step 2 of the hash function for Lexer::identifier_token_type().
-  static Hash_Type mix(Selection_Type selection, Seed_Type seed) {
+  //
+  // The table's size is (1 << table_size_shift).
+  //
+  // This function reduces the hash into an index into the hash table. In other
+  // words, this function returns a number between 0 (inclusive) and
+  // (1 << table_size_shift) (exclusive).
+  static Hash_Type mix_and_reduce(Selection_Type selection, Seed_Type seed,
+                                  Hash_Type table_size_shift) {
     // This hash function executes quickly, but might produce a lot of
     // collisions. Collisions are fine, though; collisions just slow down table
     // generation, not run-time.
-
-    // Pierre L’Ecuyer. 1999. Tables of linear congruential generators of
-    // different sizes and good lattice structure. Mathematics of Computation of
-    // the American Mathematical Society 68, 225 (1999), 249–260.
     //
-    // https://www.ams.org/journals/mcom/1999-68-225/S0025-5718-99-00996-5/S0025-5718-99-00996-5.pdf
-    std::uint64_t magic = 4292484099903637661ULL;
-
-    std::uint64_t x = static_cast<std::uint64_t>(selection) ^ seed;
-    return static_cast<std::uint32_t>(multiply_u64_get_top_64(x, magic));
+    // This hash function was suggested by youtube.com/@bunnyboss3707:
+    // https://www.youtube.com/watch?v=DMQ_HcNSOAI&lc=UgxPDeWYyiAdMsUCV8V4AaABAg
+    return (selection * seed) >> (32 - table_size_shift);
   }
 
   // Compare two strings, 'a' and 'b', each with size 'size'.
