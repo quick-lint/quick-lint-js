@@ -3,8 +3,9 @@
 
 import SVGSpriter from "svg-sprite";
 import Vinyl from "vinyl";
-import assert from "assert";
-import fs from "fs";
+import assert from "node:assert";
+import fs from "node:fs";
+import { Buffer } from "node:buffer";
 import { makeAttributesHTML } from "./html.mjs";
 
 export class ExternalSpriteSheet {

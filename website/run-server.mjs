@@ -2,9 +2,9 @@
 // See end of file for extended copyright information.
 
 import chokidar from "chokidar";
-import cluster from "cluster";
-import path from "path";
-import url from "url";
+import cluster from "node:cluster";
+import path from "node:path";
+import url from "node:url";
 
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);

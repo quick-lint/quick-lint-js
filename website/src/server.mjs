@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import assert from "assert";
+import assert from "node:assert";
 import colors from "@colors/colors/safe.js";
 import {
   IndexConflictVFSError,
@@ -10,7 +10,7 @@ import {
   VFS,
   VFSDirectory,
 } from "./vfs.mjs";
-import { performance } from "perf_hooks";
+import { performance } from "node:perf_hooks";
 
 export function makeServer({ wwwRootPath }) {
   let vfs = new VFS(wwwRootPath);

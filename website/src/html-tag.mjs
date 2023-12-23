@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import assert from "assert";
+import assert from "node:assert";
 
 export function html(strings, ...expressions) {
   assert.strictEqual(strings.length, expressions.length + 1);

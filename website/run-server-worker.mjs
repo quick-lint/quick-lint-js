@@ -1,10 +1,11 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import cluster from "cluster";
-import http from "http";
-import path from "path";
-import url from "url";
+import cluster from "node:cluster";
+import http from "node:http";
+import path from "node:path";
+import url from "node:url";
+import process from "node:process";
 import { listenAsync, urlFromServerAddress } from "./src/net.mjs";
 import { makeServer } from "./src/server.mjs";
 import { websiteConfig } from "./src/config.mjs";

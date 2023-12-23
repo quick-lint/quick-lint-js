@@ -1,13 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import assert from "assert";
+import assert from "node:assert";
 import esbuild from "esbuild-wasm";
-import fs from "fs";
+import fs from "node:fs";
 import mime from "mime";
-import os from "os";
-import path from "path";
-import url from "url";
+import os from "node:os";
+import path from "node:path";
+import url from "node:url";
+import { Buffer } from "node:buffer";
 import { readFileAsync } from "./fs.mjs";
 import { renderEJSFileAsync } from "./router.mjs";
 import { substituteCustomHTMLComponentsAsync } from "./custom-component.mjs";

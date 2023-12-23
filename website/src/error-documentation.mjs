@@ -2,10 +2,10 @@
 // See end of file for extended copyright information.
 
 import MarkdownIt from "markdown-it";
-import assert from "assert";
-import fs from "fs";
-import path from "path";
-import url from "url";
+import assert from "node:assert";
+import fs from "node:fs";
+import path from "node:path";
+import url from "node:url";
 import {
   DiagnosticSeverity,
   LanguageOptions,

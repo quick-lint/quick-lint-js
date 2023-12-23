@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import path from "path";
+import path from "node:path";
 
 export function makeRelativeURI(currentURI, uri) {
   if (/^\w+:/.test(uri)) {

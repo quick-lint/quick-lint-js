@@ -1,10 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import child_process from "child_process";
-import fs from "fs";
-import path from "path";
-import util from "util";
+import child_process from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import util from "node:util";
 
 let execFileAsync = util.promisify(child_process.execFile);
 
