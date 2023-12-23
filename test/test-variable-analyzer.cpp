@@ -406,7 +406,7 @@ TEST(Test_Variable_Analyzer, shadowing_variable_in_parent_block_scope_is_okay) {
       no_diags, javascript_analyze_options, default_globals);
 }
 
-TEST(Test_Variable_Analyzer, declaring_variable_twice_is_an_error) {
+TEST(Test_Variable_Analyzer, declaring_variable_thrice_is_an_error) {
   test_parse_and_analyze(
       u8"let x; let x; let x;"_sv,
       u8"                  ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
