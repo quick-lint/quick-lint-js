@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[590] = {
+inline const Translated_String test_translation_table[591] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -6274,6 +6274,17 @@ inline const Translated_String test_translation_table[590] = {
             u8"using '{0}' against an object literal always returns '{1}'",
             u8"usar '{0}' com um objeto sempre retorna '{1}'",
             u8"using '{0}' against an object literal always returns '{1}'",
+        },
+    },
+    {
+        "using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'."_translatable,
+        u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
+        {
+            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
+            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
+            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
+            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
+            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
         },
     },
     {

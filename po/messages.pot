@@ -2357,6 +2357,10 @@ msgstr ""
 msgid "'&' here"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'."
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

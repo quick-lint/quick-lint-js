@@ -555,6 +555,7 @@ class Parser {
   void warn_on_comma_operator_in_conditional_statement(Expression *);
   void warn_on_comma_operator_in_index(Expression *, Source_Code_Span);
   void warn_on_xor_operator_as_exponentiation(Expression::Binary_Operator *);
+  void warn_on_dot_operator_after_optional_chain(Expression::Dot *);
   void warn_on_unintuitive_bitshift_precedence(Expression *ast);
   void error_on_pointless_string_compare(Expression::Binary_Operator *);
   void error_on_pointless_compare_against_literal(
@@ -819,9 +820,11 @@ class Parser {
       Expression *parameters_expression, Buffering_Visitor *return_type_visits,
       Precedence);
   Expression::Call *parse_call_expression_remainder(Parse_Visitor_Base &,
-                                                    Expression *callee);
+                                                    Expression *callee,
+                                               std::optional<Source_Code_Span>);
   Expression *parse_index_expression_remainder(Parse_Visitor_Base &,
-                                               Expression *lhs);
+                                               Expression *lhs,
+                                               std::optional<Source_Code_Span>);
   Expression_Arena::Vector<Expression *>
   parse_arrow_function_parameters_or_call_arguments(Parse_Visitor_Base &v);
   Expression *parse_arrow_function_body(

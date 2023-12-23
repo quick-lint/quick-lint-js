@@ -485,6 +485,39 @@ TEST_F(Test_Parse_Warning, Diag_Fallthrough_Without_Comment_In_Switch) {
       default:})"_sv,
       no_diags);
 }
+
+TEST_F(Test_Parse_Warning, Diag_Using_Dot_After_Optional_Chaining) {
+  test_parse_and_visit_expression(
+      u8"a?.b.c"_sv,
+      u8"    ^ Diag_Using_Dot_After_Optional_Chaining.dot_op\n"_diag
+      u8" ^^ .optional_chain_op"_diag);
+  test_parse_and_visit_expression(
+      u8"a?.b?.c"_sv,
+      no_diags);
+  test_parse_and_visit_expression(
+      u8"a?.b?.a?.c.d"_sv,
+      u8"          ^ Diag_Using_Dot_After_Optional_Chaining.dot_op\n"_diag
+      u8"       ^^ .optional_chain_op"_diag);
+  test_parse_and_visit_expression(
+      u8"a?.b?.a?.c"_sv,
+      no_diags);
+  
+  test_parse_and_visit_expression(
+      u8"_a?.(a)?.(_a)?.(a)"_sv,
+      no_diags);
+  test_parse_and_visit_expression(
+      u8"_a?.(a).b"_sv,
+      u8"       ^ Diag_Using_Dot_After_Optional_Chaining.dot_op\n"_diag
+      u8"  ^^ .optional_chain_op"_diag);
+
+  test_parse_and_visit_expression(
+      u8"g?.[1]"_sv,
+      no_diags);
+  test_parse_and_visit_expression(
+      u8"g?.[1]?.[2].b"_sv,
+      u8"           ^ Diag_Using_Dot_After_Optional_Chaining.dot_op\n"_diag
+      u8"      ^^ .optional_chain_op"_diag);
+}
 }
 }
 

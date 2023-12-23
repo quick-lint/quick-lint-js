@@ -3485,6 +3485,15 @@ struct Diag_Unintuitive_Bitshift_Precedence {
   Source_Code_Span bitshift_operator;
   Source_Code_Span and_operator;
 };
+
+struct Diag_Using_Dot_After_Optional_Chaining {
+  [[qljs::diag("E0717", Diagnostic_Severity::warning)]]
+  [[qljs::message("using a '{0}' after a '{1}' might fail, "
+                  "since '{1}' might return 'undefined'.",
+                  ARG(dot_op), ARG(optional_chain_op))]]
+  Source_Code_Span dot_op;
+  Source_Code_Span optional_chain_op;
+};
 }
 QLJS_WARNING_POP
 

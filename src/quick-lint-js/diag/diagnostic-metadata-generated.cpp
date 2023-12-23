@@ -6722,6 +6722,21 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_Using_Dot_After_Optional_Chaining
+    {
+      .code = 717,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'."),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Using_Dot_After_Optional_Chaining, dot_op), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Using_Dot_After_Optional_Chaining, optional_chain_op), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 
