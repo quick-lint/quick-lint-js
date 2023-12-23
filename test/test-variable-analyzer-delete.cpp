@@ -73,7 +73,8 @@ TEST(Test_Variable_Analyzer_Delete_JavaScript,
 TEST(Test_Variable_Analyzer_Delete_JavaScript,
      deleting_undeclared_global_variable_is_ok) {
   Global_Declared_Variable_Set globals;
-  ASSERT_FALSE(globals.find(u8"myGlobalVariable"_sv).has_value());
+  ASSERT_FALSE(
+      globals.find_runtime_or_type(u8"myGlobalVariable"_sv).has_value());
 
   test_parse_and_analyze(u8"delete myGlobalVariable;"_sv, no_diags,
                          javascript_analyze_options, globals);
@@ -100,7 +101,8 @@ TEST(Test_Variable_Analyzer_Delete_TypeScript,
      deleting_global_variable_is_an_error) {
   {
     Global_Declared_Variable_Set globals;
-    ASSERT_FALSE(globals.find(u8"myGlobalVariable"_sv).has_value());
+    ASSERT_FALSE(
+        globals.find_runtime_or_type(u8"myGlobalVariable"_sv).has_value());
 
     test_parse_and_analyze(
         u8"delete myGlobalVariable;"_sv,

@@ -193,13 +193,15 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
 
     Declared_Variable *add_variable_declaration(const Declared_Variable &);
 
-    const Declared_Variable *find(Identifier name) const;
-    Declared_Variable *find(Identifier name);
+    const Declared_Variable *find_runtime_or_type(Identifier name) const;
+    Declared_Variable *find_runtime_or_type(Identifier name);
 
-    // Like find, but ignores type-only variables (e.g. interfaces).
+    // Like find_runtime_or_type, but ignores type-only variables (e.g.
+    // interfaces).
     Declared_Variable *find_runtime(Identifier name);
 
-    // Like find, but ignores runtime-only variables (e.g. functions).
+    // Like find_runtime_or_type, but ignores runtime-only variables (e.g.
+    // functions).
     Declared_Variable *find_type(Identifier name);
 
     void clear();

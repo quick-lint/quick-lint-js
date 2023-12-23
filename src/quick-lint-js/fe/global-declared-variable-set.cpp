@@ -54,13 +54,13 @@ void Global_Declared_Variable_Set::reserve_more_global_variables(
   this->variables_.reserve(this->variables_.size() + extra_count);
 }
 
-std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find(
-    Identifier name) const {
-  return this->find(name.normalized_name());
+std::optional<Global_Declared_Variable>
+Global_Declared_Variable_Set::find_runtime_or_type(Identifier name) const {
+  return this->find_runtime_or_type(name.normalized_name());
 }
 
-std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find(
-    String8_View name) const {
+std::optional<Global_Declared_Variable>
+Global_Declared_Variable_Set::find_runtime_or_type(String8_View name) const {
   auto it = this->variables_.find(name);
   if (it != this->variables_.end()) {
     return Global_Declared_Variable{
@@ -83,7 +83,8 @@ std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find(
 
 std::optional<Global_Declared_Variable>
 Global_Declared_Variable_Set::find_runtime(Identifier name) const {
-  std::optional<Global_Declared_Variable> var = this->find(name);
+  std::optional<Global_Declared_Variable> var =
+      this->find_runtime_or_type(name);
   if (var.has_value() && var->is_type_only) {
     return std::nullopt;
   }
@@ -93,7 +94,7 @@ Global_Declared_Variable_Set::find_runtime(Identifier name) const {
 std::optional<Global_Declared_Variable> Global_Declared_Variable_Set::find_type(
     Identifier name) const {
   // TODO(#690): Do not treat all globals as type-visible.
-  return this->find(name);
+  return this->find_runtime_or_type(name);
 }
 
 void Global_Declared_Variable_Set::clear() {

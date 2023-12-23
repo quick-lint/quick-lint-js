@@ -852,7 +852,8 @@ TEST_F(Test_Linting_LSP_Server, linting_uses_config_from_file) {
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
-    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"_sv));
+    EXPECT_TRUE(
+        config.globals().find_runtime_or_type(u8"testGlobalVariable"_sv));
   };
   this->linter.lint_callback = lint_callback;
 
@@ -940,8 +941,10 @@ TEST_F(
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
-    EXPECT_FALSE(config.globals().find(u8"testGlobalVariableBefore"_sv));
-    EXPECT_TRUE(config.globals().find(u8"testGlobalVariableAfter"_sv));
+    EXPECT_FALSE(
+        config.globals().find_runtime_or_type(u8"testGlobalVariableBefore"_sv));
+    EXPECT_TRUE(
+        config.globals().find_runtime_or_type(u8"testGlobalVariableAfter"_sv));
   };
   this->linter.lint_callback = lint_callback;
   this->server->append(
@@ -974,7 +977,8 @@ TEST_F(Test_Linting_LSP_Server,
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
-    EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"_sv));
+    EXPECT_TRUE(
+        config.globals().find_runtime_or_type(u8"testGlobalVariable"_sv));
   };
   this->linter.lint_callback = lint_callback;
 
@@ -1001,7 +1005,7 @@ TEST_F(Test_Linting_LSP_Server, linting_uses_already_opened_config_file) {
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
-    EXPECT_TRUE(config.globals().find(u8"modified"_sv));
+    EXPECT_TRUE(config.globals().find_runtime_or_type(u8"modified"_sv));
   };
   this->linter.lint_callback = lint_callback;
 
@@ -1046,8 +1050,8 @@ TEST_F(Test_Linting_LSP_Server,
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
-    EXPECT_TRUE(config.globals().find(u8"haveInnerConfig"_sv));
-    EXPECT_FALSE(config.globals().find(u8"haveOuterConfig"_sv));
+    EXPECT_TRUE(config.globals().find_runtime_or_type(u8"haveInnerConfig"_sv));
+    EXPECT_FALSE(config.globals().find_runtime_or_type(u8"haveOuterConfig"_sv));
   };
   this->linter.lint_callback = lint_callback;
 
@@ -1094,8 +1098,8 @@ TEST_F(Test_Linting_LSP_Server, editing_config_relints_open_js_file) {
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue&) {
-    if (config.globals().find(u8"after"_sv)) {
-      EXPECT_FALSE(config.globals().find(u8"before"_sv));
+    if (config.globals().find_runtime_or_type(u8"after"_sv)) {
+      EXPECT_FALSE(config.globals().find_runtime_or_type(u8"before"_sv));
       EXPECT_EQ(version_json, u8"10"_sv);
       EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
                                  u8"test.js\""_sv));
@@ -1555,8 +1559,8 @@ TEST_F(Test_Linting_LSP_Server,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue&) {
     EXPECT_EQ(version_json, u8"11"_sv);
-    EXPECT_FALSE(config.globals().find(u8"before"_sv));
-    EXPECT_TRUE(config.globals().find(u8"after"_sv));
+    EXPECT_FALSE(config.globals().find_runtime_or_type(u8"before"_sv));
+    EXPECT_TRUE(config.globals().find_runtime_or_type(u8"after"_sv));
   };
   this->linter.lint_callback = lint_callback;
 
@@ -1589,8 +1593,8 @@ TEST_F(Test_Linting_LSP_Server, opening_config_relints_open_js_files) {
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue&) {
-    if (config.globals().find(u8"after"_sv)) {
-      EXPECT_FALSE(config.globals().find(u8"before"_sv));
+    if (config.globals().find_runtime_or_type(u8"after"_sv)) {
+      EXPECT_FALSE(config.globals().find_runtime_or_type(u8"before"_sv));
       EXPECT_EQ(version_json, u8"10"_sv);
       EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
                                  u8"test.js\""_sv));
@@ -1660,8 +1664,8 @@ TEST_F(Test_Linting_LSP_Server,
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
-    EXPECT_TRUE(config.globals().find(u8"after"_sv));
-    EXPECT_FALSE(config.globals().find(u8"before"_sv));
+    EXPECT_TRUE(config.globals().find_runtime_or_type(u8"after"_sv));
+    EXPECT_FALSE(config.globals().find_runtime_or_type(u8"before"_sv));
     EXPECT_EQ(version_json, u8"10"_sv);
     EXPECT_EQ(uri_json, concat(u8"\""_sv, this->fs.file_uri_prefix_8(),
                                u8"test.js\""_sv));
@@ -1705,8 +1709,8 @@ TEST_F(
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
-    EXPECT_TRUE(config.globals().find(u8"v1"_sv));
-    EXPECT_FALSE(config.globals().find(u8"v2"_sv));
+    EXPECT_TRUE(config.globals().find_runtime_or_type(u8"v1"_sv));
+    EXPECT_FALSE(config.globals().find_runtime_or_type(u8"v2"_sv));
   };
   this->linter.lint_callback = lint_callback;
 
@@ -1797,8 +1801,9 @@ TEST_F(Test_Linting_LSP_Server,
   auto lint_callback = [&](Configuration& config, Linter_Options,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
-    EXPECT_TRUE(config.globals().find(u8"configFromFilesystem"_sv));
-    EXPECT_FALSE(config.globals().find(u8"configFromLSP"_sv));
+    EXPECT_TRUE(
+        config.globals().find_runtime_or_type(u8"configFromFilesystem"_sv));
+    EXPECT_FALSE(config.globals().find_runtime_or_type(u8"configFromLSP"_sv));
     Byte_Buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
         concat(u8R"({
@@ -1844,9 +1849,10 @@ TEST_F(Test_Linting_LSP_Server, opening_js_file_with_unreadable_config_lints) {
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
-    EXPECT_TRUE(config.globals().find(u8"Array"_sv))
+    EXPECT_TRUE(config.globals().find_runtime_or_type(u8"Array"_sv))
         << "config should be default";
-    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"_sv))
+    EXPECT_FALSE(
+        config.globals().find_runtime_or_type(u8"undeclaredVariable"_sv))
         << "config should be default";
     Byte_Buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
@@ -1908,9 +1914,10 @@ TEST_F(Test_Linting_LSP_Server,
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
-    EXPECT_TRUE(config.globals().find(u8"Array"_sv))
+    EXPECT_TRUE(config.globals().find_runtime_or_type(u8"Array"_sv))
         << "config should be default";
-    EXPECT_FALSE(config.globals().find(u8"undeclaredVariable"_sv))
+    EXPECT_FALSE(
+        config.globals().find_runtime_or_type(u8"undeclaredVariable"_sv))
         << "config should be default";
     Byte_Buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(
@@ -1999,7 +2006,8 @@ TEST_F(Test_Linting_LSP_Server, making_config_file_unreadable_relints) {
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
-    EXPECT_FALSE(config.globals().find(u8"configFromFilesystem"_sv))
+    EXPECT_FALSE(
+        config.globals().find_runtime_or_type(u8"configFromFilesystem"_sv))
         << "config should be default";
     Byte_Buffer& notification_json = outgoing_messages.new_message();
     notification_json.append_copy(

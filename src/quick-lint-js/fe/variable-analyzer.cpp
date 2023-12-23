@@ -506,7 +506,7 @@ void Variable_Analyzer::visit_variable_use(Identifier name,
     bool is_runtime = Variable_Analyzer::is_runtime(use_kind);
     bool is_type = Variable_Analyzer::is_type(use_kind);
     if (is_runtime && is_type) {
-      return current_scope.declared_variables.find(name);
+      return current_scope.declared_variables.find_runtime_or_type(name);
     } else if (is_type) {
       return current_scope.declared_variables.find_type(name);
     } else if (is_runtime) {
@@ -688,8 +688,10 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
       bool is_runtime = used_var.is_runtime();
       bool is_type = used_var.is_type();
       if (is_runtime && is_type) {
-        QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
-        var = parent_scope.declared_variables.find(used_var.name);
+        QLJS_ASSERT(!current_scope.declared_variables.find_runtime_or_type(
+            used_var.name));
+        var =
+            parent_scope.declared_variables.find_runtime_or_type(used_var.name);
       } else if (is_type) {
         QLJS_ASSERT(!current_scope.declared_variables.find_type(used_var.name));
         var = parent_scope.declared_variables.find_type(used_var.name);
@@ -728,7 +730,8 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
       bool is_runtime = used_var.is_runtime();
       bool is_type = used_var.is_type();
       if (is_runtime && is_type) {
-        var = parent_scope.declared_variables.find(used_var.name);
+        var =
+            parent_scope.declared_variables.find_runtime_or_type(used_var.name);
       } else if (is_type) {
         var = parent_scope.declared_variables.find_type(used_var.name);
       } else if (is_runtime) {
@@ -1030,7 +1033,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts_in_scope(
   // source file. Should we treat that variable as shadowable? Or should we
   // error on the 'declare global'?
   std::optional<Global_Declared_Variable> already_declared_variable =
-      scope.declared_variables.find(var.declaration);
+      scope.declared_variables.find_runtime_or_type(var.declaration);
   if (already_declared_variable) {
     if (!already_declared_variable->is_shadowable) {
       this->report_error_if_variable_declaration_conflicts(
@@ -1276,12 +1279,14 @@ Variable_Analyzer::Declared_Variable_Set::add_variable_declaration(
 }
 
 const Variable_Analyzer::Declared_Variable *
-Variable_Analyzer::Declared_Variable_Set::find(Identifier name) const {
-  return const_cast<Declared_Variable_Set *>(this)->find(name);
+Variable_Analyzer::Declared_Variable_Set::find_runtime_or_type(
+    Identifier name) const {
+  return const_cast<Declared_Variable_Set *>(this)->find_runtime_or_type(name);
 }
 
 Variable_Analyzer::Declared_Variable *
-Variable_Analyzer::Declared_Variable_Set::find(Identifier name) {
+Variable_Analyzer::Declared_Variable_Set::find_runtime_or_type(
+    Identifier name) {
   String8_View name_view = name.normalized_name();
   for (Declared_Variable &var : this->variables_) {
     if (var.declaration.normalized_name() == name_view) {

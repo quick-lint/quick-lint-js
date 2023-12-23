@@ -439,8 +439,9 @@ TEST_F(Test_Configuration_Loader, file_with_config_file_gets_loaded_config) {
   });
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  EXPECT_TRUE(
-      (*loaded_config)->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE((*loaded_config)
+                  ->config.globals()
+                  .find_runtime_or_type(u8"testGlobalVariable"_sv));
   EXPECT_SAME_FILE(*(*loaded_config)->config_path, config_file);
 }
 
@@ -493,12 +494,16 @@ TEST_F(Test_Configuration_Loader,
   Configuration* config_two = &(*loaded_config_two)->config;
   EXPECT_NE(config_one, config_two) << "pointers should be different";
 
-  EXPECT_TRUE(config_one->globals().find(u8"testGlobalVariableOne"_sv));
-  EXPECT_FALSE(config_one->globals().find(u8"testGlobalVariableTwo"_sv));
+  EXPECT_TRUE(
+      config_one->globals().find_runtime_or_type(u8"testGlobalVariableOne"_sv));
+  EXPECT_FALSE(
+      config_one->globals().find_runtime_or_type(u8"testGlobalVariableTwo"_sv));
   EXPECT_SAME_FILE(*(*loaded_config_one)->config_path, config_file_one);
 
-  EXPECT_FALSE(config_two->globals().find(u8"testGlobalVariableOne"_sv));
-  EXPECT_TRUE(config_two->globals().find(u8"testGlobalVariableTwo"_sv));
+  EXPECT_FALSE(
+      config_two->globals().find_runtime_or_type(u8"testGlobalVariableOne"_sv));
+  EXPECT_TRUE(
+      config_two->globals().find_runtime_or_type(u8"testGlobalVariableTwo"_sv));
   EXPECT_SAME_FILE(*(*loaded_config_two)->config_path, config_file_two);
 }
 
@@ -1240,8 +1245,9 @@ TEST_F(Test_Configuration_Loader, load_config_file_directly) {
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/nullptr);
   EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
-  EXPECT_TRUE(
-      (*loaded_config)->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE((*loaded_config)
+                  ->config.globals()
+                  .find_runtime_or_type(u8"testGlobalVariable"_sv));
 }
 
 TEST_F(Test_Configuration_Loader,
@@ -1260,8 +1266,10 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(*changes[0].watched_path, config_file);
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
-  EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"_sv));
-  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"after"_sv));
+  EXPECT_FALSE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"before"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"after"_sv));
 }
 
 TEST_F(Test_Configuration_Loader,
@@ -1282,8 +1290,8 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(*changes[0].watched_path, config_file);
   EXPECT_EQ(changes[0].token, &config_file);
   EXPECT_SAME_FILE(*changes[0].config_file->config_path, config_file);
-  EXPECT_TRUE(
-      changes[0].config_file->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"testGlobalVariable"_sv));
 }
 
 TEST_F(Test_Configuration_Loader,
@@ -1380,8 +1388,9 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
-  EXPECT_TRUE(
-      (*loaded_config)->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE((*loaded_config)
+                  ->config.globals()
+                  .find_runtime_or_type(u8"testGlobalVariable"_sv));
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
@@ -1411,8 +1420,9 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
-  EXPECT_TRUE(
-      (*loaded_config)->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE((*loaded_config)
+                  ->config.globals()
+                  .find_runtime_or_type(u8"testGlobalVariable"_sv));
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
@@ -1466,8 +1476,8 @@ TEST_F(Test_Configuration_Loader,
   Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
-  EXPECT_TRUE(
-      changes[0].config_file->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"testGlobalVariable"_sv));
   EXPECT_EQ(changes[0].error, nullptr);
 }
 
@@ -1508,8 +1518,8 @@ TEST_F(Test_Configuration_Loader,
   Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
-  EXPECT_TRUE(
-      changes[0].config_file->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"testGlobalVariable"_sv));
   EXPECT_EQ(changes[0].error, nullptr);
 }
 
@@ -1599,7 +1609,7 @@ TEST_F(Test_Configuration_Loader,
   Span<Configuration_Change> changes_2 = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &js_file);
-  EXPECT_TRUE(changes_2[0].config_file->config.globals().find(
+  EXPECT_TRUE(changes_2[0].config_file->config.globals().find_runtime_or_type(
       u8"testGlobalVariable"_sv));
   EXPECT_EQ(changes_2[0].error, nullptr);
 }
@@ -1633,7 +1643,7 @@ TEST_F(
   Span<Configuration_Change> changes_2 = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes_2, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes_2[0].token, &config_file);
-  EXPECT_TRUE(changes_2[0].config_file->config.globals().find(
+  EXPECT_TRUE(changes_2[0].config_file->config.globals().find_runtime_or_type(
       u8"testGlobalVariable"_sv));
   EXPECT_EQ(changes_2[0].error, nullptr);
 }
@@ -1772,8 +1782,8 @@ TEST_F(Test_Configuration_Loader,
   Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &js_file);
-  EXPECT_TRUE(
-      changes[0].config_file->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"testGlobalVariable"_sv));
   EXPECT_EQ(changes[0].error, nullptr);
 }
 
@@ -1810,8 +1820,8 @@ TEST_F(
   Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(changes[0].token, &config_file);
-  EXPECT_TRUE(
-      changes[0].config_file->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"testGlobalVariable"_sv));
   EXPECT_EQ(changes[0].error, nullptr);
 }
 
@@ -1836,8 +1846,9 @@ TEST_F(Test_Configuration_Loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
-  EXPECT_TRUE(
-      (*loaded_config)->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE((*loaded_config)
+                  ->config.globals()
+                  .find_runtime_or_type(u8"testGlobalVariable"_sv));
 
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
@@ -1873,8 +1884,9 @@ TEST_F(
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
-  EXPECT_TRUE(
-      (*loaded_config)->config.globals().find(u8"testGlobalVariable"_sv));
+  EXPECT_TRUE((*loaded_config)
+                  ->config.globals()
+                  .find_runtime_or_type(u8"testGlobalVariable"_sv));
 
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
@@ -1977,8 +1989,10 @@ TEST_F(Test_Configuration_Loader,
   EXPECT_EQ(changes[0].token, &config_symlink);
   EXPECT_EQ(*changes[0].config_file->config_path,
             canonicalize_path(after_config_file)->canonical());
-  EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"_sv));
-  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"after"_sv));
+  EXPECT_FALSE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"before"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"after"_sv));
   EXPECT_EQ(changes[0].error, nullptr);
 
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
@@ -2010,8 +2024,10 @@ TEST_F(Test_Configuration_Loader,
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].config_file->config_path,
             canonicalize_path(after_config_file)->canonical());
-  EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"_sv));
-  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"after"_sv));
+  EXPECT_FALSE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"before"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"after"_sv));
   EXPECT_EQ(changes[0].error, nullptr);
 
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
@@ -2041,8 +2057,10 @@ TEST_F(Test_Configuration_Loader,
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
   EXPECT_EQ(*changes[0].config_file->config_path,
             canonicalize_path(subdir + "/quick-lint-js.config")->canonical());
-  EXPECT_FALSE(changes[0].config_file->config.globals().find(u8"before"_sv));
-  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"after"_sv));
+  EXPECT_FALSE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"before"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"after"_sv));
   EXPECT_EQ(changes[0].error, nullptr);
 
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
@@ -2227,12 +2245,14 @@ TEST_F(Test_Configuration_Loader_Fake,
       loader.watch_and_load_for_file(fs.rooted("hello.js").path(), nullptr);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
   ASSERT_TRUE(*loaded_config);
-  ASSERT_TRUE((*loaded_config)->config.globals().find(u8"console"_sv));
+  ASSERT_TRUE(
+      (*loaded_config)->config.globals().find_runtime_or_type(u8"console"_sv));
 
   fs.create_file(fs.rooted("quick-lint-js.config"), u8"{\\}"_sv);
   Span<Configuration_Change> changes = loader.refresh(&this->allocator);
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
-  EXPECT_TRUE(changes[0].config_file->config.globals().find(u8"console"_sv));
+  EXPECT_TRUE(changes[0].config_file->config.globals().find_runtime_or_type(
+      u8"console"_sv));
 }
 
 TEST_F(Test_Configuration_Loader_Fake,
