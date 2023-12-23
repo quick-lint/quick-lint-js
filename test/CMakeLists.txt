@@ -127,7 +127,6 @@ quick_lint_js_add_executable(
   test-lsp-uri.cpp
   test-lsp-workspace-configuration.cpp
   test-math-overflow.cpp
-  test-math.cpp
   test-narrow-cast.cpp
   test-options.cpp
   test-output-stream.cpp
