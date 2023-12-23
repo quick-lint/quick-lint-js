@@ -1162,7 +1162,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (kind == VK::_interface          && other_kind == VK::_import_alias) ||
       (kind == VK::_interface          && other_kind == VK::_interface) ||
       (kind == VK::_interface          && other_kind == VK::_namespace) ||
-      (kind == VK::_interface          && !is_type(other_kind)) ||
+      (kind == VK::_interface          && !quick_lint_js::is_type(other_kind)) ||
       (kind == VK::_let                && other_kind == VK::_import_alias) ||
       (kind == VK::_let                && other_kind == VK::_import_type) ||
       (kind == VK::_let                && other_kind == VK::_namespace) ||
@@ -1194,7 +1194,7 @@ void Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (kind_is_parameter               && other_kind == VK::_function) ||
       (kind_is_parameter               && other_kind == VK::_generic_parameter) ||
       (kind_is_parameter               && other_kind_is_parameter) ||
-      (!is_type(kind)                  && other_kind == VK::_interface) ||
+      (!quick_lint_js::is_type(kind)   && other_kind == VK::_interface) ||
       // clang-format on
       (other_kind == VK::_namespace &&
        (kind == VK::_class || kind == VK::_function) &&
@@ -1244,7 +1244,15 @@ bool Variable_Analyzer::Declared_Variable::is_type() const {
 }
 
 bool Variable_Analyzer::Used_Variable::is_runtime() const {
-  switch (this->kind) {
+  return Variable_Analyzer::is_runtime(this->kind);
+}
+
+bool Variable_Analyzer::Used_Variable::is_type() const {
+  return Variable_Analyzer::is_type(this->kind);
+}
+
+bool Variable_Analyzer::is_runtime(Used_Variable_Kind kind) {
+  switch (kind) {
   case Used_Variable_Kind::_delete:
   case Used_Variable_Kind::_export:
   case Used_Variable_Kind::_export_default:
@@ -1258,8 +1266,8 @@ bool Variable_Analyzer::Used_Variable::is_runtime() const {
   QLJS_UNREACHABLE();
 }
 
-bool Variable_Analyzer::Used_Variable::is_type() const {
-  switch (this->kind) {
+bool Variable_Analyzer::is_type(Used_Variable_Kind kind) {
+  switch (kind) {
   case Used_Variable_Kind::_export:
   case Used_Variable_Kind::_export_default:
   case Used_Variable_Kind::type:
