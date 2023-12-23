@@ -503,19 +503,17 @@ void Variable_Analyzer::visit_variable_use(Identifier name,
   QLJS_ASSERT(!this->scopes_.empty());
   Scope &current_scope = this->current_scope();
   Declared_Variable *var = [&] {
-    switch (use_kind) {
-    case Used_Variable_Kind::type:
-      return current_scope.declared_variables.find_type(name);
-    case Used_Variable_Kind::_export:
-    case Used_Variable_Kind::_export_default:
+    bool is_runtime = Variable_Analyzer::is_runtime(use_kind);
+    bool is_type = Variable_Analyzer::is_type(use_kind);
+    if (is_runtime && is_type) {
       return current_scope.declared_variables.find(name);
-    case Used_Variable_Kind::_delete:
-    case Used_Variable_Kind::_typeof:
-    case Used_Variable_Kind::assignment:
-    case Used_Variable_Kind::use:
+    } else if (is_type) {
+      return current_scope.declared_variables.find_type(name);
+    } else if (is_runtime) {
       return current_scope.declared_variables.find_runtime(name);
+    } else {
+      QLJS_UNREACHABLE();
     }
-    QLJS_UNREACHABLE();
   }();
   if (var) {
     var->is_used = true;
@@ -582,21 +580,11 @@ void Variable_Analyzer::visit_end_of_module() {
     // If a variable appears in declared_variables, then
     // propagate_variable_uses_to_parent_scope should have already removed it
     // from variables_used and variables_used_in_descendant_scope.
-    switch (var.kind) {
-    case Used_Variable_Kind::_delete:
-    case Used_Variable_Kind::_export:
-    case Used_Variable_Kind::_typeof:
-    case Used_Variable_Kind::assignment:
-    case Used_Variable_Kind::use:
+    if (is_runtime(var.kind)) {
       QLJS_ASSERT(!global_scope.declared_variables.find_runtime(var.name));
-      break;
-    case Used_Variable_Kind::_export_default:
-      QLJS_ASSERT(!global_scope.declared_variables.find_runtime(var.name));
+    }
+    if (is_type(var.kind)) {
       QLJS_ASSERT(!global_scope.declared_variables.find_type(var.name));
-      break;
-    case Used_Variable_Kind::type:
-      QLJS_ASSERT(!global_scope.declared_variables.find_type(var.name));
-      break;
     }
 
     // TODO(#690): This should not affect type uses.
@@ -696,24 +684,21 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
     }
     for (const Used_Variable &used_var : current_scope.variables_used) {
       Found_Variable_Type var = {};
-      switch (used_var.kind) {
-      case Used_Variable_Kind::_export:
-      case Used_Variable_Kind::_export_default:
+
+      bool is_runtime = used_var.is_runtime();
+      bool is_type = used_var.is_type();
+      if (is_runtime && is_type) {
         QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
         var = parent_scope.declared_variables.find(used_var.name);
-        break;
-      case Used_Variable_Kind::_delete:
-      case Used_Variable_Kind::_typeof:
-      case Used_Variable_Kind::assignment:
-      case Used_Variable_Kind::use:
+      } else if (is_type) {
+        QLJS_ASSERT(!current_scope.declared_variables.find_type(used_var.name));
+        var = parent_scope.declared_variables.find_type(used_var.name);
+      } else if (is_runtime) {
         QLJS_ASSERT(
             !current_scope.declared_variables.find_runtime(used_var.name));
         var = parent_scope.declared_variables.find_runtime(used_var.name);
-        break;
-      case Used_Variable_Kind::type:
-        QLJS_ASSERT(!current_scope.declared_variables.find_type(used_var.name));
-        var = parent_scope.declared_variables.find_type(used_var.name);
-        break;
+      } else {
+        QLJS_UNREACHABLE();
       }
 
       if (var) {
@@ -740,20 +725,16 @@ void Variable_Analyzer::propagate_variable_uses_to_parent_scope(
     for (const Used_Variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
       Found_Variable_Type var = {};
-      switch (used_var.kind) {
-      case Used_Variable_Kind::_export:
-      case Used_Variable_Kind::_export_default:
+      bool is_runtime = used_var.is_runtime();
+      bool is_type = used_var.is_type();
+      if (is_runtime && is_type) {
         var = parent_scope.declared_variables.find(used_var.name);
-        break;
-      case Used_Variable_Kind::_delete:
-      case Used_Variable_Kind::_typeof:
-      case Used_Variable_Kind::assignment:
-      case Used_Variable_Kind::use:
-        var = parent_scope.declared_variables.find_runtime(used_var.name);
-        break;
-      case Used_Variable_Kind::type:
+      } else if (is_type) {
         var = parent_scope.declared_variables.find_type(used_var.name);
-        break;
+      } else if (is_runtime) {
+        var = parent_scope.declared_variables.find_runtime(used_var.name);
+      } else {
+        QLJS_UNREACHABLE();
       }
 
       if (var) {
