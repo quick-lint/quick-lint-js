@@ -100,6 +100,8 @@ Semantic Versioning.
     variables without diagnostics.
   * Fixed false negatives for [E0196][] if a type has the same name as a
     variable.
+  * Using a variable in a type (e.g. with `typeof`) no longer falsely reports
+    [E0058][] ("variable used before declaration").
 
 ## 2.18.0 (2023-11-03)
 

@@ -711,6 +711,12 @@ TEST(Test_Variable_Analyzer_Type,
   test_parse_and_analyze(u8"null as (any extends infer T ? T : false)"_sv,
                          no_diags, typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Type,
+     type_can_use_runtime_variable_before_declaration) {
+  test_parse_and_analyze(u8"let x: typeof y; let y: string;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
 }
 }
 

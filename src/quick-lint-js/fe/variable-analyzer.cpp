@@ -283,6 +283,13 @@ void Variable_Analyzer::visit_exit_namespace_scope() {
 
 void Variable_Analyzer::visit_exit_type_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
+  // Mark all run-time variable uses within this scope as use_in_type. This
+  // silences use-before-declaration diagnostics.
+  for (Used_Variable &used_var : this->current_scope().variables_used) {
+    if (used_var.kind == Used_Variable_Kind::use) {
+      used_var.kind = Used_Variable_Kind::use_in_type;
+    }
+  }
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
       /*consume_arguments=*/false);
@@ -374,6 +381,7 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
                declared.is_used = true;
                break;
              case Used_Variable_Kind::type:
+             case Used_Variable_Kind::use_in_type:
                // TODO(strager): Do we need to set declared.is_used?
                break;
              }
@@ -595,6 +603,7 @@ void Variable_Analyzer::visit_end_of_module() {
       case Used_Variable_Kind::_export:
       case Used_Variable_Kind::_export_default:
       case Used_Variable_Kind::use:
+      case Used_Variable_Kind::use_in_type:
         this->diag_reporter_->report(
             Diag_Use_Of_Undeclared_Variable{.name = used_var.name.span()});
         break;
@@ -955,6 +964,10 @@ void Variable_Analyzer::report_errors_for_variable_use(
           }
           // Use before declaration is normally legal for types.
           break;
+        case Used_Variable_Kind::use_in_type:
+          // Use before declaration is legal for types referencing run-time
+          // variables.
+          break;
         }
       }
     }
@@ -1211,6 +1224,7 @@ Is_Runtime_Or_Type Variable_Analyzer::is_runtime_or_type(
   case Used_Variable_Kind::_typeof:
   case Used_Variable_Kind::assignment:
   case Used_Variable_Kind::use:
+  case Used_Variable_Kind::use_in_type:
     return Is_Runtime_Or_Type{.is_runtime = true, .is_type = false};
   case Used_Variable_Kind::_export:
   case Used_Variable_Kind::_export_default:

@@ -153,6 +153,13 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     assignment,
     type,  // TypeScript only.
     use,
+    // A run-time variable was used in a type. For example:
+    //
+    //    let x: string;
+    //    let y: typeof x;  // use_in_type for 'x'.
+    //
+    // TypeScript only.
+    use_in_type,
   };
 
   static Is_Runtime_Or_Type is_runtime_or_type(Used_Variable_Kind);
