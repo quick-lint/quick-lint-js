@@ -253,6 +253,26 @@ TEST(Test_Variable_Analyzer_Unused_Shadow,
       u8"for (const x = 42; ;) {}"_sv,  // no warning
       no_diags, javascript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Unused_Shadow,
+     shadow_check_ignores_type_only_variable_with_same_name) {
+  test_parse_and_analyze(
+      u8"let x = 5;"_sv
+      u8"type x = null;"_sv
+      u8"{"_sv
+      u8"  let x = 6;"_sv
+      u8"} "_sv,
+      u8"Diag_Unused_Variable_Shadows"_diag, typescript_analyze_options,
+      default_globals);
+  test_parse_and_analyze(
+      u8"type x = null;"_sv
+      u8"let x = 5;"_sv
+      u8"{"_sv
+      u8"  let x = 6;"_sv
+      u8"} "_sv,
+      u8"Diag_Unused_Variable_Shadows"_diag, typescript_analyze_options,
+      default_globals);
+}
 }
 }
 

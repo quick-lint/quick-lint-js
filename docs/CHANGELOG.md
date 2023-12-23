@@ -98,6 +98,8 @@ Semantic Versioning.
     declared as global variables instead of module variables. This means that
     variables inside a `declare global` block can be shadowed by module
     variables without diagnostics.
+  * Fixed false negatives for [E0196][] if a type has the same name as a
+    variable.
 
 ## 2.18.0 (2023-11-03)
 

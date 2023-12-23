@@ -780,7 +780,7 @@ void Variable_Analyzer::propagate_variable_declarations_to_parent_scope() {
       // TODO(strager): NOTE[unused-var-shadows-nested-block]: Check multiple
       // parent scopes, not just the immediate parent.
       const Declared_Variable *already_declared_variable =
-          parent_scope.declared_variables.find(var.declaration);
+          parent_scope.declared_variables.find_runtime(var.declaration);
       if (already_declared_variable &&
           (already_declared_variable->kind == Variable_Kind::_const ||
            already_declared_variable->kind == Variable_Kind::_let ||
