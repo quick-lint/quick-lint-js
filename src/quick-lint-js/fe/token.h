@@ -317,6 +317,8 @@ struct Token {
 
   Token_Type type;
 
+  int indent_level;
+
   bool has_leading_newline;
   bool has_leading_comment;
 

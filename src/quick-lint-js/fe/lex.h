@@ -316,7 +316,12 @@ class Lexer {
   static bool is_initial_identifier_character(char32_t code_point);
   static bool is_identifier_character(char32_t code_point, Identifier_Kind);
 
+  int indent_level_;
+  bool increasing_indent_;
+
  private:
+  inline void reset_indent_level();
+
   static bool is_non_ascii_whitespace_character(char32_t code_point);
   static bool is_ascii_character(Char8 code_unit);
   static bool is_ascii_character(char32_t code_point);

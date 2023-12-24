@@ -116,6 +116,7 @@ Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter)
     : input_(input.data()),
       diag_reporter_(diag_reporter),
       original_input_(input) {
+  this->reset_indent_level();
   this->last_token_.end = this->input_;
   this->parse_bom_before_shebang();
   this->parse_current_token();
@@ -148,6 +149,9 @@ void Lexer::parse_bom_before_shebang() {
   while (!this->try_parse_current_token()) {
     // Loop.
   }
+
+  this->last_token_.indent_level =
+      this->indent_level_ * (this->last_token_.type != Token_Type::end_of_file);
 }
 
 bool Lexer::try_parse_current_token() {
@@ -1843,6 +1847,11 @@ void Lexer::parse_non_ascii() {
   }
 }
 
+inline void Lexer::reset_indent_level() {
+  this->indent_level_ = 0;
+  this->increasing_indent_ = true;
+}
+
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wunknown-attributes")
 QLJS_WARNING_IGNORE_CLANG("-Wunreachable-code")
@@ -1851,24 +1860,30 @@ void Lexer::skip_whitespace() {
   const Char8* input = this->input_;
 
 next:
+  this->increasing_indent_ =
+      this->last_token_.has_leading_newline || input == this->original_input_;
+next_with_possible_indentation:
   Char8 c = input[0];
   unsigned char c0 = static_cast<unsigned char>(input[0]);
   unsigned char c1 = static_cast<unsigned char>(input[1]);
   unsigned char c2 = static_cast<unsigned char>(input[2]);
   if (c == ' ' || c == '\t' || c == '\f' || c == '\v') {
+    this->indent_level_ += this->increasing_indent_;
     input += 1;
-    goto next;
+    goto next_with_possible_indentation;
   } else if (c == '\n' || c == '\r') {
+    this->reset_indent_level();
     this->last_token_.has_leading_newline = true;
     input += 1;
-    goto next;
+    goto next_with_possible_indentation;
   } else if (c0 >= 0xc2) {
     [[unlikely]] switch (c0) {
     case 0xe1:
       if (c1 == 0x9a && c2 == 0x80) {
         // U+1680 Ogham Space Mark
+        this->indent_level_ += this->increasing_indent_;
         input += 3;
-        goto next;
+        goto next_with_possible_indentation;
       } else {
         goto done;
       }
@@ -1894,9 +1909,10 @@ next:
         case 0xa8:  // U+2028 Line Separator
         case 0xa9:  // U+2029 Paragraph Separator
           QLJS_ASSERT(this->newline_character_size(input) == 3);
+          this->reset_indent_level();
           this->last_token_.has_leading_newline = true;
           input += 3;
-          goto next;
+          goto next_with_possible_indentation;
 
         default:
           goto done;
@@ -2002,6 +2018,7 @@ void Lexer::skip_block_comment() {
   QLJS_UNREACHABLE();
 
 found_newline_in_comment:
+  this->reset_indent_level();
   this->last_token_.has_leading_newline = true;
   for (;;) {
     Char_Vector chars = Char_Vector::load(c);
@@ -2101,6 +2118,7 @@ void Lexer::skip_line_comment_body() {
     }
   }
 
+  this->reset_indent_level();
   this->last_token_.has_leading_newline = true;
 }
 
