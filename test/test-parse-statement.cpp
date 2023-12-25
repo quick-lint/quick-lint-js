@@ -555,6 +555,19 @@ TEST_F(Test_Parse_Statement, if_without_else) {
                               "visit_variable_use",
                           }));
   }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"if (x)\n\ty;\n\tz;"_sv,
+        u8"^^ Diag_Misleading_If_Or_Else_Body_Indentation"_diag,
+        javascript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_use",  // x
+                              "visit_variable_use",  // y
+                              "visit_variable_use",  // z
+                              "visit_end_of_module",
+                          }));
+  }
 }
 
 TEST_F(Test_Parse_Statement, if_with_else) {

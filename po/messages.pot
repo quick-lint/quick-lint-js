@@ -1998,6 +1998,10 @@ msgid "indentation of '{0}' does not match '{1}'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "misleading indentation after '{0}' body"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed interface; expected '}' by end of file"
 msgstr ""
 

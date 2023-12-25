@@ -5471,6 +5471,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Misleading_If_Or_Else_Body_Indentation
+    {
+      .code = 443,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("misleading indentation after '{0}' body"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Misleading_If_Or_Else_Body_Indentation, if_or_else_span), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Unclosed_Interface_Block
     {
       .code = 215,

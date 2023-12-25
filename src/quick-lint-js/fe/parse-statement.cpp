@@ -4439,7 +4439,7 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
         /*CheckForCommaOperator=*/true>(v, if_token.span());
   }
 
-  auto parse_and_visit_body = [this, &v]() -> void {
+  auto parse_and_visit_body = [this, &v](Token keyword_token) -> void {
     bool entered_block_scope = false;
 
     this->error_on_class_statement(Statement_Kind::if_statement);
@@ -4449,12 +4449,19 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
       entered_block_scope = true;
     }
 
+    bool allow_several_statements = this->peek().type == Token_Type::left_curly;
     bool parsed_if_body =
         this->parse_and_visit_statement(v, Parse_Statement_Options{
                                                .allow_let_declaration = false,
                                            });
     if (!parsed_if_body) {
       QLJS_PARSER_UNIMPLEMENTED();
+    }
+
+    if (!allow_several_statements && this->peek().type != Token_Type::kw_else &&
+        this->peek().indent_level > keyword_token.indent_level) {
+      this->diag_reporter_->report(Diag_Misleading_If_Or_Else_Body_Indentation{
+          .if_or_else_span = keyword_token.span()});
     }
 
     if (entered_block_scope) {
@@ -4464,7 +4471,7 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
 
   switch (this->peek().type) {
   default:
-    parse_and_visit_body();
+    parse_and_visit_body(if_token);
     break;
 
   // if (cond);  // Invalid TypeScript.
@@ -4474,7 +4481,7 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
           .expected_body = this->peek().span(),
       });
     } else {
-      parse_and_visit_body();
+      parse_and_visit_body(if_token);
     }
     break;
   case Token_Type::end_of_file:
@@ -4507,7 +4514,7 @@ parse_maybe_else:
                  .trailing_curly_is_arrow_body = false,
              });
     } else {
-      parse_and_visit_body();
+      parse_and_visit_body(else_token);
     }
     if (has_left_paren) {
       bool has_left_curly = this->peek().type == Token_Type::left_curly;
@@ -4516,7 +4523,7 @@ parse_maybe_else:
         this->diag_reporter_->report(Diag_Missing_If_After_Else{
             .expected_if = Source_Code_Span::unit(end_of_else),
         });
-        parse_and_visit_body();
+        parse_and_visit_body(else_token);
         goto parse_maybe_else;
       } else {
         // if (cond) {} else (expr);

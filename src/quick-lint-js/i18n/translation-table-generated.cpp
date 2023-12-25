@@ -375,6 +375,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 46, 0, 35},                //
         {50, 47, 66, 33, 53, 27},            //
         {0, 0, 0, 0, 0, 46},                 //
+        {0, 0, 0, 0, 0, 40},                 //
         {0, 0, 0, 0, 0, 56},                 //
         {68, 21, 0, 52, 0, 40},              //
         {0, 0, 0, 0, 0, 39},                 //
@@ -2234,6 +2235,7 @@ const Translation_Table translation_data = {
         u8"methods cannot be marked 'declare'\0"
         u8"methods cannot be readonly\0"
         u8"methods should not use the 'function' keyword\0"
+        u8"misleading indentation after '{0}' body\0"
         u8"misleading use of ',' operator in conditional statement\0"
         u8"misleading use of ',' operator in index\0"
         u8"mismatched JSX tags; expected '</{1}>'\0"

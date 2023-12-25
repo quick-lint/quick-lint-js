@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[593] = {
+inline const Translated_String test_translation_table[594] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4019,6 +4019,17 @@ inline const Translated_String test_translation_table[593] = {
             u8"les m\u00e9thodes ne doivent pas utiliser le mot-cl\u00e9 'function'",
             u8"m\u00e9todos n\u00e3o podem usar a palavra-chave 'function'",
             u8"metoder b\u00f6r inte anv\u00e4nda nyckelordet 'function'",
+        },
+    },
+    {
+        "misleading indentation after '{0}' body"_translatable,
+        u8"misleading indentation after '{0}' body",
+        {
+            u8"misleading indentation after '{0}' body",
+            u8"misleading indentation after '{0}' body",
+            u8"misleading indentation after '{0}' body",
+            u8"misleading indentation after '{0}' body",
+            u8"misleading indentation after '{0}' body",
         },
     },
     {

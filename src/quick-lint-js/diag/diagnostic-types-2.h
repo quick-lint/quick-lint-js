@@ -2851,6 +2851,13 @@ struct Diag_Misleading_Braceless_If_Else_Indentation {
   Source_Code_Span else_span;
 };
 
+struct Diag_Misleading_If_Or_Else_Body_Indentation {
+  [[qljs::diag("E0443", Diagnostic_Severity::warning)]]  //
+  [[qljs::message("misleading indentation after '{0}' body",
+                  ARG(if_or_else_span))]]  //
+  Source_Code_Span if_or_else_span;
+};
+
 struct Diag_Unclosed_Interface_Block {
   [[qljs::diag("E0215", Diagnostic_Severity::error)]]  //
   [[qljs::message("unclosed interface; expected '}' by end of file",
