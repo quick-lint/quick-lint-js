@@ -340,7 +340,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 14},                 //
         {46, 52, 0, 57, 0, 18},              //
         {43, 18, 70, 35, 40, 32},            //
-        {0, 0, 0, 147, 0, 147},              //
+        {0, 0, 0, 0, 0, 147},                //
+        {0, 0, 0, 147, 0, 42},               //
         {0, 0, 0, 0, 0, 46},                 //
         {0, 0, 0, 54, 0, 26},                //
         {0, 0, 0, 0, 0, 38},                 //
@@ -2199,6 +2200,7 @@ const Translation_Table translation_data = {
         u8"imported variable\0"
         u8"imported variable declared here\0"
         u8"incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'\0"
+        u8"indentation of '{0}' does not match '{1}'\0"
         u8"index signature must be a field, not a method\0"
         u8"index signature parameter\0"
         u8"index signatures require a value type\0"

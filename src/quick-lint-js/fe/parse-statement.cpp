@@ -4420,20 +4420,23 @@ void Parser::parse_and_visit_with(Parse_Visitor_Base &v) {
 
 void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
   QLJS_ASSERT(this->peek().type == Token_Type::kw_if);
-  Source_Code_Span if_token_span = this->peek().span();
+  Token if_token = this->peek();
   this->skip();
+
+  bool previous_in_if_statement = this->in_if_statement_;
+  this->in_if_statement_ = true;
 
   if (this->peek().type == Token_Type::left_curly) {
     // if { body; }  // Invalid.
     this->diag_reporter_->report(Diag_Missing_Condition_For_If_Statement{
-        .if_keyword = if_token_span,
+        .if_keyword = if_token.span(),
     });
   } else {
     this->parse_and_visit_parenthesized_expression<
         Diag_Expected_Parentheses_Around_If_Condition,
         Diag_Expected_Parenthesis_Around_If_Condition,
         /*CheckForSketchyConditions=*/true,
-        /*CheckForCommaOperator=*/true>(v, if_token_span);
+        /*CheckForCommaOperator=*/true>(v, if_token.span());
   }
 
   auto parse_and_visit_body = [this, &v]() -> void {
@@ -4486,6 +4489,15 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
 
 parse_maybe_else:
   if (this->peek().type == Token_Type::kw_else) {
+    Token else_token = this->peek();
+    if (previous_in_if_statement &&
+        this->peek().indent_level != if_token.indent_level) {
+      this->diag_reporter_->report(
+          Diag_Misleading_Braceless_If_Else_Indentation{
+              .if_span = if_token.span(),
+              .else_span = this->peek().span(),
+          });
+    }
     this->skip();
     const Char8 *end_of_else = this->lexer_.end_of_previous_token();
     bool has_left_paren = this->peek().type == Token_Type::left_paren;
@@ -4512,6 +4524,8 @@ parse_maybe_else:
       }
     }
   }
+
+  this->in_if_statement_ = previous_in_if_statement;
 }
 
 void Parser::parse_and_visit_import(Parse_Visitor_Base &v) {

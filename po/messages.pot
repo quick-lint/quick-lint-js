@@ -1994,6 +1994,10 @@ msgid "matching '{0}' here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "indentation of '{0}' does not match '{1}'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed interface; expected '}' by end of file"
 msgstr ""
 

@@ -593,6 +593,44 @@ TEST_F(Test_Parse_Statement, if_with_else) {
                               "visit_variable_use",               // b
                           }));
   }
+
+  {
+    // if (x)
+    //   if (y)
+    //     z();
+    // else
+    //   w();
+    test_parse_and_visit_statement(
+        u8"if(x)\n\tif (y)\n\t\tz();\nelse\n\tw();"_sv,  //
+        u8"         ^^ Diag_Misleading_Braceless_If_Else_Indentation.if_span\n"_diag  //
+        u8"                           ^^^^ .else_span"_diag);
+
+    // if (x)
+    //   if (y)
+    //     z();
+    //   else
+    //     w();
+    test_parse_and_visit_statement(
+        u8"if(x)\n\tif (y)\n\t\tz();\n\telse\n\t\tw();"_sv, no_diags);
+
+    // quick-lint-js should only report a warning about `else` if it's part of a
+    // nested `if`.
+    //
+    // if (x) {
+    //     y();
+    //  } else {
+    //     z();
+    //  }
+    test_parse_and_visit_statement(
+        u8"if (x) {\n\t\ty();\n\t} else {\n\t\tz();\n\t}"_sv, no_diags);
+
+    // if (x)
+    //     y();
+    //  else
+    //     z();
+    test_parse_and_visit_statement(u8"if (x)\n\t\ty();\n\telse\n\t\tz();\n"_sv,
+                                   no_diags);
+  }
 }
 
 TEST_F(Test_Parse_Statement, if_else_with_malformed_condition) {

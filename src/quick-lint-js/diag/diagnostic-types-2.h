@@ -2841,6 +2841,16 @@ struct Diag_Unclosed_Code_Block_V2 {
   Source_Code_Span expected_block_close;
 };
 
+struct Diag_Misleading_Braceless_If_Else_Indentation {
+  [[qljs::diag("E0442", Diagnostic_Severity::warning)]]  //
+  [[qljs::message("indentation of '{0}' does not match '{1}'", ARG(if_span),
+                  ARG(else_span))]]  //
+  [[qljs::message("indentation of '{0}' does not match '{1}'", ARG(else_span),
+                  ARG(if_span))]]  //
+  Source_Code_Span if_span;
+  Source_Code_Span else_span;
+};
+
 struct Diag_Unclosed_Interface_Block {
   [[qljs::diag("E0215", Diagnostic_Severity::error)]]  //
   [[qljs::message("unclosed interface; expected '}' by end of file",

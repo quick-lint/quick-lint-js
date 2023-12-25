@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 593;
-constexpr std::size_t translation_table_string_table_size = 81770;
+constexpr std::uint16_t translation_table_mapping_table_size = 594;
+constexpr std::size_t translation_table_string_table_size = 81812;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -355,6 +355,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "imported variable"sv,
           "imported variable declared here"sv,
           "incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'"sv,
+          "indentation of '{0}' does not match '{1}'"sv,
           "index signature must be a field, not a method"sv,
           "index signature parameter"sv,
           "index signatures require a value type"sv,

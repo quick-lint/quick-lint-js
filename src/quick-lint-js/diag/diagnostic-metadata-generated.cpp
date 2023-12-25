@@ -5451,6 +5451,26 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Misleading_Braceless_If_Else_Indentation
+    {
+      .code = 442,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("indentation of '{0}' does not match '{1}'"),
+        QLJS_TRANSLATABLE("indentation of '{0}' does not match '{1}'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Misleading_Braceless_If_Else_Indentation, if_span), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Misleading_Braceless_If_Else_Indentation, else_span), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Misleading_Braceless_If_Else_Indentation, else_span), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Misleading_Braceless_If_Else_Indentation, if_span), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Unclosed_Interface_Block
     {
       .code = 215,

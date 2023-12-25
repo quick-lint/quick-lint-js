@@ -543,6 +543,7 @@ class Parser {
   void parse_and_visit_for(Parse_Visitor_Base &v);
   void parse_and_visit_while(Parse_Visitor_Base &v);
 
+  bool in_if_statement_ = false;
   void parse_and_visit_if(Parse_Visitor_Base &v);
   void parse_and_visit_switch(Parse_Visitor_Base &v);
 

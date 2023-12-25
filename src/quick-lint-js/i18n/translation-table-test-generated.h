@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[592] = {
+inline const Translated_String test_translation_table[593] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -3645,6 +3645,17 @@ inline const Translated_String test_translation_table[592] = {
             u8"export incompl ; 'export default ...' ou 'export {{name}' ou 'export * from ...' ou 'export class' ou 'export function' ou 'export let' attendu",
             u8"export incompleto; esperado 'export default ...' ou 'export {{nome}' ou 'export * from ...' ou 'export class' ou 'export function' ou 'export let'",
             u8"ofullst\u00e4ndig exportering; f\u00f6rv\u00e4ntades 'export default ...' eller 'export {{name}' eller 'export * from ...' eller 'export class' eller 'export function' eller 'export let'",
+        },
+    },
+    {
+        "indentation of '{0}' does not match '{1}'"_translatable,
+        u8"indentation of '{0}' does not match '{1}'",
+        {
+            u8"indentation of '{0}' does not match '{1}'",
+            u8"indentation of '{0}' does not match '{1}'",
+            u8"indentation of '{0}' does not match '{1}'",
+            u8"indentation of '{0}' does not match '{1}'",
+            u8"indentation of '{0}' does not match '{1}'",
         },
     },
     {
