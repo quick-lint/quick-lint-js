@@ -369,6 +369,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 51},                 //
         {50, 22, 0, 63, 0, 13},              //
         {0, 0, 0, 0, 0, 45},                 //
+        {0, 0, 0, 0, 0, 20},                 //
         {0, 0, 0, 0, 0, 19},                 //
         {0, 0, 0, 46, 0, 35},                //
         {50, 47, 66, 33, 53, 27},            //
@@ -386,7 +387,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 74},                 //
         {0, 40, 0, 28, 0, 38},               //
         {29, 22, 33, 28, 26, 26},            //
-        {0, 0, 0, 55, 0, 51},                //
+        {0, 0, 0, 0, 0, 51},                 //
+        {0, 0, 0, 55, 0, 12},                //
         {48, 27, 63, 27, 0, 24},             //
         {40, 4, 58, 41, 50, 42},             //
         {31, 22, 36, 32, 30, 28},            //
@@ -2225,6 +2227,7 @@ const Translation_Table translation_data = {
         u8"let statement cannot declare variables named 'let'\0"
         u8"let variable\0"
         u8"lower case letters compared with toUpperCase\0"
+        u8"matching '{0}' here\0"
         u8"method starts here\0"
         u8"methods cannot be marked 'declare'\0"
         u8"methods cannot be readonly\0"
@@ -2243,6 +2246,7 @@ const Translation_Table translation_data = {
         u8"missing 'export' keyword for function\0"
         u8"missing 'if' after 'else'\0"
         u8"missing 'while (condition)' for do-while statement\0"
+        u8"missing '}'\0"
         u8"missing TypeScript type\0"
         u8"missing arrow operator for arrow function\0"
         u8"missing body for 'for' loop\0"

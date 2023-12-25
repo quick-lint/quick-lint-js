@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 591;
-constexpr std::size_t translation_table_string_table_size = 81738;
+constexpr std::uint16_t translation_table_mapping_table_size = 593;
+constexpr std::size_t translation_table_string_table_size = 81770;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -383,6 +383,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "let statement cannot declare variables named 'let'"sv,
           "let variable"sv,
           "lower case letters compared with toUpperCase"sv,
+          "matching '{0}' here"sv,
           "method starts here"sv,
           "methods cannot be marked 'declare'"sv,
           "methods cannot be readonly"sv,
@@ -401,6 +402,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing 'export' keyword for function"sv,
           "missing 'if' after 'else'"sv,
           "missing 'while (condition)' for do-while statement"sv,
+          "missing '}'"sv,
           "missing TypeScript type"sv,
           "missing arrow operator for arrow function"sv,
           "missing body for 'for' loop"sv,

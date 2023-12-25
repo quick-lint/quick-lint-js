@@ -2833,6 +2833,14 @@ struct Diag_Unclosed_Code_Block {
   Source_Code_Span block_open;
 };
 
+struct Diag_Unclosed_Code_Block_V2 {
+  [[qljs::diag("E0441", Diagnostic_Severity::error)]]          //
+  [[qljs::message("missing '}'", ARG(expected_block_close))]]  //
+  [[qljs::message("matching '{0}' here", ARG(block_open))]]    //
+  Source_Code_Span block_open;
+  Source_Code_Span expected_block_close;
+};
+
 struct Diag_Unclosed_Interface_Block {
   [[qljs::diag("E0215", Diagnostic_Severity::error)]]  //
   [[qljs::message("unclosed interface; expected '}' by end of file",

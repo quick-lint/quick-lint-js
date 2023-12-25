@@ -5433,6 +5433,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Unclosed_Code_Block_V2
+    {
+      .code = 441,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("missing '}'"),
+        QLJS_TRANSLATABLE("matching '{0}' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unclosed_Code_Block_V2, expected_block_close), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Unclosed_Code_Block_V2, block_open), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Unclosed_Interface_Block
     {
       .code = 215,

@@ -658,7 +658,7 @@ void Parser::parse_and_visit_class_or_interface_member(
             modifiers.back().type == Token_Type::kw_static) {
           // class C { static { } }
           v.visit_enter_block_scope();
-          Source_Code_Span left_curly_span = p->peek().span();
+          Token left_curly_span = p->peek();
           p->skip();
 
           error_if_invalid_static_block(/*static_modifier=*/modifiers.back());

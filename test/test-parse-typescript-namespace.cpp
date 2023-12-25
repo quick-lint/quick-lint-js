@@ -95,8 +95,9 @@ TEST_F(Test_Parse_TypeScript_Namespace, incomplete_body) {
   {
     // TODO(strager): Report a namespace-specific diagnostic.
     Spy_Visitor p = test_parse_and_visit_module(
-        u8"namespace ns { "_sv,                            //
-        u8"             ^ Diag_Unclosed_Code_Block"_diag,  //
+        u8"namespace ns { "_sv,                                           //
+        u8"             ^ Diag_Unclosed_Code_Block_V2.block_open\n"_diag  //
+        u8"               ` .expected_block_close"_diag,
         typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {
@@ -110,8 +111,9 @@ TEST_F(Test_Parse_TypeScript_Namespace, incomplete_body) {
 
   {
     Spy_Visitor p = test_parse_and_visit_module(
-        u8"namespace ns { export "_sv,                     //
-        u8"             ^ Diag_Unclosed_Code_Block"_diag,  //
+        u8"namespace ns { export "_sv,                                    //
+        u8"             ^ Diag_Unclosed_Code_Block_V2.block_open\n"_diag  //
+        u8"                      ` .expected_block_close"_diag,
         u8"Diag_Missing_Token_After_Export"_diag, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_namespace_scope",  // {

@@ -855,9 +855,10 @@ TEST_F(Test_Parse_Statement, block_statement) {
 
 TEST_F(Test_Parse_Statement, incomplete_block_statement) {
   {
-    Spy_Visitor p =
-        test_parse_and_visit_statement(u8"{ a; "_sv,  //
-                                       u8"^ Diag_Unclosed_Code_Block"_diag);
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"{ a; "_sv,                                        //
+        u8"^ Diag_Unclosed_Code_Block_V2.block_open\n"_diag  //
+        u8"     ` .expected_block_close"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_block_scope",  //
                               "visit_variable_use",       // a

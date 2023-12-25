@@ -275,14 +275,16 @@ class Parser {
   void parse_and_visit_typescript_generic_parameters(Parse_Visitor_Base &v);
 
  private:
+  std::optional<std::pair<Token, Token>> mismatched_curly_braces_;
+
   void parse_and_visit_statement_block_no_scope(Parse_Visitor_Base &v);
   void parse_and_visit_statement_block_no_scope(
       Parse_Visitor_Base &v, Parse_Statement_Options statement_options);
   // Parses the closing '}', if present.
+  void parse_and_visit_statement_block_after_left_curly(Parse_Visitor_Base &v,
+                                                        Token left_curly);
   void parse_and_visit_statement_block_after_left_curly(
-      Parse_Visitor_Base &v, Source_Code_Span left_curly_span);
-  void parse_and_visit_statement_block_after_left_curly(
-      Parse_Visitor_Base &v, Source_Code_Span left_curly_span,
+      Parse_Visitor_Base &v, Token left_curly,
       Parse_Statement_Options statement_options);
 
   enum class Name_Requirement {

@@ -371,6 +371,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Block_Comment) \
   QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Class_Block) \
   QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Code_Block) \
+  QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Code_Block_V2) \
   QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Interface_Block) \
   QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Identifier_Escape_Sequence) \
   QLJS_DIAG_TYPE_NAME(Diag_Unclosed_Object_Literal) \
@@ -462,7 +463,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 448;
+inline constexpr int Diag_Type_Count = 449;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

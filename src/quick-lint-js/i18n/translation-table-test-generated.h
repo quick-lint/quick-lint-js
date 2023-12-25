@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[590] = {
+inline const Translated_String test_translation_table[592] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -3956,6 +3956,17 @@ inline const Translated_String test_translation_table[590] = {
         },
     },
     {
+        "matching '{0}' here"_translatable,
+        u8"matching '{0}' here",
+        {
+            u8"matching '{0}' here",
+            u8"matching '{0}' here",
+            u8"matching '{0}' here",
+            u8"matching '{0}' here",
+            u8"matching '{0}' here",
+        },
+    },
+    {
         "method starts here"_translatable,
         u8"method starts here",
         {
@@ -4151,6 +4162,17 @@ inline const Translated_String test_translation_table[590] = {
             u8"'while (condition)' manquant pour une instruction for do-while",
             u8"falta 'while (condi\u00e7\u00e3o)' para a instru\u00e7\u00e3o do-while",
             u8"saknar 'while (vilkor)' till do-while p\u00e5st\u00e5ende",
+        },
+    },
+    {
+        "missing '}'"_translatable,
+        u8"missing '}'",
+        {
+            u8"missing '}'",
+            u8"missing '}'",
+            u8"missing '}'",
+            u8"missing '}'",
+            u8"missing '}'",
         },
     },
     {

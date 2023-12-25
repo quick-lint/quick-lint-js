@@ -1433,8 +1433,9 @@ TEST_F(Test_Parse_Function,
 TEST_F(Test_Parse_Function, incomplete_function_body) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
-        u8"function f() { a; "_sv,  //
-        u8"             ^ Diag_Unclosed_Code_Block"_diag);
+        u8"function f() { a; "_sv,                                        //
+        u8"             ^ Diag_Unclosed_Code_Block_V2.block_open\n"_diag  //
+        u8"                  ` .expected_block_close"_diag);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",       // f
                               "visit_enter_function_scope_body",  // f
@@ -1442,6 +1443,59 @@ TEST_F(Test_Parse_Function, incomplete_function_body) {
                               "visit_exit_function_scope",        // f
                               "visit_variable_declaration",       // f
                           }));
+  }
+}
+
+TEST_F(Test_Parse_Function, report_unclosed_code_block_based_on_indentation) {
+  {
+    // function f() {
+    //   if (true) {
+    //     body();
+    //    <<< Missing '}' here.
+    // }
+    test_parse_and_visit_statement(
+        u8"function f() {\n\tif (true) {\n\t\tbody();\n}"_sv,  //
+        u8"                            ^ Diag_Unclosed_Code_Block_V2.block_open\n"_diag  //
+        u8"                                            ` .expected_block_close"_diag);
+
+    // function f() {
+    //   if (true) {
+    //     a;
+    //     if (false) {
+    //       b;
+    //     }
+    //   }
+    //  <<< Missing '}' here.
+    test_parse_and_visit_statement(
+        u8"function f() {\n\tif (true) {\n\t\ta;\n\t\tif (false) {\n\t\t\tb;\n\t\t}\n\t}"_sv,  //
+        u8"             ^ Diag_Unclosed_Code_Block_V2.block_open\n"_diag  //
+        u8"                                                                             ` .expected_block_close"_diag);
+
+    // function f() {
+    //   if (true) {
+    //     a;
+    //     if (false) {
+    //       b;
+    //     }
+    //   <<< Missing '}' here.
+    // }
+    test_parse_and_visit_statement(
+        u8"function f() {\n\tif (true) {\n\t\ta;\n\t\tif (false) {\n\t\t\tb;\n\t\t}\n}"_sv,  //
+        u8"                            ^ Diag_Unclosed_Code_Block_V2.block_open\n"_diag  //
+        u8"                                                                          ` .expected_block_close"_diag);
+
+    // function f() {
+    //   if (true) {
+    //     a;
+    //     if (false) {
+    //       b;
+    //      <<< Missing '}' here.
+    //   }
+    // }
+    test_parse_and_visit_statement(
+        u8"function f() {\n\tif (true) {\n\t\ta;\n\t\tif (false) {\n\t\t\tb;\n\t}\n}"_sv,  //
+        u8"                                                      ^ Diag_Unclosed_Code_Block_V2.block_open\n"_diag  //
+        u8"                                                                     ` .expected_block_close"_diag);
   }
 }
 

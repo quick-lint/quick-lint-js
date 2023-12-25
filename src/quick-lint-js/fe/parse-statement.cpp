@@ -1880,38 +1880,56 @@ void Parser::parse_and_visit_statement_block_no_scope(Parse_Visitor_Base &v) {
 void Parser::parse_and_visit_statement_block_no_scope(
     Parse_Visitor_Base &v, Parse_Statement_Options statement_options) {
   QLJS_ASSERT(this->peek().type == Token_Type::left_curly);
-  Source_Code_Span left_curly_span = this->peek().span();
+  Token left_curly = this->peek();
   this->skip();
-  this->parse_and_visit_statement_block_after_left_curly(v, left_curly_span,
+  this->parse_and_visit_statement_block_after_left_curly(v, left_curly,
                                                          statement_options);
 }
 
 void Parser::parse_and_visit_statement_block_after_left_curly(
-    Parse_Visitor_Base &v, Source_Code_Span left_curly_span) {
+    Parse_Visitor_Base &v, Token left_curly) {
   this->parse_and_visit_statement_block_after_left_curly(
-      v, left_curly_span,
+      v, left_curly,
       Parse_Statement_Options{
           .possibly_followed_by_another_statement = true,
       });
 }
 
 void Parser::parse_and_visit_statement_block_after_left_curly(
-    Parse_Visitor_Base &v, Source_Code_Span left_curly_span,
+    Parse_Visitor_Base &v, Token left_curly,
     Parse_Statement_Options statement_options) {
+  QLJS_ASSERT(left_curly.type == Token_Type::left_curly);
   for (;;) {
     bool parsed_statement =
         this->parse_and_visit_statement(v, statement_options);
     if (!parsed_statement) {
       switch (this->peek().type) {
       case Token_Type::right_curly:
+        if (this->peek().indent_level != left_curly.indent_level &&
+            !mismatched_curly_braces_.has_value()) {
+          this->mismatched_curly_braces_ =
+              std::make_pair(left_curly, this->peek());
+        }
         this->skip();
         return;
 
-      case Token_Type::end_of_file:
-        this->diag_reporter_->report(Diag_Unclosed_Code_Block{
-            .block_open = left_curly_span,
+      case Token_Type::end_of_file: {
+        Token block_open, block_close;
+        if (this->mismatched_curly_braces_.has_value()) {
+          block_open = this->mismatched_curly_braces_.value().first;
+          block_close = this->mismatched_curly_braces_.value().second;
+          QLJS_ASSERT(block_open.type == Token_Type::left_curly);
+          QLJS_ASSERT(block_close.type == Token_Type::right_curly);
+        } else {
+          block_open = left_curly;
+          block_close = this->peek();
+        }
+        this->diag_reporter_->report(Diag_Unclosed_Code_Block_V2{
+            .block_open = block_open.span(),
+            .expected_block_close = Source_Code_Span::unit(block_close.begin),
         });
         return;
+      }
 
       default:
         QLJS_PARSER_UNIMPLEMENTED();

@@ -1986,6 +1986,14 @@ msgid "unclosed code block; expected '}' by end of file"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "missing '}'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "matching '{0}' here"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "unclosed interface; expected '}' by end of file"
 msgstr ""
 
