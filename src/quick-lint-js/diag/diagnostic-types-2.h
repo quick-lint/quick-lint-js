@@ -1813,6 +1813,13 @@ struct Diag_Newline_Not_Allowed_Before_Assignment_Assertion_Operator {
   Source_Code_Span field_name;
 };
 
+struct Diag_Newline_Not_Allowed_Before_Definite_Assignment_Assertion {
+  [[qljs::diag("E0446", Diagnostic_Severity::error)]]  //
+  [[qljs::message("newline is not allowed between variable name and '!'",
+                  ARG(definite_assignment_assertion))]]  //
+  Source_Code_Span definite_assignment_assertion;
+};
+
 struct Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type {
   [[qljs::diag("E0431", Diagnostic_Severity::error)]]  //
   [[qljs::message("newline is not allowed before '<'",
@@ -2211,6 +2218,55 @@ struct Diag_TypeScript_Delete_Cannot_Delete_Variables {
   [[qljs::message("cannot delete variables in TypeScript",
                   ARG(delete_expression))]]  //
   Source_Code_Span delete_expression;
+};
+
+struct Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context {
+  [[qljs::diag("E0445", Diagnostic_Severity::error)]]  //
+  [
+      [qljs::message("'!' (definite assignment assertion) is not allowed on "
+                     "'declare' variables",
+                     ARG(definite_assignment_assertion))]]  //
+  [[qljs::message("'declare' here",
+                  ARG(declare_keyword))]]  //
+  Source_Code_Span definite_assignment_assertion;
+  Source_Code_Span declare_keyword;
+};
+
+struct Diag_TypeScript_Definite_Assignment_Assertion_Not_Allowed_In_JavaScript {
+  [[qljs::diag("E0444", Diagnostic_Severity::error)]]  //
+  [[qljs::message("unexpected '!' after variable name",
+                  ARG(definite_assignment_assertion))]]  //
+  Source_Code_Span definite_assignment_assertion;
+};
+
+struct Diag_TypeScript_Definite_Assignment_Assertion_On_Const {
+  [[qljs::diag("E0441", Diagnostic_Severity::error)]]  //
+  [[qljs::message(
+      "const variables cannot have '!' (definite assignment assertion)",
+      ARG(definite_assignment_assertion))]]  //
+  Source_Code_Span definite_assignment_assertion;
+  Source_Code_Span const_keyword;
+};
+
+struct Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer {
+  [[qljs::diag("E0442", Diagnostic_Severity::error)]]  //
+  [
+      [qljs::message("'!' (definite assignment assertion) cannot be used with "
+                     "an initial value",
+                     ARG(definite_assignment_assertion))]]  //
+  [[qljs::message("initial value was given here",
+                  ARG(equal))]]  //
+  Source_Code_Span definite_assignment_assertion;
+  Source_Code_Span equal;
+};
+
+struct Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation {
+  [[qljs::diag("E0443", Diagnostic_Severity::error)]]  //
+  [
+      [qljs::message("type annotation is required when using '!' (definite "
+                     "assignment assertion)",
+                     ARG(definite_assignment_assertion))]]  //
+  Source_Code_Span definite_assignment_assertion;
 };
 
 struct Diag_TypeScript_Enum_Auto_Member_Needs_Initializer_After_Computed {

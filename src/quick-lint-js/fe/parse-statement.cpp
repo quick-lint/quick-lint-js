@@ -5349,9 +5349,84 @@ void Parser::parse_and_visit_let_bindings(
           this->peek().identifier_name(), this->peek().type);
       this->skip();
 
-      if (this->peek().type == Token_Type::colon) {
+      // '!' in 'let x!: string;' (if present) (TypeScript only).
+      std::optional<Source_Code_Span> definite_assignment_assertion =
+          std::nullopt;
+      bool reported_issue_with_definite_assignment_assertion = false;
+      bool has_type_annotation;
+
+      if (this->peek().type == Token_Type::bang) {
+        // let x!: Type;
+        if (this->peek().has_leading_newline) {
+          // let x /* ASI */ !expr();
+          Lexer_Transaction transaction = this->lexer_.begin_transaction();
+          this->skip();
+          bool has_type_annotation_after_definite_assignment_assertion =
+              this->peek().type == Token_Type::colon;
+          this->lexer_.roll_back_transaction(std::move(transaction));
+
+          if (has_type_annotation_after_definite_assignment_assertion) {
+            // let x /* ASI */ !: Type;  // Invalid.
+            this->diag_reporter_->report(
+                Diag_Newline_Not_Allowed_Before_Definite_Assignment_Assertion{
+                    .definite_assignment_assertion = this->peek().span(),
+                });
+            // Behave as if the newline wasn't there.
+          } else {
+            // let x /* ASI */ !expr();
+            QLJS_ASSERT(!definite_assignment_assertion.has_value());
+            // Stop parsing.
+            goto asi_after_variable_name;
+          }
+        }
+        definite_assignment_assertion = this->peek().span();
+        this->skip();
+        if (!reported_issue_with_definite_assignment_assertion &&
+            options.declare_keyword.has_value()) {
+          this->diag_reporter_->report(
+              Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context{
+                  .definite_assignment_assertion =
+                      *definite_assignment_assertion,
+                  .declare_keyword = *options.declare_keyword,
+              });
+          reported_issue_with_definite_assignment_assertion = true;
+        }
+        if (!reported_issue_with_definite_assignment_assertion &&
+            declaration_kind == Variable_Kind::_const) {
+          this->diag_reporter_->report(
+              Diag_TypeScript_Definite_Assignment_Assertion_On_Const{
+                  .definite_assignment_assertion =
+                      *definite_assignment_assertion,
+                  .const_keyword = options.declaring_token.span(),
+              });
+          reported_issue_with_definite_assignment_assertion = true;
+        }
+      }
+
+      has_type_annotation = this->peek().type == Token_Type::colon;
+      if (has_type_annotation) {
         // let x: Type;
         this->parse_and_visit_typescript_colon_type_expression(v);
+      }
+
+      if (definite_assignment_assertion.has_value() && !has_type_annotation) {
+        // let x!;  // Invalid.
+        if (!reported_issue_with_definite_assignment_assertion) {
+          if (this->options_.typescript) {
+            this->diag_reporter_->report(
+                Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation{
+                    .definite_assignment_assertion =
+                        *definite_assignment_assertion,
+                });
+          } else {
+            this->diag_reporter_->report(
+                Diag_TypeScript_Definite_Assignment_Assertion_Not_Allowed_In_JavaScript{
+                    .definite_assignment_assertion =
+                        *definite_assignment_assertion,
+                });
+          }
+          reported_issue_with_definite_assignment_assertion = true;
+        }
       }
 
       switch (this->peek().type) {
@@ -5374,6 +5449,18 @@ void Parser::parse_and_visit_let_bindings(
                     .declare_keyword = *options.declare_keyword,
                     .declaring_token = options.declaring_token.span(),
                 });
+          }
+        }
+        if (definite_assignment_assertion.has_value()) {
+          // let x!: string = '';  // Invalid.
+          if (!reported_issue_with_definite_assignment_assertion) {
+            this->diag_reporter_->report(
+                Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer{
+                    .definite_assignment_assertion =
+                        *definite_assignment_assertion,
+                    .equal = equal_token.span(),
+                });
+            reported_issue_with_definite_assignment_assertion = true;
           }
         }
 
@@ -5436,6 +5523,7 @@ void Parser::parse_and_visit_let_bindings(
         break;
       }
 
+      asi_after_variable_name:
       case Token_Type::kw_await:
       case Token_Type::kw_class:
       case Token_Type::kw_function:
@@ -5480,9 +5568,15 @@ void Parser::parse_and_visit_let_bindings(
         if (declaration_kind == Variable_Kind::_const) {
           if (!options.allow_const_without_initializer &&
               !options.is_declare(this)) {
-            this->diag_reporter_->report(
-                Diag_Missing_Initializer_In_Const_Declaration{
-                    .variable_name = variable->span()});
+            if (definite_assignment_assertion.has_value()) {
+              // const x!: string;  // Invalid.
+              // We already reported
+              // Diag_TypeScript_Definite_Assignment_Assertion_On_Const.
+            } else {
+              this->diag_reporter_->report(
+                  Diag_Missing_Initializer_In_Const_Declaration{
+                      .variable_name = variable->span()});
+            }
           }
         }
         this->visit_binding_element(

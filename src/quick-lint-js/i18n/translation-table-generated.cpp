@@ -18,6 +18,8 @@ const Translation_Table translation_data = {
         {74, 87, 79, 56, 0, 59},             //
         {71, 80, 60, 58, 0, 52},             //
         {0, 0, 0, 0, 0, 28},                 //
+        {0, 0, 0, 0, 0, 73},                 //
+        {0, 0, 0, 0, 0, 74},                 //
         {0, 0, 0, 0, 0, 63},                 //
         {31, 56, 0, 32, 0, 9},               //
         {0, 0, 0, 0, 0, 67},                 //
@@ -257,6 +259,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 75},                 //
         {90, 38, 91, 90, 53, 15},            //
         {0, 0, 0, 0, 0, 29},                 //
+        {0, 0, 0, 0, 0, 64},                 //
         {0, 0, 0, 0, 0, 43},                 //
         {41, 16, 34, 35, 34, 45},            //
         {0, 0, 0, 0, 0, 43},                 //
@@ -345,7 +348,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 54, 0, 26},                //
         {0, 0, 0, 0, 0, 38},                 //
         {175, 14, 144, 48, 175, 18},         //
-        {0, 0, 0, 30, 0, 32},                //
+        {0, 0, 0, 0, 0, 32},                 //
+        {0, 0, 0, 30, 0, 29},                //
         {0, 0, 0, 0, 0, 24},                 //
         {0, 30, 0, 26, 0, 22},               //
         {0, 0, 0, 0, 0, 59},                 //
@@ -467,6 +471,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 73},                 //
         {0, 0, 0, 89, 0, 57},                //
         {0, 0, 0, 0, 0, 50},                 //
+        {0, 0, 0, 0, 0, 53},                 //
         {63, 34, 103, 64, 73, 73},           //
         {69, 23, 79, 41, 51, 48},            //
         {40, 26, 61, 39, 56, 47},            //
@@ -528,6 +533,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 26},                 //
         {0, 0, 0, 0, 0, 5},                  //
         {0, 0, 0, 0, 0, 11},                 //
+        {0, 0, 0, 0, 0, 75},                 //
         {0, 0, 0, 0, 0, 58},                 //
         {27, 19, 30, 29, 22, 31},            //
         {25, 50, 0, 36, 0, 23},              //
@@ -538,7 +544,8 @@ const Translation_Table translation_data = {
         {41, 49, 41, 36, 44, 38},            //
         {27, 25, 28, 22, 25, 24},            //
         {23, 25, 28, 22, 26, 24},            //
-        {19, 19, 20, 26, 15, 18},            //
+        {0, 0, 0, 0, 0, 18},                 //
+        {19, 19, 20, 26, 15, 35},            //
         {0, 0, 0, 0, 0, 15},                 //
         {0, 0, 0, 15, 0, 38},                //
         {0, 0, 0, 53, 0, 49},                //
@@ -1874,6 +1881,8 @@ const Translation_Table translation_data = {
         u8"\"globals\" descriptor \"writable\" property must be a boolean\0"
         u8"\"globals\" descriptor must be a boolean or an object\0"
         u8"\"globals\" must be an object\0"
+        u8"'!' (definite assignment assertion) cannot be used with an initial value\0"
+        u8"'!' (definite assignment assertion) is not allowed on 'declare' variables\0"
         u8"'!' here treated as the TypeScript non-null assertion operator\0"
         u8"'&' here\0"
         u8"'**' operator cannot be used after unary '{1}' without parentheses\0"
@@ -2113,6 +2122,7 @@ const Translation_Table translation_data = {
         u8"const fields within classes are only allowed in TypeScript, not JavaScript\0"
         u8"const variable\0"
         u8"const variable declared here\0"
+        u8"const variables cannot have '!' (definite assignment assertion)\0"
         u8"containing 'declare namespace' starts here\0"
         u8"containing namespace or module declared here\0"
         u8"continue can only be used inside of a loop\0"
@@ -2202,6 +2212,7 @@ const Translation_Table translation_data = {
         u8"index signatures require a value type\0"
         u8"index starts here\0"
         u8"indexing requires an expression\0"
+        u8"initial value was given here\0"
         u8"initializer starts here\0"
         u8"inside namespace here\0"
         u8"integer cannot be represented and will be rounded to '{1}'\0"
@@ -2323,6 +2334,7 @@ const Translation_Table translation_data = {
         u8"newline is not allowed between 'async' and arrow function parameter list\0"
         u8"newline is not allowed between '{0}' and the method name\0"
         u8"newline is not allowed between field name and '!'\0"
+        u8"newline is not allowed between variable name and '!'\0"
         u8"nullish coalescing operator does nothing when left operand is never null\0"
         u8"number literal contains consecutive underscores\0"
         u8"number literal contains trailing underscore(s)\0"
@@ -2384,6 +2396,7 @@ const Translation_Table translation_data = {
         u8"try statement starts here\0"
         u8"type\0"
         u8"type alias\0"
+        u8"type annotation is required when using '!' (definite assignment assertion)\0"
         u8"type predicates are only allowed as function return types\0"
         u8"type {0} is being defined here\0"
         u8"unclosed block comment\0"
@@ -2395,6 +2408,7 @@ const Translation_Table translation_data = {
         u8"unclosed regexp literal\0"
         u8"unclosed string literal\0"
         u8"unclosed template\0"
+        u8"unexpected '!' after variable name\0"
         u8"unexpected '#'\0"
         u8"unexpected '...'; expected expression\0"
         u8"unexpected ':' in expression; did you mean 'as'?\0"

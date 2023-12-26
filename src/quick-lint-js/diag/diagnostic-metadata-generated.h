@@ -246,6 +246,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Namespace_Keyword) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Type_Keyword) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Before_Assignment_Assertion_Operator) \
+  QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Before_Definite_Assignment_Assertion) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers) \
   QLJS_DIAG_TYPE_NAME(Diag_Number_Literal_Contains_Consecutive_Underscores) \
@@ -296,6 +297,11 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Catch_Type_Annotation_Must_Be_Any) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Class_Implements_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Delete_Cannot_Delete_Variables) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Definite_Assignment_Assertion_Not_Allowed_In_JavaScript) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Definite_Assignment_Assertion_On_Const) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Enum_Auto_Member_Needs_Initializer_After_Computed) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Enum_Computed_Name_Must_Be_Simple) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Enum_Is_Not_Allowed_In_JavaScript) \
@@ -462,7 +468,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 448;
+inline constexpr int Diag_Type_Count = 454;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

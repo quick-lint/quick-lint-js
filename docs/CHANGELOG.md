@@ -42,6 +42,8 @@ Semantic Versioning.
   * Parameter decorators are now parsed.
   * Overload signatures are now allowed on exported functions.
   * Assigning to a class now reports [E0003][] ("cannot assign to class").
+  * Definite assignment assertions (`!` after a variable name in `let` or `var`)
+    is now supported.
 
 ### Fixed
 

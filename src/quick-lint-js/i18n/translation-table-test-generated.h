@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[590] = {
+inline const Translated_String test_translation_table[597] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -92,6 +92,28 @@ inline const Translated_String test_translation_table[590] = {
             u8"\"globals\" doit \u00eatre un objet",
             u8"\"globals\" precisa ser um objeto",
             u8"\"globals\" must be an object",
+        },
+    },
+    {
+        "'!' (definite assignment assertion) cannot be used with an initial value"_translatable,
+        u8"'!' (definite assignment assertion) cannot be used with an initial value",
+        {
+            u8"'!' (definite assignment assertion) cannot be used with an initial value",
+            u8"'!' (definite assignment assertion) cannot be used with an initial value",
+            u8"'!' (definite assignment assertion) cannot be used with an initial value",
+            u8"'!' (definite assignment assertion) cannot be used with an initial value",
+            u8"'!' (definite assignment assertion) cannot be used with an initial value",
+        },
+    },
+    {
+        "'!' (definite assignment assertion) is not allowed on 'declare' variables"_translatable,
+        u8"'!' (definite assignment assertion) is not allowed on 'declare' variables",
+        {
+            u8"'!' (definite assignment assertion) is not allowed on 'declare' variables",
+            u8"'!' (definite assignment assertion) is not allowed on 'declare' variables",
+            u8"'!' (definite assignment assertion) is not allowed on 'declare' variables",
+            u8"'!' (definite assignment assertion) is not allowed on 'declare' variables",
+            u8"'!' (definite assignment assertion) is not allowed on 'declare' variables",
         },
     },
     {
@@ -2724,6 +2746,17 @@ inline const Translated_String test_translation_table[590] = {
         },
     },
     {
+        "const variables cannot have '!' (definite assignment assertion)"_translatable,
+        u8"const variables cannot have '!' (definite assignment assertion)",
+        {
+            u8"const variables cannot have '!' (definite assignment assertion)",
+            u8"const variables cannot have '!' (definite assignment assertion)",
+            u8"const variables cannot have '!' (definite assignment assertion)",
+            u8"const variables cannot have '!' (definite assignment assertion)",
+            u8"const variables cannot have '!' (definite assignment assertion)",
+        },
+    },
+    {
         "containing 'declare namespace' starts here"_translatable,
         u8"containing 'declare namespace' starts here",
         {
@@ -3700,6 +3733,17 @@ inline const Translated_String test_translation_table[590] = {
             u8"l'indexation n\u00e9cessite une expression",
             u8"indexar requer uma express\u00e3o",
             u8"indexering kr\u00e4ver ett uttryck",
+        },
+    },
+    {
+        "initial value was given here"_translatable,
+        u8"initial value was given here",
+        {
+            u8"initial value was given here",
+            u8"initial value was given here",
+            u8"initial value was given here",
+            u8"initial value was given here",
+            u8"initial value was given here",
         },
     },
     {
@@ -5034,6 +5078,17 @@ inline const Translated_String test_translation_table[590] = {
         },
     },
     {
+        "newline is not allowed between variable name and '!'"_translatable,
+        u8"newline is not allowed between variable name and '!'",
+        {
+            u8"newline is not allowed between variable name and '!'",
+            u8"newline is not allowed between variable name and '!'",
+            u8"newline is not allowed between variable name and '!'",
+            u8"newline is not allowed between variable name and '!'",
+            u8"newline is not allowed between variable name and '!'",
+        },
+    },
+    {
         "nullish coalescing operator does nothing when left operand is never null"_translatable,
         u8"nullish coalescing operator does nothing when left operand is never null",
         {
@@ -5705,6 +5760,17 @@ inline const Translated_String test_translation_table[590] = {
         },
     },
     {
+        "type annotation is required when using '!' (definite assignment assertion)"_translatable,
+        u8"type annotation is required when using '!' (definite assignment assertion)",
+        {
+            u8"type annotation is required when using '!' (definite assignment assertion)",
+            u8"type annotation is required when using '!' (definite assignment assertion)",
+            u8"type annotation is required when using '!' (definite assignment assertion)",
+            u8"type annotation is required when using '!' (definite assignment assertion)",
+            u8"type annotation is required when using '!' (definite assignment assertion)",
+        },
+    },
+    {
         "type predicates are only allowed as function return types"_translatable,
         u8"type predicates are only allowed as function return types",
         {
@@ -5823,6 +5889,17 @@ inline const Translated_String test_translation_table[590] = {
             u8"template non ferm\u00e9",
             u8"template n\u00e3o foi fechado",
             u8"oavslutad mall",
+        },
+    },
+    {
+        "unexpected '!' after variable name"_translatable,
+        u8"unexpected '!' after variable name",
+        {
+            u8"unexpected '!' after variable name",
+            u8"unexpected '!' after variable name",
+            u8"unexpected '!' after variable name",
+            u8"unexpected '!' after variable name",
+            u8"unexpected '!' after variable name",
         },
     },
     {

@@ -3529,6 +3529,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Newline_Not_Allowed_Before_Definite_Assignment_Assertion
+    {
+      .code = 446,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("newline is not allowed between variable name and '!'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Newline_Not_Allowed_Before_Definite_Assignment_Assertion, definite_assignment_assertion), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type
     {
       .code = 431,
@@ -4282,6 +4296,84 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .message_args = {
         {
           Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Delete_Cannot_Delete_Variables, delete_expression), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context
+    {
+      .code = 445,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'!' (definite assignment assertion) is not allowed on 'declare' variables"),
+        QLJS_TRANSLATABLE("'declare' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context, definite_assignment_assertion), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context, declare_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Definite_Assignment_Assertion_Not_Allowed_In_JavaScript
+    {
+      .code = 444,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("unexpected '!' after variable name"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Definite_Assignment_Assertion_Not_Allowed_In_JavaScript, definite_assignment_assertion), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Definite_Assignment_Assertion_On_Const
+    {
+      .code = 441,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("const variables cannot have '!' (definite assignment assertion)"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Definite_Assignment_Assertion_On_Const, definite_assignment_assertion), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer
+    {
+      .code = 442,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("'!' (definite assignment assertion) cannot be used with an initial value"),
+        QLJS_TRANSLATABLE("initial value was given here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer, definite_assignment_assertion), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer, equal), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation
+    {
+      .code = 443,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("type annotation is required when using '!' (definite assignment assertion)"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation, definite_assignment_assertion), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

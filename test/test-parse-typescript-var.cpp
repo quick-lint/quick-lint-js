@@ -223,6 +223,181 @@ TEST_F(Test_Parse_TypeScript_Var,
         });
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Var,
+       definite_assignment_assertion_is_not_allowed_in_javascript) {
+  // Should not also report
+  // Diag_TypeScript_Definite_Assignment_Assertion_Not_Allowed_In_JavaScript.
+  test_parse_and_visit_statement(
+      u8"let x!: string;"_sv,  //
+      u8"      ^ Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript.type_colon"_diag,
+      javascript_options);
+
+  // Should not also report
+  // Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation.
+  test_parse_and_visit_statement(
+      u8"let x!;"_sv,  //
+      u8"     ^ Diag_TypeScript_Definite_Assignment_Assertion_Not_Allowed_In_JavaScript.definite_assignment_assertion"_diag,
+      javascript_options);
+
+  // Should not also report
+  // Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation or
+  // Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer.
+  test_parse_and_visit_statement(
+      u8"let x! = null;"_sv,  //
+      u8"     ^ Diag_TypeScript_Definite_Assignment_Assertion_Not_Allowed_In_JavaScript.definite_assignment_assertion"_diag,
+      javascript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Var,
+       let_or_var_can_have_definite_assignment_assertion) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let x!: string;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // :
+                              "visit_exit_type_scope",       //
+                              "visit_variable_declaration",  // x
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({let_noinit_decl(u8"x"_sv)}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"var x!: string;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // :
+                              "visit_exit_type_scope",       //
+                              "visit_variable_declaration",  // x
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({var_noinit_decl(u8"x"_sv)}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Var,
+       definite_assignment_asserted_variable_cannot_have_initializer) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let x!: string = '';"_sv,  //
+        u8"               ^ Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer.equal\n"_diag
+        u8"     ^ .definite_assignment_assertion"_diag,
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({let_init_decl(u8"x"_sv)}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Var,
+       definite_assignment_asserted_variable_requires_type_annotation) {
+  test_parse_and_visit_statement(
+      u8"let x!;"_sv,  //
+      u8"     ^ Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation.definite_assignment_assertion"_diag,
+      typescript_options);
+  test_parse_and_visit_statement(
+      u8"var x, y!, z;"_sv,  //
+      u8"        ^ Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation.definite_assignment_assertion"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Var,
+       const_cannot_have_definite_assignment_assertion) {
+  // Should not also report Diag_Missing_Initializer_In_Const_Declaration.
+  test_parse_and_visit_statement(
+      u8"const x!: string;"_sv,  //
+      u8"       ^ Diag_TypeScript_Definite_Assignment_Assertion_On_Const.definite_assignment_assertion\n"_diag
+      u8"^^^^^ .const_keyword"_diag,
+      typescript_options);
+
+  // Should not also report
+  // Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer.
+  test_parse_and_visit_statement(
+      u8"const x!: string = '';"_sv,  //
+      u8"       ^ Diag_TypeScript_Definite_Assignment_Assertion_On_Const.definite_assignment_assertion\n"_diag
+      u8"^^^^^ .const_keyword"_diag,
+      typescript_options);
+
+  // Should not also report
+  // Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation.
+  test_parse_and_visit_statement(
+      u8"const x!;"_sv,  //
+      u8"       ^ Diag_TypeScript_Definite_Assignment_Assertion_On_Const.definite_assignment_assertion\n"_diag
+      u8"^^^^^ .const_keyword"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Var,
+       declared_variable_cannot_have_definite_assignment_assertion) {
+  test_parse_and_visit_statement(
+      u8"declare let x!: string;"_sv,  //
+      u8"             ^ Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context.definite_assignment_assertion\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,
+      typescript_options);
+
+  // Should not also report Diag_Missing_Initializer_In_Const_Declaration.
+  test_parse_and_visit_statement(
+      u8"declare const x!: string;"_sv,  //
+      u8"               ^ Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context.definite_assignment_assertion\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,
+      typescript_options);
+
+  // Should not also report
+  // Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation.
+  test_parse_and_visit_statement(
+      u8"declare let x!;"_sv,  //
+      u8"             ^ Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context.definite_assignment_assertion\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,
+      typescript_options);
+
+  // Should not also report
+  // Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer.
+  test_parse_and_visit_statement(
+      u8"declare const x!: string = '';"_sv,  //
+      u8"               ^ Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context.definite_assignment_assertion\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,
+      typescript_options);
+
+  // Should not also report
+  // Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer.
+  test_parse_and_visit_statement(
+      u8"declare let x!: string = '';"_sv,  //
+      u8"                       ^ Diag_Declare_Var_Cannot_Have_Initializer.equal"_diag,
+      u8"             ^ Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context.definite_assignment_assertion\n"_diag
+      u8"^^^^^^^ .declare_keyword"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Var,
+       newline_not_allowed_before_definite_assignment_assertion_bang) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(u8"let x\n!expr();"_sv,
+                                                no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // x
+                              "visit_variable_use",          // expr
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({let_noinit_decl(u8"x"_sv)}));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"expr"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"let x\n!: string;"_sv,
+        u8"       ^ Diag_Newline_Not_Allowed_Before_Definite_Assignment_Assertion.definite_assignment_assertion"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // :
+                              "visit_exit_type_scope",       // :
+                              "visit_variable_declaration",  // x
+                              "visit_end_of_module",         //
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({let_noinit_decl(u8"x"_sv)}));
+  }
+}
 }
 }
 

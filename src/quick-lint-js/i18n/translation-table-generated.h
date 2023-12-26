@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 591;
-constexpr std::size_t translation_table_string_table_size = 81738;
+constexpr std::uint16_t translation_table_mapping_table_size = 598;
+constexpr std::size_t translation_table_string_table_size = 82141;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -32,6 +32,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "\"globals\" descriptor \"writable\" property must be a boolean"sv,
           "\"globals\" descriptor must be a boolean or an object"sv,
           "\"globals\" must be an object"sv,
+          "'!' (definite assignment assertion) cannot be used with an initial value"sv,
+          "'!' (definite assignment assertion) is not allowed on 'declare' variables"sv,
           "'!' here treated as the TypeScript non-null assertion operator"sv,
           "'&' here"sv,
           "'**' operator cannot be used after unary '{1}' without parentheses"sv,
@@ -271,6 +273,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "const fields within classes are only allowed in TypeScript, not JavaScript"sv,
           "const variable"sv,
           "const variable declared here"sv,
+          "const variables cannot have '!' (definite assignment assertion)"sv,
           "containing 'declare namespace' starts here"sv,
           "containing namespace or module declared here"sv,
           "continue can only be used inside of a loop"sv,
@@ -360,6 +363,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "index signatures require a value type"sv,
           "index starts here"sv,
           "indexing requires an expression"sv,
+          "initial value was given here"sv,
           "initializer starts here"sv,
           "inside namespace here"sv,
           "integer cannot be represented and will be rounded to '{1}'"sv,
@@ -481,6 +485,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "newline is not allowed between 'async' and arrow function parameter list"sv,
           "newline is not allowed between '{0}' and the method name"sv,
           "newline is not allowed between field name and '!'"sv,
+          "newline is not allowed between variable name and '!'"sv,
           "nullish coalescing operator does nothing when left operand is never null"sv,
           "number literal contains consecutive underscores"sv,
           "number literal contains trailing underscore(s)"sv,
@@ -542,6 +547,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "try statement starts here"sv,
           "type"sv,
           "type alias"sv,
+          "type annotation is required when using '!' (definite assignment assertion)"sv,
           "type predicates are only allowed as function return types"sv,
           "type {0} is being defined here"sv,
           "unclosed block comment"sv,
@@ -553,6 +559,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "unclosed regexp literal"sv,
           "unclosed string literal"sv,
           "unclosed template"sv,
+          "unexpected '!' after variable name"sv,
           "unexpected '#'"sv,
           "unexpected '...'; expected expression"sv,
           "unexpected ':' in expression; did you mean 'as'?"sv,
