@@ -2403,7 +2403,6 @@ Parser::parse_and_visit_function_parameter_list(
     if (this->peek().type == Token_Type::colon) {
       this->parse_and_visit_typescript_colon_type_expression(
           v, TypeScript_Type_Parse_Options{
-                 .allow_parenthesized_type = true,
                  .allow_assertion_signature_or_type_predicate = true,
 
                  // Force ASI before '<' if '<' might be legal after a ';'.

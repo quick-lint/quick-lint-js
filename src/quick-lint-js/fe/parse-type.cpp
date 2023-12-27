@@ -853,7 +853,6 @@ void Parser::
              // set parse_question_as_invalid to true) if we are not inside an
              // 'extends' clause.
              .parse_question_as_invalid = false,
-             .allow_parenthesized_type = false,
              .allow_assertion_signature_or_type_predicate = true,
          });
 }

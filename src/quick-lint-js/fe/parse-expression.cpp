@@ -904,7 +904,6 @@ Expression* Parser::parse_async_expression_only(
       this->parse_and_visit_typescript_colon_type_expression(
           return_type_visits,
           TypeScript_Type_Parse_Options{
-              .allow_parenthesized_type = false,
               .allow_assertion_signature_or_type_predicate = true,
           });
     }
@@ -1046,7 +1045,6 @@ Expression* Parser::parse_async_expression_only(
           this->parse_and_visit_typescript_colon_type_expression(
               return_type_visits,
               TypeScript_Type_Parse_Options{
-                  .allow_parenthesized_type = false,
                   .allow_assertion_signature_or_type_predicate = true,
               });
         }
@@ -2165,21 +2163,12 @@ next:
 
     Parser_Transaction transaction = this->begin_transaction();
 
-    // If an arrow function has a return type, then the return type must *not*
-    // be parenthesized. Exception: an arrow type may be parenthesized.
-    //
-    // let f = (): (s: any) => string => {};    // OK
-    // let g = (): ((s: any) => string) => {};  // OK
-    // let h = (): number => {};                // OK
-    // let m = (): (number) => {};              // Invalid
     bool is_possibly_arrow_function_return_type_annotation =
         child->kind() == Expression_Kind::Paren ||
         child->kind() == Expression_Kind::Paren_Empty;
     this->parse_and_visit_typescript_colon_type_expression(
         type_visitor,
         TypeScript_Type_Parse_Options{
-            .allow_parenthesized_type =
-                !is_possibly_arrow_function_return_type_annotation,
             .allow_assertion_signature_or_type_predicate =
                 is_possibly_arrow_function_return_type_annotation,
             .stop_parsing_type_at_newline_before_generic_arguments =
@@ -4052,7 +4041,6 @@ Expression* Parser::parse_typescript_generic_arrow_expression(
     this->parse_and_visit_typescript_colon_type_expression(
         return_type_visits,
         TypeScript_Type_Parse_Options{
-            .allow_parenthesized_type = false,
             .allow_assertion_signature_or_type_predicate = true,
         });
   }
@@ -4133,7 +4121,6 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
           this->parse_and_visit_typescript_colon_type_expression(
               return_type_visits,
               TypeScript_Type_Parse_Options{
-                  .allow_parenthesized_type = false,
                   .allow_assertion_signature_or_type_predicate = true,
               });
         }
