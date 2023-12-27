@@ -672,6 +672,11 @@ function testIsJSIdentifierStart() {
   for (let codePoint of OTHER_ID_CONTINUE_CODE_POINTS) {
     assert.ok(!isJSIdentifierStart(codePoint), codePoint.toString(16));
   }
+
+  // https://mathiasbynens.be/notes/javascript-identifiers-es6
+  assert.ok(isJSIdentifierStart(0x102a7)); // CARIAN LETTER A2
+  assert.ok(!isJSIdentifierStart(0xd800)); // CARIAN LETTER A2 first surrogate
+  assert.ok(!isJSIdentifierStart(0xdea7)); // CARIAN LETTER A2 second surrogate
 }
 
 function testIsJSIdentifierPart() {
@@ -734,6 +739,11 @@ function testIsJSIdentifierPart() {
   assert.ok(!isJSIdentifierPart(0x20a0)); // EURO-CURRENCY SIGN (Sc)
   assert.ok(!isJSIdentifierPart(0x20dd)); // COMBINING ENCLOSING CIRCLE (Me)
   assert.ok(!isJSIdentifierPart(0x202c)); // POP DIRECTIONAL FORMATTING (Cf)
+
+  // https://mathiasbynens.be/notes/javascript-identifiers-es6
+  assert.ok(isJSIdentifierStart(0x102a7)); // CARIAN LETTER A2
+  assert.ok(!isJSIdentifierStart(0xd800)); // CARIAN LETTER A2 first surrogate
+  assert.ok(!isJSIdentifierStart(0xdea7)); // CARIAN LETTER A2 second surrogate
 }
 
 function chunk(items, chunkSize) {
