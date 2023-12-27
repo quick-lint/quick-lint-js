@@ -75,6 +75,15 @@ TEST(Test_Variable_Analyzer_Interface,
       u8"                                                     ^^^^^ Diag_Use_Of_Undeclared_Variable.name"_diag,
       typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Type,
+     interface_can_use_runtime_variable_before_declaration) {
+  test_parse_and_analyze(
+      u8"interface I { field: typeof y; }  let y: string;"_sv, no_diags,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"interface I { [y]: string; }  let y: string;"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+}
 }
 }
 

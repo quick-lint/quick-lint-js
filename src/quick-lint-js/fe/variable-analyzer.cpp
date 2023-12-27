@@ -267,6 +267,7 @@ void Variable_Analyzer::visit_exit_index_signature_scope() {
 
 void Variable_Analyzer::visit_exit_interface_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
+  this->mark_variable_uses_as_uses_in_type(this->current_scope());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
       /*consume_arguments=*/false);
@@ -283,13 +284,7 @@ void Variable_Analyzer::visit_exit_namespace_scope() {
 
 void Variable_Analyzer::visit_exit_type_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
-  // Mark all run-time variable uses within this scope as use_in_type. This
-  // silences use-before-declaration diagnostics.
-  for (Used_Variable &used_var : this->current_scope().variables_used) {
-    if (used_var.kind == Used_Variable_Kind::use) {
-      used_var.kind = Used_Variable_Kind::use_in_type;
-    }
-  }
+  this->mark_variable_uses_as_uses_in_type(this->current_scope());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
       /*consume_arguments=*/false);
@@ -531,6 +526,14 @@ void Variable_Analyzer::add_variable_use_to_current_scope(Used_Variable &&var) {
        ? scope.variables_used_in_descendant_scope
        : scope.variables_used)
       .push_back(std::move(var));
+}
+
+void Variable_Analyzer::mark_variable_uses_as_uses_in_type(Scope &scope) {
+  for (Used_Variable &used_var : scope.variables_used) {
+    if (used_var.kind == Used_Variable_Kind::use) {
+      used_var.kind = Used_Variable_Kind::use_in_type;
+    }
+  }
 }
 
 void Variable_Analyzer::visit_end_of_module() {

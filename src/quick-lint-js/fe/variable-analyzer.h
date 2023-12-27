@@ -310,6 +310,10 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
 
   void add_variable_use_to_current_scope(Used_Variable &&);
 
+  // Mark all run-time variable uses within the scope as use_in_type. This
+  // silences use-before-declaration diagnostics.
+  void mark_variable_uses_as_uses_in_type(Scope &);
+
   void propagate_variable_uses_to_parent_scope(
       bool allow_variable_use_before_declaration, bool consume_arguments);
   template <class Parent_Scope>
