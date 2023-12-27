@@ -139,6 +139,17 @@ TEST(Test_Parse_TypeScript_Definition, classes_require_export_or_declare) {
                               typescript_definition_options);
 }
 
+TEST(Test_Parse_TypeScript_Definition, class_methods_cannot_have_bodies) {
+  test_parse_and_visit_module(
+      u8"declare class C { m() {} }"_sv,  //
+      u8"                      ^ Diag_Declare_Class_Methods_Cannot_Contain_Bodies.body_start"_diag,
+      typescript_definition_options);
+  test_parse_and_visit_module(
+      u8"export class C { m() {} }"_sv,  //
+      u8"                     ^ Diag_Declare_Class_Methods_Cannot_Contain_Bodies.body_start"_diag,
+      typescript_definition_options);
+}
+
 TEST(Test_Parse_TypeScript_Definition, namespaces_require_export_or_declare) {
   test_parse_and_visit_module(
       u8"namespace ns {}"_sv,  //

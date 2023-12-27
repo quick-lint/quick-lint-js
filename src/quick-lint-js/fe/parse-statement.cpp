@@ -2304,7 +2304,8 @@ void Parser::parse_and_visit_abstract_function_parameters_and_body_no_scope(
 void Parser::parse_and_visit_declare_class_method_parameters_and_body(
     Parse_Visitor_Base &v, std::optional<Source_Code_Span> name,
     Function_Attributes attributes, Parameter_List_Options options) {
-  QLJS_ASSERT(options.declare_class_keyword.has_value());
+  QLJS_ASSERT(options.declare_class_keyword.has_value() ||
+              this->options_.typescript_definition_file);
   v.visit_enter_function_scope();
   Function_Guard guard = this->enter_function(attributes);
   Function_Parameter_Parse_Result result =

@@ -46,6 +46,8 @@ Semantic Versioning.
     is now supported.
   * Abstract constructor types (such as `abstract new () => C`) are now
     supported.
+  * `export class { m(); }` in a .d.ts file no longer falsely reports [E0172][]
+    ("missing body for function").
 
 ### Fixed
 

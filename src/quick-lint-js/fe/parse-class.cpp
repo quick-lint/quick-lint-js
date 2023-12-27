@@ -879,7 +879,8 @@ void Parser::parse_and_visit_class_or_interface_member(
             .is_interface_method = is_interface,
         };
         bool is_abstract_method = this->find_modifier(Token_Type::kw_abstract);
-        if (declare_keyword.has_value()) {
+        if (declare_keyword.has_value() ||
+            p->options_.typescript_definition_file) {
           p->parse_and_visit_declare_class_method_parameters_and_body(
               v, property_name_span, attributes, param_options);
         } else if (is_abstract_method) {
