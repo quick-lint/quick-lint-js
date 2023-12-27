@@ -856,7 +856,9 @@ void Parser::
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
   this->skip();
-  this->parse_and_visit_typescript_type_expression_no_scope(
+  // visit_enter_type_scope/visit_exit_type_scope is necessary. See
+  // NOTE[type-predicate-type-scope].
+  this->parse_and_visit_typescript_type_expression(
       v, TypeScript_Type_Parse_Options{
              // TODO(strager): Report
              // Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void (i.e.

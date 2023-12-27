@@ -104,6 +104,8 @@ Semantic Versioning.
     variable.
   * Using a variable in a type (e.g. with `typeof`) no longer falsely reports
     [E0058][] ("variable used before declaration").
+  * Type predicates in function types no longer falsely report [E0315][]
+    ("'param' is not the name of a parameter").
 
 ## 2.18.0 (2023-11-03)
 

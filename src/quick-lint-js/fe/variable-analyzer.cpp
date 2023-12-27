@@ -470,8 +470,9 @@ void Variable_Analyzer::visit_variable_namespace_use(Identifier) {
 }
 
 void Variable_Analyzer::visit_variable_type_predicate_use(Identifier name) {
-  // The parser always wraps visit_variable_type_predicate_use in
-  // visit_enter_type_scope and visit_exit_type_scope:
+  // NOTE[type-predicate-type-scope]: The parser always wraps
+  // visit_variable_type_predicate_use in visit_enter_type_scope and
+  // visit_exit_type_scope:
   //
   // visit_enter_function_scope
   //   visit_variable_declaration  // someParameter

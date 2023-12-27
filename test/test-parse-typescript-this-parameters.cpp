@@ -145,7 +145,9 @@ TEST_F(Test_Parse_TypeScript_This_Parameters, allowed_in_function_types) {
         u8"(this) => ReturnType"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",  //
+                              "visit_enter_type_scope",      // =>
                               "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));

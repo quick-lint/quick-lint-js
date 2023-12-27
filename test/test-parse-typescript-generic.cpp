@@ -667,7 +667,9 @@ TEST_F(Test_Parse_TypeScript_Generic, function_call_with_generic_arguments) {
                               "visit_enter_type_scope",      // <
                               "visit_enter_function_scope",  //
                               "visit_variable_declaration",  // Param
+                              "visit_enter_type_scope",      // =>
                               "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",
                               "visit_exit_type_scope",  // >
                           }));
@@ -764,7 +766,9 @@ TEST_F(Test_Parse_TypeScript_Generic, new_with_generic_arguments) {
                               "visit_enter_type_scope",      // <
                               "visit_enter_function_scope",  //
                               "visit_variable_declaration",  // Param
+                              "visit_enter_type_scope",      // =>
                               "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",
                               "visit_exit_type_scope",  // >
                           }));
@@ -872,7 +876,9 @@ TEST_F(Test_Parse_TypeScript_Generic, jsx_element) {
                               "visit_enter_type_scope",      // <
                               "visit_enter_function_scope",  //
                               "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // =>
                               "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",   //
                               "visit_exit_type_scope",       // >
                           }));

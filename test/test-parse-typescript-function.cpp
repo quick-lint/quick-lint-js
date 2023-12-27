@@ -296,7 +296,9 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_enter_function_scope",       //
                               "visit_enter_type_scope",           // :
                               "visit_enter_function_scope",       //
+                              "visit_enter_type_scope",           // =>
                               "visit_variable_type_use",          // ReturnType
+                              "visit_exit_type_scope",            //
                               "visit_exit_function_scope",        //
                               "visit_variable_type_use",          // Other
                               "visit_exit_type_scope",            //
@@ -314,7 +316,9 @@ TEST_F(Test_Parse_TypeScript_Function,
                               "visit_enter_function_scope",       //
                               "visit_enter_type_scope",           //
                               "visit_enter_function_scope",       //
+                              "visit_enter_type_scope",           // =>
                               "visit_variable_type_use",          // ReturnType
+                              "visit_exit_type_scope",            //
                               "visit_exit_function_scope",        //
                               "visit_exit_type_scope",            //
                               "visit_enter_function_scope_body",  // {
@@ -809,7 +813,9 @@ TEST_F(Test_Parse_TypeScript_Function, optional_parameter_in_function_type) {
                               "visit_variable_declaration",  // param1
                               "visit_variable_declaration",  // param2
                               "visit_variable_declaration",  // param3
+                              "visit_enter_type_scope",      // =>
                               "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",
                           }));
   }
@@ -1107,8 +1113,10 @@ TEST_F(Test_Parse_TypeScript_Function, type_predicate_in_type) {
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_function_scope",         //
                               "visit_variable_declaration",         // param
+                              "visit_enter_type_scope",             // =>
                               "visit_variable_type_predicate_use",  // param
                               "visit_variable_type_use",            // SomeType
+                              "visit_exit_type_scope",              //
                               "visit_exit_function_scope",
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"param", u8"SomeType"}));

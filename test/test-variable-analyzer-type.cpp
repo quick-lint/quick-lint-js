@@ -658,6 +658,12 @@ TEST(Test_Variable_Analyzer_Type, type_predicate_finds_function_parameter) {
 }
 
 TEST(Test_Variable_Analyzer_Type,
+     type_predicate_finds_function_parameter_in_function_type) {
+  test_parse_and_analyze(u8"let f: (p) => p is any;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Type,
      type_predicate_does_not_find_outer_function_parameter) {
   test_parse_and_analyze(
       u8"((outer) => { ((inner): outer is any => { }); });"_sv,

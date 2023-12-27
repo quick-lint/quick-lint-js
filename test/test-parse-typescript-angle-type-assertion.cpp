@@ -138,7 +138,9 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
                               "visit_enter_type_scope",      // <
                               "visit_enter_function_scope",  //
                               "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // =>
                               "visit_variable_type_use",     // RT
+                              "visit_exit_type_scope",       //
                               "visit_exit_function_scope",   //
                               "visit_exit_type_scope",       // >
                               "visit_variable_use",          // expr
