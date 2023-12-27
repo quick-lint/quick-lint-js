@@ -58,6 +58,34 @@ TEST(Test_Buffering_Diag_Reporter, buffers_all_visits) {
   EXPECT_EQ(test.report_count, 2);
 }
 
+TEST(Test_Buffering_Diag_Reporter, reported_any_diagnostic_except_diag_types) {
+  static Padded_String code(u8"let"_sv);
+  Linked_Bump_Allocator memory("test");
+  Buffering_Diag_Reporter diag_reporter(&memory);
+
+  EXPECT_FALSE(diag_reporter.reported_any_diagnostic_except({
+      Diag_Type::Diag_Assignment_Before_Variable_Declaration,
+  }));
+  diag_reporter.report(Diag_Assignment_Before_Variable_Declaration{
+      .assignment = span_of(code),
+      .declaration = span_of(code),
+  });
+  EXPECT_FALSE(diag_reporter.reported_any_diagnostic_except({
+      Diag_Type::Diag_Assignment_Before_Variable_Declaration,
+  }));
+  EXPECT_TRUE(diag_reporter.reported_any_diagnostic_except({
+      Diag_Type::Diag_Assignment_To_Const_Global_Variable,
+  }));
+  EXPECT_FALSE(diag_reporter.reported_any_diagnostic_except({
+      Diag_Type::Diag_Assignment_To_Const_Global_Variable,
+      Diag_Type::Diag_Assignment_Before_Variable_Declaration,
+  }));
+  EXPECT_FALSE(diag_reporter.reported_any_diagnostic_except({
+      Diag_Type::Diag_Assignment_Before_Variable_Declaration,
+      Diag_Type::Diag_Assignment_To_Const_Global_Variable,
+  }));
+}
+
 TEST(Test_Buffering_Diag_Reporter, not_destructing_does_not_leak) {
   // This test relies on a leak checker such as Valgrind's memtest or
   // Clang's LeakSanitizer.

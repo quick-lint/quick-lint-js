@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <initializer_list>
 #include <memory>
 #include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
@@ -25,6 +26,8 @@ class Buffering_Diag_Reporter final : public Diag_Reporter {
   void move_into(Diag_Reporter *other);
 
   bool empty() const;
+  bool reported_any_diagnostic_except(
+      std::initializer_list<Diag_Type> ignored_types);
 
   void clear();
 

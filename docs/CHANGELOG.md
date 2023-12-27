@@ -106,6 +106,8 @@ Semantic Versioning.
     falsely reports [E0058][] ("variable used before declaration").
   * Type predicates in function types no longer falsely report [E0315][]
     ("'param' is not the name of a parameter").
+  * Arrow functions with return type annotations such as `(42)` or `(string[])`
+    are now parsed correctly.
 
 ## 2.18.0 (2023-11-03)
 

@@ -5481,7 +5481,7 @@ void Parser::parse_and_visit_let_bindings(
           // FIXME(#831): v should not be used here. We should use a
           // buffering_visitor.
           this->try_parse(
-              [&] {
+              [&](Parser_Transaction &) {
                 Expression *in_ast = this->parse_expression_remainder(
                     v, assignment_ast->child_1(), Precedence{.commas = false});
                 if (this->peek().type != Token_Type::semicolon) {

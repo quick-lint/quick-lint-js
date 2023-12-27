@@ -329,12 +329,43 @@ TEST_F(Test_Parse_TypeScript_Function,
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Function,
-       arrow_cannot_have_parenthesized_return_type_annotation) {
+TEST_F(
+    Test_Parse_TypeScript_Function,
+    arrow_cannot_have_parenthesized_return_type_annotation_which_might_be_a_parameter_list) {
   test_parse_and_visit_statement(
       u8"((param): (number) => {})"_sv,
       u8"Diag_TypeScript_Type_Annotation_In_Expression"_diag,
       typescript_options);
+}
+
+TEST_F(
+    Test_Parse_TypeScript_Function,
+    arrow_can_have_parenthesized_return_type_annotation_which_cannot_be_a_parameter_list) {
+  {
+    Spy_Visitor v = test_parse_and_visit_statement(
+        u8"((param): (42) => {})"_sv, no_diags, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAreArray({
+                              "visit_enter_function_scope",
+                              "visit_variable_declaration",       // param
+                              "visit_enter_type_scope",           // :
+                              "visit_exit_type_scope",            //
+                              "visit_enter_function_scope_body",  // =>
+                              "visit_exit_function_scope",        //
+                          }));
+  }
+
+  {
+    Spy_Visitor v = test_parse_and_visit_statement(
+        u8"((param): (number[]) => {})"_sv, no_diags, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAreArray({
+                              "visit_enter_function_scope",
+                              "visit_variable_declaration",       // param
+                              "visit_enter_type_scope",           // :
+                              "visit_exit_type_scope",            //
+                              "visit_enter_function_scope_body",  // =>
+                              "visit_exit_function_scope",        //
+                          }));
+  }
 }
 
 // If a variable or function or method has a type annotation, and that type is

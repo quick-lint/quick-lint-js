@@ -9,6 +9,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <type_traits>
 
 namespace quick_lint_js {
@@ -78,6 +79,18 @@ void Buffering_Diag_Reporter::move_into(Diag_Reporter *other) {
 
 bool Buffering_Diag_Reporter::empty() const {
   return this->impl_->diagnostics_.empty();
+}
+
+bool Buffering_Diag_Reporter::reported_any_diagnostic_except(
+    std::initializer_list<Diag_Type> ignored_types) {
+  bool found_diag = false;
+  this->impl_->diagnostics_.for_each([&](const Impl::Any_Diag &diag) -> void {
+    if (!contains(ignored_types, diag.type)) {
+      found_diag = true;
+      // TODO(perf): Exit the loop early.
+    }
+  });
+  return found_diag;
 }
 
 void Buffering_Diag_Reporter::clear() {

@@ -480,32 +480,13 @@ again:
     this->parse_and_visit_typescript_tuple_type_expression(v);
     break;
 
-  // (param, param) => ReturnType
-  // ((((param, param) => ReturnType)))
-  // // Only if parse_options.allow_parenthesized_type:
   // (typeexpr)
+  // (param, param) => ReturnType
   case Token_Type::left_paren:
-    if (parse_options.allow_parenthesized_type) {
-      this->parse_and_visit_typescript_arrow_or_paren_type_expression(
-          v, TypeScript_Type_Parse_Options{
-                 .type_being_declared = parse_options.type_being_declared,
-             });
-    } else {
-      this->skip();
-      // If allow_parenthesized_type is false, we still allow parenthesized
-      // arrow function types.
-      int extra_open_paren_count = 0;
-      while (this->peek().type == Token_Type::left_paren) {
-        extra_open_paren_count += 1;
-        this->skip();
-      }
-      this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(
-          v);
-      for (int i = 0; i < extra_open_paren_count; ++i) {
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
-        this->skip();
-      }
-    }
+    this->parse_and_visit_typescript_arrow_or_paren_type_expression(
+        v, TypeScript_Type_Parse_Options{
+               .type_being_declared = parse_options.type_being_declared,
+           });
     break;
 
   // new (param, param) => ReturnType
@@ -892,7 +873,7 @@ Parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
 
   TypeScript_Type_Arrow_Or_Paren result = TypeScript_Type_Arrow_Or_Paren::arrow;
   this->try_parse(
-      [&] {
+      [&](Parser_Transaction &transaction) {
         Stacked_Buffering_Visitor params_visitor =
             this->buffering_visitor_stack_.push();
         bool parsed_function_parameters =
@@ -910,6 +891,14 @@ Parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
         }
         this->skip();
         if (this->peek().type != Token_Type::equal_greater) {
+          return false;
+        }
+
+        if (transaction.reporter.reported_any_diagnostic_except({
+                Diag_Type::
+                    Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter,
+                Diag_Type::Diag_This_Parameter_Must_Be_First,
+            })) {
           return false;
         }
 

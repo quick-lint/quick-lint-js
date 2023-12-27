@@ -930,7 +930,9 @@ class Parser {
   // Speculatively parse something. If parsing turned out to be a bad idea, roll
   // back and do something else.
   //
-  // try_func is always called. It should return a boolean.
+  // try_func is always called. It is given a Parser_Transaction&. It should not
+  // call commit_transaction or roll_back_transaction with the given
+  // Parser_Transaction. It should return a boolean.
   //
   // catch_func is called if try_func returns false.
   //
@@ -939,7 +941,7 @@ class Parser {
   template <class Try_Func, class Catch_Func>
   void try_parse(Try_Func &&try_func, Catch_Func &&catch_func) {
     Parser_Transaction transaction = this->begin_transaction();
-    bool should_commit = std::move(try_func)();
+    bool should_commit = std::move(try_func)(transaction);
     if (should_commit) {
       this->commit_transaction(std::move(transaction));
     } else {

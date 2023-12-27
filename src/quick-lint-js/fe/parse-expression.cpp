@@ -1528,7 +1528,7 @@ next:
           this->buffering_visitor_stack_.push();
 
       this->try_parse(
-          [&] {
+          [&](Parser_Transaction&) {
             bool parsed_without_fatal_error = this->catch_fatal_parse_errors(
                 [this, &generic_arguments_visits] {
                   this->parse_and_visit_typescript_generic_arguments(
