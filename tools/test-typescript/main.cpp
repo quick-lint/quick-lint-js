@@ -56,6 +56,7 @@ constexpr String8_View ignored_tests[] = {
     // These tests correctly emit E0427 (a warning).
     // TODO(strager): Disable E0427 for all tests and don't ignore these tests.
     u8"/es5-asyncFunctionSwitchStatements.ts"_sv,
+    u8"/narrowByClauseExpressionInSwitchTrue2.ts"_sv,
 
     // This test correctly emits E0451 (a warning).
     // TODO(strager): Disable E0451 for this test but still check this test.
