@@ -147,7 +147,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 348,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead"),
+        QLJS_TRANSLATABLE("unexpected '?' in type; use '| void' to make an optional type"),
       },
       .message_args = {
         {

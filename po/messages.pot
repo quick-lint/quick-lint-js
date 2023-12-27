@@ -314,7 +314,7 @@ msgid "TypeScript type annotation requires parentheses"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead"
+msgid "unexpected '?' in type; use '| void' to make an optional type"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp

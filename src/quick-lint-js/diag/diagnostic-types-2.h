@@ -101,10 +101,9 @@ struct Diag_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses {
 
 struct Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void {
   [[qljs::diag("E0348", Diagnostic_Severity::error)]]  //
-  // clang-format off
-  [[qljs::message("invalid usage of ? as a prefix or suffix in the a type "
-                  "expression, use '| void' instead", ARG(question))]]  //
-  // clang-format on
+  [[qljs::message(
+      "unexpected '?' in type; use '| void' to make an optional type",
+      ARG(question))]]  //
   Source_Code_Span question;
 };
 

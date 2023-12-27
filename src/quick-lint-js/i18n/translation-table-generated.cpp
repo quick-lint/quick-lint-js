@@ -362,8 +362,7 @@ const Translation_Table translation_data = {
         {47, 43, 47, 54, 35, 38},            //
         {31, 39, 32, 33, 28, 27},            //
         {34, 15, 43, 40, 37, 33},            //
-        {0, 0, 0, 0, 0, 39},                 //
-        {39, 51, 50, 40, 38, 88},            //
+        {39, 51, 50, 40, 38, 39},            //
         {57, 72, 67, 55, 0, 41},             //
         {0, 0, 0, 58, 0, 50},                //
         {0, 0, 0, 22, 0, 19},                //
@@ -549,7 +548,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 15},                 //
         {0, 0, 0, 15, 0, 38},                //
         {0, 0, 0, 53, 0, 49},                //
-        {0, 0, 0, 15, 0, 15},                //
+        {0, 0, 0, 0, 0, 15},                 //
+        {0, 0, 0, 15, 0, 62},                //
         {16, 12, 14, 32, 17, 34},            //
         {31, 12, 34, 35, 33, 29},            //
         {53, 46, 52, 49, 41, 43},            //
@@ -2226,7 +2226,6 @@ const Translation_Table translation_data = {
         u8"invalid function parameter\0"
         u8"invalid hex escape sequence: {0}\0"
         u8"invalid lone literal in object literal\0"
-        u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead\0"
         u8"keywords cannot contain escape sequences\0"
         u8"label named 'await' not allowed in async function\0"
         u8"labelled statement\0"
@@ -2413,6 +2412,7 @@ const Translation_Table translation_data = {
         u8"unexpected '...'; expected expression\0"
         u8"unexpected ':' in expression; did you mean 'as'?\0"
         u8"unexpected '?'\0"
+        u8"unexpected '?' in type; use '| void' to make an optional type\0"
         u8"unexpected '?' when destructuring\0"
         u8"unexpected '\\' in identifier\0"
         u8"unexpected 'case' outside switch statement\0"

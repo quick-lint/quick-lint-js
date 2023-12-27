@@ -19,7 +19,7 @@ using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
 constexpr std::uint16_t translation_table_mapping_table_size = 598;
-constexpr std::size_t translation_table_string_table_size = 82141;
+constexpr std::size_t translation_table_string_table_size = 82115;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -377,7 +377,6 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "invalid function parameter"sv,
           "invalid hex escape sequence: {0}"sv,
           "invalid lone literal in object literal"sv,
-          "invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead"sv,
           "keywords cannot contain escape sequences"sv,
           "label named 'await' not allowed in async function"sv,
           "labelled statement"sv,
@@ -564,6 +563,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "unexpected '...'; expected expression"sv,
           "unexpected ':' in expression; did you mean 'as'?"sv,
           "unexpected '?'"sv,
+          "unexpected '?' in type; use '| void' to make an optional type"sv,
           "unexpected '?' when destructuring"sv,
           "unexpected '\\' in identifier"sv,
           "unexpected 'case' outside switch statement"sv,

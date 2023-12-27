@@ -3890,17 +3890,6 @@ inline const Translated_String test_translation_table[597] = {
         },
     },
     {
-        "invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead"_translatable,
-        u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
-        {
-            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
-            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
-            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
-            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
-            u8"invalid usage of ? as a prefix or suffix in the a type expression, use '| void' instead",
-        },
-    },
-    {
         "keywords cannot contain escape sequences"_translatable,
         u8"keywords cannot contain escape sequences",
         {
@@ -5944,6 +5933,17 @@ inline const Translated_String test_translation_table[597] = {
             u8"unexpected '?'",
             u8"'?' inesperado",
             u8"unexpected '?'",
+        },
+    },
+    {
+        "unexpected '?' in type; use '| void' to make an optional type"_translatable,
+        u8"unexpected '?' in type; use '| void' to make an optional type",
+        {
+            u8"unexpected '?' in type; use '| void' to make an optional type",
+            u8"unexpected '?' in type; use '| void' to make an optional type",
+            u8"unexpected '?' in type; use '| void' to make an optional type",
+            u8"unexpected '?' in type; use '| void' to make an optional type",
+            u8"unexpected '?' in type; use '| void' to make an optional type",
         },
     },
     {

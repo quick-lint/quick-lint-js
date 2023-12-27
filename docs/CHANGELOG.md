@@ -78,8 +78,8 @@ Semantic Versioning.
     directly in its own definition") when using `extends ? :`.
   * Making a type alias and a function with the same name no longer falsely
     reports [E0034][] ("redeclaration of variable").
-  * `T extends () => RT ? A : B` no longer falsely reports [E0348][] ("invalid
-    usage of ? as a prefix or suffix in the a type " expression").
+  * `T extends () => RT ? A : B` no longer falsely reports [E0348][]
+    ("unexpected '?' in type; use '| void' to make an optional type").
   * `<T extends />` is now correctly parsed as a JSX element.
   * `interface I { get: any; }` (field named `get` with a type annotation) no
     longer reports [E0054][] ("unexpected token"). (Implemented by [Rui
