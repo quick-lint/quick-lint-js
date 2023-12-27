@@ -1174,6 +1174,8 @@ bool Variable_Analyzer::report_error_if_variable_declaration_conflicts(
        already_declared_var.ambient) ||
       (other_kind == VK::_function && kind == VK::_class &&
        newly_declared_var.ambient) ||
+      (other_kind == VK::_namespace && kind == VK::_class &&
+       newly_declared_var.ambient) ||
       false;
   if (!redeclaration_ok) {
     bool already_declared_is_global_variable =

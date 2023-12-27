@@ -188,6 +188,32 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     declare_class_does_not_conflict_with_namespace) {
+  test_parse_and_analyze(u8"declare class C {}  namespace C {var x;}"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"namespace C {var x;}  declare class C {}"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     declare_namespace_does_not_conflict_with_class) {
+  test_parse_and_analyze(u8"declare namespace C {var x;}  class C {}"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"class C {}  declare namespace C {var x;}"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     declare_namespace_does_not_conflict_with_declare_class) {
+  test_parse_and_analyze(
+      u8"declare namespace C {var x;}  declare class C {}"_sv, no_diags,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"declare class C {}  declare namespace C {var x;}"_sv, no_diags,
+      typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      import_alias_does_not_conflict_with_most_other_things) {
   for (String8_View other_thing : {
            u8"class A {}"_sv,
