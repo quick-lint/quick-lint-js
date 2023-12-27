@@ -3606,7 +3606,29 @@ Expression* Parser::parse_jsx_or_typescript_generic_expression(
       }
       break;
 
+    // <readonly />        // JSX.
+    // <readonly T[]>expr  // Type assertion.
+    case Token_Type::kw_keyof:
+    case Token_Type::kw_this:
+    case Token_Type::kw_readonly:
+    case Token_Type::kw_typeof:
+    case Token_Type::kw_unique:
+    case Token_Type::number:
     default:
+      // For these uncommon cases, don't try hard to guess what the user
+      // meant.
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      if (this->options_.jsx) {
+        return this->parse_jsx_expression(v);
+      } else {
+        return this->parse_typescript_angle_type_assertion_expression(
+            v, prec,
+            /*is_invalid_due_to_jsx_ambiguity=*/false);
+      }
+      break;
+
+    // <>hello<>  // JSX.
+    case Token_Type::greater:
       break;
     }
     this->lexer_.roll_back_transaction(std::move(transaction));

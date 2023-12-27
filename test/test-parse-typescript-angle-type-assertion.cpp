@@ -117,6 +117,8 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
            u8"< & Type>(expr);"_sv,
            u8"<[Type]>(expr);"_sv,
            u8"<Type[]>(expr);"_sv,
+           u8"<readonly Type[]>(expr);"_sv,
+           u8"<keyof Type>(expr);"_sv,
            u8"<{k: Type}>(expr);"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
@@ -155,6 +157,48 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
                               "visit_variable_namespace_use",  // ns
                               "visit_exit_type_scope",         // >
                               "visit_variable_use",            // expr
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<typeof v>expr;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // <
+                              "visit_variable_use",      // v
+                              "visit_exit_type_scope",   // >
+                              "visit_variable_use",      // expr
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"v"_sv, u8"expr"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<unique symbol>expr;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // <
+                              "visit_exit_type_scope",   // >
+                              "visit_variable_use",      // expr
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(u8"<this>expr;"_sv, no_diags,
+                                                   typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // <
+                              "visit_exit_type_scope",   // >
+                              "visit_variable_use",      // expr
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(u8"<42>expr;"_sv, no_diags,
+                                                   typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",  // <
+                              "visit_exit_type_scope",   // >
+                              "visit_variable_use",      // expr
                           }));
   }
 
