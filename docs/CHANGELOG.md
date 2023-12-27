@@ -114,6 +114,8 @@ Semantic Versioning.
     ("'param' is not the name of a parameter").
   * Arrow functions with return type annotations such as `(42)` or `(string[])`
     are now parsed correctly.
+  * `f<T>?.()` (optional chaining function call with generic function arguments)
+    is now parsed correctly.
 
 ## 2.18.0 (2023-11-03)
 

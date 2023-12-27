@@ -717,6 +717,13 @@ TEST_F(Test_Parse_TypeScript_Generic, function_call_with_generic_arguments) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
   }
+
+  {
+    Test_Parser p(u8"foo<T>?.()"_sv, typescript_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(var foo)");
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"_sv}));
+  }
 }
 
 TEST_F(Test_Parse_TypeScript_Generic, new_with_generic_arguments) {
@@ -792,6 +799,7 @@ TEST_F(Test_Parse_TypeScript_Generic,
            {u8"(foo<T>)"_sv,           "paren(var foo)", u8"T"},
            {u8"{k: foo<T>}"_sv,        "object(literal: var foo)", u8"T"},
            {u8"foo<T>.prop"_sv,        "dot(var foo, prop)", u8"T"},
+           {u8"foo<T>?.prop"_sv,       "dot(var foo, prop)", u8"T"},
            {u8"foo<T>, other"_sv,      "binary(var foo, var other)", u8"T"},
            {u8"f(foo<T>)"_sv,          "call(var f, var foo)", u8"T"},
            {u8"f(foo<T>, other)"_sv,   "call(var f, var foo, var other)", u8"T"},

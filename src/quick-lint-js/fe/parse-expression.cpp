@@ -1566,6 +1566,7 @@ next:
             case Token_Type::kw_with:
             case Token_Type::left_paren:
             case Token_Type::question:
+            case Token_Type::question_dot:
             case Token_Type::right_curly:
             case Token_Type::right_paren:
             case Token_Type::right_square:
