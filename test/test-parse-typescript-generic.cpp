@@ -1110,6 +1110,42 @@ TEST_F(Test_Parse_TypeScript_Generic,
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Generic, class_can_extend_generic) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"class C extends Base<string> {}"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // {
+                              "visit_enter_type_scope",        // <
+                              "visit_exit_type_scope",         // >
+                              "visit_variable_use",            // Base
+                              "visit_enter_class_scope_body",  // C
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Base"_sv}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"class C extends Base<string> implements I {}"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // {
+                              "visit_enter_type_scope",        // <
+                              "visit_exit_type_scope",         // >
+                              "visit_variable_use",            // Base
+                              "visit_variable_type_use",       // I
+                              "visit_enter_class_scope_body",  // C
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"Base"_sv, u8"I"_sv}));
+  }
+}
+
 TEST_F(
     Test_Parse_TypeScript_Generic,
     extending_or_implementing_generic_allows_newline_before_generic_arguments) {

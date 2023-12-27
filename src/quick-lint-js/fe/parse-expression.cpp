@@ -1573,7 +1573,10 @@ next:
               parsed_as_generic_arguments = true;
               return true;
 
-            case Token_Type::left_curly:  // class A extends B<C> {}
+            // class A extends B<C> {}
+            // class A extends B<C> implements I {}
+            case Token_Type::left_curly:
+            case Token_Type::kw_implements:
               if (prec.in_class_extends_clause) {
                 parsed_as_generic_arguments = true;
                 return true;
