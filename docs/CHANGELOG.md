@@ -44,6 +44,8 @@ Semantic Versioning.
   * Assigning to a class now reports [E0003][] ("cannot assign to class").
   * Definite assignment assertions (`!` after a variable name in `let` or `var`)
     is now supported.
+  * Abstract constructor types (such as `abstract new () => C`) are now
+    supported.
 
 ### Fixed
 

@@ -3022,6 +3022,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Missing_New_In_Abstract_Constructor_Type
+    {
+      .code = 447,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("missing 'new' in constructor type"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Missing_New_In_Abstract_Constructor_Type, expected_new), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Missing_Operand_For_Operator
     {
       .code = 26,

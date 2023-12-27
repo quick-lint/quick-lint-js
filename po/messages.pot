@@ -1206,6 +1206,10 @@ msgid "missing name or parentheses for function"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "missing 'new' in constructor type"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing operand for operator"
 msgstr ""
 

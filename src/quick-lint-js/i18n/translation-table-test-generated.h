@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[597] = {
+inline const Translated_String test_translation_table[598] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4173,6 +4173,17 @@ inline const Translated_String test_translation_table[597] = {
             u8"missing 'if' after 'else'",
             u8"falta o 'if' ap\u00f3s o 'else'",
             u8"missing 'if' after 'else'",
+        },
+    },
+    {
+        "missing 'new' in constructor type"_translatable,
+        u8"missing 'new' in constructor type",
+        {
+            u8"missing 'new' in constructor type",
+            u8"missing 'new' in constructor type",
+            u8"missing 'new' in constructor type",
+            u8"missing 'new' in constructor type",
+            u8"missing 'new' in constructor type",
         },
     },
     {

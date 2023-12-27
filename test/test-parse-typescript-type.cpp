@@ -1141,6 +1141,78 @@ TEST_F(Test_Parse_TypeScript_Type, constructor_function) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Type, abstract_constructor_function) {
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"abstract new () => ReturnType"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",  //
+                              "visit_enter_type_scope",      // =>
+                              "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
+                              "visit_exit_function_scope",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Type,
+       abstract_constructor_function_requires_new_keyword) {
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"abstract () => ReturnType"_sv,  //
+        u8"         ` Diag_Missing_New_In_Abstract_Constructor_Type.expected_new"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",  //
+                              "visit_enter_type_scope",      // =>
+                              "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
+                              "visit_exit_function_scope",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ReturnType"}));
+  }
+}
+
+TEST_F(
+    Test_Parse_TypeScript_Type,
+    newline_between_abstract_and_new_in_constructor_function_does_not_trigger_asi) {
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"abstract\nnew () => ReturnType"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",  //
+                              "visit_enter_type_scope",      // =>
+                              "visit_variable_type_use",     // ReturnType
+                              "visit_exit_type_scope",       //
+                              "visit_exit_function_scope",
+                          }));
+  }
+}
+
+TEST_F(
+    Test_Parse_TypeScript_Type,
+    newline_after_abstract_without_new_in_constructor_function_triggers_asi) {
+  {
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"type T = abstract\n() => ReturnType;"_sv,
+                                    no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",       // T
+                              "visit_enter_type_scope",           //
+                              "visit_variable_type_use",          // abstract
+                              "visit_exit_type_scope",            //
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // =>
+                              "visit_variable_use",               // ReturnType
+                              "visit_exit_function_scope",        //
+                              "visit_end_of_module",              //
+                          }));
+    EXPECT_THAT(p.variable_uses,
+                ElementsAreArray({u8"abstract"_sv, u8"ReturnType"_sv}));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Type, array) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(

@@ -201,7 +201,6 @@ again:
   // ns.Type<T>
   // param is Type
   type_variable_or_namespace_or_type_predicate:
-  case Token_Type::kw_abstract:
   case Token_Type::kw_accessor:
   case Token_Type::kw_as:
   case Token_Type::kw_assert:
@@ -494,6 +493,45 @@ again:
     this->skip();
     this->parse_and_visit_typescript_arrow_type_expression(v);
     break;
+
+  // abstract
+  // abstract new (param, param) => ReturnType
+  case Token_Type::kw_abstract: {
+    Lexer_Transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    switch (this->peek().type) {
+    // abstract new (param, param) => ReturnType
+    case Token_Type::kw_new:
+      this->lexer_.commit_transaction(std::move(transaction));
+      this->skip();
+      this->parse_and_visit_typescript_arrow_type_expression(v);
+      break;
+
+    // type T = abstract /*ASI*/ (param, param) => body;
+    // abstract (param, param) => ReturnType  // Invalid.
+    case Token_Type::left_paren:
+      if (this->peek().has_leading_newline) {
+        // ASI.
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto type_variable_or_namespace_or_type_predicate;
+      }
+      // Missing 'new' keyword.
+      this->lexer_.commit_transaction(std::move(transaction));
+      this->diag_reporter_->report(
+          Diag_Missing_New_In_Abstract_Constructor_Type{
+              .expected_new = Source_Code_Span::unit(this->peek().begin),
+          });
+      this->parse_and_visit_typescript_arrow_type_expression(v);
+      break;
+
+    // type T = abstract;
+    // [abstract]
+    default:
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto type_variable_or_namespace_or_type_predicate;
+    }
+    break;
+  }
 
   // <T>(param, param) => ReturnType
   case Token_Type::less:

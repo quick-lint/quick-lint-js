@@ -1553,6 +1553,12 @@ struct Diag_Missing_Name_Or_Parentheses_For_Function {
   Source_Code_Span function;
 };
 
+struct Diag_Missing_New_In_Abstract_Constructor_Type {
+  [[qljs::diag("E0447", Diagnostic_Severity::error)]]                        //
+  [[qljs::message("missing 'new' in constructor type", ARG(expected_new))]]  //
+  Source_Code_Span expected_new;
+};
+
 struct Diag_Missing_Operand_For_Operator {
   [[qljs::diag("E0026", Diagnostic_Severity::error)]]            //
   [[qljs::message("missing operand for operator", ARG(where))]]  //

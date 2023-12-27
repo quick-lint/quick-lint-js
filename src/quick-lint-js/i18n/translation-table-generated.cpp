@@ -388,7 +388,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 27},                 //
         {0, 0, 0, 0, 0, 74},                 //
         {0, 40, 0, 28, 0, 38},               //
-        {29, 22, 33, 28, 26, 26},            //
+        {0, 0, 0, 0, 0, 26},                 //
+        {29, 22, 33, 28, 26, 34},            //
         {0, 0, 0, 55, 0, 51},                //
         {48, 27, 63, 27, 0, 24},             //
         {40, 4, 58, 41, 50, 42},             //
@@ -2252,6 +2253,7 @@ const Translation_Table translation_data = {
         u8"missing 'break;' or '// fallthrough' comment between statement and 'case'\0"
         u8"missing 'export' keyword for function\0"
         u8"missing 'if' after 'else'\0"
+        u8"missing 'new' in constructor type\0"
         u8"missing 'while (condition)' for do-while statement\0"
         u8"missing TypeScript type\0"
         u8"missing arrow operator for arrow function\0"
