@@ -245,6 +245,8 @@ class Parser {
   void
   parse_and_visit_typescript_arrow_type_expression_after_left_paren_no_scope(
       Parse_Visitor_Base &v);
+  void parse_and_visit_typescript_arrow_type_arrow_and_return_type_no_scope(
+      Parse_Visitor_Base &v);
   TypeScript_Type_Arrow_Or_Paren
   parse_and_visit_typescript_arrow_or_paren_type_expression(
       Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);

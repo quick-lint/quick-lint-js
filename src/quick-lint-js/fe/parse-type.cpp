@@ -855,6 +855,13 @@ void Parser::
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal_greater);
+  this->parse_and_visit_typescript_arrow_type_arrow_and_return_type_no_scope(v);
+}
+
+void Parser::
+    parse_and_visit_typescript_arrow_type_arrow_and_return_type_no_scope(
+        Parse_Visitor_Base &v) {
+  QLJS_ASSERT(this->peek().type == Token_Type::equal_greater);
   this->skip();
   // visit_enter_type_scope/visit_exit_type_scope is necessary. See
   // NOTE[type-predicate-type-scope].
@@ -876,67 +883,57 @@ Parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
   QLJS_ASSERT(this->peek().type == Token_Type::left_paren);
   this->skip();
 
-  if (this->peek().type == Token_Type::right_paren) {
-    // () => ReturnType
-    this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(v);
-    return TypeScript_Type_Arrow_Or_Paren::arrow;
-  }
+  // TypeScript's grammar is ambiguous. This could be a parenthesized type (such
+  // as '(number)') or an arrow type (such as '(p) => string').
+  //
+  // Resolve the ambiguity by parsing the parenthesized thing as an arrow type's
+  // parameter list. If successful, and if '=>' follows, this is an arrow type.
+  // Otherwise, this is a parenthesized type.
 
-  // TODO(strager): Performance of this code probably sucks. I suspect arrow
-  // types are more common than parenthesized types, so we should assume arrow
-  // and fall back to parenthesized.
-
-  TypeScript_Type_Arrow_Or_Paren result = TypeScript_Type_Arrow_Or_Paren::paren;
+  TypeScript_Type_Arrow_Or_Paren result = TypeScript_Type_Arrow_Or_Paren::arrow;
   this->try_parse(
       [&] {
         Stacked_Buffering_Visitor params_visitor =
             this->buffering_visitor_stack_.push();
-        const Char8 *old_begin = this->peek().begin;
-        this->parse_and_visit_typescript_type_expression_no_scope(
-            params_visitor.visitor(),
-            TypeScript_Type_Parse_Options{
-                .type_being_declared = parse_options.type_being_declared,
+        bool parsed_function_parameters =
+            this->catch_fatal_parse_errors([&]() -> void {
+              this->parse_and_visit_function_parameters(
+                  params_visitor.visitor(),
+                  Variable_Kind::_function_type_parameter,
+                  Parameter_List_Options{});
             });
-        if (this->peek().begin == old_begin) {
-          // We didn't parse anything.
-          // (...params) => ReturnType
+        if (!parsed_function_parameters) {
           return false;
         }
-        switch (this->peek().type) {
-        // (typeexpr)
-        // (param) => ReturnType
-        case Token_Type::right_paren:
-          this->skip();
-
-          if (this->peek().type == Token_Type::equal_greater) {
-            // (param, param) => ReturnType
-            return false;
-          } else {
-            // (typeexpr)
-            params_visitor.visitor().move_into(v);
-            return true;
-          }
-          break;
-
-        // (param, param) => ReturnType
-        // (param: Type) => ReturnType
-        // (param?) => ReturnType
-        case Token_Type::colon:
-        case Token_Type::comma:
-        case Token_Type::question:
+        if (this->peek().type != Token_Type::right_paren) {
           return false;
-
-        default:
-          QLJS_PARSER_UNIMPLEMENTED();
-          break;
         }
-        QLJS_UNREACHABLE();
+        this->skip();
+        if (this->peek().type != Token_Type::equal_greater) {
+          return false;
+        }
+
+        v.visit_enter_function_scope();
+        params_visitor.visitor().move_into(v);
+        // We parse '=>' and the return type, then emit
+        // visit_exit_function_scope, outside this try_parse.
+        return true;
       },
       [&] {
-        result = TypeScript_Type_Arrow_Or_Paren::arrow;
-        this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(
-            v);
+        result = TypeScript_Type_Arrow_Or_Paren::paren;
+        this->parse_and_visit_typescript_type_expression_no_scope(
+            v, TypeScript_Type_Parse_Options{
+                   .type_being_declared = parse_options.type_being_declared,
+               });
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
+        this->skip();
       });
+  if (result == TypeScript_Type_Arrow_Or_Paren::arrow) {
+    QLJS_ASSERT(this->peek().type == Token_Type::equal_greater);
+    this->parse_and_visit_typescript_arrow_type_arrow_and_return_type_no_scope(
+        v);
+    v.visit_exit_function_scope();
+  }
   return result;
 }
 
