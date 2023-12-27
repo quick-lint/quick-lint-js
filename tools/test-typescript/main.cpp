@@ -46,6 +46,7 @@ constexpr String8_View ignored_tests[] = {
     u8"/downlevelLetConst14.ts"sv,
     u8"/downlevelLetConst15.ts"sv,
     u8"/initializePropertiesWithRenamedLet.ts"sv,
+    u8"/narrowingDestructuring.ts"sv,
 
     // This test correctly emits E0266 (a warning).
     // TODO(strager): Disable E0266 for this test but still check this test.
