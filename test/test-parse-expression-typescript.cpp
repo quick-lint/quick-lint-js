@@ -83,6 +83,13 @@ TEST_F(Test_Parse_Expression_TypeScript,
               "cond(var cond1, cond(var cond2, var t2, arrowfunc(var param)), "
               "var f1)");
   }
+
+  {
+    Test_Parser p(u8"cond ? (t) : (<F />)"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "cond(var cond, paren(var t), paren(jsxelement(F)))");
+  }
 }
 
 TEST_F(Test_Parse_Expression_TypeScript,

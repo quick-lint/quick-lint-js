@@ -2183,14 +2183,16 @@ next:
       Buffering_Visitor type_visitor(&this->type_expression_memory_);
       Parser_Transaction transaction = this->begin_transaction();
 
-      this->parse_and_visit_typescript_colon_type_expression(
-          type_visitor,
-          TypeScript_Type_Parse_Options{
-              // TODO(strager): Should we set
-              // stop_parsing_type_at_newline_before_generic_arguments to false?
-          });
-
-      if (this->peek().type == Token_Type::equal_greater) {
+      bool parsed_ok = this->catch_fatal_parse_errors([&] {
+        this->parse_and_visit_typescript_colon_type_expression(
+            type_visitor,
+            TypeScript_Type_Parse_Options{
+                // TODO(strager): Should we set
+                // stop_parsing_type_at_newline_before_generic_arguments
+                // to false?
+            });
+      });
+      if (parsed_ok && this->peek().type == Token_Type::equal_greater) {
         // cond ? (t)    : param   => body
         // cond ? (param): RetType => body : f
         //                         ^^
