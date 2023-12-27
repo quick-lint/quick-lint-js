@@ -2136,52 +2136,60 @@ next:
   }
 
   // x: Type  // TypeScript only.
-  case Token_Type::colon: {
-    Expression* child = binary_builder.last_expression();
-    bool should_parse_annotation;
+  case Token_Type::colon:
     switch (prec.colon_type_annotation) {
-    case Allow_Type_Annotations::
-        typescript_only_if_legal_as_conditional_true_branch:
-      should_parse_annotation =
-          this->options_.typescript && child->kind() == Expression_Kind::Paren;
-      break;
     case Allow_Type_Annotations::typescript_only:
-      should_parse_annotation = this->options_.typescript;
+      if (this->options_.typescript) {
+        goto parse_colon_type_annotation;
+      }
       break;
-    case Allow_Type_Annotations::always:
-      should_parse_annotation = true;
-      break;
+
+    parse_colon_type_annotation:
+    case Allow_Type_Annotations::always: {
+      Expression* child = binary_builder.last_expression();
+      Source_Code_Span colon_span = this->peek().span();
+      Buffering_Visitor type_visitor(&this->type_expression_memory_);
+      bool is_possibly_arrow_function_return_type_annotation =
+          child->kind() == Expression_Kind::Paren ||
+          child->kind() == Expression_Kind::Paren_Empty;
+      this->parse_and_visit_typescript_colon_type_expression(
+          type_visitor,
+          TypeScript_Type_Parse_Options{
+              .allow_assertion_signature_or_type_predicate =
+                  is_possibly_arrow_function_return_type_annotation,
+              .stop_parsing_type_at_newline_before_generic_arguments =
+                  prec.stop_parsing_type_at_newline_before_generic_arguments_in_type_annotation,
+          });
+      const Char8* type_end = this->lexer_.end_of_previous_token();
+      binary_builder.replace_last(
+          this->make_expression<Expression::Type_Annotated>(
+              child, colon_span, std::move(type_visitor), type_end));
+      goto next;
+    }
+
     case Allow_Type_Annotations::never:
-      should_parse_annotation = false;
       break;
-    }
-    if (!should_parse_annotation) {
-      break;
-    }
-    Source_Code_Span colon_span = this->peek().span();
-    Buffering_Visitor type_visitor(&this->type_expression_memory_);
 
-    Parser_Transaction transaction = this->begin_transaction();
+    // cond ? (t)    : param   => body
+    // cond ? (param): RetType => body : f
+    // cond ? (t)    : f
+    case Allow_Type_Annotations::
+        typescript_only_if_legal_as_conditional_true_branch: {
+      Expression* child = binary_builder.last_expression();
+      if (!(this->options_.typescript &&
+            child->kind() == Expression_Kind::Paren)) {
+        break;
+      }
+      Buffering_Visitor type_visitor(&this->type_expression_memory_);
+      Parser_Transaction transaction = this->begin_transaction();
 
-    bool is_possibly_arrow_function_return_type_annotation =
-        child->kind() == Expression_Kind::Paren ||
-        child->kind() == Expression_Kind::Paren_Empty;
-    this->parse_and_visit_typescript_colon_type_expression(
-        type_visitor,
-        TypeScript_Type_Parse_Options{
-            .allow_assertion_signature_or_type_predicate =
-                is_possibly_arrow_function_return_type_annotation,
-            .stop_parsing_type_at_newline_before_generic_arguments =
-                prec.stop_parsing_type_at_newline_before_generic_arguments_in_type_annotation,
-        });
-    if (prec.colon_type_annotation ==
-        Allow_Type_Annotations::
-            typescript_only_if_legal_as_conditional_true_branch) {
-      // cond ? (t)    : param   => body
-      // cond ? (param): RetType => body : f
-      // cond ? (t)    : f
+      this->parse_and_visit_typescript_colon_type_expression(
+          type_visitor,
+          TypeScript_Type_Parse_Options{
+              // TODO(strager): Should we set
+              // stop_parsing_type_at_newline_before_generic_arguments to false?
+          });
 
-      QLJS_ASSERT(this->options_.typescript);
       if (this->peek().type == Token_Type::equal_greater) {
         // cond ? (t)    : param   => body
         // cond ? (param): RetType => body : f
@@ -2217,14 +2225,8 @@ next:
       this->roll_back_transaction(std::move(transaction));
       break;
     }
-    this->commit_transaction(std::move(transaction));
-
-    const Char8* type_end = this->lexer_.end_of_previous_token();
-    binary_builder.replace_last(
-        this->make_expression<Expression::Type_Annotated>(
-            child, colon_span, std::move(type_visitor), type_end));
-    goto next;
-  }
+    }
+    break;
 
   // x   // ASI
   // as
