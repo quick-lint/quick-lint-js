@@ -147,6 +147,18 @@ TEST_F(Test_Parse_Function, parse_function_statement) {
   }
 }
 
+TEST_F(Test_Parse_Function,
+       parameter_with_default_followed_by_rest_parameter_is_allowed) {
+  test_parse_and_visit_statement(u8"function f(param1 = null, ...rest) {}"_sv,
+                                 no_diags, javascript_options);
+}
+
+TEST_F(Test_Parse_Function,
+       parameter_with_default_followed_by_normal_parameter_is_allowed) {
+  test_parse_and_visit_statement(u8"function f(param1 = null, param2) {}"_sv,
+                                 no_diags, javascript_options);
+}
+
 TEST_F(Test_Parse_Function, function_with_arrow_operator) {
   test_parse_and_visit_statement(
       u8"function f() => {}"_sv,  //

@@ -831,6 +831,12 @@ TEST_F(Test_Parse_TypeScript_Function, optional_parameter) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Function,
+       required_parameter_followed_by_optional_parameter_is_allowed) {
+  test_parse_and_visit_statement(u8"function f(param1, param2?) {}"_sv,
+                                 no_diags, typescript_options);
+}
+
 TEST_F(Test_Parse_TypeScript_Function, optional_parameter_in_function_type) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
@@ -859,6 +865,12 @@ TEST_F(Test_Parse_TypeScript_Function,
 }
 
 TEST_F(Test_Parse_TypeScript_Function,
+       parameter_with_default_followed_by_rest_parameter_is_allowed) {
+  test_parse_and_visit_statement(u8"function f(param1 = null, ...rest) {}"_sv,
+                                 no_diags, typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Function,
        optional_parameter_followed_by_required) {
   test_parse_and_visit_typescript_type_expression(
       u8"(param1?, param2) => ReturnType"_sv,  //
@@ -880,6 +892,24 @@ TEST_F(Test_Parse_TypeScript_Function,
       u8" ^^^^^^^^^^^^^^^ Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter.optional_parameter\n"_diag
       u8"                  ^^^^^^^^^^^^^^ .required_parameter"_diag,  //
       typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Function,
+       parameter_with_default_followed_by_normal_parameter_is_allowed) {
+  test_parse_and_visit_statement(u8"function f(param1 = null, param2) {}"_sv,
+                                 no_diags, typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Function,
+       optional_parameter_followed_by_parameter_with_default_is_allowed) {
+  test_parse_and_visit_statement(u8"function f(param1?, param2 = null) {}"_sv,
+                                 no_diags, typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Function,
+       parameter_with_default_followed_by_optional_parameter_is_allowed) {
+  test_parse_and_visit_statement(u8"function f(param1 = null, param2?) {}"_sv,
+                                 no_diags, typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Function,

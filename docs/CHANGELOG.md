@@ -135,6 +135,9 @@ Semantic Versioning.
     [E0715][] ("cannot use multiple `export default` statements in one module").
   * `typeof` in types now supports variables named `boolean`, `string`, and some
     other names.
+  * An optional parameter with `?` followed by an optional parameter with `=` no
+    longer falsely reports [E0379][] ("optional parameter cannot be followed by
+    a required parameter").
 
 ## 2.18.0 (2023-11-03)
 
