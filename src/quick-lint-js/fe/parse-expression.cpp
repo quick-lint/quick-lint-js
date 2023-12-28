@@ -25,6 +25,7 @@
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/enum.h>
 #include <utility>
 
 // For Parser::binding_element_info.
@@ -222,7 +223,8 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
           // Visit as if: { key: (value = init) }
           this->visit_expression(entry.init, v, Variable_Context::rhs);
           this->visit_expression(entry.value, v, Variable_Context::lhs);
-          this->maybe_visit_assignment(entry.value, v);
+          this->maybe_visit_assignment(entry.value, v,
+                                       Variable_Assignment_Flags::none);
           break;
         case Variable_Context::lhs:
           // ({ key: value = init } = obj);
@@ -258,7 +260,7 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
   case Expression_Kind::RW_Unary_Suffix: {
     Expression* child = ast->child_0();
     this->visit_expression(child, v, Variable_Context::rhs);
-    this->maybe_visit_assignment(child, v);
+    this->maybe_visit_assignment(child, v, Variable_Assignment_Flags::none);
     break;
   }
   case Expression_Kind::Non_Null_Assertion:
@@ -294,39 +296,43 @@ void Parser::visit_assignment_expression(Expression* lhs, Expression* rhs,
                                          Parse_Visitor_Base& v) {
   this->visit_expression(lhs, v, Variable_Context::lhs);
   this->visit_expression(rhs, v, Variable_Context::rhs);
-  this->maybe_visit_assignment(lhs, v);
+  this->maybe_visit_assignment(lhs, v, Variable_Assignment_Flags::none);
 }
 
 void Parser::visit_compound_or_conditional_assignment_expression(
     Expression* lhs, Expression* rhs, Parse_Visitor_Base& v) {
   this->visit_expression(lhs, v, Variable_Context::rhs);
   this->visit_expression(rhs, v, Variable_Context::rhs);
-  this->maybe_visit_assignment(lhs, v);
+  this->maybe_visit_assignment(lhs, v, Variable_Assignment_Flags::none);
 }
 
-void Parser::maybe_visit_assignment(Expression* ast, Parse_Visitor_Base& v) {
+void Parser::maybe_visit_assignment(Expression* ast, Parse_Visitor_Base& v,
+                                    Variable_Assignment_Flags flags) {
   switch (ast->kind()) {
   case Expression_Kind::Array:
     for (Expression* child : ast->children()) {
-      this->maybe_visit_assignment(child, v);
+      this->maybe_visit_assignment(child, v, flags);
     }
     break;
   case Expression_Kind::Object:
     for (Span_Size i = 0; i < ast->object_entry_count(); ++i) {
       Expression* value = ast->object_entry(i).value;
-      this->maybe_visit_assignment(value, v);
+      this->maybe_visit_assignment(value, v, flags);
     }
     break;
   case Expression_Kind::Angle_Type_Assertion:
   case Expression_Kind::As_Type_Assertion:
+  case Expression_Kind::Satisfies:
+    this->maybe_visit_assignment(
+        ast->child_0(), v,
+        enum_set_flags(flags, Variable_Assignment_Flags::type_asserted));
+    break;
   case Expression_Kind::Non_Null_Assertion:
   case Expression_Kind::Paren:
-  case Expression_Kind::Satisfies:
-    this->maybe_visit_assignment(ast->child_0(), v);
+    this->maybe_visit_assignment(ast->child_0(), v, flags);
     break;
   case Expression_Kind::Variable:
-    v.visit_variable_assignment(ast->variable_identifier(),
-                                Variable_Assignment_Flags::none);
+    v.visit_variable_assignment(ast->variable_identifier(), flags);
     break;
   default:
     break;

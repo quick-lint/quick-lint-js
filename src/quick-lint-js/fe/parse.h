@@ -271,7 +271,8 @@ class Parser {
                                    Parse_Visitor_Base &v);
   void visit_compound_or_conditional_assignment_expression(
       Expression *lhs, Expression *rhs, Parse_Visitor_Base &v);
-  void maybe_visit_assignment(Expression *ast, Parse_Visitor_Base &v);
+  void maybe_visit_assignment(Expression *ast, Parse_Visitor_Base &v,
+                              Variable_Assignment_Flags flags);
 
   void parse_and_visit_typescript_generic_arguments(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_generic_arguments_no_scope(

@@ -106,6 +106,18 @@ enum class Variable_Declaration_Flags : unsigned char {
 
 enum class Variable_Assignment_Flags : unsigned char {
   none = 0,
+
+  // The assigned variable was casted with a TypeScript angle type assertion, an
+  // 'as' type assertion, or a 'satisifes' type assertion. For example:
+  //
+  // type_asserted is not set for a non-null assertion.
+  //
+  // Examples set:
+  //   (x as T) = y;
+  // Examples unset:
+  //   (x) = y;
+  //   x! = y;
+  type_asserted = 1 << 0,
 };
 
 enum class Function_Attributes {

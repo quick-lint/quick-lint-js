@@ -412,10 +412,10 @@ void Variable_Analyzer::visit_variable_assignment(
   if (var) {
     var->is_used = true;
     this->report_error_if_assignment_is_illegal(
-        var, name, /*is_assigned_before_declaration=*/false);
+        var, name, /*is_assigned_before_declaration=*/false, flags);
   } else {
     this->add_variable_use_to_current_scope(
-        Used_Variable(name, Used_Variable_Kind::assignment));
+        Used_Variable(name, Used_Variable_Kind::assignment, flags));
   }
 }
 
@@ -792,36 +792,40 @@ void Variable_Analyzer::propagate_variable_declarations_to_parent_scope() {
 
 void Variable_Analyzer::report_error_if_assignment_is_illegal(
     const Declared_Variable *var, const Identifier &assignment,
-    bool is_assigned_before_declaration) const {
-  this->report_error_if_assignment_is_illegal(*var, assignment,
-                                              is_assigned_before_declaration);
+    bool is_assigned_before_declaration,
+    Variable_Assignment_Flags flags) const {
+  this->report_error_if_assignment_is_illegal(
+      *var, assignment, is_assigned_before_declaration, flags);
 }
 
 void Variable_Analyzer::report_error_if_assignment_is_illegal(
     const Declared_Variable &var, const Identifier &assignment,
-    bool is_assigned_before_declaration) const {
+    bool is_assigned_before_declaration,
+    Variable_Assignment_Flags flags) const {
   this->report_error_if_assignment_is_illegal(
       /*kind=*/var.kind,
       /*is_global_variable=*/false,
       /*declaration=*/&var.declaration,
       /*assignment=*/assignment,
-      /*is_assigned_before_declaration=*/is_assigned_before_declaration);
+      /*is_assigned_before_declaration=*/is_assigned_before_declaration, flags);
 }
 
 void Variable_Analyzer::report_error_if_assignment_is_illegal(
     const Global_Declared_Variable &var, const Identifier &assignment,
-    bool is_assigned_before_declaration) const {
+    bool is_assigned_before_declaration,
+    Variable_Assignment_Flags flags) const {
   this->report_error_if_assignment_is_illegal(
       /*kind=*/var.kind(),
       /*is_global_variable=*/true,
       /*declaration=*/nullptr,
       /*assignment=*/assignment,
-      /*is_assigned_before_declaration=*/is_assigned_before_declaration);
+      /*is_assigned_before_declaration=*/is_assigned_before_declaration, flags);
 }
 
 void Variable_Analyzer::report_error_if_assignment_is_illegal(
     Variable_Kind kind, bool is_global_variable, const Identifier *declaration,
-    const Identifier &assignment, bool is_assigned_before_declaration) const {
+    const Identifier &assignment, bool is_assigned_before_declaration,
+    Variable_Assignment_Flags flags) const {
   if (is_global_variable) {
     QLJS_ASSERT(!declaration);
   } else {
@@ -830,7 +834,11 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
 
   switch (kind) {
   case Variable_Kind::_class:
-    if (this->options_.can_assign_to_class) {
+    // TypeScript allows assigning to a class variable iff the assigned variable
+    // is type-asserted. (It's a strange rule. Perhaps it was designed as an
+    // escape hatch in case you really needed to assign to a class variable.)
+    if (this->options_.can_assign_to_class ||
+        enum_has_flags(flags, Variable_Assignment_Flags::type_asserted)) {
       goto assignable_lexical_variable;
     } else {
       goto unassignable_lexical_variable;
@@ -927,7 +935,8 @@ void Variable_Analyzer::report_errors_for_variable_use(
   if (used_var.kind == Used_Variable_Kind::assignment) {
     this->report_error_if_assignment_is_illegal(
         declared, used_var.name,
-        /*is_assigned_before_declaration=*/use_is_before_declaration);
+        /*is_assigned_before_declaration=*/use_is_before_declaration,
+        used_var.variable_assignment_flags);
   }
 
   if (!declared_in_global_scope &&

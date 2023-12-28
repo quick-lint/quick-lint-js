@@ -176,14 +176,22 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   struct Used_Variable {
     explicit Used_Variable(Identifier name, Used_Variable_Kind kind)
         : name(name), kind(kind) {
+      QLJS_ASSERT(kind != Used_Variable_Kind::assignment);
       QLJS_ASSERT(kind != Used_Variable_Kind::_delete);
     }
 
     // kind must be Used_Variable_Kind::_delete.
     explicit Used_Variable(Identifier name, Used_Variable_Kind kind,
                            const Char8 *delete_keyword_begin)
-        : name(name), delete_keyword_begin(delete_keyword_begin), kind(kind) {
+        : name(name), kind(kind), delete_keyword_begin(delete_keyword_begin) {
       QLJS_ASSERT(kind == Used_Variable_Kind::_delete);
+    }
+
+    // kind must be Used_Variable_Kind::assignment.
+    explicit Used_Variable(Identifier name, Used_Variable_Kind kind,
+                           Variable_Assignment_Flags flags)
+        : name(name), kind(kind), variable_assignment_flags(flags) {
+      QLJS_ASSERT(kind == Used_Variable_Kind::assignment);
     }
 
     // Returns true if this variable was used in an expression or in a module
@@ -200,8 +208,14 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
     Is_Runtime_Or_Type is_runtime_or_type() const;
 
     Identifier name;
-    const Char8 *delete_keyword_begin;  // Used_Variable_Kind::_delete only
     Used_Variable_Kind kind;
+
+    union {
+      // Used_Variable_Kind::_delete only:
+      const Char8 *delete_keyword_begin;
+      // Used_Variable_Kind::assignment only:
+      Variable_Assignment_Flags variable_assignment_flags;
+    };
   };
 
   class Declared_Variable_Set {
@@ -334,17 +348,21 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
 
   void report_error_if_assignment_is_illegal(
       const Declared_Variable *var, const Identifier &assignment,
-      bool is_assigned_before_declaration) const;
+      bool is_assigned_before_declaration,
+      Variable_Assignment_Flags flags) const;
   void report_error_if_assignment_is_illegal(
       const Declared_Variable &var, const Identifier &assignment,
-      bool is_assigned_before_declaration) const;
+      bool is_assigned_before_declaration,
+      Variable_Assignment_Flags flags) const;
   void report_error_if_assignment_is_illegal(
       const Global_Declared_Variable &var, const Identifier &assignment,
-      bool is_assigned_before_declaration) const;
+      bool is_assigned_before_declaration,
+      Variable_Assignment_Flags flags) const;
   void report_error_if_assignment_is_illegal(
       Variable_Kind kind, bool is_global_variable,
       const Identifier *declaration, const Identifier &assignment,
-      bool is_assigned_before_declaration) const;
+      bool is_assigned_before_declaration,
+      Variable_Assignment_Flags flags) const;
 
   template <class Declared_Variable_Type>
   void report_errors_for_variable_use(const Used_Variable &,

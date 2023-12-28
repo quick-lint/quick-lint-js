@@ -244,6 +244,29 @@ TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_class_in_typescript) {
       u8"      ^ .declaration"_diag
       u8"{.var_kind=Variable_Kind::_class}"_diag,
       typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"class C {}  (C) = null;"_sv,
+                         u8"Diag_Assignment_To_Const_Variable"_diag,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"class C {}  C! = null;"_sv,
+                         u8"Diag_Assignment_To_Const_Variable"_diag,
+                         typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Assign,
+     can_assign_to_class_with_typescript_type_assertion) {
+  test_parse_and_analyze(u8"class C {}  (<any>C) = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"class C {}  (C as any) = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"class C {}  (C satisfies any) = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"class C {}  [C as any] = [null];"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"class C {}  (C! satisfies any)! = null;"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
+
+  test_parse_and_analyze(u8"function f() { (<any>C) = null; }  class C {}"_sv,
+                         no_diags, typescript_analyze_options, default_globals);
 }
 }
 }

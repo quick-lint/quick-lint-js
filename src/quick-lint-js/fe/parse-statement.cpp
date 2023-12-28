@@ -4132,7 +4132,8 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
       Expression *ast =
           this->parse_expression(v, Precedence{.in_operator = false});
       this->visit_expression(ast, lhs.visitor(), Variable_Context::lhs);
-      this->maybe_visit_assignment(ast, lhs.visitor());
+      this->maybe_visit_assignment(ast, lhs.visitor(),
+                                   Variable_Assignment_Flags::none);
     } else if (declaring_token.type == Token_Type::kw_let &&
                this->peek().type == Token_Type::kw_of) {
       this->skip();
