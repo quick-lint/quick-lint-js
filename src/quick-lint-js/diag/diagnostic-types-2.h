@@ -29,6 +29,7 @@ QLJS_RESERVED_DIAG("E0042")
 QLJS_RESERVED_DIAG("E0242")
 QLJS_RESERVED_DIAG("E0271")
 QLJS_RESERVED_DIAG("E0279")
+QLJS_RESERVED_DIAG("E0391")
 QLJS_RESERVED_DIAG("E0707")
 
 struct Diag_Abstract_Field_Cannot_Have_Initializer {
@@ -2348,14 +2349,6 @@ struct Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript {
   [[qljs::message("'export' keyword here", ARG(export_keyword))]]  //
   Source_Code_Span equal;
   Source_Code_Span export_keyword;
-};
-
-struct Diag_TypeScript_Import_Type_Missing_Export_Name {
-  [[qljs::diag("E0391", Diagnostic_Severity::error)]]  //
-  [[qljs::message("missing exported name in import type",
-                  ARG(expected_export_name))]]  //
-  Source_Code_Span expected_export_name;
-  Source_Code_Span import_keyword;
 };
 
 struct Diag_TypeScript_Implements_Must_Be_After_Extends {

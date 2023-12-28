@@ -70,6 +70,8 @@ Semantic Versioning.
     interface. (Implemented by [Rui Serra][].)
   * `import("modulename").Class<<T>(params) => ReturnType>` in a type is now
     parsed correctly.
+  * `import("modulename")` in a type is now allowed and no longer falsely
+    reports a diagnostic.
   * Generic call signatures are now parsed correctly when using a semicolon-free
     coding style.
   * Interface index signatures and computed property names in interfaces are now

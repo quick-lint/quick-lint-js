@@ -4531,20 +4531,6 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
-    // Diag_TypeScript_Import_Type_Missing_Export_Name
-    {
-      .code = 391,
-      .severity = Diagnostic_Severity::error,
-      .message_formats = {
-        QLJS_TRANSLATABLE("missing exported name in import type"),
-      },
-      .message_args = {
-        {
-          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Import_Type_Missing_Export_Name, expected_export_name), Diagnostic_Arg_Type::source_code_span),
-        },
-      },
-    },
-
     // Diag_TypeScript_Implements_Must_Be_After_Extends
     {
       .code = 246,

@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[599] = {
+inline const Translated_String test_translation_table[598] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4470,17 +4470,6 @@ inline const Translated_String test_translation_table[599] = {
             u8"fin de tableau manquante ; ']' attendu",
             u8"falta o fim da array; esperado ']'",
             u8"saknar slut av lista; f\u00f6rv\u00e4ntades ']'",
-        },
-    },
-    {
-        "missing exported name in import type"_translatable,
-        u8"missing exported name in import type",
-        {
-            u8"missing exported name in import type",
-            u8"missing exported name in import type",
-            u8"missing exported name in import type",
-            u8"missing exported name in import type",
-            u8"missing exported name in import type",
         },
     },
     {

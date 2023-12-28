@@ -1616,6 +1616,12 @@ TEST_F(Test_Parse_TypeScript_Type, typeof_allows_array_and_indexed) {
 TEST_F(Test_Parse_TypeScript_Type, imported_type) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"import('mymod')"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
         u8"import('mymod').MyClass"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, IsEmpty());
   }
@@ -1653,12 +1659,6 @@ TEST_F(Test_Parse_TypeScript_Type, imported_type) {
       u8"import('mymod').MyClass<T>.prop"_sv,  //
       u8"                           ^^^^ Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type.property_name\n"_diag
       u8"                          ^ .dot"_diag,
-      typescript_options);
-
-  test_parse_and_visit_typescript_type_expression(
-      u8"import('mymod')"_sv,  //
-      u8"               ` Diag_TypeScript_Import_Type_Missing_Export_Name.expected_export_name\n"_diag
-      u8"^^^^^^ .import_keyword"_diag,
       typescript_options);
 }
 

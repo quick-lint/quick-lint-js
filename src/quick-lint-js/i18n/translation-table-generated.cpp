@@ -416,7 +416,6 @@ const Translation_Table translation_data = {
         {38, 14, 46, 41, 38, 39},            //
         {35, 13, 45, 40, 37, 38},            //
         {0, 0, 0, 0, 0, 35},                 //
-        {0, 0, 0, 0, 0, 37},                 //
         {36, 34, 39, 35, 40, 40},            //
         {0, 0, 0, 0, 0, 39},                 //
         {33, 7, 40, 40, 33, 58},             //
@@ -2281,7 +2280,6 @@ const Translation_Table translation_data = {
         u8"missing condition for switch statement\0"
         u8"missing condition for while statement\0"
         u8"missing end of array; expected ']'\0"
-        u8"missing exported name in import type\0"
         u8"missing expression after type assertion\0"
         u8"missing expression between parentheses\0"
         u8"missing expression in placeholder within template literal\0"
