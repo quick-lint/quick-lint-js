@@ -72,6 +72,24 @@ TEST_F(Test_Parse_TypeScript_Declare_TSModule, declare_module_permits_no_body) {
                               "visit_end_of_module",
                           }));
   }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare module 'my name space' /*;*/ declare class C {}"_sv,
+        u8"                              ` Diag_Missing_Semicolon_After_Statement"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_declare_scope",     //
+                              "visit_exit_declare_scope",      //
+                              "visit_enter_declare_scope",     //
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_exit_declare_scope",      //
+                              "visit_end_of_module",
+                          }));
+  }
 }
 
 TEST_F(Test_Parse_TypeScript_Declare_TSModule,

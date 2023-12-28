@@ -116,6 +116,8 @@ Semantic Versioning.
     are now parsed correctly.
   * `f<T>?.()` (optional chaining function call with generic function arguments)
     is now parsed correctly.
+  * In a .d.ts file, `declare module` without a body no longer falsely reports
+    errors.
 
 ## 2.18.0 (2023-11-03)
 

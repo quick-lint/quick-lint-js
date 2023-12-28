@@ -3291,7 +3291,9 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
   if (this->peek().type != Token_Type::left_curly) {
     // module 'foo';
     // namespace ns;  // Invalid.
-    if (!declare_context.in_module) {
+    if (declare_context.in_module) {
+      this->consume_semicolon_after_statement();
+    } else {
       this->diag_reporter_->report(Diag_Missing_Body_For_TypeScript_Namespace{
           .expected_body =
               Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
