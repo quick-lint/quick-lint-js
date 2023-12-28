@@ -39,9 +39,15 @@ constexpr String8_View ignored_tests[] = {
     u8"/importedModuleClassNameClash.ts"sv,
 
     // TODO(#1123): quick-lint-js does not parse UTF-16 source files.
+    u8"/bom-utf16be.ts"sv,
     u8"/bom-utf16le.ts"sv,
-    u8"/unicodeIdentifierNames.ts"sv,
     u8"/collisionCodeGenModuleWithUnicodeNames.ts"sv,
+    u8"/promiseTest.ts"sv,
+    u8"/unicodeIdentifierNames.ts"sv,
+
+    // This test correctly emits E0193 (a warning).
+    // TODO(strager): Disable E0193 for this test but still check this test.
+    u8"/keywordInJsxIdentifier.tsx"sv,
 
     // This test correctly emits E0196 (a warning).
     // TODO(strager): Disable E0196 for this test but still check this test.
