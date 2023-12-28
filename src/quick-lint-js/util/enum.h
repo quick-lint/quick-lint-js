@@ -1,26 +1,34 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <ostream>
-#include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/spy-visitor.h>
-#include <quick-lint-js/util/enum.h>
+#pragma once
+
+#include <quick-lint-js/util/cast.h>
 
 namespace quick_lint_js {
-void PrintTo(const Visited_Variable_Declaration &x, std::ostream *out) {
-  *out << x.kind << ' ' << out_string8(x.name);
-  if (enum_has_flags(x.flags,
-                     Variable_Declaration_Flags::initialized_with_equals)) {
-    *out << " (initialized with '=')";
-  }
-  if (enum_has_flags(x.flags,
-                     Variable_Declaration_Flags::inside_for_loop_head)) {
-    *out << " (inside 'for' loop head)";
-  }
-  if (enum_has_flags(x.flags,
-                     Variable_Declaration_Flags::non_empty_namespace)) {
-    *out << " (non-empty)";
-  }
+// Returns true if 'e' contains all of the bits set in 'flag'.
+//
+// Equivalent to ((e & flag) == flag).
+template <class Enum>
+bool enum_has_flags(Enum e, Enum flag) {
+  auto flag_int = enum_to_int_cast(flag);
+  return (enum_to_int_cast(e) & flag_int) == flag_int;
+}
+
+// Returns only the set bits in 'e' described by 'flag'.
+//
+// Equivalent to (e & flag).
+template <class Enum>
+Enum enum_select_flags(Enum e, Enum flag) {
+  return int_to_enum_cast<Enum>(enum_to_int_cast(e) & enum_to_int_cast(flag));
+}
+
+// Add bits set in 'flag' to 'e'.
+//
+// Equivalent to (e | flag).
+template <class Enum>
+Enum enum_set_flags(Enum e, Enum flag) {
+  return int_to_enum_cast<Enum>(enum_to_int_cast(e) | enum_to_int_cast(flag));
 }
 }
 

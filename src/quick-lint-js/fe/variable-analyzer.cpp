@@ -15,6 +15,7 @@
 #include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
+#include <quick-lint-js/util/enum.h>
 #include <vector>
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
@@ -761,8 +762,10 @@ void Variable_Analyzer::propagate_variable_declarations_to_parent_scope() {
     }
 
     bool declaration_possibly_looks_like_assignment =
-        (var.flags & Variable_Declaration_Flags::initialized_with_equals) &&
-        !(var.flags & Variable_Declaration_Flags::inside_for_loop_head);
+        enum_has_flags(var.flags,
+                       Variable_Declaration_Flags::initialized_with_equals) &&
+        !enum_has_flags(var.flags,
+                        Variable_Declaration_Flags::inside_for_loop_head);
     if (declaration_possibly_looks_like_assignment && !var.is_used &&
         (var.kind == Variable_Kind::_const ||
          var.kind == Variable_Kind::_let) &&
@@ -1183,8 +1186,8 @@ bool Variable_Analyzer::report_error_if_variable_declaration_conflicts(
          !quick_lint_js::is_runtime_and_type(kind)))) ||
       (other_kind == VK::_namespace &&
        (kind == VK::_class || kind == VK::_function) &&
-       !(already_declared_var.flags &
-         Variable_Declaration_Flags::non_empty_namespace)) ||
+       !enum_has_flags(already_declared_var.flags,
+                       Variable_Declaration_Flags::non_empty_namespace)) ||
       (kind == VK::_function &&
        newly_declared_var.declaration_scope ==
            Declared_Variable_Scope::declared_in_descendant_scope) ||

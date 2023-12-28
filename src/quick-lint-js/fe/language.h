@@ -60,7 +60,7 @@ enum class Variable_Kind : unsigned char {
 String8_View to_string(Variable_Kind);
 std::ostream& operator<<(std::ostream&, Variable_Kind);
 
-enum Variable_Declaration_Flags : unsigned char {
+enum class Variable_Declaration_Flags : unsigned char {
   none = 0,
 
   // Only valid for _const, _let, and _var.
