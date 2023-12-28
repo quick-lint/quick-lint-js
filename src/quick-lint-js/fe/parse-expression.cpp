@@ -2313,6 +2313,7 @@ next:
   }
 
   QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
+  case Token_Type::at:
   case Token_Type::end_of_file:
   case Token_Type::kw_accessor:
   case Token_Type::kw_async:

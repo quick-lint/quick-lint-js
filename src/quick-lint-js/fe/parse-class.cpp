@@ -1019,6 +1019,7 @@ void Parser::parse_and_visit_class_or_interface_member(
         break;
 
       QLJS_CASE_KEYWORD:
+      case Token_Type::at:
       case Token_Type::left_square:
       case Token_Type::number:
       case Token_Type::string:

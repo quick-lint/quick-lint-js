@@ -569,6 +569,34 @@ TEST_F(Test_Parse_Decorator,
       u8"                   ^^^^^^^^ .abstract_keyword"_diag,
       typescript_options);
 }
+
+TEST_F(Test_Parse_Decorator, asi_between_expression_and_decorator) {
+  test_parse_and_visit_statement(
+      u8"let x = 42\n"_sv  // ASI.
+      u8"@myDecorator class C {}\n"_sv,
+      no_diags, javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C {\n"_sv
+      u8"  myField = 42\n"_sv  // ASI.
+      u8"  @myDecorator f() {}\n"_sv
+      u8"}\n"_sv,
+      no_diags, javascript_options);
+}
+
+TEST_F(Test_Parse_Decorator, asi_between_class_field_and_decorator) {
+  test_parse_and_visit_statement(
+      u8"class C {\n"_sv
+      u8"  myField\n"_sv  // ASI.
+      u8"  @myDecorator f() {}\n"_sv
+      u8"}\n"_sv,
+      no_diags, javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C {\n"_sv
+      u8"  myField: FieldType\n"_sv  // ASI.
+      u8"  @myDecorator f() {}\n"_sv
+      u8"}\n"_sv,
+      no_diags, typescript_options);
+}
 }
 }
 
