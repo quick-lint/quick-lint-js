@@ -227,6 +227,18 @@ TEST_F(Test_Parse_TypeScript_Declare_TSModule,
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"async"}));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Declare_TSModule,
+       default_exports_in_different_modules_are_allowed) {
+  test_parse_and_visit_module(
+      u8"declare module 'a' {\n"_sv
+      u8"  export default class C {}\n"_sv
+      u8"}\n"_sv
+      u8"declare module 'b' {\n"_sv
+      u8"  export default class C {}\n"_sv
+      u8"}\n"_sv,
+      no_diags, typescript_options);
+}
 }
 }
 

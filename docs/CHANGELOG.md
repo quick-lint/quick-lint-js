@@ -120,6 +120,8 @@ Semantic Versioning.
     is now parsed correctly.
   * In a .d.ts file, `declare module` without a body no longer falsely reports
     errors.
+  * `export default` inside a `declare module` no longer falsely reports
+    [E0715][] ("cannot use multiple `export default` statements in one module").
 
 ## 2.18.0 (2023-11-03)
 

@@ -1592,6 +1592,11 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
 
 void Parser::found_default_export(Source_Code_Span default_keyword,
                                   bool is_mergeable_interface) {
+  if (this->in_typescript_module_) {
+    // TODO(#1127): Report duplicate export inside TypeScript modules.
+    return;
+  }
+
   if (this->first_export_default_statement_default_keyword_.has_value()) {
     if (is_mergeable_interface) {
       // export default class {}  export default interface I {}
