@@ -1069,7 +1069,8 @@ void Parser::parse_and_visit_typescript_object_type_expression(
     // { method(): Type }
     QLJS_CASE_KEYWORD:
     case Token_Type::identifier:
-    case Token_Type::number: {
+    case Token_Type::number:
+    case Token_Type::string: {
       Source_Code_Span name = this->peek().span();
       this->skip();
       parse_after_property_name(name);

@@ -32,7 +32,8 @@ Semantic Versioning.
   * Using `<<` in an interface's `extends` clause, in a class's `implements`
     clause, or in a `typeof` type now reports [E0429][] instead of misleading
     diagnostics. (Implemented by [strager][] and [Ariel Don][].)
-  * Properties in object literal types can now be named with number literals.
+  * Properties in object literal types can now be named with number and string
+    literals.
   * Repeating `in` or `out` generic parameter modifiers now reports [E0432][]
     ("'in' or 'out' variance specifier cannot be listed twice").
   * Writing a newline after an `in`, `out`, or `const` generic parameter

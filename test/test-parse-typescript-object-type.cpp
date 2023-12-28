@@ -671,6 +671,13 @@ TEST_F(Test_Parse_TypeScript_Object_Type, property_name_can_be_number) {
   test_parse_and_visit_typescript_type_expression(u8"{ 6.9(): ReturnType; }"_sv,
                                                   no_diags, typescript_options);
 }
+
+TEST_F(Test_Parse_TypeScript_Object_Type, property_name_can_be_string_literal) {
+  test_parse_and_visit_typescript_type_expression(u8"{ 'x'; }"_sv, no_diags,
+                                                  typescript_options);
+  test_parse_and_visit_typescript_type_expression(u8"{ ''(): ReturnType; }"_sv,
+                                                  no_diags, typescript_options);
+}
 }
 }
 
