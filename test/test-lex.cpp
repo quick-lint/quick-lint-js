@@ -1975,17 +1975,17 @@ TEST_F(Test_Lex, question_dot_followed_by_non_digit_is_question_dot) {
 
 TEST_F(Test_Lex, lex_whitespace) {
   for (const Char8* whitespace : {
-           u8"\n",      //
-           u8"\r",      //
-           u8"\r\n",    //
+           // Introduced in ECMAScript 3 (Unicode 2.1):
+           u8"\n",      // 0x0a           Line Feed
+           u8"\r",      // 0x0d           Carriage Return
+           u8"\r\n",    // 0x0d 0x0a      Carriage Return & Line Feed
            u8"\u2028",  // 0xe2 0x80 0xa8 Line Separator
            u8"\u2029",  // 0xe2 0x80 0xa9 Paragraph Separator
-           u8" ",       //
-           u8"\t",      //
-           u8"\f",      //
-           u8"\v",      //
+           u8" ",       // 0x20           Space
+           u8"\t",      // 0x09           Horizontal Tabulation
+           u8"\f",      // 0x0c           Form Feed
+           u8"\v",      // 0x0b           Vertical Tabulation
            u8"\u00a0",  // 0xc2 0xa0      No-Break Space (NBSP)
-           u8"\u1680",  // 0xe1 0x9a 0x80 Ogham Space Mark
            u8"\u2000",  // 0xe2 0x80 0x80 En Quad
            u8"\u2001",  // 0xe2 0x80 0x81 Em Quad
            u8"\u2002",  // 0xe2 0x80 0x82 En Space
@@ -1997,11 +1997,24 @@ TEST_F(Test_Lex, lex_whitespace) {
            u8"\u2008",  // 0xe2 0x80 0x88 Punctuation Space
            u8"\u2009",  // 0xe2 0x80 0x89 Thin Space
            u8"\u200a",  // 0xe2 0x80 0x8a Hair Space
-           u8"\u202f",  // 0xe2 0x80 0xaf Narrow No-Break Space (NNBSP)
-           u8"\u205f",  // 0xe2 0x81 0x9f Medium Mathematical Space (MMSP)
            u8"\u3000",  // 0xe3 0x80 0x80 Ideographic Space
+
+           // Introduced in ECMAScript 5.1 (Unicode 3.0):
+           u8"\u1680",  // 0xe1 0x9a 0x80 Ogham Space Mark
+           u8"\u202f",  // 0xe2 0x80 0xaf Narrow No-Break Space (NNBSP)
            u8"\ufeff",  // 0xef 0xbb 0xbf Zero Width No-Break Space (BOM,
                         // ZWNBSP)
+
+           // Introduced in ECMAScript 6.0 (Unicode 5.1.0):
+           u8"\u205f",  // 0xe2 0x81 0x9f Medium Mathematical Space (MMSP)
+
+           // Introduced in ECMAScript 3 (Unicode 2.1) but removed in ECMAScript
+           // 6.0 (Unicode 5.1.0):
+           // u8"\u200b",  // 0xe2 0x80 0x8b Zero Width Space
+
+           // Introduced in ECMAScript 6.0 (Unicode 5.1.0) but removed in
+           // ECMAScript 2016 (Unicode 8.0.0):
+           // u8"\u180e",  // 0xe1 0xa0 0x8e Mongolian Vowel Separator
        }) {
     {
       String8 input = String8(u8"a") + whitespace + u8"b";
