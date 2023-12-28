@@ -3404,12 +3404,14 @@ void Parser::parse_and_visit_typescript_type_alias(
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::equal);
   this->skip();
   this->parse_and_visit_typescript_type_expression_no_scope(
-      v,
-      TypeScript_Type_Parse_Options{
-          .type_being_declared = TypeScript_Type_Parse_Options::Declaring_Type{
-              .name = name,
-              .kind = kind,
-          }});
+      v, TypeScript_Type_Parse_Options{
+             .type_being_declared =
+                 TypeScript_Type_Parse_Options::Declaring_Type{
+                     .name = name,
+                     .kind = kind,
+                 },
+             .stop_parsing_type_at_newline_before_extends = false,
+         });
   v.visit_exit_type_scope();
 
   this->consume_semicolon_after_statement();

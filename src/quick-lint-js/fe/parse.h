@@ -218,6 +218,11 @@ class Parser {
     // smarter. If this boolean is false, quick-lint-js will report a diagnostic
     // but parse the generic argument list.
     bool stop_parsing_type_at_newline_before_generic_arguments = true;
+    // When parsing, if 'extends' is preceeded by a newline, TypeScript always
+    // stops parsing the type before 'extends'. quick-lint-js is smarter. If
+    // this boolean is false, quick-lint-js will report a diagnostic but parse
+    // the 'extends' as part of the type.
+    bool stop_parsing_type_at_newline_before_extends = true;
   };
 
   void parse_and_visit_typescript_colon_type_expression(Parse_Visitor_Base &v);

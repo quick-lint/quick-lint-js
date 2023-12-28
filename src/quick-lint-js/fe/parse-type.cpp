@@ -793,6 +793,21 @@ again:
 
   if (this->peek().type == Token_Type::kw_extends) {
     // T extends T ? T : T
+    if (this->peek().has_leading_newline) {
+      if (parse_options.stop_parsing_type_at_newline_before_extends) {
+        // interface I {
+        //   a: T  // ASI.
+        //   extends: U;
+        // }
+        return;
+      }
+      // type T = U
+      // extends B ? A : B;   // Invalid.
+      this->diag_reporter_->report(
+          Diag_Newline_Not_Allowed_Before_Extends_In_Type{
+              .extends_keyword = this->peek().span(),
+          });
+    }
     this->skip();
 
     // NOTE[TypeScript-extends-cycle]: TypeScript allows a cycle syntactically

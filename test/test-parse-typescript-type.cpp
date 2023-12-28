@@ -2089,6 +2089,25 @@ TEST_F(Test_Parse_TypeScript_Type, newline_is_allowed_before_tuple_type) {
                           }));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Type, newline_is_not_allowed_before_extends) {
+  {
+    // ASI should insert a semicolon between 'number' and 'extends':
+    test_parse_and_visit_module(
+        u8"interface I {\n"_sv
+        u8"  f(): number\n"_sv  // ASI
+        u8"  extends: string;\n"_sv
+        u8"}"_sv,
+        no_diags, typescript_options);
+  }
+
+  // TypeScript triggers ASI, but we shouldn't because statements cannot start
+  // with 'extends'.
+  test_parse_and_visit_module(
+      u8"type A = 42\n extends number ? T : F;"_sv,
+      u8"              ^^^^^^^ Diag_Newline_Not_Allowed_Before_Extends_In_Type.extends_keyword"_diag,
+      typescript_options);
+}
 }
 }
 

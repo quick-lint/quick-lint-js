@@ -1825,6 +1825,13 @@ struct Diag_Newline_Not_Allowed_Before_Definite_Assignment_Assertion {
   Source_Code_Span definite_assignment_assertion;
 };
 
+struct Diag_Newline_Not_Allowed_Before_Extends_In_Type {
+  [[qljs::diag("E0448", Diagnostic_Severity::error)]]  //
+  [[qljs::message("newline is not allowed before 'extends'",
+                  ARG(extends_keyword))]]  //
+  Source_Code_Span extends_keyword;
+};
+
 struct Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type {
   [[qljs::diag("E0431", Diagnostic_Severity::error)]]  //
   [[qljs::message("newline is not allowed before '<'",

@@ -1378,6 +1378,10 @@ msgid "newline is not allowed between variable name and '!'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "newline is not allowed before 'extends'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "newline is not allowed before '<'"
 msgstr ""
 
