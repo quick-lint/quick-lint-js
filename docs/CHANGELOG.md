@@ -52,6 +52,9 @@ Semantic Versioning.
 ### Fixed
 
 * Class decorators may now reference the class by name.
+* A newline between an arrow function and a parenthesized expression (e.g.
+  `let f = () => {} /*newline*/ (console.log('x'));` no longer falsely reports
+  [E0211][] ("missing parentheses around self-invoked function").
 * TypeScript support (still experimental):
   * Types named `await`, `implements`, `interface`, `let`, `package`, `private`,
     `protected`, `public`, `static`, and `yield` are now recognized in type

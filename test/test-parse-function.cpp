@@ -952,6 +952,21 @@ TEST_F(Test_Parse_Function, async_arrow_function_invoked_no_parens) {
   }
 }
 
+TEST_F(Test_Parse_Function,
+       arrow_function_with_parens_on_separate_line_triggers_asi) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(u8"() => {} \n (x);"_sv,  //
+                                                no_diags, javascript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_function_scope_body",  // =>
+                              "visit_exit_function_scope",        //
+                              "visit_variable_use",               // x
+                              "visit_end_of_module",              //
+                          }));
+  }
+}
+
 TEST_F(Test_Parse_Function, arrow_function_without_parameter_list) {
   {
     Spy_Visitor p = test_parse_and_visit_module(

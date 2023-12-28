@@ -1629,7 +1629,12 @@ next:
   case Token_Type::left_paren: {
     if (binary_builder.last_expression()->kind() ==
         Expression_Kind::Arrow_Function) {
-      // () => {}() // Invalid.
+      // () => {} /*ASI*/ (x)
+      // () => {}()            // Invalid.
+      if (this->peek().has_leading_newline) {
+        // ASI; stop parsing the expression.
+        break;
+      }
       auto func_span = binary_builder.last_expression()->span();
       auto func_start_span = Source_Code_Span::unit(func_span.begin());
       this->diag_reporter_->report(
