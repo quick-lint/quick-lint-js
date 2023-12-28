@@ -113,9 +113,14 @@ bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
 }
 
 Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter)
+    : Lexer(input, diag_reporter, Lexer_Options()) {}
+
+Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter,
+             Lexer_Options options)
     : input_(input.data()),
       diag_reporter_(diag_reporter),
-      original_input_(input) {
+      original_input_(input),
+      options_(options) {
   this->last_token_.end = this->input_;
   this->parse_bom_before_shebang();
   this->parse_current_token();
@@ -1936,6 +1941,14 @@ next:
         // U+00A0 No-Break Space (NBSP)
         input += 2;
         goto next;
+      } else if (c1 == 0x85) {
+        // U+0085 Next Line (NEL)
+        if (this->options_.typescript) {
+          input += 2;
+          goto next;
+        } else {
+          goto done;
+        }
       } else {
         goto done;
       }
@@ -2269,6 +2282,10 @@ bool Lexer::is_non_ascii_whitespace_character(char32_t code_point) {
   if (code_point >= 0x10000) {
     return false;
   } else {
+    if (this->options_.typescript && code_point == 0x0085) {
+      // U+0085: 0xc2 0x85 Next Line (NEL)
+      return true;
+    }
     return std::binary_search(std::begin(non_ascii_whitespace_code_points),
                               std::end(non_ascii_whitespace_code_points),
                               narrow_cast<char16_t>(code_point));

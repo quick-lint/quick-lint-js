@@ -24,6 +24,10 @@ class Diag_Reporter;
 struct Lex_Tables;
 struct Lexer_Transaction;
 
+struct Lexer_Options {
+  bool typescript = false;
+};
+
 // A Lexer reads JavaScript source code one token at a time.
 //
 // A token is (roughly) either a keyword (if, function, let, etc.), an operator
@@ -39,6 +43,7 @@ class Lexer {
   };
 
   explicit Lexer(Padded_String_View input, Diag_Reporter*);
+  explicit Lexer(Padded_String_View input, Diag_Reporter*, Lexer_Options);
 
   // Return information about the current token.
   const Token& peek() const { return this->last_token_; }
@@ -317,7 +322,7 @@ class Lexer {
   static bool is_identifier_character(char32_t code_point, Identifier_Kind);
 
  private:
-  static bool is_non_ascii_whitespace_character(char32_t code_point);
+  bool is_non_ascii_whitespace_character(char32_t code_point);
   static bool is_ascii_character(Char8 code_unit);
   static bool is_ascii_character(char32_t code_point);
 
@@ -331,6 +336,7 @@ class Lexer {
   const Char8* input_;
   Diag_Reporter* diag_reporter_;
   Padded_String_View original_input_;
+  Lexer_Options options_;
 
   Monotonic_Allocator allocator_{"lexer::allocator_"};
   Linked_Bump_Allocator transaction_allocator_{"lexer::transaction_allocator_"};

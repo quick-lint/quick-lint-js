@@ -71,6 +71,12 @@ TEST_F(Test_Parse_TypeScript,
                                  typescript_options);
   test_parse_and_visit_statement(u8"x!\n== y"_sv, no_diags, typescript_options);
 }
+
+TEST_F(Test_Parse_TypeScript, unicode_next_line_is_whitespace) {
+  Spy_Visitor v = test_parse_and_visit_statement(u8"x+\u0085+y;"_sv, no_diags,
+                                                 typescript_options);
+  EXPECT_THAT(v.variable_uses, ElementsAreArray({u8"x"_sv, u8"y"_sv}));
+}
 }
 }
 

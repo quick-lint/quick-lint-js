@@ -49,6 +49,7 @@ Semantic Versioning.
     supported.
   * `export class { m(); }` in a .d.ts file no longer falsely reports [E0172][]
     ("missing body for function").
+  * U+0085 (Next Line) is now interpreted as whitespace.
 
 ### Fixed
 

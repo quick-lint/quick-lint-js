@@ -47,7 +47,10 @@ Parser_Transaction::Parser_Transaction(Lexer* l,
 
 Parser::Parser(Padded_String_View input, Diag_Reporter* diag_reporter,
                Parser_Options options)
-    : lexer_(input, diag_reporter),
+    : lexer_(input, diag_reporter,
+             Lexer_Options{
+                 .typescript = options.typescript,
+             }),
       diag_reporter_(diag_reporter),
       options_(options) {}
 

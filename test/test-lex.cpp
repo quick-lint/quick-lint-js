@@ -2040,6 +2040,34 @@ TEST_F(Test_Lex, lex_whitespace) {
   }
 }
 
+TEST_F(Test_Lex, unicode_next_line_is_invalid_in_javascript) {
+  // TODO(strager): Treat U+0085 as whitespace but report a nice diagnostic.
+  Diag_Collector v;
+  Padded_String code(u8"a\u0085false"_sv);
+  auto error = /* */ u8" ^^^^^^ Diag_Character_Disallowed_In_Identifiers"_diag;
+  Lexer l(&code, &v, Lexer_Options{.typescript = false});
+
+  EXPECT_EQ(l.peek().type, Token_Type::identifier);
+  l.skip();
+  EXPECT_EQ(l.peek().type, Token_Type::end_of_file)
+      << "U+0085 should be interpreted as part of the identifier";
+
+  assert_diagnostics(&code, v.errors, {error});
+}
+
+TEST_F(Test_Lex, unicode_next_line_is_horizontal_whitespace_in_typescript) {
+  Diag_Collector v;
+  Padded_String code(u8"a\u0085false"_sv);
+  Lexer l(&code, &v, Lexer_Options{.typescript = true});
+
+  EXPECT_EQ(l.peek().type, Token_Type::identifier);
+  l.skip();
+  EXPECT_EQ(l.peek().type, Token_Type::kw_false);
+  EXPECT_FALSE(l.peek().has_leading_newline);
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST_F(Test_Lex, lex_shebang) {
   this->check_tokens(u8"#!/usr/bin/env node\nhello"_sv,
                      {Token_Type::identifier});
