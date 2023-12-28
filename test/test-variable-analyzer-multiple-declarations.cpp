@@ -214,6 +214,66 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     import_conflicts_with_any_variable_declaration) {
+  test_parse_and_analyze(
+      u8"import x from ''; class x {}"_sv,
+      u8"                        ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"       ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"import x from ''; const x = null;"_sv,
+      u8"                        ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"       ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"import x from ''; function x() {}"_sv,
+      u8"                           ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"       ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"import x from ''; import x from '';"_sv,
+      u8"                         ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"       ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"import x from ''; let x;"_sv,
+      u8"                      ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"       ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"import x from ''; var x;"_sv,
+      u8"                      ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"       ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+
+  test_parse_and_analyze(
+      u8"class x {}  import x from '';"_sv,
+      u8"                   ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"      ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"const x = null; import x from '';"_sv,
+      u8"                       ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"      ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"function x() {}  import x from '';"_sv,
+      u8"                        ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"         ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"let x; import x from '';"_sv,
+      u8"              ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"    ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"var x; import x from '';"_sv,
+      u8"              ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
+      u8"    ^ .original_declaration"_diag,
+      javascript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      import_alias_does_not_conflict_with_most_other_things) {
   for (String8_View other_thing : {
            u8"class A {}"_sv,
