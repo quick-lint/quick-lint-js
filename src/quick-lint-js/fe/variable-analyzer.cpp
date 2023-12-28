@@ -139,8 +139,8 @@ void Variable_Analyzer::visit_enter_conditional_type_scope() {
 }
 
 void Variable_Analyzer::visit_enter_declare_global_scope() {
+  this->scopes_.push();
   this->visit_enter_declare_scope();
-  this->typescript_declare_global_scope_depth_ += 1;
 }
 
 void Variable_Analyzer::visit_enter_declare_scope() {
@@ -223,9 +223,25 @@ void Variable_Analyzer::visit_exit_conditional_type_scope() {
 }
 
 void Variable_Analyzer::visit_exit_declare_global_scope() {
-  QLJS_ASSERT(this->typescript_declare_global_scope_depth_ > 0);
-  this->typescript_declare_global_scope_depth_ -= 1;
+  QLJS_ASSERT(!this->scopes_.empty());
+
   this->visit_exit_declare_scope();
+
+  // FIXME(strager): Do we need to call propagate_variable_uses_to_parent_scope?
+
+  Scope &current_scope = this->current_scope();
+  Scope &shadow_global_scope = this->scopes_.shadow_global_scope();
+  for (const Declared_Variable &var : current_scope.declared_variables) {
+    this->declare_variable(
+        /*scope=*/shadow_global_scope,
+        /*name=*/var.declaration,
+        /*kind=*/var.kind,
+        /*declared_scope=*/
+        Declared_Variable_Scope::declared_in_current_scope,
+        /*flags=*/var.flags);
+  }
+
+  this->scopes_.pop();
 }
 
 void Variable_Analyzer::visit_exit_declare_scope() {
@@ -302,9 +318,7 @@ void Variable_Analyzer::visit_property_declaration(
 void Variable_Analyzer::visit_variable_declaration(
     Identifier name, Variable_Kind kind, Variable_Declaration_Flags flags) {
   this->declare_variable(
-      /*scope=*/this->in_typescript_declare_global_scope()
-          ? this->scopes_.shadow_global_scope()
-          : this->current_scope(),
+      /*scope=*/this->current_scope(),
       /*name=*/name,
       /*kind=*/kind,
       /*declared_scope=*/Declared_Variable_Scope::declared_in_current_scope,
@@ -1201,10 +1215,6 @@ bool Variable_Analyzer::report_error_if_variable_declaration_conflicts(
 
 bool Variable_Analyzer::in_typescript_ambient_context() const {
   return this->typescript_ambient_context_depth_ > 0;
-}
-
-bool Variable_Analyzer::in_typescript_declare_global_scope() const {
-  return this->typescript_declare_global_scope_depth_ > 0;
 }
 
 bool Variable_Analyzer::Declared_Variable::is_runtime() const {

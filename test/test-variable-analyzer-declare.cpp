@@ -55,6 +55,21 @@ TEST(Test_Variable_Analyzer_Declare,
   test_parse_and_analyze(u8"declare global { const x; }  let x; x = 42;"_sv,
                          no_diags, typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Declare,
+     parameters_in_declare_global_are_not_usable_outside) {
+  test_parse_and_analyze(u8"x;  declare global { function f(x); }"_sv,  //
+                         u8"^ Diag_Use_Of_Undeclared_Variable"_diag,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"declare global { function f(x); }  x;"_sv,  //
+      u8"                                   ^ Diag_Use_Of_Undeclared_Variable"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"declare global { class C<T> {} }  T;"_sv,  //
+      u8"                                  ^ Diag_Use_Of_Undeclared_Variable"_diag,
+      typescript_analyze_options, default_globals);
+}
 }
 }
 

@@ -395,10 +395,6 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   // with the 'declare' keyword.
   unsigned typescript_ambient_context_depth_ = 0;
 
-  // If greater than zero, we are inside a TypeScript 'declare global' scope,
-  // thus declared variables should be hoisted into the global scope.
-  unsigned typescript_declare_global_scope_depth_ = 0;
-
   Diag_Reporter *diag_reporter_;
 
   Variable_Analyzer_Options options_;
