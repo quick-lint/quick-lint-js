@@ -6301,11 +6301,13 @@ void Parser::parse_and_visit_declare_statement(
     this->parse_and_visit_declare_global(v, declare_context);
     break;
 
-  // declare:  // Label.
+  // declare:               // Label.
   // declare();
+  // export declare export  // Invalid?
   case Token_Type::colon:
+  case Token_Type::left_paren:
   default:
-    QLJS_ASSERT(false);
+    QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
 }

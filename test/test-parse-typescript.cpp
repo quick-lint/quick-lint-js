@@ -77,6 +77,21 @@ TEST_F(Test_Parse_TypeScript, unicode_next_line_is_whitespace) {
                                                  typescript_options);
   EXPECT_THAT(v.variable_uses, ElementsAreArray({u8"x"_sv, u8"y"_sv}));
 }
+
+// These examples used to crash with assertion failures.
+TEST_F(Test_Parse_TypeScript, no_crash) {
+  for (String8_View code : {
+           u8"export declare:"_sv,
+           u8"export declare export"_sv,
+           u8"export declare()"_sv,
+       }) {
+    Spy_Visitor v;
+    Padded_String code_string(code);
+    Parser p(&code_string, &v, typescript_options);
+    // Should not crash:
+    p.parse_and_visit_module_catching_fatal_parse_errors(v);
+  }
+}
 }
 }
 
