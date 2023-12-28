@@ -125,7 +125,7 @@ void Buffering_Visitor::copy_into(Parse_Visitor_Base &target) const {
       target.visit_property_declaration(std::nullopt);
       break;
     case Visit_Kind::variable_assignment:
-      target.visit_variable_assignment(v.name);
+      target.visit_variable_assignment(v.name, v.variable_assignment_flags);
       break;
     case Visit_Kind::variable_assertion_signature_use:
       target.visit_variable_assertion_signature_use(v.name);
@@ -308,8 +308,9 @@ void Buffering_Visitor::visit_property_declaration(
   }
 }
 
-void Buffering_Visitor::visit_variable_assignment(Identifier name) {
-  this->add(name, Visit_Kind::variable_assignment);
+void Buffering_Visitor::visit_variable_assignment(
+    Identifier name, Variable_Assignment_Flags flags) {
+  this->visits_.emplace_back(Visit_Kind::variable_assignment, name, flags);
 }
 
 void Buffering_Visitor::visit_variable_declaration(

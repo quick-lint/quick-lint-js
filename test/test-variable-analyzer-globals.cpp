@@ -197,7 +197,8 @@ TEST(Test_Variable_Analyzer_Globals, global_variables_are_usable) {
     SCOPED_TRACE(out_string8(global_variable));
     Diag_Collector v;
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_variable_assignment(identifier_of(global_variable),
+                                Variable_Assignment_Flags::none);
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
     EXPECT_THAT(v.errors, IsEmpty());
@@ -222,7 +223,8 @@ TEST(Test_Variable_Analyzer_Globals,
     // NaN = null;  // ERROR
     Diag_Collector v;
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
-    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_variable_assignment(identifier_of(global_variable),
+                                Variable_Assignment_Flags::none);
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
@@ -242,7 +244,8 @@ TEST(Test_Variable_Analyzer_Globals,
     Variable_Analyzer l(&v, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
-    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_variable_assignment(identifier_of(global_variable),
+                                Variable_Assignment_Flags::none);
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -304,7 +307,8 @@ TEST(Test_Variable_Analyzer_Globals,
     {
       Diag_Collector v;
       Variable_Analyzer l(&v, &default_globals, typescript_var_options);
-      l.visit_variable_assignment(identifier_of(global_variable));
+      l.visit_variable_assignment(identifier_of(global_variable),
+                                  Variable_Assignment_Flags::none);
       l.visit_end_of_module();
       EXPECT_THAT(v.errors,
                   ElementsAreArray({

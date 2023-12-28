@@ -104,6 +104,10 @@ enum class Variable_Declaration_Flags : unsigned char {
       inside_for_loop_head | initialized_with_equals,
 };
 
+enum class Variable_Assignment_Flags : unsigned char {
+  none = 0,
+};
+
 enum class Function_Attributes {
   async,
   async_generator,

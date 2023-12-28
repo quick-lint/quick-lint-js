@@ -325,7 +325,8 @@ void Parser::maybe_visit_assignment(Expression* ast, Parse_Visitor_Base& v) {
     this->maybe_visit_assignment(ast->child_0(), v);
     break;
   case Expression_Kind::Variable:
-    v.visit_variable_assignment(ast->variable_identifier());
+    v.visit_variable_assignment(ast->variable_identifier(),
+                                Variable_Assignment_Flags::none);
     break;
   default:
     break;

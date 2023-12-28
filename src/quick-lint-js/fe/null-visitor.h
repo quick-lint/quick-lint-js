@@ -45,7 +45,8 @@ class Null_Visitor final : public Parse_Visitor_Base {
   void visit_exit_type_scope() override {}
   void visit_keyword_variable_use(Identifier) override {}
   void visit_property_declaration(const std::optional<Identifier>&) override {}
-  void visit_variable_assignment(Identifier) override {}
+  void visit_variable_assignment(Identifier,
+                                 Variable_Assignment_Flags) override {}
   void visit_variable_declaration(Identifier, Variable_Kind,
                                   Variable_Declaration_Flags) override {}
   void visit_variable_assertion_signature_use(Identifier) override {}

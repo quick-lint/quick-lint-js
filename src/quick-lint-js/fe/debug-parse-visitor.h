@@ -197,7 +197,8 @@ class Debug_Parse_Visitor final : public Parse_Visitor_Base {
     this->output_->flush();
   }
 
-  void visit_variable_assignment(Identifier name) override {
+  void visit_variable_assignment(Identifier name,
+                                 Variable_Assignment_Flags) override {
     this->output_->append_copy(u8"variable assignment: "_sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');

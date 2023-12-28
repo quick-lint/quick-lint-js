@@ -58,7 +58,8 @@ class Parse_Visitor_Base {
       const std::optional<Identifier> &) = 0;
   virtual void visit_variable_declaration(Identifier name, Variable_Kind kind,
                                           Variable_Declaration_Flags flags) = 0;
-  virtual void visit_variable_assignment(Identifier name) = 0;
+  virtual void visit_variable_assignment(Identifier name,
+                                         Variable_Assignment_Flags flags) = 0;
   virtual void visit_variable_assertion_signature_use(Identifier name) = 0;
   virtual void visit_variable_delete_use(Identifier name,
                                          Source_Code_Span delete_keyword) = 0;

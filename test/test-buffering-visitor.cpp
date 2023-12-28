@@ -48,7 +48,8 @@ TEST(Test_Buffering_Visitor, buffers_all_visits) {
   v.visit_keyword_variable_use(identifier_of(variable_name));
   v.visit_property_declaration(std::nullopt);
   v.visit_property_declaration(identifier_of(property_name));
-  v.visit_variable_assignment(identifier_of(variable_name));
+  v.visit_variable_assignment(identifier_of(variable_name),
+                              Variable_Assignment_Flags::none);
   v.visit_variable_declaration(
       identifier_of(variable_name), Variable_Kind::_var,
       Variable_Declaration_Flags::initialized_with_equals);

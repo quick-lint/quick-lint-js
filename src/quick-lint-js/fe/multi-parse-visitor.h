@@ -184,9 +184,10 @@ class Multi_Parse_Visitor final : public Parse_Visitor_Base {
     this->visitor_2_->visit_property_declaration(name);
   }
 
-  void visit_variable_assignment(Identifier name) override {
-    this->visitor_1_->visit_variable_assignment(name);
-    this->visitor_2_->visit_variable_assignment(name);
+  void visit_variable_assignment(Identifier name,
+                                 Variable_Assignment_Flags flags) override {
+    this->visitor_1_->visit_variable_assignment(name, flags);
+    this->visitor_2_->visit_variable_assignment(name, flags);
   }
 
   void visit_variable_declaration(Identifier name, Variable_Kind kind,

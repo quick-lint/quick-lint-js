@@ -385,7 +385,8 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
 
   std::vector<std::optional<String8>> property_declarations;
 
-  void visit_variable_assignment(Identifier name) override {
+  void visit_variable_assignment(Identifier name,
+                                 Variable_Assignment_Flags) override {
     this->variable_assignments.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_assignment");
   }

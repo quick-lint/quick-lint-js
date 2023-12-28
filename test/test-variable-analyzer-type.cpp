@@ -321,7 +321,8 @@ TEST(Test_Variable_Analyzer_Type,
           .description = "visit_variable_assignment",
           .visit =
               [](Variable_Analyzer& l) {
-                l.visit_variable_assignment(identifier_of(assignment));
+                l.visit_variable_assignment(identifier_of(assignment),
+                                            Variable_Assignment_Flags::none);
               },
           .get_diags_matcher = [](std::optional<Variable_Kind> runtime_var_kind)
               -> Diags_Matcher {

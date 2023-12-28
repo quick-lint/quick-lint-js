@@ -68,7 +68,8 @@ class Buffering_Visitor final : public Parse_Visitor_Base {
   void visit_keyword_variable_use(Identifier name) override;
   void visit_property_declaration(
       const std::optional<Identifier> &name) override;
-  void visit_variable_assignment(Identifier name) override;
+  void visit_variable_assignment(Identifier name,
+                                 Variable_Assignment_Flags flags) override;
   void visit_variable_declaration(Identifier name, Variable_Kind kind,
                                   Variable_Declaration_Flags flags) override;
   void visit_variable_assertion_signature_use(Identifier name) override;
@@ -148,6 +149,10 @@ class Buffering_Visitor final : public Parse_Visitor_Base {
 
     explicit Visit(Visit_Kind kind, Identifier name) : kind(kind), name(name) {}
 
+    explicit Visit(Visit_Kind kind, Identifier name,
+                   Variable_Assignment_Flags flags)
+        : kind(kind), name(name), variable_assignment_flags(flags) {}
+
     explicit Visit(Visit_Kind kind, Identifier name, Variable_Kind var_kind,
                    Variable_Declaration_Flags flags)
         : kind(kind), name(name), var_decl{var_kind, flags} {}
@@ -188,6 +193,9 @@ class Buffering_Visitor final : public Parse_Visitor_Base {
       // variable_delete_use
       Source_Code_Span extra_span;
       static_assert(is_winkable_v<Source_Code_Span>);
+
+      // variable_assignment
+      Variable_Assignment_Flags variable_assignment_flags;
     };
   };
 

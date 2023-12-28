@@ -404,7 +404,8 @@ void Variable_Analyzer::declare_variable(Scope &scope, Identifier name,
   scope.declared_variables.add_variable_declaration(declared);
 }
 
-void Variable_Analyzer::visit_variable_assignment(Identifier name) {
+void Variable_Analyzer::visit_variable_assignment(
+    Identifier name, [[maybe_unused]] Variable_Assignment_Flags flags) {
   QLJS_ASSERT(!this->scopes_.empty());
   Scope &current_scope = this->current_scope();
   Declared_Variable *var = current_scope.declared_variables.find_runtime(name);
