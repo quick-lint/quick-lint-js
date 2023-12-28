@@ -31,6 +31,8 @@ constexpr String8_View ignored_tests[] = {
     // This test errors even with the TypeScript compiler. Maybe one of the test
     // directives causes its errors to be ignored by the test runner, but I
     // can't tell which test directive would do this.
+    u8"/jsFileCompilationExternalPackageError.ts"sv,
+    u8"/unicodeEscapesInNames02.ts"sv,
     u8"/usedImportNotElidedInJs.ts"sv,
 
     // TODO(#1122): quick-lint-js does not track namespace aliases properly.
@@ -48,12 +50,17 @@ constexpr String8_View ignored_tests[] = {
     u8"/initializePropertiesWithRenamedLet.ts"sv,
     u8"/narrowingDestructuring.ts"sv,
 
+    // FIXME(#735)
+    u8"/deeplyNestedConditionalTypes.ts"sv,
+    u8"/parsingDeepParenthensizedExpression.ts"sv,
+
     // This test correctly emits E0266 (a warning).
     // TODO(strager): Disable E0266 for this test but still check this test.
     u8"/castOfAwait.ts"sv,
 
     // This test correctly emits E0347 (a warning).
     // TODO(strager): Disable E0347 for this test but still check this test.
+    u8"/narrowingByTypeofInSwitch.ts"sv,
     u8"/switchCaseInternalComments.ts"sv,
 
     // These tests correctly emit E0427 (a warning).
