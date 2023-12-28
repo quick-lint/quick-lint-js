@@ -101,6 +101,7 @@ namespace quick_lint_js {
 namespace {
 bool is_runtime(Variable_Kind);
 bool is_type(Variable_Kind);
+bool is_runtime_and_type(Variable_Kind);
 }
 
 Variable_Analyzer::Variable_Analyzer(
@@ -1122,7 +1123,6 @@ bool Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (kind == VK::_import_type        && other_kind == VK::_var) ||
       (kind == VK::_infer_type         && other_kind == VK::_infer_type) ||
       (kind == VK::_interface          && other_kind == VK::_class) ||
-      (kind == VK::_interface          && other_kind == VK::_import) ||
       (kind == VK::_interface          && other_kind == VK::_import_alias) ||
       (kind == VK::_interface          && other_kind == VK::_interface) ||
       (kind == VK::_interface          && other_kind == VK::_namespace) ||
@@ -1160,6 +1160,11 @@ bool Variable_Analyzer::report_error_if_variable_declaration_conflicts(
       (kind_is_parameter               && other_kind_is_parameter) ||
       (!quick_lint_js::is_type(kind)   && other_kind == VK::_interface) ||
       // clang-format on
+      (this->options_.import_variable_can_be_runtime_or_type &&
+       ((kind == VK::_import &&
+         !quick_lint_js::is_runtime_and_type(other_kind)) ||
+        (other_kind == VK::_import &&
+         !quick_lint_js::is_runtime_and_type(kind)))) ||
       (other_kind == VK::_namespace &&
        (kind == VK::_class || kind == VK::_function) &&
        !(already_declared_var.flags &
@@ -1403,6 +1408,10 @@ bool is_type(Variable_Kind kind) {
     return false;
   }
   QLJS_UNREACHABLE();
+}
+
+bool is_runtime_and_type(Variable_Kind kind) {
+  return is_type(kind) && is_runtime(kind);
 }
 }
 }

@@ -39,6 +39,7 @@ void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
           .eval_can_declare_variables = !options.typescript,
           // TODO(strager): Deduplicate with typescript_var_options in tests.
           .can_assign_to_class = !options.typescript,
+          .import_variable_can_be_runtime_or_type = options.typescript,
       });
 
 #if defined(__EMSCRIPTEN__)

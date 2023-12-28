@@ -84,6 +84,10 @@ Semantic Versioning.
     directly in its own definition") when using `extends ? :`.
   * Making a type alias and a function with the same name no longer falsely
     reports [E0034][] ("redeclaration of variable").
+  * Importing a type then declaring a function or variable with the same name no
+    longer falsely reports [E0034][] ("redeclaration of variable").
+  * Importing a function or variable then declaring a type with the same name no
+    longer falsely reports [E0034][] ("redeclaration of variable").
   * `T extends () => RT ? A : B` no longer falsely reports [E0348][]
     ("unexpected '?' in type; use '| void' to make an optional type").
   * `<T extends />` is now correctly parsed as a JSX element.

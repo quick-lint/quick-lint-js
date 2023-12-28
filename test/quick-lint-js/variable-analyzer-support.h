@@ -27,6 +27,7 @@ constexpr Variable_Analyzer_Options typescript_var_options =
         .allow_deleting_typescript_variable = false,
         .eval_can_declare_variables = false,
         .can_assign_to_class = false,
+        .import_variable_can_be_runtime_or_type = true,
     };
 
 struct Test_Parse_And_Analyze_Options {

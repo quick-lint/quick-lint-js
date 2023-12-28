@@ -274,6 +274,71 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     typescript_import_does_not_conflict_with_runtime_only_variables) {
+  for (String8_View other_thing : {
+           u8"const x = null;"_sv,
+           u8"function x() {}"_sv,
+           u8"let x;"_sv,
+           u8"var x;"_sv,
+       }) {
+    test_parse_and_analyze(concat(u8"import x from ''; "_sv, other_thing),
+                           no_diags, typescript_analyze_options,
+                           default_globals);
+    test_parse_and_analyze(concat(other_thing, u8" import x from '';"_sv),
+                           no_diags, typescript_analyze_options,
+                           default_globals);
+  }
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     typescript_import_does_not_conflict_with_type_only_variables) {
+  for (String8_View other_thing : {
+           u8"interface x {}"_sv,
+           u8"type x = null;"_sv,
+           u8"import {type x} from 'othermod';"_sv,
+       }) {
+    test_parse_and_analyze(concat(u8"import x from ''; "_sv, other_thing),
+                           no_diags, typescript_analyze_options,
+                           default_globals);
+    test_parse_and_analyze(concat(other_thing, u8" import x from '';"_sv),
+                           no_diags, typescript_analyze_options,
+                           default_globals);
+  }
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     typescript_import_conflicts_with_mixed_runtime_and_type_variables) {
+  for (String8_View other_thing : {
+           u8"class x {}"_sv,
+           u8"enum x {}"_sv,
+       }) {
+    test_parse_and_analyze(concat(u8"import x from ''; "_sv, other_thing),
+                           u8"Diag_Redeclaration_Of_Variable"_diag,
+                           typescript_analyze_options, default_globals);
+    test_parse_and_analyze(concat(other_thing, u8" import x from '';"_sv),
+                           u8"Diag_Redeclaration_Of_Variable"_diag,
+                           typescript_analyze_options, default_globals);
+  }
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     typescript_import_always_conflicts_with_another_import) {
+  for (String8_View other_thing : {
+           u8"import {x} from 'othermod';"_sv,
+           u8"import x from 'othermod';"_sv,
+           u8"import * as x from 'othermod';"_sv,
+           u8"import x = require('othermod');"_sv,
+       }) {
+    test_parse_and_analyze(concat(u8"import x from ''; "_sv, other_thing),
+                           u8"Diag_Redeclaration_Of_Variable"_diag,
+                           typescript_analyze_options, default_globals);
+    test_parse_and_analyze(concat(other_thing, u8" import x from '';"_sv),
+                           u8"Diag_Redeclaration_Of_Variable"_diag,
+                           typescript_analyze_options, default_globals);
+  }
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      import_alias_does_not_conflict_with_most_other_things) {
   for (String8_View other_thing : {
            u8"class A {}"_sv,
@@ -353,28 +418,6 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
       u8"                                   ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
       u8"                      ^ .original_declaration"_diag,
       typescript_analyze_options, default_globals);
-}
-
-TEST(Test_Variable_Analyzer_Multiple_Declarations,
-     imported_type_always_conflicts_with_things_declaring_types) {
-  for (String8_View other_thing : {
-           u8"class T {}"_sv,
-           u8"enum T {}"_sv,
-           u8"import T from 'othermod';"_sv,
-           u8"import T = require('othermod');"_sv,
-           u8"import {type T} from 'othermod';"_sv,
-           u8"interface T {}"_sv,
-           u8"type T = null;"_sv,
-       }) {
-    test_parse_and_analyze(
-        concat(u8"import {type T} from 'mod'; "_sv, other_thing),
-        u8"Diag_Redeclaration_Of_Variable"_diag, typescript_analyze_options,
-        default_globals);
-    test_parse_and_analyze(
-        concat(other_thing, u8" import {type T} from 'mod';"_sv),
-        u8"Diag_Redeclaration_Of_Variable"_diag, typescript_analyze_options,
-        default_globals);
-  }
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,

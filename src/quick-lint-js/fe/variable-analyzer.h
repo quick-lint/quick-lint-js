@@ -35,6 +35,14 @@ struct Variable_Analyzer_Options {
   // If false, assigning to a 'class'-declared variable is invalid, like in
   // TypeScript.
   bool can_assign_to_class = true;
+
+  // If true, imported variables can be run-time variables (e.g. function, let)
+  // or type-only variables (e.g. TypeScript type alias or interface) or both
+  // (e.g. class).
+  //
+  // If false, imported variables can only be run-time variables, like in
+  // vanilla JavaScript.
+  bool import_variable_can_be_runtime_or_type = false;
 };
 
 // A variable_analyzer is a parse_visitor which implements variable lookup
