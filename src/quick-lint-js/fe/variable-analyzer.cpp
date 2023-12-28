@@ -227,7 +227,9 @@ void Variable_Analyzer::visit_exit_declare_global_scope() {
 
   this->visit_exit_declare_scope();
 
-  // FIXME(strager): Do we need to call propagate_variable_uses_to_parent_scope?
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/true,
+      /*consume_arguments=*/false);
 
   Scope &current_scope = this->current_scope();
   Scope &shadow_global_scope = this->scopes_.shadow_global_scope();

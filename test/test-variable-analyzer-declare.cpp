@@ -70,6 +70,18 @@ TEST(Test_Variable_Analyzer_Declare,
       u8"                                  ^ Diag_Use_Of_Undeclared_Variable"_diag,
       typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Declare,
+     undeclared_type_or_variable_in_global_declare_block_reports_error) {
+  test_parse_and_analyze(
+      u8"declare global { let x: UndefinedType; }"_sv,  //
+      u8"                        ^^^^^^^^^^^^^ Diag_Use_Of_Undeclared_Type"_diag,
+      typescript_analyze_options, default_globals);
+  test_parse_and_analyze(
+      u8"declare global { let x: typeof undefinedVariable; }"_sv,  //
+      u8"                               ^^^^^^^^^^^^^^^^^ Diag_Use_Of_Undeclared_Variable"_diag,
+      typescript_analyze_options, default_globals);
+}
 }
 }
 
