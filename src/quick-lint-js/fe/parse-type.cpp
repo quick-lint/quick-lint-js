@@ -571,6 +571,7 @@ again:
     case Token_Type::kw_async:
     case Token_Type::kw_await:
     case Token_Type::kw_bigint:
+    case Token_Type::kw_boolean:
     case Token_Type::kw_break:
     case Token_Type::kw_case:
     case Token_Type::kw_catch:
@@ -601,10 +602,12 @@ again:
     case Token_Type::kw_intrinsic:
     case Token_Type::kw_is:
     case Token_Type::kw_keyof:
+    case Token_Type::kw_let:
     case Token_Type::kw_module:
     case Token_Type::kw_namespace:
     case Token_Type::kw_new:
     case Token_Type::kw_null:
+    case Token_Type::kw_number:
     case Token_Type::kw_object:
     case Token_Type::kw_of:
     case Token_Type::kw_out:
@@ -614,6 +617,8 @@ again:
     case Token_Type::kw_return:
     case Token_Type::kw_satisfies:
     case Token_Type::kw_set:
+    case Token_Type::kw_static:
+    case Token_Type::kw_string:
     case Token_Type::kw_super:
     case Token_Type::kw_switch:
     case Token_Type::kw_symbol:
@@ -628,6 +633,7 @@ again:
     case Token_Type::kw_void:
     case Token_Type::kw_while:
     case Token_Type::kw_with:
+    case Token_Type::kw_yield:
       v.visit_variable_use(this->peek().identifier_name());
       this->skip();
       break;

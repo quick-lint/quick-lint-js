@@ -133,6 +133,8 @@ Semantic Versioning.
     errors.
   * `export default` inside a `declare module` no longer falsely reports
     [E0715][] ("cannot use multiple `export default` statements in one module").
+  * `typeof` in types now supports variables named `boolean`, `string`, and some
+    other names.
 
 ## 2.18.0 (2023-11-03)
 

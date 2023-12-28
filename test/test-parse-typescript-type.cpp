@@ -1433,21 +1433,12 @@ TEST_F(Test_Parse_TypeScript_Type, typeof) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
 
-  for (String8 keyword :
-       keywords - typescript_special_type_keywords -
-           strict_only_reserved_keywords -
-           Dirty_Set<String8>{
-               u8"this",
-               // This list is derived experimentally from TypeScript version
-               // 4.7.4. Some of these seem arbitrary. *shrug*
-               u8"boolean",
-               u8"import",
-               u8"let",
-               u8"number",
-               u8"static",
-               u8"string",
-               u8"yield",
-           }) {
+  for (String8 keyword : keywords - typescript_special_type_keywords -
+                             strict_only_reserved_keywords -
+                             Dirty_Set<String8>{
+                                 u8"import",
+                                 u8"this",
+                             }) {
     {
       Padded_String code(u8"typeof " + keyword);
       SCOPED_TRACE(code);
