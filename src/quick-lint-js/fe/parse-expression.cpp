@@ -2176,6 +2176,7 @@ next:
               .stop_parsing_type_at_newline_before_generic_arguments =
                   prec.stop_parsing_type_at_newline_before_generic_arguments_in_type_annotation,
               .stop_parsing_type_at_newline_after_asserts = false,
+              .stop_parsing_type_at_newline_before_is = false,
           });
       const Char8* type_end = this->lexer_.end_of_previous_token();
       binary_builder.replace_last(

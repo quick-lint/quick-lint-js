@@ -239,6 +239,20 @@ again:
     if (this->peek().type == Token_Type::kw_is) {
       // param is Type
       // this is Type
+      if (this->peek().has_leading_newline) {
+        if (parse_options.stop_parsing_type_at_newline_before_is) {
+          // interface I {
+          //   f(): p       // ASI.
+          //   is();
+          // }
+          break;
+        } else {
+          this->diag_reporter_->report(
+              Diag_Newline_Not_Allowed_Before_Is_In_Assertion_Signature{
+                  .is_keyword = this->peek().span(),
+              });
+        }
+      }
       Source_Code_Span is_keyword = this->peek().span();
       this->skip();
       if (name_type != Token_Type::kw_this) {

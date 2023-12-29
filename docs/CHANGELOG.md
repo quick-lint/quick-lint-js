@@ -84,8 +84,8 @@ Semantic Versioning.
     coding style.
   * Interface index signatures and computed property names in interfaces are now
     parsed correctly when using a semicolon-free coding style.
-  * Properties named 'extends' parsed correctly when using a semicolon-free
-    coding style.
+  * Properties named 'extends' or 'is' are now parsed correctly when using a
+    semicolon-free coding style.
   * Types named 'asserts' are parsed correctly when using a semicolon-free
     coding style.
   * `declare const x = 42;` no longer falsely reports [E0351][] or [E0385][].

@@ -1394,6 +1394,10 @@ msgid "newline is not allowed after '{0}' modifier in generic parameter"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "newline is not allowed before 'is'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "number literal contains consecutive underscores"
 msgstr ""
 

@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[600] = {
+inline const Translated_String test_translation_table[601] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -5042,6 +5042,17 @@ inline const Translated_String test_translation_table[600] = {
             u8"newline is not allowed before 'extends'",
             u8"newline is not allowed before 'extends'",
             u8"newline is not allowed before 'extends'",
+        },
+    },
+    {
+        "newline is not allowed before 'is'"_translatable,
+        u8"newline is not allowed before 'is'",
+        {
+            u8"newline is not allowed before 'is'",
+            u8"newline is not allowed before 'is'",
+            u8"newline is not allowed before 'is'",
+            u8"newline is not allowed before 'is'",
+            u8"newline is not allowed before 'is'",
         },
     },
     {

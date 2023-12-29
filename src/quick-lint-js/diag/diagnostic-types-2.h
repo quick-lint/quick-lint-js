@@ -1855,6 +1855,13 @@ struct Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers {
   Source_Code_Span modifier;
 };
 
+struct Diag_Newline_Not_Allowed_Before_Is_In_Assertion_Signature {
+  [[qljs::diag("E0454", Diagnostic_Severity::error)]]  //
+  [[qljs::message("newline is not allowed before 'is'",
+                  ARG(is_keyword))]]  //
+  Source_Code_Span is_keyword;
+};
+
 struct Diag_Number_Literal_Contains_Consecutive_Underscores {
   [[qljs::diag("E0028", Diagnostic_Severity::error)]]  //
   [[qljs::message("number literal contains consecutive underscores",
