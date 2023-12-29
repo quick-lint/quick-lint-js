@@ -1924,6 +1924,13 @@ struct Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter {
   Source_Code_Span required_parameter;
 };
 
+struct Diag_Override_Property_Not_Allowed_In_Interface {
+  [[qljs::diag("E0449", Diagnostic_Severity::error)]]  //
+  [[qljs::message("override properties are not allowed in interfaces",
+                  ARG(override_keyword))]]  //
+  Source_Code_Span override_keyword;
+};
+
 struct Diag_Integer_Literal_Will_Lose_Precision {
   [[qljs::diag("E0212", Diagnostic_Severity::warning)]]  //
   [[qljs::message("integer cannot be represented and will be rounded to '{1}'",

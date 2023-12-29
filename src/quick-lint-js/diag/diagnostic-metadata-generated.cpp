@@ -3741,6 +3741,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Override_Property_Not_Allowed_In_Interface
+    {
+      .code = 449,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("override properties are not allowed in interfaces"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Override_Property_Not_Allowed_In_Interface, override_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Integer_Literal_Will_Lose_Precision
     {
       .code = 212,

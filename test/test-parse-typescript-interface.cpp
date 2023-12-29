@@ -1610,6 +1610,13 @@ TEST_F(Test_Parse_TypeScript_Interface,
                           }));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Interface, override_is_not_allowed) {
+  test_parse_and_visit_statement(
+      u8"interface I { override method(); }"_sv,
+      u8"              ^^^^^^^^ Diag_Override_Property_Not_Allowed_In_Interface"_diag,
+      typescript_options);
+}
 }
 }
 

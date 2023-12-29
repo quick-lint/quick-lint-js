@@ -359,6 +359,7 @@ void Parser::parse_and_visit_class_or_interface_member(
         case Token_Type::kw_async:
         case Token_Type::kw_declare:
         case Token_Type::kw_function:
+        case Token_Type::kw_override:
         case Token_Type::kw_private:
         case Token_Type::kw_protected:
         case Token_Type::kw_public:
@@ -1178,12 +1179,14 @@ void Parser::parse_and_visit_class_or_interface_member(
       error_if_decorator_not_first();
       error_if_abstract_with_decorator();
       error_if_abstract_or_static_after_accessor();
+      error_if_override_in_wrong_order();
       error_if_conflicting_modifiers();
       error_if_readonly_in_not_typescript();
       error_if_declare_in_not_typescript();
       error_if_declare_in_interface();
       error_if_declare_of_private_identifier(field_name);
       error_if_declare_field_with_assignment_assertion();
+      error_if_override_in_interface();
       error_if_accessor_in_interface();
       error_if_static_in_interface();
       error_if_static_abstract();
@@ -1204,6 +1207,8 @@ void Parser::parse_and_visit_class_or_interface_member(
       error_if_access_specifier_not_first_in_method();
       error_if_decorator_not_first();
       error_if_abstract_with_decorator();
+      error_if_override_in_wrong_order();
+      error_if_override_in_interface();
       error_if_static_in_interface();
       error_if_static_abstract();
       error_if_optional_in_not_typescript();
@@ -1554,6 +1559,7 @@ void Parser::parse_and_visit_class_or_interface_member(
         check_if_access_specifier_precedes_given_modifiers(
             Span<const Token_Type>({
                 Token_Type::kw_accessor,
+                Token_Type::kw_override,
                 Token_Type::kw_readonly,
                 Token_Type::kw_static,
             }));
@@ -1564,8 +1570,9 @@ void Parser::parse_and_visit_class_or_interface_member(
       if (p->options_.typescript && !modifiers.empty()) {
         check_if_access_specifier_precedes_given_modifiers(
             Span<const Token_Type>({
-                Token_Type::kw_static,
                 Token_Type::kw_async,
+                Token_Type::kw_override,
+                Token_Type::kw_static,
             }));
       }
     }
@@ -1640,6 +1647,44 @@ void Parser::parse_and_visit_class_or_interface_member(
                 });
           }
         }
+
+        if (const Modifier *override_modifier =
+                this->find_modifier(Token_Type::kw_override)) {
+          if (override_modifier > accessor_modifier) {
+            p->diag_reporter_->report(
+                Diag_Class_Modifier_Must_Preceed_Other_Modifier{
+                    .expected_first_modifier = override_modifier->span,
+                    .expected_second_modifier = accessor_modifier->span,
+                });
+          }
+        }
+      }
+    }
+
+    void error_if_override_in_wrong_order() {
+      if (const Modifier *override_modifier =
+              this->find_modifier(Token_Type::kw_override)) {
+        if (const Modifier *static_modifier =
+                this->find_modifier(Token_Type::kw_static)) {
+          if (static_modifier > override_modifier) {
+            p->diag_reporter_->report(
+                Diag_Class_Modifier_Must_Preceed_Other_Modifier{
+                    .expected_first_modifier = static_modifier->span,
+                    .expected_second_modifier = override_modifier->span,
+                });
+          }
+        }
+
+        if (const Modifier *abstract_modifier =
+                this->find_modifier(Token_Type::kw_abstract)) {
+          if (abstract_modifier > override_modifier) {
+            p->diag_reporter_->report(
+                Diag_Class_Modifier_Must_Preceed_Other_Modifier{
+                    .expected_first_modifier = abstract_modifier->span,
+                    .expected_second_modifier = override_modifier->span,
+                });
+          }
+        }
       }
     }
 
@@ -1682,6 +1727,18 @@ void Parser::parse_and_visit_class_or_interface_member(
           p->diag_reporter_->report(Diag_Interface_Field_Cannot_Be_Accessor{
               .accessor_keyword = accessor_modifier->span,
           });
+        }
+      }
+    }
+
+    void error_if_override_in_interface() {
+      if (is_interface) {
+        if (const Modifier *override_modifier =
+                find_modifier(Token_Type::kw_override)) {
+          p->diag_reporter_->report(
+              Diag_Override_Property_Not_Allowed_In_Interface{
+                  .override_keyword = override_modifier->span,
+              });
         }
       }
     }

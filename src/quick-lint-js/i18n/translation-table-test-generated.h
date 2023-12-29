@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[598] = {
+inline const Translated_String test_translation_table[599] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -5284,6 +5284,17 @@ inline const Translated_String test_translation_table[598] = {
             u8"overloaded method is marked '{0}'",
             u8"overloaded method is marked '{0}'",
             u8"overloaded method is marked '{0}'",
+        },
+    },
+    {
+        "override properties are not allowed in interfaces"_translatable,
+        u8"override properties are not allowed in interfaces",
+        {
+            u8"override properties are not allowed in interfaces",
+            u8"override properties are not allowed in interfaces",
+            u8"override properties are not allowed in interfaces",
+            u8"override properties are not allowed in interfaces",
+            u8"override properties are not allowed in interfaces",
         },
     },
     {

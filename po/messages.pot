@@ -1434,6 +1434,10 @@ msgid "this required parameter appears after the optional parameter"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "override properties are not allowed in interfaces"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "integer cannot be represented and will be rounded to '{1}'"
 msgstr ""
 

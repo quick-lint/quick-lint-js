@@ -490,6 +490,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 68, 0, 64},                //
         {0, 0, 0, 0, 0, 40},                 //
         {0, 0, 0, 0, 0, 34},                 //
+        {0, 0, 0, 0, 0, 50},                 //
         {0, 0, 0, 0, 0, 10},                 //
         {0, 0, 0, 0, 0, 51},                 //
         {0, 0, 0, 0, 0, 56},                 //
@@ -2354,6 +2355,7 @@ const Translation_Table translation_data = {
         u8"overload signature must match modifiers on this overload method\0"
         u8"overloaded function '{0}' declared here\0"
         u8"overloaded method is marked '{0}'\0"
+        u8"override properties are not allowed in interfaces\0"
         u8"parameter\0"
         u8"parameter decorator must be before other modifiers\0"
         u8"parameter decorators are not allowed in 'declare class'\0"

@@ -260,6 +260,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Optional_Arrow_Parameter_With_Type_Annotation_Requires_Parentheses) \
   QLJS_DIAG_TYPE_NAME(Diag_Optional_Parameter_Cannot_Have_Initializer) \
   QLJS_DIAG_TYPE_NAME(Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter) \
+  QLJS_DIAG_TYPE_NAME(Diag_Override_Property_Not_Allowed_In_Interface) \
   QLJS_DIAG_TYPE_NAME(Diag_Integer_Literal_Will_Lose_Precision) \
   QLJS_DIAG_TYPE_NAME(Diag_Parameter_Decorator_In_Abstract_Method) \
   QLJS_DIAG_TYPE_NAME(Diag_Parameter_Decorator_In_Declare_Class) \
@@ -469,7 +470,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 455;
+inline constexpr int Diag_Type_Count = 456;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

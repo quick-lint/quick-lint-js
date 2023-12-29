@@ -1407,6 +1407,98 @@ TEST_F(Test_Parse_TypeScript_Class,
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Class, override_property) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"class C extends B { override method() {} }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",          // C
+                              "visit_variable_use",               // B
+                              "visit_enter_class_scope_body",     // {
+                              "visit_enter_function_scope",       // method
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_property_declaration",       // method
+                              "visit_exit_class_scope",           // }
+                              "visit_variable_declaration",       // C
+                              "visit_end_of_module",
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"class C extends B { override field; }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // C
+                              "visit_variable_use",            // B
+                              "visit_enter_class_scope_body",  // {
+                              "visit_property_declaration",    // field
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_end_of_module",
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"class C extends B { override accessor prop; }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // C
+                              "visit_variable_use",            // B
+                              "visit_enter_class_scope_body",  // {
+                              "visit_property_declaration",    // prop
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                              "visit_end_of_module",
+                          }));
+  }
+
+  test_parse_and_visit_module(
+      u8"class C extends B { static override method() {} }"_sv, no_diags,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Class, override_keyword_order) {
+  test_parse_and_visit_module(
+      u8"class C extends B { override static method() {} }"_sv,  //
+      u8"                             ^^^^^^ Diag_Class_Modifier_Must_Preceed_Other_Modifier.expected_first_modifier\n"_diag  //
+      u8"                    ^^^^^^^^ .expected_second_modifier"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"class C extends B { accessor override prop; }"_sv,  //
+      u8"                             ^^^^^^^^ Diag_Class_Modifier_Must_Preceed_Other_Modifier.expected_first_modifier\n"_diag  //
+      u8"                    ^^^^^^^^ .expected_second_modifier"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"class C extends B { override public method() {} }"_sv,  //
+      u8"                             ^^^^^^ Diag_Access_Specifier_Must_Precede_Other_Modifiers.second_modifier\n"_diag  //
+      u8"                    ^^^^^^^^ .first_modifier"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"class C extends B { override public field; }"_sv,  //
+      u8"                             ^^^^^^ Diag_Access_Specifier_Must_Precede_Other_Modifiers.second_modifier\n"_diag  //
+      u8"                    ^^^^^^^^ .first_modifier"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"abstract class C extends B { override abstract field; }"_sv,  //
+      u8"                                      ^^^^^^^^ Diag_Class_Modifier_Must_Preceed_Other_Modifier.expected_first_modifier\n"_diag  //
+      u8"                             ^^^^^^^^ .expected_second_modifier"_diag,
+      typescript_options);
+}
+
+TEST_F(Test_Parse_TypeScript_Class,
+       override_method_prohibits_newline_after_override_keyword) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { override\n m() { } }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"override", u8"m"}));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Class, accessor_field) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(

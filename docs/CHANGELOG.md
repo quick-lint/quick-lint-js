@@ -48,6 +48,7 @@ Semantic Versioning.
   * Assigning to a class now reports [E0003][] ("cannot assign to class").
   * Definite assignment assertions (`!` after a variable name in `let` or `var`)
     is now supported.
+  * `override` is now supported in classes.
   * Abstract constructor types (such as `abstract new () => C`) are now
     supported.
   * `export class { m(); }` in a .d.ts file no longer falsely reports [E0172][]
