@@ -244,10 +244,38 @@ TEST_F(Test_Parse_TypeScript_Class,
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Class, optional_methods_do_not_need_bodies) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C { method?(); }"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",       // C
+                              "visit_enter_class_scope_body",  // {
+                              "visit_enter_function_scope",    // method
+                              "visit_exit_function_scope",     // method
+                              "visit_property_declaration",    // method
+                              "visit_exit_class_scope",        // }
+                              "visit_variable_declaration",    // C
+                          }));
+  }
+
+  // This is partially parsed as an overload signature, this is handled
+  // differently by quick-lint-js's internals.
+  test_parse_and_visit_statement(
+      u8"class C { method?()\n otherMethod() {} }"_sv, no_diags,
+      typescript_options);
+  test_parse_and_visit_statement(u8"class C { method?(); otherMethod() {} }"_sv,
+                                 no_diags, typescript_options);
+}
+
 TEST_F(Test_Parse_TypeScript_Class,
        optional_methods_are_not_allowed_in_javascript_classes) {
   test_parse_and_visit_statement(
       u8"class C { method?() {} }"_sv,  //
+      u8"                ^ Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript"_diag,  //
+      javascript_options);
+  test_parse_and_visit_statement(
+      u8"class C { method?(); }"_sv,  //
       u8"                ^ Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript"_diag,  //
       javascript_options);
 }

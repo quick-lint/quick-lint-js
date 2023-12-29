@@ -593,7 +593,8 @@ void Parser::parse_and_visit_class_or_interface_member(
       case Token_Type::right_curly:
       case Token_Type::colon:
         if (!this->overload_signatures.empty()) {
-          // class C { method(); }  // Invalid.
+          // class C { method?(); }
+          // class C { method(); }   // Invalid.
           this->error_on_overload_signatures();
         } else if (last_ident.has_value()) {
           modifiers.pop_back();
@@ -942,7 +943,12 @@ void Parser::parse_and_visit_class_or_interface_member(
                   .name = property_name,
                   .name_span = property_name_span,
               });
+            } else if (this->find_modifier(Token_Type::question)) {
+              // class C { myMethod?(); }  // Invalid JavaScript.
+              QLJS_ASSERT(!p->options_.typescript);
+              // Do nothing.
             } else {
+              // class C { myMethod(); }  // Invalid.
               p->diag_reporter_->report(Diag_Missing_Function_Body{
                   .expected_body = Source_Code_Span::unit(
                       p->lexer_.end_of_previous_token())});
@@ -1904,8 +1910,15 @@ void Parser::parse_and_visit_class_or_interface_member(
         if (signature.name.has_value() && property_name.has_value() &&
             signature.name->normalized_name() !=
                 property_name->normalized_name()) {
-          if (signature.semicolons.empty() ||
-              signature_get_or_set_modifier != nullptr) {
+          if (this->find_modifier(Token_Type::question, signature.modifiers) !=
+              nullptr) {
+            // class C {
+            //   f?();  // Valid; no body.
+            //   g() {}
+            // }
+            v.visit_property_declaration(*signature.name);
+          } else if (signature.semicolons.empty() ||
+                     signature_get_or_set_modifier != nullptr) {
             // class C {
             //   f()      // Invalid; missing body.
             //   g() {}
@@ -2044,9 +2057,15 @@ void Parser::parse_and_visit_class_or_interface_member(
         if (signature.name.has_value()) {
           v.visit_property_declaration(*signature.name);
         }
-        p->diag_reporter_->report(Diag_Missing_Function_Body{
-            .expected_body = Source_Code_Span::unit(signature.expected_body),
-        });
+        if (this->find_modifier(Token_Type::question, signature.modifiers) !=
+            nullptr) {
+          // class C { method?(); }
+        } else {
+          // class C { method(); }  // Invalid.
+          p->diag_reporter_->report(Diag_Missing_Function_Body{
+              .expected_body = Source_Code_Span::unit(signature.expected_body),
+          });
+        }
       }
     }
 
