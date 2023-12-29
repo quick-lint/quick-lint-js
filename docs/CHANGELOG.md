@@ -17,6 +17,9 @@ Semantic Versioning.
   Masani][].)
 * Detection of multiple `export default` statements ([E0715][]) now also applies
   to `export {... as default};` statements.
+* JSX elements and fragments are now allowed in JSX attributes without
+  surrounding them in `{` and `}` (e.g.
+  `<List header=<ListHeader />>{items}</List>`).
 * TypeScript support (still experimental):
   * `export as namespace` statements are now parsed.
   * Const generic parameters (`<const T>`) are now parsed.

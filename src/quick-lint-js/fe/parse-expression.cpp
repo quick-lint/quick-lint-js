@@ -3861,6 +3861,11 @@ next_attribute:
         break;
       }
 
+      // <current attribute=<Element />>
+      case Token_Type::less:
+        children.emplace_back(this->parse_jsx_element_or_fragment(v));
+        break;
+
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;

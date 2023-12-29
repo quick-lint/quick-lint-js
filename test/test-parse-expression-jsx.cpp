@@ -281,6 +281,24 @@ TEST_F(Test_Parse_Expression_JSX, tag_with_attributes) {
   }
 
   {
+    Test_Parser p(u8"<div attr=<span /> />"_sv, jsx_options);
+    Expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxelement(div, jsxelement(span))");
+  }
+
+  {
+    Test_Parser p(u8"<div attr=<span>{child}</span> />"_sv, jsx_options);
+    Expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxelement(div, jsxelement(span, var child))");
+  }
+
+  {
+    Test_Parser p(u8"<div attr=<>{child}</> />"_sv, jsx_options);
+    Expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxelement(div, jsxfragment(var child))");
+  }
+
+  {
     Test_Parser p(u8"<input {...attributes} />"_sv, jsx_options);
     Expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(input, spread(var attributes))");
@@ -399,6 +417,15 @@ TEST_F(Test_Parse_Expression_JSX,
     Test_Parser p(u8"<const T extends />"_sv, typescript_jsx_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(const)");
+  }
+}
+
+TEST_F(Test_Parse_Expression_JSX, greater_greater_token_is_split) {
+  {
+    Test_Parser p(u8"<A attr=<B />> </A>"_sv, jsx_options);
+    //                           ^^ Token should be split into two '>'s.
+    Expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxelement(A, jsxelement(B))");
   }
 }
 }
