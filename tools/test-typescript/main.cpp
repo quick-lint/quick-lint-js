@@ -28,23 +28,37 @@ using namespace std::literals::string_view_literals;
 namespace quick_lint_js {
 namespace {
 constexpr String8_View ignored_tests[] = {
-    // This test errors even with the TypeScript compiler. Maybe one of the test
+    // These tests error even with the TypeScript compiler, or cause the
+    // TypeScript compiler to generate invalid code. Maybe one of the test
     // directives causes its errors to be ignored by the test runner, but I
     // can't tell which test directive would do this.
+    u8"/classes/classStaticBlock/classStaticBlock22.ts"sv,
+    u8"/classes/members/privateNames/privateNameInInExpression.ts"sv,
+    u8"/classes/propertyMemberDeclarations/staticPropertyNameConflicts.ts"sv,
     u8"/es2018/invalidTaggedTemplateEscapeSequences.ts"sv,
     u8"/es2020/modules/exportAsNamespace3.ts"sv,
     u8"/es6/for-ofStatements/for-of53.ts"sv,
-    u8"/classes/classStaticBlock/classStaticBlock22.ts"sv,
-    u8"/classes/propertyMemberDeclarations/staticPropertyNameConflicts.ts"sv,
     u8"/esDecorators/classDeclaration/accessors/esDecorators-classDeclaration-accessors-nonStaticAbstract.ts"sv,
     u8"/esDecorators/classDeclaration/fields/esDecorators-classDeclaration-fields-nonStaticAbstract.ts"sv,
     u8"/esDecorators/classDeclaration/fields/esDecorators-classDeclaration-fields-nonStaticAbstractAccessor.ts"sv,
     u8"/esDecorators/classDeclaration/methods/esDecorators-classDeclaration-methods-nonStaticAbstract.ts"sv,
     u8"/jsFileCompilationExternalPackageError.ts"sv,
     u8"/jsx/jsxAttributeInitializer.ts"sv,
+    u8"/node/nodeModulesImportTypeModeDeclarationEmitErrors1.ts"sv,
+    u8"/salsa/privateIdentifierExpando.ts"sv,
     u8"/unicodeEscapesInNames02.ts"sv,
     u8"/usedImportNotElidedInJs.ts"sv,
-    u8"/classes/members/privateNames/privateNameInInExpression.ts"sv,
+    u8"/node/nodeModulesDeclarationEmitWithPackageExports.ts"sv,
+
+    // TypeScript's compiler supports TypeScript extensions in JavaScript code,
+    // but quick-lint-js does not.
+    u8"/node/allowJs/nodeModulesAllowJs1.ts"sv,
+    u8"/node/allowJs/nodeModulesAllowJsImportAssignment.ts"sv,
+    u8"/node/allowJs/nodeModulesAllowJsExportAssignment.ts"sv,
+    u8"/node/allowJs/nodeModulesAllowJsSynchronousCallErrors.ts"sv,
+
+    // These tests have errors but the tests explicitly disable checking.
+    u8"/salsa/plainJSRedeclare3.ts"sv,
 
     // TODO(strager): quick-lint-js should strip metadata comments and
     // whitespace from the beginning of the test file.
@@ -52,6 +66,12 @@ constexpr String8_View ignored_tests[] = {
 
     // TODO(#1122): quick-lint-js does not track namespace aliases properly.
     u8"/importedModuleClassNameClash.ts"sv,
+
+    // TODO(#1004): Implement import assertions.
+    u8"/node/nodeModulesImportModeDeclarationEmit2.ts"sv,
+    u8"/node/nodeModulesImportAssertions.ts"sv,
+    u8"/node/nodeModulesImportModeDeclarationEmit1.ts"sv,
+    u8"/node/nodeModulesImportModeDeclarationEmitErrors1.ts"sv,
 
     // TODO(#1123): quick-lint-js does not parse UTF-16 source files.
     u8"/bom-utf16be.ts"sv,
@@ -92,6 +112,10 @@ constexpr String8_View ignored_tests[] = {
     // TODO(strager): Disable E0347 for this test but still check this test.
     u8"/narrowingByTypeofInSwitch.ts"sv,
     u8"/switchCaseInternalComments.ts"sv,
+
+    // These tests correctly emit E0369 (a warning).
+    // TODO(strager): Disable E0369 for all tests and don't ignore these tests.
+    u8"/expressions/nullishCoalescingOperator/nullishCoalescingOperator1.ts"sv,
 
     // These tests correctly emit E0427 (a warning).
     // TODO(strager): Disable E0427 for all tests and don't ignore these tests.
