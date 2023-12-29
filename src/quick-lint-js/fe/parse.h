@@ -254,6 +254,8 @@ class Parser {
   TypeScript_Type_Arrow_Or_Paren
   parse_and_visit_typescript_arrow_or_paren_type_expression(
       Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);
+  // Parse 'import(...)'.
+  void parse_and_visit_typescript_import_type_expression(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_object_type_expression(Parse_Visitor_Base &v);
   void parse_and_visit_typescript_template_type_expression(
       Parse_Visitor_Base &v, const TypeScript_Type_Parse_Options &);

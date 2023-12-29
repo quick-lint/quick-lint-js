@@ -646,13 +646,7 @@ again:
 
     // typeof import("modulename")
     case Token_Type::kw_import:
-      this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::left_paren);
-      this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::string);
-      this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
-      this->skip();
+      this->parse_and_visit_typescript_import_type_expression(v);
       break;
 
     default:
@@ -711,13 +705,7 @@ again:
 
   // import("module").Name
   case Token_Type::kw_import:
-    this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::left_paren);
-    this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::string);
-    this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
-    this->skip();
+    this->parse_and_visit_typescript_import_type_expression(v);
     while (this->peek().type == Token_Type::dot) {
       this->skip();
       switch (this->peek().type) {
@@ -972,6 +960,24 @@ Parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
     v.visit_exit_function_scope();
   }
   return result;
+}
+
+void Parser::parse_and_visit_typescript_import_type_expression(
+    Parse_Visitor_Base &v) {
+  QLJS_ASSERT(this->peek().type == Token_Type::kw_import);
+  this->skip();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::left_paren);
+  this->skip();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::string);
+  this->skip();
+  if (this->peek().type == Token_Type::comma) {
+    // typeof import("modulename", {assert: {'resolution-mode': 'require'}})
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::left_curly);
+    this->parse_and_visit_typescript_object_type_expression(v);
+  }
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
+  this->skip();
 }
 
 void Parser::parse_and_visit_typescript_object_type_expression(

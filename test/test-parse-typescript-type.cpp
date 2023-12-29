@@ -1520,6 +1520,10 @@ TEST_F(Test_Parse_TypeScript_Type, typeof_import) {
         typescript_options);
     EXPECT_THAT(p.visits, IsEmpty());
   }
+
+  test_parse_and_visit_typescript_type_expression(
+      u8"typeof import('mymod', {assert: {'resolution-mode': 'require'}}).MyClass"_sv,
+      no_diags, typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Type, typeof_this) {
@@ -1651,6 +1655,10 @@ TEST_F(Test_Parse_TypeScript_Type, imported_type) {
       u8"                           ^^^^ Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type.property_name\n"_diag
       u8"                          ^ .dot"_diag,
       typescript_options);
+
+  test_parse_and_visit_typescript_type_expression(
+      u8"import('mymod', {assert: {'resolution-mode': 'require'}}).MyClass"_sv,
+      no_diags, typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Type, keyof) {
