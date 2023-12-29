@@ -278,6 +278,19 @@ TEST(Test_TypeScript_Test, typescript_definition_file) {
   EXPECT_FALSE(options->jsx);
 }
 
+TEST(Test_TypeScript_Test, typescript_definition_file_with_weird_extension) {
+  Padded_String file(
+      u8"// @filename: example.d.html.ts\n"_sv
+      u8"export const a;"_sv);
+  TypeScript_Test_Units units =
+      extract_units_from_typescript_test(std::move(file), u8"hello.ts");
+  ASSERT_EQ(units.size(), 1);
+  std::optional<Linter_Options> options = units[0].get_linter_options();
+  ASSERT_TRUE(options.has_value());
+  EXPECT_TRUE(options->typescript);
+  EXPECT_TRUE(options->typescript_definition);
+}
+
 TEST(Test_TypeScript_Test, javascript_file_is_linted) {
   {
     Padded_String file(
