@@ -147,6 +147,9 @@ Semantic Versioning.
   * `extends` in some cases is no longer incorrectly interpreted as an `infer`
     constraint, such as in
     `MyType extends (infer T extends U ? T1 : F1) ? T2 : F2;`.
+  * Nested `extends`, such as in `A extends () => B extends C ? D : E ? F : G`,
+    no longer falsely reports [E0348][] ("unexpected '?' in type; use '| void'
+    to make an optional type").
 
 ## 2.18.0 (2023-11-03)
 

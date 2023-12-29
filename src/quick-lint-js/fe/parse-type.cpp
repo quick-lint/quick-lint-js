@@ -861,6 +861,10 @@ again:
         v, TypeScript_Type_Parse_Options{
                // See NOTE[TypeScript-extends-cycle].
                .type_being_declared = std::nullopt,
+               // This must be false to handle an edge case involving nested
+               // 'extends' with function types:
+               //   A extends () => B extends C ? D : E ? F : G
+               .parse_question_as_invalid = false,
            });
   }
 }

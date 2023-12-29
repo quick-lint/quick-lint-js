@@ -1724,6 +1724,19 @@ TEST_F(Test_Parse_TypeScript_Type, extends_condition) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Type, nested_extends_condition) {
+  test_parse_and_visit_typescript_type_expression(
+      u8"A extends B ? C extends D ? E : F : G"_sv, no_diags,
+      typescript_options);
+  test_parse_and_visit_typescript_type_expression(
+      u8"A extends B ? C : D extends E ? F : G"_sv, no_diags,
+      typescript_options);
+  test_parse_and_visit_typescript_type_expression(
+      u8"A extends () => B extends C ? D : E ? F : G"_sv, no_diags,
+      //          (^^^^^^^^^^^^^^^^^^^^^^^^^) Function type.
+      typescript_options);
+}
+
 TEST_F(Test_Parse_TypeScript_Type, conditional_type_with_infer) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
