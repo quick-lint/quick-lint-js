@@ -149,11 +149,10 @@ std::optional<Linter_Options> TypeScript_Test_Unit::get_linter_options() const {
   if (ends_with(String8_View(this->name), u8".jsx"_sv)) {
     return Linter_Options{.jsx = true, .typescript = false};
   }
-  if (ends_with(String8_View(this->name), u8".md"_sv)) {
-    return std::nullopt;
-  }
-  // FIXME(strager): Should we reject unknown file extensions?
-  return Linter_Options{.jsx = false, .typescript = true};
+  // Don't lint unknown file extensions. See
+  // TypeScript/tests/cases/conformance/moduleResolution/bundler/bundlerImportTsExtensions.ts
+  // for an example.
+  return std::nullopt;
 }
 
 TypeScript_Test_Units extract_units_from_typescript_test(
