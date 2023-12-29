@@ -23,6 +23,12 @@ inline bool starts_with(std::basic_string_view<Char> haystack,
 }
 
 template <class Char>
+inline bool contains(std::basic_string_view<Char> haystack,
+                     std::basic_string_view<Char> needle) {
+  return haystack.find(needle) != std::basic_string_view<Char>::npos;
+}
+
+template <class Char>
 inline bool ends_with(std::basic_string_view<Char> haystack,
                       std::basic_string_view<Char> needle) {
   return haystack.size() >= needle.size() &&

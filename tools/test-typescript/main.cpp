@@ -31,9 +31,24 @@ constexpr String8_View ignored_tests[] = {
     // This test errors even with the TypeScript compiler. Maybe one of the test
     // directives causes its errors to be ignored by the test runner, but I
     // can't tell which test directive would do this.
+    u8"/es2018/invalidTaggedTemplateEscapeSequences.ts"sv,
+    u8"/es2020/modules/exportAsNamespace3.ts"sv,
+    u8"/es6/for-ofStatements/for-of53.ts"sv,
+    u8"/classes/classStaticBlock/classStaticBlock22.ts"sv,
+    u8"/classes/propertyMemberDeclarations/staticPropertyNameConflicts.ts"sv,
+    u8"/esDecorators/classDeclaration/accessors/esDecorators-classDeclaration-accessors-nonStaticAbstract.ts"sv,
+    u8"/esDecorators/classDeclaration/fields/esDecorators-classDeclaration-fields-nonStaticAbstract.ts"sv,
+    u8"/esDecorators/classDeclaration/fields/esDecorators-classDeclaration-fields-nonStaticAbstractAccessor.ts"sv,
+    u8"/esDecorators/classDeclaration/methods/esDecorators-classDeclaration-methods-nonStaticAbstract.ts"sv,
     u8"/jsFileCompilationExternalPackageError.ts"sv,
+    u8"/jsx/jsxAttributeInitializer.ts"sv,
     u8"/unicodeEscapesInNames02.ts"sv,
     u8"/usedImportNotElidedInJs.ts"sv,
+    u8"/classes/members/privateNames/privateNameInInExpression.ts"sv,
+
+    // TODO(strager): quick-lint-js should strip metadata comments and
+    // whitespace from the beginning of the test file.
+    u8"/emitBundleWithShebang1.ts"sv,
 
     // TODO(#1122): quick-lint-js does not track namespace aliases properly.
     u8"/importedModuleClassNameClash.ts"sv,
@@ -45,16 +60,25 @@ constexpr String8_View ignored_tests[] = {
     u8"/promiseTest.ts"sv,
     u8"/unicodeIdentifierNames.ts"sv,
 
+    // This test correctly emits E0451 (a warning).
+    // TODO(strager): Disable E0451 for this test but still check this test.
+    u8"/controlFlow/controlFlowCommaOperator.ts"sv,
+    u8"/controlFlow/controlFlowIfStatement.ts"sv,
+    u8"/controlFlow/controlFlowTruthiness.ts"sv,
+
     // This test correctly emits E0193 (a warning).
     // TODO(strager): Disable E0193 for this test but still check this test.
+    u8"/jsx/tsxReactEmitNesting.tsx"sv,
     u8"/keywordInJsxIdentifier.tsx"sv,
 
     // This test correctly emits E0196 (a warning).
     // TODO(strager): Disable E0196 for this test but still check this test.
     u8"/downlevelLetConst14.ts"sv,
     u8"/downlevelLetConst15.ts"sv,
+    u8"/es6/for-ofStatements/for-of23.ts"sv,
     u8"/initializePropertiesWithRenamedLet.ts"sv,
     u8"/narrowingDestructuring.ts"sv,
+    u8"/statements/for-ofStatements/ES5For-of24.ts"sv,
 
     // FIXME(#735)
     u8"/deeplyNestedConditionalTypes.ts"sv,
@@ -72,11 +96,15 @@ constexpr String8_View ignored_tests[] = {
     // These tests correctly emit E0427 (a warning).
     // TODO(strager): Disable E0427 for all tests and don't ignore these tests.
     u8"/es5-asyncFunctionSwitchStatements.ts"_sv,
+    u8"/es6/moduleExportsSystem/topLevelVarHoistingCommonJS.ts"sv,
     u8"/narrowByClauseExpressionInSwitchTrue2.ts"_sv,
 
     // This test correctly emits E0451 (a warning).
     // TODO(strager): Disable E0451 for this test but still check this test.
     u8"/capturedLetConstInLoop1.ts"sv,
+
+    // TODO(#1136): Implement 'using' declarations.
+    u8"/statements/VariableStatements/usingDeclarations/"sv,
 };
 
 struct Test_TypeScript_Options {
@@ -150,7 +178,7 @@ class Expected_Test_Results {
 
 bool should_ignore_test(String8_View path) {
   for (String8_View ignore_pattern : ignored_tests) {
-    if (ends_with(path, ignore_pattern)) {
+    if (contains(path, ignore_pattern)) {
       return true;
     }
   }
