@@ -63,6 +63,9 @@ Semantic Versioning.
 * A newline between an arrow function and a parenthesized expression (e.g.
   `let f = () => {} /*newline*/ (console.log('x'));` no longer falsely reports
   [E0211][] ("missing parentheses around self-invoked function").
+* `for await (async of []);` no longer falsely reports [E0082][] ("assigning to
+  'async' in a for-of loop requires parentheses"). (`for (async of []);` still
+  reports the diagnostic.)
 * TypeScript support (still experimental):
   * Types named `await`, `implements`, `interface`, `let`, `package`, `private`,
     `protected`, `public`, `static`, and `yield` are now recognized in type

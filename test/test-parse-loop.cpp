@@ -1405,6 +1405,15 @@ TEST_F(Test_Parse_Loop,
   EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"xs"}));
 }
 
+TEST_F(Test_Parse_Loop,
+       can_assign_to_variable_named_async_without_parentheses_in_for_await_of) {
+  Spy_Visitor p = test_parse_and_visit_statement(
+      u8"async function f() { for await (async of xs); }"_sv,  //
+      no_diags, javascript_options);
+  EXPECT_THAT(p.variable_assignments, ElementsAreArray({u8"async"}));
+  EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"xs"}));
+}
+
 TEST_F(Test_Parse_Loop, for_loop_in_for_loop_header_crash) {
   // There used to be a use-after-free bug caused by a buffering_visitor copying
   // memory into another buffering_visitor, then the parser's

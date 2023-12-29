@@ -3964,7 +3964,8 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
   Source_Code_Span for_token_span = this->peek().span();
   this->skip();
 
-  if (this->peek().type == Token_Type::kw_await) {
+  bool is_for_await = this->peek().type == Token_Type::kw_await;
+  if (is_for_await) {
     this->skip();
   }
 
@@ -4244,23 +4245,26 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
     Token async_token = this->peek();
 
     Lexer_Transaction transaction = this->lexer_.begin_transaction();
-    bool is_invalid_async_of_sequence = false;
+    bool is_async_of = false;
     this->skip();
     if (this->peek().type == Token_Type::kw_of) {
       this->skip();
       if (this->peek().type != Token_Type::equal_greater) {
-        is_invalid_async_of_sequence = true;
+        is_async_of = true;
       }
     }
     this->lexer_.roll_back_transaction(std::move(transaction));
 
     Expression *init_expression(nullptr);
-    if (is_invalid_async_of_sequence) {
+    if (is_async_of) {
+      // for await (async of things) {}
       // for (async of things) {}  // Invalid.
-      this->diag_reporter_->report(
-          Diag_Cannot_Assign_To_Variable_Named_Async_In_For_Of_Loop{
-              .async_identifier = async_token.span(),
-          });
+      if (!is_for_await) {
+        this->diag_reporter_->report(
+            Diag_Cannot_Assign_To_Variable_Named_Async_In_For_Of_Loop{
+                .async_identifier = async_token.span(),
+            });
+      }
 
       this->skip();
       QLJS_ASSERT(this->peek().type == Token_Type::kw_of);
