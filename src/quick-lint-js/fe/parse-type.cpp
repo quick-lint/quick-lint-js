@@ -443,14 +443,33 @@ again:
       });
     }
 
+    // Parse infer constraint.
     if (this->peek().type == Token_Type::kw_extends) {
       // T extends infer U extends X ? V : W
       //                   ^^^^^^^
+      // T extends (infer U extends X ? V : W) ? Y : Z
+      //                    ^^^^^^^
+      Parser_Transaction extends_transaction = this->begin_transaction();
+      Stacked_Buffering_Visitor extends_type_visitor =
+          this->buffering_visitor_stack_.push();
       this->skip();
       this->parse_and_visit_typescript_type_expression_no_scope(
-          v, TypeScript_Type_Parse_Options{
-                 .parse_question_as_invalid = false,
-             });
+          extends_type_visitor.visitor(),
+          TypeScript_Type_Parse_Options{
+              .parse_question_as_invalid = false,
+          });
+      if (this->peek().type == Token_Type::question &&
+          parse_options.extends_is_conditional_type) {
+        // T extends (infer U extends X ? V : W) ? Y : Z
+        //                              ^
+        // The '?' belongs to a separate 'extends' expression, as if the
+        // following was written instead:
+        //   T extends ((infer U) extends X ? V : W) ? Y : Z
+        this->roll_back_transaction(std::move(extends_transaction));
+      } else {
+        this->commit_transaction(std::move(extends_transaction));
+        extends_type_visitor.visitor().move_into(v);
+      }
     }
     break;
   }
@@ -775,7 +794,8 @@ again:
     goto again;
   }
 
-  if (this->peek().type == Token_Type::kw_extends) {
+  if (parse_options.extends_is_conditional_type &&
+      this->peek().type == Token_Type::kw_extends) {
     // T extends T ? T : T
     if (this->peek().has_leading_newline) {
       if (parse_options.stop_parsing_type_at_newline_before_extends) {
@@ -815,6 +835,7 @@ again:
               v, TypeScript_Type_Parse_Options{
                      .type_being_declared = parse_options.type_being_declared,
                      .parse_question_as_invalid = false,
+                     .extends_is_conditional_type = false,
                  });
         },
         [&]() -> void {

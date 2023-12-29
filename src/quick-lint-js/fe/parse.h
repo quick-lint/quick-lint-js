@@ -223,6 +223,9 @@ class Parser {
     // this boolean is false, quick-lint-js will report a diagnostic but parse
     // the 'extends' as part of the type.
     bool stop_parsing_type_at_newline_before_extends = true;
+    // If true, the 'extends' operator is allowed and defines a conditional
+    // type. If false, the 'extends' keyword may constrain 'infer T'.
+    bool extends_is_conditional_type = true;
   };
 
   void parse_and_visit_typescript_colon_type_expression(Parse_Visitor_Base &v);

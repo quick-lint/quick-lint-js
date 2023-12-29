@@ -1806,7 +1806,9 @@ TEST_F(Test_Parse_TypeScript_Type, conditional_type_with_infer) {
                 ElementsAreArray(
                     {infer_type_decl(u8"T"_sv), infer_type_decl(u8"U"_sv)}));
   }
+}
 
+TEST_F(Test_Parse_TypeScript_Type, infer_constraint) {
   {
     Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
         u8"MyType extends infer T extends U ? true : false"_sv, no_diags,
@@ -1819,6 +1821,55 @@ TEST_F(Test_Parse_TypeScript_Type, conditional_type_with_infer) {
                               "visit_exit_conditional_type_scope",   //
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType"_sv, u8"U"_sv}));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"MyType extends (infer T extends U) ? true : false"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"MyType extends (infer T extends U extends Q ? true : false) ? true : false"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({infer_type_decl(u8"T")}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Type,
+       extends_after_infer_might_not_be_infer_constraint) {
+  {
+    // In this code, the inner 'extends' is a conditional type not an 'infer ...
+    // extends ...'. In other words, this code should be parsed like the
+    // following:
+    //
+    //   MyType extends ((infer T) extends U ? T1 : F1) ? T2 : F2
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        u8"MyType extends (infer T extends U ? T1 : F1) ? T2 : F2"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_type_use",  // MyType
+                              // (
+                              "visit_variable_type_use",             // U
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_type_use",             // T1
+                              "visit_exit_conditional_type_scope",   //
+                              "visit_variable_type_use",             // F1
+                              // )
+                              "visit_enter_conditional_type_scope",  //
+                              "visit_variable_declaration",          // T
+                              "visit_variable_type_use",             // T2
+                              "visit_exit_conditional_type_scope",   //
+                              "visit_variable_type_use",             // F2
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"MyType", u8"U", u8"T1",
+                                                   u8"F1", u8"T2", u8"F2"}));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({infer_type_decl(u8"T")}));
   }

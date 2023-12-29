@@ -144,6 +144,9 @@ Semantic Versioning.
   * An optional parameter with `?` followed by an optional parameter with `=` no
     longer falsely reports [E0379][] ("optional parameter cannot be followed by
     a required parameter").
+  * `extends` in some cases is no longer incorrectly interpreted as an `infer`
+    constraint, such as in
+    `MyType extends (infer T extends U ? T1 : F1) ? T2 : F2;`.
 
 ## 2.18.0 (2023-11-03)
 
