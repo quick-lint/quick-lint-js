@@ -10,6 +10,11 @@ template <class T, class U>
 constexpr auto maximum(T x, U y) {
   return x < y ? y : x;
 }
+
+template <class T, class U>
+constexpr auto minimum(T x, U y) {
+  return x < y ? x : y;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

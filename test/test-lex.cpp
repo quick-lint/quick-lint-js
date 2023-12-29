@@ -1434,6 +1434,10 @@ TEST_F(Test_Lex, lex_identifiers) {
   this->check_single_token(u8"ident$with$dollars"_sv,
                            u8"ident$with$dollars"_sv);
   this->check_single_token(u8"digits0123456789"_sv, u8"digits0123456789"_sv);
+
+  // This identifier used to read the keyword table out of bounds.
+  this->check_single_token(u8"kedhinkunnunnnunuwnunununnun"_sv,
+                           u8"kedhinkunnunnnunuwnunununnun"_sv);
 }
 
 TEST_F(Test_Lex, ascii_identifier_with_escape_sequence) {

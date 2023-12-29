@@ -7,6 +7,7 @@
 #include <quick-lint-js/fe/keyword-lexer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/math.h>
 #include <quick-lint-js/port/simd.h>
 
 namespace quick_lint_js {
@@ -37,7 +38,7 @@ bool Keyword_Lexer::key_strings_equal(const Char8* a, const Char8* b,
 #else
   // TODO(strager): Optimize ARM NEON.
   // TODO(strager): Optimize WebAssembly SIMD128.
-  return std::memcmp(a, b, size) == 0;
+  return std::memcmp(a, b, minimum(maximum_key_length, size)) == 0;
 #endif
 }
 }
