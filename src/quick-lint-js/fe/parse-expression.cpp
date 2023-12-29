@@ -3523,7 +3523,7 @@ Expression* Parser::parse_jsx_or_typescript_generic_expression(
       }
       break;
 
-    // <Type>expr
+    // <Type>expr               // Type assertion.
     // <T,>(params) => {}       // Arrow function.
     // <Component></Component>  // JSX element.
     case Token_Type::identifier:
@@ -3571,6 +3571,8 @@ Expression* Parser::parse_jsx_or_typescript_generic_expression(
       // <ns.T>expr     // Type assertion.
       // <ns.T></ns.T>  // JSX element.
       case Token_Type::dot:
+      case Token_Type::less:
+      case Token_Type::less_less:
         if (!this->options_.jsx) {
           this->lexer_.roll_back_transaction(std::move(transaction));
           return this->parse_typescript_angle_type_assertion_expression(
@@ -4150,6 +4152,8 @@ Expression* Parser::parse_typescript_angle_type_assertion_expression(
     case Token_Type::ampersand:
     case Token_Type::dot:
     case Token_Type::left_square:
+    case Token_Type::less:
+    case Token_Type::less_less:
     case Token_Type::pipe:
       this->lexer_.roll_back_transaction(std::move(transaction));
       return parse_as_type_assertion();

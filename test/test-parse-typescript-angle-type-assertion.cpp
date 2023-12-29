@@ -151,6 +151,35 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
 
   {
     Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<Array<T>>expr;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",   // <
+                              "visit_variable_type_use",  // Array
+                              "visit_variable_type_use",  // T
+                              "visit_exit_type_scope",    // >
+                              "visit_variable_use",       // expr
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"<Array<<T>() => RT>>expr;"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_type_scope",      // <
+                              "visit_variable_type_use",     // Array
+                              "visit_enter_function_scope",  //
+                              "visit_variable_declaration",  // T
+                              "visit_enter_type_scope",      // =>
+                              "visit_variable_type_use",     // RT
+                              "visit_exit_type_scope",       //
+                              "visit_exit_function_scope",   //
+                              "visit_exit_type_scope",       // >
+                              "visit_variable_use",          // expr
+                          }));
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
         u8"<ns.Type>expr;"_sv, no_diags, typescript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_type_scope",        // <
