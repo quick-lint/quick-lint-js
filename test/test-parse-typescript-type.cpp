@@ -1071,6 +1071,12 @@ TEST_F(Test_Parse_TypeScript_Type, no_question_in_type_expression) {
       u8"?Type"_sv,                                                           //
       u8"^ Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void"_diag,  //
       typescript_options);
+
+  // This used to crash quick-lint-js:
+  test_parse_and_visit_typescript_type_expression(
+      u8"? & Type"_sv,                                                        //
+      u8"^ Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void"_diag,  //
+      typescript_options);
 }
 
 TEST_F(Test_Parse_TypeScript_Type, generic_arrow_function) {

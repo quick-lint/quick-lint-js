@@ -595,11 +595,17 @@ again:
   // | | Type  // Invalid.
   case Token_Type::ampersand:
   case Token_Type::pipe:
-    this->diag_reporter_->report(
-        Diag_Missing_Type_Between_Intersection_Or_Union{
-            .left_operator = leading_binary_operator.value(),
-            .right_operator = this->peek().span(),
-        });
+    if (leading_binary_operator.has_value()) {
+      this->diag_reporter_->report(
+          Diag_Missing_Type_Between_Intersection_Or_Union{
+              .left_operator = leading_binary_operator.value(),
+              .right_operator = this->peek().span(),
+          });
+    } else {
+      // ? | Type
+      // NOTE(strager): We get here if we reported
+      // Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void.
+    }
     break;
 
   // typeof varname
