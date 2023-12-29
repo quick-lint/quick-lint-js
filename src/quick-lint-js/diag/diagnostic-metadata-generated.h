@@ -242,6 +242,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Between_Async_And_Function_Keyword) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_Between_Modifier_And_Method_Name) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Abstract_Keyword) \
+  QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Asserts_In_Assertion_Signature) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Export_Declare) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Interface_Keyword) \
   QLJS_DIAG_TYPE_NAME(Diag_Newline_Not_Allowed_After_Namespace_Keyword) \
@@ -470,7 +471,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 456;
+inline constexpr int Diag_Type_Count = 457;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

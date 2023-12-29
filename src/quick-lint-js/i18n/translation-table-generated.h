@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 600;
-constexpr std::size_t translation_table_string_table_size = 82202;
+constexpr std::uint16_t translation_table_mapping_table_size = 601;
+constexpr std::size_t translation_table_string_table_size = 82241;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -474,6 +474,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "namespace starts here"sv,
           "new variable shadows existing variable"sv,
           "newline is not allowed after 'abstract'"sv,
+          "newline is not allowed after 'asserts'"sv,
           "newline is not allowed after 'export declare'"sv,
           "newline is not allowed after 'interface'"sv,
           "newline is not allowed after 'type'"sv,

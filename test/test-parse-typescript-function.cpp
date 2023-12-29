@@ -1366,6 +1366,31 @@ TEST_F(Test_Parse_TypeScript_Function,
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"p"_sv, u8"u"_sv}));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Function,
+       newline_not_allowed_after_asserts_in_assertion_signature) {
+  test_parse_and_visit_expression(
+      u8"(p): asserts\np => {}"_sv,  //
+      u8"     ^^^^^^^ Diag_Newline_Not_Allowed_After_Asserts_In_Assertion_Signature.asserts_keyword"_diag,
+      typescript_options);
+
+  // TODO(strager): Report
+  // Diag_Newline_Not_Allowed_After_Asserts_In_Assertion_Signature instead.
+  test_parse_and_visit_statement(
+      u8"function f(param): asserts\nparam {}"_sv,  //
+      u8"Diag_Missing_Function_Body"_diag, typescript_options);
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"interface I {\n"_sv
+        u8"  f(p): asserts\n"_sv  // ASI
+        u8"  p;\n"_sv
+        u8"}\n"_sv,
+        no_diags, typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"f"_sv, u8"p"_sv}));
+  }
+}
 }
 }
 

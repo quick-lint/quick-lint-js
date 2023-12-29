@@ -321,6 +321,21 @@ again:
     Lexer_Transaction transaction = this->lexer_.begin_transaction();
     Source_Code_Span asserts_keyword = this->peek().span();
     this->skip();
+    if (this->peek().has_leading_newline) {
+      if (parse_options.stop_parsing_type_at_newline_after_asserts) {
+        // interface I {
+        //   f(): asserts  // ASI.
+        //   notParam();
+        // }
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto type_variable_or_namespace_or_type_predicate;
+      } else {
+        this->diag_reporter_->report(
+            Diag_Newline_Not_Allowed_After_Asserts_In_Assertion_Signature{
+                .asserts_keyword = asserts_keyword,
+            });
+      }
+    }
     switch (this->peek().type) {
     // asserts param
     // asserts param is Type

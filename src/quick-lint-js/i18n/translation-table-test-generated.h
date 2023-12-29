@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[599] = {
+inline const Translated_String test_translation_table[600] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4954,6 +4954,17 @@ inline const Translated_String test_translation_table[599] = {
             u8"newline is not allowed after 'abstract'",
             u8"quebra de linha n\u00e3o \u00e9 permitida ap\u00f3s 'abstract'",
             u8"newline is not allowed after 'abstract'",
+        },
+    },
+    {
+        "newline is not allowed after 'asserts'"_translatable,
+        u8"newline is not allowed after 'asserts'",
+        {
+            u8"newline is not allowed after 'asserts'",
+            u8"newline is not allowed after 'asserts'",
+            u8"newline is not allowed after 'asserts'",
+            u8"newline is not allowed after 'asserts'",
+            u8"newline is not allowed after 'asserts'",
         },
     },
     {

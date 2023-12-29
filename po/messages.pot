@@ -1350,6 +1350,10 @@ msgid "newline is not allowed after 'abstract'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "newline is not allowed after 'asserts'"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "newline is not allowed after 'export declare'"
 msgstr ""
 

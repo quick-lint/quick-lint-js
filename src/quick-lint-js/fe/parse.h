@@ -223,6 +223,14 @@ class Parser {
     // this boolean is false, quick-lint-js will report a diagnostic but parse
     // the 'extends' as part of the type.
     bool stop_parsing_type_at_newline_before_extends = true;
+    // When parsing, if 'asserts' is followed by a newline, TypeScript always
+    // stops parsing, treating 'asserts' as a type name. quick-lint-js is
+    // smarter. If this boolean is false, quick-lint-js will report a diagnostic
+    // but parse the 'asserts' as part of the type.
+    //
+    // This is relevant only if allow_assertion_signature_or_type_predicate is
+    // true.
+    bool stop_parsing_type_at_newline_after_asserts = true;
     // If true, the 'extends' operator is allowed and defines a conditional
     // type. If false, the 'extends' keyword may constrain 'infer T'.
     bool extends_is_conditional_type = true;

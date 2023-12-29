@@ -460,6 +460,7 @@ const Translation_Table translation_data = {
         {69, 26, 0, 59, 0, 22},              //
         {0, 0, 0, 46, 0, 39},                //
         {0, 0, 0, 0, 0, 40},                 //
+        {0, 0, 0, 0, 0, 39},                 //
         {0, 0, 0, 51, 0, 46},                //
         {0, 0, 0, 52, 0, 41},                //
         {0, 0, 0, 0, 0, 36},                 //
@@ -2325,6 +2326,7 @@ const Translation_Table translation_data = {
         u8"namespace starts here\0"
         u8"new variable shadows existing variable\0"
         u8"newline is not allowed after 'abstract'\0"
+        u8"newline is not allowed after 'asserts'\0"
         u8"newline is not allowed after 'export declare'\0"
         u8"newline is not allowed after 'interface'\0"
         u8"newline is not allowed after 'type'\0"

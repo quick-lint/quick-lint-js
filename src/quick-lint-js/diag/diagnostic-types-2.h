@@ -1781,8 +1781,15 @@ struct Diag_Newline_Not_Allowed_After_Abstract_Keyword {
   Source_Code_Span abstract_keyword;
 };
 
-struct Diag_Newline_Not_Allowed_After_Export_Declare {
+struct Diag_Newline_Not_Allowed_After_Asserts_In_Assertion_Signature {
   [[qljs::diag("E0382", Diagnostic_Severity::error)]]  //
+  [[qljs::message("newline is not allowed after 'asserts'",
+                  ARG(asserts_keyword))]]  //
+  Source_Code_Span asserts_keyword;
+};
+
+struct Diag_Newline_Not_Allowed_After_Export_Declare {
+  [[qljs::diag("E0453", Diagnostic_Severity::error)]]  //
   [[qljs::message("newline is not allowed after 'export declare'",
                   ARG(declare_keyword), ARG(export_keyword))]]  //
   Source_Code_Span declare_keyword;

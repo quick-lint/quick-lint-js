@@ -3468,9 +3468,23 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
-    // Diag_Newline_Not_Allowed_After_Export_Declare
+    // Diag_Newline_Not_Allowed_After_Asserts_In_Assertion_Signature
     {
       .code = 382,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("newline is not allowed after 'asserts'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Newline_Not_Allowed_After_Asserts_In_Assertion_Signature, asserts_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Newline_Not_Allowed_After_Export_Declare
+    {
+      .code = 453,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
         QLJS_TRANSLATABLE("newline is not allowed after 'export declare'"),
