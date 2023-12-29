@@ -150,6 +150,8 @@ Semantic Versioning.
   * Nested `extends`, such as in `A extends () => B extends C ? D : E ? F : G`,
     no longer falsely reports [E0348][] ("unexpected '?' in type; use '| void'
     to make an optional type").
+  * `class T<T> {}` no longer falsely reports [E0034][] ("redeclaration of
+    variable").
 
 ## 2.18.0 (2023-11-03)
 

@@ -1122,6 +1122,7 @@ bool Variable_Analyzer::report_error_if_variable_declaration_conflicts(
 
   bool redeclaration_ok =
       // clang-format off
+      (kind == VK::_class              && other_kind == VK::_generic_parameter) ||
       (kind == VK::_class              && other_kind == VK::_import_alias) ||
       (kind == VK::_class              && other_kind == VK::_interface) ||
       (kind == VK::_const              && other_kind == VK::_import_alias) ||

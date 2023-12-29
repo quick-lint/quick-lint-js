@@ -460,6 +460,14 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
+     generic_parameter_can_have_same_name_as_class_or_interface) {
+  test_parse_and_analyze(u8"class C<C> {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"interface I<I> {}"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
+
+TEST(Test_Variable_Analyzer_Multiple_Declarations,
      redeclaration_check_considers_all_previous_declarations) {
   // 'type X' should be ignored when checking 'let X':
   test_parse_and_analyze(
