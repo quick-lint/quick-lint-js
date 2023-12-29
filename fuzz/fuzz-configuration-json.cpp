@@ -13,8 +13,8 @@ int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
   using namespace quick_lint_js;
 
   Padded_String json(String8(reinterpret_cast<const Char8 *>(data), size));
-  configuration c;
-  c.load_from_json(&json, &null_diag_reporter::instance);
+  Configuration c;
+  c.load_from_json(&json, &Null_Diag_Reporter::instance);
 
   return 0;
 }

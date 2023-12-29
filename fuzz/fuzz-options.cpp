@@ -5,7 +5,8 @@
 #include <cstddef>
 #include <cstring>
 #include <quick-lint-js/cli/options.h>
-#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/util/cast.h>
 #include <vector>
 
 extern "C" {
@@ -26,8 +27,9 @@ int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
   }
   QLJS_ASSERT(!argv.empty());
 
-  quick_lint_js::options o = quick_lint_js::parse_options(
-      quick_lint_js::narrow_cast<int>(argv.size()), argv.data());
+  quick_lint_js::Monotonic_Allocator allocator("fuzz-options");
+  quick_lint_js::Options o = quick_lint_js::parse_options(
+      quick_lint_js::narrow_cast<int>(argv.size()), argv.data(), &allocator);
   static_cast<void>(o);
 
   return 0;

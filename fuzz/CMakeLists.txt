@@ -9,7 +9,7 @@ option(QUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS "" OFF)
 if (QUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS)
   function (quick_lint_js_add_fuzz_executable TARGET)
     quick_lint_js_add_executable("${TARGET}" ${ARGN})
-    target_compile_options("${TARGET}" PRIVATE -fsanitize=fuzzer)
+    target_compile_options("${TARGET}" PRIVATE -fsanitize=fuzzer-no-link)
     target_link_libraries("${TARGET}" PRIVATE -fsanitize=fuzzer)
   endfunction ()
 

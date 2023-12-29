@@ -26,7 +26,7 @@ int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
     bool ok = true;
     if (counted_characters == character_count - 1) {
       // Code unit to count is possibly the second of a UTF-16 surrogate pair.
-      decode_utf_8_result result =
+      Decode_UTF8_Result result =
           decode_utf_8(Padded_String_View(c, input_end));
       bool character_needs_utf_16_surrogate_pair =
           result.ok && result.code_point >= 0x10000;

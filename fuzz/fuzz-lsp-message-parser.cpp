@@ -10,8 +10,8 @@
 using namespace quick_lint_js;
 
 namespace {
-class fuzz_lsp_message_parser
-    : public lsp_message_parser<fuzz_lsp_message_parser> {
+class Fuzz_LSP_Message_Parser
+    : public LSP_Message_Parser<Fuzz_LSP_Message_Parser> {
  public:
   void message_parsed([[maybe_unused]] String8_View message_content) {
     // TODO(strager): Ensure message_content is valid.
@@ -21,7 +21,7 @@ class fuzz_lsp_message_parser
 
 extern "C" {
 int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
-  fuzz_lsp_message_parser parser;
+  Fuzz_LSP_Message_Parser parser;
   std::size_t i = 0;
   auto size_remaining = [&]() -> std::size_t { return size - i; };
   for (;;) {

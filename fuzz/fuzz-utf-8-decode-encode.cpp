@@ -17,7 +17,7 @@ int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
 
   const Char8* c = input.data();
   while (c != input.null_terminator()) {
-    decode_utf_8_result r =
+    Decode_UTF8_Result r =
         decode_utf_8(Padded_String_View(c, input.null_terminator()));
 
     if (r.ok) {

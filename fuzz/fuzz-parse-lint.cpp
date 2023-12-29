@@ -3,21 +3,20 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag/diag-reporter.h>
-#include <quick-lint-js/fe/parse.h>
-#include <quick-lint-js/fe/variable-analyzer.h>
+#include <quick-lint-js/fe/global-declared-variable-set.h>
+#include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/port/char8.h>
 
 extern "C" {
 int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
   quick_lint_js::Padded_String source(quick_lint_js::String8(
       reinterpret_cast<const quick_lint_js::Char8 *>(data), size));
-  quick_lint_js::parser p(&source,
-                          &quick_lint_js::null_diag_reporter::instance);
-  quick_lint_js::variable_analyzer l;
-  [[maybe_unused]] bool ok =
-      p.parse_and_visit_module_catching_fatal_parse_errors(l);
-
+  quick_lint_js::Global_Declared_Variable_Set globals;
+  quick_lint_js::parse_and_lint(&source,
+                                quick_lint_js::Null_Diag_Reporter::instance,
+                                globals, quick_lint_js::Linter_Options());
   return 0;
 }
 }

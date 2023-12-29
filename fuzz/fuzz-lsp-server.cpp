@@ -12,12 +12,12 @@
 
 namespace quick_lint_js {
 namespace {
-class null_lsp_endpoint_remote {
+class Null_LSP_Endpoint_Remote {
  public:
   void send_message(const Byte_Buffer&) {}
 };
 
-class null_configuration_filesystem : public Configuration_Filesystem {
+class Null_Configuration_Filesystem : public Configuration_Filesystem {
  public:
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonicalize_path(
       const std::string& path) override {
@@ -46,9 +46,9 @@ int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
   using namespace quick_lint_js;
 
   Null_Configuration_Filesystem fs;
-  LSP_Javascript_Linter linter;
-  LSP_Endpoint<Linting_LSP_Server_Handler, Null_LSP_Endpoint_Remote> server(
-      std::forward_as_tuple(&fs, &linter), std::forward_as_tuple());
+  LSP_JavaScript_Linter linter;
+  Linting_LSP_Server_Handler handler(&fs, &linter);
+  LSP_JSON_RPC_Message_Parser server(&handler);
 
   std::size_t i = 0;
   auto size_remaining = [&]() -> std::size_t { return size - i; };
