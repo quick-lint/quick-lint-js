@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[601] = {
+inline const Translated_String test_translation_table[602] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -4921,6 +4921,17 @@ inline const Translated_String test_translation_table[601] = {
             u8"namespace",
             u8"namespace",
             u8"namespace",
+        },
+    },
+    {
+        "namespace alias cannot use 'import type'"_translatable,
+        u8"namespace alias cannot use 'import type'",
+        {
+            u8"namespace alias cannot use 'import type'",
+            u8"namespace alias cannot use 'import type'",
+            u8"namespace alias cannot use 'import type'",
+            u8"namespace alias cannot use 'import type'",
+            u8"namespace alias cannot use 'import type'",
         },
     },
     {

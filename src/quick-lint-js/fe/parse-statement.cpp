@@ -4607,6 +4607,7 @@ void Parser::parse_and_visit_import(
     }
   };
 
+  std::optional<Source_Code_Span> type_span = std::nullopt;
   switch (this->peek().type) {
   // import var from "module";  // Invalid.
   QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD:
@@ -4703,12 +4704,12 @@ void Parser::parse_and_visit_import(
   // import type from "module";
   case Token_Type::kw_type: {
     // Do not set is_current_typescript_namespace_non_empty_.
-    Source_Code_Span type_span = this->peek().span();
+    type_span = this->peek().span();
     auto report_type_only_import_in_javascript_if_needed = [&] {
       if (!this->options_.typescript) {
         this->diag_reporter_->report(
             Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript{
-                .type_keyword = type_span,
+                .type_keyword = *type_span,
             });
       }
     };
@@ -4741,7 +4742,7 @@ void Parser::parse_and_visit_import(
         case Token_Type::left_curly:
           this->diag_reporter_->report(
               Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named{
-                  .type_keyword = type_span,
+                  .type_keyword = *type_span,
               });
           // Parse the named exports as if 'type' didn't exist. The user might
           // be thinking that 'type' only applies to 'T' and not '{U}'.
@@ -4752,7 +4753,7 @@ void Parser::parse_and_visit_import(
         case Token_Type::star:
           this->diag_reporter_->report(
               Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named{
-                  .type_keyword = type_span,
+                  .type_keyword = *type_span,
               });
           this->parse_and_visit_name_space_import(v);
           break;
@@ -4771,7 +4772,7 @@ void Parser::parse_and_visit_import(
       this->lexer_.commit_transaction(std::move(transaction));
       report_type_only_import_in_javascript_if_needed();
       this->parse_and_visit_named_exports_for_typescript_type_only_import(
-          v, type_span);
+          v, *type_span);
       break;
 
     // import type * as M from "module";  // TypeScript only
@@ -4855,6 +4856,12 @@ void Parser::parse_and_visit_import(
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
           this->skip();
         } else {
+          if (declared_variable_kind == Variable_Kind::_import_type) {
+            // import type a = b; // Invalid.
+            this->diag_reporter_->report(
+                Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type{
+                    .type_keyword = *type_span});
+          }
           // import myns = ns;
           // import C = ns.C;
           declared_variable_kind = Variable_Kind::_import_alias;

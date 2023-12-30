@@ -669,6 +669,20 @@ TEST_F(Test_Parse_TypeScript_Namespace,
 }
 
 TEST_F(Test_Parse_TypeScript_Namespace,
+       namespace_alias_cannot_use_import_type) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"import type A = ns;"_sv,  //
+        u8"       ^^^^ Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type.type_keyword"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // ns
+                          }));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Namespace,
        namespace_alias_cannot_be_used_with_declare_keyword) {
   {
     Spy_Visitor p = test_parse_and_visit_module(

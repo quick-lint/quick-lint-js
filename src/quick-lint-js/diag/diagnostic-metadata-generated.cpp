@@ -6870,6 +6870,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type
+    {
+      .code = 717,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("namespace alias cannot use 'import type'"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type, type_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 
