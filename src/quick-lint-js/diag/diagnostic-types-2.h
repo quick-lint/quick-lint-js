@@ -3567,6 +3567,13 @@ struct Diag_Unintuitive_Bitshift_Precedence {
   Source_Code_Span bitshift_operator;
   Source_Code_Span and_operator;
 };
+
+struct Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type {
+  [[qljs::diag("E0717", Diagnostic_Severity::error)]]  //
+  [[qljs::message("namespace alias cannot use 'import type'",
+                  ARG(type_keyword))]]  //
+  Source_Code_Span type_keyword;
+};
 }
 QLJS_WARNING_POP
 

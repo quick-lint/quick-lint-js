@@ -457,6 +457,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 51},                 //
         {0, 0, 0, 0, 0, 47},                 //
         {0, 0, 0, 0, 0, 10},                 //
+        {0, 0, 0, 0, 0, 41},                 //
         {69, 26, 0, 59, 0, 22},              //
         {0, 0, 0, 46, 0, 39},                //
         {0, 0, 0, 0, 0, 40},                 //
@@ -2324,6 +2325,7 @@ const Translation_Table translation_data = {
         u8"move the 'extends' clause before 'implements' here\0"
         u8"move the parameter decorator before '{0}' here\0"
         u8"namespace\0"
+        u8"namespace alias cannot use 'import type'\0"
         u8"namespace starts here\0"
         u8"new variable shadows existing variable\0"
         u8"newline is not allowed after 'abstract'\0"
