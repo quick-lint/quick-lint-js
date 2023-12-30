@@ -168,6 +168,7 @@ Semantic Versioning.
     to make an optional type").
   * `class T<T> {}` no longer falsely reports [E0034][] ("redeclaration of
     variable").
+  * `await <T>() => {}` no longer does confusing things.
 
 ## 2.18.0 (2023-11-03)
 

@@ -391,6 +391,17 @@ TEST_F(Test_Parse_TypeScript_Generic_Arrow,
     }
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Generic_Arrow,
+       generic_async_function_with_await_keyword) {
+  {
+    Spy_Visitor p = test_parse_and_visit_expression(
+        u8"await <T>() => { await(myPromise); }"_sv,
+        u8"^^^^^ Diag_Await_Followed_By_Arrow_Function.await_operator"_diag,
+        typescript_options);
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"myPromise"_sv}));
+  }
+}
 }
 }
 

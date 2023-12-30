@@ -1287,16 +1287,15 @@ Expression* Parser::parse_await_expression(Parse_Visitor_Base& v,
         Parser_Transaction transaction = this->begin_transaction();
 
         bool parsed_ok = this->catch_fatal_parse_errors([&] {
-          // FIXME(#831): v should not be used here. We should use a
-          // buffering_visitor.
           if (this->in_top_level_) {
             // Try to parse the / as a regular expression literal or the < as a
             // JSX element.
-            [[maybe_unused]] Expression* ast = this->parse_expression(v, prec);
+            [[maybe_unused]] Expression* ast =
+                this->parse_expression(Null_Visitor::instance, prec);
           } else {
             // Try to parse the / or < as a binary operator.
             [[maybe_unused]] Expression* ast = this->parse_expression_remainder(
-                v,
+                Null_Visitor::instance,
                 this->make_expression<Expression::Variable>(
                     await_token.identifier_name(), await_token.type),
                 prec);
