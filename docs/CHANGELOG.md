@@ -125,6 +125,8 @@ Semantic Versioning.
     assertion failure.
   * Subnamespaces can now be named contextual keywords such as `string`.
   * Import aliases can now be named contextual keywords such as `implements`.
+  * Optional function parameters can now be named contextual keywords such as
+    `readonly`.
   * Import aliases can now be declared with `import type`.
   * Namespace aliases can now reference variables named contextual keywords such as
     `yield` inside namespaces.

@@ -760,6 +760,16 @@ TEST_F(Test_Parse_TypeScript_Function, optional_parameter) {
                           }));
   }
 
+  for (String8_View parameter_name : contextual_keywords) {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        concat(u8"function f("_sv, parameter_name, u8"?) {}"_sv), no_diags,
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations, ElementsAreArray({
+                                             func_param_decl(parameter_name),
+                                             function_decl(u8"f"_sv),
+                                         }));
+  }
+
   {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"(param?) => {}"_sv, no_diags, typescript_options);

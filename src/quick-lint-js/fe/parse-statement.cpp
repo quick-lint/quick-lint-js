@@ -2530,10 +2530,12 @@ void Parser::parse_and_visit_function_parameters(
       switch (this->peek().type) {
       // function foo(paramName = def) {}
       // function foo(paramName: any) {}   // TypeScript only.
+      // function foo(paramName?) {}       // TypeScript only.
       // function foo(paramName) {}
       case Token_Type::colon:
       case Token_Type::comma:
       case Token_Type::equal:
+      case Token_Type::question:
       case Token_Type::right_paren:
         return true;
 
