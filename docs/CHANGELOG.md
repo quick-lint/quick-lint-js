@@ -118,6 +118,7 @@ Semantic Versioning.
     `< <T>() => RT>expr`, are no longer incorrectly interpreted as JSX.
   * Assigning to an enum or namespace no longer crashes quick-lint-js with an
     assertion failure.
+  * Subnamespaces can now be named contextual keywords such as `string`.
   * `import A = ns; class A {}` no longer crashes or falsely reports that `A`
     was redeclared.
   * `import {type A from 'mod'}; let A;` no longer crashes or falsely reports

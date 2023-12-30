@@ -3238,8 +3238,18 @@ Parser::parse_and_visit_typescript_namespace_or_module_head(
     this->skip();
     while (this->peek().type == Token_Type::dot) {
       this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::identifier);
-      this->skip();
+      switch (this->peek().type) {
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
+      QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+      case Token_Type::identifier:
+      case Token_Type::kw_await:
+      case Token_Type::kw_yield:
+        this->skip();
+        break;
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
     }
     return namespace_identifier;
   }

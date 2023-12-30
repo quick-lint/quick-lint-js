@@ -252,6 +252,18 @@ TEST_F(Test_Parse_TypeScript_Namespace,
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Namespace,
+       subnamespace_name_can_be_contextual_keyword_and_more) {
+  for (String8 name : contextual_keywords | strict_only_reserved_keywords |
+                          Dirty_Set<String8>{u8"await", u8"yield"}) {
+    Spy_Visitor p = test_parse_and_visit_module(
+        concat(u8"namespace ns."_sv, name, u8" {}"_sv), no_diags,
+        typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({empty_namespace_decl(u8"ns"_sv)}));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Namespace, namespace_can_contain_exports) {
   {
     Spy_Visitor p = test_parse_and_visit_module(
