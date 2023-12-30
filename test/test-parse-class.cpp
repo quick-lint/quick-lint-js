@@ -902,13 +902,43 @@ TEST_F(Test_Parse_Class, class_methods_should_not_use_function_keyword) {
       u8"                 ^^^^^^^^ Diag_Methods_Should_Not_Use_Function_Keyword"_diag);
 }
 
-TEST_F(Test_Parse_Class, newline_after_function_is_asi) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { function\n myMethod() {} }"_sv, no_diags,
-        javascript_options);
-    EXPECT_THAT(p.property_declarations,
-                ElementsAreArray({u8"function"_sv, u8"myMethod"_sv}));
+TEST_F(Test_Parse_Class, newline_after_most_modifiers_is_potentially_asi) {
+  for (String8_View modifier : {
+           u8"abstract"_sv,
+           u8"accessor"_sv,
+           u8"async"_sv,
+           u8"declare"_sv,
+           u8"function"_sv,
+           u8"override"_sv,
+           u8"private"_sv,
+           u8"protected"_sv,
+           u8"public"_sv,
+           u8"readonly"_sv,
+       }) {
+    {
+      Spy_Visitor p = test_parse_and_visit_statement(
+          concat(u8"class C { "_sv, modifier,
+                 u8" /*ASI*/\n myMethod() {} }"_sv),
+          no_diags, javascript_options);
+      EXPECT_THAT(p.property_declarations,
+                  ElementsAreArray({modifier, u8"myMethod"_sv}));
+    }
+
+    {
+      Spy_Visitor p = test_parse_and_visit_statement(
+          concat(u8"class C { "_sv, modifier,
+                 u8" /*ASI*/\n static myMethod() {} }"_sv),
+          no_diags, javascript_options);
+      EXPECT_THAT(p.property_declarations,
+                  ElementsAreArray({modifier, u8"myMethod"_sv}));
+    }
+
+    {
+      Spy_Visitor p = test_parse_and_visit_statement(
+          concat(u8"class C { "_sv, modifier, u8" \n = 42; }"_sv), no_diags,
+          javascript_options);
+      EXPECT_THAT(p.property_declarations, ElementsAreArray({modifier}));
+    }
   }
 }
 
@@ -1456,36 +1486,6 @@ TEST_F(Test_Parse_Class, static_method_allows_newline_after_static_keyword) {
         u8"class C { static\n async\n *m() { } }"_sv, no_diags,
         javascript_options);
     EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"async", u8"m"}));
-  }
-}
-
-TEST_F(Test_Parse_Class, async_method_prohibits_newline_after_async_keyword) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { async\n m() { } }"_sv, no_diags, javascript_options);
-    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"async", u8"m"}));
-  }
-
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { async\n static m() { } }"_sv, no_diags,
-        javascript_options);
-    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"async", u8"m"}));
-  }
-
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { async\n = 42 }"_sv, no_diags, javascript_options);
-    EXPECT_THAT(p.property_declarations, ElementsAreArray({u8"async"}));
-  }
-}
-
-TEST_F(Test_Parse_Class, newline_after_accessor_is_asi) {
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"class C { accessor\n myField; }"_sv, no_diags, javascript_options);
-    EXPECT_THAT(p.property_declarations,
-                ElementsAreArray({u8"accessor"_sv, u8"myField"_sv}));
   }
 }
 

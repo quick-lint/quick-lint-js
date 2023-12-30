@@ -385,6 +385,7 @@ void Parser::parse_and_visit_class_or_interface_member(
               case Token_Type::identifier:
               case Token_Type::private_identifier:
               case Token_Type::star:
+                this->modifiers.pop_back();
                 check_modifiers_for_field_without_type_annotation(last_ident);
                 v.visit_property_declaration(last_ident);
                 return true;

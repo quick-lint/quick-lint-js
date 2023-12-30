@@ -60,6 +60,8 @@ Semantic Versioning.
 
 * Class decorators may now reference the class by name.
 * Decorators are now parsed correctly when using a semicolon-free coding style.
+* Properties named 'private', 'declare', or similar names are now parsed
+  correctly when using a semicolon-free coding style.
 * A newline between an arrow function and a parenthesized expression (e.g.
   `let f = () => {} /*newline*/ (console.log('x'));` no longer falsely reports
   [E0211][] ("missing parentheses around self-invoked function").
