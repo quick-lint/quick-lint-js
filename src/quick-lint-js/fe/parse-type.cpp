@@ -158,12 +158,18 @@ again:
   case Token_Type::kw_unknown: {
     Lexer_Transaction transaction = this->lexer_.begin_transaction();
     this->skip();
-    if (this->peek().type == Token_Type::kw_is) {
-      // param is Type
+    switch (this->peek().type) {
+    // bigint is Type
+    // object.prop
+    case Token_Type::dot:
+    case Token_Type::kw_is:
       this->lexer_.roll_back_transaction(std::move(transaction));
       goto type_variable_or_namespace_or_type_predicate;
+      break;
+    default:
+      this->lexer_.commit_transaction(std::move(transaction));
+      break;
     }
-    this->lexer_.commit_transaction(std::move(transaction));
     break;
   }
 

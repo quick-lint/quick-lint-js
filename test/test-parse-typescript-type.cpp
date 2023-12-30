@@ -251,6 +251,39 @@ TEST_F(Test_Parse_TypeScript_Type, namespaced_type_reference) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Type, namespace_can_be_most_keywords) {
+  for (String8 keyword : keywords -
+                             Dirty_Set<String8>{
+                                 // This list was discovered experimentally.
+                                 u8"false",
+                                 u8"function",
+                                 u8"import",
+                                 u8"infer",
+                                 u8"keyof",
+                                 u8"new",
+                                 u8"null",
+                                 u8"readonly",
+                                 u8"this",
+                                 u8"true",
+                                 u8"unique",
+                                 u8"void",
+                             } -
+                             // TODO(strager): TypeScript allows referencing a
+                             // namespace named 'break' (for example), but there
+                             // is no way to declare a namespace named 'break'.
+                             // For now, quick-lint-js rejects 'break.foo', but
+                             // we should report a better diagnostic.
+                             disallowed_binding_identifier_keywords) {
+    SCOPED_TRACE(out_string8(keyword));
+    Spy_Visitor p = test_parse_and_visit_typescript_type_expression(
+        concat(keyword, u8".subns"_sv), no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_namespace_use",  // (keyword)
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({keyword}));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Type, builtin_types) {
   for (String8 type : typescript_builtin_type_keywords) {
     SCOPED_TRACE(out_string8(type));
