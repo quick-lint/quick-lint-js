@@ -422,6 +422,18 @@ TEST_F(Test_Parse_TypeScript_Module, import_require) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Module,
+       import_require_variable_cannot_be_await_or_yield) {
+  test_parse_and_visit_module(
+      u8"import await = require('node:fs');"_sv,
+      u8"       ^^^^^ Diag_Cannot_Import_Variable_Named_Keyword"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"import yield = require('node:fs');"_sv,
+      u8"       ^^^^^ Diag_Cannot_Import_Variable_Named_Keyword"_diag,
+      typescript_options);
+}
+
 TEST_F(Test_Parse_TypeScript_Module, export_interface) {
   {
     Spy_Visitor p = test_parse_and_visit_module(u8"export interface I {}"_sv,
@@ -712,6 +724,24 @@ TEST_F(Test_Parse_TypeScript_Module, export_import_alias) {
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({import_alias_decl(u8"A"_sv)}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Module,
+       export_import_alias_cannot_be_named_certain_keywords) {
+  // TODO[TypeScript-export-namespace-alias-keyword-name]: Disallow 'await',
+  // 'implements', etc. (strict_reserved_keywords).
+  for (String8_View keyword : disallowed_binding_identifier_keywords) {
+    Spy_Visitor p = test_parse_and_visit_module(
+        concat(u8"export import "_sv, keyword, u8" = B;"_sv),
+        u8"Diag_Cannot_Import_Variable_Named_Keyword"_diag, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // (keyword)
+                              "visit_variable_namespace_use",  // B
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({import_alias_decl(keyword)}));
   }
 }
 

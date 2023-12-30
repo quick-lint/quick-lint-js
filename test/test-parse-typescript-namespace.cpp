@@ -415,6 +415,7 @@ TEST_F(Test_Parse_TypeScript_Namespace,
            u8"export declare const enum E {}"_sv,  //
            u8"import myns = ns;"_sv,               //
            u8"import myns = ns.subns;"_sv,         //
+           u8"import await = ns.subns;"_sv,        //
            u8"const enum E {}"_sv,                 //
            u8"declare interface I {}"_sv,          //
            u8"declare type T = null;"_sv,          //
@@ -422,6 +423,7 @@ TEST_F(Test_Parse_TypeScript_Namespace,
 
            // These examples are invalid TypeScript, but the TypeScript compiler
            // still treats them as ambient statements.
+           u8"import await from 'mod';"_sv,            //
            u8"import fs from 'fs';"_sv,                //
            u8"import fs = require('fs');"_sv,          //
            u8"import {readFile} from 'fs';"_sv,        //
@@ -678,6 +680,31 @@ TEST_F(Test_Parse_TypeScript_Namespace,
                               "visit_variable_namespace_use",  // ns
                               "visit_end_of_module",           //
                           }));
+  }
+}
+
+// See NOTE[TypeScript-namespace-alias-name].
+TEST_F(
+    Test_Parse_TypeScript_Namespace,
+    namespace_alias_can_be_named_contextual_keyword_including_await_and_yield) {
+  for (String8_View name : contextual_keywords | strict_only_reserved_keywords |
+                               Dirty_Set<String8>{u8"await", u8"yield"}) {
+    Spy_Visitor p =
+        test_parse_and_visit_module(concat(u8"import "_sv, name, u8" = ns;"_sv),
+                                    no_diags, typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({import_alias_decl(name)}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Namespace,
+       namespace_alias_cannot_be_named_most_reserved_keywords) {
+  for (String8_View name : disallowed_binding_identifier_keywords) {
+    Spy_Visitor p = test_parse_and_visit_module(
+        concat(u8"import "_sv, name, u8" = ns;"_sv),
+        u8"Diag_Cannot_Import_Variable_Named_Keyword"_diag, typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({import_alias_decl(name)}));
   }
 }
 

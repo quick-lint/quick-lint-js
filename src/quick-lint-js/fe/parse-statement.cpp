@@ -4535,21 +4535,58 @@ void Parser::parse_and_visit_import(
 
   bool possibly_typescript_import_alias = false;
   // For 'import fs from "node:fs";', declared_variable is 'fs'.
-  std::optional<Identifier> declared_variable = std::nullopt;
+  std::optional<Token> declared_variable = std::nullopt;
   auto declare_variable_if_needed = [&](Variable_Kind kind) {
     if (declared_variable.has_value()) {
-      v.visit_variable_declaration(*declared_variable, kind,
+      switch (declared_variable->type) {
+      // import var from "module";  // Invalid.
+      QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD:
+        this->diag_reporter_->report(Diag_Cannot_Import_Variable_Named_Keyword{
+            .import_name = declared_variable->span(),
+        });
+        break;
+
+      // import implements from "module";  // Invalid.
+      // import implements = myNamespace;  // TypeScript only.
+      QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+      case Token_Type::kw_await:
+      case Token_Type::kw_yield:
+      case Token_Type::kw_let:
+        if (kind == Variable_Kind::_import_alias) {
+          // NOTE[TypeScript-namespace-alias-name]: TypeScript namespace aliases
+          // can be named 'await' because TypeScript namespace aliases do not
+          // enforce strict mode.
+          //
+          // TODO(strager): We should should assume that 'export import' is
+          // strict mode. See
+          // TODO[TypeScript-export-namespace-alias-keyword-name].
+        } else {
+          if (declared_variable->type == Token_Type::kw_let) {
+            this->diag_reporter_->report(Diag_Cannot_Import_Let{
+                .import_name = declared_variable->span()});
+          } else {
+            this->diag_reporter_->report(
+                Diag_Cannot_Import_Variable_Named_Keyword{
+                    .import_name = declared_variable->span(),
+                });
+          }
+        }
+        break;
+
+      // import {banana} from "grocery-store";
+      default:
+        break;
+      }
+
+      v.visit_variable_declaration(declared_variable->identifier_name(), kind,
                                    Variable_Declaration_Flags::none);
       declared_variable = std::nullopt;  // Prevent double declaration.
     }
   };
 
   switch (this->peek().type) {
-    // import var from "module";  // Invalid.
-  QLJS_CASE_STRICT_RESERVED_KEYWORD:
-    this->diag_reporter_->report(Diag_Cannot_Import_Variable_Named_Keyword{
-        .import_name = this->peek().span(),
-    });
+  // import var from "module";  // Invalid.
+  QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD:
     this->is_current_typescript_namespace_non_empty_ = true;
     goto identifier;
 
@@ -4562,20 +4599,21 @@ void Parser::parse_and_visit_import(
 
   // import let from "module";
   // import fs from "fs";
-  // import fs = require("fs");  // TypeScript only.
+  // import fs = require("fs");        // TypeScript only.
+  // import implements = ns;           // TypeScript only.
+  // import implements from "module";  // Invalid.
   identifier:
   QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC_AND_TYPE:
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
   case Token_Type::identifier:
   case Token_Type::kw_async:
+  case Token_Type::kw_await:
   case Token_Type::kw_get:
   case Token_Type::kw_set:
   case Token_Type::kw_static:
+  case Token_Type::kw_yield:
     // Do not set is_current_typescript_namespace_non_empty_.
-    if (this->peek().type == Token_Type::kw_let) {
-      this->diag_reporter_->report(
-          Diag_Cannot_Import_Let{.import_name = this->peek().span()});
-    }
-    declared_variable = this->peek().identifier_name();
+    declared_variable = this->peek();
     this->skip();
     if (this->peek().type == Token_Type::comma) {
       declare_variable_if_needed(Variable_Kind::_import);
