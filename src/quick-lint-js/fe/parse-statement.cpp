@@ -4832,7 +4832,10 @@ void Parser::parse_and_visit_import(
             this->skip();
             switch (this->peek().type) {
             QLJS_CASE_CONTEXTUAL_KEYWORD:
+            QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
             case Token_Type::identifier:
+            case Token_Type::kw_await:
+            case Token_Type::kw_yield:
               this->skip();
               break;
 

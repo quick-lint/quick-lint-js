@@ -732,6 +732,20 @@ TEST_F(Test_Parse_TypeScript_Namespace, import_alias_of_namespace_member) {
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
   }
+
+  for (String8_View subns_name : contextual_keywords |
+                                     strict_only_reserved_keywords |
+                                     Dirty_Set<String8>{u8"await", u8"yield"}) {
+    Spy_Visitor p = test_parse_and_visit_module(
+        concat(u8"import A = ns."_sv, subns_name, u8";"_sv), no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",    // A
+                              "visit_variable_namespace_use",  // ns
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"ns"}));
+  }
 }
 
 TEST_F(Test_Parse_TypeScript_Namespace,
