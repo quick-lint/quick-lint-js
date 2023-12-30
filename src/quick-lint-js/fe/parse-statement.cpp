@@ -3071,12 +3071,15 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
     case Token_Type::kw_throw:
     case Token_Type::kw_break:
     case Token_Type::kw_case:
+
     // Temporarily return true to omit diag with these statments
-    case Token_Type::kw_if:
-    case Token_Type::kw_try:
-    case Token_Type::kw_while:
     case Token_Type::kw_do:
     case Token_Type::kw_for:
+    case Token_Type::kw_if:
+    case Token_Type::kw_switch:
+    case Token_Type::kw_try:
+    case Token_Type::kw_while:
+    case Token_Type::kw_with:
     case Token_Type::left_curly:
       return true;
     default:

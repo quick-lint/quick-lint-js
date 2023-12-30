@@ -485,6 +485,30 @@ TEST_F(Test_Parse_Warning, Diag_Fallthrough_Without_Comment_In_Switch) {
       default:})"_sv,
       no_diags);
 }
+
+TEST_F(Test_Parse_Warning, early_exit_does_not_trigger_fallthrough_warning) {
+  for (String8_View exiting_code : {
+           u8"break;"_sv,
+           u8"continue;"_sv,
+           u8"do { return; } while (true);"_sv,
+           u8"for (;;) { return; }"_sv,
+           u8"if (false) { } else { return; }"_sv,
+           u8"if (true) { return; }"_sv,
+           u8"return x;"_sv,
+           u8"return;"_sv,
+           u8"switch (c) { default: return; }"_sv,
+           u8"throw err;"_sv,
+           u8"try { return; } catch (e) {}"_sv,
+           u8"while (true) { return; }"_sv,
+           u8"with (o) { return; }"_sv,
+           u8"{ return; }"_sv,
+       }) {
+    test_parse_and_visit_statement(
+        concat(u8"for (;;) { switch (a) { case 1: "_sv, exiting_code,
+               u8" default: break; } }"_sv),
+        no_diags);
+  }
+}
 }
 }
 

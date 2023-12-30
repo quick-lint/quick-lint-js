@@ -68,6 +68,9 @@ Semantic Versioning.
 * `for await (async of []);` no longer falsely reports [E0082][] ("assigning to
   'async' in a for-of loop requires parentheses"). (`for (async of []);` still
   reports the diagnostic.)
+* A `return` statement inside a nested `switch` no longer falsely repots
+  [E0427][] ("missing 'break;' or '// fallthrough' comment between " "statement
+  and 'case'").
 * TypeScript support (still experimental):
   * Types named `await`, `implements`, `interface`, `let`, `package`, `private`,
     `protected`, `public`, `static`, and `yield` are now recognized in type
