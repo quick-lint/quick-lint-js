@@ -10,7 +10,7 @@
   <Identity
     Name="quick-lint.quick-lint-js"
     Publisher="CN=Matthew Glazar, O=Matthew Glazar, L=San Carlos, S=California, C=US"
-    Version="2.18.0.0" />
+    Version="2.19.0.0" />
 
   <Properties>
     <DisplayName>quick-lint-js</DisplayName>
