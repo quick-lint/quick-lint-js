@@ -1067,6 +1067,18 @@ TEST_F(Test_Parse_TypeScript_Declare_Namespace,
                             non_empty_namespace_decl(u8"ns"_sv)));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Declare_Namespace,
+       declare_namespace_cannot_contain_loop_label) {
+  test_parse_and_visit_module(
+      u8"declare namespace ns { label: export class C {} }"_sv,
+      u8"                       ^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,
+      typescript_options);
+  test_parse_and_visit_module(
+      u8"declare namespace ns { label: }"_sv,
+      u8"                       ^^^^^ Diag_Declare_Namespace_Cannot_Contain_Statement.first_statement_token"_diag,
+      typescript_options);
+}
 }
 }
 

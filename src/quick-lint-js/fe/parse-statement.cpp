@@ -3399,13 +3399,14 @@ void Parser::parse_and_visit_typescript_declare_block(
       } else {
         // require_declaration will cause parse_and_visit_statement to report
         // Diag_Declare_Namespace_Cannot_Contain_Statement.
-        bool parsed_statement = this->parse_and_visit_statement(
-            v, Parse_Statement_Options{
-                   .possibly_followed_by_another_statement = true,
-                   .require_declaration = true,
-                   .declare_keyword = declare_context.declare_keyword_span(),
-               });
-        QLJS_ASSERT(parsed_statement);
+        [[maybe_unused]] bool parsed_statement =
+            this->parse_and_visit_statement(
+                v,
+                Parse_Statement_Options{
+                    .possibly_followed_by_another_statement = true,
+                    .require_declaration = true,
+                    .declare_keyword = declare_context.declare_keyword_span(),
+                });
       }
       break;
 
