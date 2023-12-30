@@ -42,22 +42,33 @@ constexpr String8_View ignored_tests[] = {
     u8"/esDecorators/classDeclaration/fields/esDecorators-classDeclaration-fields-nonStaticAbstract.ts"sv,
     u8"/esDecorators/classDeclaration/fields/esDecorators-classDeclaration-fields-nonStaticAbstractAccessor.ts"sv,
     u8"/esDecorators/classDeclaration/methods/esDecorators-classDeclaration-methods-nonStaticAbstract.ts"sv,
+    u8"/externalModules/topLevelAwaitErrors.10.ts"sv,
+    u8"/externalModules/topLevelAwaitErrors.12.ts"sv,
+    u8"/externalModules/topLevelAwaitErrors.7.ts"sv,
+    u8"/externalModules/topLevelAwaitErrors.8.ts"sv,
+    u8"/externalModules/topLevelAwaitErrors.9.ts"sv,
     u8"/jsFileCompilationExternalPackageError.ts"sv,
     u8"/jsx/jsxAttributeInitializer.ts"sv,
+    u8"/node/nodeModulesDeclarationEmitWithPackageExports.ts"sv,
     u8"/node/nodeModulesImportTypeModeDeclarationEmitErrors1.ts"sv,
     u8"/salsa/privateIdentifierExpando.ts"sv,
     u8"/unicodeEscapesInNames02.ts"sv,
     u8"/usedImportNotElidedInJs.ts"sv,
-    u8"/node/nodeModulesDeclarationEmitWithPackageExports.ts"sv,
 
     // TypeScript's compiler supports TypeScript extensions in JavaScript code,
     // but quick-lint-js does not.
     u8"/node/allowJs/nodeModulesAllowJs1.ts"sv,
-    u8"/node/allowJs/nodeModulesAllowJsImportAssignment.ts"sv,
     u8"/node/allowJs/nodeModulesAllowJsExportAssignment.ts"sv,
+    u8"/node/allowJs/nodeModulesAllowJsImportAssignment.ts"sv,
     u8"/node/allowJs/nodeModulesAllowJsSynchronousCallErrors.ts"sv,
 
     // These tests have errors but the tests explicitly disable checking.
+    u8"/parser/ecmascript5/ArrowFunctionExpressions/parserArrowFunctionExpression10.ts"sv,
+    u8"/parser/ecmascript5/ArrowFunctionExpressions/parserArrowFunctionExpression13.ts"sv,
+    u8"/parser/ecmascript5/ArrowFunctionExpressions/parserArrowFunctionExpression14.ts"sv,
+    u8"/parser/ecmascript5/ArrowFunctionExpressions/parserArrowFunctionExpression15.ts"sv,
+    u8"/parser/ecmascript5/ArrowFunctionExpressions/parserArrowFunctionExpression16.ts"sv,
+    u8"/parser/ecmascript5/ArrowFunctionExpressions/parserArrowFunctionExpression17.ts"sv,
     u8"/salsa/plainJSRedeclare3.ts"sv,
 
     // TODO(strager): quick-lint-js should strip metadata comments and
@@ -68,9 +79,10 @@ constexpr String8_View ignored_tests[] = {
     u8"/importedModuleClassNameClash.ts"sv,
 
     // TODO(#1004): Implement import assertions.
-    u8"/node/nodeModulesImportModeDeclarationEmit2.ts"sv,
+    u8"/importAssertion/"sv,
     u8"/node/nodeModulesImportAssertions.ts"sv,
     u8"/node/nodeModulesImportModeDeclarationEmit1.ts"sv,
+    u8"/node/nodeModulesImportModeDeclarationEmit2.ts"sv,
     u8"/node/nodeModulesImportModeDeclarationEmitErrors1.ts"sv,
 
     // TODO(#1123): quick-lint-js does not parse UTF-16 source files.
