@@ -1182,6 +1182,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
 
     // export * from "module";
     // export * as name from "module";
+  export_star:
   case Token_Type::star:
     // Do not set is_current_typescript_namespace_non_empty_. See
     // NOTE[ambiguous-ambient-statement-in-namespace].
@@ -1412,8 +1413,9 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     // Do not set is_current_typescript_namespace_non_empty_.
     Source_Code_Span type_keyword = this->peek().span();
     this->skip();
-    if (this->peek().type == Token_Type::left_curly) {
-      // export type {A, B as C};
+    switch (this->peek().type) {
+    // export type {A, B as C};
+    case Token_Type::left_curly:
       // Do not set is_current_typescript_namespace_non_empty_. See
       // NOTE[ambiguous-ambient-statement-in-namespace].
       typescript_type_only_keyword = type_keyword;
@@ -1424,10 +1426,23 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
             });
       }
       goto named_export_list;
-    } else {
+
+    // export type * from 'othermod';
+    case Token_Type::star:
+      typescript_type_only_keyword = type_keyword;
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(
+            Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript{
+                .type_keyword = type_keyword,
+            });
+      }
+      goto export_star;
+
+    default:
       // export type A = B;
       // Do not set is_current_typescript_namespace_non_empty_.
       this->parse_and_visit_typescript_type_alias(v, type_keyword);
+      break;
     }
     break;
   }

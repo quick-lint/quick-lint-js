@@ -85,6 +85,8 @@ Semantic Versioning.
     parsed correctly.
   * `import("modulename")` in a type is now allowed and no longer falsely
     reports a diagnostic.
+  * `import type * from 'othermodule';` no longer crashes quick-lint-js with an
+    assertion failure.
   * Generic call signatures are now parsed correctly when using a semicolon-free
     coding style.
   * Interface index signatures and computed property names in interfaces are now

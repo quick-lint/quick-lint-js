@@ -21,6 +21,7 @@
 #include <vector>
 
 using ::testing::ElementsAreArray;
+using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
@@ -334,6 +335,22 @@ TEST_F(Test_Parse_TypeScript_Module,
                               "visit_end_of_module",
                           }));
   }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type {T} from 'othermod';"_sv,  //
+        u8"       ^^^^ Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type * from 'othermod';"_sv,  //
+        u8"       ^^^^ Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript"_diag,  //
+        javascript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
 }
 
 TEST_F(Test_Parse_TypeScript_Module, inline_type_export) {
@@ -406,6 +423,94 @@ TEST_F(Test_Parse_TypeScript_Module, mixed_inline_type_and_type_only_export) {
                               "visit_end_of_module",
                           }));
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"T"}));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Module, export_type_from) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type * from 'other';"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type * as mother from 'other';"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type * as 'mother' from 'other';"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type {} from 'other';"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type {util1, util2, util3} from 'other';"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type {readFileSync as readFile} from 'fs';"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type {promises as default} from 'fs';"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  for (String8 keyword : keywords) {
+    Padded_String code(
+        concat(u8"export type {"_sv, keyword, u8"} from 'other';"_sv));
+    SCOPED_TRACE(code);
+    Spy_Visitor p = test_parse_and_visit_statement(code.string_view(), no_diags,
+                                                   typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    // Keywords are legal, even if Unicode-escaped.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type {\\u{76}ar} from 'fs';"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    // Keywords are legal, even if Unicode-escaped.
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type {\\u{76}ar as \\u{69}f} from 'fs';"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type {'name'} from 'other';"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
+  }
+
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"export type {'name' as 'othername'} from 'other';"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.visits, IsEmpty());
   }
 }
 
