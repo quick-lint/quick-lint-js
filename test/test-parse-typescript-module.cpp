@@ -122,7 +122,7 @@ TEST_F(Test_Parse_TypeScript_Module,
                           }));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({import_type_decl(u8"A"_sv), import_decl(u8"B"_sv)}))
+        ElementsAreArray({import_decl(u8"B"_sv), import_type_decl(u8"A"_sv)}))
         << "B should be imported as an 'import' not an 'import_type' in case "
            "the user thought that the 'type' keyword only applied to 'A'";
     assert_diagnostics(
@@ -144,7 +144,7 @@ TEST_F(Test_Parse_TypeScript_Module,
                           }));
     EXPECT_THAT(
         p.variable_declarations,
-        ElementsAreArray({import_type_decl(u8"A"_sv), import_decl(u8"B"_sv)}));
+        ElementsAreArray({import_decl(u8"B"_sv), import_type_decl(u8"A"_sv)}));
   }
 }
 
@@ -419,6 +419,19 @@ TEST_F(Test_Parse_TypeScript_Module, import_require) {
                           }));
     EXPECT_THAT(p.variable_declarations,
                 ElementsAreArray({import_decl(u8"fs"_sv)}));
+  }
+
+  {
+    Spy_Visitor p =
+        test_parse_and_visit_module(u8"import type fs = require('node:fs');"_sv,
+                                    no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // fs
+                              "visit_end_of_module",
+                          }));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({import_decl(u8"fs"_sv)}))
+        << "See NOTE[TypeScript-type-import-alias].";
   }
 }
 
