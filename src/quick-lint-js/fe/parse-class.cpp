@@ -717,8 +717,9 @@ void Parser::parse_and_visit_class_or_interface_member(
     // [key: KeyType]: ValueType;  // TypeScript only
     bool try_parse_typescript_index_signature(const Char8 *left_square_begin) {
       Lexer_Transaction transaction = p->lexer_.begin_transaction();
-      // TODO(strager): Allow certain contextual keywords like 'let'?
-      if (p->peek().type == Token_Type::identifier) {
+      switch (p->peek().type) {
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
+      case Token_Type::identifier: {
         Identifier key_variable = p->peek().identifier_name();
         p->skip();
         if (p->peek().type == Token_Type::colon) {
@@ -793,6 +794,11 @@ void Parser::parse_and_visit_class_or_interface_member(
           v.visit_exit_index_signature_scope();
           return true;
         }
+        break;
+      }
+
+      default:
+        break;
       }
       p->lexer_.roll_back_transaction(std::move(transaction));
       return false;

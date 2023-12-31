@@ -679,6 +679,19 @@ TEST_F(Test_Parse_TypeScript_Interface, interface_with_index_signature) {
   }
 }
 
+TEST_F(Test_Parse_TypeScript_Interface,
+       index_signature_variable_can_be_named_contextual_keyword) {
+  for (String8_View keyword : contextual_keywords) {
+    Spy_Visitor p =
+        test_parse_and_visit_statement(concat(u8"interface I { ["_sv, keyword,
+                                              u8": KeyType]: ValueType; }"_sv),
+                                       no_diags, typescript_options);
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAreArray({interface_decl(u8"I"_sv),
+                                  index_signature_param_decl(keyword)}));
+  }
+}
+
 TEST_F(Test_Parse_TypeScript_Interface, index_signature_requires_type) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(

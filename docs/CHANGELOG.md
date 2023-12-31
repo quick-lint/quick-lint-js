@@ -13,6 +13,8 @@ Semantic Versioning.
 * TypeScript support (still experimental):
   * Assigning to a variable with the same name as an `import`ed type no longer
     falsely reports [E0185][] ("assignment to imported variable").
+  * Interface index signature variables can now be named contextual keywords
+    such as `type`.
 
 ## 2.19.0 (2023-12-30)
 
