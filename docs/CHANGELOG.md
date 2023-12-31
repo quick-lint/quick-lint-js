@@ -6,6 +6,14 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* TypeScript support (still experimental):
+  * Assigning to a variable with the same name as an `import`ed type no longer
+    falsely reports [E0185][] ("assignment to imported variable").
+
 ## 2.19.0 (2023-12-30)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.19.0/)

@@ -876,11 +876,15 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
     QLJS_WARNING_PUSH
     QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 
-    this->diag_reporter_->report(Diag_Assignment_To_Imported_Variable{
-        .declaration = declaration->span(),
-        .assignment = assignment.span(),
-        .var_kind = kind,
-    });
+    // HACK(#1141): Avoid false positives in TypeScript by disabling this
+    // diagnostic for now.
+    if (!this->options_.import_variable_can_be_runtime_or_type) {
+      this->diag_reporter_->report(Diag_Assignment_To_Imported_Variable{
+          .declaration = declaration->span(),
+          .assignment = assignment.span(),
+          .var_kind = kind,
+      });
+    }
 
     QLJS_WARNING_POP
     break;

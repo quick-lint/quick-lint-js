@@ -290,6 +290,23 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
   }
 }
 
+TEST(
+    Test_Variable_Analyzer_Multiple_Declarations,
+    using_implicit_type_import_and_runtime_variable_with_same_name_is_not_an_error) {
+  test_parse_and_analyze(u8"import x from ''; let x; x;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"let x; import x from ''; x;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"import x from ''; x; var x;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"import x from ''; let x; x = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"import x from ''; let x; x = null;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+  test_parse_and_analyze(u8"import x from ''; x = null; var x;"_sv, no_diags,
+                         typescript_analyze_options, default_globals);
+}
+
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
      typescript_import_does_not_conflict_with_type_only_variables) {
   for (String8_View other_thing : {

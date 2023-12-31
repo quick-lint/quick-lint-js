@@ -36,6 +36,8 @@ TEST(Test_Variable_Analyzer_Module, assign_to_immutable_imported_variable) {
       u8"^ .assignment"_diag
       u8"{.var_kind=Variable_Kind::_import}"_diag,
       javascript_analyze_options, default_globals);
+
+  // TODO(#1141): Report Diag_Assignment_To_Imported_Variable in TypeScript.
 }
 
 TEST(Test_Variable_Analyzer_Module, export_use_after_declaration_is_okay) {
