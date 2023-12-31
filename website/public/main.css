@@ -809,7 +809,9 @@ kbd.keystroke {
   #editors-support img {
     padding-bottom: 1rem;
   }
+}
 
+@media only screen and (max-width: 46em) {
   .eslint-comparison {
     border-bottom: solid 1px #aaaa;
     grid-template-areas: "eslint" "qljs";
