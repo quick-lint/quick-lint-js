@@ -15,6 +15,8 @@ Semantic Versioning.
     falsely reports [E0185][] ("assignment to imported variable").
   * Interface index signature variables can now be named contextual keywords
     such as `type`.
+  * Writing `++x` inside `? :` no longer falsely reports [E0254][] ("unexpected
+    ':' in expression; did you mean 'as'?").
 
 ## 2.19.0 (2023-12-30)
 

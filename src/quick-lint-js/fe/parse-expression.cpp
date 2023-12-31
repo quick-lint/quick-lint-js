@@ -533,14 +533,15 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
   case Token_Type::plus_plus: {
     Source_Code_Span operator_span = this->peek().span();
     this->skip();
-    Expression* child =
-        this->parse_expression(v, Precedence{
-                                      .binary_operators = false,
-                                      .math_or_logical_or_assignment = false,
-                                      .commas = false,
-                                      .in_operator = prec.in_operator,
-                                      .conditional_operator = false,
-                                  });
+    Expression* child = this->parse_expression(
+        v, Precedence{
+               .binary_operators = false,
+               .math_or_logical_or_assignment = false,
+               .commas = false,
+               .in_operator = prec.in_operator,
+               .colon_type_annotation = Allow_Type_Annotations::never,
+               .conditional_operator = false,
+           });
     if (child->kind() == Expression_Kind::Missing) {
       this->diag_reporter_->report(Diag_Missing_Operand_For_Operator{
           .where = operator_span,

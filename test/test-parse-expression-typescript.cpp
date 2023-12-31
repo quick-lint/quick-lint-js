@@ -90,6 +90,12 @@ TEST_F(Test_Parse_Expression_TypeScript,
     EXPECT_EQ(summarize(ast),
               "cond(var cond, paren(var t), paren(jsxelement(F)))");
   }
+
+  {
+    Test_Parser p(u8"cond ? ++t : f"_sv, typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "cond(var cond, rwunary(var t), var f)");
+  }
 }
 
 TEST_F(Test_Parse_Expression_TypeScript,
