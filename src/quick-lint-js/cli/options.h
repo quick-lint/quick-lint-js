@@ -22,9 +22,6 @@ enum class Output_Format {
 enum class Raw_Input_File_Language : unsigned char {
   // Explicit (--language=default) or implicit (no --language).
   default_,
-  // Explicit --language=experimental-default.
-  // TODO(#690): Make experimental_default the default and delete default_.
-  experimental_default,
 
   javascript,
   javascript_jsx,

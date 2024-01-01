@@ -172,25 +172,15 @@ Added in quick-lint-js version 0.3.0.
 * *default* (default): infer the _languageid_ from the file's extension:
 ** *.js*: *javascript-jsx*
 ** *.jsx*: *javascript-jsx*
-** (anything else): *javascript-jsx*
-* *experimental-default*: infer the _languageid_ from the file's extension (EXPERIMENTAL; subject to change in future versions of quick-lint-js):
-** *.js*: *javascript-jsx*
-** *.jsx*: *javascript-jsx*
-** *.d.ts*: *experimental-typescript-definition*
-** *.ts*: *experimental-typescript*
-** *.tsx*: *experimental-typescript-jsx*
+** *.d.ts*: *typescript-definition*
+** *.ts*: *typescript*
+** *.tsx*: *typescript-jsx*
 ** (anything else): *javascript-jsx*
 * *javascript*: the latest ECMAScript standard with proposed features.
 * *javascript-jsx*: like *javascript* but with JSX (React) extensions.
-* *experimental-typescript*: the latest TypeScript version.
-(EXPERIMENTAL.
-Subject to change in future versions of quick-lint-js.)
-* *experimental-typescript-definition*: the latest TypeScript version (.d.ts file).
-(EXPERIMENTAL.
-Subject to change in future versions of quick-lint-js.)
-* *experimental-typescript-jsx*: like *experimental-typescript* but with JSX (React) extensions.
-(EXPERIMENTAL.
-Subject to change in future versions of quick-lint-js.)
+* *typescript*: the latest TypeScript version.
+* *typescript-definition*: the latest TypeScript version (.d.ts file).
+* *typescript-jsx*: like *typescript* but with JSX (React) extensions.
 
 If *--language* is given twice, then the _languageid_ for the first *--language* option applies only to the input files between the two *--language* options, and the _languageid_ for the second *--language* option apples only to the input files after the second *--language* option.
 See the <<Example>> section for an example.

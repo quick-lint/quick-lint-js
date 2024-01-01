@@ -51,6 +51,12 @@
       </p>
       <pre><code class="elisp">(require 'eglot-quicklintjs)</code></pre>
       <p>
+        TODO:
+        <a href="https://github.com/quick-lint/quick-lint-js/issues/1146"
+          >TypeScript support</a
+        >
+      </p>
+      <p>
         To speed up JavaScript linting, configure Eglot to send changes to
         quick-lint-js immediately without delay by adding the following to your
         init file:
@@ -96,6 +102,12 @@
   ;; 'js-mode` is loaded
   (setq-local flycheck-check-syntax-automatically '(mode-enabled idle-change new-line)))
 (add-hook 'js-mode-hook #'my-flycheck-quicklintjs-setup)</code></pre>
+      <p>
+        TODO:
+        <a href="https://github.com/quick-lint/quick-lint-js/issues/1148"
+          >TypeScript support</a
+        >
+      </p>
 
       <h2 id="flymake">Flymake</h2>
       <p>
@@ -106,7 +118,7 @@
         >
         (e.g. <code>~/.emacs</code>), load the
         <code>flymake-quicklintjs</code> library and enable Flymake for
-        JavaScript buffers:
+        JavaScript and TypeScript buffers:
       </p>
       <pre><code class="elisp">(require 'flymake-quicklintjs)
 
@@ -122,13 +134,7 @@
   ;; checking buffer. The default is 0.5 (500ms)
   (setq-local flymake-no-changes-timeout 0))
 (add-hook 'js-mode-hook #'my-flymake-quicklintjs-setup)
-
-;; Optional: Enable TypeScript support. Requires quick-lint-js version
-;; 2.17.0 or newer.
-;; EXPERIMENTAL. Subject to change in future versions of
-;; quick-lint-js.
 (add-hook 'typescript-mode-hook #'my-flymake-quicklintjs-setup)
-(setq flymake-quicklintjs-experimental-typescript t)
 </code></pre>
 
       <h2 id="lsp-mode">LSP Mode</h2>
@@ -142,6 +148,12 @@
         <code>lsp-quicklintjs</code> library:
       </p>
       <pre><code class="elisp">(require 'lsp-quicklintjs)</code></pre>
+      <p>
+        TODO:
+        <a href="https://github.com/quick-lint/quick-lint-js/issues/1147"
+          >TypeScript support</a
+        >
+      </p>
       <p>
         Then, open a JavaScript buffer and type
         <kbd

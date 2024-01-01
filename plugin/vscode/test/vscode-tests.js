@@ -213,25 +213,6 @@ tests = {
     });
   },
 
-  "parser does not check TypeScript files by default": async ({
-    addCleanup,
-  }) => {
-    for (let extension of [".ts", ".tsx"]) {
-      let scratchDirectory = makeScratchDirectory({ addCleanup });
-      let helloFilePath = path.join(scratchDirectory, `hello${extension}`);
-      fs.writeFileSync(helloFilePath, "this is a bug");
-      let helloURI = vscode.Uri.file(helloFilePath);
-
-      await loadExtensionAsync({ addCleanup });
-      let helloDocument = await vscode.workspace.openTextDocument(helloURI);
-      let helloEditor = await vscode.window.showTextDocument(helloDocument);
-
-      // Wait for possible linting to take effect.
-      await sleepAsync(100);
-      await waitUntilNoDiagnosticsAsync(helloURI);
-    }
-  },
-
   "parser checks TypeScript files if opted in": async ({ addCleanup }) => {
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let helloFilePath = path.join(scratchDirectory, "hello.ts");
@@ -242,13 +223,6 @@ tests = {
     let helloURI = vscode.Uri.file(helloFilePath);
 
     await loadExtensionAsync({ addCleanup });
-    await vscode.workspace
-      .getConfiguration("quick-lint-js")
-      .update(
-        "experimental-typescript",
-        true,
-        vscode.ConfigurationTarget.Workspace
-      );
     let helloDocument = await vscode.workspace.openTextDocument(helloURI);
     let helloEditor = await vscode.window.showTextDocument(helloDocument);
 
@@ -263,7 +237,7 @@ tests = {
     });
   },
 
-  "parser checks TypeScript JSX files if opted in": async ({ addCleanup }) => {
+  "parser checks TypeScript JSX files": async ({ addCleanup }) => {
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let helloFilePath = path.join(scratchDirectory, "hello.tsx");
     fs.writeFileSync(
@@ -273,13 +247,6 @@ tests = {
     let helloURI = vscode.Uri.file(helloFilePath);
 
     await loadExtensionAsync({ addCleanup });
-    await vscode.workspace
-      .getConfiguration("quick-lint-js")
-      .update(
-        "experimental-typescript",
-        true,
-        vscode.ConfigurationTarget.Workspace
-      );
     let helloDocument = await vscode.workspace.openTextDocument(helloURI);
     let helloEditor = await vscode.window.showTextDocument(helloDocument);
 
@@ -1568,7 +1535,7 @@ async function pollAsync(callback) {
 }
 
 async function resetConfigurationAsync() {
-  for (let setting of ["experimental-typescript", "logging"]) {
+  for (let setting of ["logging"]) {
     await vscode.workspace
       .getConfiguration("quick-lint-js")
       .update(setting, undefined, vscode.ConfigurationTarget.Workspace);

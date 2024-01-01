@@ -8,9 +8,17 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* TypeScript is now supported by default in the CLI and in all editor plugins.
+  * Exception: [Emacs with Eglot](https://github.com/quick-lint/quick-lint-js/issues/1146)
+  * Exception: [Emacs with Flycheck](https://github.com/quick-lint/quick-lint-js/issues/1148)
+  * Exception: [Emacs with LSP Mode](https://github.com/quick-lint/quick-lint-js/issues/1147)
+  * Exception: [Kate](https://github.com/quick-lint/quick-lint-js/issues/1149)
+
 ### Fixed
 
-* TypeScript support (still experimental):
+* TypeScript support:
   * Assigning to a variable with the same name as an `import`ed type no longer
     falsely reports [E0185][] ("assignment to imported variable").
   * Interface index signature variables can now be named contextual keywords

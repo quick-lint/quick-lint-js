@@ -28,12 +28,6 @@
       "type": "object",
       "title": "quick-lint-js",
       "properties": {
-        "quick-lint-js.experimental-typescript": {
-          "scope": "window",
-          "type": "boolean",
-          "default": false,
-          "description": "Lint TypeScript and TypeScript JSX files, not just JavaScript and JSX files. (Requires restart.) (EXPERIMENTAL. Subject to change in future versions of quick-lint-js.)"
-        },
         "quick-lint-js.logging": {
           "scope": "window",
           "type": "string",

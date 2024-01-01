@@ -13,7 +13,7 @@ local quick_lint_js_config = {
     -- Keep these in sync with
     -- plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt.
     cmd = {"quick-lint-js", "--lsp-server"},
-    filetypes = {"javascript", "javascriptreact"},
+    filetypes = {"javascript", "javascriptreact", "typescript", "typescriptreact"},
     root_dir = function(fname)
       local root = lspconfig_util.path.dirname(fname)
       lspconfig_util.path.traverse_parents(fname, function(dir, _path)

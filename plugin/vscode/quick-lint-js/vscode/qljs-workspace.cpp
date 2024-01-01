@@ -60,14 +60,6 @@ class Extension_Configuration {
       : config_ref_(::Napi::Persistent(
             vscode.get_configuration(env, "quick-lint-js"))) {}
 
-  bool get_experimental_typescript(::Napi::Env env) {
-    ::Napi::Value value = this->get(env, "experimental-typescript");
-    if (!value.IsBoolean()) {
-      return false;
-    }
-    return value.As<::Napi::Boolean>().Value();
-  }
-
   Logging_Value get_logging(::Napi::Env env) {
     ::Napi::Value value = this->get(env, "logging");
     if (!value.IsString()) {
@@ -308,13 +300,11 @@ QLJS_Document_Base* QLJS_Workspace::maybe_create_document(
   if (to_string(vscode_document_uri.Get("scheme")) == "file") {
     file_path = to_string(vscode_document_uri.Get("fsPath"));
   }
-  bool allow_typescript = Extension_Configuration(env, this->vscode_)
-                              .get_experimental_typescript(env);
 
   QLJS_Document_Base* doc;
   if (const VSCode_Language* lang = VSCode_Language::find(
           vscode_doc.language_id(), to_string8_view(vscode_doc.uri_string()),
-          /*allow_typescript=*/allow_typescript)) {
+          /*allow_typescript=*/true)) {
     doc = new QLJS_Lintable_Document(vscode_doc, file_path, lang->lint_options);
   } else if (file_path.has_value() &&
              this->config_loader_.is_config_file_path(*file_path)) {

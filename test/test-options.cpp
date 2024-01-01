@@ -380,14 +380,6 @@ TEST_F(Test_Options, language) {
   }
 
   {
-    Options o =
-        parse_options_no_errors({"--language=experimental-default", "file.js"});
-    ASSERT_EQ(o.files_to_lint.size(), 1);
-    EXPECT_EQ(o.files_to_lint[0].language,
-              Raw_Input_File_Language::experimental_default);
-  }
-
-  {
     Options o = parse_options_no_errors(
         {"--language=javascript", "one.js", "two.ts", "three.txt"});
     ASSERT_EQ(o.files_to_lint.size(), 3);
@@ -416,23 +408,22 @@ TEST_F(Test_Options, language) {
   }
 
   {
-    Options o = parse_options_no_errors(
-        {"--language=experimental-typescript", "one.txt"});
+    Options o = parse_options_no_errors({"--language=typescript", "one.txt"});
     ASSERT_EQ(o.files_to_lint.size(), 1);
     EXPECT_EQ(o.files_to_lint[0].language, Raw_Input_File_Language::typescript);
   }
 
   {
     Options o = parse_options_no_errors(
-        {"--language=experimental-typescript-definition", "one.txt"});
+        {"--language=typescript-definition", "one.txt"});
     ASSERT_EQ(o.files_to_lint.size(), 1);
     EXPECT_EQ(o.files_to_lint[0].language,
               Raw_Input_File_Language::typescript_definition);
   }
 
   {
-    Options o = parse_options_no_errors(
-        {"--language=experimental-typescript-jsx", "one.txt"});
+    Options o =
+        parse_options_no_errors({"--language=typescript-jsx", "one.txt"});
     ASSERT_EQ(o.files_to_lint.size(), 1);
     EXPECT_EQ(o.files_to_lint[0].language,
               Raw_Input_File_Language::typescript_jsx);
@@ -488,24 +479,8 @@ TEST_F(Test_Options, invalid_language) {
               ElementsAreArray({"badlanguageid"sv}));
 }
 
-TEST_F(Test_Options,
-       default_language_is_javascript_jsx_regardless_of_extension) {
+TEST_F(Test_Options, default_language_guesses_language_from_extension) {
   constexpr auto default_language = Raw_Input_File_Language::default_;
-  constexpr auto javascript_jsx = Resolved_Input_File_Language::javascript_jsx;
-  EXPECT_EQ(get_language("<stdin>", default_language), javascript_jsx);
-  EXPECT_EQ(get_language("hi.js", default_language), javascript_jsx);
-  EXPECT_EQ(get_language("hi.jsx", default_language), javascript_jsx);
-  EXPECT_EQ(get_language("hi.ts", default_language), javascript_jsx);
-  EXPECT_EQ(get_language("hi.d.ts", default_language), javascript_jsx);
-  EXPECT_EQ(get_language("hi.d.js", default_language), javascript_jsx);
-  EXPECT_EQ(get_language("hi.tsx", default_language), javascript_jsx);
-  EXPECT_EQ(get_language("hi.txt", default_language), javascript_jsx);
-}
-
-TEST_F(Test_Options,
-       experimental_default_language_guesses_language_from_extension) {
-  constexpr auto default_language =
-      Raw_Input_File_Language::experimental_default;
   constexpr auto javascript_jsx = Resolved_Input_File_Language::javascript_jsx;
   EXPECT_EQ(get_language("<stdin>", default_language), javascript_jsx);
   EXPECT_EQ(get_language("hi.js", default_language), javascript_jsx);

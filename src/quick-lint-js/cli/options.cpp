@@ -132,17 +132,15 @@ Options parse_options(int argc, char** argv, Monotonic_Allocator* allocator) {
       unused_language_option = arg_value;
       if (arg_value == "default"sv) {
         language = Raw_Input_File_Language::default_;
-      } else if (arg_value == "experimental-default"sv) {
-        language = Raw_Input_File_Language::experimental_default;
       } else if (arg_value == "javascript"sv) {
         language = Raw_Input_File_Language::javascript;
       } else if (arg_value == "javascript-jsx"sv) {
         language = Raw_Input_File_Language::javascript_jsx;
-      } else if (arg_value == "experimental-typescript"sv) {
+      } else if (arg_value == "typescript"sv) {
         language = Raw_Input_File_Language::typescript;
-      } else if (arg_value == "experimental-typescript-definition"sv) {
+      } else if (arg_value == "typescript-definition"sv) {
         language = Raw_Input_File_Language::typescript_definition;
-      } else if (arg_value == "experimental-typescript-jsx"sv) {
+      } else if (arg_value == "typescript-jsx"sv) {
         language = Raw_Input_File_Language::typescript_jsx;
       } else {
         error_unrecognized_options.emplace_back(arg_value);
@@ -324,8 +322,6 @@ Resolved_Input_File_Language get_language(const File_To_Lint& file,
 Resolved_Input_File_Language get_language(const char* file,
                                           Raw_Input_File_Language language) {
   if (language == Raw_Input_File_Language::default_) {
-    return Resolved_Input_File_Language::javascript_jsx;
-  } else if (language == Raw_Input_File_Language::experimental_default) {
     Path_Classification classification = classify_path(file);
     if (classification.typescript_jsx) {
       return Resolved_Input_File_Language::typescript_jsx;

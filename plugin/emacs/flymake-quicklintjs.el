@@ -39,11 +39,6 @@
   :group 'flymake-quicklintjs
   :type '(repeat string))
 
-(defcustom flymake-quicklintjs-experimental-typescript nil
-  "Enable experimental TypeScript support (EXPERIMENTAL; subject to change in future versions of quick-lint-js)."
-  :group 'flymake-quicklintjs
-  :type '(boolean))
-
 (defvar-local flymake-quicklintjs--proc nil
   "Internal variable for `flymake-quicklintjs'")
 
@@ -81,9 +76,6 @@ REPORT-FN is Flymake's callback."
                           (if file
                             `("--stdin-path" ,file)
                             ()))
-                      ,@(if flymake-quicklintjs-experimental-typescript
-                            `("--language=experimental-default")
-                          ())
                       "--stdin" "--output-format=emacs-lisp"
                       ,@flymake-quicklintjs-args)
            :sentinel

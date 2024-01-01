@@ -88,19 +88,19 @@ command-line option
 |`javascript-jsx`
 
 |`tsx`
-|`experimental-typescript-jsx`
+|`typescript-jsx`
 
 |`typescript`
 |See below
 
 |`typescriptsource`
-|`experimental-typescript`
+|`typescript`
 
 |`typescriptdefinition`
-|`experimental-typescript-definition`
+|`typescript-definition`
 
 |`typescriptreact`
-|`experimental-typescript-jsx`
+|`typescript-jsx`
 
 |(any)
 |See below

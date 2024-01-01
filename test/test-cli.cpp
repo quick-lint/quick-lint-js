@@ -315,12 +315,11 @@ TEST_F(Test_CLI, errors_for_all_config_files_are_printed) {
 
 TEST_F(Test_CLI, path_for_stdin_affects_default_language) {
   {
-    Run_Program_Result r = run_program(
-        {get_quick_lint_js_executable_path(), "--language=experimental-default",
-         "--stdin", "--stdin-path=hello.js"},
-        Run_Program_Options{
-            .input = u8"interface I {}"_sv,
-        });
+    Run_Program_Result r = run_program({get_quick_lint_js_executable_path(),
+                                        "--stdin", "--stdin-path=hello.js"},
+                                       Run_Program_Options{
+                                           .input = u8"interface I {}"_sv,
+                                       });
     EXPECT_EQ(r.exit_status, 1);
     EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("E0213"))
         << "expected \"TypeScript's 'interface' feature is not allowed in "
@@ -329,12 +328,11 @@ TEST_F(Test_CLI, path_for_stdin_affects_default_language) {
   }
 
   {
-    Run_Program_Result r = run_program(
-        {get_quick_lint_js_executable_path(), "--language=experimental-default",
-         "--stdin", "--stdin-path=hello.ts"},
-        Run_Program_Options{
-            .input = u8"interface I {}"_sv,
-        });
+    Run_Program_Result r = run_program({get_quick_lint_js_executable_path(),
+                                        "--stdin", "--stdin-path=hello.ts"},
+                                       Run_Program_Options{
+                                           .input = u8"interface I {}"_sv,
+                                       });
     EXPECT_EQ(r.exit_status, 0);
     EXPECT_THAT(to_string(r.output.string_view()), Not(HasSubstr("E0213")))
         << "expected no diagnostics because file should be interpreted as "
@@ -344,12 +342,12 @@ TEST_F(Test_CLI, path_for_stdin_affects_default_language) {
 }
 
 TEST_F(Test_CLI, language_overrides_path_for_stdin) {
-  Run_Program_Result r = run_program({get_quick_lint_js_executable_path(),
-                                      "--language=experimental-typescript",
-                                      "--stdin", "--stdin-path=hello.js"},
-                                     Run_Program_Options{
-                                         .input = u8"interface I {}"_sv,
-                                     });
+  Run_Program_Result r =
+      run_program({get_quick_lint_js_executable_path(), "--language=typescript",
+                   "--stdin", "--stdin-path=hello.js"},
+                  Run_Program_Options{
+                      .input = u8"interface I {}"_sv,
+                  });
   EXPECT_EQ(r.exit_status, 0);
   EXPECT_THAT(to_string(r.output.string_view()), Not(HasSubstr("E0213")))
       << "expected no diagnostics because file should be interpreted as "
@@ -369,12 +367,11 @@ TEST_F(Test_CLI, language_javascript) {
 
 TEST_F(Test_CLI,
        language_typescript_warns_about_undeclared_variables_despite_eval) {
-  Run_Program_Result r =
-      run_program({get_quick_lint_js_executable_path(),
-                   "--language=experimental-typescript", "--stdin"},
-                  Run_Program_Options{
-                      .input = u8"eval('var x = 42;'); console.log(x);"_sv,
-                  });
+  Run_Program_Result r = run_program(
+      {get_quick_lint_js_executable_path(), "--language=typescript", "--stdin"},
+      Run_Program_Options{
+          .input = u8"eval('var x = 42;'); console.log(x);"_sv,
+      });
   EXPECT_THAT(to_string(r.output.string_view()), HasSubstr("E0057"))
       << "\"use of undeclared variable 'x'\"";
   EXPECT_EQ(r.exit_status, 1);

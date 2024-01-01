@@ -9,8 +9,6 @@ function! quick_lint_js_ale#init_variables() abort
   call ale#Set('javascript_quick_lint_js_use_global', get(g:, 'ale_use_global_executables', v:true))
 
   call ale#Set('javascript_quick_lint_js_tracing_directory', '')
-
-  call ale#Set('javascript_quick_lint_js_experimental_typescript', v:false)
 endfunction
 
 function! quick_lint_js_ale#define_linter(filetype) abort
