@@ -910,7 +910,6 @@ TEST_F(Test_Parse_TypeScript_Generic, jsx_element) {
 
   {
     // 'as' should be treated as an attribute name, not a keyword.
-    // See NOTE[JSX-keyword-after-TypeScript-generic].
     Test_Parser p(u8"<C<T> as={value} />"_sv, typescript_jsx_options);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(C, var value)");

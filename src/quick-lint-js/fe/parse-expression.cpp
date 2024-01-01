@@ -3818,13 +3818,13 @@ Expression* Parser::parse_jsx_element_or_fragment(Parse_Visitor_Base& v,
 
 next_attribute:
   switch (this->peek().type) {
-  // NOTE[JSX-keyword-after-TypeScript-generic]: Normally, JS/TS keywords would
-  // appear as Token_Type::identifier here. However, when parsing
-  // '<C<T> class="" />' in TypeScript, the 'class' following '>' is parsed as a
-  // keyword. This is because parse_and_visit_typescript_generic_arguments calls
-  // this->skip() rather than this->skip_in_jsx(). That's why we need to check
-  // for keywords here.
   QLJS_CASE_KEYWORD:
+    // JS/TS keywords should not happen here because skip_in_jsx() should have
+    // been called.
+    QLJS_ASSERT(false);
+    goto identifier_attribute_name;
+
+  identifier_attribute_name:
   case Token_Type::identifier: {
     Identifier attribute = this->peek().identifier_name();
     bool has_namespace = false;
