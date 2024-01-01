@@ -12,10 +12,10 @@
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.17
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version ﻿ 2.19.0
+.\"    Source: quick-lint-js version ﻿ 3.0.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 2.19.0" "\ \&"
+.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 3.0.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -292,29 +292,7 @@ Interpret input files which are given later in the command line as if they were 
 .  sp -1
 .  IP \(bu 2.3
 .\}
-(anything else): \fBjavascript\-jsx\fP
-.RE
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.  sp -1
-.  IP \(bu 2.3
-.\}
-\fBexperimental\-default\fP: infer the \fIlanguageid\fP from the file\(cqs extension (EXPERIMENTAL; subject to change in future versions of quick\-lint\-js):
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.  sp -1
-.  IP \(bu 2.3
-.\}
-\fB.js\fP: \fBjavascript\-jsx\fP
+\fB.d.ts\fP: \fBtypescript\-definition\fP
 .RE
 .sp
 .RS 4
@@ -325,7 +303,7 @@ Interpret input files which are given later in the command line as if they were 
 .  sp -1
 .  IP \(bu 2.3
 .\}
-\fB.jsx\fP: \fBjavascript\-jsx\fP
+\fB.ts\fP: \fBtypescript\fP
 .RE
 .sp
 .RS 4
@@ -336,29 +314,7 @@ Interpret input files which are given later in the command line as if they were 
 .  sp -1
 .  IP \(bu 2.3
 .\}
-\fB.d.ts\fP: \fBexperimental\-typescript\-definition\fP
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.  sp -1
-.  IP \(bu 2.3
-.\}
-\fB.ts\fP: \fBexperimental\-typescript\fP
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.  sp -1
-.  IP \(bu 2.3
-.\}
-\fB.tsx\fP: \fBexperimental\-typescript\-jsx\fP
+\fB.tsx\fP: \fBtypescript\-jsx\fP
 .RE
 .sp
 .RS 4
@@ -403,9 +359,7 @@ Interpret input files which are given later in the command line as if they were 
 .  sp -1
 .  IP \(bu 2.3
 .\}
-\fBexperimental\-typescript\fP: the latest TypeScript version.
-(EXPERIMENTAL.
-Subject to change in future versions of quick\-lint\-js.)
+\fBtypescript\fP: the latest TypeScript version.
 .RE
 .sp
 .RS 4
@@ -416,9 +370,7 @@ Subject to change in future versions of quick\-lint\-js.)
 .  sp -1
 .  IP \(bu 2.3
 .\}
-\fBexperimental\-typescript\-definition\fP: the latest TypeScript version (.d.ts file).
-(EXPERIMENTAL.
-Subject to change in future versions of quick\-lint\-js.)
+\fBtypescript\-definition\fP: the latest TypeScript version (.d.ts file).
 .RE
 .sp
 .RS 4
@@ -429,9 +381,7 @@ Subject to change in future versions of quick\-lint\-js.)
 .  sp -1
 .  IP \(bu 2.3
 .\}
-\fBexperimental\-typescript\-jsx\fP: like \fBexperimental\-typescript\fP but with JSX (React) extensions.
-(EXPERIMENTAL.
-Subject to change in future versions of quick\-lint\-js.)
+\fBtypescript\-jsx\fP: like \fBtypescript\fP but with JSX (React) extensions.
 .RE
 .sp
 If \fB\-\-language\fP is given twice, then the \fIlanguageid\fP for the first \fB\-\-language\fP option applies only to the input files between the two \fB\-\-language\fP options, and the \fIlanguageid\fP for the second \fB\-\-language\fP option apples only to the input files after the second \fB\-\-language\fP option.

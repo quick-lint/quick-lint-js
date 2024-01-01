@@ -4,7 +4,7 @@
 class QuickLintJs < Formula
   desc "Find bugs in your JavaScript code"
   homepage "https://quick-lint-js.com/"
-  url "https://c.quick-lint-js.com/releases/2.19.0/source/quick-lint-js-2.19.0.tar.gz"
+  url "https://c.quick-lint-js.com/releases/3.0.0/source/quick-lint-js-3.0.0.tar.gz"
   license "GPL-3.0-or-later"
   head "https://github.com/quick-lint/quick-lint-js.git", branch: "master"
 
