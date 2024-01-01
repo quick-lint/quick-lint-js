@@ -295,9 +295,13 @@ class Parser {
   void maybe_visit_assignment(Expression *ast, Parse_Visitor_Base &v,
                               Variable_Assignment_Flags flags);
 
-  void parse_and_visit_typescript_generic_arguments(Parse_Visitor_Base &v);
+  // If in_jsx is true, then the token after '>' is parsed as a JSX token.
+  // otherwise, the token after '>' is parsed as a normal JavaScript/TypeScript
+  // token.
+  void parse_and_visit_typescript_generic_arguments(Parse_Visitor_Base &v,
+                                                    bool in_jsx);
   void parse_and_visit_typescript_generic_arguments_no_scope(
-      Parse_Visitor_Base &v);
+      Parse_Visitor_Base &v, bool in_jsx);
 
  public:  // For testing only.
   void parse_and_visit_typescript_generic_parameters(Parse_Visitor_Base &v);

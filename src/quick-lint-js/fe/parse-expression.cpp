@@ -1537,7 +1537,7 @@ next:
             bool parsed_without_fatal_error = this->catch_fatal_parse_errors(
                 [this, &generic_arguments_visits] {
                   this->parse_and_visit_typescript_generic_arguments(
-                      generic_arguments_visits.visitor());
+                      generic_arguments_visits.visitor(), /*in_jsx=*/false);
                 });
             if (!parsed_without_fatal_error) {
               return false;
@@ -1850,7 +1850,7 @@ next:
                 .opening_less = Source_Code_Span(less_begin, less_begin + 1),
             });
       }
-      this->parse_and_visit_typescript_generic_arguments(v);
+      this->parse_and_visit_typescript_generic_arguments(v, /*in_jsx=*/false);
       binary_builder.replace_last(this->parse_call_expression_remainder(
           v, binary_builder.last_expression()));
       goto next;
@@ -3810,7 +3810,7 @@ Expression* Parser::parse_jsx_element_or_fragment(Parse_Visitor_Base& v,
   // <Component<T> />  // TypeScript only.
   if (this->peek().type == Token_Type::less ||
       this->peek().type == Token_Type::less_less) {
-    this->parse_and_visit_typescript_generic_arguments(v);
+    this->parse_and_visit_typescript_generic_arguments(v, /*in_jsx=*/true);
   }
 
   bool is_intrinsic =

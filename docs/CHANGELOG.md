@@ -17,6 +17,9 @@ Semantic Versioning.
     such as `type`.
   * Writing `++x` inside `? :` no longer falsely reports [E0254][] ("unexpected
     ':' in expression; did you mean 'as'?").
+  * Hypthenated JSX attribute names following generic JSX component names, such
+    as in `<MyComponent<T> aria-label="..." />`, now parse correctly and no
+    longer report [E0054][] ("unexpected token").
 
 ## 2.19.0 (2023-12-30)
 

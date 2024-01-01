@@ -2238,7 +2238,7 @@ void Parser::parse_and_visit_typescript_interface_reference(
           .context = context,
       });
     }
-    this->parse_and_visit_typescript_generic_arguments(v);
+    this->parse_and_visit_typescript_generic_arguments(v, /*in_jsx=*/false);
   }
 }
 

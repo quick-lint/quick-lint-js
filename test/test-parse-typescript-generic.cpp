@@ -915,6 +915,13 @@ TEST_F(Test_Parse_TypeScript_Generic, jsx_element) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(C, var value)");
   }
+
+  {
+    Test_Parser p(u8"<MyComponent<T> aria-label={label} />"_sv,
+                  typescript_jsx_options);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(MyComponent, var label)");
+  }
 }
 
 TEST_F(Test_Parse_TypeScript_Generic,

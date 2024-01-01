@@ -313,7 +313,8 @@ again:
                                            this->peek().begin + 1),
               });
         }
-        this->parse_and_visit_typescript_generic_arguments_no_scope(v);
+        this->parse_and_visit_typescript_generic_arguments_no_scope(
+            v, /*in_jsx=*/false);
       }
     }
 
@@ -741,7 +742,8 @@ again:
                 .context = Statement_Kind::typeof_type,
             });
       }
-      this->parse_and_visit_typescript_generic_arguments_no_scope(v);
+      this->parse_and_visit_typescript_generic_arguments_no_scope(
+          v, /*in_jsx=*/false);
     }
     maybe_parse_dots_after_generic_arguments();
     break;
@@ -781,7 +783,8 @@ again:
     if (!this->peek().has_leading_newline &&
         (this->peek().type == Token_Type::less ||
          this->peek().type == Token_Type::less_less)) {
-      this->parse_and_visit_typescript_generic_arguments_no_scope(v);
+      this->parse_and_visit_typescript_generic_arguments_no_scope(
+          v, /*in_jsx=*/false);
     }
     maybe_parse_dots_after_generic_arguments();
     break;
@@ -1567,15 +1570,15 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
   }
 }
 
-void Parser::parse_and_visit_typescript_generic_arguments(
-    Parse_Visitor_Base &v) {
+void Parser::parse_and_visit_typescript_generic_arguments(Parse_Visitor_Base &v,
+                                                          bool in_jsx) {
   v.visit_enter_type_scope();
-  this->parse_and_visit_typescript_generic_arguments_no_scope(v);
+  this->parse_and_visit_typescript_generic_arguments_no_scope(v, in_jsx);
   v.visit_exit_type_scope();
 }
 
 void Parser::parse_and_visit_typescript_generic_arguments_no_scope(
-    Parse_Visitor_Base &v) {
+    Parse_Visitor_Base &v, bool in_jsx) {
   QLJS_ASSERT(this->peek().type == Token_Type::less ||
               this->peek().type == Token_Type::less_less);
   if (this->peek().type == Token_Type::less_less) {
@@ -1595,7 +1598,11 @@ void Parser::parse_and_visit_typescript_generic_arguments_no_scope(
 
   switch (this->peek().type) {
   case Token_Type::greater:
-    this->skip();
+    if (in_jsx) {
+      this->lexer_.skip_in_jsx();
+    } else {
+      this->lexer_.skip();
+    }
     break;
   case Token_Type::greater_equal:
   case Token_Type::greater_greater:
