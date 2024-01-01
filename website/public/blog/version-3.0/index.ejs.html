@@ -1,0 +1,454 @@
+<!---{
+"title": "TypeScript: Clearly & Quickly",
+"linkLabelHTML": "Release: version 3.0",
+"description": "Finally, TypeScript support! Will quick-lint-js be renamed to quick-lint-ts?",
+"navTitle": "Release 3.0",
+"blogAuthor": "Matthew \"strager\" Glazar",
+"blogDate": "2024-01-01T02:10:00-05:00"
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html") %> <%- await
+    include("../blog-head.ejs.html") %>
+    <link href="../../main.css" rel="stylesheet" />
+  </head>
+  <style>
+    aside {
+      font-style: italic;
+      font-size: small;
+    }
+
+    @media screen {
+      .reveal-on-click:not(.clicked) {
+        background-color: black;
+        color: black;
+        cursor: pointer;
+      }
+    }
+    @media not (prefers-reduced-motion) {
+      .reveal-on-click {
+        transition-property: background-color, color;
+        transition-duration: 0.3s;
+      }
+    }
+  </style>
+  <body>
+    <% function callsToAction() { %>
+    <ul class="install-options">
+      <li>
+        <a href="../../install/"
+          ><qljs-icon name="vscode" size="19" />
+          <qljs-icon name="neovim" size="19" />
+          <qljs-icon name="sublime-text" size="19" />
+          <qljs-icon name="emacs" size="19" /> install quick-lint-js</a
+        >
+      </li>
+      <li><a href="../../demo/">🌐 try in browser</a></li>
+      <li>
+        <a href="https://github.com/quick-lint/quick-lint-js"
+          ><qljs-icon name="github" size="19" /> code on GitHub</a
+        >
+      </li>
+    </ul>
+    <% } %>
+
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h1><%= meta.title %></h1>
+      <p><qljs-date datetime="<%= meta.blogDate %>" /></p>
+
+      <p>
+        quick-lint-js is a JavaScript bug finder. Today, version 3.0 makes it
+        also a TypeScript bug finder! quick-lint-js complements TypeScript with
+        <strong>beginner-friendly messages</strong> and
+        <strong>fast linting</strong>.
+      </p>
+
+      <%- callsToAction() %>
+
+      <p>
+        Example code used in this article has been adapted from various open
+        source projects, including some Copyright Tiny Technologies, Inc. and
+        Copyright Elasticsearch B.V.
+      </p>
+
+      <section>
+        <h2>Beginner friendly</h2>
+
+        <p>
+          My goal in developing quick-lint-js is to make JavaScript (and
+          TypeScript) easier for beginners to learn by catching their silly
+          mistakes.
+        </p>
+
+        <p>
+          TypeScript's compiler already catches coding mistakes for you. Its
+          fantastic Visual Studio Code extension is the main reason behind its
+          popularity. However, TypeScript is not easy. It has over 80 keywords
+          and many archaic features for compatibility with Node.js, browser, and
+          JavaScript.
+        </p>
+
+        <p>
+          What can quick-lint-js do that TypeScript's extension and compiler
+          can't? Let's walk through some examples.
+        </p>
+
+        <h3>Keyword confusion</h3>
+
+        <p>
+          I am dyslexic, so sometimes simple issues are hard for me to notice.
+          Can you tell what's wrong with the following code by looking at
+          TypeScript's error messages? Hint:
+          <span class="reveal-on-click"
+            >I often confuse different keywords which start with the same
+            letter.</span
+          >
+        </p>
+
+        <div class="eslint-comparison">
+          <figure style="grid-area: eslint">
+            <figcaption>
+              <qljs-icon name="typescript" size="19" /> TypeScript
+            </figcaption>
+            <div class="example">
+              <pre><code class="javascript">it('matches on first word', await (<mark data-code="1109" data-message="Expression expected." data-severity="error">)</mark> <mark data-code="1005" data-message="',' expected." data-severity="error">=&gt;</mark> {
+  await <mark data-code="1005" data-message="':' expected." data-severity="error">table</mark>.searchForItem('Hello')<mark data-code="1005" data-message="',' expected." data-severity="error">;</mark>
+  await <mark data-code="1005" data-message="':' expected." data-severity="error">table</mark>.expectItemsCount('vis', 1)<mark data-code="1005" data-message="',' expected." data-severity="error">;</mark>
+});</code></pre>
+              <p>
+                Expression expected. (1109)<br />
+                ',' expected. (1005)<br />
+                ':' expected. (1005)<br />
+                ',' expected. (1005)<br />
+                ':' expected. (1005)<br />
+                ',' expected. (1005)
+              </p>
+            </div>
+          </figure>
+          <figure style="grid-area: qljs">
+            <figcaption>
+              <qljs-icon name="quick-lint-js-small" size="19" /> quick-lint-js
+            </figcaption>
+            <div class="example">
+              <pre><code class="javascript">it('matches on first word', <mark data-code="E0178" data-message="'await' cannot be followed by an arrow function; use 'async' instead" data-severity="error">await</mark> () =&gt; {
+  await table.searchForItem('Hello');
+  await table.expectItemsCount('vis', 1);
+});</code></pre>
+              <p>
+                'await' cannot be followed by an arrow function; use 'async'
+                instead&nbsp;[<a href="../../errors/E0178/">E0178</a>]
+              </p>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section>
+        <h3>TSX is not a TypeScript superset</h3>
+
+        <p>
+          TSX is TypeScript with JSX (React) extensions. JSX is a
+          backwards-compatible extension to JavaScript, so naturally TSX is a
+          backwards-compatible extension to TypeScript, right?
+        </p>
+
+        <p>
+          Unfortunately, some valid TypeScript code is not valid TSX. If you
+          copy-paste code from a <code>.ts</code> file to a
+          <code>.tsx</code> file, you might be in for a surprise:
+        </p>
+
+        <div class="eslint-comparison">
+          <figure style="grid-area: eslint">
+            <figcaption>
+              <qljs-icon name="typescript" size="19" /> TypeScript
+            </figcaption>
+            <div class="example">
+              <pre><code class="javascript">const trim = &lt;<mark data-code="2304" data-message="Cannot find name 'T'." data-severity="error"><mark data-code="17008" data-message="JSX element 'T' has no corresponding closing tag." data-severity="error">T</mark></mark>&gt;(f: (a: T) =<mark data-code="1382" data-message="Unexpected token. Did you mean `{'&gt;'}` or `&amp;gt;`?" data-severity="error">&gt;</mark> boolean) =<mark data-code="1382" data-message="Unexpected token. Did you mean `{'&gt;'}` or `&amp;gt;`?" data-severity="error">&gt;</mark> {
+  <mark data-code="1109" data-message="Expression expected." data-severity="error">return</mark> (arg1: any, arg2: T) =<mark data-code="1382" data-message="Unexpected token. Did you mean `{'&gt;'}` or `&amp;gt;`?" data-severity="error">&gt;</mark> {
+    <mark data-code="1109" data-message="Expression expected." data-severity="error">return</mark> f(arg2);
+  <mark data-code="1381" data-message="Unexpected token. Did you mean `{'}'}` or `&amp;rbrace;`?" data-severity="error">}</mark>;
+<mark data-code="1381" data-message="Unexpected token. Did you mean `{'}'}` or `&amp;rbrace;`?" data-severity="error">}</mark><mark data-code="1005" data-message="'&lt;/' expected." data-severity="error">;</mark></code></pre>
+              <p>
+                Cannot find name 'T'. (2304)<br />
+                JSX element 'T' has no corresponding closing tag. (17008)<br />
+                Unexpected token. Did you mean `{'&gt;'}` or `&amp;gt;`?
+                (1382)<br />
+                Unexpected token. Did you mean `{'&gt;'}` or `&amp;gt;`?
+                (1382)<br />
+                Expression expected. (1109)<br />
+                Unexpected token. Did you mean `{'&gt;'}` or `&amp;gt;`?
+                (1382)<br />
+                Expression expected. (1109)<br />
+                Unexpected token. Did you mean `{'}'}` or `&amp;rbrace;`?
+                (1381)<br />
+                Unexpected token. Did you mean `{'}'}` or `&amp;rbrace;`?
+                (1381)<br />
+                '&lt;/' expected. (1005)
+              </p>
+            </div>
+          </figure>
+          <figure style="grid-area: qljs">
+            <figcaption>
+              <qljs-icon name="quick-lint-js-small" size="19" /> quick-lint-js
+            </figcaption>
+            <div class="example">
+              <pre><code class="javascript">const trim = &lt;T<mark data-code="E0285" data-message="generic arrow function needs ',' here in TSX" data-severity="error"></mark>&gt;(f: (a: T) =&gt; boolean) =&gt; {
+  return (arg1: any, arg2: T) =&gt; {
+    return f(arg2);
+  };
+};</code></pre>
+              <p>
+                generic arrow function needs ',' here in TSX&nbsp;[<a
+                  href="../../errors/E0285/"
+                  >E0285</a
+                >]
+              </p>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section>
+        <h3>JSX is not HTML</h3>
+
+        <p>
+          In HTML, whitespace is mostly unimportant, and elements can be placed
+          side-by-side naturally. JSX mimics HTML but is its own language with
+          its own quirks, including JSX fragments and JavaScript's famous
+          <abbr title="automatic semicolon insertion">ASI</abbr>.
+        </p>
+
+        <p>
+          When you make a mistake with JSX, TypeScript does tell you about it,
+          but a beginner might not know how to fix the problem. quick-lint-js
+          gives you better hints so you can quickly fix your code:
+        </p>
+
+        <div class="eslint-comparison">
+          <figure style="grid-area: eslint">
+            <figcaption>
+              <qljs-icon name="typescript" size="19" /> TypeScript
+            </figcaption>
+            <div class="example">
+              <pre><code class="javascript">export function Spacer() {
+  return
+    <mark data-code="7027" data-message="Unreachable code detected." data-severity="error"><mark data-code="2657" data-message="JSX expressions must have one parent element." data-severity="error">&lt;EuiSpacer size="xs" /&gt;
+    &lt;EuiHorizontalRule margin="none" /&gt;
+    &lt;EuiSpacer size="xs" /&gt;</mark></mark>
+}</code></pre>
+              <p>
+                Unreachable code detected. (7027)<br />
+                JSX expressions must have one parent element. (2657)
+              </p>
+            </div>
+          </figure>
+          <figure style="grid-area: qljs">
+            <figcaption>
+              <qljs-icon name="quick-lint-js-small" size="19" /> quick-lint-js
+            </figcaption>
+            <div class="example">
+              <pre><code class="javascript">export function Spacer() {
+  <mark data-code="E0179" data-message="return statement returns nothing (undefined)" data-severity="warning">return</mark>
+    <mark data-code="E0189" data-message="missing '&lt;&gt;' and '&lt;/&gt;' to enclose multiple children" data-severity="erro"></mark>&lt;EuiSpacer size="xs" /&gt;
+    &lt;EuiHorizontalRule margin="none" /&gt;
+    &lt;EuiSpacer size="xs" /&gt;
+}</code></pre>
+              <p>
+                return statement returns nothing (undefined)&nbsp;[<a
+                  href="../../errors/E0179/"
+                  >E0179</a
+                >]<br />
+                missing '&lt;&gt;' and '&lt;/&gt;' to enclose multiple
+                children&nbsp;[<a href="../../errors/E0189/">E0189</a>]
+              </p>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section>
+        <h3>Emoji...⁉️</h3>
+
+        <p>
+          Since its iPhone debut in 2008, emoji has been the primary method of
+          communication among zoomers. What better place than TypeScript
+          variable names for our favorite emotive icons? Sadly, the designers of
+          TypeScript (and JavaScript) don't let us have fun. 🙁
+        </p>
+
+        <div class="eslint-comparison">
+          <figure style="grid-area: eslint">
+            <figcaption>
+              <qljs-icon name="typescript" size="19" /> TypeScript
+            </figcaption>
+            <div class="example">
+              <pre><code class="javascript"><mark data-code="2304" data-message="Cannot find name 'let'." data-severity="error"><mark data-code="1440" data-message="Variable declaration not allowed at this location." data-severity="error">let</mark></mark> <mark data-code="1127" data-message="Invalid character." data-severity="error"><mark data-code="1128" data-message="Declaration or statement expected." data-severity="error">💩</mark></mark> <mark data-code="1128" data-message="Declaration or statement expected." data-severity="error">=</mark> 'TypeScript';</code></pre>
+              <p>
+                Cannot find name 'let'. (2304)<br />
+                Variable declaration not allowed at this location. (1440)<br />
+                Invalid character. (1127)<br />
+                Declaration or statement expected. (1128)<br />
+                Declaration or statement expected. (1128)
+              </p>
+            </div>
+          </figure>
+          <figure style="grid-area: qljs">
+            <figcaption>
+              <qljs-icon name="quick-lint-js-small" size="19" /> quick-lint-js
+            </figcaption>
+            <div class="example">
+              <pre><code class="javascript">let <mark data-code="E0011" data-message="character is not allowed in identifiers" data-severity="error">💩</mark> = 'TypeScript';</code></pre>
+              <p>
+                character is not allowed in identifiers&nbsp;[<a
+                  href="../../errors/E0011/"
+                  >E0011</a
+                >]
+              </p>
+            </div>
+          </figure>
+        </div>
+
+        <p>
+          Excited to try quick-lint-js? Installation couldn't be simpler! No
+          package.json nonsense or config file headaches. Just plug
+          quick-lint-js into your editor and it works:
+        </p>
+
+        <%- callsToAction() %>
+      </section>
+
+      <section>
+        <h2>Fast linting</h2>
+
+        <p>
+          quick-lint-js's name would be nonsense if it wasn't
+          <em>quick</em>. How quick is quick?
+          <strong>Beyond human perception.</strong>
+        </p>
+
+        <h3>Quick install</h3>
+
+        <figure>
+          <img
+            src="installing-quick-lint-js.webp"
+            alt="quick-lint-js's VS Code extension installs in 0.48 seconds"
+            width="1280"
+            height="720"
+          />
+          <figcaption>quick-lint-js installs in half a second</figcaption>
+        </figure>
+
+        <p>
+          Installing quick-lint-js is fast and easy. Once it's installed, it
+          lints immediately. No configuration required!
+        </p>
+
+        <p>
+          quick-lint-js supports per-project configuration, but you rarely ever
+          need it. Instead, spend more time coding and less time configuring by
+          taking advantage of quick-lint-js's sensible defaults.
+        </p>
+
+        <h3>Quick lint</h3>
+
+        <p>
+          You don't need to install quick-lint-js often. What really matters is
+          day-to-day usage. How fast is quick-lint-js at checking code as you
+          type? See for yourself:
+        </p>
+
+        <figure>
+          <img
+            src="quick-lint-js-vs-eslint-vs-typescript-performance.webp"
+            alt="quick-lint-js: 0.04 seconds; ESLint: 1.23 seconds; TypeScript: 1.23 seconds"
+            width="1280"
+            height="720"
+          />
+          <figcaption>
+            Receive feedback 30× faster with quick-lint-js compared to ESLint
+            and TypeScript in VS Code.
+          </figcaption>
+        </figure>
+
+        <p>
+          Even on my fast computer, TypeScript and ESLint make coding feel
+          sluggish. But with quick-lint-js, everything is snappy and responsive.
+          (Relatively snappy and responsive, that is. Visual Studio Code is has
+          its own layer of slowness. quick-lint-js feels even better in Vim.)
+        </p>
+
+        <%- callsToAction() %>
+      </section>
+
+      <section>
+        <h2>What's next?</h2>
+
+        <p>
+          What is in quick-lint-js's future for version 4.0? I am going to play
+          with Vue in 2024, so implementing
+          <a href="https://github.com/quick-lint/quick-lint-js/issues/601"
+            >Vue SFC in quick-lint-js</a
+          >
+          (and also Svelte and plain HTML) sounds like the perfect next step.
+          While focusing on TypeScript, I accumulated a big
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/issues?q=is%3Aopen+label%3A%22false+negative%22%2C%22false+positive%22"
+            >backlog of tiny bugs</a
+          >, and also thought of some
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22"
+            >easy-to-implement lint rules</a
+          >.
+        </p>
+      </section>
+
+      <p>
+        quick-lint-js version 3.0 has over 3000 patches since version 2.0.
+        <a href="../../contribute/authors/">Over 70 people</a>
+        made quick-lint-js possible.
+      </p>
+
+      <p>
+        Press release written by <a href="https://strager.net/">strager</a>,
+        lead developer of quick-lint-js.
+      </p>
+
+      <script src="../../error-box.bundled.js"></script>
+    </main>
+
+    <script>
+      for (let element of document.getElementsByClassName("reveal-on-click")) {
+        element.addEventListener("click", (event) => {
+          event.target.classList.add("clicked");
+        });
+      }
+    </script>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

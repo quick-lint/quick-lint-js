@@ -115,6 +115,7 @@ let icons = {
     alt: "Sublime Text",
     disableSpritesheet: true,
   },
+  typescript: { path: "typescript.svg", alt: "TypeScript" },
   ubuntu: { path: "ubuntu.svg", alt: "Ubuntu" },
   vim: { path: "vim.gif", alt: "Vim" },
   vscode: { path: "vscode.png", alt: "Visual Studio Code" },
