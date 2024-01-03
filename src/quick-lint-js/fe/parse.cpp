@@ -469,7 +469,7 @@ void Parser::error_on_invalid_as_const(Expression* ast,
 void Parser::warn_on_dot_operator_after_optional_chain(
     Expression::Dot *ast) {
   Expression *lhs = ast->child_;
-  Source_Code_Span operator_span_ = ast->operator_span_;
+  Source_Code_Span operator_span = ast->operator_span_;
   auto is_optional_chain = [](String8_View s) -> bool {
     return s[0] == u8'?';
   };
@@ -477,7 +477,7 @@ void Parser::warn_on_dot_operator_after_optional_chain(
   // we know the current node is a dot operator. 
   // If it is a '.' and its parent is a '?.' or a '?.(' or a '?.['
   // then we can report a warning
-  if (!is_optional_chain(operator_span_.string_view())) {
+  if (!is_optional_chain(operator_span.string_view())) {
     switch (lhs->kind()) {
     case Expression_Kind::Dot: {
       auto lhs_dot = expression_cast<Expression::Dot*>(lhs);
@@ -485,7 +485,7 @@ void Parser::warn_on_dot_operator_after_optional_chain(
       if (is_optional_chain(lhs_operator_span.string_view())) {
         this->diag_reporter_->report(
             Diag_Using_Dot_After_Optional_Chaining {
-                .dot_op = operator_span_,
+                .dot_op = operator_span,
                 .optional_chain_op = lhs_operator_span,
             });
       }
@@ -497,7 +497,7 @@ void Parser::warn_on_dot_operator_after_optional_chain(
       if (lhs_operator_span.has_value()) {
         this->diag_reporter_->report(
             Diag_Using_Dot_After_Optional_Chaining {
-                .dot_op = operator_span_,
+                .dot_op = operator_span,
                 .optional_chain_op = *lhs_operator_span,
             });
       }
@@ -509,13 +509,14 @@ void Parser::warn_on_dot_operator_after_optional_chain(
       if (lhs_operator_span.has_value()) {
         this->diag_reporter_->report(
             Diag_Using_Dot_After_Optional_Chaining {
-                .dot_op = operator_span_,
+                .dot_op = operator_span,
                 .optional_chain_op = *lhs_operator_span,
             });
       }
       break;
     }
-    default: { /* do nothing */ }
+    default:
+      break;
     }
   }
 }

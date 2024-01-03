@@ -960,7 +960,7 @@ Expression* Parser::parse_async_expression_only(
           this->expressions_.make_array(std::move(call_children)),
           /*left_paren_span=*/left_paren_span,
           /*span_end=*/right_paren_span.end(),
-          /*optional_chaining_op_=*/std::nullopt);
+          /*optional_chaining_op=*/std::nullopt);
       return call_ast;
     } else if (is_await) {
       // await is an operator.
@@ -2616,7 +2616,7 @@ Expression* Parser::parse_arrow_function_expression_remainder(
 
 Expression::Call* Parser::parse_call_expression_remainder(Parse_Visitor_Base& v,
                                                           Expression* callee,
-                                                          std::optional<Source_Code_Span> optional_chaining_op_) {
+                                                          std::optional<Source_Code_Span> optional_chaining_op) {
   Source_Code_Span left_paren_span = this->peek().span();
   Expression_Arena::Vector<Expression*> call_children(
       "parse_expression_remainder call children",
@@ -2658,12 +2658,12 @@ Expression::Call* Parser::parse_call_expression_remainder(Parse_Visitor_Base& v,
           this->expressions_.make_array(std::move(call_children)),
           /*left_paren_span=*/left_paren_span,
           /*span_end=*/call_span_end,
-          /*optional_chaining_op=*/optional_chaining_op_));
+          /*optional_chaining_op=*/optional_chaining_op));
 }
 
 Expression* Parser::parse_index_expression_remainder(Parse_Visitor_Base& v,
                                                      Expression* lhs,
-                                                     std::optional<Source_Code_Span> optional_chaining_op_) {
+                                                     std::optional<Source_Code_Span> optional_chaining_op) {
   QLJS_ASSERT(this->peek().type == Token_Type::left_square);
   Source_Code_Span left_square_span = this->peek().span();
   this->skip();
@@ -2692,7 +2692,7 @@ Expression* Parser::parse_index_expression_remainder(Parse_Visitor_Base& v,
   }
   return this->make_expression<Expression::Index>(lhs, subscript,
                                                   left_square_span, end,
-                                                  optional_chaining_op_);
+                                                  optional_chaining_op);
 }
 
 Expression_Arena::Vector<Expression*>

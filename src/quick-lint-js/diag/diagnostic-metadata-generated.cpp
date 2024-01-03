@@ -6728,7 +6728,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 717,
       .severity = Diagnostic_Severity::warning,
       .message_formats = {
-        QLJS_TRANSLATABLE("using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'."),
+        QLJS_TRANSLATABLE("using a '.' after a '?.' might fail, since '?.' might return 'undefined'."),
       },
       .message_args = {
         {

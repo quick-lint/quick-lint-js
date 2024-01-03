@@ -6277,14 +6277,14 @@ inline const Translated_String test_translation_table[591] = {
         },
     },
     {
-        "using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'."_translatable,
-        u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
+        "using a '.' after a '?.' might fail, since '?.' might return 'undefined'."_translatable,
+        u8"using a '.' after a '?.' might fail, since '?.' might return 'undefined'.",
         {
-            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
-            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
-            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
-            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
-            u8"using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'.",
+            u8"using a '.' after a '?.' might fail, since '?.' might return 'undefined'.",
+            u8"using a '.' after a '?.' might fail, since '?.' might return 'undefined'.",
+            u8"using a '.' after a '?.' might fail, since '?.' might return 'undefined'.",
+            u8"using a '.' after a '?.' might fail, since '?.' might return 'undefined'.",
+            u8"using a '.' after a '?.' might fail, since '?.' might return 'undefined'.",
         },
     },
     {

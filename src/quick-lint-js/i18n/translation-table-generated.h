@@ -19,7 +19,7 @@ using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
 constexpr std::uint16_t translation_table_mapping_table_size = 592;
-constexpr std::size_t translation_table_string_table_size = 81816;
+constexpr std::size_t translation_table_string_table_size = 81812;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -594,7 +594,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "using '{0}' against an array literal does not compare items"sv,
           "using '{0}' against an arrow function always returns '{1}'"sv,
           "using '{0}' against an object literal always returns '{1}'"sv,
-          "using a '{0}' after a '{1}' might fail, since '{1}' might return 'undefined'."sv,
+          "using a '.' after a '?.' might fail, since '?.' might return 'undefined'."sv,
           "variable"sv,
           "variable already declared here"sv,
           "variable assigned before its declaration"sv,
