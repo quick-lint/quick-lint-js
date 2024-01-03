@@ -821,7 +821,7 @@ class Parser {
       Precedence);
   Expression::Call *parse_call_expression_remainder(Parse_Visitor_Base &,
                                                     Expression *callee,
-                                               std::optional<Source_Code_Span>);
+                                                    std::optional<Source_Code_Span>);
   Expression *parse_index_expression_remainder(Parse_Visitor_Base &,
                                                Expression *lhs,
                                                std::optional<Source_Code_Span>);
