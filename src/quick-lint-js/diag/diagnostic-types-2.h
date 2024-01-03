@@ -32,6 +32,13 @@ QLJS_RESERVED_DIAG("E0279")
 QLJS_RESERVED_DIAG("E0391")
 QLJS_RESERVED_DIAG("E0707")
 
+struct Diag_EJS_or_PHP_Syntax_Detected {
+    [[qljs::diag("E0991", Diagnostic_Severity::warning)]]  //
+    [[qljs::message("Detected potential EJS or PHP syntax",
+                  ARG(span))]]  //
+    Source_Code_Span span;
+};
+
 struct Diag_Abstract_Field_Cannot_Have_Initializer {
   [[qljs::diag("E0295", Diagnostic_Severity::error)]]  //
   [[qljs::message("abstract fields cannot have default values",

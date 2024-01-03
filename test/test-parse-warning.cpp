@@ -31,6 +31,11 @@ class Test_Parse_Warning : public Test_Parse_Expression {};
 class Test_Error_Equals_Does_Not_Distribute_Over_Or
     : public Test_Parse_Expression {};
 
+TEST_F(Test_Parse_Warning, warn_on_ejs_or_php_syntax) {
+    test_lex("window.audioRecordingBitRate = <%= audioRecordingBitRate %>;",
+             "  ^^^ Diag_EJS_or_PHP_Syntax_Detected"_diag);
+}
+
 TEST_F(Test_Parse_Warning, condition_with_assignment_from_literal) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(
