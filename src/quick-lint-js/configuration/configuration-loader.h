@@ -13,7 +13,7 @@
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/diag/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/memory-resource.h>
@@ -38,13 +38,15 @@ class Configuration_Filesystem {
 struct Loaded_Config_File {
   explicit Loaded_Config_File();
 
+  Monotonic_Allocator memory{"Loaded_Config_File"};
+
   Configuration config;
 
   // The content of the quick-lint-js.config file.
   Padded_String file_content;
 
   // Errors discovered while parsing file_content.
-  Buffering_Diag_Reporter errors;
+  Diag_List errors;
 
   // The path to the quick-lint-js.config file. Never nullptr.
   const Canonical_Path* config_path;

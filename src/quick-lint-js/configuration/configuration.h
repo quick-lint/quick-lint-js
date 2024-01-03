@@ -16,7 +16,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-class Diag_Reporter;
+class Diag_List;
 
 class Configuration {
  public:
@@ -34,19 +34,21 @@ class Configuration {
   // name must live as long as this Configuration object.
   void remove_global_variable(String8_View name);
 
-  void load_from_json(Padded_String_View, Diag_Reporter*);
+  void load_from_json(Padded_String_View, Diag_List* out_diags);
 
   void reset();
 
  private:
-  bool load_global_groups_from_json(simdjson::ondemand::value&, Diag_Reporter*);
-  bool load_globals_from_json(simdjson::ondemand::object&, Diag_Reporter*);
+  bool load_global_groups_from_json(simdjson::ondemand::value&,
+                                    Diag_List* out_diags);
+  bool load_globals_from_json(simdjson::ondemand::object&,
+                              Diag_List* out_diags);
 
   bool should_remove_global_variable(String8_View name);
 
   [[gnu::noinline]] void build_globals_from_groups();
 
-  void report_json_error(Padded_String_View json, Diag_Reporter*);
+  void report_json_error(Padded_String_View json, Diag_List* out_diags);
 
   Monotonic_Allocator allocator_{"Configuration::allocator_"};
   Global_Declared_Variable_Set globals_;

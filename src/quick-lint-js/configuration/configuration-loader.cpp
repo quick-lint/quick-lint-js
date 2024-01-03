@@ -25,7 +25,7 @@ using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-Loaded_Config_File::Loaded_Config_File() : errors(new_delete_resource()) {}
+Loaded_Config_File::Loaded_Config_File() : errors(&this->memory) {}
 
 Configuration_Load_IO_Error::Configuration_Load_IO_Error(
     Canonicalize_Path_IO_Error&& other_error)
@@ -373,6 +373,7 @@ Span<Configuration_Change> Configuration_Loader::refresh(
         loaded_config.file_content = std::move(*latest_json);
         loaded_config.config.reset();
         loaded_config.errors.clear();
+        loaded_config.memory.release();
         loaded_config.config.load_from_json(&loaded_config.file_content,
                                             &loaded_config.errors);
         config_file = &loaded_config;

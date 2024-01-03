@@ -23,9 +23,7 @@ static_assert(alignof(Diag_List::Node) == alignof(Diag_List::Node_Base),
 
 Diag_List::Diag_List(Memory_Resource *memory) : memory_(memory) {}
 
-Diag_List::~Diag_List() {
-  // Leak. this->memory should be a Linked_Bump_Allocator managed by the caller.
-}
+Diag_List::~Diag_List() { this->clear(); }
 
 Diag_List::Rewind_State Diag_List::prepare_for_rewind() {
   return Rewind_State{
@@ -62,6 +60,8 @@ void Diag_List::add_impl(Diag_Type type, void *diag) {
   this->last_ = node;
 }
 
+bool Diag_List::empty() const { return this->first_ == nullptr; }
+
 bool Diag_List::reported_any_diagnostic_except_since(
     std::initializer_list<Diag_Type> ignored_types, const Rewind_State &r) {
   for (Node_Base *node = r.last_ == nullptr ? this->first_ : r.last_;
@@ -71,6 +71,10 @@ bool Diag_List::reported_any_diagnostic_except_since(
     }
   }
   return false;
+}
+
+void Diag_List::clear() {
+  // Leak. this->memory should be a Linked_Bump_Allocator managed by the caller.
 }
 }
 

@@ -283,7 +283,7 @@ void run(Options o) {
                                .is_stdin = false,
                                .vim_bufnr = std::nullopt,
                            });
-      config_file->errors.copy_into(reporter->get());
+      reporter->get()->report(config_file->errors);
       // To avoid repeating errors for a given config file, remember that we
       // already reported errors for this config file.
       loaded_config_files.insert(config_file);

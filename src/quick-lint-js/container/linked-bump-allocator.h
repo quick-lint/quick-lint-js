@@ -37,7 +37,8 @@ class Linked_Bump_Allocator final : public Memory_Resource {
 
   ~Linked_Bump_Allocator() override;
 
-  // Deallocate previously-allocated memory.
+  // Deallocate previously-allocated memory, resetting this
+  // Linked_Bump_Allocator back to its initial state.
   void release();
 
   struct Rewind_State {

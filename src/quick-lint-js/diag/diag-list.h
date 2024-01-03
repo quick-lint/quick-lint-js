@@ -58,8 +58,11 @@ class Diag_List {
     }
   }
 
+  bool empty() const;
   bool reported_any_diagnostic_except_since(
       std::initializer_list<Diag_Type> ignored_types, const Rewind_State &);
+
+  void clear();
 
  private:
   template <std::size_t Diag_Size>

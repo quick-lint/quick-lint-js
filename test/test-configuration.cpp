@@ -5,6 +5,7 @@
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/variable-analyzer.h>
@@ -597,6 +598,8 @@ TEST(Test_Configuration_JSON, false_global_overrides_global_group) {
 }
 
 TEST(Test_Configuration_JSON, invalid_json_reports_error) {
+  Monotonic_Allocator temp_memory("test");
+
   // TODO(strager): The following are erroneously treated as schema
   // errors, but should be JSON parse errors:
   // u8R"({"global-groups": {42}})"_sv,
@@ -617,9 +620,12 @@ TEST(Test_Configuration_JSON, invalid_json_reports_error) {
     Configuration c;
 
     Padded_String json(json_string);
-    Diag_Collector errors;
-    c.load_from_json(&json, &errors);
+    Diag_List diags(&temp_memory);
+    c.load_from_json(&json, &diags);
 
+    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
+    Diag_Collector errors;
+    errors.report(diags);
     // TODO(strager): Check Diag_Config_Json_Syntax_Error::where.
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE(Diag_Config_Json_Syntax_Error)}));
@@ -627,11 +633,16 @@ TEST(Test_Configuration_JSON, invalid_json_reports_error) {
 }
 
 TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
+  Monotonic_Allocator temp_memory("test");
+
   {
     Padded_String json(u8R"({"globals":["myGlobalVariable"]})"_sv);
     Configuration c;
+    Diag_List diags(&temp_memory);
+    c.load_from_json(&json, &diags);
+    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
     Diag_Collector errors;
-    c.load_from_json(&json, &errors);
+    errors.report(diags);
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &json, Diag_Config_Globals_Type_Mismatch,  //
@@ -644,8 +655,11 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
     Padded_String json(
         u8R"({"globals":{"testBefore":true,"testBad":"string","testAfter":true}})"_sv);
     Configuration c;
+    Diag_List diags(&temp_memory);
+    c.load_from_json(&json, &diags);
+    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
     Diag_Collector errors;
-    c.load_from_json(&json, &errors);
+    errors.report(diags);
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &json, Diag_Config_Globals_Descriptor_Type_Mismatch,  //
@@ -665,8 +679,11 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
     Padded_String json(
         u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":"string"},"testAfter":true}})"_sv);
     Configuration c;
+    Diag_List diags(&temp_memory);
+    c.load_from_json(&json, &diags);
+    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
     Diag_Collector errors;
-    c.load_from_json(&json, &errors);
+    errors.report(diags);
     EXPECT_THAT(
         errors.errors,
         ElementsAreArray({DIAG_TYPE_OFFSETS(
@@ -693,8 +710,11 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
     Padded_String json(
         u8R"({"globals":{"testBefore":true,"testBad":{"writable":"string","shadowable":false},"testAfter":true}})"_sv);
     Configuration c;
+    Diag_List diags(&temp_memory);
+    c.load_from_json(&json, &diags);
+    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
     Diag_Collector errors;
-    c.load_from_json(&json, &errors);
+    errors.report(diags);
     EXPECT_THAT(
         errors.errors,
         ElementsAreArray({DIAG_TYPE_OFFSETS(
@@ -719,11 +739,16 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
 }
 
 TEST(Test_Configuration_JSON, bad_schema_in_global_groups_reports_error) {
+  Monotonic_Allocator temp_memory("test");
+
   {
     Padded_String json(u8R"({"global-groups":{"browser":true}})"_sv);
     Configuration c;
+    Diag_List diags(&temp_memory);
+    c.load_from_json(&json, &diags);
+    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
     Diag_Collector errors;
-    c.load_from_json(&json, &errors);
+    errors.report(diags);
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &json, Diag_Config_Global_Groups_Type_Mismatch,  //
@@ -736,8 +761,11 @@ TEST(Test_Configuration_JSON, bad_schema_in_global_groups_reports_error) {
     Padded_String json(
         u8R"({"global-groups":["browser",false,"ecmascript"]})"_sv);
     Configuration c;
+    Diag_List diags(&temp_memory);
+    c.load_from_json(&json, &diags);
+    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
     Diag_Collector errors;
-    c.load_from_json(&json, &errors);
+    errors.report(diags);
     EXPECT_THAT(errors.errors,
                 ElementsAreArray({DIAG_TYPE_OFFSETS(
                     &json, Diag_Config_Global_Groups_Group_Type_Mismatch,  //
@@ -761,13 +789,18 @@ TEST(Test_Configuration_JSON, bad_global_error_excludes_trailing_whitespace) {
   // simdjson's raw_json_token function returns trailing whitespace by default.
   // Ensure the whitespace is not included in error messages.
 
+  Monotonic_Allocator temp_memory("test");
+
   // According to RFC 8259, whitespace characters are U+0009, U+000A, U+000D,
   // and U+0020.
   Padded_String json(u8"{ \"globals\": { \"a\": \"b\"  \n\t\r }}"_sv);
   Configuration c;
-  Diag_Collector errors;
-  c.load_from_json(&json, &errors);
+  Diag_List diags(&temp_memory);
+  c.load_from_json(&json, &diags);
 
+  // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
+  Diag_Collector errors;
+  errors.report(diags);
   EXPECT_THAT(
       errors.errors,
       ElementsAreArray({DIAG_TYPE_OFFSETS(
@@ -776,8 +809,12 @@ TEST(Test_Configuration_JSON, bad_global_error_excludes_trailing_whitespace) {
 }
 
 void load_from_json(Configuration& config, Padded_String_View json) {
+  Monotonic_Allocator temp_memory("test");
+  Diag_List diags(&temp_memory);
+  config.load_from_json(json, &diags);
+  // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
   Diag_Collector errors;
-  config.load_from_json(json, &errors);
+  errors.report(diags);
   EXPECT_THAT(errors.errors, ::testing::IsEmpty());
 }
 

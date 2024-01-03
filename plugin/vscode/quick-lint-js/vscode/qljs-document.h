@@ -129,7 +129,7 @@ class QLJS_Config_Document : public QLJS_Document_Base {
 
     LSP_Locator locator(&loaded_config->file_content);
     VSCode_Diag_Reporter diag_reporter(vscode, env, &locator, this->uri());
-    loaded_config->errors.copy_into(&diag_reporter);
+    diag_reporter.report(loaded_config->errors);
     return std::move(diag_reporter).diagnostics();
   }
 };

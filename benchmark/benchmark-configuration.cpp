@@ -3,7 +3,9 @@
 
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diag-reporter.h>
 
 using namespace std::literals::string_view_literals;
@@ -16,9 +18,14 @@ void benchmark_parse_config_json(::benchmark::State& state,
   Null_Diag_Reporter diag_reporter;
 
   Configuration config;
+  Monotonic_Allocator allocator("benchmark");
   for (auto _ : state) {
+    Monotonic_Allocator::Rewind_Guard allocator_rewind =
+        allocator.make_rewind_guard();
+
     config.reset();
-    config.load_from_json(&config_json_string, &diag_reporter);
+    Diag_List diags(&allocator);
+    config.load_from_json(&config_json_string, &diags);
     ::benchmark::ClobberMemory();
   }
 }

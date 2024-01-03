@@ -637,7 +637,7 @@ void Linting_LSP_Server_Handler::get_config_file_diagnostics_notification(
   notification_json.append_copy(u8R"--(,"diagnostics":)--"_sv);
   LSP_Diag_Reporter diag_reporter(qljs_messages, notification_json,
                                   &config_file->file_content);
-  config_file->errors.copy_into(&diag_reporter);
+  diag_reporter.report(config_file->errors);
   diag_reporter.finish();
 
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"_sv);
