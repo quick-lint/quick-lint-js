@@ -6,6 +6,8 @@
 #include <quick-lint-js/diag/diagnostic-types.h>
 
 namespace quick_lint_js {
+class Diag_List;
+
 class Diag_Reporter {
  public:
   Diag_Reporter() = default;
@@ -22,6 +24,9 @@ class Diag_Reporter {
   QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
 
+  void report(const Diag_List &);
+
+  // TODO(#1154): Delete this in favor of report(const Diag_List&).
   virtual void report_impl(Diag_Type type, void *diag) = 0;
 };
 

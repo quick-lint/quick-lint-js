@@ -194,7 +194,7 @@
   case ::quick_lint_js::Token_Type::question_question_equal
 
 namespace quick_lint_js {
-class Buffering_Diag_Reporter;
+class Diag_List;
 class Diag_Reporter;
 class Identifier;
 class Source_Code_Span;
@@ -330,7 +330,7 @@ struct Token {
     // Used only if this is a reserved_keyword_with_escape_sequence token.
     Escape_Sequence_List* identifier_escape_sequences;
     // Used only if this is a complete_template or incomplete_template token.
-    Buffering_Diag_Reporter* template_escape_sequence_diagnostics;
+    Diag_List* template_escape_sequence_diagnostics;
   };
 };
 }

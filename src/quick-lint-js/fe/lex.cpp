@@ -12,6 +12,7 @@
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/diag/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
@@ -725,11 +726,13 @@ const Char8* Lexer::parse_string_literal() {
           }
         }
         break;
-      case 'u':
-        c = this->parse_unicode_escape(escape_sequence_start,
-                                       this->diag_reporter_)
-                .end;
+      case 'u': {
+        // TODO(#1154): Remove this temporary Diag_List.
+        Diag_List diags(&this->allocator_);
+        c = this->parse_unicode_escape(escape_sequence_start, &diags).end;
+        this->diag_reporter_->report(diags);
         break;
+      }
       default:
         ++c;
         break;
@@ -841,7 +844,7 @@ void Lexer::skip_in_template(const Char8* template_begin) {
 Lexer::Parsed_Template_Body Lexer::parse_template_body(
     const Char8* input, const Char8* template_begin,
     Diag_Reporter* diag_reporter) {
-  Buffering_Diag_Reporter* escape_sequence_diagnostics = nullptr;
+  Diag_List* escape_sequence_diagnostics = nullptr;
   const Char8* c = input;
   for (;;) {
     switch (*c) {
@@ -878,8 +881,7 @@ Lexer::Parsed_Template_Body Lexer::parse_template_body(
       case 'u': {
         if (!escape_sequence_diagnostics) {
           escape_sequence_diagnostics =
-              this->allocator_.new_object<Buffering_Diag_Reporter>(
-                  &this->allocator_);
+              this->allocator_.new_object<Diag_List>(&this->allocator_);
         }
         c = this->parse_unicode_escape(escape_sequence_start,
                                        escape_sequence_diagnostics)
@@ -1527,8 +1529,8 @@ const Char8* Lexer::parse_hex_digits_and_underscores(const Char8* input) {
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-Lexer::Parsed_Unicode_Escape Lexer::parse_unicode_escape(
-    const Char8* input, Diag_Reporter* reporter) {
+Lexer::Parsed_Unicode_Escape Lexer::parse_unicode_escape(const Char8* input,
+                                                         Diag_List* out_diags) {
   const Char8* escape_sequence_begin = input;
   auto get_escape_span = [escape_sequence_begin, &input]() {
     return Source_Code_Span(escape_sequence_begin, input);
@@ -1545,7 +1547,7 @@ Lexer::Parsed_Unicode_Escape Lexer::parse_unicode_escape(
         // TODO: Add an enum to Diag_Unclosed_Identifier_Escape_Sequence to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        reporter->report(Diag_Unclosed_Identifier_Escape_Sequence{
+        out_diags->add(Diag_Unclosed_Identifier_Escape_Sequence{
             .escape_sequence = get_escape_span()});
         return Parsed_Unicode_Escape{.end = input, .code_point = std::nullopt};
       }
@@ -1557,7 +1559,7 @@ Lexer::Parsed_Unicode_Escape Lexer::parse_unicode_escape(
     code_point_hex_end = input;
     ++input;  // Skip "}".
     if (found_non_hex_digit || code_point_hex_begin == code_point_hex_end) {
-      reporter->report(Diag_Expected_Hex_Digits_In_Unicode_Escape{
+      out_diags->add(Diag_Expected_Hex_Digits_In_Unicode_Escape{
           .escape_sequence = get_escape_span()});
       return Parsed_Unicode_Escape{.end = input, .code_point = std::nullopt};
     }
@@ -1569,12 +1571,12 @@ Lexer::Parsed_Unicode_Escape Lexer::parse_unicode_escape(
         // TODO: Add an enum to Diag_Expected_Hex_Digits_In_Unicode_Escape to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        reporter->report(Diag_Expected_Hex_Digits_In_Unicode_Escape{
+        out_diags->add(Diag_Expected_Hex_Digits_In_Unicode_Escape{
             .escape_sequence = get_escape_span()});
         return Parsed_Unicode_Escape{.end = input, .code_point = std::nullopt};
       }
       if (!is_hex_digit(*input)) {
-        reporter->report(Diag_Expected_Hex_Digits_In_Unicode_Escape{
+        out_diags->add(Diag_Expected_Hex_Digits_In_Unicode_Escape{
             .escape_sequence =
                 Source_Code_Span(escape_sequence_begin, input + 1)});
         return Parsed_Unicode_Escape{.end = input, .code_point = std::nullopt};
@@ -1596,7 +1598,7 @@ Lexer::Parsed_Unicode_Escape Lexer::parse_unicode_escape(
     break;
   }
   if (code_point >= 0x110000) {
-    reporter->report(Diag_Escaped_Code_Point_In_Unicode_Out_Of_Range{
+    out_diags->add(Diag_Escaped_Code_Point_In_Unicode_Out_Of_Range{
         .escape_sequence = get_escape_span()});
   }
   return Parsed_Unicode_Escape{.end = input, .code_point = code_point};
@@ -1717,8 +1719,11 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
 
   auto parse_unicode_escape = [&]() {
     const Char8* escape_begin = input;
+    // TODO(#1154): Remove this temporary Diag_List.
+    Diag_List diags(&this->allocator_);
     Parsed_Unicode_Escape escape =
-        this->parse_unicode_escape(escape_begin, this->diag_reporter_);
+        this->parse_unicode_escape(escape_begin, &diags);
+    this->diag_reporter_->report(diags);
 
     if (escape.code_point.has_value()) {
       bool is_initial_identifier_character = escape_begin == identifier_begin;

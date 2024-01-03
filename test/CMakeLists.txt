@@ -94,6 +94,7 @@ quick_lint_js_add_executable(
   test-cxx-parser.cpp
   test-debug-server.cpp
   test-diag-code-list.cpp
+  test-diag-list.cpp
   test-diag-matcher.cpp
   test-diagnostic-assertion.cpp
   test-diagnostic-formatter.cpp

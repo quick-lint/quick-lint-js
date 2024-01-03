@@ -2,7 +2,8 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/diag/buffering-diag-reporter.h>
+#include <quick-lint-js/diag/diag-list.h>
+#include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/token.h>
@@ -45,7 +46,7 @@ void Token::report_errors_for_escape_sequences_in_template(
   QLJS_ASSERT(this->type == Token_Type::complete_template ||
               this->type == Token_Type::incomplete_template);
   if (this->template_escape_sequence_diagnostics) {
-    this->template_escape_sequence_diagnostics->move_into(reporter);
+    reporter->report(*this->template_escape_sequence_diagnostics);
   }
 }
 

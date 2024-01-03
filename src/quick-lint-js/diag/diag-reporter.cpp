@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 
@@ -11,6 +12,12 @@ namespace quick_lint_js {
   }
 QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
+
+void Diag_Reporter::report(const Diag_List& diags) {
+  diags.for_each([&](Diag_Type type, void* diag) -> void {
+    this->report_impl(type, diag);
+  });
+}
 
 Null_Diag_Reporter Null_Diag_Reporter::instance;
 }

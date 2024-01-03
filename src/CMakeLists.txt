@@ -315,6 +315,8 @@ quick_lint_js_add_library(
   quick-lint-js/diag/buffering-diag-reporter.h
   quick-lint-js/diag/diag-code-list.cpp
   quick-lint-js/diag/diag-code-list.h
+  quick-lint-js/diag/diag-list.cpp
+  quick-lint-js/diag/diag-list.h
   quick-lint-js/diag/diag-reporter.cpp
   quick-lint-js/diag/diag-reporter.h
   quick-lint-js/diag/diagnostic-formatter.cpp
