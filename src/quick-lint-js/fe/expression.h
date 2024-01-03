@@ -612,11 +612,13 @@ class Expression::Call final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Call;
 
   explicit Call(Expression_Arena::Array_Ptr<Expression *> children,
-                Source_Code_Span left_paren_span, const Char8 *span_end)
+                Source_Code_Span left_paren_span, const Char8 *span_end,
+                std::optional<Source_Code_Span> optional_chaining_op_)
       : Expression(kind),
         call_left_paren_begin_(left_paren_span.begin()),
         span_end_(span_end),
-        children_(children) {
+        children_(children),
+        optional_chaining_operator_(optional_chaining_op_) {
     QLJS_ASSERT(left_paren_span.size() == 1);
   }
 
@@ -628,6 +630,7 @@ class Expression::Call final : public Expression {
   const Char8 *call_left_paren_begin_;
   const Char8 *span_end_;
   Expression_Arena::Array_Ptr<Expression *> children_;
+  std::optional<Source_Code_Span> optional_chaining_operator_;
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Call>);
 
@@ -647,11 +650,15 @@ class Expression::Dot final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Dot;
 
-  explicit Dot(Expression *lhs, Identifier rhs)
-      : Expression(kind), variable_identifier_(rhs), child_(lhs) {}
+  explicit Dot(Expression *lhs, Identifier rhs, Source_Code_Span op_span)
+      : Expression(kind),
+        variable_identifier_(rhs),
+        child_(lhs),
+        operator_span_(op_span) {}
 
   Identifier variable_identifier_;
   Expression *child_;
+  Source_Code_Span operator_span_;
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Dot>);
 
@@ -682,15 +689,18 @@ class Expression::Index final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Index;
 
   explicit Index(Expression *container, Expression *subscript,
-                 Source_Code_Span left_square_span, const Char8 *subscript_end)
+                 Source_Code_Span left_square_span, const Char8 *subscript_end,
+                 std::optional<Source_Code_Span> optional_chaining_op_)
       : Expression(kind),
         index_subscript_end_(subscript_end),
         left_square_span(left_square_span),
-        children_{container, subscript} {}
+        children_{container, subscript},
+        optional_chaining_operator_(optional_chaining_op_) {}
 
   const Char8 *index_subscript_end_;
   Source_Code_Span left_square_span;
   std::array<Expression *, 2> children_;
+  std::optional<Source_Code_Span> optional_chaining_operator_;
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Index>);
 

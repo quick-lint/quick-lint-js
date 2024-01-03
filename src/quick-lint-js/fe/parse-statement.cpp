@@ -2941,6 +2941,7 @@ void Parser::parse_and_visit_decorator(Parse_Visitor_Base &v) {
     this->skip();
 
     while (this->peek().type == Token_Type::dot) {
+      Source_Code_Span op_span_ = this->peek().span();
       this->skip();
       switch (this->peek().type) {
       // @myNamespace.myDecorator
@@ -2948,7 +2949,7 @@ void Parser::parse_and_visit_decorator(Parse_Visitor_Base &v) {
       case Token_Type::identifier:
       case Token_Type::private_identifier:
         ast = this->make_expression<Expression::Dot>(
-            ast, this->peek().identifier_name());
+            ast, this->peek().identifier_name(), op_span_);
         this->skip();
         break;
 
@@ -2961,7 +2962,7 @@ void Parser::parse_and_visit_decorator(Parse_Visitor_Base &v) {
     if (this->peek().type == Token_Type::left_paren) {
       // @decorator()
       // @decorator(arg1, arg2)
-      ast = this->parse_call_expression_remainder(v, ast);
+      ast = this->parse_call_expression_remainder(v, ast, std::nullopt);
     }
 
     this->visit_expression(ast, v, Variable_Context::rhs);

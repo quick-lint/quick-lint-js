@@ -592,6 +592,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 47, 0, 60},                //
         {0, 0, 0, 55, 0, 59},                //
         {0, 0, 0, 0, 0, 59},                 //
+        {0, 0, 0, 0, 0, 74},                 //
         {57, 29, 48, 46, 41, 9},             //
         {37, 26, 31, 33, 35, 31},            //
         {0, 0, 0, 0, 0, 41},                 //
@@ -2460,6 +2461,7 @@ const Translation_Table translation_data = {
         u8"using '{0}' against an array literal does not compare items\0"
         u8"using '{0}' against an arrow function always returns '{1}'\0"
         u8"using '{0}' against an object literal always returns '{1}'\0"
+        u8"using a '.' after a '?.' might fail, since '?.' might return 'undefined'.\0"
         u8"variable\0"
         u8"variable already declared here\0"
         u8"variable assigned before its declaration\0"

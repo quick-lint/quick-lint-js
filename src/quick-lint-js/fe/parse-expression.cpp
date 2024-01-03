@@ -172,6 +172,8 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     break;
   case Expression_Kind::Dot:
     this->visit_expression(ast->child_0(), v, Variable_Context::rhs);
+    this->warn_on_dot_operator_after_optional_chain(
+        expression_cast<Expression::Dot*>(ast));
     break;
   case Expression_Kind::Index:
     this->visit_expression(ast->child_0(), v, Variable_Context::rhs);
@@ -964,7 +966,8 @@ Expression* Parser::parse_async_expression_only(
       Expression* call_ast = this->make_expression<Expression::Call>(
           this->expressions_.make_array(std::move(call_children)),
           /*left_paren_span=*/left_paren_span,
-          /*span_end=*/right_paren_span.end());
+          /*span_end=*/right_paren_span.end(),
+          /*optional_chaining_op=*/std::nullopt);
       return call_ast;
     } else if (is_await) {
       // await is an operator.
@@ -1650,7 +1653,8 @@ next:
               .func_start = func_start_span});
     }
     Expression* callee = binary_builder.last_expression();
-    Expression::Call* call = this->parse_call_expression_remainder(v, callee);
+    Expression::Call* call =
+        this->parse_call_expression_remainder(v, callee, std::nullopt);
     binary_builder.replace_last(call);
 
     if (this->peek().type == Token_Type::equal_greater) {
@@ -1748,7 +1752,8 @@ next:
             });
       }
       binary_builder.replace_last(this->make_expression<Expression::Dot>(
-          binary_builder.last_expression(), this->peek().identifier_name()));
+          binary_builder.last_expression(), this->peek().identifier_name(),
+          dot_span));
       this->skip();
       goto next;
 
@@ -1779,7 +1784,8 @@ next:
     case Token_Type::semicolon: {
       Source_Code_Span empty_property_name(dot_span.end(), dot_span.end());
       binary_builder.replace_last(this->make_expression<Expression::Dot>(
-          binary_builder.last_expression(), Identifier(empty_property_name)));
+          binary_builder.last_expression(), Identifier(empty_property_name),
+          dot_span));
       this->diag_reporter_->report(Diag_Missing_Property_Name_For_Dot_Operator{
           .dot = dot_span,
       });
@@ -1813,6 +1819,7 @@ next:
   // array?.[index]
   // f?.(x, y)
   case Token_Type::question_dot: {
+    Source_Code_Span question_dot_span = this->peek().span();
     this->skip();
     switch (this->peek().type) {
     // x?.y
@@ -1821,7 +1828,8 @@ next:
     case Token_Type::reserved_keyword_with_escape_sequence:
     QLJS_CASE_KEYWORD:
       binary_builder.replace_last(this->make_expression<Expression::Dot>(
-          binary_builder.last_expression(), this->peek().identifier_name()));
+          binary_builder.last_expression(), this->peek().identifier_name(),
+          question_dot_span));
       this->skip();
       goto next;
 
@@ -1836,7 +1844,8 @@ next:
     // f?.(x, y)
     case Token_Type::left_paren:
       binary_builder.replace_last(this->parse_call_expression_remainder(
-          v, binary_builder.last_expression()));
+          v, binary_builder.last_expression(),
+          std::optional<Source_Code_Span>(question_dot_span)));
       goto next;
 
     // f?.<T>(x, y)                      // TypeScript only
@@ -1852,13 +1861,14 @@ next:
       }
       this->parse_and_visit_typescript_generic_arguments(v, /*in_jsx=*/false);
       binary_builder.replace_last(this->parse_call_expression_remainder(
-          v, binary_builder.last_expression()));
+          v, binary_builder.last_expression(), std::nullopt));
       goto next;
 
     // array?.[index]
     case Token_Type::left_square:
       binary_builder.replace_last(this->parse_index_expression_remainder(
-          v, binary_builder.last_expression()));
+          v, binary_builder.last_expression(),
+          std::optional<Source_Code_Span>(question_dot_span)));
       goto next;
 
     default:
@@ -1871,7 +1881,7 @@ next:
   // o[key]  // Indexing expression.
   case Token_Type::left_square: {
     binary_builder.replace_last(this->parse_index_expression_remainder(
-        v, binary_builder.last_expression()));
+        v, binary_builder.last_expression(), std::nullopt));
     goto next;
   }
 
@@ -2621,8 +2631,9 @@ Expression* Parser::parse_arrow_function_expression_remainder(
   return arrow_function;
 }
 
-Expression::Call* Parser::parse_call_expression_remainder(Parse_Visitor_Base& v,
-                                                          Expression* callee) {
+Expression::Call* Parser::parse_call_expression_remainder(
+    Parse_Visitor_Base& v, Expression* callee,
+    std::optional<Source_Code_Span> optional_chaining_op) {
   Source_Code_Span left_paren_span = this->peek().span();
   Expression_Arena::Vector<Expression*> call_children(
       "parse_expression_remainder call children",
@@ -2663,11 +2674,13 @@ Expression::Call* Parser::parse_call_expression_remainder(Parse_Visitor_Base& v,
       this->make_expression<Expression::Call>(
           this->expressions_.make_array(std::move(call_children)),
           /*left_paren_span=*/left_paren_span,
-          /*span_end=*/call_span_end));
+          /*span_end=*/call_span_end,
+          /*optional_chaining_op=*/optional_chaining_op));
 }
 
-Expression* Parser::parse_index_expression_remainder(Parse_Visitor_Base& v,
-                                                     Expression* lhs) {
+Expression* Parser::parse_index_expression_remainder(
+    Parse_Visitor_Base& v, Expression* lhs,
+    std::optional<Source_Code_Span> optional_chaining_op) {
   QLJS_ASSERT(this->peek().type == Token_Type::left_square);
   Source_Code_Span left_square_span = this->peek().span();
   this->skip();
@@ -2694,8 +2707,8 @@ Expression* Parser::parse_index_expression_remainder(Parse_Visitor_Base& v,
     end = this->lexer_.end_of_previous_token();
     break;
   }
-  return this->make_expression<Expression::Index>(lhs, subscript,
-                                                  left_square_span, end);
+  return this->make_expression<Expression::Index>(
+      lhs, subscript, left_square_span, end, optional_chaining_op);
 }
 
 Expression_Arena::Vector<Expression*>

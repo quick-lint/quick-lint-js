@@ -470,10 +470,11 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Multiple_Export_Defaults) \
   QLJS_DIAG_TYPE_NAME(Diag_Unintuitive_Bitshift_Precedence) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type) \
+  QLJS_DIAG_TYPE_NAME(Diag_Using_Dot_After_Optional_Chaining) \
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 459;
+inline constexpr int Diag_Type_Count = 460;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

@@ -2405,6 +2405,10 @@ msgstr ""
 msgid "namespace alias cannot use 'import type'"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "using a '.' after a '?.' might fail, since '?.' might return 'undefined'."
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
