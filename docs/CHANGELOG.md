@@ -8,6 +8,14 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* Writing a namespace alias with `import type`, such as in
+  `import type ns = otherns;`, now reports [E0717][] ("namespace alias cannot
+  use 'import type'"). (Implemented by [koopiehoop][].)
+* `x?.y.z` now reports [E0718][] ("using a '.' after a '?.' might fail, since
+  '?.' might return 'undefined'"). (Implemented by [Joshua Pepple][].)
+
 ### Fixed
 
 * quick-lint-js's tracing no longer crashes with an assertion failure when
@@ -1337,6 +1345,7 @@ Beta release.
 [James Moles]: https://github.com/JPMoles
 [Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
+[Joshua Pepple]: https://github.com/pepplejoshua
 [Kate Conkright]: https://github.com/applepie23
 [Kim "Linden"]: https://github.com/Lindenbyte
 [Lee Wannacott]: https://github.com/LeeWannacott
