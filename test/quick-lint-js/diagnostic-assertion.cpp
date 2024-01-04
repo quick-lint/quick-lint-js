@@ -8,6 +8,7 @@
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/diag-matcher.h>
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/diagnostic-assertion.h>
@@ -463,6 +464,20 @@ void assert_diagnostics(Padded_String_View code,
                      Span<const Diagnostic_Assertion>(assertions), caller);
 }
 
+void assert_diagnostics(Padded_String_View code, const Diag_List& diagnostics,
+                        Span<const Diagnostic_Assertion> assertions,
+                        Source_Location caller) {
+  EXPECT_THAT_AT_CALLER(diagnostics, diagnostics_matcher_2(code, assertions));
+}
+
+void assert_diagnostics(Padded_String_View code, const Diag_List& diagnostics,
+                        std::initializer_list<Diagnostic_Assertion> assertions,
+                        Source_Location caller) {
+  assert_diagnostics(code, diagnostics,
+                     Span<const Diagnostic_Assertion>(assertions), caller);
+}
+
+// TODO(#1154): Delete in favor of diagnostics_matcher_2.
 ::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
 diagnostics_matcher(Padded_String_View code,
                     Span<const Diagnostic_Assertion> assertions) {
@@ -525,6 +540,107 @@ diagnostics_matcher(Padded_String_View code,
                     std::initializer_list<Diagnostic_Assertion> assertions) {
   return diagnostics_matcher(code,
                              Span<const Diagnostic_Assertion>(assertions));
+}
+
+namespace {
+class Diag_List_Matcher_Impl
+    : public testing::MatcherInterface<const Diag_List&> {
+ public:
+  explicit Diag_List_Matcher_Impl(std::vector<Diag_Matcher_2>&& error_matchers)
+      : error_matchers_(std::move(error_matchers)) {}
+
+  void DescribeTo([[maybe_unused]] std::ostream* out) const override {
+    // FIXME(strager): Do we need to write anything here?
+  }
+
+  void DescribeNegationTo([[maybe_unused]] std::ostream* out) const override {
+    // FIXME(strager): Do we need to write anything here?
+  }
+
+  bool MatchAndExplain(const Diag_List& diags,
+                       testing::MatchResultListener* listener) const override {
+    // TODO(strager): Write custom messages instead of delegating to Google
+    // Test's built-ins.
+    std::vector<Any_Diag_Pointer> diag_pointers;
+    diags.for_each([&](Diag_Type type, const void* data) -> void {
+      diag_pointers.push_back(Any_Diag_Pointer{.type = type, .data = data});
+    });
+
+    using Vector_Matcher =
+        ::testing::Matcher<const std::vector<Any_Diag_Pointer>&>;
+    Vector_Matcher vector_matcher =
+        this->error_matchers_.size() <= 1
+            ?
+            // ElementsAreArray produces better diagnostics than
+            // UnorderedElementsAreArray.
+            Vector_Matcher(
+                ::testing::ElementsAreArray(std::move(this->error_matchers_)))
+            : Vector_Matcher(::testing::UnorderedElementsAreArray(
+                  std::move(this->error_matchers_)));
+    return vector_matcher.MatchAndExplain(diag_pointers, listener);
+  }
+
+ private:
+  std::vector<Diag_Matcher_2> error_matchers_;
+};
+}
+
+::testing::Matcher<const Diag_List&> diagnostics_matcher_2(
+    Padded_String_View code, Span<const Diagnostic_Assertion> assertions) {
+  std::vector<Diag_Matcher_2> error_matchers;
+  for (const Diagnostic_Assertion& diag : assertions) {
+    Diagnostic_Assertion adjusted_diag =
+        diag.adjusted_for_escaped_characters(code.string_view());
+
+    std::vector<Diag_Matcher_2::Field> fields;
+    for (const Diagnostic_Assertion::Member& member : adjusted_diag.members) {
+      Diag_Matcher_2::Field field;
+      field.arg = Diag_Matcher_Arg{
+          .member_name = to_string_view(member.name),
+          .member_offset = member.offset,
+          .member_type = member.type,
+      };
+      switch (member.type) {
+      case Diagnostic_Arg_Type::source_code_span:
+        field.begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+            member.span_begin_offset);
+        field.end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
+            member.span_end_offset);
+        break;
+      case Diagnostic_Arg_Type::char8:
+        field.character = member.character;
+        break;
+      case Diagnostic_Arg_Type::enum_kind:
+        field.enum_kind = member.enum_kind;
+        break;
+      case Diagnostic_Arg_Type::string8_view:
+        field.string = member.string;
+        break;
+      case Diagnostic_Arg_Type::statement_kind:
+        field.statement_kind = member.statement_kind;
+        break;
+      case Diagnostic_Arg_Type::variable_kind:
+        field.variable_kind = member.variable_kind;
+        break;
+      default:
+        QLJS_ASSERT(false);
+        break;
+      }
+      fields.push_back(field);
+    }
+
+    error_matchers.push_back(
+        Diag_Matcher_2(code, adjusted_diag.type, std::move(fields)));
+  }
+  return ::testing::Matcher<const Diag_List&>(
+      new Diag_List_Matcher_Impl(std::move(error_matchers)));
+}
+
+::testing::Matcher<const Diag_List&> diagnostics_matcher_2(
+    Padded_String_View code,
+    std::initializer_list<Diagnostic_Assertion> assertions) {
+  return diagnostics_matcher_2(code,
+                               Span<const Diagnostic_Assertion>(assertions));
 }
 
 namespace {

@@ -3,6 +3,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types-2.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/diagnostic-assertion.h>
@@ -746,6 +747,236 @@ TEST(Test_Diagnostic_Assertion, multiple_diagnostics_are_matched_in_any_order) {
   EXPECT_TRUE(break_continue_matcher.Matches({continue_diag, break_diag}));
   EXPECT_TRUE(continue_break_matcher.Matches({break_diag, continue_diag}));
   EXPECT_TRUE(continue_break_matcher.Matches({continue_diag, break_diag}));
+}
+
+class Test_Diagnostic_Assertion_2 : public ::testing::Test {
+ protected:
+  Monotonic_Allocator memory_{"Test_Diagnostic_Assertion_2"};
+};
+
+TEST_F(Test_Diagnostic_Assertion_2, match_error_type_with_1_field) {
+  Padded_String code(u8"hello"_sv);
+
+  ::testing::Matcher continue_matcher =
+      diagnostics_matcher_2(&code, {u8"^^^^^ Diag_Invalid_Continue"_diag});
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Invalid_Continue{
+        .continue_statement = Source_Code_Span(&code[0], &code[5]),
+    });
+    EXPECT_TRUE(continue_matcher.Matches(diags));
+  }
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Invalid_Break{
+        .break_statement = Source_Code_Span(&code[0], &code[5]),
+    });
+    EXPECT_FALSE(continue_matcher.Matches(diags));
+  }
+
+  ::testing::Matcher break_matcher =
+      diagnostics_matcher_2(&code, {u8"^^^^^ Diag_Invalid_Break"_diag});
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Invalid_Continue{
+        .continue_statement = Source_Code_Span(&code[0], &code[5]),
+    });
+    EXPECT_FALSE(break_matcher.Matches(diags));
+  }
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Invalid_Break{
+        .break_statement = Source_Code_Span(&code[0], &code[5]),
+    });
+    EXPECT_TRUE(break_matcher.Matches(diags));
+  }
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, match_error_type_with_1_field_message) {
+  Padded_String code(u8"hello"_sv);
+  ::testing::Matcher matcher =
+      diagnostics_matcher_2(&code, {u8"^^^^^ Diag_Invalid_Continue"_diag});
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Invalid_Break{
+      .break_statement = Source_Code_Span(&code[0], &code[5]),
+  });
+  EXPECT_EQ(get_matcher_message(matcher, diags),
+            "whose element #0 doesn't match, whose type (Diag_Invalid_Break) "
+            "isn't Diag_Invalid_Continue");
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, match_offsets_of_1_field_span) {
+  Padded_String code(u8"hello"_sv);
+
+  ::testing::Matcher continue_matcher =
+      diagnostics_matcher_2(&code, {u8" ^^^^ Diag_Invalid_Continue"_diag});
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Invalid_Continue{
+        .continue_statement = Source_Code_Span(&code[1], &code[5]),
+    });
+    EXPECT_TRUE(continue_matcher.Matches(diags));
+  }
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Invalid_Continue{
+        .continue_statement = Source_Code_Span(&code[0], &code[5]),
+    });
+    EXPECT_FALSE(continue_matcher.Matches(diags));
+  }
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Invalid_Continue{
+        .continue_statement = Source_Code_Span(&code[0], &code[4]),
+    });
+    EXPECT_FALSE(continue_matcher.Matches(diags));
+  }
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, match_offsets_of_1_field_message) {
+  Padded_String code(u8"hello"_sv);
+
+  {
+    ::testing::Matcher matcher =
+        diagnostics_matcher_2(&code, {u8"^^^^^ Diag_Invalid_Continue"_diag});
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Invalid_Continue{
+        .continue_statement = Source_Code_Span(&code[1], &code[4]),
+    });
+    EXPECT_EQ(get_matcher_message(matcher, diags),
+              "whose element #0 doesn't match, whose .continue_statement (1-4) "
+              "doesn't equal 0-5");
+  }
+
+  {
+    ::testing::Matcher matcher =
+        diagnostics_matcher_2(&code, {u8"^^^^^ Diag_Invalid_Break"_diag});
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Invalid_Break{
+        .break_statement = Source_Code_Span(&code[1], &code[4]),
+    });
+    EXPECT_EQ(get_matcher_message(matcher, diags),
+              "whose element #0 doesn't match, whose .break_statement (1-4) "
+              "doesn't equal 0-5");
+  }
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, match_span_and_char8) {
+  Padded_String code(u8"(hello"_sv);
+
+  ::testing::Matcher matcher = diagnostics_matcher_2(
+      &code,
+      {u8"^ Diag_Expected_Parenthesis_Around_Do_While_Condition.where{.token=)}"_diag});
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Expected_Parenthesis_Around_Do_While_Condition{
+        .where = Source_Code_Span(&code[0], &code[1]),
+        .token = u8')',
+    });
+    EXPECT_TRUE(matcher.Matches(diags));
+  }
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Expected_Parenthesis_Around_Do_While_Condition{
+        .where = Source_Code_Span(&code[0], &code[1]),
+        .token = u8'(',
+    });
+    EXPECT_FALSE(matcher.Matches(diags));
+  }
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, char8_message) {
+  Padded_String code(u8"hello"_sv);
+
+  ::testing::Matcher matcher = diagnostics_matcher_2(
+      &code,
+      {u8"^ Diag_Expected_Parenthesis_Around_Do_While_Condition.where{.token=)}"_diag});
+
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Expected_Parenthesis_Around_Do_While_Condition{
+      .where = Source_Code_Span(&code[0], &code[1]),
+      .token = u8'(',
+  });
+  EXPECT_EQ(get_matcher_message(matcher, diags),
+            "whose element #0 doesn't match, whose .where (0-1) equals 0-1 and "
+            "whose .token ('(') doesn't equal ')'");
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, match_span_and_string8_view) {
+  Padded_String code(u8"hi"_sv);
+
+  ::testing::Matcher matcher = diagnostics_matcher_2(
+      &code,
+      {u8"^ Diag_Integer_Literal_Will_Lose_Precision.characters{.rounded_val=hello}"_diag});
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Integer_Literal_Will_Lose_Precision{
+        .characters = Source_Code_Span(&code[0], &code[1]),
+        .rounded_val = u8"hello"_sv,
+    });
+    EXPECT_TRUE(matcher.Matches(diags));
+  }
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Integer_Literal_Will_Lose_Precision{
+        .characters = Source_Code_Span(&code[0], &code[1]),
+        .rounded_val = u8"HELLO"_sv,
+    });
+    EXPECT_FALSE(matcher.Matches(diags));
+  }
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, string8_view_message) {
+  Padded_String code(u8"hi"_sv);
+
+  ::testing::Matcher matcher = diagnostics_matcher_2(
+      &code,
+      {u8"^ Diag_Integer_Literal_Will_Lose_Precision.characters{.rounded_val=hello}"_diag});
+
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Integer_Literal_Will_Lose_Precision{
+      .characters = Source_Code_Span(&code[0], &code[1]),
+      .rounded_val = u8"HELLO"_sv,
+  });
+  EXPECT_EQ(
+      get_matcher_message(matcher, diags),
+      "whose element #0 doesn't match, whose .characters (0-1) equals 0-1 and "
+      "whose .rounded_val (\"HELLO\") doesn't equal \"hello\"");
+}
+
+TEST_F(Test_Diagnostic_Assertion_2,
+       multiple_diagnostics_are_matched_in_any_order) {
+  Padded_String code(u8"hello"_sv);
+
+  ::testing::Matcher continue_break_matcher =
+      diagnostics_matcher_2(&code, {u8"^^^^^ Diag_Invalid_Continue"_diag,
+                                    u8"^^^^^ Diag_Invalid_Break"_diag});
+  ::testing::Matcher break_continue_matcher =
+      diagnostics_matcher_2(&code, {u8"^^^^^ Diag_Invalid_Break"_diag,
+                                    u8"^^^^^ Diag_Invalid_Continue"_diag});
+
+  Diag_Invalid_Continue continue_diag{
+      .continue_statement = Source_Code_Span(&code[0], &code[5]),
+  };
+  Diag_Invalid_Break break_diag{
+      .break_statement = Source_Code_Span(&code[0], &code[5]),
+  };
+
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(break_diag);
+    diags.add(continue_diag);
+    EXPECT_TRUE(break_continue_matcher.Matches(diags));
+    EXPECT_TRUE(continue_break_matcher.Matches(diags));
+  }
+
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(continue_diag);
+    diags.add(break_diag);
+    EXPECT_TRUE(break_continue_matcher.Matches(diags));
+    EXPECT_TRUE(continue_break_matcher.Matches(diags));
+  }
 }
 }
 }

@@ -138,7 +138,8 @@ Variable_Kind Diag_Matcher_Arg::get_variable_kind(
 
 template <class State, class Field>
 class Diag_Fields_Matcher_Impl_Base
-    : public testing::MatcherInterface<const Diag_Collector::Diag &> {
+    : public testing::MatcherInterface<const Diag_Collector::Diag &>,
+      public testing::MatcherInterface<const Any_Diag_Pointer &> {
  public:
   explicit Diag_Fields_Matcher_Impl_Base(State s) : state_(std::move(s)) {}
 
@@ -158,9 +159,19 @@ class Diag_Fields_Matcher_Impl_Base
 
   bool MatchAndExplain(const Diag_Collector::Diag &error,
                        testing::MatchResultListener *listener) const final {
-    bool type_matches = error.type() == this->state_.type;
+    return this->MatchAndExplain(
+        Any_Diag_Pointer{
+            .type = error.type(),
+            .data = error.data(),
+        },
+        listener);
+  }
+
+  bool MatchAndExplain(const Any_Diag_Pointer &error,
+                       testing::MatchResultListener *listener) const final {
+    bool type_matches = error.type == this->state_.type;
     if (!type_matches) {
-      *listener << "whose type (" << error.type() << ") isn't "
+      *listener << "whose type (" << error.type << ") isn't "
                 << this->state_.type;
       return false;
     }
@@ -179,7 +190,7 @@ class Diag_Fields_Matcher_Impl_Base
   }
 
  protected:
-  virtual bool field_matches(const Diag_Collector::Diag &error, const Field &f,
+  virtual bool field_matches(const Any_Diag_Pointer &error, const Field &f,
                              testing::MatchResultListener *listener) const = 0;
 
   State state_;
@@ -209,10 +220,10 @@ class Diag_Matcher::Impl final
   using Base::Diag_Fields_Matcher_Impl_Base;
 
  protected:
-  bool field_matches(const Diag_Collector::Diag &error, const Field &f,
+  bool field_matches(const Any_Diag_Pointer &error, const Field &f,
                      testing::MatchResultListener *listener) const override {
     QLJS_ASSERT(this->state_.input.has_value());
-    Source_Code_Span span = f.arg.get_span(error.data());
+    Source_Code_Span span = f.arg.get_span(error.data);
     auto span_begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
         span.begin() - this->state_.input->data());
     auto span_end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
@@ -248,11 +259,11 @@ class Diag_Matcher_2::Impl final
   using Base::Diag_Fields_Matcher_Impl_Base;
 
  protected:
-  bool field_matches(const Diag_Collector::Diag &error, const Field &f,
+  bool field_matches(const Any_Diag_Pointer &error, const Field &f,
                      testing::MatchResultListener *listener) const override {
     switch (f.arg.member_type) {
     case Diagnostic_Arg_Type::source_code_span: {
-      Source_Code_Span span = f.arg.get_span(error.data());
+      Source_Code_Span span = f.arg.get_span(error.data);
       auto span_begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
           span.begin() - this->state_.input.data());
       auto span_end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
@@ -268,7 +279,7 @@ class Diag_Matcher_2::Impl final
     }
 
     case Diagnostic_Arg_Type::char8: {
-      Char8 character = f.arg.get_char8(error.data());
+      Char8 character = f.arg.get_char8(error.data);
       bool character_matches = character == f.character;
       *listener << "whose ." << f.arg.member_name << " ('"
                 << static_cast<char>(character) << "') "
@@ -278,7 +289,7 @@ class Diag_Matcher_2::Impl final
     }
 
     case Diagnostic_Arg_Type::enum_kind: {
-      Enum_Kind enum_kind = f.arg.get_enum_kind(error.data());
+      Enum_Kind enum_kind = f.arg.get_enum_kind(error.data);
       bool matches = enum_kind == f.enum_kind;
       *listener << "whose ." << f.arg.member_name << " (" << enum_kind << ") "
                 << (matches ? "equals" : "doesn't equal") << " " << f.enum_kind;
@@ -286,7 +297,7 @@ class Diag_Matcher_2::Impl final
     }
 
     case Diagnostic_Arg_Type::string8_view: {
-      String8_View string = f.arg.get_string8_view(error.data());
+      String8_View string = f.arg.get_string8_view(error.data);
       bool character_matches = string == f.string;
       *listener << "whose ." << f.arg.member_name << " (\""
                 << to_string_view(string) << "\") "
@@ -296,7 +307,7 @@ class Diag_Matcher_2::Impl final
     }
 
     case Diagnostic_Arg_Type::statement_kind: {
-      Statement_Kind statement_kind = f.arg.get_statement_kind(error.data());
+      Statement_Kind statement_kind = f.arg.get_statement_kind(error.data);
       bool character_matches = statement_kind == f.statement_kind;
       *listener << "whose ." << f.arg.member_name << " (" << statement_kind
                 << ") " << (character_matches ? "equals" : "doesn't equal")
@@ -305,7 +316,7 @@ class Diag_Matcher_2::Impl final
     }
 
     case Diagnostic_Arg_Type::variable_kind: {
-      Variable_Kind variable_kind = f.arg.get_variable_kind(error.data());
+      Variable_Kind variable_kind = f.arg.get_variable_kind(error.data);
       bool character_matches = variable_kind == f.variable_kind;
       *listener << "whose ." << f.arg.member_name << " (" << variable_kind
                 << ") " << (character_matches ? "equals" : "doesn't equal")
@@ -320,9 +331,13 @@ class Diag_Matcher_2::Impl final
   }
 };
 
-/*implicit*/ Diag_Matcher_2::operator testing::Matcher<
-    const Diag_Collector::Diag &>() const {
+Diag_Matcher_2::operator testing::Matcher<const Diag_Collector::Diag &>()
+    const {
   return testing::Matcher<const Diag_Collector::Diag &>(new Impl(this->state_));
+}
+
+Diag_Matcher_2::operator testing::Matcher<const Any_Diag_Pointer &>() const {
+  return testing::Matcher<const Any_Diag_Pointer &>(new Impl(this->state_));
 }
 
 Diag_Spans_Matcher::Diag_Spans_Matcher(Diag_Type type, Field field_0)
@@ -342,9 +357,9 @@ class Diag_Spans_Matcher::Impl
   using Base::Diag_Fields_Matcher_Impl_Base;
 
  protected:
-  bool field_matches(const Diag_Collector::Diag &error, const Field &f,
+  bool field_matches(const Any_Diag_Pointer &error, const Field &f,
                      testing::MatchResultListener *listener) const override {
-    Source_Code_Span span = f.arg.get_span(error.data());
+    Source_Code_Span span = f.arg.get_span(error.data);
     bool span_matches = same_pointers(span, f.expected);
     *listener << "whose ." << f.arg.member_name << " (`"
               << out_string8(span.string_view()) << "` @"

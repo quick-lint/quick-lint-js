@@ -206,6 +206,11 @@ class Diag_Matcher {
   State state_;
 };
 
+struct Any_Diag_Pointer {
+  Diag_Type type;
+  const void *data;
+};
+
 // A mix of ::testing::VariantWith, ::testing::Field, and Offsets_Matcher. These
 // are combined into one matcher to significantly reduce compile times.
 class Diag_Matcher_2 {
@@ -242,6 +247,7 @@ class Diag_Matcher_2 {
   Diag_Matcher_2 &operator=(Diag_Matcher_2 &&) = default;
 
   /*implicit*/ operator testing::Matcher<const Diag_Collector::Diag &>() const;
+  /*implicit*/ operator testing::Matcher<const Any_Diag_Pointer &>() const;
 
  private:
   class Impl;

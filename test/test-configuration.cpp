@@ -7,6 +7,7 @@
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/variable-analyzer.h>
 #include <quick-lint-js/port/char8.h>
@@ -21,7 +22,6 @@
         (config).globals().find_runtime_or_type(u8"variableDoesNotExist"_sv)); \
   } while (false)
 
-using ::testing::ElementsAreArray;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
@@ -623,12 +623,8 @@ TEST(Test_Configuration_JSON, invalid_json_reports_error) {
     Diag_List diags(&temp_memory);
     c.load_from_json(&json, &diags);
 
-    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
-    Diag_Collector errors;
-    errors.report(diags);
     // TODO(strager): Check Diag_Config_Json_Syntax_Error::where.
-    EXPECT_THAT(errors.errors,
-                ElementsAreArray({DIAG_TYPE(Diag_Config_Json_Syntax_Error)}));
+    assert_diagnostics(&json, diags, {u8"Diag_Config_Json_Syntax_Error"_diag});
   }
 }
 
@@ -636,36 +632,27 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
   Monotonic_Allocator temp_memory("test");
 
   {
-    Padded_String json(u8R"({"globals":["myGlobalVariable"]})"_sv);
+    // clang-format off
+    Padded_String json(u8"{\"globals\":[\"myGlobalVariable\"]}"_sv);
+    auto error = /* */ u8"             ^ Diag_Config_Globals_Type_Mismatch"_diag;
+    // clang-format on
     Configuration c;
     Diag_List diags(&temp_memory);
     c.load_from_json(&json, &diags);
-    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
-    Diag_Collector errors;
-    errors.report(diags);
-    EXPECT_THAT(errors.errors,
-                ElementsAreArray({DIAG_TYPE_OFFSETS(
-                    &json, Diag_Config_Globals_Type_Mismatch,  //
-                    value, u8R"({"globals":)"_sv.size(), u8"["_sv)}));
+    assert_diagnostics(&json, diags, {error});
     EXPECT_FALSE(c.globals().find_runtime_or_type(u8"myGlobalVariable"_sv))
         << "invalid global should be ignored";
   }
 
   {
-    Padded_String json(
-        u8R"({"globals":{"testBefore":true,"testBad":"string","testAfter":true}})"_sv);
+    // clang-format off
+    Padded_String json(u8"{\"globals\":{\"testBefore\":true,\"testBad\":\"string\",\"testAfter\":true}}"_sv);
+    auto error = /* */ u8"                                              ^^^^^^^^^^ Diag_Config_Globals_Descriptor_Type_Mismatch"_diag;
+    // clang-format on
     Configuration c;
     Diag_List diags(&temp_memory);
     c.load_from_json(&json, &diags);
-    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
-    Diag_Collector errors;
-    errors.report(diags);
-    EXPECT_THAT(errors.errors,
-                ElementsAreArray({DIAG_TYPE_OFFSETS(
-                    &json, Diag_Config_Globals_Descriptor_Type_Mismatch,  //
-                    descriptor,
-                    u8R"({"globals":{"testBefore":true,"testBad":)"_sv.size(),
-                    u8R"("string")"_sv)}));
+    assert_diagnostics(&json, diags, {error});
 
     EXPECT_TRUE(c.globals().find_runtime_or_type(u8"testBefore"_sv))
         << "valid globals before should work";
@@ -676,22 +663,14 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
   }
 
   {
-    Padded_String json(
-        u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":"string"},"testAfter":true}})"_sv);
+    // clang-format off
+    Padded_String json(u8"{\"globals\":{\"testBefore\":true,\"testBad\":{\"writable\":false,\"shadowable\":\"string\"},\"testAfter\":true}}"_sv);
+    auto error = /* */ u8"                                                                                 ^^^^^^^^^^ Diag_Config_Globals_Descriptor_Shadowable_Type_Mismatch"_diag;
+    // clang-format on
     Configuration c;
     Diag_List diags(&temp_memory);
     c.load_from_json(&json, &diags);
-    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
-    Diag_Collector errors;
-    errors.report(diags);
-    EXPECT_THAT(
-        errors.errors,
-        ElementsAreArray({DIAG_TYPE_OFFSETS(
-            &json, Diag_Config_Globals_Descriptor_Shadowable_Type_Mismatch,  //
-            value,
-            u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":)"_sv
-                .size(),
-            u8R"("string")"_sv)}));
+    assert_diagnostics(&json, diags, {error});
 
     EXPECT_TRUE(c.globals().find_runtime_or_type(u8"testBefore"_sv))
         << "valid globals before should work";
@@ -707,22 +686,14 @@ TEST(Test_Configuration_JSON, bad_schema_in_globals_reports_error) {
   }
 
   {
-    Padded_String json(
-        u8R"({"globals":{"testBefore":true,"testBad":{"writable":"string","shadowable":false},"testAfter":true}})"_sv);
+    // clang-format off
+    Padded_String json(u8"{\"globals\":{\"testBefore\":true,\"testBad\":{\"writable\":\"string\",\"shadowable\":false},\"testAfter\":true}}"_sv);
+    auto error = /* */ u8"                                                            ^^^^^^^^^^ Diag_Config_Globals_Descriptor_Writable_Type_Mismatch"_diag;
+    // clang-format on
     Configuration c;
     Diag_List diags(&temp_memory);
     c.load_from_json(&json, &diags);
-    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
-    Diag_Collector errors;
-    errors.report(diags);
-    EXPECT_THAT(
-        errors.errors,
-        ElementsAreArray({DIAG_TYPE_OFFSETS(
-            &json, Diag_Config_Globals_Descriptor_Writable_Type_Mismatch,  //
-            value,
-            u8R"({"globals":{"testBefore":true,"testBad":{"writable":)"_sv
-                .size(),
-            u8R"("string")"_sv)}));
+    assert_diagnostics(&json, diags, {error});
 
     EXPECT_TRUE(c.globals().find_runtime_or_type(u8"testBefore"_sv))
         << "valid globals before should work";
@@ -742,35 +713,27 @@ TEST(Test_Configuration_JSON, bad_schema_in_global_groups_reports_error) {
   Monotonic_Allocator temp_memory("test");
 
   {
-    Padded_String json(u8R"({"global-groups":{"browser":true}})"_sv);
+    // clang-format off
+    Padded_String json(u8"{\"global-groups\":{\"browser\":true}}"_sv);
+    auto error = /* */ u8"                   ^ Diag_Config_Global_Groups_Type_Mismatch"_diag;
+    // clang-format on
     Configuration c;
     Diag_List diags(&temp_memory);
     c.load_from_json(&json, &diags);
-    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
-    Diag_Collector errors;
-    errors.report(diags);
-    EXPECT_THAT(errors.errors,
-                ElementsAreArray({DIAG_TYPE_OFFSETS(
-                    &json, Diag_Config_Global_Groups_Type_Mismatch,  //
-                    value, u8R"({"global-groups":)"_sv.size(), u8"{"_sv)}));
+    assert_diagnostics(&json, diags, {error});
     EXPECT_TRUE(c.globals().find_runtime_or_type(u8"Array"_sv))
         << "invalid global-groups should be ignored";
   }
 
   {
-    Padded_String json(
-        u8R"({"global-groups":["browser",false,"ecmascript"]})"_sv);
+    // clang-format off
+    Padded_String json(u8"{\"global-groups\":[\"browser\",false,\"ecmascript\"]}"_sv);
+    auto error = /* */ u8"                                ^^^^^ Diag_Config_Global_Groups_Group_Type_Mismatch"_diag;
+    // clang-format on
     Configuration c;
     Diag_List diags(&temp_memory);
     c.load_from_json(&json, &diags);
-    // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
-    Diag_Collector errors;
-    errors.report(diags);
-    EXPECT_THAT(errors.errors,
-                ElementsAreArray({DIAG_TYPE_OFFSETS(
-                    &json, Diag_Config_Global_Groups_Group_Type_Mismatch,  //
-                    group, u8R"({"global-groups":["browser",)"_sv.size(),
-                    u8"false"_sv)}));
+    assert_diagnostics(&json, diags, {error});
 
     EXPECT_TRUE(c.globals().find_runtime_or_type(u8"Array"_sv))
         << "valid group-groups entries should take effect\n"
@@ -793,29 +756,22 @@ TEST(Test_Configuration_JSON, bad_global_error_excludes_trailing_whitespace) {
 
   // According to RFC 8259, whitespace characters are U+0009, U+000A, U+000D,
   // and U+0020.
+  // clang-format off
   Padded_String json(u8"{ \"globals\": { \"a\": \"b\"  \n\t\r }}"_sv);
+  auto error = /* */ u8"                        ^^^^^ Diag_Config_Globals_Descriptor_Type_Mismatch"_diag;
+  // clang-format on
   Configuration c;
   Diag_List diags(&temp_memory);
   c.load_from_json(&json, &diags);
 
-  // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
-  Diag_Collector errors;
-  errors.report(diags);
-  EXPECT_THAT(
-      errors.errors,
-      ElementsAreArray({DIAG_TYPE_OFFSETS(
-          &json, Diag_Config_Globals_Descriptor_Type_Mismatch,  //
-          descriptor, u8R"({ "globals": { "a": )"_sv.size(), u8R"("b")"_sv)}));
+  assert_diagnostics(&json, diags, {error});
 }
 
 void load_from_json(Configuration& config, Padded_String_View json) {
   Monotonic_Allocator temp_memory("test");
   Diag_List diags(&temp_memory);
   config.load_from_json(json, &diags);
-  // TODO(#1154): Remove Diag_Collector and use Diag_List directly.
-  Diag_Collector errors;
-  errors.report(diags);
-  EXPECT_THAT(errors.errors, ::testing::IsEmpty());
+  assert_diagnostics(json, diags, {});
 }
 
 void load_from_json(Configuration& config, String8_View json) {

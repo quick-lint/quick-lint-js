@@ -148,12 +148,25 @@ void assert_diagnostics(Padded_String_View code,
                         std::initializer_list<Diagnostic_Assertion> assertions,
                         Source_Location caller = Source_Location::current());
 
+void assert_diagnostics(Padded_String_View code, const Diag_List& diagnostics,
+                        Span<const Diagnostic_Assertion> assertions,
+                        Source_Location caller);
+void assert_diagnostics(Padded_String_View code, const Diag_List& diagnostics,
+                        std::initializer_list<Diagnostic_Assertion> assertions,
+                        Source_Location caller = Source_Location::current());
+
 ::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
 diagnostics_matcher(Padded_String_View code,
                     Span<const Diagnostic_Assertion> assertions);
 ::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
 diagnostics_matcher(Padded_String_View code,
                     std::initializer_list<Diagnostic_Assertion> assertions);
+
+::testing::Matcher<const Diag_List&> diagnostics_matcher_2(
+    Padded_String_View code, Span<const Diagnostic_Assertion> assertions);
+::testing::Matcher<const Diag_List&> diagnostics_matcher_2(
+    Padded_String_View code,
+    std::initializer_list<Diagnostic_Assertion> assertions);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
