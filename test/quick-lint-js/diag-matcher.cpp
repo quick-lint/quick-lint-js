@@ -142,12 +142,12 @@ class Diag_Fields_Matcher_Impl_Base
  public:
   explicit Diag_Fields_Matcher_Impl_Base(State s) : state_(std::move(s)) {}
 
-  void DescribeTo(std::ostream *out) const override {
+  void DescribeTo(std::ostream *out) const final {
     *out << "has type " << this->state_.type;
     this->describe_fields_to(out);
   }
 
-  void DescribeNegationTo(std::ostream *out) const override {
+  void DescribeNegationTo(std::ostream *out) const final {
     *out << "doesn't have type " << this->state_.type;
     this->describe_fields_to(out);
   }
@@ -157,7 +157,7 @@ class Diag_Fields_Matcher_Impl_Base
   }
 
   bool MatchAndExplain(const Diag_Collector::Diag &error,
-                       testing::MatchResultListener *listener) const override {
+                       testing::MatchResultListener *listener) const final {
     bool type_matches = error.type() == this->state_.type;
     if (!type_matches) {
       *listener << "whose type (" << error.type() << ") isn't "
@@ -199,7 +199,7 @@ Diag_Matcher::Diag_Matcher(Padded_String_View input, Diag_Type type,
                            Field field_0, Field field_1, Field field_2)
     : state_{type, input, {field_0, field_1, field_2}} {}
 
-class Diag_Matcher::Impl
+class Diag_Matcher::Impl final
     : public Diag_Fields_Matcher_Impl_Base<Diag_Matcher::State,
                                            Diag_Matcher::Field> {
  public:
@@ -238,7 +238,7 @@ Diag_Matcher_2::Diag_Matcher_2(Padded_String_View input, Diag_Type type,
                                std::vector<Field> fields)
     : state_{type, input, std::move(fields)} {}
 
-class Diag_Matcher_2::Impl
+class Diag_Matcher_2::Impl final
     : public Diag_Fields_Matcher_Impl_Base<Diag_Matcher_2::State,
                                            Diag_Matcher_2::Field> {
  public:
