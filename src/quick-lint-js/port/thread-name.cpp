@@ -28,6 +28,10 @@
 #endif
 
 namespace quick_lint_js {
+#if QLJS_CAN_SET_THREAD_NAMES
+static_assert(lowest_max_thread_name_length <= max_thread_name_length);
+#endif
+
 void set_current_thread_name(const Char8* new_name) {
   [[maybe_unused]] const char* new_name_cstr =
       reinterpret_cast<const char*>(new_name);
@@ -84,6 +88,20 @@ void set_current_thread_name(const Char8* new_name) {
         "%#08lx\n",
         __func__, rc);
     return;
+  }
+#endif
+}
+
+void set_current_thread_name([[maybe_unused]] const Char8* long_name,
+                             [[maybe_unused]] const Char8* short_name) {
+#if QLJS_CAN_SET_THREAD_NAMES
+  QLJS_ASSERT(std::strlen(reinterpret_cast<const char*>(short_name)) <=
+              lowest_max_thread_name_length);
+  if (std::strlen(reinterpret_cast<const char*>(long_name)) <=
+      max_thread_name_length) {
+    set_current_thread_name(long_name);
+  } else {
+    set_current_thread_name(short_name);
   }
 #endif
 }

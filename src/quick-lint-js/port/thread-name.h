@@ -50,6 +50,14 @@ inline constexpr std::size_t max_thread_name_length = 256;
 #define QLJS_CAN_SET_THREAD_NAMES 0
 #endif
 
+#if QLJS_CAN_SET_THREAD_NAMES
+// The lowest (most conservative) value of max_thread_name_length on any
+// platform.
+//
+// Invariant: lowest_max_thread_name_length <= max_thread_name_length
+inline constexpr std::size_t lowest_max_thread_name_length = 15;
+#endif
+
 // Change the name of the current thread.
 //
 // Logs an error if there was an error.
@@ -57,6 +65,16 @@ inline constexpr std::size_t max_thread_name_length = 256;
 // Precondition: new_name is null-terminated.
 // Precondition: strlen(new_name) <= max_thread_name_length
 void set_current_thread_name(const Char8* new_name);
+
+// Change the name of the current thread.
+//
+// long_name is preferred. If long_name is too long of a thread name for the
+// current platform, short_name is used instead.
+//
+// Precondition: long_name is null-terminated.
+// Precondition: short_name is null-terminated.
+// Precondition: strlen(short_name) <= lowest_max_thread_name_length
+void set_current_thread_name(const Char8* long_name, const Char8* short_name);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

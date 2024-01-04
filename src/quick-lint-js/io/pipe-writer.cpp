@@ -84,11 +84,7 @@ void Background_Thread_Pipe_Writer::write_all_now_blocking(
 void Background_Thread_Pipe_Writer::run_flushing_thread() {
   {
     Memory_Output_Stream thread_name;
-    if constexpr (max_thread_name_length < 16) {
-      thread_name.append_literal(u8"pipewrite"_sv);
-    } else {
-      thread_name.append_literal(u8"Background_Thread_Pipe_Writer pipe="_sv);
-    }
+    thread_name.append_literal(u8"Background_Thread_Pipe_Writer pipe="_sv);
 #if defined(_WIN32)
     thread_name.append_fixed_hexadecimal_integer(
         reinterpret_cast<std::uintptr_t>(this->pipe_.get()), 16);
@@ -96,7 +92,8 @@ void Background_Thread_Pipe_Writer::run_flushing_thread() {
     thread_name.append_decimal_integer(this->pipe_.get());
 #endif
     thread_name.flush();
-    set_current_thread_name(thread_name.get_flushed_string8().c_str());
+    set_current_thread_name(thread_name.get_flushed_string8().c_str(),
+                            /*short_name=*/u8"pipewrite");
   }
 
   std::unique_lock<Mutex> lock(this->mutex_);

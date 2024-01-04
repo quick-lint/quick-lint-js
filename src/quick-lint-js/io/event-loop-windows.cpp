@@ -117,7 +117,8 @@ class Event_Loop_Windows::Registered_Pipe_Read {
       thread_name.append_fixed_hexadecimal_integer(
           reinterpret_cast<std::uintptr_t>(this->pipe_.get()), 16);
       thread_name.flush();
-      set_current_thread_name(thread_name.get_flushed_string8().c_str());
+      set_current_thread_name(thread_name.get_flushed_string8().c_str(),
+                              /*short_name=*/u8"EventLoopPipe");
     }
 
     QLJS_SLOW_ASSERT(!this->pipe_.is_pipe_non_blocking());

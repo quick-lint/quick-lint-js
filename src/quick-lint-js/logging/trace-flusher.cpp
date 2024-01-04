@@ -189,11 +189,8 @@ void Trace_Flusher::flush_async() { this->flush_requested_cond_.notify_one(); }
 void Trace_Flusher::start_flushing_thread() {
   QLJS_ASSERT(!this->flushing_thread_.joinable());
   this->flushing_thread_.start([this]() {
-    if constexpr (max_thread_name_length < 16) {
-      set_current_thread_name(u8"qljs-tracing");
-    } else {
-      set_current_thread_name(u8"quick-lint-js Trace_Flusher");
-    }
+    set_current_thread_name(u8"quick-lint-js Trace_Flusher",
+                            /*short_name=*/u8"qljs-tracing");
     Lock_Ptr<Shared_State> state = this->state_.lock();
     while (!state->stop_flushing_thread) {
       this->flush_sync(state);

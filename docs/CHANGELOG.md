@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* quick-lint-js's tracing no longer crashes with an assertion failure when
+  setting its thread name on FreeBSD.
+
 ## 3.0.0 (2024-01-01)
 
 [Downloads](https://c.quick-lint-js.com/releases/3.0.0/)
