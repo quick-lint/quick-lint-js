@@ -3998,6 +3998,15 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
 
   bool is_for_await = this->peek().type == Token_Type::kw_await;
   if (is_for_await) {
+    if (this->in_top_level_) {
+      // TODO: Emit a diagnostic if the top level await mode does not allow
+      // await operators (Parser_Top_Level_Await_Mode::no_await_operator).
+    } else {
+      if (!this->in_async_function_) {
+        this->diag_reporter_->report(
+            Diag_Await_Operator_Outside_Async{this->peek().span()});
+      }
+    }
     this->skip();
   }
 
