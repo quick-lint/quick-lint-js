@@ -7,6 +7,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/hash-map.h>
+#include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
@@ -55,10 +56,29 @@ enum class Parser_Top_Level_Await_Mode {
   await_operator,
 };
 
+// How to interpret props for builtins such as <button onclick> and <span
+// class>.
+enum class Parser_JSX_Mode {
+  // Detect the JSX mode based on heuristics.
+  auto_detect = 0,
+
+  // Enforce no rules.
+  none,
+
+  // Use React's rules:
+  // * camelCase for event handler attributes starting with 'on'
+  // * certain camelCase attributes such as 'colSpan'
+  // * 'class' is named 'className'
+  react,
+};
+
 // TODO(#465): Accept parser options from quick-lint-js.config or CLI options.
 struct Parser_Options {
   Parser_Top_Level_Await_Mode top_level_await_mode =
       Parser_Top_Level_Await_Mode::auto_detect;
+
+  // jsx_mode does not affect whether JSX is parsed or not. See this->jsx.
+  Parser_JSX_Mode jsx_mode = Parser_JSX_Mode::auto_detect;
 
   // If true, parse JSX language extensions: https://facebook.github.io/jsx/
   bool jsx = false;
@@ -608,6 +628,9 @@ class Parser {
   void parse_and_visit_named_exports_for_typescript_type_only_import(
       Parse_Visitor_Base &v, Source_Code_Span type_keyword);
 
+  // Precondition: module_name.type == Token_Type::string;
+  void visited_module_import(const Token &module_name);
+
   // If set, refers to the first `export default` statement in this module. A
   // module cannot contain more than one `export default`.
   std::optional<Source_Code_Span>
@@ -887,6 +910,7 @@ class Parser {
   Expression *parse_jsx_element_or_fragment(Parse_Visitor_Base &,
                                             Identifier *tag,
                                             const Char8 *less_begin);
+  void check_all_jsx_attributes();
   void check_jsx_attribute(const Identifier &attribute_name);
   Expression *parse_typescript_generic_arrow_expression(Parse_Visitor_Base &,
                                                         Precedence);
@@ -1091,6 +1115,15 @@ class Parser {
   // These are stored in a stack here (rather than on the C++ stack via local
   // variables) so that memory can be released in case we call setjmp.
   Buffering_Visitor_Stack buffering_visitor_stack_;
+
+  // All parsed JSX attributes for intrinsic elements.
+  //
+  // Depending on Parser_JSX_Mode, diagnostics may or may not be reported for
+  // these attributes at the end of a module.
+  Linked_Vector<Identifier> jsx_intrinsic_attributes_{new_delete_resource()};
+
+  // Heuristic. True if React.js was imported.
+  bool imported_react_ = false;
 
   bool in_top_level_ = true;
   bool in_async_function_ = false;

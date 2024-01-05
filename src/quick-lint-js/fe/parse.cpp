@@ -158,6 +158,27 @@ Expression* Parser::build_expression(Binary_Expression_Builder& builder) {
   }
 }
 
+void Parser::check_all_jsx_attributes() {
+  switch (this->options_.jsx_mode) {
+  case Parser_JSX_Mode::none:
+    break;
+
+  case Parser_JSX_Mode::auto_detect:
+    if (this->imported_react_) {
+      goto react;
+    }
+    break;
+
+  react:
+  case Parser_JSX_Mode::react:
+    this->jsx_intrinsic_attributes_.for_each(
+        [&](const Identifier& attribute_name) -> void {
+          this->check_jsx_attribute(attribute_name);
+        });
+    break;
+  }
+}
+
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 void Parser::check_jsx_attribute(const Identifier& attribute_name) {

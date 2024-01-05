@@ -3851,7 +3851,7 @@ next_attribute:
       this->lexer_.skip_in_jsx();
     }
     if (is_intrinsic && !has_namespace && !tag_namespace) {
-      this->check_jsx_attribute(attribute);
+      this->jsx_intrinsic_attributes_.emplace_back(attribute);
     }
     if (this->peek().type == Token_Type::equal) {
       this->lexer_.skip_in_jsx();
