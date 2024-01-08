@@ -151,6 +151,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   Diagnostic_Assertion_Lexer lexer(specification);
 
   Diagnostic_Assertion out_assertion;
+  out_assertion.needs_adjustment = true;
 
   // Names of diagnostic member variables.
   //
@@ -388,6 +389,10 @@ Diagnostic_Assertion Diagnostic_Assertion::parse_or_exit(
 
 Diagnostic_Assertion Diagnostic_Assertion::adjusted_for_escaped_characters(
     String8_View code) const {
+  if (!this->needs_adjustment) {
+    return *this;
+  }
+
   static auto has_utf8_continuation = [](Char8 c) -> bool {
     return (static_cast<std::uint8_t>(c) & 0x80) != 0;
   };
@@ -426,6 +431,7 @@ Diagnostic_Assertion Diagnostic_Assertion::adjusted_for_escaped_characters(
   };
 
   Diagnostic_Assertion result = *this;
+  result.needs_adjustment = false;
   for (Member& member : result.members) {
     if (member.type != Diagnostic_Arg_Type::source_code_span) {
       continue;
@@ -441,6 +447,16 @@ Diagnostic_Assertion Diagnostic_Assertion::adjusted_for_escaped_characters(
     }
   }
   return result;
+}
+
+Diagnostic_Assertion Diagnostic_Assertion::make_raw(
+    Diag_Type type, std::initializer_list<Member> members) {
+  Diagnostic_Assertion assertion;
+  assertion.type = type;
+  for (const Member& m : members) {
+    assertion.members.push_back(m);
+  }
+  return assertion;
 }
 
 Diagnostic_Assertion operator""_diag(

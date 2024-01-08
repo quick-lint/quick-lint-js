@@ -14,6 +14,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
+#include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
@@ -2145,17 +2146,17 @@ TEST_F(Test_Lex, ascii_control_characters_are_disallowed) {
   for (String8_View control_character : control_characters_except_whitespace) {
     Padded_String input(String8(control_character) + u8"hello");
     SCOPED_TRACE(input);
-    Diag_Collector v;
+    Diag_List_Diag_Reporter diags(&this->memory_);
 
-    Lexer l(&input, &v);
+    Lexer l(&input, &diags);
     EXPECT_EQ(l.peek().type, Token_Type::identifier)
         << "control character should be skipped";
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(&input, Diag_Unexpected_Control_Character,  //
-                              character, 0, control_character),
-        }));
+    assert_diagnostics(
+        &input, diags.diags(),
+        {
+            DIAGNOSTIC_ASSERTION_SPAN(Diag_Unexpected_Control_Character,  //
+                                      character, 0, control_character),
+        });
   }
 }
 
