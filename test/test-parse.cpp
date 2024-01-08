@@ -29,7 +29,10 @@ using ::testing::UnorderedElementsAreArray;
 
 namespace quick_lint_js {
 namespace {
-class Test_Parse : public Test_Parse_Expression {};
+class Test_Parse : public Test_Parse_Expression {
+ public:
+  Monotonic_Allocator memory_{"test"};
+};
 
 // TODO(strager): Put Test_Escape_First_Character_In_Keyword tests into their
 // own test file.
@@ -37,8 +40,14 @@ class Test_Escape_First_Character_In_Keyword : public ::testing::Test {};
 
 // TODO(strager): Put Test_No_Overflow and test_overflow tests into their own
 // test file.
-class Test_No_Overflow : public Test_Parse_Expression {};
-class Test_Overflow : public Test_Parse_Expression {};
+class Test_No_Overflow : public Test_Parse_Expression {
+ public:
+  Monotonic_Allocator memory_{"test"};
+};
+class Test_Overflow : public Test_Parse_Expression {
+ public:
+  Monotonic_Allocator memory_{"test"};
+};
 
 TEST_F(Test_Parse, statement_starting_with_invalid_token) {
   for (String8_View token : {
@@ -562,9 +571,10 @@ Padded_String unimplemented_token_code(u8"]"_sv);
 
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
 TEST_F(Test_Parse, unimplemented_token_crashes_SLOW) {
-  auto check = [] {
+  auto check = [&] {
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Parser p(&unimplemented_token_code, &diags, javascript_options);
     Spy_Visitor v;
-    Parser p(&unimplemented_token_code, &v, javascript_options);
     p.parse_and_visit_module(v);
   };
   EXPECT_DEATH(check(), "token not implemented");
@@ -573,24 +583,25 @@ TEST_F(Test_Parse, unimplemented_token_crashes_SLOW) {
 
 TEST_F(Test_Parse, unimplemented_token_doesnt_crash_if_caught) {
   {
+    Diag_Collector diags;
+    Parser p(&unimplemented_token_code, &diags, javascript_options);
     Spy_Visitor v;
-    Parser p(&unimplemented_token_code, &v, javascript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.visits, IsEmpty());
-    EXPECT_THAT(v.errors, ElementsAreArray({
-                              DIAG_TYPE_OFFSETS(&unimplemented_token_code,
-                                                Diag_Unexpected_Token,  //
-                                                token, 0, u8"]"_sv),
-                          }));
+    EXPECT_THAT(diags.errors, ElementsAreArray({
+                                  DIAG_TYPE_OFFSETS(&unimplemented_token_code,
+                                                    Diag_Unexpected_Token,  //
+                                                    token, 0, u8"]"_sv),
+                              }));
   }
 }
 
 TEST_F(Test_Parse, unimplemented_token_returns_to_innermost_handler) {
   {
     Padded_String code(u8"hello world"_sv);
-    Spy_Visitor v;
-    Parser p(&code, &v, javascript_options);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Parser p(&code, &diags, javascript_options);
     volatile bool inner_catch_returned = false;
     bool outer_ok = p.catch_fatal_parse_errors([&] {
       bool inner_ok = p.catch_fatal_parse_errors(
@@ -600,7 +611,7 @@ TEST_F(Test_Parse, unimplemented_token_returns_to_innermost_handler) {
     });
     EXPECT_TRUE(outer_ok);
     EXPECT_TRUE(inner_catch_returned);
-    assert_diagnostics(&code, v.errors,
+    assert_diagnostics(&code, diags.diags(),
                        {
                            u8"Diag_Unexpected_Token"_diag,
                        });
@@ -611,8 +622,8 @@ TEST_F(Test_Parse,
        unimplemented_token_after_handler_ends_returns_to_outer_handler) {
   {
     Padded_String code(u8"hello world"_sv);
-    Spy_Visitor v;
-    Parser p(&code, &v, javascript_options);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Parser p(&code, &diags, javascript_options);
     volatile bool inner_catch_returned = false;
     bool outer_ok = p.catch_fatal_parse_errors([&] {
       bool inner_ok = p.catch_fatal_parse_errors([] {
@@ -624,7 +635,7 @@ TEST_F(Test_Parse,
     });
     EXPECT_FALSE(outer_ok);
     EXPECT_TRUE(inner_catch_returned);
-    assert_diagnostics(&code, v.errors,
+    assert_diagnostics(&code, diags.diags(),
                        {
                            u8"Diag_Unexpected_Token"_diag,
                        });
@@ -634,8 +645,7 @@ TEST_F(Test_Parse,
 TEST_F(Test_Parse, unimplemented_token_rolls_back_parser_depth) {
   {
     Padded_String code(u8"hello world"_sv);
-    Spy_Visitor v;
-    Parser p(&code, &v, javascript_options);
+    Parser p(&code, &Null_Diag_Reporter::instance, javascript_options);
     volatile bool inner_catch_returned = false;
     bool outer_ok = p.catch_fatal_parse_errors([&] {
       Parser::Depth_Guard outer_g(&p);
@@ -657,19 +667,21 @@ TEST_F(Test_Parse, unimplemented_token_rolls_back_parser_depth) {
 TEST_F(Test_Parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
   {
     Padded_String code(u8"hello world"_sv);
-    Spy_Visitor v;
-    Parser p(&code, &v, javascript_options);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Parser p(&code, &diags, javascript_options);
 
     Parser_Transaction transaction = p.begin_transaction();
     bool ok = p.catch_fatal_parse_errors(
         [&] { QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(&p); });
     EXPECT_FALSE(ok);
 
-    EXPECT_THAT(v.errors, IsEmpty())
-        << "Diag_Unexpected_Token should be buffered in the transaction";
+    assert_diagnostics(&code, diags.diags(), {});
+    // Diag_Unexpected_Token should be buffered in the transaction.
+    // FIXME(#1154): Instead of buffering, use a rewind mechanism. (No rewinding
+    // should happen in this test.)
     p.commit_transaction(std::move(transaction));
     // Diag_Unexpected_Token should be reported when committing the transaction.
-    assert_diagnostics(&code, v.errors,
+    assert_diagnostics(&code, diags.diags(),
                        {
                            u8"Diag_Unexpected_Token"_diag,
                        });
@@ -769,11 +781,12 @@ TEST_F(Test_No_Overflow, parser_depth_limit_not_exceeded) {
        }) {
     Padded_String code(u8"return " + jsx);
     SCOPED_TRACE(code);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Parser p(&code, &diags, jsx_options);
     Spy_Visitor v;
-    Parser p(&code, &v, jsx_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_TRUE(ok);
-    EXPECT_THAT(v.errors, IsEmpty());
+    assert_diagnostics(&code, diags.diags(), {});
   }
 
   for (const String8& type : {
@@ -781,11 +794,12 @@ TEST_F(Test_No_Overflow, parser_depth_limit_not_exceeded) {
        }) {
     Padded_String code(concat(u8"let x: "_sv, type, u8";"_sv));
     SCOPED_TRACE(code);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Parser p(&code, &diags, typescript_options);
     Spy_Visitor v;
-    Parser p(&code, &v, typescript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_TRUE(ok);
-    EXPECT_THAT(v.errors, IsEmpty());
+    assert_diagnostics(&code, diags.diags(), {});
   }
 }
 
@@ -836,11 +850,12 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
        }) {
     Padded_String code(exps);
     SCOPED_TRACE(code);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Parser p(&code, &diags, javascript_options);
     Spy_Visitor v;
-    Parser p(&code, &v, javascript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    assert_diagnostics(&code, v.errors,
+    assert_diagnostics(&code, diags.diags(),
                        {
                            u8"Diag_Depth_Limit_Exceeded"_diag,
                        });
@@ -884,11 +899,12 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
        }) {
     Padded_String code(concat(u8"return "_sv, jsx));
     SCOPED_TRACE(code);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Parser p(&code, &diags, jsx_options);
     Spy_Visitor v;
-    Parser p(&code, &v, jsx_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    assert_diagnostics(&code, v.errors,
+    assert_diagnostics(&code, diags.diags(),
                        {
                            u8"Diag_Depth_Limit_Exceeded"_diag,
                        });
@@ -899,11 +915,12 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
        }) {
     Padded_String code(concat(u8"let x: "_sv, type, u8";"_sv));
     SCOPED_TRACE(code);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Parser p(&code, &diags, typescript_options);
     Spy_Visitor v;
-    Parser p(&code, &v, typescript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    assert_diagnostics(&code, v.errors,
+    assert_diagnostics(&code, diags.diags(),
                        {
                            u8"Diag_Depth_Limit_Exceeded"_diag,
                        });

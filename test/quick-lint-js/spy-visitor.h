@@ -233,7 +233,7 @@ inline Visited_Variable_Declaration var_noinit_for_decl(String8_View name) {
       Variable_Declaration_Flags::inside_for_loop_head};
 }
 
-struct Parse_Visit_Collector : public Parse_Visitor_Base {
+struct Parse_Visit_Collector final : public Parse_Visitor_Base {
   std::vector<std::string_view> visits;
 
   void visit_end_of_module() override {
@@ -452,9 +452,8 @@ struct Parse_Visit_Collector : public Parse_Visitor_Base {
   std::vector<String8> variable_uses;
 };
 
-// TODO(strager): Rename this.
-struct Spy_Visitor final : public Diag_Collector,
-                           public Parse_Visit_Collector {};
+// TODO(strager): Remove this alias.
+using Spy_Visitor = Parse_Visit_Collector;
 
 void PrintTo(const Visited_Variable_Declaration &, std::ostream *);
 }

@@ -1306,11 +1306,8 @@ TEST_F(Test_Parse_Statement, if_body_with_semicolon_typescript) {
                           }));
   }
 
-  {
-    Spy_Visitor p = test_parse_and_visit_statement(
-        u8"if (a) {} else;\n"_sv, no_diags, typescript_options);
-    EXPECT_THAT(p.errors, IsEmpty());
-  }
+  test_parse_and_visit_statement(u8"if (a) {} else;\n"_sv, no_diags,
+                                 typescript_options);
 }
 }
 }
