@@ -1135,9 +1135,9 @@ Lexer_Transaction Lexer::begin_transaction() {
 }
 
 void Lexer::commit_transaction(Lexer_Transaction&& transaction) {
-  Buffering_Diag_Reporter* buffered_diagnostics =
-      derived_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
-  buffered_diagnostics->move_into(transaction.old_diag_reporter);
+  Diag_List_Diag_Reporter* uncommitted_diagnostics =
+      derived_cast<Diag_List_Diag_Reporter*>(this->diag_reporter_);
+  transaction.old_diag_reporter->report(uncommitted_diagnostics->diags());
 
   this->diag_reporter_ = transaction.old_diag_reporter;
 

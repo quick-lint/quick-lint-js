@@ -46,12 +46,16 @@ void Diag_List::rewind(Rewind_State &&r) {
 QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
 
-template <std::size_t Diag_Size>
+template <std::size_t diag_size>
 void Diag_List::add_impl(Diag_Type type, void *diag) {
+  this->add_impl(type, diag, diag_size);
+}
+
+void Diag_List::add_impl(Diag_Type type, void *diag, std::size_t diag_size) {
   Node *node = this->memory_->new_object<Node>();
   node->next = nullptr;
   node->type = type;
-  std::memcpy(&node->data, diag, Diag_Size);
+  std::memcpy(&node->data, diag, diag_size);
   if (this->last_ == nullptr) {
     this->first_ = node;
   } else {
