@@ -364,7 +364,7 @@ TEST_F(Test_Parse_TypeScript_Function_Overload,
         p.variable_declarations,
         ElementsAreArray({function_decl(u8"g"_sv), function_decl(u8"f"_sv)}));
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,

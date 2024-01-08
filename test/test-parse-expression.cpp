@@ -251,7 +251,7 @@ TEST_F(Test_Parse_Expression, parse_broken_math_expression) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "upassign(missing, literal)");
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Operand_For_Operator,  //
                               where, 0, op),
@@ -1068,14 +1068,14 @@ TEST_F(Test_Parse_Expression,
       } else if (test.expected_normal_function) {
         // 'await' should look like an identifier.
         EXPECT_EQ(summarize(ast), test.expected_normal_function);
-        EXPECT_THAT(p.errors, IsEmpty());
+        EXPECT_THAT(p.legacy_errors(), IsEmpty());
       } else {
         // 'await' doesn't look like an identifier. We should report an error
         // and recover as if 'await' was an operator.
         EXPECT_EQ(summarize(ast), test.expected_async_function);
         if (test.code == u8"await await x"_sv) {
           EXPECT_THAT(
-              p.errors,
+              p.legacy_errors(),
               ::testing::IsSupersetOf(
                   {DIAG_TYPE_OFFSETS(p.code, Diag_Await_Operator_Outside_Async,
                                      await_operator, 0, u8"await"_sv),
@@ -1084,7 +1084,7 @@ TEST_F(Test_Parse_Expression,
                                      u8"await"_sv)}));
         } else {
           std::size_t await_offset = test.code.find(u8"await"_sv);
-          EXPECT_THAT(p.errors,
+          EXPECT_THAT(p.legacy_errors(),
                       ElementsAreArray({
                           DIAG_TYPE_OFFSETS(
                               p.code, Diag_Await_Operator_Outside_Async,  //
@@ -1106,7 +1106,7 @@ TEST_F(Test_Parse_Expression,
                                u8"^^^^^ Diag_Redundant_Await"_diag,
                            });
       } else {
-        EXPECT_THAT(p.errors, IsEmpty());
+        EXPECT_THAT(p.legacy_errors(), IsEmpty());
       }
     }
 
@@ -1123,7 +1123,7 @@ TEST_F(Test_Parse_Expression,
                                u8"^^^^^ Diag_Redundant_Await"_diag,
                            });
       } else {
-        EXPECT_THAT(p.errors, IsEmpty());
+        EXPECT_THAT(p.legacy_errors(), IsEmpty());
       }
     }
   }
@@ -2213,7 +2213,7 @@ TEST_F(Test_Parse_Expression,
       Expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: missing)");
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(p.code,
                                 Diag_Missing_Value_For_Object_Literal_Entry,  //
@@ -2226,7 +2226,7 @@ TEST_F(Test_Parse_Expression,
       Expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: missing, literal: var other)");
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(p.code,
                                 Diag_Missing_Value_For_Object_Literal_Entry,  //
@@ -2471,7 +2471,7 @@ TEST_F(Test_Parse_Expression, malformed_object_literal) {
                          "object(literal: dot(var one, two))",
                          "object(literal: upassign(var one, var two))"));
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Key_For_Object_Entry,  //
                               expression, u8"{"_sv.size(),
@@ -2495,7 +2495,7 @@ TEST_F(Test_Parse_Expression, malformed_object_literal) {
                                    "object(literal: dot(literal, two))",
                                    "object(literal: literal = var two)"));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Key_For_Object_Entry,  //
                                 expression, u8"{"_sv.size(),
@@ -2513,7 +2513,7 @@ TEST_F(Test_Parse_Expression, malformed_object_literal) {
                                    "object(literal: dot(literal, two))",
                                    "object(literal: literal = var two)"));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Key_For_Object_Entry,  //
                                 expression, u8"{"_sv.size(),
@@ -2529,7 +2529,7 @@ TEST_F(Test_Parse_Expression, malformed_object_literal) {
     EXPECT_EQ(summarize(ast),
               "object(literal: rwunarysuffix(var one), literal: var two)");
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         UnorderedElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Key_For_Object_Entry,  //
                               expression, u8"{"_sv.size(),
@@ -2570,7 +2570,7 @@ TEST_F(Test_Parse_Expression, malformed_object_literal) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code,
@@ -3533,7 +3533,7 @@ TEST_F(Test_Parse_Expression, generator_misplaced_star) {
   Test_Parser p(u8"(*function f(){})"_sv, capture_diags);
   Expression* ast = p.parse_expression();
   EXPECT_THAT(ast->child_0()->span(), p.matches_offsets(1, 16));
-  EXPECT_THAT(p.errors,
+  EXPECT_THAT(p.legacy_errors(),
               ElementsAreArray({DIAG_TYPE(
                   Diag_Generator_Function_Star_Belongs_Before_Name)}));
 }
@@ -3545,7 +3545,7 @@ TEST_F(Test_Parse_Expression, unary_cannot_mix_with_star_star) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(unary(var a), var b)");
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,
@@ -3564,7 +3564,7 @@ TEST_F(Test_Parse_Expression, unary_cannot_mix_with_star_star) {
       EXPECT_EQ(summarize(ast), "typeof(binary(var a, var b))");
     }
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code,

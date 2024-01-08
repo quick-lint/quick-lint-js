@@ -320,7 +320,7 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Cannot_Declare_Variable_With_Keyword_Name,  //
@@ -334,7 +334,7 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Cannot_Declare_Variable_With_Keyword_Name,  //
@@ -351,7 +351,7 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                                 "visit_variable_use",  // x
                             }));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Cannot_Declare_Variable_With_Keyword_Name,  //
@@ -519,7 +519,7 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                   ElementsAreArray(
                       {let_init_decl(u8"x"_sv), let_noinit_decl(u8"z"_sv)}));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_2_OFFSETS(
                   p.code, Diag_Cannot_Update_Variable_During_Declaration,  //
@@ -545,7 +545,7 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
                   ElementsAreArray(
                       {const_init_decl(u8"x"_sv), const_init_decl(u8"y"_sv)}));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_2_OFFSETS(
                   p.code, Diag_Cannot_Update_Variable_During_Declaration,  //
@@ -989,7 +989,7 @@ TEST_F(Test_Parse_Var, new_style_variables_cannot_be_named_let) {
     Test_Parser p(concat(declaration_kind, u8" let = null;"_sv), capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(
                 p.code, Diag_Cannot_Declare_Variable_Named_Let_With_Let,  //

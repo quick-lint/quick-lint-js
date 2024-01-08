@@ -526,7 +526,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                   ElementsAreArray(
                       {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code,
@@ -551,7 +551,7 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
                   ElementsAreArray(
                       {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_2_OFFSETS(
                   p.code,

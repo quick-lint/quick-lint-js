@@ -1285,7 +1285,7 @@ TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
                                 "visit_end_of_module",
                             }));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Interface_Fields_Cannot_Have_Initializers,  //
@@ -1300,7 +1300,7 @@ TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
           typescript_options, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ::testing::UnorderedElementsAreArray({
               DIAG_TYPE(Diag_Interface_Properties_Cannot_Be_Static),
               DIAG_TYPE_OFFSETS(

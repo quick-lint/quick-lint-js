@@ -907,9 +907,10 @@ TEST_F(Test_Parse_TypeScript_Class,
           capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
-      EXPECT_THAT(p.errors, ElementsAreArray({
-                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
-                            }));
+      EXPECT_THAT(p.legacy_errors(),
+                  ElementsAreArray({
+                      MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
+                  }));
     }
 
     {
@@ -918,9 +919,10 @@ TEST_F(Test_Parse_TypeScript_Class,
           capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
-      EXPECT_THAT(p.errors, ElementsAreArray({
-                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
-                            }));
+      EXPECT_THAT(p.legacy_errors(),
+                  ElementsAreArray({
+                      MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
+                  }));
     }
 
     {
@@ -929,9 +931,10 @@ TEST_F(Test_Parse_TypeScript_Class,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
-      EXPECT_THAT(p.errors, ElementsAreArray({
-                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
-                            }));
+      EXPECT_THAT(p.legacy_errors(),
+                  ElementsAreArray({
+                      MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
+                  }));
     }
 
     {
@@ -941,7 +944,7 @@ TEST_F(Test_Parse_TypeScript_Class,
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           UnorderedElementsAre(
               DIAG_TYPE(
                   Diag_TypeScript_Optional_Properties_Not_Allowed_In_JavaScript),
@@ -955,9 +958,10 @@ TEST_F(Test_Parse_TypeScript_Class,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
-      EXPECT_THAT(p.errors, ElementsAreArray({
-                                MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
-                            }));
+      EXPECT_THAT(p.legacy_errors(),
+                  ElementsAreArray({
+                      MATCH_ACCESS_SPECIFIER_ERROR(u8"class C { "_sv),
+                  }));
     }
 #undef MATCH_ACCESS_SPECIFIER_ERROR
   }
@@ -1014,7 +1018,7 @@ TEST_F(Test_Parse_TypeScript_Class,
       p.parse_and_visit_statement();
 
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_2_OFFSETS(
                   p.code, Diag_Access_Specifier_Must_Precede_Other_Modifiers,
@@ -1035,7 +1039,7 @@ TEST_F(Test_Parse_TypeScript_Class,
       p.parse_and_visit_statement();
 
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_2_OFFSETS(
                   p.code, Diag_Access_Specifier_Must_Precede_Other_Modifiers,
@@ -1890,7 +1894,7 @@ TEST_F(Test_Parse_TypeScript_Class, parameter_property_in_constructor) {
     p.parse_and_visit_module();
 
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_2_OFFSETS(
                 p.code, Diag_Access_Specifier_Must_Precede_Other_Modifiers,
@@ -1996,7 +2000,7 @@ TEST_F(Test_Parse_TypeScript_Class,
                   ElementsAreArray(
                       {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code,
@@ -2021,7 +2025,7 @@ TEST_F(Test_Parse_TypeScript_Class,
                   ElementsAreArray(
                       {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code,

@@ -174,7 +174,7 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_string_compare_all_operators) {
                     capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Pointless_String_Comp_Contains_Upper,
@@ -282,7 +282,7 @@ TEST_F(Test_Parse_Warning,
       Test_Parser p(concat(u8"x "_sv, op, u8" []"_sv), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code,
@@ -294,7 +294,7 @@ TEST_F(Test_Parse_Warning,
       Test_Parser p(concat(u8"x "_sv, op, u8" [1, 2, 3]"_sv), capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Pointless_Strict_Comp_Against_Array_Literal,
@@ -309,7 +309,7 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_compare_against_literals) {
     {
       Test_Parser p(concat(u8"x "_sv, op, u8" {}"_sv), capture_diags);
       p.parse_and_visit_expression();
-      EXPECT_THAT(p.errors,
+      EXPECT_THAT(p.legacy_errors(),
                   ElementsAreArray({
                       DIAG_TYPE_OFFSETS(
                           p.code, Diag_Pointless_Comp_Against_Object_Literal,
@@ -319,7 +319,7 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_compare_against_literals) {
     {
       Test_Parser p(concat(u8"x "_sv, op, u8" class C{}"_sv), capture_diags);
       p.parse_and_visit_expression();
-      EXPECT_THAT(p.errors,
+      EXPECT_THAT(p.legacy_errors(),
                   ElementsAreArray({
                       DIAG_TYPE_OFFSETS(
                           p.code, Diag_Pointless_Comp_Against_Class_Literal,
@@ -332,7 +332,7 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_compare_against_literals) {
                  u8" ((parameter) => { some_object.call(parameter); })"_sv),
           capture_diags);
       p.parse_and_visit_expression();
-      EXPECT_THAT(p.errors,
+      EXPECT_THAT(p.legacy_errors(),
                   ElementsAreArray({
                       DIAG_TYPE_OFFSETS(
                           p.code, Diag_Pointless_Comp_Against_Arrow_Function,
@@ -344,7 +344,7 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_compare_against_literals) {
                     capture_diags);
       p.parse_and_visit_expression();
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code,

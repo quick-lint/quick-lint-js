@@ -266,7 +266,7 @@ TEST_F(Test_Parse_Module, export_default_of_variable_is_illegal) {
                               "visit_variable_declaration",  // x
                           }));
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Cannot_Export_Default_Variable,  //
                               declaring_token, u8"export default "_sv.size(),
@@ -428,7 +428,7 @@ TEST_F(Test_Parse_Module,
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
-    EXPECT_THAT(p.errors,
+    EXPECT_THAT(p.legacy_errors(),
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Cannot_Export_Variable_Named_Keyword,  //
@@ -443,7 +443,7 @@ TEST_F(Test_Parse_Module,
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
-    EXPECT_THAT(p.errors,
+    EXPECT_THAT(p.legacy_errors(),
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Cannot_Export_Variable_Named_Keyword,  //
@@ -907,7 +907,7 @@ TEST_F(Test_Parse_Module, imported_modules_must_be_quoted) {
                   capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Cannot_Import_From_Unquoted_Module,
                               import_name, u8"import { test } from "_sv.size(),
@@ -927,7 +927,7 @@ TEST_F(Test_Parse_Module,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_declaration",  // (name)
                             }));
-      EXPECT_THAT(p.errors,
+      EXPECT_THAT(p.legacy_errors(),
                   ElementsAreArray({
                       DIAG_TYPE_OFFSETS(
                           p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
@@ -945,7 +945,7 @@ TEST_F(Test_Parse_Module,
                                 "visit_variable_declaration",  // (name)
                             }));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
@@ -962,7 +962,7 @@ TEST_F(Test_Parse_Module,
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({import_decl(name)}));
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
@@ -978,7 +978,7 @@ TEST_F(Test_Parse_Module,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_declaration",  // (name)
                             }));
-      EXPECT_THAT(p.errors,
+      EXPECT_THAT(p.legacy_errors(),
                   ElementsAreArray({
                       DIAG_TYPE_OFFSETS(
                           p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
@@ -994,7 +994,7 @@ TEST_F(Test_Parse_Module,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_declaration",  // (name)
                             }));
-      EXPECT_THAT(p.errors,
+      EXPECT_THAT(p.legacy_errors(),
                   ElementsAreArray({
                       DIAG_TYPE_OFFSETS(
                           p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //

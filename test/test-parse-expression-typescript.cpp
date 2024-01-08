@@ -417,7 +417,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
     SCOPED_TRACE(code);
     Test_Parser p(code.string_view(), typescript_options, capture_diags);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.errors,
+    EXPECT_THAT(p.legacy_errors(),
                 ElementsAreArray({
                     DIAG_TYPE_2_OFFSETS(
                         p.code,

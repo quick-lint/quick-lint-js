@@ -85,7 +85,7 @@ class Test_Parser {
 
   explicit Test_Parser(String8_View input, const Parser_Options& options,
                        Capture_Diags_Tag)
-      : code_(input), parser_(&this->code_, &this->errors_, options) {}
+      : code_(input), parser_(&this->code_, &this->diag_reporter_, options) {}
 
   // Fails the test if there are any diagnostics during parsing.
   explicit Test_Parser(String8_View input)
@@ -168,6 +168,9 @@ class Test_Parser {
   Failing_Diag_Reporter failing_reporter_;
   quick_lint_js::Parser parser_;
 
+  Monotonic_Allocator diag_allocator_{"Test_Parser::diag_allocator_"};
+  Diag_List_Diag_Reporter diag_reporter_{&this->diag_allocator_};
+
  public:
   // Aliases for convenience.
   std::vector<std::string_view>& visits = this->errors_.visits;
@@ -180,8 +183,11 @@ class Test_Parser {
   std::vector<Visited_Variable_Declaration>& variable_declarations =
       this->errors_.variable_declarations;
   std::vector<String8>& variable_uses = this->errors_.variable_uses;
-  std::vector<Diag_Collector::Diag>& errors = this->errors_.errors;
+  const Diag_List& errors = this->diag_reporter_.diags();
   Padded_String_View code = Padded_String_View(&this->code_);
+
+  // TODO(#1154): Delete this.
+  std::vector<Diag_Collector::Diag> legacy_errors();
 };
 
 struct No_Diags_Tag {};

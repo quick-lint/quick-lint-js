@@ -156,7 +156,7 @@ TEST_F(Test_Parse_Expression_Statement,
     SCOPED_TRACE(p.code);
     p.parse_and_visit_statement();
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ElementsAreArray({
             DIAG_TYPE_OFFSETS(p.code, Diag_Missing_Operand_For_Operator,  //
                               where, 0, op),
@@ -1066,7 +1066,7 @@ TEST_F(Test_Parse_Expression_Statement,
     Test_Parser p(concat(u8"*\n"_sv, statement), capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors, Not(IsEmpty()));
+    EXPECT_THAT(p.legacy_errors(), Not(IsEmpty()));
   }
 }
 

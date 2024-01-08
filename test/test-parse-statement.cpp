@@ -611,7 +611,7 @@ TEST_F(Test_Parse_Statement, if_else_with_malformed_condition) {
                                   "visit_variable_use",       // e
                                   "visit_exit_block_scope"}));
     EXPECT_THAT(
-        p.errors,
+        p.legacy_errors(),
         ::testing::Not(::testing::Contains(DIAG_TYPE(Diag_Else_Has_No_If))));
   }
 }

@@ -373,7 +373,7 @@ TEST_F(Test_Parse_TypeScript_Enum,
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_TypeScript_Enum_Value_Must_Be_Constant,  //
@@ -392,7 +392,7 @@ TEST_F(Test_Parse_TypeScript_Enum,
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
       EXPECT_THAT(
-          p.errors,
+          p.legacy_errors(),
           ElementsAreArray({
               DIAG_TYPE_OFFSETS(
                   p.code, Diag_TypeScript_Enum_Value_Must_Be_Constant,  //

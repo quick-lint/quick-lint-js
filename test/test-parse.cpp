@@ -48,7 +48,7 @@ TEST_F(Test_Parse, statement_starting_with_invalid_token) {
     Test_Parser p(concat(token, u8" x"_sv), capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.errors,
+    EXPECT_THAT(p.legacy_errors(),
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
                                       token, 0, token),
@@ -169,7 +169,7 @@ TEST_F(Test_Parse, asi_for_statement_at_newline) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"console", u8"console"}));
     CLI_Source_Position::Offset_Type end_of_first_expression =
         u8"console.log('hello')"_sv.size();
-    EXPECT_THAT(p.errors,
+    EXPECT_THAT(p.legacy_errors(),
                 ElementsAreArray({
                     DIAG_TYPE_OFFSETS(
                         p.code, Diag_Missing_Semicolon_After_Statement,  //
@@ -741,8 +741,8 @@ TEST_F(Test_No_Overflow, parser_depth_limit_not_exceeded) {
     SCOPED_TRACE(p.code);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_TRUE(ok);
-    EXPECT_THAT(p.errors, ::testing::Not(::testing::Contains(
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded))));
+    EXPECT_THAT(p.legacy_errors(), ::testing::Not(::testing::Contains(
+                                       DIAG_TYPE(Diag_Depth_Limit_Exceeded))));
   }
 
   {
@@ -799,8 +799,8 @@ TEST_F(Test_No_Overflow, certain_syntax_does_not_have_stack_limit) {
     SCOPED_TRACE(p.code);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_TRUE(ok);
-    EXPECT_THAT(p.errors, ::testing::Not(::testing::Contains(
-                              DIAG_TYPE(Diag_Depth_Limit_Exceeded))));
+    EXPECT_THAT(p.legacy_errors(), ::testing::Not(::testing::Contains(
+                                       DIAG_TYPE(Diag_Depth_Limit_Exceeded))));
   }
 }
 
@@ -852,7 +852,7 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
                   capture_diags);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors();
     EXPECT_FALSE(ok);
-    EXPECT_THAT(p.errors,
+    EXPECT_THAT(p.legacy_errors(),
                 ::testing::Contains(DIAG_TYPE(Diag_Depth_Limit_Exceeded)));
   }
 
