@@ -785,8 +785,11 @@ void LSP_JavaScript_Linter::lint_and_get_diagnostics(
     Configuration& config, File_Language language, Padded_String_View code,
     Byte_Buffer& diagnostics_json) {
   LSP_Diag_Reporter diag_reporter(qljs_messages, diagnostics_json, code);
-  parse_and_lint(code, diag_reporter, config.globals(),
-                 Linter_Options{.language = language});
+  parse_and_lint(code, diag_reporter,
+                 Linter_Options{
+                     .language = language,
+                     .configuration = &config,
+                 });
   diag_reporter.finish();
 }
 

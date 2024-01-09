@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/cli/text-diag-reporter.h>
+#include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/container/padded-string.h>
@@ -251,8 +252,9 @@ void process_test_case_file(Expected_Test_Results& expected_results,
     std::exit(1);
   }
 
-  Global_Declared_Variable_Set globals;
-  globals.add_literally_everything();
+  Configuration config;
+  bool ok = config.add_global_group(u8"literally-anything"_sv);
+  QLJS_ALWAYS_ASSERT(ok);
 
   Memory_Output_Stream diags;
   Text_Diag_Reporter text_reporter(Translator(), &diags,
@@ -264,8 +266,11 @@ void process_test_case_file(Expected_Test_Results& expected_results,
     if (language.has_value()) {
       // TODO(strager): Indicate which unit we are looking at.
       text_reporter.set_source(&unit.data, path);
-      parse_and_lint(&unit.data, text_reporter, globals,
-                     Linter_Options{.language = *language});
+      parse_and_lint(&unit.data, text_reporter,
+                     Linter_Options{
+                         .language = *language,
+                         .configuration = &config,
+                     });
     }
   }
   diags.flush();

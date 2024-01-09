@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/debug/debug-probe.h>
 #include <quick-lint-js/fe/debug-parse-visitor.h>
@@ -15,7 +16,6 @@
 
 namespace quick_lint_js {
 void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
-                    const Global_Declared_Variable_Set& globals,
                     Linter_Options options) {
   Parser_Options parser_options;
   switch (options.language) {
@@ -44,7 +44,7 @@ void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
 
   Parser p(code, &reporter, parser_options);
   Variable_Analyzer var_analyzer(
-      &reporter, &globals,
+      &reporter, &options.configuration->globals(),
       Variable_Analyzer_Options{
           .allow_deleting_typescript_variable = !parser_options.typescript,
           .eval_can_declare_variables = !parser_options.typescript,

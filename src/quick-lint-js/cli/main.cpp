@@ -301,11 +301,11 @@ void run(Options o) {
       }
       Linter_Options lint_options = {
           .language = get_language(file, o),
+          .configuration = config,
           .print_parser_visits = o.print_parser_visits,
       };
       reporter->set_source(&*source, file);
-      parse_and_lint(&*source, *reporter->get(), config->globals(),
-                     lint_options);
+      parse_and_lint(&*source, *reporter->get(), lint_options);
     }
   }
   reporter->finish();

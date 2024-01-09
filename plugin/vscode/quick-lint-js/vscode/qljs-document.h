@@ -160,8 +160,10 @@ class QLJS_Lintable_Document : public QLJS_Document_Base {
     VSCode_Diag_Reporter diag_reporter(vscode, env, &this->document_.locator(),
                                        this->uri());
     parse_and_lint(this->document_.string(), diag_reporter,
-                   this->config_->globals(),
-                   Linter_Options{.language = this->language_});
+                   Linter_Options{
+                       .language = this->language_,
+                       .configuration = this->config_,
+                   });
 
     return std::move(diag_reporter).diagnostics();
   }

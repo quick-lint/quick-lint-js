@@ -98,8 +98,9 @@ const QLJS_Web_Demo_Diagnostic* qljs_web_demo_lint(QLJS_Web_Demo_Document* p) {
     Configuration().load_from_json(&p->text_, &diags);
     p->diag_reporter_.report(diags);
   } else {
-    parse_and_lint(&p->text_, p->diag_reporter_, p->config_.globals(),
-                   Linter_Options{.language = p->language_});
+    parse_and_lint(
+        &p->text_, p->diag_reporter_,
+        Linter_Options{.language = p->language_, .configuration = &p->config_});
   }
   return p->diag_reporter_.get_diagnostics();
 }
