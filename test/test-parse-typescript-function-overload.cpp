@@ -350,40 +350,14 @@ TEST_F(Test_Parse_TypeScript_Function_Overload,
   }
 
   {
-    Test_Parser p(
-        u8"function f();\n"_sv
-        u8"function f();\n"_sv
-        u8"function f();\n"_sv
-        u8"function g();\n"_sv
-        u8"function f();\n"_sv
-        u8"function f();\n"_sv
-        u8"function f() {}"_sv,
-        typescript_options, capture_diags);
-    p.parse_and_visit_module();
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"function f();\nfunction f();\nfunction f();\nfunction g();\nfunction f();\nfunction f();\nfunction f() {}"_sv,  //
+        u8"                                                                                                   ^ Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name.function_name\n"_diag  //
+        u8"                                                      ^ .overload_name"_diag,
+        typescript_options);
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAreArray({function_decl(u8"g"_sv), function_decl(u8"f"_sv)}));
-    EXPECT_THAT(
-        p.legacy_errors(),
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
-                Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name,
-                overload_name,
-                u8"function f();\n"
-                u8"function f();\n"
-                u8"function f();\n"
-                u8"function "_sv.size(),
-                u8"g"_sv, function_name,
-                u8"function f();\n"
-                u8"function f();\n"
-                u8"function f();\n"
-                u8"function g();\n"
-                u8"function f();\n"
-                u8"function f();\n"
-                u8"function "_sv.size(),
-                u8"g"_sv),
-        }));
   }
 
   {
