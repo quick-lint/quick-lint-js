@@ -481,17 +481,16 @@ TEST_F(Test_Options, invalid_language) {
 
 TEST_F(Test_Options, default_language_guesses_language_from_extension) {
   constexpr auto default_language = Raw_Input_File_Language::default_;
-  constexpr auto javascript_jsx = Resolved_Input_File_Language::javascript_jsx;
+  constexpr auto javascript_jsx = File_Language::javascript_jsx;
   EXPECT_EQ(get_language("<stdin>", default_language), javascript_jsx);
   EXPECT_EQ(get_language("hi.js", default_language), javascript_jsx);
   EXPECT_EQ(get_language("hi.jsx", default_language), javascript_jsx);
-  EXPECT_EQ(get_language("hi.ts", default_language),
-            Resolved_Input_File_Language::typescript);
+  EXPECT_EQ(get_language("hi.ts", default_language), File_Language::typescript);
   EXPECT_EQ(get_language("hi.d.ts", default_language),
-            Resolved_Input_File_Language::typescript_definition);
+            File_Language::typescript_definition);
   EXPECT_EQ(get_language("hi.d.js", default_language), javascript_jsx);
   EXPECT_EQ(get_language("hi.tsx", default_language),
-            Resolved_Input_File_Language::typescript_jsx);
+            File_Language::typescript_jsx);
   EXPECT_EQ(get_language("hi.txt", default_language), javascript_jsx);
 
   for (char separator : QLJS_ALL_PATH_DIRECTORY_SEPARATORS_SV) {
@@ -499,7 +498,7 @@ TEST_F(Test_Options, default_language_guesses_language_from_extension) {
         concat("foo.d.ts"sv, std::string_view(&separator, 1), "bar.ts"sv);
     SCOPED_TRACE(path);
     EXPECT_EQ(get_language(path.c_str(), default_language),
-              Resolved_Input_File_Language::typescript)
+              File_Language::typescript)
         << ".d.ts in containing folder should be ignored";
   }
 }
@@ -507,8 +506,8 @@ TEST_F(Test_Options, default_language_guesses_language_from_extension) {
 TEST_F(Test_Options, get_language_overwritten) {
   constexpr auto in_javascript = Raw_Input_File_Language::javascript;
   constexpr auto in_javascript_jsx = Raw_Input_File_Language::javascript_jsx;
-  constexpr auto javascript = Resolved_Input_File_Language::javascript;
-  constexpr auto javascript_jsx = Resolved_Input_File_Language::javascript_jsx;
+  constexpr auto javascript = File_Language::javascript;
+  constexpr auto javascript_jsx = File_Language::javascript_jsx;
 
   EXPECT_EQ(get_language("<stdin>", in_javascript_jsx), javascript_jsx);
   EXPECT_EQ(get_language("hi.js", in_javascript_jsx), javascript_jsx);

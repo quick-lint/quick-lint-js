@@ -7,6 +7,14 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
+enum class File_Language : unsigned char {
+  javascript,
+  javascript_jsx,
+  typescript,
+  typescript_definition,
+  typescript_jsx,
+};
+
 // TODO(strager): Rename this because it doesn't only contain kinds of
 // statements anymore.
 enum class Statement_Kind {

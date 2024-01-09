@@ -311,31 +311,28 @@ bool Options::dump_errors(Output_Stream& out) const {
   return have_errors;
 }
 
-Resolved_Input_File_Language get_language(const File_To_Lint& file,
-                                          const Options& options) {
+File_Language get_language(const File_To_Lint& file, const Options& options) {
   const char* path = file.is_stdin && options.path_for_stdin != nullptr
                          ? options.path_for_stdin
                          : file.path;
   return get_language(path, file.language);
 }
 
-Resolved_Input_File_Language get_language(const char* file,
-                                          Raw_Input_File_Language language) {
+File_Language get_language(const char* file, Raw_Input_File_Language language) {
   if (language == Raw_Input_File_Language::default_) {
     Path_Classification classification = classify_path(file);
     if (classification.typescript_jsx) {
-      return Resolved_Input_File_Language::typescript_jsx;
+      return File_Language::typescript_jsx;
     } else if (classification.typescript) {
       if (classification.typescript_definition) {
-        return Resolved_Input_File_Language::typescript_definition;
+        return File_Language::typescript_definition;
       }
-      return Resolved_Input_File_Language::typescript;
+      return File_Language::typescript;
     } else {
-      return Resolved_Input_File_Language::javascript_jsx;
+      return File_Language::javascript_jsx;
     }
   } else {
-    return int_to_enum_cast<Resolved_Input_File_Language>(
-        enum_to_int_cast(language));
+    return int_to_enum_cast<File_Language>(enum_to_int_cast(language));
   }
 }
 }
