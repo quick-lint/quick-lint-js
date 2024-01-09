@@ -88,6 +88,8 @@ bool Diag_List::have_diagnostic(Diag_Type type) const {
 
 void Diag_List::clear() {
   // Leak. this->memory should be a Linked_Bump_Allocator managed by the caller.
+  this->first_ = nullptr;
+  this->last_ = nullptr;
 }
 }
 

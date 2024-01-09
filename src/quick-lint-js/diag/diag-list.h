@@ -65,6 +65,7 @@ class Diag_List {
       std::initializer_list<Diag_Type> ignored_types, const Rewind_State &);
   bool have_diagnostic(Diag_Type type) const;
 
+  // Removes all diagnostics, but does not deallocate memory.
   void clear();
 
  private:

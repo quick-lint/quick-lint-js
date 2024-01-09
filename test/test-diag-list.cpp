@@ -149,6 +149,33 @@ TEST(Test_Diag_List, not_destructing_does_not_leak) {
 
   // Destruct memory, but don't destruct *diags.
 }
+
+TEST(Test_Diag_List, clear_removes_old_diagnostics) {
+  int count;
+
+  Linked_Bump_Allocator memory("test");
+  Diag_List diags(&memory);
+  Padded_String code(u8"hello"_sv);
+  diags.add(Diag_Let_With_No_Bindings{.where = span_of(code)});
+
+  diags.clear();
+
+  count = 0;
+  diags.for_each([&](Diag_Type, void*) -> void { count += 1; });
+  EXPECT_EQ(count, 0);
+
+  diags.add(Diag_Expected_Parenthesis_Around_If_Condition{
+      .where = span_of(code),
+      .token = u8')',
+  });
+
+  count = 0;
+  diags.for_each([&](Diag_Type type, void*) -> void {
+    EXPECT_EQ(type, Diag_Type::Diag_Expected_Parenthesis_Around_If_Condition);
+    count += 1;
+  });
+  EXPECT_EQ(count, 1);
+}
 }
 }
 
