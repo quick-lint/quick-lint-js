@@ -10,6 +10,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/diag-collector.h>
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/span.h>
@@ -216,6 +217,19 @@ diagnostics_matcher(Padded_String_View code,
 ::testing::Matcher<const Diag_List&> diagnostics_matcher_2(
     Padded_String_View code,
     std::initializer_list<Diagnostic_Assertion> assertions);
+
+template <class Diag>
+Diag* get_only_diagnostic(const Diag_List& diags, Diag_Type type) {
+  Diag* diag = nullptr;
+  int found_count = 0;
+  diags.for_each([&](Diag_Type current_type, void* raw_diag) -> void {
+    if (current_type == type) {
+      ++found_count;
+      diag = static_cast<Diag*>(raw_diag);
+    }
+  });
+  return found_count == 1 ? diag : nullptr;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

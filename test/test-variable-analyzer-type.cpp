@@ -283,19 +283,6 @@ TEST(Test_Variable_Analyzer_Type, type_use_does_not_see_non_type_variables) {
       typescript_analyze_options, default_globals);
 }
 
-template <class Diag>
-Diag* get_only_diagnostic(const Diag_List& diags, Diag_Type type) {
-  Diag* diag = nullptr;
-  int found_count = 0;
-  diags.for_each([&](Diag_Type current_type, void* raw_diag) -> void {
-    if (current_type == type) {
-      ++found_count;
-      diag = static_cast<Diag*>(raw_diag);
-    }
-  });
-  return found_count == 1 ? diag : nullptr;
-}
-
 TEST(Test_Variable_Analyzer_Type,
      interfaces_are_ignored_in_runtime_expressions) {
   static const Char8 outer_declaration[] = u8"I";

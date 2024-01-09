@@ -190,7 +190,12 @@ constexpr const Char8 *nodejs_global_variables[] = {
     u8"unescape",
 };
 
-TEST(Test_Variable_Analyzer_Globals, global_variables_are_usable) {
+class Test_Variable_Analyzer_Globals : public ::testing::Test {
+ protected:
+  Monotonic_Allocator memory_{"test"};
+};
+
+TEST_F(Test_Variable_Analyzer_Globals, global_variables_are_usable) {
   // Array = null;
   // Array;
   for (const Char8 *global_variable : writable_global_variables) {
@@ -215,23 +220,22 @@ TEST(Test_Variable_Analyzer_Globals, global_variables_are_usable) {
   }
 }
 
-TEST(Test_Variable_Analyzer_Globals,
-     immutable_global_variables_are_not_assignable) {
+TEST_F(Test_Variable_Analyzer_Globals,
+       immutable_global_variables_are_not_assignable) {
   for (const Char8 *global_variable : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
 
     // NaN = null;  // ERROR
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
     l.visit_variable_assignment(identifier_of(global_variable),
                                 Variable_Assignment_Flags::none);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(Diag_Assignment_To_Const_Global_Variable,
-                                   assignment, span_of(global_variable)),
-                }));
+    auto *diag = get_only_diagnostic<Diag_Assignment_To_Const_Global_Variable>(
+        diags.diags(), Diag_Type::Diag_Assignment_To_Const_Global_Variable);
+    ASSERT_NE(diag, nullptr);
+    EXPECT_TRUE(same_pointers(diag->assignment, span_of(global_variable)));
   }
 
   for (const Char8 *global_variable : non_writable_global_variables) {
@@ -240,8 +244,8 @@ TEST(Test_Variable_Analyzer_Globals,
     // (() => {
     //   NaN = null;  // ERROR
     // });
-    Diag_Collector v;
-    Variable_Analyzer l(&v, &default_globals, javascript_var_options);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_assignment(identifier_of(global_variable),
@@ -249,15 +253,14 @@ TEST(Test_Variable_Analyzer_Globals,
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_SPAN(Diag_Assignment_To_Const_Global_Variable,
-                                   assignment, span_of(global_variable)),
-                }));
+    auto *diag = get_only_diagnostic<Diag_Assignment_To_Const_Global_Variable>(
+        diags.diags(), Diag_Type::Diag_Assignment_To_Const_Global_Variable);
+    ASSERT_NE(diag, nullptr);
+    EXPECT_TRUE(same_pointers(diag->assignment, span_of(global_variable)));
   }
 }
 
-TEST(Test_Variable_Analyzer_Globals, nodejs_global_variables_are_usable) {
+TEST_F(Test_Variable_Analyzer_Globals, nodejs_global_variables_are_usable) {
   for (const Char8 *global_variable : nodejs_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
     Diag_Collector v;
@@ -268,8 +271,8 @@ TEST(Test_Variable_Analyzer_Globals, nodejs_global_variables_are_usable) {
   }
 }
 
-TEST(Test_Variable_Analyzer_Globals,
-     non_module_nodejs_global_variables_are_shadowable) {
+TEST_F(Test_Variable_Analyzer_Globals,
+       non_module_nodejs_global_variables_are_shadowable) {
   for (Variable_Declaration_Flags flags :
        {Variable_Declaration_Flags::none,
         Variable_Declaration_Flags::initialized_with_equals}) {
@@ -286,41 +289,40 @@ TEST(Test_Variable_Analyzer_Globals,
   }
 }
 
-TEST(Test_Variable_Analyzer_Globals,
-     type_only_global_variables_are_not_usable_in_expressions) {
+TEST_F(Test_Variable_Analyzer_Globals,
+       type_only_global_variables_are_not_usable_in_expressions) {
   for (const Char8 *global_variable : type_only_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
 
     // Awaited;
     {
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
+      Diag_List_Diag_Reporter diags(&this->memory_);
+      Variable_Analyzer l(&diags, &default_globals, typescript_var_options);
       l.visit_variable_use(identifier_of(global_variable));
       l.visit_end_of_module();
-      EXPECT_THAT(v.errors, ElementsAreArray({
-                                DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable,
-                                               name, span_of(global_variable)),
-                            }));
+      auto *diag = get_only_diagnostic<Diag_Use_Of_Undeclared_Variable>(
+          diags.diags(), Diag_Type::Diag_Use_Of_Undeclared_Variable);
+      ASSERT_NE(diag, nullptr);
+      EXPECT_TRUE(same_pointers(diag->name, span_of(global_variable)));
     }
 
     // Awaited = null;
     {
-      Diag_Collector v;
-      Variable_Analyzer l(&v, &default_globals, typescript_var_options);
+      Diag_List_Diag_Reporter diags(&this->memory_);
+      Variable_Analyzer l(&diags, &default_globals, typescript_var_options);
       l.visit_variable_assignment(identifier_of(global_variable),
                                   Variable_Assignment_Flags::none);
       l.visit_end_of_module();
-      EXPECT_THAT(v.errors,
-                  ElementsAreArray({
-                      DIAG_TYPE_SPAN(Diag_Assignment_To_Undeclared_Variable,
-                                     assignment, span_of(global_variable)),
-                  }));
+      auto *diag = get_only_diagnostic<Diag_Assignment_To_Undeclared_Variable>(
+          diags.diags(), Diag_Type::Diag_Assignment_To_Undeclared_Variable);
+      ASSERT_NE(diag, nullptr);
+      EXPECT_TRUE(same_pointers(diag->assignment, span_of(global_variable)));
     }
   }
 }
 
-TEST(Test_Variable_Analyzer_Globals,
-     type_only_global_variables_are_usable_in_types) {
+TEST_F(Test_Variable_Analyzer_Globals,
+       type_only_global_variables_are_usable_in_types) {
   // null as Awaited;
   for (const Char8 *global_variable : type_only_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
@@ -332,8 +334,8 @@ TEST(Test_Variable_Analyzer_Globals,
   }
 }
 
-TEST(Test_Variable_Analyzer_Globals,
-     any_variable_is_declarable_and_usable_if_opted_into) {
+TEST_F(Test_Variable_Analyzer_Globals,
+       any_variable_is_declarable_and_usable_if_opted_into) {
   // This tests the "literally-anything" global group.
 
   Global_Declared_Variable_Set globals;
