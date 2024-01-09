@@ -54,17 +54,35 @@ std::string get_matcher_message(::testing::Matcher<const Value &> matcher,
       ::testing::internal::MakePredicateFormatterFromMatcher(matcher), value, \
       ADD_FAILURE_AT_CALLER)
 
+// Like ASSERT_EQ, but using the 'caller' variable for source locations.
+#define ASSERT_NE_AT_CALLER(lhs, rhs)                             \
+  GTEST_PRED_FORMAT2_(::testing::internal::CmpHelperNE, lhs, rhs, \
+                      GTEST_FAIL_AT_CALLER)
+
 // Like EXPECT_EQ, but using the 'caller' variable for source locations.
 #define EXPECT_EQ_AT_CALLER(lhs, rhs)                                   \
   GTEST_PRED_FORMAT2_(::testing::internal::EqHelper::Compare, lhs, rhs, \
                       ADD_FAILURE_AT_CALLER)
 
-#define ADD_FAILURE_AT_CALLER(message)                                   \
+// Like EXPECT_TRUE, but using the 'caller' variable for source locations.
+#define EXPECT_TRUE_AT_CALLER(value) EXPECT_EQ_AT_CALLER(value, true)
+
+// Like ADD_FAILURE, but using the 'caller' variable for source locations.
+#define ADD_FAILURE_AT_CALLER(message)   \
+  ADD_FAILURE_OR_FAIL_AT_CALLER(message, \
+                                ::testing::TestPartResult::kNonFatalFailure)
+
+// Like GTEST_FAIL, but using the 'caller' variable for source locations.
+#define GTEST_FAIL_AT_CALLER(message)    \
+  ADD_FAILURE_OR_FAIL_AT_CALLER(message, \
+                                ::testing::TestPartResult::kFatalFailure)
+
+#define ADD_FAILURE_OR_FAIL_AT_CALLER(message, failure_kind)             \
   GTEST_MESSAGE_AT_(                                                     \
       (caller.valid() ? caller.file_name() : __FILE__),                  \
       (caller.valid() ? ::quick_lint_js::narrow_cast<int>(caller.line()) \
                       : __LINE__),                                       \
-      message, ::testing::TestPartResult::kNonFatalFailure)
+      message, failure_kind)
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
