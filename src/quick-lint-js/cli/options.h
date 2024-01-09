@@ -19,10 +19,7 @@ enum class Output_Format {
   emacs_lisp,
 };
 
-enum class Raw_Input_File_Language : unsigned char {
-  // Explicit (--language=default) or implicit (no --language).
-  default_,
-
+enum class Resolved_Input_File_Language : unsigned char {
   javascript,
   javascript_jsx,
   typescript,
@@ -30,13 +27,18 @@ enum class Raw_Input_File_Language : unsigned char {
   typescript_jsx,
 };
 
-enum class Resolved_Input_File_Language : unsigned char {
-  javascript = enum_to_int_cast(Raw_Input_File_Language::javascript),
-  javascript_jsx = enum_to_int_cast(Raw_Input_File_Language::javascript_jsx),
-  typescript = enum_to_int_cast(Raw_Input_File_Language::typescript),
+enum class Raw_Input_File_Language : unsigned char {
+  javascript = enum_to_int_cast(Resolved_Input_File_Language::javascript),
+  javascript_jsx =
+      enum_to_int_cast(Resolved_Input_File_Language::javascript_jsx),
+  typescript = enum_to_int_cast(Resolved_Input_File_Language::typescript),
   typescript_definition =
-      enum_to_int_cast(Raw_Input_File_Language::typescript_definition),
-  typescript_jsx = enum_to_int_cast(Raw_Input_File_Language::typescript_jsx),
+      enum_to_int_cast(Resolved_Input_File_Language::typescript_definition),
+  typescript_jsx =
+      enum_to_int_cast(Resolved_Input_File_Language::typescript_jsx),
+
+  // Explicit (--language=default) or implicit (no --language).
+  default_,
 };
 
 enum class Option_When { auto_, always, never };
