@@ -11,6 +11,8 @@ let paths = [
   "/blog/syntax-errors-2021/",
   "/blog/version-1.0/",
   "/blog/version-2.0/",
+  "/blog/version-3.0/",
+  "/blog/why-another-javascript-linter/",
   "/cli/",
   "/config/",
   "/contact/",
