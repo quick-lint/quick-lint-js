@@ -1284,14 +1284,14 @@ TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
                                 "visit_exit_interface_scope",  //
                                 "visit_end_of_module",
                             }));
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Fields_Cannot_Have_Initializers,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_Interface_Fields_Cannot_Have_Initializers,  //
                   equal, (u8"interface I { " + field_name + u8" ").size(),
                   u8"="_sv),
-          }));
+          });
     }
 
     {
@@ -1299,16 +1299,16 @@ TEST_F(Test_Parse_TypeScript_Interface, field_initializers_are_not_allowed) {
           concat(u8"interface I { static "_sv, field_name, u8" = y; }"_sv),
           typescript_options, capture_diags);
       p.parse_and_visit_module();
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ::testing::UnorderedElementsAreArray({
-              DIAG_TYPE(Diag_Interface_Properties_Cannot_Be_Static),
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Interface_Fields_Cannot_Have_Initializers,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              u8"Diag_Interface_Properties_Cannot_Be_Static"_diag,
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_Interface_Fields_Cannot_Have_Initializers,  //
                   equal,
                   (u8"interface I { static " + field_name + u8" ").size(),
                   u8"="_sv),
-          }));
+          });
     }
   }
 

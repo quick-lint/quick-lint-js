@@ -319,13 +319,13 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Cannot_Declare_Variable_With_Keyword_Name,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_Cannot_Declare_Variable_With_Keyword_Name,  //
                   keyword, u8"var "_sv.size(), keyword),
-          }));
+          });
     }
 
     {
@@ -333,13 +333,13 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
       SCOPED_TRACE(p.code);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Cannot_Declare_Variable_With_Keyword_Name,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_Cannot_Declare_Variable_With_Keyword_Name,  //
                   keyword, u8"var "_sv.size(), keyword),
-          }));
+          });
     }
 
     {
@@ -350,13 +350,13 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_use",  // x
                             }));
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Cannot_Declare_Variable_With_Keyword_Name,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_Cannot_Declare_Variable_With_Keyword_Name,  //
                   keyword, u8"var "_sv.size(), keyword),
-          }));
+          });
     }
   }
 
@@ -988,13 +988,13 @@ TEST_F(Test_Parse_Var, new_style_variables_cannot_be_named_let) {
   for (String8 declaration_kind : {u8"const", u8"let"}) {
     Test_Parser p(concat(declaration_kind, u8" let = null;"_sv), capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.legacy_errors(),
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(
-                p.code, Diag_Cannot_Declare_Variable_Named_Let_With_Let,  //
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            DIAGNOSTIC_ASSERTION_SPAN(
+                Diag_Cannot_Declare_Variable_Named_Let_With_Let,  //
                 name, declaration_kind.size() + 1, u8"let"_sv),
-        }));
+        });
 
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",

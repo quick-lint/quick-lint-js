@@ -265,13 +265,13 @@ TEST_F(Test_Parse_Module, export_default_of_variable_is_illegal) {
                               "visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                           }));
-    EXPECT_THAT(
-        p.legacy_errors(),
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Cannot_Export_Default_Variable,  //
-                              declaring_token, u8"export default "_sv.size(),
-                              declaration_kind),
-        }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           DIAGNOSTIC_ASSERTION_SPAN(
+                               Diag_Cannot_Export_Default_Variable,  //
+                               declaring_token, u8"export default "_sv.size(),
+                               declaration_kind),
+                       });
   }
 }
 
@@ -428,12 +428,12 @@ TEST_F(Test_Parse_Module,
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
-    EXPECT_THAT(p.legacy_errors(),
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Cannot_Export_Variable_Named_Keyword,  //
-                        export_name, u8"export {"_sv.size(), keyword),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           DIAGNOSTIC_ASSERTION_SPAN(
+                               Diag_Cannot_Export_Variable_Named_Keyword,  //
+                               export_name, u8"export {"_sv.size(), keyword),
+                       });
   }
 
   for (String8 keyword : strict_reserved_keywords) {
@@ -443,12 +443,12 @@ TEST_F(Test_Parse_Module,
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
-    EXPECT_THAT(p.legacy_errors(),
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Cannot_Export_Variable_Named_Keyword,  //
-                        export_name, u8"export {"_sv.size(), keyword),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           DIAGNOSTIC_ASSERTION_SPAN(
+                               Diag_Cannot_Export_Variable_Named_Keyword,  //
+                               export_name, u8"export {"_sv.size(), keyword),
+                       });
   }
 
   // TODO(strager): Test u8"await" and u8"yield".
@@ -906,13 +906,13 @@ TEST_F(Test_Parse_Module, imported_modules_must_be_quoted) {
     Test_Parser p(concat(u8"import { test } from "_sv, import_name, u8";"_sv),
                   capture_diags);
     p.parse_and_visit_statement();
-    EXPECT_THAT(
-        p.legacy_errors(),
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(p.code, Diag_Cannot_Import_From_Unquoted_Module,
-                              import_name, u8"import { test } from "_sv.size(),
-                              import_name),
-        }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            DIAGNOSTIC_ASSERTION_SPAN(
+                Diag_Cannot_Import_From_Unquoted_Module, import_name,
+                u8"import { test } from "_sv.size(), import_name),
+        });
   }
 }
 
@@ -927,12 +927,12 @@ TEST_F(Test_Parse_Module,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_declaration",  // (name)
                             }));
-      EXPECT_THAT(p.legacy_errors(),
-                  ElementsAreArray({
-                      DIAG_TYPE_OFFSETS(
-                          p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
-                          import_name, u8"import { "_sv.size(), name),
-                  }));
+      assert_diagnostics(p.code, p.errors,
+                         {
+                             DIAGNOSTIC_ASSERTION_SPAN(
+                                 Diag_Cannot_Import_Variable_Named_Keyword,  //
+                                 import_name, u8"import { "_sv.size(), name),
+                         });
     }
 
     {
@@ -944,13 +944,13 @@ TEST_F(Test_Parse_Module,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_declaration",  // (name)
                             }));
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_Cannot_Import_Variable_Named_Keyword,  //
                   import_name, u8"import { someFunction as "_sv.size(), name),
-          }));
+          });
     }
 
     {
@@ -961,13 +961,13 @@ TEST_F(Test_Parse_Module,
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray({import_decl(name)}));
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_Cannot_Import_Variable_Named_Keyword,  //
                   import_name, u8"import { 'someFunction' as "_sv.size(), name),
-          }));
+          });
     }
 
     {
@@ -978,12 +978,12 @@ TEST_F(Test_Parse_Module,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_declaration",  // (name)
                             }));
-      EXPECT_THAT(p.legacy_errors(),
-                  ElementsAreArray({
-                      DIAG_TYPE_OFFSETS(
-                          p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
-                          import_name, u8"import "_sv.size(), name),
-                  }));
+      assert_diagnostics(p.code, p.errors,
+                         {
+                             DIAGNOSTIC_ASSERTION_SPAN(
+                                 Diag_Cannot_Import_Variable_Named_Keyword,  //
+                                 import_name, u8"import "_sv.size(), name),
+                         });
     }
 
     {
@@ -994,12 +994,12 @@ TEST_F(Test_Parse_Module,
       EXPECT_THAT(p.visits, ElementsAreArray({
                                 "visit_variable_declaration",  // (name)
                             }));
-      EXPECT_THAT(p.legacy_errors(),
-                  ElementsAreArray({
-                      DIAG_TYPE_OFFSETS(
-                          p.code, Diag_Cannot_Import_Variable_Named_Keyword,  //
-                          import_name, u8"import * as "_sv.size(), name),
-                  }));
+      assert_diagnostics(p.code, p.errors,
+                         {
+                             DIAGNOSTIC_ASSERTION_SPAN(
+                                 Diag_Cannot_Import_Variable_Named_Keyword,  //
+                                 import_name, u8"import * as "_sv.size(), name),
+                         });
     }
   }
 

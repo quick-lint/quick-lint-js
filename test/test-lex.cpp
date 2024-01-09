@@ -720,27 +720,27 @@ TEST_F(Test_Lex, lex_strings) {
   }
 
   for (String8_View line_terminator : line_terminators_except_ls_ps) {
-    Diag_Collector v;
+    Diag_List_Diag_Reporter diags(&this->memory_);
     Padded_String input(
         concat(u8"'separated"_sv, line_terminator, u8"hello'"_sv));
-    Lexer l(&input, &v);
+    Lexer l(&input, &diags);
     EXPECT_EQ(l.peek().type, Token_Type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
 
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(&input,
-                                      Diag_Unclosed_String_Literal,  //
-                                      string_literal, 0, input.string_view()),
-                }));
+    assert_diagnostics(
+        &input, diags.diags(),
+        {
+            DIAGNOSTIC_ASSERTION_SPAN(Diag_Unclosed_String_Literal,  //
+                                      string_literal, 0, input),
+        });
   }
 
   for (String8_View line_terminator : line_terminators_except_ls_ps) {
-    Diag_Collector v;
+    Diag_List_Diag_Reporter diags(&this->memory_);
     Padded_String input(concat(u8"'separated"_sv, line_terminator,
                                line_terminator, u8"hello'"_sv));
-    Lexer l(&input, &v);
+    Lexer l(&input, &diags);
     EXPECT_EQ(l.peek().type, Token_Type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
@@ -749,16 +749,18 @@ TEST_F(Test_Lex, lex_strings) {
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAreArray({
-            DIAG_TYPE_OFFSETS(&input, Diag_Unclosed_String_Literal,  //
-                              string_literal, 0, u8"'separated"_sv),
-            DIAG_TYPE_OFFSETS(
-                &input, Diag_Unclosed_String_Literal, string_literal,  //
-                u8"'separatedhello"_sv.size() + 2 * line_terminator.size(),
-                u8"'"_sv),
-        }));
+    assert_diagnostics(
+        &input, diags.diags(),
+        {
+            DIAGNOSTIC_ASSERTION_SPAN(Diag_Unclosed_String_Literal,  //
+                                      string_literal, 0, u8"'separated"_sv),
+            DIAGNOSTIC_ASSERTION_SPAN(Diag_Unclosed_String_Literal,  //
+                                      string_literal,
+                                      u8"'separated"_sv.size() +
+                                          2 * line_terminator.size() +
+                                          u8"hello"_sv.size(),
+                                      u8"'"_sv),
+        });
   }
 
   for (String8_View line_terminator : line_terminators_except_ls_ps) {
@@ -1145,19 +1147,20 @@ TEST_F(Test_Lex, lex_regular_expression_literals) {
   for (String8_View raw_code : {u8"/end_of_file"_sv, u8R"(/eof\)"_sv}) {
     Padded_String code(raw_code);
     SCOPED_TRACE(code);
-    Diag_Collector v;
-    Lexer l(&code, &v);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Lexer l(&code, &diags);
     EXPECT_EQ(l.peek().type, Token_Type::slash);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, Token_Type::regexp);
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, &code[code.size()]);
 
-    EXPECT_THAT(v.errors,
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(&code, Diag_Unclosed_Regexp_Literal,  //
-                                      regexp_literal, 0, code.string_view()),
-                }));
+    assert_diagnostics(
+        &code, diags.diags(),
+        {
+            DIAGNOSTIC_ASSERTION_SPAN(Diag_Unclosed_Regexp_Literal,  //
+                                      regexp_literal, 0, code),
+        });
 
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
@@ -1860,19 +1863,22 @@ TEST_F(
   for (String8 keyword : disallowed_binding_identifier_keywords) {
     Padded_String code(escape_first_character_in_keyword(keyword));
     SCOPED_TRACE(code);
-    Diag_Collector errors;
-    Lexer& l = this->make_lexer(&code, &errors);
+    Diag_List_Diag_Reporter diags(&this->memory_);
+    Lexer& l = this->make_lexer(&code, &diags);
 
     EXPECT_THAT(l.peek().type,
                 Token_Type::reserved_keyword_with_escape_sequence);
     EXPECT_THAT(l.peek().identifier_name().normalized_name(), keyword);
-    assert_diagnostics(&code, errors.errors, {});
+    assert_diagnostics(&code, diags.diags(), {});
 
-    l.peek().report_errors_for_escape_sequences_in_keyword(&errors);
-    EXPECT_THAT(errors.errors,
-                ElementsAreArray({DIAG_TYPE_OFFSETS(
-                    &code, Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
-                    escape_sequence, 0, u8"\\u{??}"_sv)}));
+    l.peek().report_errors_for_escape_sequences_in_keyword(&diags);
+    assert_diagnostics(
+        &code, diags.diags(),
+        {
+            DIAGNOSTIC_ASSERTION_SPAN(
+                Diag_Keywords_Cannot_Contain_Escape_Sequences,  //
+                escape_sequence, 0, u8"\\u{??}"_sv),
+        });
   }
 }
 

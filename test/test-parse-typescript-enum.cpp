@@ -372,13 +372,13 @@ TEST_F(Test_Parse_TypeScript_Enum,
                     capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_TypeScript_Enum_Value_Must_Be_Constant,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_TypeScript_Enum_Value_Must_Be_Constant,  //
                   expression, (decl + u8" E { A = ").size(), u8"f()"_sv),
-          }));
+          });
     }
 
     test_parse_and_visit_module(
@@ -391,13 +391,13 @@ TEST_F(Test_Parse_TypeScript_Enum,
                     typescript_options, capture_diags);
       SCOPED_TRACE(p.code);
       p.parse_and_visit_module();
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_TypeScript_Enum_Value_Must_Be_Constant,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_TypeScript_Enum_Value_Must_Be_Constant,  //
                   expression, (decl + u8" E { A = ").size(), u8"(2 + f())"_sv),
-          }));
+          });
     }
 
     test_parse_and_visit_module(

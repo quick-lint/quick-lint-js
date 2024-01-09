@@ -57,11 +57,11 @@ TEST_F(Test_Parse, statement_starting_with_invalid_token) {
     Test_Parser p(concat(token, u8" x"_sv), capture_diags);
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
-    EXPECT_THAT(p.legacy_errors(),
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(p.code, Diag_Unexpected_Token,  //
-                                      token, 0, token),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           DIAGNOSTIC_ASSERTION_SPAN(Diag_Unexpected_Token,  //
+                                                     token, 0, token),
+                       });
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_use",  // x
                               "visit_end_of_module",
@@ -178,12 +178,12 @@ TEST_F(Test_Parse, asi_for_statement_at_newline) {
     EXPECT_THAT(p.variable_uses, ElementsAreArray({u8"console", u8"console"}));
     CLI_Source_Position::Offset_Type end_of_first_expression =
         u8"console.log('hello')"_sv.size();
-    EXPECT_THAT(p.legacy_errors(),
-                ElementsAreArray({
-                    DIAG_TYPE_OFFSETS(
-                        p.code, Diag_Missing_Semicolon_After_Statement,  //
-                        where, end_of_first_expression, u8""_sv),
-                }));
+    assert_diagnostics(p.code, p.errors,
+                       {
+                           DIAGNOSTIC_ASSERTION_SPAN(
+                               Diag_Missing_Semicolon_After_Statement,  //
+                               where, end_of_first_expression, u8""_sv),
+                       });
   }
 
   for (String8_View variable_kind : {u8"const"_sv, u8"let"_sv, u8"var"_sv}) {
@@ -589,11 +589,11 @@ TEST_F(Test_Parse, unimplemented_token_doesnt_crash_if_caught) {
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.visits, IsEmpty());
-    EXPECT_THAT(diags.errors, ElementsAreArray({
-                                  DIAG_TYPE_OFFSETS(&unimplemented_token_code,
-                                                    Diag_Unexpected_Token,  //
-                                                    token, 0, u8"]"_sv),
-                              }));
+    assert_diagnostics(&unimplemented_token_code, diags.errors,
+                       {
+                           DIAGNOSTIC_ASSERTION_SPAN(Diag_Unexpected_Token,  //
+                                                     token, 0, u8"]"_sv),
+                       });
   }
 }
 

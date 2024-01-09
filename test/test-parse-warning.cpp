@@ -173,13 +173,13 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_string_compare_all_operators) {
       Test_Parser p(concat(u8"s.toLowerCase() "_sv, op, u8" 'Banana'"_sv),
                     capture_diags);
       p.parse_and_visit_statement();
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Pointless_String_Comp_Contains_Upper,
-                  span_operator, u8"s.toLowerCase() "_sv.size(), String8(op)),
-          }));
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_Pointless_String_Comp_Contains_Upper, span_operator,
+                  u8"s.toLowerCase() "_sv.size(), String8(op)),
+          });
     }
   }
   test_parse_and_visit_statement(u8"s.toLowerCase() || 'BANANA'"_sv, no_diags);
@@ -281,25 +281,24 @@ TEST_F(Test_Parse_Warning,
     {
       Test_Parser p(concat(u8"x "_sv, op, u8" []"_sv), capture_diags);
       p.parse_and_visit_expression();
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code,
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
                   Diag_Pointless_Strict_Comp_Against_Empty_Array_Literal,
                   equals_operator, u8"x "_sv.size(), op),
-          }));
+          });
     }
     {
       Test_Parser p(concat(u8"x "_sv, op, u8" [1, 2, 3]"_sv), capture_diags);
       p.parse_and_visit_expression();
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code, Diag_Pointless_Strict_Comp_Against_Array_Literal,
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
+                  Diag_Pointless_Strict_Comp_Against_Array_Literal,
                   equals_operator, u8"x "_sv.size(), op),
-          }));
+          });
     }
   }
 }
@@ -309,22 +308,22 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_compare_against_literals) {
     {
       Test_Parser p(concat(u8"x "_sv, op, u8" {}"_sv), capture_diags);
       p.parse_and_visit_expression();
-      EXPECT_THAT(p.legacy_errors(),
-                  ElementsAreArray({
-                      DIAG_TYPE_OFFSETS(
-                          p.code, Diag_Pointless_Comp_Against_Object_Literal,
-                          equals_operator, u8"x "_sv.size(), op),
-                  }));
+      assert_diagnostics(p.code, p.errors,
+                         {
+                             DIAGNOSTIC_ASSERTION_SPAN(
+                                 Diag_Pointless_Comp_Against_Object_Literal,
+                                 equals_operator, u8"x "_sv.size(), op),
+                         });
     }
     {
       Test_Parser p(concat(u8"x "_sv, op, u8" class C{}"_sv), capture_diags);
       p.parse_and_visit_expression();
-      EXPECT_THAT(p.legacy_errors(),
-                  ElementsAreArray({
-                      DIAG_TYPE_OFFSETS(
-                          p.code, Diag_Pointless_Comp_Against_Class_Literal,
-                          equals_operator, u8"x "_sv.size(), op),
-                  }));
+      assert_diagnostics(p.code, p.errors,
+                         {
+                             DIAGNOSTIC_ASSERTION_SPAN(
+                                 Diag_Pointless_Comp_Against_Class_Literal,
+                                 equals_operator, u8"x "_sv.size(), op),
+                         });
     }
     {
       Test_Parser p(
@@ -332,25 +331,24 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_compare_against_literals) {
                  u8" ((parameter) => { some_object.call(parameter); })"_sv),
           capture_diags);
       p.parse_and_visit_expression();
-      EXPECT_THAT(p.legacy_errors(),
-                  ElementsAreArray({
-                      DIAG_TYPE_OFFSETS(
-                          p.code, Diag_Pointless_Comp_Against_Arrow_Function,
-                          equals_operator, u8"x "_sv.size(), op),
-                  }));
+      assert_diagnostics(p.code, p.errors,
+                         {
+                             DIAGNOSTIC_ASSERTION_SPAN(
+                                 Diag_Pointless_Comp_Against_Arrow_Function,
+                                 equals_operator, u8"x "_sv.size(), op),
+                         });
     }
     {
       Test_Parser p(concat(u8"x "_sv, op, u8" /some_pattern/a"_sv),
                     capture_diags);
       p.parse_and_visit_expression();
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_OFFSETS(
-                  p.code,
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_SPAN(
                   Diag_Pointless_Comp_Against_Regular_Expression_Literal,
                   equals_operator, u8"x "_sv.size(), op),
-          }));
+          });
     }
   }
 }
