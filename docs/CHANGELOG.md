@@ -20,6 +20,9 @@ Semantic Versioning.
 
 * quick-lint-js's tracing no longer crashes with an assertion failure when
   setting its thread name on FreeBSD.
+* React-specific JSX diagnostics, such as [E0193][] ("misspelled React
+  attribute; write 'className' instead"), are now only reported when 'react' is
+  imported. This fixes false warnings in Preact code. ([#1152][])
 
 ## 3.0.0 (2024-01-01)
 
@@ -1375,6 +1378,8 @@ Beta release.
 [tiagovla]: https://github.com/tiagovla
 [toastin0]: https://github.com/toastin0
 [wagner riffel]: https://github.com/wgrr
+
+[#1152]: https://github.com/quick-lint/quick-lint-js/issues/1152
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
 [E0003]: https://quick-lint-js.com/errors/E0003/

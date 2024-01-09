@@ -68,6 +68,7 @@ void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
       }
     }
   }
+  this->check_all_jsx_attributes();
   v.visit_end_of_module();
 }
 
@@ -4695,6 +4696,7 @@ void Parser::parse_and_visit_import(
     // import "foo";
   case Token_Type::string:
     // Do not set is_current_typescript_namespace_non_empty_.
+    this->visited_module_import(this->peek());
     this->skip();
     this->consume_semicolon_after_statement();
     return;
@@ -4853,6 +4855,7 @@ void Parser::parse_and_visit_import(
 
           this->skip();
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::string);
+          this->visited_module_import(this->peek());
           this->skip();
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_paren);
           this->skip();
@@ -4918,6 +4921,7 @@ void Parser::parse_and_visit_import(
           .declare_keyword = *declare_context.declare_namespace_declare_keyword,
       });
     }
+    this->visited_module_import(this->peek());
     this->skip();
     break;
 
@@ -5311,6 +5315,18 @@ void Parser::parse_and_visit_named_exports(
 done:
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::right_curly);
   this->skip();
+}
+
+void Parser::visited_module_import(const Token &module_name) {
+  QLJS_ASSERT(module_name.type == Token_Type::string);
+  // TODO(#1159): Write a proper routine to decode string literals.
+  String8_View module_name_unescaped =
+      make_string_view(module_name.begin + 1, module_name.end - 1);
+  if (module_name_unescaped == u8"react"_sv ||
+      module_name_unescaped == u8"react-dom"_sv ||
+      starts_with(module_name_unescaped, u8"react-dom/"_sv)) {
+    this->imported_react_ = true;
+  }
 }
 
 void Parser::parse_and_visit_variable_declaration_statement(
