@@ -114,6 +114,23 @@ Each group name is a string.
 For the list of group names, see the <<Global Groups>> section.
 --
 
+*jsx-mode*:: Optional.
+How to lint intrinsic JSX elements.
++
+--
+*jsx-mode* is a string.
+Possible values are as follows:
+
+- *"auto"* (default): Determine the JSX flavor automatically using various heuristics.
+See the link:https://quick-lint-js.com/errors/jsx/#auto[JSX linting documentation] for more information about these heuristics.
+- *"react"*: Assume that JSX is intended for the React.js framework.
+- *"none"*: Disable all framework-specific JSX linting rules.
+
+See the link:https://quick-lint-js.com/errors/jsx/[JSX linting documentation] for more information on which rules are configured by *jsx-mode*.
+
+Introduced in quick-lint-js version 3.1.0.
+--
+
 [#globals]
 == Globals
 

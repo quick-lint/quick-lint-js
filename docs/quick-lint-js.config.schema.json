@@ -62,6 +62,12 @@
           "uniqueItems": true
         }
       ]
+    },
+
+    "jsx-mode": {
+      "description": "How to lint intrinsic JSX elements.",
+      "type": "string",
+      "enum": ["auto", "none", "react"]
     }
   }
 }

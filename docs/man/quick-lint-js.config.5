@@ -226,6 +226,57 @@ If \fBglobal\-groups\fP is a non\-empty array, then global variables are defined
 Each group name is a string.
 For the list of group names, see the GLOBAL GROUPS section.
 .RE
+.sp
+\fBjsx\-mode\fP
+.RS 4
+Optional.
+How to lint intrinsic JSX elements.
+.sp
+\fBjsx\-mode\fP is a string.
+Possible values are as follows:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fB"auto"\fP (default): Determine the JSX flavor automatically using various heuristics.
+See the \c
+.URL "https://quick\-lint\-js.com/errors/jsx/#auto" "JSX linting documentation" ""
+for more information about these heuristics.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fB"react"\fP: Assume that JSX is intended for the React.js framework.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fB"none"\fP: Disable all framework\-specific JSX linting rules.
+.RE
+.sp
+See the \c
+.URL "https://quick\-lint\-js.com/errors/jsx/" "JSX linting documentation" ""
+for more information on which rules are configured by \fBjsx\-mode\fP.
+.sp
+Introduced in quick\-lint\-js version 3.1.0.
+.RE
 .SH "GLOBALS"
 .sp
 The \fBglobals\fP configuration property tells quick\-lint\-js what global variables to assume exist.

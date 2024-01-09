@@ -18,6 +18,7 @@ namespace quick_lint_js {
 void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
                     Linter_Options options) {
   Parser_Options parser_options;
+  parser_options.jsx_mode = options.configuration->jsx_mode;
   switch (options.language) {
   case File_Language::javascript:
     parser_options.jsx = false;

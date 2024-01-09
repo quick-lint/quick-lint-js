@@ -14,8 +14,16 @@
 #include <string_view>
 #include <vector>
 
-#define EXPECT_DEFAULT_CONFIG(config)                                          \
+#define EXPECT_DEFAULT_CONFIG(config)                         \
+  do {                                                        \
+    EXPECT_EQ((config).jsx_mode,                              \
+              ::quick_lint_js::Parser_JSX_Mode::auto_detect); \
+    EXPECT_DEFAULT_CONFIG_GLOBALS(config);                    \
+  } while (false)
+
+#define EXPECT_DEFAULT_CONFIG_GLOBALS(config)                                  \
   do {                                                                         \
+    EXPECT_TRUE((config).globals().find_runtime_or_type(u8"Array"_sv));        \
     EXPECT_TRUE((config).globals().find_runtime_or_type(u8"Array"_sv));        \
     EXPECT_TRUE((config).globals().find_runtime_or_type(u8"console"_sv));      \
     EXPECT_FALSE(                                                              \
@@ -502,7 +510,7 @@ TEST(Test_Configuration_JSON, true_global_groups_leaves_defaults) {
   Configuration c;
   load_from_json(c, u8R"({"global-groups": true})"_sv);
 
-  EXPECT_DEFAULT_CONFIG(c);
+  EXPECT_DEFAULT_CONFIG_GLOBALS(c);
 }
 
 TEST(Test_Configuration_JSON, false_global_groups_disables_all_groups) {
@@ -533,7 +541,7 @@ TEST(Test_Configuration_JSON, empty_globals_leaves_defaults) {
   Configuration c;
   load_from_json(c, u8R"({"globals": {}})"_sv);
 
-  EXPECT_DEFAULT_CONFIG(c);
+  EXPECT_DEFAULT_CONFIG_GLOBALS(c);
 }
 
 TEST(Test_Configuration_JSON, true_global_is_usable) {
@@ -765,6 +773,72 @@ TEST(Test_Configuration_JSON, bad_global_error_excludes_trailing_whitespace) {
   c.load_from_json(&json, &diags);
 
   assert_diagnostics(&json, diags, {error});
+}
+
+TEST(Test_Configuration_JSON, valid_jsx_mode) {
+  {
+    Configuration c;
+    load_from_json(c, u8R"({"jsx-mode": "auto"})"_sv);
+    EXPECT_EQ(c.jsx_mode, Parser_JSX_Mode::auto_detect);
+  }
+
+  {
+    Configuration c;
+    load_from_json(c, u8R"({"jsx-mode": "react"})"_sv);
+    EXPECT_EQ(c.jsx_mode, Parser_JSX_Mode::react);
+  }
+
+  {
+    Configuration c;
+    load_from_json(c, u8R"({"jsx-mode": "none"})"_sv);
+    EXPECT_EQ(c.jsx_mode, Parser_JSX_Mode::none);
+  }
+}
+
+TEST(Test_Configuration_JSON, revert_jsx_mode_to_default) {
+  {
+    Configuration c;
+    load_from_json(c, u8R"({"jsx-mode": "react"})"_sv);
+    EXPECT_EQ(c.jsx_mode, Parser_JSX_Mode::react);
+    c.reset();
+    load_from_json(c, u8R"({"jsx-mode": "auto"})"_sv);
+    EXPECT_EQ(c.jsx_mode, Parser_JSX_Mode::auto_detect);
+  }
+
+  {
+    Configuration c;
+    load_from_json(c, u8R"({"jsx-mode": "react"})"_sv);
+    EXPECT_EQ(c.jsx_mode, Parser_JSX_Mode::react);
+    c.reset();
+    load_from_json(c, u8R"({})"_sv);
+    EXPECT_EQ(c.jsx_mode, Parser_JSX_Mode::auto_detect);
+  }
+}
+
+TEST(Test_Configuration_JSON, invalid_jsx_mode) {
+  Monotonic_Allocator temp_memory("test");
+
+  {
+    // clang-format off
+    Padded_String json(u8"{\"jsx-mode\": \"AUTO\"}"_sv);
+    auto error = /* */ u8"               ^^^^^^^^ Diag_Config_JSX_Mode_Unrecognized"_diag;
+    // clang-format on
+    Diag_List diags(&temp_memory);
+    Configuration c;
+    c.load_from_json(&json, &diags);
+    assert_diagnostics(&json, diags, {error});
+  }
+
+  {
+    // clang-format off
+    Padded_String json(u8"{\"jsx-mode\": true}"_sv);
+    auto error = /* */ u8"               ^^^^ Diag_Config_JSX_Mode_Type_Mismatch"_diag;
+    // clang-format on
+    Diag_List diags(&temp_memory);
+    Configuration c;
+    c.load_from_json(&json, &diags);
+    assert_diagnostics(&json, diags, {error});
+  }
 }
 
 void load_from_json(Configuration& config, Padded_String_View json) {

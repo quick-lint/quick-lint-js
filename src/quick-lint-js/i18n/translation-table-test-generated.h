@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[603] = {
+inline const Translated_String test_translation_table[605] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -92,6 +92,17 @@ inline const Translated_String test_translation_table[603] = {
             u8"\"globals\" doit \u00eatre un objet",
             u8"\"globals\" precisa ser um objeto",
             u8"\"globals\" must be an object",
+        },
+    },
+    {
+        "\"jsx-mode\" must be a string; try \"none\" or \"react\""_translatable,
+        u8"\"jsx-mode\" must be a string; try \"none\" or \"react\"",
+        {
+            u8"\"jsx-mode\" must be a string; try \"none\" or \"react\"",
+            u8"\"jsx-mode\" must be a string; try \"none\" or \"react\"",
+            u8"\"jsx-mode\" must be a string; try \"none\" or \"react\"",
+            u8"\"jsx-mode\" must be a string; try \"none\" or \"react\"",
+            u8"\"jsx-mode\" must be a string; try \"none\" or \"react\"",
         },
     },
     {
@@ -6241,6 +6252,17 @@ inline const Translated_String test_translation_table[603] = {
             u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
             u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
             u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &",
+        },
+    },
+    {
+        "unknown JSX mode; try \"none\" or \"react\""_translatable,
+        u8"unknown JSX mode; try \"none\" or \"react\"",
+        {
+            u8"unknown JSX mode; try \"none\" or \"react\"",
+            u8"unknown JSX mode; try \"none\" or \"react\"",
+            u8"unknown JSX mode; try \"none\" or \"react\"",
+            u8"unknown JSX mode; try \"none\" or \"react\"",
+            u8"unknown JSX mode; try \"none\" or \"react\"",
         },
     },
     {

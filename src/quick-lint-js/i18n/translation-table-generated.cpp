@@ -18,6 +18,7 @@ const Translation_Table translation_data = {
         {74, 87, 79, 56, 0, 59},             //
         {71, 80, 60, 58, 0, 52},             //
         {0, 0, 0, 0, 0, 28},                 //
+        {0, 0, 0, 0, 0, 51},                 //
         {0, 0, 0, 0, 0, 73},                 //
         {0, 0, 0, 0, 0, 74},                 //
         {0, 0, 0, 0, 0, 63},                 //
@@ -576,7 +577,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 65},                 //
         {92, 45, 78, 81, 70, 43},            //
         {0, 0, 0, 0, 0, 77},                 //
-        {98, 37, 86, 82, 83, 81},            //
+        {0, 0, 0, 0, 0, 81},                 //
+        {98, 37, 86, 82, 83, 40},            //
         {38, 35, 17, 23, 13, 14},            //
         {38, 27, 34, 28, 33, 27},            //
         {26, 41, 26, 32, 0, 22},             //
@@ -1887,6 +1889,7 @@ const Translation_Table translation_data = {
         u8"\"globals\" descriptor \"writable\" property must be a boolean\0"
         u8"\"globals\" descriptor must be a boolean or an object\0"
         u8"\"globals\" must be an object\0"
+        u8"\"jsx-mode\" must be a string; try \"none\" or \"react\"\0"
         u8"'!' (definite assignment assertion) cannot be used with an initial value\0"
         u8"'!' (definite assignment assertion) is not allowed on 'declare' variables\0"
         u8"'!' here treated as the TypeScript non-null assertion operator\0"
@@ -2446,6 +2449,7 @@ const Translation_Table translation_data = {
         u8"unexpected whitespace between '!' and '=='\0"
         u8"unicode byte order mark (BOM) cannot appear before #! at beginning of script\0"
         u8"unintuitive operator precedence when using & and '{0}'; '{0}' evaluates before &\0"
+        u8"unknown JSX mode; try \"none\" or \"react\"\0"
         u8"unmatched '}'\0"
         u8"unmatched indexing bracket\0"
         u8"unmatched parenthesis\0"

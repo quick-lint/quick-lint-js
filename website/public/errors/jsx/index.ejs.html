@@ -1,0 +1,228 @@
+<!---{
+"title": "JSX-specific errors in quick-lint-js",
+"description": "quick-lint-js provides helpful error messages for JSX code."
+}--->
+
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html lang="en">
+  <head>
+    <%- await include("../../common-head.ejs.html") %>
+    <link href="../../main.css" rel="stylesheet" />
+  </head>
+
+  <body class="side-bar-nav">
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h1>JSX linting</h1>
+
+      <p>
+        quick-lint-js supports JSX in JavaScript and TypeScript code. Different
+        web frameworks, such as React.js, treat JSX differently. quick-lint-js
+        has different diagnostics for different frameworks.
+      </p>
+
+      <h2>JSX modes</h2>
+
+      <p>
+        quick-lint-js has a configurable <dfn>JSX mode</dfn> which determines
+        which diagnostics are reported, if any, for invalid JSX use.
+      </p>
+
+      <table>
+        <caption>
+          quick-lint-js's JSX modes
+        </caption>
+        <thead>
+          <tr>
+            <th>JSX mode</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code style="json">"auto"</code> (default)</td>
+            <td><a href="#auto">See below</a></td>
+          </tr>
+
+          <tr>
+            <td><code style="json">"react"</code></td>
+            <td><a href="#react">React.js</a></td>
+          </tr>
+
+          <tr>
+            <td><code style="json">"none"</code></td>
+            <td>
+              JSX is allowed, but no framework-specific<br />diagnostics are
+              reported
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        You can specify the JSX mode explicitly by creating a
+        <a href="../../config/">quick-lint-js.config file</a>. This is useful if
+        quick-lint-js fails to automatically detect your framework. For example:
+      </p>
+      <figure style="max-width: 30em">
+        <pre><code style="quick-lint-js-config json">{
+  "jsx-mode": "react"
+}</code></pre>
+        <figcaption>
+          quick-lint-js.config which lints JSX as React.js without needing
+          <code style="javascript">import "react";</code>
+        </figcaption>
+      </figure>
+
+      <section id="auto">
+        <h3><code style="json">"auto"</code> JSX mode</h3>
+
+        <p>
+          By default, quick-lint-js's JSX mode is
+          <code style="json">"auto"</code>. If the JSX mode is
+          <code style="json">"auto"</code>, then quick-lint-js will guess which
+          framework you are using based on
+          <code style="javascript">import</code> statements in your code:
+        </p>
+
+        <table>
+          <caption>
+            quick-lint-js's JSX mode heuristics
+          </caption>
+          <thead>
+            <tr>
+              <th>Import</th>
+              <th>Guessed JSX mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <code style="javascript">import React from "react";</code>
+              </td>
+              <td><code style="json">"react"</code></td>
+            </tr>
+            <tr>
+              <td>
+                <code style="javascript"
+                  >import ReactDOM from "react-dom";</code
+                >
+              </td>
+              <td><code style="json">"react"</code></td>
+            </tr>
+            <tr>
+              <td>
+                <code style="javascript"
+                  >import ReactDOM from "react-dom/client";</code
+                >
+              </td>
+              <td><code style="json">"react"</code></td>
+            </tr>
+            <tr>
+              <td>
+                <code style="javascript"
+                  >import ReactDOM from "react-dom/server";</code
+                >
+              </td>
+              <td><code style="json">"react"</code></td>
+            </tr>
+            <tr>
+              <td>
+                (none of the above
+                <code style="javascript">import</code> statements)
+              </td>
+
+              <td><code style="json">"none"</code></td>
+            </tr>
+            <tr>
+              <td>(multiple JSX modes detected)</td>
+              <td><code style="json">"none"</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="react">
+        <h2>React.js (<code style="json">"react"</code> JSX mode)</h2>
+
+        <p>
+          quick-lint-js detects misuse of JSX with the React.js framework if the
+          JSX mode is <code style="json">"react"</code>.
+        </p>
+
+        <p>
+          React.js-specific diagnostics: <a href="../E0191/">E0191</a>,
+          <a href="../E0192/">E0192</a>, <a href="../E0193/">E0193</a>
+        </p>
+
+        <script>
+          //<%
+          let {
+            errorDocumentationExampleToHTML,
+            qljsProcessPromise,
+          } = await importFileAsync("../../../src/error-documentation.mjs");
+          let {
+            LanguageOptions,
+          } = await importFileAsync("../../../wasm/quick-lint-js.js");
+
+          // Returns HTML source code.
+          async function lintJSXCodeAsync(code) {
+            let process = await qljsProcessPromise;
+            let doc = await process.createDocumentForWebDemoAsync();
+            doc.setText(code);
+            doc.setLanguageOptions(LanguageOptions.JSX);
+            return errorDocumentationExampleToHTML({code: code, diagnostics: doc.lint(),});
+          }
+
+          //%>
+        </script>
+        <figure style="max-width: 35em">
+          <pre><code class=javascript><%- await lintJSXCodeAsync(`import React from "react";
+
+export function CommentButton({onClick}) {
+  return (
+    <button
+      onclick={onClick}
+      accesskey="c"
+      class="red-button"
+    >
+      Comment
+    </button>
+  );
+}`) %></code></pre>
+          <figcaption>
+            Demonstration of different React-specific diagnostics in
+            quick-lint-js
+          </figcaption>
+        </figure>
+      </section>
+    </main>
+
+    <footer><%- await include("../../common-footer-nav.ejs.html") %></footer>
+
+    <script src="../../../error-box.bundled.js"></script>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

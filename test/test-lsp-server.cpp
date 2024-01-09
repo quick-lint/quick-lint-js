@@ -843,14 +843,16 @@ TEST_F(Test_Linting_LSP_Server,
 }
 
 TEST_F(Test_Linting_LSP_Server, linting_uses_config_from_file) {
-  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
-                       u8R"({"globals": {"testGlobalVariable": true}})"_sv);
+  this->fs.create_file(
+      this->fs.rooted("quick-lint-js.config"),
+      u8R"({"globals": {"testGlobalVariable": true}, "jsx-mode": "none"})"_sv);
 
   auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
     EXPECT_TRUE(
         config.globals().find_runtime_or_type(u8"testGlobalVariable"_sv));
+    EXPECT_EQ(config.jsx_mode, Parser_JSX_Mode::none);
   };
   this->linter.lint_callback = lint_callback;
 

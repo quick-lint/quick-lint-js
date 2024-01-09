@@ -11,6 +11,7 @@
 #include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/global-variables.h>
+#include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/simdjson-fwd.h>
 #include <vector>
@@ -21,6 +22,8 @@ class Diag_List;
 class Configuration {
  public:
   explicit Configuration();
+
+  Parser_JSX_Mode jsx_mode;
 
   const Global_Declared_Variable_Set& globals();
 

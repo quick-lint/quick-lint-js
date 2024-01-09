@@ -10,6 +10,9 @@ Semantic Versioning.
 
 ### Added
 
+* quick-lint-js's JSX diagnostics can now be configured via quick-lint-js's [JSX
+  mode][] mechanism. New JSX modes are `"none"`, `"react"`, and `"auto"`
+  (default).
 * Writing a namespace alias with `import type`, such as in
   `import type ns = otherns;`, now reports [E0717][] ("namespace alias cannot
   use 'import type'"). (Implemented by [koopiehoop][].)
@@ -1322,6 +1325,7 @@ Beta release.
 
 [Bun]: https://bun.sh/
 [Deno]: https://deno.land/
+[JSX Mode]: https://quick-lint-js.com/errors/jsx/
 [cli-language]: ../cli/#language
 [cmake-install-component-build-tools-patch]: https://github.com/quick-lint/quick-lint-js/commit/3923f0df76d24b73d57f15eec61ab190ea048093.patch
 [coc.nvim]: https://github.com/neoclide/coc.nvim

@@ -731,6 +731,20 @@ struct Diag_Config_Globals_Type_Mismatch {
   Source_Code_Span value;
 };
 
+struct Diag_Config_JSX_Mode_Type_Mismatch {
+  [[qljs::diag("E0456", Diagnostic_Severity::error)]]  //
+  [[qljs::message("\"jsx-mode\" must be a string; try \"none\" or \"react\"",
+                  ARG(value))]]  //
+  Source_Code_Span value;
+};
+
+struct Diag_Config_JSX_Mode_Unrecognized {
+  [[qljs::diag("E0455", Diagnostic_Severity::error)]]  //
+  [[qljs::message("unknown JSX mode; try \"none\" or \"react\"",
+                  ARG(value))]]  //
+  Source_Code_Span value;
+};
+
 struct Diag_Depth_Limit_Exceeded {
   [[qljs::diag("E0203", Diagnostic_Severity::error)]]    //
   [[qljs::message("depth limit exceeded", ARG(token))]]  //

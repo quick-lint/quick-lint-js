@@ -135,9 +135,57 @@ void Configuration::load_from_json(Padded_String_View json,
     this->report_json_error(json, out_diags);
     return;
   }
+
+  auto jsx_mode = document["jsx-mode"];
+  std::string_view jsx_mode_string;
+  switch (jsx_mode.get(jsx_mode_string)) {
+  case ::simdjson::error_code::SUCCESS: {
+    if (jsx_mode_string == "auto"sv) {
+      this->jsx_mode = Parser_JSX_Mode::auto_detect;
+    } else if (jsx_mode_string == "react"sv) {
+      this->jsx_mode = Parser_JSX_Mode::react;
+    } else if (jsx_mode_string == "none"sv) {
+      this->jsx_mode = Parser_JSX_Mode::none;
+    } else {
+      ::simdjson::ondemand::value v;
+      if (jsx_mode.get(v) == ::simdjson::SUCCESS) {
+        out_diags->add(Diag_Config_JSX_Mode_Unrecognized{
+            .value = span_of_json_value(v),
+        });
+      } else {
+        this->report_json_error(json, out_diags);
+      }
+    }
+    break;
+  }
+
+  case ::simdjson::error_code::INCORRECT_TYPE: {
+    // Either "jsx-mode" has the wrong type or there is a syntax error. simdjson
+    // gives us INCORRECT_TYPE in both cases.
+    ::simdjson::ondemand::value v;
+    if (jsx_mode.get(v) == ::simdjson::SUCCESS &&
+        v.type().error() == ::simdjson::SUCCESS) {
+      out_diags->add(Diag_Config_JSX_Mode_Type_Mismatch{
+          .value = span_of_json_value(v),
+      });
+    } else {
+      this->report_json_error(json, out_diags);
+      return;
+    }
+    break;
+  }
+
+  case ::simdjson::error_code::NO_SUCH_FIELD:
+    break;
+
+  default:
+    this->report_json_error(json, out_diags);
+    return;
+  }
 }
 
 void Configuration::reset() {
+  this->jsx_mode = Parser_JSX_Mode::auto_detect;
   this->globals_.clear();
   this->globals_to_remove_.clear();
   this->did_add_globals_from_groups_ = false;

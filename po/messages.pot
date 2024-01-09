@@ -710,6 +710,14 @@ msgid "\"globals\" must be an object"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "\"jsx-mode\" must be a string; try \"none\" or \"react\""
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "unknown JSX mode; try \"none\" or \"react\""
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "depth limit exceeded"
 msgstr ""
 

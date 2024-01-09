@@ -1364,6 +1364,34 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Config_JSX_Mode_Type_Mismatch
+    {
+      .code = 456,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("\"jsx-mode\" must be a string; try \"none\" or \"react\""),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Config_JSX_Mode_Type_Mismatch, value), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
+    // Diag_Config_JSX_Mode_Unrecognized
+    {
+      .code = 455,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("unknown JSX mode; try \"none\" or \"react\""),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Config_JSX_Mode_Unrecognized, value), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Depth_Limit_Exceeded
     {
       .code = 203,
