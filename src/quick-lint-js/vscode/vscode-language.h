@@ -4,7 +4,7 @@
 #pragma once
 
 #include <iterator>
-#include <quick-lint-js/fe/linter.h>
+#include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/classify-path.h>
@@ -14,8 +14,8 @@ namespace quick_lint_js {
 // See also LSP_Language.
 struct VSCode_Language {
   constexpr VSCode_Language(std::string_view language_id,
-                            Linter_Options lint_options)
-      : lint_options(lint_options) {
+                            File_Language language)
+      : language(language) {
     quick_lint_js::copy(language_id.begin(), language_id.end(),
                         this->raw_language_id);
     this->language_id_size = static_cast<unsigned char>(language_id.size());
@@ -26,41 +26,19 @@ struct VSCode_Language {
   }
 
   // Returns nullptr if the language does not exist.
+  // TODO(#690): Remove 'allow_typescript'. It should always be true.
   static const VSCode_Language* find(std::string_view language_id,
                                      String8_View uri, bool allow_typescript) {
     using namespace std::literals::string_view_literals;
 
-    static constexpr Linter_Options jsx = {
-        .jsx = true,
-        .typescript = false,
-        .typescript_definition = false,
-        .print_parser_visits = false,
-    };
-    static constexpr Linter_Options ts = {
-        .jsx = false,
-        .typescript = true,
-        .typescript_definition = false,
-        .print_parser_visits = false,
-    };
     static constexpr VSCode_Language ts_definition(
-        "typescript"sv, Linter_Options{
-                            .jsx = false,
-                            .typescript = true,
-                            .typescript_definition = true,
-                            .print_parser_visits = false,
-                        });
-    static constexpr Linter_Options tsx = {
-        .jsx = true,
-        .typescript = true,
-        .typescript_definition = false,
-        .print_parser_visits = false,
-    };
+        "typescript"sv, File_Language::typescript_definition);
     static constexpr VSCode_Language languages[] = {
-        VSCode_Language("javascript"sv, jsx),
-        VSCode_Language("javascriptreact"sv, jsx),
+        VSCode_Language("javascript"sv, File_Language::javascript_jsx),
+        VSCode_Language("javascriptreact"sv, File_Language::javascript_jsx),
 
-        VSCode_Language("typescript"sv, ts),
-        VSCode_Language("typescriptreact"sv, tsx),
+        VSCode_Language("typescript"sv, File_Language::typescript),
+        VSCode_Language("typescriptreact"sv, File_Language::typescript_jsx),
     };
     const VSCode_Language* lang =
         find_unique_if(std::begin(languages), std::end(languages),
@@ -70,7 +48,10 @@ struct VSCode_Language {
     if (lang == std::end(languages)) {
       return nullptr;
     }
-    if (lang->lint_options.typescript && !allow_typescript) {
+    if ((lang->language == File_Language::typescript ||
+         lang->language == File_Language::typescript_jsx ||
+         lang->language == File_Language::typescript_definition) &&
+        !allow_typescript) {
       return nullptr;
     }
     Path_Classification classified_uri = classify_uri(uri);
@@ -82,7 +63,7 @@ struct VSCode_Language {
 
   char raw_language_id[16] = {};
   unsigned char language_id_size = 0;
-  Linter_Options lint_options;
+  File_Language language;
 };
 }
 

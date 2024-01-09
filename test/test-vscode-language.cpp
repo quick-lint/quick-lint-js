@@ -17,33 +17,29 @@ TEST(Test_VSCode_Language, primary_languages) {
     const VSCode_Language* language =
         VSCode_Language::find("javascript"sv, dummy_uri, allow_typescript);
     ASSERT_NE(language, nullptr);
-    EXPECT_TRUE(language->lint_options.jsx)
+    EXPECT_EQ(language->language, File_Language::javascript_jsx)
         << "JSX support should be enabled for 'javascript'";
-    EXPECT_FALSE(language->lint_options.typescript);
   }
 
   {
     const VSCode_Language* language =
         VSCode_Language::find("javascriptreact"sv, dummy_uri, allow_typescript);
     ASSERT_NE(language, nullptr);
-    EXPECT_TRUE(language->lint_options.jsx);
-    EXPECT_FALSE(language->lint_options.typescript);
+    EXPECT_EQ(language->language, File_Language::javascript_jsx);
   }
 
   {
     const VSCode_Language* language =
         VSCode_Language::find("typescript"sv, dummy_uri, allow_typescript);
     ASSERT_NE(language, nullptr);
-    EXPECT_FALSE(language->lint_options.jsx);
-    EXPECT_TRUE(language->lint_options.typescript);
+    EXPECT_EQ(language->language, File_Language::typescript);
   }
 
   {
     const VSCode_Language* language =
         VSCode_Language::find("typescriptreact"sv, dummy_uri, allow_typescript);
     ASSERT_NE(language, nullptr);
-    EXPECT_TRUE(language->lint_options.jsx);
-    EXPECT_TRUE(language->lint_options.typescript);
+    EXPECT_EQ(language->language, File_Language::typescript_jsx);
   }
 }
 
@@ -63,14 +59,14 @@ TEST(Test_VSCode_Language, typescript_file_without_d_is_source) {
     const VSCode_Language* language = VSCode_Language::find(
         "typescript"sv, u8"file:///test.ts"_sv, allow_typescript);
     ASSERT_NE(language, nullptr);
-    EXPECT_FALSE(language->lint_options.typescript_definition);
+    EXPECT_EQ(language->language, File_Language::typescript);
   }
 
   {
     const VSCode_Language* language = VSCode_Language::find(
         "typescript"sv, u8"file:///folder.d.ts/test.ts"_sv, allow_typescript);
     ASSERT_NE(language, nullptr);
-    EXPECT_FALSE(language->lint_options.typescript_definition)
+    EXPECT_EQ(language->language, File_Language::typescript)
         << ".d. in containing directory should be ignored";
   }
 
@@ -90,7 +86,7 @@ TEST(Test_VSCode_Language, typescript_file_with_d_is_definition) {
     const VSCode_Language* language =
         VSCode_Language::find("typescript"sv, uri, allow_typescript);
     ASSERT_NE(language, nullptr);
-    EXPECT_TRUE(language->lint_options.typescript_definition);
+    EXPECT_EQ(language->language, File_Language::typescript_definition);
   }
 }
 }
