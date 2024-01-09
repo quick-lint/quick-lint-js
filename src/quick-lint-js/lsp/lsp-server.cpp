@@ -754,12 +754,12 @@ LSP_Linter::~LSP_Linter() = default;
 void LSP_Linter::lint(LSP_Documents::Lintable_Document& doc,
                       String8_View uri_json,
                       Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
-  this->lint(*doc.config, Linter_Options{.language = doc.language},
-             doc.doc.string(), uri_json, doc.version_json, outgoing_messages);
+  this->lint(*doc.config, doc.language, doc.doc.string(), uri_json,
+             doc.version_json, outgoing_messages);
 }
 
 void LSP_JavaScript_Linter::lint(
-    Configuration& config, Linter_Options lint_options, Padded_String_View code,
+    Configuration& config, File_Language language, Padded_String_View code,
     String8_View uri_json, String8_View version_json,
     Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
   Byte_Buffer& notification_json = outgoing_messages.new_message();
@@ -776,16 +776,17 @@ void LSP_JavaScript_Linter::lint(
   notification_json.append_copy(version_json);
 
   notification_json.append_copy(u8R"--(,"diagnostics":)--"_sv);
-  this->lint_and_get_diagnostics(config, lint_options, code, notification_json);
+  this->lint_and_get_diagnostics(config, language, code, notification_json);
 
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"_sv);
 }
 
 void LSP_JavaScript_Linter::lint_and_get_diagnostics(
-    Configuration& config, Linter_Options lint_options, Padded_String_View code,
+    Configuration& config, File_Language language, Padded_String_View code,
     Byte_Buffer& diagnostics_json) {
   LSP_Diag_Reporter diag_reporter(qljs_messages, diagnostics_json, code);
-  parse_and_lint(code, diag_reporter, config.globals(), lint_options);
+  parse_and_lint(code, diag_reporter, config.globals(),
+                 Linter_Options{.language = language});
   diag_reporter.finish();
 }
 

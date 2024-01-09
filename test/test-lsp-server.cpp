@@ -54,12 +54,12 @@ POSIX_File_IO_Error generic_file_io_error = {EIO};
 class Mock_LSP_Linter final : public LSP_Linter {
  public:
   using Lint_And_Get_Diagnostics_Notification_Type =
-      void(Configuration&, Linter_Options, Padded_String_View code,
+      void(Configuration&, File_Language, Padded_String_View code,
            String8_View uri_json, String8_View version_json,
            Outgoing_JSON_RPC_Message_Queue& outgoing_messages);
 
   explicit Mock_LSP_Linter()
-      : lint_callback([](Configuration&, Linter_Options, Padded_String_View,
+      : lint_callback([](Configuration&, File_Language, Padded_String_View,
                          String8_View, String8_View,
                          Outgoing_JSON_RPC_Message_Queue&) -> void {
           // Do nothing.
@@ -70,12 +70,12 @@ class Mock_LSP_Linter final : public LSP_Linter {
 
   ~Mock_LSP_Linter() override = default;
 
-  void lint(Configuration& config, Linter_Options lint_options,
+  void lint(Configuration& config, File_Language language,
             Padded_String_View code, String8_View uri_json,
             String8_View version_json,
             Outgoing_JSON_RPC_Message_Queue& outgoing_messages) override {
     this->lint_calls.emplace_back(code.string_view());
-    this->lint_callback(config, lint_options, code, uri_json, version_json,
+    this->lint_callback(config, language, code, uri_json, version_json,
                         outgoing_messages);
   }
 
@@ -528,7 +528,7 @@ TEST_F(Test_Linting_LSP_Server, dollar_notifications_are_ignored) {
 }
 
 TEST_F(Test_Linting_LSP_Server, opening_document_lints) {
-  auto lint_callback = [&](Configuration&, Linter_Options,
+  auto lint_callback = [&](Configuration&, File_Language,
                            Padded_String_View code, String8_View uri_json,
                            String8_View version,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
@@ -604,10 +604,10 @@ TEST_F(Test_Linting_LSP_Server, javascript_language_ids_enable_jsx) {
     SCOPED_TRACE(out_string8(language_id));
     this->reset();
 
-    auto lint_callback = [&](Configuration&, Linter_Options lint_options,
+    auto lint_callback = [&](Configuration&, File_Language language,
                              Padded_String_View, String8_View, String8_View,
                              Outgoing_JSON_RPC_Message_Queue&) {
-      EXPECT_EQ(lint_options.language, File_Language::javascript_jsx);
+      EXPECT_EQ(language, File_Language::javascript_jsx);
     };
     this->linter.lint_callback = lint_callback;
 
@@ -636,10 +636,10 @@ TEST_F(Test_Linting_LSP_Server, typescript_language_ids_enable_typescript) {
     SCOPED_TRACE(out_string8(language_id));
     this->reset();
 
-    auto lint_callback = [&](Configuration&, Linter_Options lint_options,
+    auto lint_callback = [&](Configuration&, File_Language language,
                              Padded_String_View, String8_View, String8_View,
                              Outgoing_JSON_RPC_Message_Queue&) {
-      EXPECT_EQ(lint_options.language, File_Language::typescript);
+      EXPECT_EQ(language, File_Language::typescript);
     };
     this->linter.lint_callback = lint_callback;
 
@@ -668,10 +668,10 @@ TEST_F(Test_Linting_LSP_Server, tsx_language_ids_enable_typescript_jsx) {
     SCOPED_TRACE(out_string8(language_id));
     this->reset();
 
-    auto lint_callback = [&](Configuration&, Linter_Options lint_options,
+    auto lint_callback = [&](Configuration&, File_Language language,
                              Padded_String_View, String8_View, String8_View,
                              Outgoing_JSON_RPC_Message_Queue&) {
-      EXPECT_EQ(lint_options.language, File_Language::typescript_jsx);
+      EXPECT_EQ(language, File_Language::typescript_jsx);
     };
     this->linter.lint_callback = lint_callback;
 
@@ -846,7 +846,7 @@ TEST_F(Test_Linting_LSP_Server, linting_uses_config_from_file) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"testGlobalVariable": true}})"_sv);
 
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
     EXPECT_TRUE(
@@ -935,7 +935,7 @@ TEST_F(
       })"_sv)));
 
   this->linter.lint_calls.clear();
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
     EXPECT_FALSE(
@@ -971,7 +971,7 @@ TEST_F(Test_Linting_LSP_Server,
   this->fs.create_file(this->fs.rooted("a%b~/quick-lint-js.config"),
                        u8R"({"globals": {"testGlobalVariable": true}})"_sv);
 
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
     EXPECT_TRUE(
@@ -999,7 +999,7 @@ TEST_F(Test_Linting_LSP_Server,
 }
 
 TEST_F(Test_Linting_LSP_Server, linting_uses_already_opened_config_file) {
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
     EXPECT_TRUE(config.globals().find_runtime_or_type(u8"modified"_sv));
@@ -1044,7 +1044,7 @@ TEST_F(Test_Linting_LSP_Server, linting_uses_already_opened_config_file) {
 
 TEST_F(Test_Linting_LSP_Server,
        linting_uses_already_opened_shadowing_config_file) {
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
     EXPECT_TRUE(config.globals().find_runtime_or_type(u8"haveInnerConfig"_sv));
@@ -1091,7 +1091,7 @@ TEST_F(Test_Linting_LSP_Server,
 TEST_F(Test_Linting_LSP_Server, editing_config_relints_open_js_file) {
   bool after_config_was_loaded = false;
 
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue&) {
@@ -1221,7 +1221,7 @@ TEST_F(Test_Linting_LSP_Server,
         }
       })"_sv)));
 
-  auto lint_callback = [&](Configuration&, Linter_Options, Padded_String_View,
+  auto lint_callback = [&](Configuration&, File_Language, Padded_String_View,
                            String8_View, String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue&) {
     EXPECT_EQ(version_json, u8"11"_sv);
@@ -1257,7 +1257,7 @@ TEST_F(Test_Linting_LSP_Server,
 }
 
 TEST_F(Test_Linting_LSP_Server, editing_config_relints_many_open_js_files) {
-  auto lint_callback = [&](Configuration&, Linter_Options, Padded_String_View,
+  auto lint_callback = [&](Configuration&, File_Language, Padded_String_View,
                            String8_View uri_json, String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
     Byte_Buffer& notification_json = outgoing_messages.new_message();
@@ -1371,7 +1371,7 @@ TEST_F(Test_Linting_LSP_Server, editing_config_relints_many_open_js_files) {
 }
 
 TEST_F(Test_Linting_LSP_Server, editing_config_relints_only_affected_js_files) {
-  auto lint_callback = [&](Configuration&, Linter_Options, Padded_String_View,
+  auto lint_callback = [&](Configuration&, File_Language, Padded_String_View,
                            String8_View uri_json, String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
     Byte_Buffer& notification_json = outgoing_messages.new_message();
@@ -1551,7 +1551,7 @@ TEST_F(Test_Linting_LSP_Server,
       })"_sv)));
 
   this->linter.lint_calls.clear();
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue&) {
@@ -1586,7 +1586,7 @@ TEST_F(Test_Linting_LSP_Server,
 TEST_F(Test_Linting_LSP_Server, opening_config_relints_open_js_files) {
   bool after_config_was_loaded = false;
 
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue&) {
@@ -1657,7 +1657,7 @@ TEST_F(Test_Linting_LSP_Server,
       })"_sv)));
 
   bool after_config_was_loaded = false;
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
@@ -1703,7 +1703,7 @@ TEST_F(Test_Linting_LSP_Server,
 TEST_F(
     Test_Linting_LSP_Server,
     linting_uses_config_from_filesystem_if_config_is_opened_then_closed_before_opening_js_file) {
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue&) {
     EXPECT_TRUE(config.globals().find_runtime_or_type(u8"v1"_sv));
@@ -1795,7 +1795,7 @@ TEST_F(Test_Linting_LSP_Server,
       })"_sv)));
 
   this->linter.lint_calls.clear();
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View, String8_View,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
     EXPECT_TRUE(
@@ -1842,7 +1842,7 @@ TEST_F(Test_Linting_LSP_Server, opening_js_file_with_unreadable_config_lints) {
   };
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        failing_read_file_callback);
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
@@ -1907,7 +1907,7 @@ TEST_F(Test_Linting_LSP_Server,
        opening_js_file_with_invalid_config_json_lints) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8"INVALID JSON"_sv);
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
@@ -1999,7 +1999,7 @@ TEST_F(Test_Linting_LSP_Server, making_config_file_unreadable_relints) {
   };
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        failing_read_file_callback);
-  auto lint_callback = [&](Configuration& config, Linter_Options,
+  auto lint_callback = [&](Configuration& config, File_Language,
                            Padded_String_View, String8_View uri_json,
                            String8_View version_json,
                            Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
@@ -2527,8 +2527,8 @@ TEST(Test_LSP_JavaScript_Linter, linting_gives_diagnostics) {
   Configuration config;
 
   LSP_JavaScript_Linter linter;
-  linter.lint(config, Linter_Options(), &code, u8"\"file:///test.js\""_sv,
-              u8"10"_sv, notifications);
+  linter.lint(config, File_Language::javascript, &code,
+              u8"\"file:///test.js\""_sv, u8"10"_sv, notifications);
 
   Spy_LSP_Endpoint_Remote endpoint;
   notifications.send(endpoint);
