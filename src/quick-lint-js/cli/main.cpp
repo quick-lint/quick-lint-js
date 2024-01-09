@@ -193,8 +193,6 @@ void init();
 [[noreturn]] void run(int argc, char **argv);
 [[noreturn]] void run(Options o);
 
-Linter_Options get_linter_options_from_language(File_Language);
-
 void list_debug_apps();
 void run_lsp_server();
 
@@ -317,34 +315,6 @@ void run(Options o) {
   }
 
   std::exit(EXIT_SUCCESS);
-}
-
-Linter_Options get_linter_options_from_language(File_Language language) {
-  Linter_Options o;
-  switch (language) {
-  case File_Language::javascript:
-    o.jsx = false;
-    o.typescript = false;
-    break;
-  case File_Language::javascript_jsx:
-    o.jsx = true;
-    o.typescript = false;
-    break;
-  case File_Language::typescript:
-    o.jsx = false;
-    o.typescript = true;
-    break;
-  case File_Language::typescript_definition:
-    o.jsx = false;
-    o.typescript = true;
-    o.typescript_definition = true;
-    break;
-  case File_Language::typescript_jsx:
-    o.jsx = true;
-    o.typescript = true;
-    break;
-  }
-  return o;
 }
 
 void list_debug_apps() {

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <quick-lint-js/fe/language.h>
+
 namespace quick_lint_js {
 class Diag_Reporter;
 class Global_Declared_Variable_Set;
@@ -28,6 +30,8 @@ struct Linter_Options {
   friend bool operator==(Linter_Options, Linter_Options);
   friend bool operator!=(Linter_Options, Linter_Options);
 };
+
+Linter_Options get_linter_options_from_language(File_Language);
 
 void parse_and_lint(Padded_String_View code, Diag_Reporter&,
                     const Global_Declared_Variable_Set&, Linter_Options);

@@ -23,6 +23,34 @@ bool operator!=(Linter_Options lhs, Linter_Options rhs) {
   return !(lhs == rhs);
 }
 
+Linter_Options get_linter_options_from_language(File_Language language) {
+  Linter_Options o;
+  switch (language) {
+  case File_Language::javascript:
+    o.jsx = false;
+    o.typescript = false;
+    break;
+  case File_Language::javascript_jsx:
+    o.jsx = true;
+    o.typescript = false;
+    break;
+  case File_Language::typescript:
+    o.jsx = false;
+    o.typescript = true;
+    break;
+  case File_Language::typescript_definition:
+    o.jsx = false;
+    o.typescript = true;
+    o.typescript_definition = true;
+    break;
+  case File_Language::typescript_jsx:
+    o.jsx = true;
+    o.typescript = true;
+    break;
+  }
+  return o;
+}
+
 void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
                     const Global_Declared_Variable_Set& globals,
                     Linter_Options options) {
