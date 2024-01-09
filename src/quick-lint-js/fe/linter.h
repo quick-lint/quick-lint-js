@@ -16,9 +16,6 @@ struct Linter_Options {
 
   // If true, print a human-readable representation of parser visits to stderr.
   bool print_parser_visits = false;
-
-  friend bool operator==(Linter_Options, Linter_Options);
-  friend bool operator!=(Linter_Options, Linter_Options);
 };
 
 void parse_and_lint(Padded_String_View code, Diag_Reporter&,

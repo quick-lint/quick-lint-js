@@ -14,15 +14,6 @@
 #include <quick-lint-js/port/unreachable.h>
 
 namespace quick_lint_js {
-bool operator==(Linter_Options lhs, Linter_Options rhs) {
-  return lhs.language == rhs.language &&
-         lhs.print_parser_visits == rhs.print_parser_visits;
-}
-
-bool operator!=(Linter_Options lhs, Linter_Options rhs) {
-  return !(lhs == rhs);
-}
-
 void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
                     const Global_Declared_Variable_Set& globals,
                     Linter_Options options) {
