@@ -39,14 +39,6 @@
         }
       }
 
-      figure,
-      .project-size,
-      .profile-results {
-        border-collapse: collapse;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
       figure {
         text-align: center;
       }
@@ -79,14 +71,12 @@
 
       .project-size tr.subtotal td,
       .project-size tr.subtotal th {
-        border-bottom: 1px solid #aaa;
-        padding-bottom: 0.5em;
         color: #999933;
+        padding-bottom: 0.5rem;
       }
       @media (prefers-color-scheme: dark) {
         .project-size tr.subtotal td,
         .project-size tr.subtotal th {
-          border-bottom-color: #000;
           color: #e4e499;
         }
       }
@@ -98,6 +88,15 @@
         .project-size .dependencies {
           color: #777;
         }
+      }
+
+      .project-size tr.subtotal td,
+      .project-size tr.subtotal th {
+        border-bottom-style: dashed;
+      }
+      .project-size .dependencies tr:first-child td,
+      .project-size .dependencies tr:first-child th {
+        border-top-style: dashed;
       }
 
       .file-tree,
@@ -642,26 +641,31 @@
             <th><abbr title="dependency">dep</abbr>: Google Test</th>
             <td>69.7k</td>
             <td></td>
+            <td></td>
           </tr>
           <tr>
             <th>dep: autocfg</th>
             <td></td>
             <td>0.6k</td>
+            <td></td>
           </tr>
           <tr>
             <th>dep: lazy_static</th>
             <td></td>
             <td>0.4k</td>
+            <td></td>
           </tr>
           <tr>
             <th>dep: libc</th>
             <td></td>
             <td>88.6k</td>
+            <td></td>
           </tr>
           <tr>
             <th>dep: memoffset</th>
             <td></td>
             <td>0.6k</td>
+            <td></td>
           </tr>
         </tbody>
       </table>
@@ -1280,7 +1284,7 @@ cpp_vs_rust v0.1.0
         The <code>libc</code> crate has a feature called <code>std</code>. Let's
         turn it off, test it, and see if build times improve:
 
-        <figure style="width: 28em">
+        <figure style="max-width: 29em">
           <figcaption>Cargo.toml</figcaption>
           <pre class="diff"><code> [dependencies]
 <ins>libc = { version = "0.2.138", default-features = false }</ins>
@@ -1316,7 +1320,7 @@ cpp_vs_rust v0.1.0
         On my Linux machine, cargo-nextest either doesn't help or makes things
         worse. The output does look pretty, though...
 
-        <figure style="width: 40em">
+        <figure style="max-width: 43.5em">
           <figcaption>sample cargo-nextest test output</figcaption>
           <pre><font color="#859900"><b>PASS</b></font> [   0.002s] <font color="#D33682"><b>       cpp_vs_rust::test_locale</b></font> <font color="#268BD2"><b>no_match</b></font>
 <font color="#859900"><b>PASS</b></font> [   0.002s] <font color="#D33682"><b>    cpp_vs_rust::test_offset_of</b></font> <font color="#268BD2"><b>fields_have_different_offsets</b></font>

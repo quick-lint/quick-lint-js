@@ -15,8 +15,7 @@ body {
 }
 
 figure {
-  margin: 0;
-  margin-bottom: 1rem;
+  margin: 0 auto 1rem auto;
 }
 img + figcaption,
 picture + figcaption,
@@ -38,6 +37,59 @@ pre.emphasized + figcaption,
 video + figcaption,
 .side-by-side-comparison + figcaption {
   text-align: center;
+}
+
+table {
+  margin-left: auto;
+  margin-right: auto;
+  border-collapse: collapse;
+}
+table thead th,
+table tfoot th {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+table th,
+table td {
+  padding: 0.125rem 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+table caption {
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+@media (prefers-color-scheme: dark) {
+  table thead th,
+  table tfoot th {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  table th,
+  table td {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+figure > pre + figcaption,
+.eslint-comparison figcaption {
+  margin: 0.5rem 0;
+  text-align: center;
+}
+
+figure > pre:first-child,
+figure > figcaption + pre,
+.eslint-comparison .example pre {
+  margin: 0;
+  border: 1px dashed rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 0.5rem;
+}
+@media (prefers-color-scheme: dark) {
+  figure > pre:first-child,
+  figure > figcaption + pre,
+  .eslint-comparison .example pre {
+    border-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(0, 0, 0, 0.1);
+  }
 }
 
 .side-by-side-comparison {
@@ -356,25 +408,11 @@ nav.breadcrumbs ol > li {
   margin-top: 0.5rem;
   font-size: 0.9em;
 }
-.eslint-comparison .example pre {
-  margin: 0;
-  border: 1px dashed rgba(0, 0, 0, 0.3);
-  background-color: rgba(0, 0, 0, 0.03);
-  padding: 0.5rem;
-}
-@media (prefers-color-scheme: dark) {
-  .eslint-comparison .example pre {
-    border-color: rgba(255, 255, 255, 0.3);
-    background-color: rgba(0, 0, 0, 0.1);
-  }
-}
 .eslint-comparison code {
   font-size: 1em;
 }
 .eslint-comparison figcaption {
   font-weight: bold;
-  margin: 0.5rem 0;
-  text-align: center;
 }
 
 ins {
