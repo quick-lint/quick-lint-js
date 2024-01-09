@@ -3535,9 +3535,11 @@ TEST_F(Test_Parse_Expression, generator_misplaced_star) {
   Test_Parser p(u8"(*function f(){})"_sv, capture_diags);
   Expression* ast = p.parse_expression();
   EXPECT_THAT(ast->child_0()->span(), p.matches_offsets(1, 16));
-  EXPECT_THAT(p.legacy_errors(),
-              ElementsAreArray({DIAG_TYPE(
-                  Diag_Generator_Function_Star_Belongs_Before_Name)}));
+  assert_diagnostics(
+      p.code, p.errors,
+      {
+          u8"Diag_Generator_Function_Star_Belongs_Before_Name"_diag,
+      });
 }
 
 TEST_F(Test_Parse_Expression, unary_cannot_mix_with_star_star) {

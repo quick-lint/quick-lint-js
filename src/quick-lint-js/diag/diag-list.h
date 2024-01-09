@@ -63,6 +63,7 @@ class Diag_List {
   bool empty() const;
   bool reported_any_diagnostic_except_since(
       std::initializer_list<Diag_Type> ignored_types, const Rewind_State &);
+  bool have_diagnostic(Diag_Type type) const;
 
   void clear();
 

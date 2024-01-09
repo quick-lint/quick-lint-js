@@ -77,6 +77,15 @@ bool Diag_List::reported_any_diagnostic_except_since(
   return false;
 }
 
+bool Diag_List::have_diagnostic(Diag_Type type) const {
+  for (Node_Base *node = this->first_; node != nullptr; node = node->next) {
+    if (node->type == type) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void Diag_List::clear() {
   // Leak. this->memory should be a Linked_Bump_Allocator managed by the caller.
 }
