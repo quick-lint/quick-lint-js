@@ -260,11 +260,12 @@ void process_test_case_file(Expected_Test_Results& expected_results,
 
   for (TypeScript_Test_Unit& unit :
        extract_units_from_typescript_test(std::move(*raw_source), path_view)) {
-    std::optional<Linter_Options> options = unit.get_linter_options();
-    if (options.has_value()) {
+    std::optional<File_Language> language = unit.get_language();
+    if (language.has_value()) {
       // TODO(strager): Indicate which unit we are looking at.
       text_reporter.set_source(&unit.data, path);
-      parse_and_lint(&unit.data, text_reporter, globals, *options);
+      parse_and_lint(&unit.data, text_reporter, globals,
+                     Linter_Options{.language = *language});
     }
   }
   diags.flush();

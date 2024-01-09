@@ -5,7 +5,7 @@
 
 #include <optional>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/linter.h>
+#include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/port/char8.h>
 #include <vector>
 
@@ -15,7 +15,7 @@ struct TypeScript_Test_Unit {
   String8 name;
 
   // Returns std::nullopt if this file should not be parsed or linted.
-  std::optional<Linter_Options> get_linter_options() const;
+  std::optional<File_Language> get_language() const;
 };
 
 using TypeScript_Test_Units = std::vector<TypeScript_Test_Unit>;

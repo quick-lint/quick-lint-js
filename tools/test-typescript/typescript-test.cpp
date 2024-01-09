@@ -126,7 +126,7 @@ find_typescript_test_filename_metadata_directive(
 }
 }
 
-std::optional<Linter_Options> TypeScript_Test_Unit::get_linter_options() const {
+std::optional<File_Language> TypeScript_Test_Unit::get_language() const {
   if (starts_with(String8_View(this->name), u8"/node_modules/"_sv)) {
     return std::nullopt;
   }
@@ -134,19 +134,19 @@ std::optional<Linter_Options> TypeScript_Test_Unit::get_linter_options() const {
     return std::nullopt;
   }
   if (contains(String8_View(this->name), u8".d."_sv)) {
-    return Linter_Options{.language = File_Language::typescript_definition};
+    return File_Language::typescript_definition;
   }
   if (ends_with(String8_View(this->name), u8".ts"_sv)) {
-    return Linter_Options{.language = File_Language::typescript};
+    return File_Language::typescript;
   }
   if (ends_with(String8_View(this->name), u8".tsx"_sv)) {
-    return Linter_Options{.language = File_Language::typescript_jsx};
+    return File_Language::typescript_jsx;
   }
   if (ends_with(String8_View(this->name), u8".js"_sv)) {
-    return Linter_Options{.language = File_Language::javascript_jsx};
+    return File_Language::javascript_jsx;
   }
   if (ends_with(String8_View(this->name), u8".jsx"_sv)) {
-    return Linter_Options{.language = File_Language::javascript_jsx};
+    return File_Language::javascript_jsx;
   }
   // Don't lint unknown file extensions. See
   // TypeScript/tests/cases/conformance/moduleResolution/bundler/bundlerImportTsExtensions.ts
