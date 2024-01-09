@@ -60,12 +60,15 @@ void test_parse_and_analyze(String8_View input,
                             Source_Location caller) {
   Padded_String code(input);
 
-  // Our variable analyzer tests should have valid code as input. We don't want
-  // to accidentally test parse errors when we're testing the variable analyzer.
-  Failing_Diag_Reporter parse_diag_reporter;
-  Parser p(&code, &parse_diag_reporter, options.parse_options);
-
+  Failing_Diag_Reporter failing_diag_reporter;
   Diag_Collector diag_collector;
+
+  Parser p(&code,
+           options.allow_parse_errors
+               ? base_cast<Diag_Reporter*>(&diag_collector)
+               : base_cast<Diag_Reporter*>(&failing_diag_reporter),
+           options.parse_options);
+
   Variable_Analyzer var_analyzer(&diag_collector, &globals,
                                  options.analyze_options);
 

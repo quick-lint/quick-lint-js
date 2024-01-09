@@ -78,6 +78,20 @@ Derived_Reference derived_cast(Base& base) {
                 "Derived should not be the same type as Base");
   return static_cast<Derived_Reference>(base);
 }
+
+// Cast a pointer or reference to a pointer/reference to a base class.
+//
+// In the presence of multiple inheritance, perform pointer adjustments (like
+// what static_cast does).
+template <class Base_Pointer, class Derived>
+Base_Pointer base_cast(Derived* base) {
+  using Base = std::remove_pointer_t<Base_Pointer>;
+  static_assert(std::is_base_of_v<Base, Derived>,
+                "Derived should derive from Base");
+  static_assert(!std::is_base_of_v<Derived, Base>,
+                "Derived should not be the same type as Base");
+  return base;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
