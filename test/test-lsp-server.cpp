@@ -607,8 +607,7 @@ TEST_F(Test_Linting_LSP_Server, javascript_language_ids_enable_jsx) {
     auto lint_callback = [&](Configuration&, Linter_Options lint_options,
                              Padded_String_View, String8_View, String8_View,
                              Outgoing_JSON_RPC_Message_Queue&) {
-      EXPECT_TRUE(lint_options.jsx);
-      EXPECT_FALSE(lint_options.typescript);
+      EXPECT_EQ(lint_options.language, File_Language::javascript_jsx);
     };
     this->linter.lint_callback = lint_callback;
 
@@ -640,8 +639,7 @@ TEST_F(Test_Linting_LSP_Server, typescript_language_ids_enable_typescript) {
     auto lint_callback = [&](Configuration&, Linter_Options lint_options,
                              Padded_String_View, String8_View, String8_View,
                              Outgoing_JSON_RPC_Message_Queue&) {
-      EXPECT_TRUE(lint_options.typescript);
-      EXPECT_FALSE(lint_options.jsx);
+      EXPECT_EQ(lint_options.language, File_Language::typescript);
     };
     this->linter.lint_callback = lint_callback;
 
@@ -673,8 +671,7 @@ TEST_F(Test_Linting_LSP_Server, tsx_language_ids_enable_typescript_jsx) {
     auto lint_callback = [&](Configuration&, Linter_Options lint_options,
                              Padded_String_View, String8_View, String8_View,
                              Outgoing_JSON_RPC_Message_Queue&) {
-      EXPECT_TRUE(lint_options.typescript);
-      EXPECT_TRUE(lint_options.jsx);
+      EXPECT_EQ(lint_options.language, File_Language::typescript_jsx);
     };
     this->linter.lint_callback = lint_callback;
 

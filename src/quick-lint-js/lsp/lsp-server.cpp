@@ -754,7 +754,7 @@ LSP_Linter::~LSP_Linter() = default;
 void LSP_Linter::lint(LSP_Documents::Lintable_Document& doc,
                       String8_View uri_json,
                       Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
-  this->lint(*doc.config, get_linter_options_from_language(doc.language),
+  this->lint(*doc.config, Linter_Options{.language = doc.language},
              doc.doc.string(), uri_json, doc.version_json, outgoing_messages);
 }
 

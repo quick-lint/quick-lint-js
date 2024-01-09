@@ -161,7 +161,7 @@ class QLJS_Lintable_Document : public QLJS_Document_Base {
                                        this->uri());
     parse_and_lint(this->document_.string(), diag_reporter,
                    this->config_->globals(),
-                   get_linter_options_from_language(this->language_));
+                   Linter_Options{.language = this->language_});
 
     return std::move(diag_reporter).diagnostics();
   }

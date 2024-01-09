@@ -299,9 +299,10 @@ void run(Options o) {
       if (!source.ok()) {
         source.error().print_and_exit();
       }
-      Linter_Options lint_options =
-          get_linter_options_from_language(get_language(file, o));
-      lint_options.print_parser_visits = o.print_parser_visits;
+      Linter_Options lint_options = {
+          .language = get_language(file, o),
+          .print_parser_visits = o.print_parser_visits,
+      };
       reporter->set_source(&*source, file);
       parse_and_lint(&*source, *reporter->get(), config->globals(),
                      lint_options);

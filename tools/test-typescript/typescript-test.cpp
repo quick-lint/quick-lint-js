@@ -134,20 +134,19 @@ std::optional<Linter_Options> TypeScript_Test_Unit::get_linter_options() const {
     return std::nullopt;
   }
   if (contains(String8_View(this->name), u8".d."_sv)) {
-    return Linter_Options{
-        .jsx = false, .typescript = true, .typescript_definition = true};
+    return Linter_Options{.language = File_Language::typescript_definition};
   }
   if (ends_with(String8_View(this->name), u8".ts"_sv)) {
-    return Linter_Options{.jsx = false, .typescript = true};
+    return Linter_Options{.language = File_Language::typescript};
   }
   if (ends_with(String8_View(this->name), u8".tsx"_sv)) {
-    return Linter_Options{.jsx = true, .typescript = true};
+    return Linter_Options{.language = File_Language::typescript_jsx};
   }
   if (ends_with(String8_View(this->name), u8".js"_sv)) {
-    return Linter_Options{.jsx = true, .typescript = false};
+    return Linter_Options{.language = File_Language::javascript_jsx};
   }
   if (ends_with(String8_View(this->name), u8".jsx"_sv)) {
-    return Linter_Options{.jsx = true, .typescript = false};
+    return Linter_Options{.language = File_Language::javascript_jsx};
   }
   // Don't lint unknown file extensions. See
   // TypeScript/tests/cases/conformance/moduleResolution/bundler/bundlerImportTsExtensions.ts

@@ -53,9 +53,24 @@ void qljs_web_demo_set_config(QLJS_Web_Demo_Document* js_document,
 
 void qljs_web_demo_set_language_options(QLJS_Web_Demo_Document* p,
                                         QLJS_Language_Options options) {
-  p->linter_options_.jsx = options & qljs_language_options_jsx_bit;
-  p->linter_options_.typescript =
-      options & qljs_language_options_typescript_bit;
+  switch (options & (qljs_language_options_jsx_bit |
+                     qljs_language_options_typescript_bit)) {
+  case 0:
+    p->linter_options_.language = File_Language::javascript;
+    break;
+  case qljs_language_options_jsx_bit:
+    p->linter_options_.language = File_Language::javascript_jsx;
+    break;
+  case qljs_language_options_typescript_bit:
+    p->linter_options_.language = File_Language::typescript;
+    break;
+  case qljs_language_options_jsx_bit | qljs_language_options_typescript_bit:
+    p->linter_options_.language = File_Language::typescript_jsx;
+    break;
+  default:
+    QLJS_UNREACHABLE();
+    break;
+  }
   p->is_config_json_ = options & qljs_language_options_config_json_bit;
 }
 
