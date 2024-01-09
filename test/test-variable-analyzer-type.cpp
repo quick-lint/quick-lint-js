@@ -383,26 +383,29 @@ TEST(Test_Variable_Analyzer_Type,
           },
       },
 
-      {.description = "visit_variable_use",
-       .visit =
-           [](Variable_Analyzer& l) {
-             l.visit_variable_use(identifier_of(use));
-           },
-       .check_diagnostics_impl =
-           [](Diag_Collector& diags,
-              std::optional<Variable_Kind> runtime_var_kind,
-              Source_Location caller) -> void {
-         if (runtime_var_kind.has_value()) {
-           EXPECT_THAT_AT_CALLER(diags.errors, IsEmpty());
-         } else {
-           // TODO(strager): Report a more helpful message.
-           EXPECT_THAT_AT_CALLER(
-               diags.errors, ElementsAreArray({
-                                 DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable,
-                                                name, span_of(use)),
-                             }));
-         }
-       }},
+      {
+          .description = "visit_variable_use",
+          .visit =
+              [](Variable_Analyzer& l) {
+                l.visit_variable_use(identifier_of(use));
+              },
+          .check_diagnostics_impl =
+              [](Diag_Collector& diags,
+                 std::optional<Variable_Kind> runtime_var_kind,
+                 Source_Location caller) -> void {
+            if (runtime_var_kind.has_value()) {
+              EXPECT_THAT_AT_CALLER(diags.errors, IsEmpty());
+            } else {
+              // TODO(strager): Report a more helpful message.
+              EXPECT_THAT_AT_CALLER(
+                  diags.errors,
+                  ElementsAreArray({
+                      DIAG_TYPE_SPAN(Diag_Use_Of_Undeclared_Variable, name,
+                                     span_of(use)),
+                  }));
+            }
+          },
+      },
   };
 
   for (Variable_Visit_Kind& visit_kind : variable_visit_kinds) {
