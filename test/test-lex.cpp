@@ -54,6 +54,14 @@ class Test_Lex : public ::testing::Test {
       String8_View input, Diagnostic_Assertion,
       String8_View expected_identifier_name,
       Source_Location = Source_Location::current());
+  void check_single_token_with_errors(
+      String8_View input, Diagnostic_Assertion, Diagnostic_Assertion,
+      String8_View expected_identifier_name,
+      Source_Location = Source_Location::current());
+  void check_single_token_with_errors(
+      String8_View input, Span<const Diagnostic_Assertion>,
+      String8_View expected_identifier_name,
+      Source_Location = Source_Location::current());
   void check_tokens(String8_View input,
                     std::initializer_list<Token_Type> expected_token_types,
                     Source_Location = Source_Location::current());
@@ -1586,35 +1594,24 @@ TEST_F(Test_Lex, lex_identifier_with_out_of_range_escaped_character) {
 TEST_F(Test_Lex, lex_identifier_with_out_of_range_utf_8_sequence) {
   // f4 90 80 80 is U+110000
   this->check_single_token_with_errors(
-      "too\xf4\x90\x80\x80\x62ig"_s8v, "too\xf4\x90\x80\x80\x62ig"_s8v,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Invalid_Utf_8_Sequence,  //
-                                  sequence, std::strlen("too"),
-                                  "\xf4\x90\x80\x80"_s8v),
-            }));
-      });
+      "too\xf4\x90\x80\x80\x62ig"_s8v,
+      DIAGNOSTIC_ASSERTION_SPAN(Diag_Invalid_Utf_8_Sequence,  //
+                                sequence, std::strlen("too"),
+                                "\xf4\x90\x80\x80"_s8v),
+      "too\xf4\x90\x80\x80\x62ig"_s8v);
 }
 
 TEST_F(Test_Lex, lex_identifier_with_malformed_utf_8_sequence) {
   this->check_single_token_with_errors(
       "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff"_s8v,
-      "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff"_s8v,
-      [](Padded_String_View input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAreArray({
-                DIAG_TYPE_OFFSETS(input, Diag_Invalid_Utf_8_Sequence,  //
-                                  sequence, std::strlen("illegal"),
-                                  "\xc0\xc1\xc2\xc3\xc4"_s8v),
-                DIAG_TYPE_OFFSETS(
-                    input, Diag_Invalid_Utf_8_Sequence,  //
-                    sequence, std::strlen("illegal\xc0\xc1\xc2\xc3\xc4utf8"),
-                    "\xfe\xff"_s8v),
-            }));
-      });
+      DIAGNOSTIC_ASSERTION_SPAN(Diag_Invalid_Utf_8_Sequence,  //
+                                sequence, std::strlen("illegal"),
+                                "\xc0\xc1\xc2\xc3\xc4"_s8v),
+      DIAGNOSTIC_ASSERTION_SPAN(Diag_Invalid_Utf_8_Sequence,  //
+                                sequence,
+                                std::strlen("illegal\xc0\xc1\xc2\xc3\xc4utf8"),
+                                "\xfe\xff"_s8v),
+      "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff"_s8v);
 }
 
 TEST_F(Test_Lex, lex_identifier_with_disallowed_character_escape_sequence) {
@@ -2988,6 +2985,22 @@ void Test_Lex::check_single_token_with_errors(
 void Test_Lex::check_single_token_with_errors(
     String8_View input, Diagnostic_Assertion diag0,
     String8_View expected_identifier_name, Source_Location caller) {
+  return this->check_single_token_with_errors(
+      input, Span<const Diagnostic_Assertion>({diag0}),
+      expected_identifier_name, caller);
+}
+
+void Test_Lex::check_single_token_with_errors(
+    String8_View input, Diagnostic_Assertion diag0, Diagnostic_Assertion diag1,
+    String8_View expected_identifier_name, Source_Location caller) {
+  return this->check_single_token_with_errors(
+      input, Span<const Diagnostic_Assertion>({diag0, diag1}),
+      expected_identifier_name, caller);
+}
+
+void Test_Lex::check_single_token_with_errors(
+    String8_View input, Span<const Diagnostic_Assertion> diagnostic_assertions,
+    String8_View expected_identifier_name, Source_Location caller) {
   Padded_String code(input);
   Diag_List_Diag_Reporter errors(&this->memory_);
   std::vector<Token> lexed_tokens = this->lex_to_eof(&code, errors);
@@ -3006,7 +3019,7 @@ void Test_Lex::check_single_token_with_errors(
                         expected_identifier_name);
   }
 
-  assert_diagnostics(&code, errors.diags(), {diag0}, caller);
+  assert_diagnostics(&code, errors.diags(), diagnostic_assertions, caller);
 }
 
 void Test_Lex::check_tokens(
