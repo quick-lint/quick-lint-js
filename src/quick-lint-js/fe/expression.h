@@ -613,13 +613,19 @@ class Expression::Call final : public Expression {
 
   explicit Call(Expression_Arena::Array_Ptr<Expression *> children,
                 Source_Code_Span left_paren_span, const Char8 *span_end,
-                std::optional<Source_Code_Span> optional_chaining_op_)
+                std::optional<Source_Code_Span> optional_chaining_operator)
       : Expression(kind),
         call_left_paren_begin_(left_paren_span.begin()),
         span_end_(span_end),
         children_(children),
-        optional_chaining_operator_(optional_chaining_op_) {
+        optional_chaining_operator_begin_(
+            optional_chaining_operator.has_value()
+                ? optional_chaining_operator->begin()
+                : nullptr) {
     QLJS_ASSERT(left_paren_span.size() == 1);
+    if (optional_chaining_operator.has_value()) {
+      QLJS_ASSERT(optional_chaining_operator->size() == 2);
+    }
   }
 
   Source_Code_Span left_paren_span() const {
@@ -627,10 +633,18 @@ class Expression::Call final : public Expression {
                             this->call_left_paren_begin_ + 1);
   }
 
+  std::optional<Source_Code_Span> optional_chaining_operator_span() const {
+    if (this->optional_chaining_operator_begin_ == nullptr) {
+      return std::nullopt;
+    }
+    return Source_Code_Span(this->optional_chaining_operator_begin_,
+                            this->optional_chaining_operator_begin_ + 2);
+  }
+
   const Char8 *call_left_paren_begin_;
   const Char8 *span_end_;
   Expression_Arena::Array_Ptr<Expression *> children_;
-  std::optional<Source_Code_Span> optional_chaining_operator_;
+  const Char8 *optional_chaining_operator_begin_ = nullptr;
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Call>);
 
@@ -690,17 +704,32 @@ class Expression::Index final : public Expression {
 
   explicit Index(Expression *container, Expression *subscript,
                  Source_Code_Span left_square_span, const Char8 *subscript_end,
-                 std::optional<Source_Code_Span> optional_chaining_op_)
+                 std::optional<Source_Code_Span> optional_chaining_operator)
       : Expression(kind),
         index_subscript_end_(subscript_end),
         left_square_span(left_square_span),
         children_{container, subscript},
-        optional_chaining_operator_(optional_chaining_op_) {}
+        optional_chaining_operator_begin_(
+            optional_chaining_operator.has_value()
+                ? optional_chaining_operator->begin()
+                : nullptr) {
+    if (optional_chaining_operator.has_value()) {
+      QLJS_ASSERT(optional_chaining_operator->size() == 2);
+    }
+  }
+
+  std::optional<Source_Code_Span> optional_chaining_operator_span() const {
+    if (this->optional_chaining_operator_begin_ == nullptr) {
+      return std::nullopt;
+    }
+    return Source_Code_Span(this->optional_chaining_operator_begin_,
+                            this->optional_chaining_operator_begin_ + 2);
+  }
 
   const Char8 *index_subscript_end_;
   Source_Code_Span left_square_span;
   std::array<Expression *, 2> children_;
-  std::optional<Source_Code_Span> optional_chaining_operator_;
+  const Char8 *optional_chaining_operator_begin_;
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Index>);
 

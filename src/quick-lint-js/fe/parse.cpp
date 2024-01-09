@@ -493,7 +493,7 @@ void Parser::warn_on_dot_operator_after_optional_chain(Expression::Dot* ast) {
     case Expression_Kind::Call: {
       auto lhs_call = expression_cast<Expression::Call*>(lhs);
       std::optional<Source_Code_Span> lhs_operator_span =
-          lhs_call->optional_chaining_operator_;
+          lhs_call->optional_chaining_operator_span();
       if (lhs_operator_span.has_value()) {
         this->diag_reporter_->report(Diag_Using_Dot_After_Optional_Chaining{
             .dot_op = operator_span,
@@ -505,7 +505,7 @@ void Parser::warn_on_dot_operator_after_optional_chain(Expression::Dot* ast) {
     case Expression_Kind::Index: {
       auto lhs_index = expression_cast<Expression::Index*>(lhs);
       std::optional<Source_Code_Span> lhs_operator_span =
-          lhs_index->optional_chaining_operator_;
+          lhs_index->optional_chaining_operator_span();
       if (lhs_operator_span.has_value()) {
         this->diag_reporter_->report(Diag_Using_Dot_After_Optional_Chaining{
             .dot_op = operator_span,
