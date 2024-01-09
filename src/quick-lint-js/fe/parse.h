@@ -1124,6 +1124,8 @@ class Parser {
 
   // Heuristic. True if React.js was imported.
   bool imported_react_ = false;
+  // Heuristic. True if Preact was imported.
+  bool imported_preact_ = false;
 
   bool in_top_level_ = true;
   bool in_async_function_ = false;

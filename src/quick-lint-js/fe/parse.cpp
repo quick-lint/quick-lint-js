@@ -164,6 +164,10 @@ void Parser::check_all_jsx_attributes() {
     break;
 
   case Parser_JSX_Mode::auto_detect:
+    if (this->imported_react_ + this->imported_preact_ > 1) {
+      // Ambiguous. Don't report any diagnostics.
+      break;
+    }
     if (this->imported_react_) {
       goto react;
     }

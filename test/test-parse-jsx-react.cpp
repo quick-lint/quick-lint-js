@@ -180,5 +180,15 @@ TEST_F(Test_Parse_JSX_React, diagnostic_if_auto_detect_and_react_is_imported) {
       u8"Diag_JSX_Event_Attribute_Should_Be_Camel_Case"_diag,
       u8"Diag_JSX_Attribute_Renamed_By_React"_diag, jsx_auto_detect_options);
 }
+
+TEST_F(Test_Parse_JSX_React,
+       no_diagnostic_if_auto_detect_and_preact_is_imported) {
+  // Preact is incompatible with React.
+  test_parse_and_visit_module(
+      u8"import React from 'react';"_sv
+      u8"c = <div onclick={handler} class=\"c\" />;"_sv
+      u8"import Preact from 'preact';"_sv,
+      no_diags, jsx_auto_detect_options);
+}
 }
 }

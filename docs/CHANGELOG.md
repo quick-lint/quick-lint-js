@@ -22,7 +22,8 @@ Semantic Versioning.
   setting its thread name on FreeBSD.
 * React-specific JSX diagnostics, such as [E0193][] ("misspelled React
   attribute; write 'className' instead"), are now only reported when 'react' is
-  imported. This fixes false warnings in Preact code. ([#1152][])
+  imported and if 'preact' is not imported. This fixes false warnings in Preact
+  code. ([#1152][])
 
 ## 3.0.0 (2024-01-01)
 

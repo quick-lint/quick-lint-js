@@ -5327,6 +5327,10 @@ void Parser::visited_module_import(const Token &module_name) {
       starts_with(module_name_unescaped, u8"react-dom/"_sv)) {
     this->imported_react_ = true;
   }
+  if (module_name_unescaped == u8"preact"_sv ||
+      starts_with(module_name_unescaped, u8"preact/"_sv)) {
+    this->imported_preact_ = true;
+  }
 }
 
 void Parser::parse_and_visit_variable_declaration_statement(
