@@ -37,7 +37,7 @@ TEST_P(Test_Parse_Conditional_Expression, conditional_expression) {
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
     EXPECT_EQ(summarize(ast->child_2()), "var z");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
+    p.assert_offsets(ast->span(), 0, 5);
   }
 
   {
@@ -80,7 +80,7 @@ TEST_P(Test_Parse_Conditional_Expression,
                        {
                            u8"^ Diag_Missing_Operand_For_Operator"_diag,
                        });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"? b : c"_sv));
+    p.assert_offsets(ast->span(), 0, u8"? b : c"_sv);
   }
 }
 
@@ -94,7 +94,7 @@ TEST_P(Test_Parse_Conditional_Expression,
                        {
                            u8"  ^ Diag_Missing_Operand_For_Operator"_diag,
                        });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? : c"_sv));
+    p.assert_offsets(ast->span(), 0, u8"a ? : c"_sv);
   }
 }
 
@@ -108,7 +108,7 @@ TEST_P(Test_Parse_Conditional_Expression,
                        {
                            u8"      ^ Diag_Missing_Operand_For_Operator"_diag,
                        });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? b : "_sv));
+    p.assert_offsets(ast->span(), 0, u8"a ? b : "_sv);
   }
 
   {
@@ -119,8 +119,7 @@ TEST_P(Test_Parse_Conditional_Expression,
                        {
                            u8"       ^ Diag_Missing_Operand_For_Operator"_diag,
                        });
-    EXPECT_THAT(ast->child_0()->span(),
-                p.matches_offsets(u8"("_sv.size(), u8"a ? b :)"_sv));
+    p.assert_offsets(ast->child_0()->span(), u8"("_sv.size(), u8"a ? b :)"_sv);
   }
 }
 
@@ -136,7 +135,7 @@ TEST_P(Test_Parse_Conditional_Expression,
             u8"     ` Diag_Missing_Colon_In_Conditional_Expression.expected_colon\n"_diag
             u8"  ^ .question"_diag,
         });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? b"_sv));
+    p.assert_offsets(ast->span(), 0, u8"a ? b"_sv);
   }
 
   {
@@ -149,7 +148,7 @@ TEST_P(Test_Parse_Conditional_Expression,
             u8"     ` Diag_Missing_Colon_In_Conditional_Expression.expected_colon\n"_diag
             u8"  ^ .question"_diag,
         });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? b"_sv));
+    p.assert_offsets(ast->span(), 0, u8"a ? b"_sv);
   }
 
   {
@@ -162,8 +161,7 @@ TEST_P(Test_Parse_Conditional_Expression,
             u8"      ` Diag_Missing_Colon_In_Conditional_Expression.expected_colon\n"_diag
             u8"   ^ .question"_diag,
         });
-    EXPECT_THAT(ast->child_0()->span(),
-                p.matches_offsets(u8"("_sv.size(), u8"a ? b"_sv));
+    p.assert_offsets(ast->child_0()->span(), u8"("_sv.size(), u8"a ? b"_sv);
   }
 }
 

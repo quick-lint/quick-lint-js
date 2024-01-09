@@ -35,49 +35,49 @@ TEST_F(Test_Parse_Expression, parse_single_token_expression) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Variable);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"x"_sv);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 1));
+    p.assert_offsets(ast->span(), 0, 1);
   }
 
   {
     Test_Parser p(u8"42"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
+    p.assert_offsets(ast->span(), 0, 2);
   }
 
   {
     Test_Parser p(u8"'hello'"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
+    p.assert_offsets(ast->span(), 0, 7);
   }
 
   {
     Test_Parser p(u8"null"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
+    p.assert_offsets(ast->span(), 0, 4);
   }
 
   {
     Test_Parser p(u8"true"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
+    p.assert_offsets(ast->span(), 0, 4);
   }
 
   {
     Test_Parser p(u8"false"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
+    p.assert_offsets(ast->span(), 0, 5);
   }
 
   {
     Test_Parser p(u8"this"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::This_Variable);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
+    p.assert_offsets(ast->span(), 0, 4);
   }
 }
 
@@ -115,7 +115,7 @@ TEST_F(Test_Parse_Expression, private_identifiers_are_not_valid_expressions) {
         {
             u8"^^^^^^^^^^^^^^^ Diag_Cannot_Refer_To_Private_Variable_Without_Object"_diag,
         });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"#myPrivateField"_sv));
+    p.assert_offsets(ast->span(), 0, u8"#myPrivateField"_sv);
   }
 
   {
@@ -127,7 +127,7 @@ TEST_F(Test_Parse_Expression, private_identifiers_are_not_valid_expressions) {
         {
             u8"^^^^^^^^^^^^^^^ Diag_Cannot_Refer_To_Private_Variable_Without_Object"_diag,
         });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"#myPrivateField = 10"_sv));
+    p.assert_offsets(ast->span(), 0, u8"#myPrivateField = 10"_sv);
   }
 }
 
@@ -142,14 +142,14 @@ TEST_F(Test_Parse_Expression, parse_regular_expression) {
     Test_Parser p(u8"/regexp/"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
+    p.assert_offsets(ast->span(), 0, 8);
   }
 
   {
     Test_Parser p(u8"/=regexp/"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 9));
+    p.assert_offsets(ast->span(), 0, 9);
   }
 }
 
@@ -159,7 +159,7 @@ TEST_F(Test_Parse_Expression, parse_math_expression) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Unary_Operator);
     EXPECT_EQ(ast->child_0()->kind(), Expression_Kind::Variable);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
+    p.assert_offsets(ast->span(), 0, 2);
   }
 
   {
@@ -178,7 +178,7 @@ TEST_F(Test_Parse_Expression, parse_math_expression) {
     Test_Parser p(u8"x+y"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, var y)");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
+    p.assert_offsets(ast->span(), 0, 3);
   }
 
   {
@@ -423,7 +423,7 @@ TEST_F(Test_Parse_Expression, spread) {
     Test_Parser p(u8"...args"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "spread(var args)");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
+    p.assert_offsets(ast->span(), 0, 7);
   }
 }
 
@@ -434,9 +434,9 @@ TEST_F(Test_Parse_Expression, parse_function_call) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Call);
     EXPECT_EQ(summarize(ast->child_0()), "var f");
     EXPECT_EQ(ast->child_count(), 1);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
+    p.assert_offsets(ast->span(), 0, 3);
     Expression::Call* call = expression_cast<Expression::Call*>(ast);
-    EXPECT_THAT(call->left_paren_span(), p.matches_offsets(1, 2));
+    p.assert_offsets(call->left_paren_span(), 1, 2);
   }
 
   {
@@ -511,7 +511,7 @@ TEST_F(Test_Parse_Expression, parse_dot_expressions) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Dot);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"prop"_sv);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 6));
+    p.assert_offsets(ast->span(), 0, 6);
   }
 
   {
@@ -544,7 +544,7 @@ TEST_F(Test_Parse_Expression, invalid_dot_expression) {
                        {
                            u8" ^ Diag_Invalid_Rhs_For_Dot_Operator"_diag,
                        });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x.''"_sv));
+    p.assert_offsets(ast->span(), 0, u8"x.''"_sv);
   }
 
   {
@@ -656,7 +656,7 @@ TEST_F(Test_Parse_Expression, parse_optional_dot_expressions) {
     Test_Parser p(u8"x?.prop"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var x, prop)");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x?.prop"_sv));
+    p.assert_offsets(ast->span(), 0, u8"x?.prop"_sv);
   }
 
   for (String8 keyword : keywords) {
@@ -683,7 +683,7 @@ TEST_F(Test_Parse_Expression, parse_indexing_expression) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Index);
     EXPECT_EQ(summarize(ast->child_0()), "var xs");
     EXPECT_EQ(summarize(ast->child_1()), "var i");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
+    p.assert_offsets(ast->span(), 0, 5);
   }
 }
 
@@ -692,7 +692,7 @@ TEST_F(Test_Parse_Expression, parse_optional_indexing_expression) {
     Test_Parser p(u8"xs?.[i]"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "index(var xs, var i)");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"xs?.[i]"_sv));
+    p.assert_offsets(ast->span(), 0, u8"xs?.[i]"_sv);
   }
 }
 
@@ -727,7 +727,7 @@ TEST_F(Test_Parse_Expression, empty_indexing_expression) {
                        {
                            u8"  ^^ Diag_Indexing_Requires_Expression"_diag,
                        });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"xs[]"_sv));
+    p.assert_offsets(ast->span(), 0, u8"xs[]"_sv);
   }
 }
 
@@ -736,8 +736,8 @@ TEST_F(Test_Parse_Expression, parse_parenthesized_expression) {
     Test_Parser p(u8"(x)"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(var x)");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"(x)"_sv));
-    EXPECT_THAT(ast->child_0()->span(), p.matches_offsets(1, 2));
+    p.assert_offsets(ast->span(), 0, u8"(x)"_sv);
+    p.assert_offsets(ast->child_0()->span(), 1, 2);
   }
 
   {
@@ -774,7 +774,7 @@ TEST_F(Test_Parse_Expression, await_unary_operator_inside_async_functions) {
     EXPECT_EQ(summarize(ast), "await(var myPromise)");
     EXPECT_EQ(ast->kind(), Expression_Kind::Await);
     EXPECT_EQ(summarize(ast->child_0()), "var myPromise");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 15));
+    p.assert_offsets(ast->span(), 0, 15);
   }
 
   {
@@ -1175,7 +1175,7 @@ TEST_F(Test_Parse_Expression,
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yieldnone");
     EXPECT_EQ(ast->kind(), Expression_Kind::Yield_None);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
+    p.assert_offsets(ast->span(), 0, 5);
   }
 
   EXPECT_EQ(parse_expression_in_generator(u8"(yield)"_sv), "paren(yieldnone)");
@@ -1205,7 +1205,7 @@ TEST_F(Test_Parse_Expression, yield_unary_operator_inside_generator_functions) {
     EXPECT_EQ(summarize(ast), "yield(var v)");
     EXPECT_EQ(ast->kind(), Expression_Kind::Yield_One);
     EXPECT_EQ(summarize(ast->child_0()), "var v");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
+    p.assert_offsets(ast->span(), 0, 7);
   }
 
   {
@@ -1232,7 +1232,7 @@ TEST_F(Test_Parse_Expression,
     EXPECT_EQ(summarize(ast), "yieldmany(var other)");
     EXPECT_EQ(ast->kind(), Expression_Kind::Yield_Many);
     EXPECT_EQ(summarize(ast->child_0()), "var other");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
+    p.assert_offsets(ast->span(), 0, 12);
   }
 
   {
@@ -1267,7 +1267,7 @@ TEST_F(Test_Parse_Expression, parse_new_expression) {
     EXPECT_EQ(ast->kind(), Expression_Kind::New);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child_0()), "var Date");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
+    p.assert_offsets(ast->span(), 0, 8);
   }
 
   {
@@ -1276,7 +1276,7 @@ TEST_F(Test_Parse_Expression, parse_new_expression) {
     EXPECT_EQ(ast->kind(), Expression_Kind::New);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child_0()), "var Date");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 10));
+    p.assert_offsets(ast->span(), 0, 10);
   }
 
   {
@@ -1291,7 +1291,7 @@ TEST_F(Test_Parse_Expression, new_target) {
     Test_Parser p(u8"new.target"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "newtarget");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 10));
+    p.assert_offsets(ast->span(), 0, 10);
   }
 
   {
@@ -1336,7 +1336,7 @@ TEST_F(Test_Parse_Expression, parse_assignment) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
+    p.assert_offsets(ast->span(), 0, 3);
   }
 
   {
@@ -1404,10 +1404,7 @@ TEST_F(Test_Parse_Expression, parse_compound_assignment) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Compound_Assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_THAT(
-        ast->span(),
-        p.matches_offsets(
-            0, narrow_cast<CLI_Source_Position::Offset_Type>(p.code.size())));
+    p.assert_offsets(ast->span(), 0, p.code.string_view());
   }
 }
 
@@ -1419,10 +1416,7 @@ TEST_F(Test_Parse_Expression, parse_conditional_assignment) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Conditional_Assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_THAT(
-        ast->span(),
-        p.matches_offsets(
-            0, narrow_cast<CLI_Source_Position::Offset_Type>(p.code.size())));
+    p.assert_offsets(ast->span(), 0, p.code.string_view());
   }
 }
 
@@ -1475,7 +1469,7 @@ TEST_F(Test_Parse_Expression, parse_prefix_plusplus_minusminus) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::RW_Unary_Prefix);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
+    p.assert_offsets(ast->span(), 0, 3);
   }
 
   {
@@ -1483,7 +1477,7 @@ TEST_F(Test_Parse_Expression, parse_prefix_plusplus_minusminus) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::RW_Unary_Prefix);
     EXPECT_EQ(summarize(ast->child_0()), "var y");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
+    p.assert_offsets(ast->span(), 0, 3);
   }
 }
 
@@ -1576,7 +1570,7 @@ TEST_F(Test_Parse_Expression, parse_suffix_plusplus_minusminus) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::RW_Unary_Suffix);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
+    p.assert_offsets(ast->span(), 0, 3);
   }
 }
 
@@ -1597,7 +1591,7 @@ TEST_F(Test_Parse_Expression, prefix_plusplus_minusminus_cannot_nest) {
     Test_Parser p(u8"++ ++ x"_sv, capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "rwunary(rwunary(var x))");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
+    p.assert_offsets(ast->span(), 0, 7);
     // TODO(strager): Report an error. ++ takes a LeftHandExpression, but ++x is
     // not a LeftHandExpression.
   }
@@ -1608,7 +1602,7 @@ TEST_F(Test_Parse_Expression, parse_template) {
     Test_Parser p(u8"`hello`"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Literal);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
+    p.assert_offsets(ast->span(), 0, 7);
   }
 
   {
@@ -1617,7 +1611,7 @@ TEST_F(Test_Parse_Expression, parse_template) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Template);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var world");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 15));
+    p.assert_offsets(ast->span(), 0, 15);
   }
 
   {
@@ -1640,7 +1634,7 @@ TEST_F(Test_Parse_Expression, tagged_template_literal) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Tagged_Template_Literal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var hello");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
+    p.assert_offsets(ast->span(), 0, 12);
   }
 
   {
@@ -1650,7 +1644,7 @@ TEST_F(Test_Parse_Expression, tagged_template_literal) {
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "var hello");
     EXPECT_EQ(summarize(ast->child(1)), "var literal");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 33));
+    p.assert_offsets(ast->span(), 0, 33);
   }
 
   {
@@ -1778,7 +1772,7 @@ TEST_F(Test_Parse_Expression, array_literal) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Array);
     EXPECT_EQ(ast->child_count(), 0);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
+    p.assert_offsets(ast->span(), 0, 2);
   }
 
   {
@@ -1864,7 +1858,7 @@ TEST_F(Test_Parse_Expression, object_literal) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Object);
     EXPECT_EQ(ast->object_entry_count(), 0);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
+    p.assert_offsets(ast->span(), 0, 2);
   }
 
   {
@@ -1913,9 +1907,9 @@ TEST_F(Test_Parse_Expression, object_literal) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     auto entry = ast->object_entry(0);
     EXPECT_EQ(summarize(entry.property), "literal");
-    EXPECT_THAT(entry.property->span(), p.matches_offsets(1, 6));
+    p.assert_offsets(entry.property->span(), 1, 6);
     EXPECT_EQ(summarize(entry.value), "var thing");
-    EXPECT_THAT(entry.value->span(), p.matches_offsets(1, 6));
+    p.assert_offsets(entry.value->span(), 1, 6);
     EXPECT_FALSE(entry.init);
   }
 
@@ -1936,8 +1930,8 @@ TEST_F(Test_Parse_Expression, object_literal) {
     EXPECT_EQ(summarize(entry.property), "literal");
     EXPECT_EQ(summarize(entry.value), "var variable");
     EXPECT_EQ(summarize(entry.init), "var value");
-    EXPECT_THAT(entry.init_equals_span(),
-                p.matches_offsets(u8"{key: variable "_sv.size(), u8"="_sv));
+    p.assert_offsets(entry.init_equals_span(), u8"{key: variable "_sv.size(),
+                     u8"="_sv);
   }
 
   {
@@ -1949,8 +1943,7 @@ TEST_F(Test_Parse_Expression, object_literal) {
     EXPECT_EQ(summarize(entry.property), "literal");
     EXPECT_EQ(summarize(entry.value), "var key");
     EXPECT_EQ(summarize(entry.init), "var value");
-    EXPECT_THAT(entry.init_equals_span(),
-                p.matches_offsets(u8"{key "_sv.size(), u8"="_sv));
+    p.assert_offsets(entry.init_equals_span(), u8"{key "_sv.size(), u8"="_sv);
   }
 
   {
@@ -1980,7 +1973,7 @@ TEST_F(Test_Parse_Expression, object_literal_with_method_key) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
-    EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 16));
+    p.assert_offsets(ast->object_entry(0).value->span(), 2, 16);
   }
 
   {
@@ -1990,7 +1983,7 @@ TEST_F(Test_Parse_Expression, object_literal_with_method_key) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
-    EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 18));
+    p.assert_offsets(ast->object_entry(0).value->span(), 2, 18);
   }
 
   {
@@ -2000,7 +1993,7 @@ TEST_F(Test_Parse_Expression, object_literal_with_method_key) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
-    EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 18));
+    p.assert_offsets(ast->object_entry(0).value->span(), 2, 18);
   }
 
   {
@@ -2010,7 +2003,7 @@ TEST_F(Test_Parse_Expression, object_literal_with_method_key) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
-    EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 22));
+    p.assert_offsets(ast->object_entry(0).value->span(), 2, 22);
   }
 
   {
@@ -2094,7 +2087,7 @@ TEST_F(Test_Parse_Expression, object_literal_with_getter_setter_key) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
-    EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 16));
+    p.assert_offsets(ast->object_entry(0).value->span(), 2, 16);
   }
 
   {
@@ -2104,7 +2097,7 @@ TEST_F(Test_Parse_Expression, object_literal_with_getter_setter_key) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
-    EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 17));
+    p.assert_offsets(ast->object_entry(0).value->span(), 2, 17);
   }
 
   {
@@ -2707,7 +2700,7 @@ TEST_F(Test_Parse_Expression, parse_comma_expression) {
     EXPECT_EQ(summarize(ast->child(0)), "var x");
     EXPECT_EQ(summarize(ast->child(1)), "var y");
     EXPECT_EQ(summarize(ast->child(2)), "var z");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
+    p.assert_offsets(ast->span(), 0, 5);
   }
 
   {
@@ -2743,26 +2736,22 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::Binary_Operator);
     auto* binary = expression_cast<Expression::Binary_Operator*>(ast);
-    EXPECT_THAT(
-        binary->operator_spans_[0],
-        p.matches_offsets(u8"x"_sv.size(), concat(u8"x"_sv, op).size()));
+    p.assert_offsets(binary->operator_spans_[0], u8"x"_sv.size(), op);
   }
 
   {
     Test_Parser p(u8"x + y * z"_sv);
     auto* ast =
         expression_cast<Expression::Binary_Operator*>(p.parse_expression());
-    EXPECT_THAT(ast->operator_spans_[0],
-                p.matches_offsets(u8"x "_sv.size(), u8"+"_sv));
-    EXPECT_THAT(ast->operator_spans_[1],
-                p.matches_offsets(u8"x + y "_sv.size(), u8"*"_sv));
+    p.assert_offsets(ast->operator_spans_[0], u8"x "_sv.size(), u8"+"_sv);
+    p.assert_offsets(ast->operator_spans_[1], u8"x + y "_sv.size(), u8"*"_sv);
   }
 
   {
     Test_Parser p(u8"x.'foo'"_sv, capture_diags);
     auto* ast =
         expression_cast<Expression::Binary_Operator*>(p.parse_expression());
-    EXPECT_THAT(ast->operator_spans_[0], p.matches_offsets(1, 2));
+    p.assert_offsets(ast->operator_spans_[0], 1, 2);
     // Ignore p.errors.
   }
 
@@ -2770,8 +2759,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     Test_Parser p(u8"x .. y"_sv, capture_diags);
     auto* ast =
         expression_cast<Expression::Binary_Operator*>(p.parse_expression());
-    EXPECT_THAT(ast->operator_spans_[0],
-                p.matches_offsets(u8"x ."_sv.size(), u8"."_sv));
+    p.assert_offsets(ast->operator_spans_[0], u8"x ."_sv.size(), u8"."_sv);
     // Ignore p.errors.
   }
 
@@ -2779,8 +2767,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     Test_Parser p(u8"x in y"_sv);
     auto* ast =
         expression_cast<Expression::Binary_Operator*>(p.parse_expression());
-    EXPECT_THAT(ast->operator_spans_[0],
-                p.matches_offsets(u8"x "_sv.size(), u8"in"_sv));
+    p.assert_offsets(ast->operator_spans_[0], u8"x "_sv.size(), u8"in"_sv);
   }
 
   {
@@ -2788,8 +2775,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     Expression* ast = p.parse_expression();
     auto* binary =
         expression_cast<Expression::Binary_Operator*>(ast->child_1());
-    EXPECT_THAT(binary->operator_spans_[0],
-                p.matches_offsets(u8"f(x"_sv.size(), u8""_sv));
+    p.assert_offsets(binary->operator_spans_[0], u8"f(x"_sv.size(), u8""_sv);
     // Ignore p.errors.
   }
 
@@ -2797,8 +2783,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     Test_Parser p(u8"x.y => z"_sv, capture_diags);
     auto* ast =
         expression_cast<Expression::Binary_Operator*>(p.parse_expression());
-    EXPECT_THAT(ast->operator_spans_[0],
-                p.matches_offsets(u8"x.y "_sv.size(), u8"=>"_sv));
+    p.assert_offsets(ast->operator_spans_[0], u8"x.y "_sv.size(), u8"=>"_sv);
     // Ignore p.errors.
   }
 
@@ -2807,7 +2792,7 @@ TEST_F(Test_Parse_Expression, binary_operator_span) {
     auto* ast =
         expression_cast<Expression::Binary_Operator*>(p.parse_expression());
     // FIXME(strager): These spans look weird.
-    EXPECT_THAT(ast->operator_spans_[0], p.matches_offsets(0, u8"f("_sv));
+    p.assert_offsets(ast->operator_spans_[0], 0, u8"f("_sv);
     // Ignore p.errors.
   }
 }
@@ -2818,7 +2803,7 @@ TEST_F(Test_Parse_Expression, parse_function_expression) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
+    p.assert_offsets(ast->span(), 0, 12);
   }
 
   {
@@ -2888,7 +2873,7 @@ TEST_F(Test_Parse_Expression, async_function_expression) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 18));
+    p.assert_offsets(ast->span(), 0, 18);
   }
 
   {
@@ -2896,7 +2881,7 @@ TEST_F(Test_Parse_Expression, async_function_expression) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Named_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 20));
+    p.assert_offsets(ast->span(), 0, 20);
   }
 }
 
@@ -2906,7 +2891,7 @@ TEST_F(Test_Parse_Expression, generator_function_expression) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::generator);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 13));
+    p.assert_offsets(ast->span(), 0, 13);
   }
 
   {
@@ -2922,7 +2907,7 @@ TEST_F(Test_Parse_Expression, async_generator_function_expression) {
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async_generator);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 19));
+    p.assert_offsets(ast->span(), 0, 19);
   }
 
   {
@@ -2939,7 +2924,7 @@ TEST_F(Test_Parse_Expression, arrow_function) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 0);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
+    p.assert_offsets(ast->span(), 0, 7);
   }
 
   {
@@ -2949,7 +2934,7 @@ TEST_F(Test_Parse_Expression, arrow_function) {
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 6));
+    p.assert_offsets(ast->span(), 0, 6);
   }
 
   {
@@ -2959,7 +2944,7 @@ TEST_F(Test_Parse_Expression, arrow_function) {
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
+    p.assert_offsets(ast->span(), 0, 8);
   }
 
   {
@@ -3002,7 +2987,7 @@ TEST_F(Test_Parse_Expression, arrow_function) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 0);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
+    p.assert_offsets(ast->span(), 0, 12);
   }
 
   {
@@ -3012,7 +2997,7 @@ TEST_F(Test_Parse_Expression, arrow_function) {
     EXPECT_EQ(ast->attributes(), Function_Attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 11));
+    p.assert_offsets(ast->span(), 0, 11);
   }
 }
 
@@ -3078,7 +3063,7 @@ TEST_F(Test_Parse_Expression, async_arrow_function) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
     EXPECT_EQ(ast->child_count(), 0);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 18));
+    p.assert_offsets(ast->span(), 0, 18);
   }
 
   {
@@ -3102,7 +3087,7 @@ TEST_F(Test_Parse_Expression, async_arrow_function) {
     EXPECT_EQ(ast->kind(), Expression_Kind::Arrow_Function);
     EXPECT_EQ(ast->attributes(), Function_Attributes::async);
     EXPECT_EQ(ast->child_count(), 0);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 13));
+    p.assert_offsets(ast->span(), 0, 13);
   }
 
   {
@@ -3138,7 +3123,7 @@ TEST_F(Test_Parse_Expression, invalid_arrow_function) {
             u8"^^^ .expression"_diag,
         });
     EXPECT_EQ(summarize(ast), "binary(call(var a), var b)");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 0 + u8"a() => b"_sv.size()));
+    p.assert_offsets(ast->span(), 0, 0 + u8"a() => b"_sv.size());
   }
 
   {
@@ -3162,7 +3147,7 @@ TEST_F(Test_Parse_Expression, invalid_arrow_function) {
         {
             u8"^^ Diag_Missing_Operator_Between_Expression_And_Arrow_Function"_diag,
         });
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 0 + u8"a() => {}"_sv.size()));
+    p.assert_offsets(ast->span(), 0, 0 + u8"a() => {}"_sv.size());
   }
 
   {
@@ -3334,14 +3319,14 @@ TEST_F(Test_Parse_Expression, anonymous_class) {
     Test_Parser p(u8"class {}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Class);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
+    p.assert_offsets(ast->span(), 0, 8);
   }
 
   {
     Test_Parser p(u8"class C {}"_sv);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), Expression_Kind::Class);
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, 10));
+    p.assert_offsets(ast->span(), 0, 10);
   }
 }
 
@@ -3350,7 +3335,7 @@ TEST_F(Test_Parse_Expression, class_requires_a_body) {
     Test_Parser p(u8"class C "_sv, capture_diags);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "class");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"class C"_sv));
+    p.assert_offsets(ast->span(), 0, u8"class C"_sv);
     assert_diagnostics(p.code, p.errors,
                        {
                            u8"^^^^^^^ Diag_Missing_Body_For_Class"_diag,
@@ -3534,7 +3519,7 @@ TEST_F(Test_Parse_Expression,
 TEST_F(Test_Parse_Expression, generator_misplaced_star) {
   Test_Parser p(u8"(*function f(){})"_sv, capture_diags);
   Expression* ast = p.parse_expression();
-  EXPECT_THAT(ast->child_0()->span(), p.matches_offsets(1, 16));
+  p.assert_offsets(ast->child_0()->span(), 1, 16);
   assert_diagnostics(
       p.code, p.errors,
       {

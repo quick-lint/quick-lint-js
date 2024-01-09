@@ -33,7 +33,7 @@ TEST_F(Test_Parse_TypeScript_Angle_Type_Assertion, angle_type_assertion) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::Angle_Type_Assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var expr");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"<Type>expr"_sv));
+    p.assert_offsets(ast->span(), 0, u8"<Type>expr"_sv);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_type_scope",  // <
                               "visit_variable_type_use",

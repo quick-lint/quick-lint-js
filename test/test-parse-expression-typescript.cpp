@@ -34,7 +34,7 @@ TEST_F(Test_Parse_Expression_TypeScript, type_annotation) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::Type_Annotated);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x: Type"_sv));
+    p.assert_offsets(ast->span(), 0, u8"x: Type"_sv);
 
     Spy_Visitor v;
     expression_cast<Expression::Type_Annotated*>(ast)->visit_type_annotation(v);
@@ -291,7 +291,7 @@ TEST_F(Test_Parse_Expression_TypeScript, as_type_assertion) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::As_Type_Assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x as y"_sv));
+    p.assert_offsets(ast->span(), 0, u8"x as y"_sv);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_type_scope",  // as
                               "visit_variable_type_use",
@@ -371,7 +371,7 @@ TEST_F(Test_Parse_Expression_TypeScript,
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::As_Type_Assertion);
     EXPECT_EQ(summarize(ast->child_0()), "object()");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"{} as const"_sv));
+    p.assert_offsets(ast->span(), 0, u8"{} as const"_sv);
   }
 }
 
@@ -479,7 +479,7 @@ TEST_F(Test_Parse_Expression_TypeScript, satisfies) {
     Expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), Expression_Kind::Satisfies);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x satisfies y"_sv));
+    p.assert_offsets(ast->span(), 0, u8"x satisfies y"_sv);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_enter_type_scope",  // satisfies
                               "visit_variable_type_use",
