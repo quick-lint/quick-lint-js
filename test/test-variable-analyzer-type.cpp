@@ -346,7 +346,7 @@ TEST(Test_Variable_Analyzer_Type,
                 EXPECT_THAT_AT_CALLER(diags.errors, IsEmpty());
               }
             } else {
-              // TODO(strager): Report a more helpful message.
+              // TODO(strager): Report a more helpful diagnostic.
               EXPECT_THAT_AT_CALLER(
                   diags.errors,
                   ElementsAreArray({
@@ -396,7 +396,7 @@ TEST(Test_Variable_Analyzer_Type,
             if (runtime_var_kind.has_value()) {
               EXPECT_THAT_AT_CALLER(diags.errors, IsEmpty());
             } else {
-              // TODO(strager): Report a more helpful message.
+              // TODO(strager): Report a more helpful diagnostic.
               EXPECT_THAT_AT_CALLER(
                   diags.errors,
                   ElementsAreArray({
