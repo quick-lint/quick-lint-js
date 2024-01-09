@@ -26,7 +26,7 @@ struct QLJS_Web_Demo_Document final {
   C_API_Diag_Reporter<QLJS_Web_Demo_Diagnostic, Web_Demo_Locator>
       diag_reporter_;
   Configuration config_;
-  Linter_Options linter_options_;
+  File_Language language_;
   bool is_config_json_ = false;
   QLJS_Web_Demo_Document* config_document_ = nullptr;
   bool need_update_config_ = true;
@@ -56,16 +56,16 @@ void qljs_web_demo_set_language_options(QLJS_Web_Demo_Document* p,
   switch (options & (qljs_language_options_jsx_bit |
                      qljs_language_options_typescript_bit)) {
   case 0:
-    p->linter_options_.language = File_Language::javascript;
+    p->language_ = File_Language::javascript;
     break;
   case qljs_language_options_jsx_bit:
-    p->linter_options_.language = File_Language::javascript_jsx;
+    p->language_ = File_Language::javascript_jsx;
     break;
   case qljs_language_options_typescript_bit:
-    p->linter_options_.language = File_Language::typescript;
+    p->language_ = File_Language::typescript;
     break;
   case qljs_language_options_jsx_bit | qljs_language_options_typescript_bit:
-    p->linter_options_.language = File_Language::typescript_jsx;
+    p->language_ = File_Language::typescript_jsx;
     break;
   default:
     QLJS_UNREACHABLE();
@@ -99,7 +99,7 @@ const QLJS_Web_Demo_Diagnostic* qljs_web_demo_lint(QLJS_Web_Demo_Document* p) {
     p->diag_reporter_.report(diags);
   } else {
     parse_and_lint(&p->text_, p->diag_reporter_, p->config_.globals(),
-                   p->linter_options_);
+                   Linter_Options{.language = p->language_});
   }
   return p->diag_reporter_.get_diagnostics();
 }
