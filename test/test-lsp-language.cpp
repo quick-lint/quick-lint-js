@@ -16,43 +16,36 @@ TEST(Test_LSP_Language, primary_languages) {
     const LSP_Language* language =
         LSP_Language::find("javascript"sv, dummy_uri);
     ASSERT_NE(language, nullptr);
-    EXPECT_TRUE(language->lint_options.jsx)
+    EXPECT_EQ(language->language, File_Language::javascript_jsx)
         << "JSX support should be enabled for 'javascript'";
-    EXPECT_FALSE(language->lint_options.typescript);
   }
 
   {
     const LSP_Language* language =
         LSP_Language::find("javascriptreact"sv, dummy_uri);
     ASSERT_NE(language, nullptr);
-    EXPECT_TRUE(language->lint_options.jsx);
-    EXPECT_FALSE(language->lint_options.typescript);
+    EXPECT_EQ(language->language, File_Language::javascript_jsx);
   }
 
   {
     const LSP_Language* language =
         LSP_Language::find("typescriptsource"sv, dummy_uri);
     ASSERT_NE(language, nullptr);
-    EXPECT_FALSE(language->lint_options.jsx);
-    EXPECT_TRUE(language->lint_options.typescript);
-    EXPECT_FALSE(language->lint_options.typescript_definition);
+    EXPECT_EQ(language->language, File_Language::typescript);
   }
 
   {
     const LSP_Language* language =
         LSP_Language::find("typescriptdefinition"sv, dummy_uri);
     ASSERT_NE(language, nullptr);
-    EXPECT_FALSE(language->lint_options.jsx);
-    EXPECT_TRUE(language->lint_options.typescript);
-    EXPECT_TRUE(language->lint_options.typescript_definition);
+    EXPECT_EQ(language->language, File_Language::typescript_definition);
   }
 
   {
     const LSP_Language* language =
         LSP_Language::find("typescriptreact"sv, dummy_uri);
     ASSERT_NE(language, nullptr);
-    EXPECT_TRUE(language->lint_options.jsx);
-    EXPECT_TRUE(language->lint_options.typescript);
+    EXPECT_EQ(language->language, File_Language::typescript_jsx);
   }
 }
 
@@ -65,7 +58,7 @@ TEST(Test_LSP_Language, language_aliases) {
     SCOPED_TRACE(alias);
     const LSP_Language* alias_language = LSP_Language::find(alias, dummy_uri);
     ASSERT_NE(alias_language, nullptr);
-    EXPECT_EQ(alias_language->lint_options, main_language->lint_options);
+    EXPECT_EQ(alias_language->language, main_language->language);
   }
 
   for (std::string_view alias : {"js-jsx"sv}) {
@@ -76,7 +69,7 @@ TEST(Test_LSP_Language, language_aliases) {
     SCOPED_TRACE(alias);
     const LSP_Language* alias_language = LSP_Language::find(alias, dummy_uri);
     ASSERT_NE(alias_language, nullptr);
-    EXPECT_EQ(alias_language->lint_options, main_language->lint_options);
+    EXPECT_EQ(alias_language->language, main_language->language);
   }
 
   for (std::string_view alias : {"tsx"sv}) {
@@ -87,7 +80,7 @@ TEST(Test_LSP_Language, language_aliases) {
     SCOPED_TRACE(alias);
     const LSP_Language* alias_language = LSP_Language::find(alias, dummy_uri);
     ASSERT_NE(alias_language, nullptr);
-    EXPECT_EQ(alias_language->lint_options, main_language->lint_options);
+    EXPECT_EQ(alias_language->language, main_language->language);
   }
 }
 
@@ -96,14 +89,14 @@ TEST(Test_LSP_Language, typescript_file_without_d_or_tsx_is_source) {
     const LSP_Language* language =
         LSP_Language::find("typescript"sv, u8"file:///test.ts"_sv);
     ASSERT_NE(language, nullptr);
-    EXPECT_FALSE(language->lint_options.typescript_definition);
+    EXPECT_EQ(language->language, File_Language::typescript);
   }
 
   {
     const LSP_Language* language =
         LSP_Language::find("typescript"sv, u8"file:///folder.d.ts/test.ts"_sv);
     ASSERT_NE(language, nullptr);
-    EXPECT_FALSE(language->lint_options.typescript_definition)
+    EXPECT_EQ(language->language, File_Language::typescript)
         << ".d. in containing directory should be ignored";
   }
 
@@ -111,7 +104,7 @@ TEST(Test_LSP_Language, typescript_file_without_d_or_tsx_is_source) {
     const LSP_Language* language =
         LSP_Language::find("typescript"sv, u8"file:///folder/test.tsx.ts"_sv);
     ASSERT_NE(language, nullptr);
-    EXPECT_FALSE(language->lint_options.jsx)
+    EXPECT_EQ(language->language, File_Language::typescript)
         << ".tsx in file name but not in extension should be ignored";
   }
 
@@ -131,8 +124,7 @@ TEST(Test_LSP_Language, typescript_file_with_d_is_definition) {
     SCOPED_TRACE(out_string8(uri));
     const LSP_Language* language = LSP_Language::find("typescript"sv, uri);
     ASSERT_NE(language, nullptr);
-    EXPECT_TRUE(language->lint_options.typescript_definition);
-    EXPECT_FALSE(language->lint_options.jsx);
+    EXPECT_EQ(language->language, File_Language::typescript_definition);
   }
 }
 
@@ -140,36 +132,35 @@ TEST(Test_LSP_Language, typescript_file_with_tsx_is_typescript_jsx) {
   const LSP_Language* language =
       LSP_Language::find("typescript"sv, u8"file:///test.tsx"_sv);
   ASSERT_NE(language, nullptr);
-  EXPECT_TRUE(language->lint_options.jsx);
-  EXPECT_TRUE(language->lint_options.typescript);
+  EXPECT_EQ(language->language, File_Language::typescript_jsx);
 }
 
 TEST(Test_LSP_Language, typescriptsource_ignores_d_in_uri) {
   const LSP_Language* language =
       LSP_Language::find("typescriptsource"sv, u8"file:///test.d.ts"_sv);
   ASSERT_NE(language, nullptr);
-  EXPECT_FALSE(language->lint_options.typescript_definition);
+  EXPECT_EQ(language->language, File_Language::typescript);
 }
 
 TEST(Test_LSP_Language, typescriptsource_ignores_tsx_in_uri) {
   const LSP_Language* language =
       LSP_Language::find("typescriptsource"sv, u8"file:///test.tsx"_sv);
   ASSERT_NE(language, nullptr);
-  EXPECT_FALSE(language->lint_options.jsx);
+  EXPECT_EQ(language->language, File_Language::typescript);
 }
 
 TEST(Test_LSP_Language, typescriptdefinition_does_not_require_d_in_uri) {
   const LSP_Language* language =
       LSP_Language::find("typescriptdefinition"sv, u8"file:///test.ts"_sv);
   ASSERT_NE(language, nullptr);
-  EXPECT_TRUE(language->lint_options.typescript_definition);
+  EXPECT_EQ(language->language, File_Language::typescript_definition);
 }
 
 TEST(Test_LSP_Language, typescriptreact_does_not_require_tsx_in_uri) {
   const LSP_Language* language =
       LSP_Language::find("typescriptreact"sv, u8"file:///test.ts"_sv);
   ASSERT_NE(language, nullptr);
-  EXPECT_TRUE(language->lint_options.jsx);
+  EXPECT_EQ(language->language, File_Language::typescript_jsx);
 }
 }
 }

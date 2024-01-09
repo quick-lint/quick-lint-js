@@ -106,7 +106,11 @@ struct LSP_Documents {
                                 const Configuration_Change&) override;
 
     Configuration* config;
-    Linter_Options lint_options;
+    // Resolved parsing mode. Might not match the languageId given in
+    // textDocument/didOpen.
+    //
+    // See LSP_Language for how we determine this value.
+    File_Language language;
   };
 
   struct Unknown_Document final : Document_Base {

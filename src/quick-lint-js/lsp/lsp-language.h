@@ -4,7 +4,7 @@
 #pragma once
 
 #include <iterator>
-#include <quick-lint-js/fe/linter.h>
+#include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/classify-path.h>
@@ -15,17 +15,16 @@ namespace quick_lint_js {
 struct LSP_Language {
   struct typescript_autodetect_tag {};
 
-  constexpr LSP_Language(std::string_view language_id,
-                         Linter_Options lint_options)
-      : lint_options(lint_options) {
+  constexpr LSP_Language(std::string_view language_id, File_Language language)
+      : language(language) {
     quick_lint_js::copy(language_id.begin(), language_id.end(),
                         this->raw_language_id);
     this->language_id_size = static_cast<unsigned char>(language_id.size());
   }
 
-  constexpr LSP_Language(std::string_view language_id,
-                         Linter_Options lint_options, typescript_autodetect_tag)
-      : LSP_Language(language_id, lint_options) {
+  constexpr LSP_Language(std::string_view language_id, File_Language language,
+                         typescript_autodetect_tag)
+      : LSP_Language(language_id, language) {
     this->typescript_autodetect = true;
   }
 
@@ -38,44 +37,22 @@ struct LSP_Language {
                                   String8_View uri) {
     using namespace std::literals::string_view_literals;
 
-    static constexpr Linter_Options jsx = {
-        .jsx = true,
-        .typescript = false,
-        .typescript_definition = false,
-        .print_parser_visits = false,
-    };
-    static constexpr Linter_Options ts = {
-        .jsx = false,
-        .typescript = true,
-        .typescript_definition = false,
-        .print_parser_visits = false,
-    };
-    static constexpr Linter_Options ts_definition = {
-        .jsx = false,
-        .typescript = true,
-        .typescript_definition = true,
-        .print_parser_visits = false,
-    };
-    static constexpr Linter_Options tsx = {
-        .jsx = true,
-        .typescript = true,
-        .typescript_definition = false,
-        .print_parser_visits = false,
-    };
     static constexpr LSP_Language languages[] = {
         // Keep in sync with docs/lsp.adoc.
-        LSP_Language("javascript"sv, jsx),
-        LSP_Language("javascriptreact"sv, jsx),
-        LSP_Language("js"sv, jsx),
-        LSP_Language("js-jsx"sv, jsx),
+        LSP_Language("javascript"sv, File_Language::javascript_jsx),
+        LSP_Language("javascriptreact"sv, File_Language::javascript_jsx),
+        LSP_Language("js"sv, File_Language::javascript_jsx),
+        LSP_Language("js-jsx"sv, File_Language::javascript_jsx),
 
-        LSP_Language("typescript"sv, ts, typescript_autodetect_tag()),
+        LSP_Language("typescript"sv, File_Language::typescript,
+                     typescript_autodetect_tag()),
 
-        LSP_Language("typescriptdefinition"sv, ts_definition),
-        LSP_Language("typescriptsource"sv, ts),
+        LSP_Language("typescriptdefinition"sv,
+                     File_Language::typescript_definition),
+        LSP_Language("typescriptsource"sv, File_Language::typescript),
 
-        LSP_Language("tsx"sv, tsx),
-        LSP_Language("typescriptreact"sv, tsx),
+        LSP_Language("tsx"sv, File_Language::typescript_jsx),
+        LSP_Language("typescriptreact"sv, File_Language::typescript_jsx),
     };
     const LSP_Language* lang = find_unique_if(
         std::begin(languages), std::end(languages),
@@ -97,7 +74,7 @@ struct LSP_Language {
 
   char raw_language_id[20] = {};
   unsigned char language_id_size = 0;
-  Linter_Options lint_options;
+  File_Language language;
   bool typescript_autodetect = false;
 };
 }

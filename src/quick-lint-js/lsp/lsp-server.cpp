@@ -480,7 +480,7 @@ void Linting_LSP_Server_Handler::handle_text_document_did_open_notification(
           LSP_Language::find(notification.language_id, notification.uri.data)) {
     auto doc = std::make_unique<LSP_Documents::Lintable_Document>();
     init_document(*doc);
-    doc->lint_options = lang->lint_options;
+    doc->language = lang->language;
 
     auto config_file =
         this->config_loader_.watch_and_load_for_file(document_path,
@@ -754,8 +754,8 @@ LSP_Linter::~LSP_Linter() = default;
 void LSP_Linter::lint(LSP_Documents::Lintable_Document& doc,
                       String8_View uri_json,
                       Outgoing_JSON_RPC_Message_Queue& outgoing_messages) {
-  this->lint(*doc.config, doc.lint_options, doc.doc.string(), uri_json,
-             doc.version_json, outgoing_messages);
+  this->lint(*doc.config, get_linter_options_from_language(doc.language),
+             doc.doc.string(), uri_json, doc.version_json, outgoing_messages);
 }
 
 void LSP_JavaScript_Linter::lint(
