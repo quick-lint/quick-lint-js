@@ -984,16 +984,16 @@ TEST_F(Test_Parse_TypeScript_Class,
       Test_Parser p(code.string_view(), typescript_options, capture_diags);
       p.parse_and_visit_statement();
 
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_2_OFFSETS(
-                  p.code, Diag_Access_Specifier_Must_Precede_Other_Modifiers,
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_2_SPANS(
+                  Diag_Access_Specifier_Must_Precede_Other_Modifiers,
                   second_modifier,
                   concat(u8"class C { "_sv, other_modifier, u8" "_sv).size(),
                   access_specifier,  //
                   first_modifier, u8"class C { "_sv.size(), other_modifier),
-          }));
+          });
     }
   }
 
@@ -1005,16 +1005,16 @@ TEST_F(Test_Parse_TypeScript_Class,
       Test_Parser p(code.string_view(), typescript_options, capture_diags);
       p.parse_and_visit_statement();
 
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_2_OFFSETS(
-                  p.code, Diag_Access_Specifier_Must_Precede_Other_Modifiers,
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_2_SPANS(
+                  Diag_Access_Specifier_Must_Precede_Other_Modifiers,  //
                   second_modifier,
                   concat(u8"class C { "_sv, other_modifier, u8" "_sv).size(),
                   access_specifier,  //
                   first_modifier, u8"class C { "_sv.size(), other_modifier),
-          }));
+          });
     }
   }
 }
@@ -1860,17 +1860,17 @@ TEST_F(Test_Parse_TypeScript_Class, parameter_property_in_constructor) {
     SCOPED_TRACE(p.code);
     p.parse_and_visit_module();
 
-    EXPECT_THAT(
-        p.legacy_errors(),
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code, Diag_Access_Specifier_Must_Precede_Other_Modifiers,
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            DIAGNOSTIC_ASSERTION_2_SPANS(
+                Diag_Access_Specifier_Must_Precede_Other_Modifiers,  //
                 second_modifier,
                 u8"class C {\n  constructor(readonly "_sv.size(),
                 access_specifier,  //
                 first_modifier, u8"class C {\n  constructor("_sv.size(),
-                u8"readonly"),
-        }));
+                u8"readonly"_sv),
+        });
   }
 }
 

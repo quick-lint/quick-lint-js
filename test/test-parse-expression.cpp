@@ -3548,15 +3548,14 @@ TEST_F(Test_Parse_Expression, unary_cannot_mix_with_star_star) {
     SCOPED_TRACE(p.code);
     Expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(unary(var a), var b)");
-    EXPECT_THAT(
-        p.legacy_errors(),
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            DIAGNOSTIC_ASSERTION_2_SPANS(
                 Diag_Missing_Parentheses_Around_Unary_Lhs_Of_Exponent,  //
                 unary_expression, 0, op + u8"a"s,                       //
                 exponent_operator, (op + u8"a "s).size(), u8"**"_sv),
-        }));
+        });
   }
 
   for (String8_View op : {u8"delete"s, u8"typeof"s, u8"void"s}) {
@@ -3567,15 +3566,14 @@ TEST_F(Test_Parse_Expression, unary_cannot_mix_with_star_star) {
       // TODO(strager): Rewrite the AST into something like the following:
       EXPECT_EQ(summarize(ast), "typeof(binary(var a, var b))");
     }
-    EXPECT_THAT(
-        p.legacy_errors(),
-        ElementsAreArray({
-            DIAG_TYPE_2_OFFSETS(
-                p.code,
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            DIAGNOSTIC_ASSERTION_2_SPANS(
                 Diag_Missing_Parentheses_Around_Exponent_With_Unary_Lhs,  //
                 exponent_expression, concat(op, u8" "s).size(), u8"a ** b"_sv,
                 unary_operator, 0, op),
-        }));
+        });
   }
 }
 

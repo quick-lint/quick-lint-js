@@ -549,19 +549,17 @@ TEST_F(Test_Parse_TypeScript_Declare_Class,
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray(
                       {func_param_decl(u8"field"_sv), class_decl(u8"C"_sv)}));
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_2_OFFSETS(
-                  p.code,
+      // only keyword should report a diagnostic; 'readonly' should not have its
+      // own diagnostic.
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_2_SPANS(
                   Diag_TypeScript_Parameter_Property_Not_Allowed_In_Declare_Class,  //
                   property_keyword,
                   u8"declare class C {\n  constructor("_sv.size(), keyword,  //
                   declare_keyword, 0, u8"declare"_sv),
-          }))
-          << "only '" << out_string8(keyword)
-          << "' should report a diagnostic; 'readonly' should not have its own "
-             "diagnostic";
+          });
     }
   }
 }

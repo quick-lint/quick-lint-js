@@ -169,6 +169,9 @@ struct Diagnostic_Assertion {
 // Create a Diagnostic_Assertion which matches 'type_'. It asserts that
 // 'type_::member_' is a Source_Code_Span beginning at 'begin_offset_' and
 // ending at 'begin_offset_ + span_string_.size()'.
+//
+// If you need to match two fields of the diagnostic type, see
+// DIAGNOSTIC_ASSERTION_2_SPANS.
 #define DIAGNOSTIC_ASSERTION_SPAN(type_, member_, begin_offset_, span_string_) \
   (::quick_lint_js::Diagnostic_Assertion::make_raw(                            \
       Diag_Type::type_,                                                        \
@@ -181,6 +184,37 @@ struct Diagnostic_Assertion {
                   (begin_offset_)) +                                           \
                   ::quick_lint_js::narrow_cast<Padded_String_Size>(            \
                       (span_string_).size())),                                 \
+      }))
+
+// Create a Diagnostic_Assertion which matches 'type_'.
+//
+// It asserts that 'type_::member_0_' is a Source_Code_Span beginning at
+// 'begin_offset_0_' and ending at 'begin_offset_0_ + span_string_0_.size()'.
+//
+// It asserts that 'type_::member_1_' is a Source_Code_Span beginning at
+// 'begin_offset_1_' and ending at 'begin_offset_1_ + span_string_1_.size()'.
+#define DIAGNOSTIC_ASSERTION_2_SPANS(type_, member_0_, begin_offset_0_,    \
+                                     span_string_0_, member_1_,            \
+                                     begin_offset_1_, span_string_1_)      \
+  (::quick_lint_js::Diagnostic_Assertion::make_raw(                        \
+      Diag_Type::type_,                                                    \
+      {                                                                    \
+          ::quick_lint_js::Diagnostic_Assertion::Member::make_span(        \
+              QLJS_CPP_QUOTE_U8_SV(member_0_), offsetof(type_, member_0_), \
+              ::quick_lint_js::narrow_cast<Padded_String_Size>(            \
+                  (begin_offset_0_)),                                      \
+              ::quick_lint_js::narrow_cast<Padded_String_Size>(            \
+                  (begin_offset_0_)) +                                     \
+                  ::quick_lint_js::narrow_cast<Padded_String_Size>(        \
+                      (span_string_0_).size())),                           \
+          ::quick_lint_js::Diagnostic_Assertion::Member::make_span(        \
+              QLJS_CPP_QUOTE_U8_SV(member_1_), offsetof(type_, member_1_), \
+              ::quick_lint_js::narrow_cast<Padded_String_Size>(            \
+                  (begin_offset_1_)),                                      \
+              ::quick_lint_js::narrow_cast<Padded_String_Size>(            \
+                  (begin_offset_1_)) +                                     \
+                  ::quick_lint_js::narrow_cast<Padded_String_Size>(        \
+                      (span_string_1_).size())),                           \
       }))
 
 // See [_diag-syntax].

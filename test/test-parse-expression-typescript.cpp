@@ -417,14 +417,14 @@ TEST_F(Test_Parse_Expression_TypeScript,
     SCOPED_TRACE(code);
     Test_Parser p(code.string_view(), typescript_options, capture_diags);
     p.parse_and_visit_expression();
-    EXPECT_THAT(p.legacy_errors(),
-                ElementsAreArray({
-                    DIAG_TYPE_2_OFFSETS(
-                        p.code,
-                        Diag_TypeScript_As_Const_With_Non_Literal_Typeable,  //
-                        expression, 0, expression,                           //
-                        as_const, expression.size() + 1, u8"as const"_sv),
-                }));
+    assert_diagnostics(
+        p.code, p.errors,
+        {
+            DIAGNOSTIC_ASSERTION_2_SPANS(
+                Diag_TypeScript_As_Const_With_Non_Literal_Typeable,  //
+                expression, 0, expression,                           //
+                as_const, expression.size() + 1, u8"as const"_sv),
+        });
   }
 
   test_parse_and_visit_expression(

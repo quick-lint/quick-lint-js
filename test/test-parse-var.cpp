@@ -518,15 +518,15 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray(
                       {let_init_decl(u8"x"_sv), let_noinit_decl(u8"z"_sv)}));
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_2_OFFSETS(
-                  p.code, Diag_Cannot_Update_Variable_During_Declaration,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_2_SPANS(
+                  Diag_Cannot_Update_Variable_During_Declaration,  //
                   updating_operator, u8"let x "_sv.size(),
                   compound_assignment_operator,  //
                   declaring_token, 0, u8"let"_sv),
-          }));
+          });
     }
 
     {
@@ -544,15 +544,15 @@ TEST_F(Test_Parse_Var, parse_invalid_let) {
       EXPECT_THAT(p.variable_declarations,
                   ElementsAreArray(
                       {const_init_decl(u8"x"_sv), const_init_decl(u8"y"_sv)}));
-      EXPECT_THAT(
-          p.legacy_errors(),
-          ElementsAreArray({
-              DIAG_TYPE_2_OFFSETS(
-                  p.code, Diag_Cannot_Update_Variable_During_Declaration,  //
+      assert_diagnostics(
+          p.code, p.errors,
+          {
+              DIAGNOSTIC_ASSERTION_2_SPANS(
+                  Diag_Cannot_Update_Variable_During_Declaration,  //
                   updating_operator, u8"const [x, y] "_sv.size(),
                   compound_assignment_operator,  //
                   declaring_token, 0, u8"const"_sv),
-          }));
+          });
     }
   }
 
