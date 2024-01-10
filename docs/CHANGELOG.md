@@ -1421,6 +1421,7 @@ Beta release.
 [E0069]: https://quick-lint-js.com/errors/E0069/
 [E0072]: https://quick-lint-js.com/errors/E0072/
 [E0073]: https://quick-lint-js.com/errors/E0073/
+[E0082]: https://quick-lint-js.com/errors/E0082/
 [E0086]: https://quick-lint-js.com/errors/E0086/
 [E0094]: https://quick-lint-js.com/errors/E0094/
 [E0101]: https://quick-lint-js.com/errors/E0101/
@@ -1438,6 +1439,7 @@ Beta release.
 [E0151]: https://quick-lint-js.com/errors/E0151/
 [E0155]: https://quick-lint-js.com/errors/E0155/
 [E0161]: https://quick-lint-js.com/errors/E0161/
+[E0172]: https://quick-lint-js.com/errors/E0172/
 [E0173]: https://quick-lint-js.com/errors/E0173/
 [E0176]: https://quick-lint-js.com/errors/E0176/
 [E0177]: https://quick-lint-js.com/errors/E0177/
@@ -1474,6 +1476,7 @@ Beta release.
 [E0246]: https://quick-lint-js.com/errors/E0246/
 [E0247]: https://quick-lint-js.com/errors/E0247/
 [E0253]: https://quick-lint-js.com/errors/E0253/
+[E0254]: https://quick-lint-js.com/errors/E0254/
 [E0266]: https://quick-lint-js.com/errors/E0266/
 [E0270]: https://quick-lint-js.com/errors/E0270/
 [E0271]: https://quick-lint-js.com/errors/E0271/
@@ -1483,6 +1486,7 @@ Beta release.
 [E0287]: https://quick-lint-js.com/errors/E0287/
 [E0291]: https://quick-lint-js.com/errors/E0291/
 [E0311]: https://quick-lint-js.com/errors/E0311/
+[E0315]: https://quick-lint-js.com/errors/E0315/
 [E0325]: https://quick-lint-js.com/errors/E0325/
 [E0326]: https://quick-lint-js.com/errors/E0326/
 [E0327]: https://quick-lint-js.com/errors/E0327/
@@ -1493,6 +1497,7 @@ Beta release.
 [E0347]: https://quick-lint-js.com/errors/E0347/
 [E0348]: https://quick-lint-js.com/errors/E0348/
 [E0349]: https://quick-lint-js.com/errors/E0349/
+[E0351]: https://quick-lint-js.com/errors/E0351/
 [E0356]: https://quick-lint-js.com/errors/E0356/
 [E0357]: https://quick-lint-js.com/errors/E0357/
 [E0361]: https://quick-lint-js.com/errors/E0361/
@@ -1507,10 +1512,13 @@ Beta release.
 [E0381]: https://quick-lint-js.com/errors/E0381/
 [E0383]: https://quick-lint-js.com/errors/E0383/
 [E0384]: https://quick-lint-js.com/errors/E0384/
+[E0385]: https://quick-lint-js.com/errors/E0385/
 [E0398]: https://quick-lint-js.com/errors/E0398/
 [E0426]: https://quick-lint-js.com/errors/E0426/
 [E0427]: https://quick-lint-js.com/errors/E0427/
 [E0429]: https://quick-lint-js.com/errors/E0429/
+[E0432]: https://quick-lint-js.com/errors/E0432/
+[E0440]: https://quick-lint-js.com/errors/E0440/
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/
@@ -1523,3 +1531,5 @@ Beta release.
 [E0714]: https://quick-lint-js.com/errors/E0714/
 [E0715]: https://quick-lint-js.com/errors/E0715/
 [E0716]: https://quick-lint-js.com/errors/E0716/
+[E0717]: https://quick-lint-js.com/errors/E0717/
+[E0718]: https://quick-lint-js.com/errors/E0718/
