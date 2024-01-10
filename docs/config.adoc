@@ -165,7 +165,7 @@ The following groups are supported for the *global-groups* configuration propert
 
 *literally-anything*:: all possible global variables.
 All global variables are defined as shadowable and writable.
-This in effect suppresses E0002, E0033, E0057, or E0059 entirely (except if variables are also configured using the *globals* configuration property).
+This in effect suppresses E0002, E0033, E0057, E0059, or E0214 entirely (except if variables are also configured using the *globals* configuration property).
 This group is not enabled by default.
 *browser*:: globals defined in HTML and DOM standards, including *window*, *alert*, and *console*.
 This group is enabled by default.
@@ -215,7 +215,7 @@ Such an application might have the following `quick-lint-js.config` file:
 
 '''
 
-If you want to suppress E0002, E0033, E0057, or E0059, configure *globals* or *global-groups*.
+If you want to suppress E0002, E0033, E0057, E0059, or E0214, configure *globals* or *global-groups*.
 For example, if you're seeing a spurious warning E0057 "use of undeclared variable: MyLibrary" (false positive), use the following configuration in `quick-lint-js.config`:
 
 [source,json]
@@ -227,7 +227,7 @@ For example, if you're seeing a spurious warning E0057 "use of undeclared variab
 }
 ----
 
-If you are not seeing E0002, E0033, E0057, or E0059 (false negative), but you want to see E0057 "use of undeclared variable: $", use one of the following configuration in `quick-lint-js.config`:
+If you are not seeing E0002, E0033, E0057, E0059, or E0214 (false negative), but you want to see E0057 "use of undeclared variable: $", use one of the following configuration in `quick-lint-js.config`:
 
 [source,json]
 ----
