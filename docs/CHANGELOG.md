@@ -27,6 +27,8 @@ Semantic Versioning.
   attribute; write 'className' instead"), are now only reported when 'react' is
   imported and if 'preact' is not imported. This fixes false warnings in Preact
   code. ([#1152][])
+* Commas are now allowed after methods in interfaces in `.d.ts` files. (They
+  were previously only allowed in `.ts` files.) ([#1171][])
 
 ## 3.0.0 (2024-01-01)
 
@@ -1385,6 +1387,7 @@ Beta release.
 [wagner riffel]: https://github.com/wgrr
 
 [#1152]: https://github.com/quick-lint/quick-lint-js/issues/1152
+[#1171]: https://github.com/quick-lint/quick-lint-js/issues/1171
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
 [E0003]: https://quick-lint-js.com/errors/E0003/

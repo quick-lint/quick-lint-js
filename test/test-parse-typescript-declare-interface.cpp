@@ -60,6 +60,27 @@ TEST_F(Test_Parse_TypeScript_Declare_Interface,
                 ElementsAreArray({interface_decl(u8"I"_sv)}));
   }
 }
+
+TEST_F(Test_Parse_TypeScript_Declare_Interface,
+       commas_are_allowed_between_properties) {
+  {
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare interface I { m(), M(): T, p, P: T, }"_sv, no_diags,
+        typescript_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"m"_sv, u8"M"_sv, u8"p"_sv, u8"P"_sv}));
+  }
+
+  {
+    // NOTE(strager): This used to report that ',' was not allowed only in .d.ts
+    // files. https://github.com/quick-lint/quick-lint-js/issues/1171
+    Spy_Visitor p = test_parse_and_visit_module(
+        u8"declare interface I { m(), M(): T, p, P: T, }"_sv, no_diags,
+        typescript_definition_options);
+    EXPECT_THAT(p.property_declarations,
+                ElementsAreArray({u8"m"_sv, u8"M"_sv, u8"p"_sv, u8"P"_sv}));
+  }
+}
 }
 }
 
