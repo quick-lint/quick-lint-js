@@ -15,14 +15,15 @@ Semantic Versioning.
   (default).
 * Writing a namespace alias with `import type`, such as in
   `import type ns = otherns;`, now reports [E0717][] ("namespace alias cannot
-  use 'import type'"). (Implemented by [koopiehoop][].)
+  use 'import type'"). (Implemented by [koopiehoop][].) ([#1139][])
 * `x?.y.z` now reports [E0718][] ("using a '.' after a '?.' might fail, since
   '?.' might return 'undefined'"). (Implemented by [Joshua Pepple][].)
+  ([#1128][])
 
 ### Fixed
 
 * quick-lint-js's tracing no longer crashes with an assertion failure when
-  setting its thread name on FreeBSD.
+  setting its thread name on FreeBSD. ([#1155][])
 * React-specific JSX diagnostics, such as [E0193][] ("misspelled React
   attribute; write 'className' instead"), are now only reported when 'react' is
   imported and if 'preact' is not imported. This fixes false warnings in Preact
@@ -1386,7 +1387,10 @@ Beta release.
 [toastin0]: https://github.com/toastin0
 [wagner riffel]: https://github.com/wgrr
 
+[#1128]: https://github.com/quick-lint/quick-lint-js/issues/1128
+[#1139]: https://github.com/quick-lint/quick-lint-js/issues/1139
 [#1152]: https://github.com/quick-lint/quick-lint-js/issues/1152
+[#1155]: https://github.com/quick-lint/quick-lint-js/issues/1155
 [#1171]: https://github.com/quick-lint/quick-lint-js/issues/1171
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
