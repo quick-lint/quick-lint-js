@@ -12,10 +12,10 @@
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.17
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version ﻿ 3.0.0
+.\"    Source: quick-lint-js version ﻿ 3.1.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS.CONFIG" "5" "" "quick\-lint\-js version ﻿ 3.0.0" "\ \&"
+.TH "QUICK\-LINT\-JS.CONFIG" "5" "" "quick\-lint\-js version ﻿ 3.1.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -356,7 +356,7 @@ The following groups are supported for the \fBglobal\-groups\fP configuration pr
 .RS 4
 all possible global variables.
 All global variables are defined as shadowable and writable.
-This in effect suppresses E0002, E0033, E0057, or E0059 entirely (except if variables are also configured using the \fBglobals\fP configuration property).
+This in effect suppresses E0002, E0033, E0057, E0059, or E0214 entirely (except if variables are also configured using the \fBglobals\fP configuration property).
 This group is not enabled by default.
 .RE
 .sp
@@ -458,7 +458,7 @@ Such an application might have the following \f(CRquick\-lint\-js.config\fP file
 .ce
 \l'\n(.lu*25u/100u\(ap'
 .sp
-If you want to suppress E0002, E0033, E0057, or E0059, configure \fBglobals\fP or \fBglobal\-groups\fP.
+If you want to suppress E0002, E0033, E0057, E0059, or E0214, configure \fBglobals\fP or \fBglobal\-groups\fP.
 For example, if you\(cqre seeing a spurious warning E0057 "use of undeclared variable: MyLibrary" (false positive), use the following configuration in \f(CRquick\-lint\-js.config\fP:
 .sp
 .if n .RS 4
@@ -473,7 +473,7 @@ For example, if you\(cqre seeing a spurious warning E0057 "use of undeclared var
 .fi
 .if n .RE
 .sp
-If you are not seeing E0002, E0033, E0057, or E0059 (false negative), but you want to see E0057 "use of undeclared variable: $", use one of the following configuration in \f(CRquick\-lint\-js.config\fP:
+If you are not seeing E0002, E0033, E0057, E0059, or E0214 (false negative), but you want to see E0057 "use of undeclared variable: $", use one of the following configuration in \f(CRquick\-lint\-js.config\fP:
 .sp
 .if n .RS 4
 .nf
