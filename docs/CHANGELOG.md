@@ -19,6 +19,9 @@ Semantic Versioning.
 * `x?.y.z` now reports [E0718][] ("using a '.' after a '?.' might fail, since
   '?.' might return 'undefined'"). (Implemented by [Joshua Pepple][].)
   ([#1128][])
+* `for await (...)` now reports [E0162][] ("'await' is only allowed in async
+  functions") when written in a non-async function. (Implemented by [Daniel La
+  Rocque][].) ([#1168][])
 
 ### Fixed
 
@@ -1393,6 +1396,7 @@ Beta release.
 [#1139]: https://github.com/quick-lint/quick-lint-js/issues/1139
 [#1152]: https://github.com/quick-lint/quick-lint-js/issues/1152
 [#1155]: https://github.com/quick-lint/quick-lint-js/issues/1155
+[#1168]: https://github.com/quick-lint/quick-lint-js/pull/1168
 [#1171]: https://github.com/quick-lint/quick-lint-js/issues/1171
 [#1180]: https://github.com/quick-lint/quick-lint-js/issues/1180
 
@@ -1442,6 +1446,7 @@ Beta release.
 [E0151]: https://quick-lint-js.com/errors/E0151/
 [E0155]: https://quick-lint-js.com/errors/E0155/
 [E0161]: https://quick-lint-js.com/errors/E0161/
+[E0162]: https://quick-lint-js.com/errors/E0162/
 [E0172]: https://quick-lint-js.com/errors/E0172/
 [E0173]: https://quick-lint-js.com/errors/E0173/
 [E0176]: https://quick-lint-js.com/errors/E0176/
