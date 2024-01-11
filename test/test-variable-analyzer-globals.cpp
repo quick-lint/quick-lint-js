@@ -89,6 +89,7 @@ constexpr const Char8 *non_writable_global_variables[] = {
 };
 
 constexpr const Char8 *type_only_global_variables[] = {
+    // TypeScript
     u8"Awaited",
     u8"Capitalize",
     u8"ConstructorParameters",
@@ -110,6 +111,9 @@ constexpr const Char8 *type_only_global_variables[] = {
     u8"ThisType",
     u8"Uncapitalize",
     u8"Uppercase",
+
+    // Web
+    u8"HeadersInit",
 };
 
 constexpr const Char8 *nodejs_global_variables[] = {

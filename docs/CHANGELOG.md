@@ -30,6 +30,8 @@ Semantic Versioning.
   code. ([#1152][])
 * Commas are now allowed after methods in interfaces in `.d.ts` files. (They
   were previously only allowed in `.ts` files.) ([#1171][])
+* quick-lint-js no longer reports warnings for web types such as `HeadersInit`
+  in TypeScript code. ([#1180][])
 
 ## 3.0.0 (2024-01-01)
 
@@ -1392,6 +1394,7 @@ Beta release.
 [#1152]: https://github.com/quick-lint/quick-lint-js/issues/1152
 [#1155]: https://github.com/quick-lint/quick-lint-js/issues/1155
 [#1171]: https://github.com/quick-lint/quick-lint-js/issues/1171
+[#1180]: https://github.com/quick-lint/quick-lint-js/issues/1180
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
 [E0003]: https://quick-lint-js.com/errors/E0003/

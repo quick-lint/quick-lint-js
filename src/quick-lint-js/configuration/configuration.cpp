@@ -413,6 +413,7 @@ bool Configuration::should_remove_global_variable(String8_View name) {
           group.globals == group_globals ? "" :
           group.non_shadowable_globals == group_globals ? "non_shadowable_" :
           group.non_writable_globals == group_globals ? "non_writable_" :
+          group.type_only_globals == group_globals ? "type_only_" :
           "???";
       // clang-format on
       std::fprintf(

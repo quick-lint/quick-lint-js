@@ -68,6 +68,7 @@ async function mainAsync() {
       "Worker",
       "WorkerGlobalScope",
     ]),
+    types: exposedGlobals.getGlobalsForNamespaces(["types"]),
     outputStream: process.stdout,
   });
 }
@@ -234,7 +235,10 @@ function collectExposedGlobals(globals, idlObject, allIDLObjects) {
     case "dictionary":
     case "enum":
     case "interface mixin":
+      break;
+
     case "typedef":
+      globals.addGlobal("types", idlObject.name);
       break;
 
     default:
@@ -415,7 +419,12 @@ class NullWriter extends stream.Writable {
   }
 }
 
-function writeCPPFile({ browserGlobals, webWorkerGlobals, outputStream }) {
+function writeCPPFile({
+  browserGlobals,
+  webWorkerGlobals,
+  types,
+  outputStream,
+}) {
   function writeStrings(strings) {
     for (let string of strings) {
       if (!/^[A-Za-z0-9_$]+$/g.test(string)) {
@@ -443,6 +452,10 @@ const Char8 global_variables_browser[] =`);
 
 const Char8 global_variables_web_worker[] =`);
   writeStrings(webWorkerGlobals);
+  outputStream.write(`;
+
+const Char8 global_variables_web_types[] =`);
+  writeStrings(types);
   outputStream.write(`;
 }
 

@@ -25,6 +25,7 @@ extern const Global_Group global_groups[];
 
 extern const Char8 global_variables_browser[];
 extern const Char8 global_variables_web_worker[];
+extern const Char8 global_variables_web_types[];
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
