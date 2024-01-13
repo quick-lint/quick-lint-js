@@ -15,7 +15,7 @@ int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {
   quick_lint_js::Padded_String source(quick_lint_js::String8(
       reinterpret_cast<const quick_lint_js::Char8 *>(data), size));
 
-  quick_lint_js::Configuration config;
+  quick_lint_js::CONFIGURATION config;
   quick_lint_js::parse_and_lint(&source,
                                 quick_lint_js::Null_Diag_Reporter::instance,
                                 quick_lint_js::Linter_Options{
