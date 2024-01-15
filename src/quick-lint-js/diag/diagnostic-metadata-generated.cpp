@@ -6931,7 +6931,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
     // Diag_Unexpected_Await_On_Function_Declaration
     {
       .code = 719,
-      .severity = Diagnostic_Severity::error,
+      .severity = Diagnostic_Severity::warning,
       .message_formats = {
         QLJS_TRANSLATABLE("Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?"),
       },
