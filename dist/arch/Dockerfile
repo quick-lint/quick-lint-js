@@ -13,6 +13,11 @@ USER qljs-builder
 # $ tar ch -C dist/arch/ . | docker build -
 COPY quick-lint-js.gpg.key /tmp/quick-lint-js.gpg.key
 RUN gpg --import /tmp/quick-lint-js.gpg.key
+# HACK(strager): For some reason, if the lock file remains, using
+# GnuPG to verify signatures hangs. Avoid these hangs by deleting the
+# lock file now.
+RUN gpgconf --kill gpg-agent && \
+    rm -f ~/.gnupg/public-keys.d/pubring.db.lock
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
