@@ -998,7 +998,13 @@ void Lexer::skip_less_less_as_less() {
 void Lexer::skip_as_greater() {
   switch (this->last_token_.type) {
   case Token_Type::greater_equal:
-    this->last_token_.type = Token_Type::equal;
+    if (this->input_[0] == '>') {
+      // >=>  ➤  > =>
+      this->last_token_.type = Token_Type::equal_greater;
+      this->input_ += 1;
+    } else {
+      this->last_token_.type = Token_Type::equal;
+    }
     break;
   case Token_Type::greater_greater_equal:
     this->last_token_.type = Token_Type::greater_equal;
@@ -1018,6 +1024,7 @@ void Lexer::skip_as_greater() {
   }
   this->last_token_.has_leading_newline = false;
   this->last_token_.begin += 1;
+  this->last_token_.end = this->input_;
   this->last_last_token_end_ = this->last_token_.begin;
 }
 

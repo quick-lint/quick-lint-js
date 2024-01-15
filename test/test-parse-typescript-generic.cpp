@@ -1099,6 +1099,60 @@ TEST_F(
 }
 
 TEST_F(Test_Parse_TypeScript_Generic,
+       greater_equal_greater_is_split_into_two_tokens) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let f = (): RT<T>=>{};"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_type_scope",           // :
+                              "visit_variable_type_use",          // RT
+                              "visit_variable_type_use",          // T
+                              "visit_exit_type_scope",            //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // let f
+                          }));
+  }
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"let f = (): RT<RT<T>>=> {};"_sv, no_diags, typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_function_scope",       //
+                              "visit_enter_type_scope",           // :
+                              "visit_variable_type_use",          // RT
+                              "visit_variable_type_use",          // RT
+                              "visit_variable_type_use",          // T
+                              "visit_exit_type_scope",            //
+                              "visit_enter_function_scope_body",  // {
+                              "visit_exit_function_scope",        // }
+                              "visit_variable_declaration",       // let f
+                          }));
+  }
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"class C<T> { method(): C<T>=> {} }"_sv,  //
+        u8"                           ^^ Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator"_diag,
+        typescript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_enter_class_scope",  //
+                              "visit_variable_declaration",
+                              "visit_enter_class_scope_body",     //
+                              "visit_enter_function_scope",       //
+                              "visit_enter_type_scope",           // :
+                              "visit_variable_type_use",          // T
+                              "visit_variable_type_use",          // C
+                              "visit_exit_type_scope",            //
+                              "visit_enter_function_scope_body",  //
+                              "visit_exit_function_scope",        //
+                              "visit_property_declaration",       // method
+                              "visit_exit_class_scope",
+                              "visit_variable_declaration",  // C
+                          }));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Generic,
        unambiguous_generic_arguments_are_parsed_in_javascript) {
   {
     Test_Parser p(u8"foo?.<T>(p)"_sv, javascript_options, capture_diags);
