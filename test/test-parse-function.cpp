@@ -1799,6 +1799,21 @@ TEST_F(Test_Parse_Function, return_with_comma_operator_missing_arguments) {
       u8"                      ^ Diag_Missing_Operand_For_Operator"_diag);
 }
 }
+
+TEST_F(Test_Parse_Function, await_instead_of_async_on_function_declaration) {
+  test_parse_and_visit_statement(
+      u8"await function f() { }"_sv,  //
+      u8"^^^^^ Diag_Unexpected_Await_On_Function_Declaration"_diag);
+
+  test_parse_and_visit_statement(u8"async function f() { }"_sv,  //
+                                 no_diags);
+
+  test_parse_and_visit_statement(u8"await function foo() {}();"_sv,  //
+                                 no_diags);
+
+  test_parse_and_visit_statement(u8"await (function foo() {});"_sv,  //
+                                 no_diags);
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <cstdio>
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -417,6 +418,20 @@ parse_statement:
       this->skip();
       this->check_body_after_label();
       goto parse_statement;
+    } else if (this->peek().type == Token_Type::kw_function) {
+      this->parse_and_visit_function_declaration(
+          v, Function_Declaration_Options{
+                 .attributes = Function_Attributes::normal,
+                 .begin = this->peek().begin,
+                 .require_name = Name_Requirement::required_for_statement,
+                 .async_keyword = std::nullopt,
+                 .declare_keyword = std::nullopt,
+             });
+      if (this->peek().type != Token_Type::left_paren) {
+        this->diag_reporter_->report(
+            Diag_Unexpected_Await_On_Function_Declaration{
+                .await_keyword = await_token.span()});
+      }
     } else {
       Expression *ast =
           this->parse_await_expression(v, await_token, Precedence{});

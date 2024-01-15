@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[605] = {
+inline const Translated_String test_translation_table[606] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1709,6 +1709,17 @@ inline const Translated_String test_translation_table[605] = {
             u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
             u8"'readonly' do TypeScript n\u00e3o \u00e9 permitido em c\u00f3digo JavaScript",
             u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
+        },
+    },
+    {
+        "Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?"_translatable,
+        u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
+        {
+            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
+            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
+            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
+            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
+            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
         },
     },
     {

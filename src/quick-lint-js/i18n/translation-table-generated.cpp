@@ -164,7 +164,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 55, 0, 47},                //
         {0, 36, 0, 53, 0, 57},               //
         {0, 0, 0, 66, 0, 67},                //
-        {56, 22, 0, 65, 0, 66},              //
+        {0, 0, 0, 0, 0, 66},                 //
+        {56, 22, 0, 65, 0, 77},              //
         {23, 15, 0, 19, 0, 18},              //
         {0, 0, 0, 0, 0, 13},                 //
         {18, 18, 0, 14, 0, 16},              //
@@ -2036,6 +2037,7 @@ const Translation_Table translation_data = {
         u8"TypeScript's 'enum' feature is not allowed in JavaScript\0"
         u8"TypeScript's 'interface' feature is not allowed in JavaScript code\0"
         u8"TypeScript's 'readonly' feature is not allowed in JavaScript code\0"
+        u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?\0"
         u8"a 'do-while' loop\0"
         u8"a 'for' loop\0"
         u8"a 'typeof' type\0"
