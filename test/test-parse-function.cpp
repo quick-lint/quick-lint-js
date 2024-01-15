@@ -1800,7 +1800,7 @@ TEST_F(Test_Parse_Function, return_with_comma_operator_missing_arguments) {
 }
 }
 
-TEST_F(Test_Parse_Function, await_instead_of_async_on_function_declaration) {
+TEST_F(Test_Parse_Function, unexpected_await_on_function_declaration) {
   test_parse_and_visit_statement(
       u8"await function f() { }"_sv,  //
       u8"^^^^^ Diag_Unexpected_Await_On_Function_Declaration"_diag);
