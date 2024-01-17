@@ -31,12 +31,15 @@ jobs:
         shell: bash
 
       - name: build
-        run: ninja -C build -j 4
+        run: ninja -C build
 
-      # - name: load corpus
-      #   uses: actions/download-artifact@v3
-      #   with:
-      #     name: fuzz-corpus-test
+      - name: load corpus
+        uses: actions/download-artifact@v3
+        with:
+          path: corpus/test
+
+      - name: foo
+        run: ls -R corpus/
 
       - name: run
         run: |
