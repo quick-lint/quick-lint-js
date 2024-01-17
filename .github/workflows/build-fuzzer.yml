@@ -33,18 +33,17 @@ jobs:
       - name: build
         run: ninja -C build
 
-      # - name: mkdir
-      #   run: mkdir -p corpus/test
-
-      - name: load corpus
-        uses: actions/download-artifact@v3
+      - name: setup cache
+        id: cache-corpus
+        uses: actions/cache@v4
         with:
-          name: fuzz-corpus-test
+          path: corpus
+          key: fuzz-corpus
 
-      - name: unpack corpus
-        run: |
-        ls .
-        tar -xJf corpus.tar.xz
+      # - name: unpack corpus
+      #   run: |
+      #   ls .
+      #   tar -xJf corpus.tar.xz
 
       - name: run
         run: |
@@ -52,14 +51,15 @@ jobs:
           # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
           ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -max_total_time=5 -verbosity=0
 
-      - name: package corpus
-        run: tar -cJf corpus.tar.xz corpus/*
+      # - name: package corpus
+      #   run: tar -cJf corpus.tar.xz corpus/*
 
-      - name: save corpus
-        uses: actions/upload-artifact@v3
-        with:
-          name: fuzz-corpus-test
-          path: corpus.tar.xz
+      # - name: save corpus
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: fuzz-corpus-test
+      #     path: corpus.tar.xz
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
