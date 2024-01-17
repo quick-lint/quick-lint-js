@@ -33,6 +33,9 @@ jobs:
       - name: build
         run: ninja -C build
 
+      - name: mkdir
+        run: mkdir -p corpus/test
+
       - name: load corpus
         uses: actions/download-artifact@v3
         with:
@@ -45,7 +48,7 @@ jobs:
         run: |
           mkdir -p corpus/test
           # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
-          ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -runs=10000
+          ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -max_total_time=5
 
       - name: save corpus
         uses: actions/upload-artifact@v3
