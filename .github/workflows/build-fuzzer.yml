@@ -22,10 +22,6 @@ jobs:
       - name: checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
-      - name: install dependencies (Homebrew)
-        if: ${{ matrix.toolchain.homebrew_packages }}
-        run: brew install ${{ matrix.toolchain.homebrew_packages }}
-
       - name: configure
         run: |
           env | grep '^ASAN_OPTIONS\|^CMAKE\|^QUICK_LINT_JS' | sort
@@ -35,12 +31,12 @@ jobs:
         shell: bash
 
       - name: build
-        run: ninja -C build
+        run: ninja -C build -j 4
 
-      - name: load corpus
-        uses: actions/download-artifact@v3
-        with:
-          name: fuzz-corpus-test
+      # - name: load corpus
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: fuzz-corpus-test
 
       - name: run
         run: |
