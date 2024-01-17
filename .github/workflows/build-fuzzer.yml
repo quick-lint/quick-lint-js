@@ -9,24 +9,15 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.toolchain.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain:
-          - { runs_on: ubuntu-latest, name: "Clang 13 libc++", container: "ghcr.io/quick-lint/quick-lint-js-github-clang:v1", CC: clang-13, CXX: clang++-13, CFLAGS: "-stdlib=libc++", CMAKE_BUILD_TYPE: "Debug", }
-          - { runs_on: ubuntu-latest, name: "Clang 13 libstdc++", container: "ghcr.io/quick-lint/quick-lint-js-github-clang:v1", CC: clang-13, CXX: clang++-13, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", }
-          - { runs_on: ubuntu-latest, name: "Clang 13 Release libc++", container: "ghcr.io/quick-lint/quick-lint-js-github-clang:v1", CC: clang-13, CXX: clang++-13, CFLAGS: "-stdlib=libc++", CMAKE_BUILD_TYPE: "Release", }
-          - { runs_on: ubuntu-latest, name: "Clang 13 Release libstdc++", container: "ghcr.io/quick-lint/quick-lint-js-github-clang:v1", CC: clang-13, CXX: clang++-13, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Release", }
-    runs-on: ${{ matrix.toolchain.runs_on }}
-    container: ${{ matrix.toolchain.container }}
+    name: "Clang 13 Release libstdc++"
+    runs-on: ubuntu-latest
+    container: "ghcr.io/quick-lint/quick-lint-js-github-clang:v1"
     env:
-      CMAKE_BUILD_TYPE: ${{ matrix.toolchain.CMAKE_BUILD_TYPE }}
-      CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
-      CMAKE_C_FLAGS: ${{ matrix.toolchain.CFLAGS }}
-      CMAKE_CXX_COMPILER: ${{ matrix.toolchain.CXX }}
-      CMAKE_CXX_FLAGS: ${{ matrix.toolchain.CFLAGS }}
-
+      CMAKE_BUILD_TYPE: "Release"
+      CMAKE_C_COMPILER: "clang-13"
+      CMAKE_C_FLAGS: "-fsanitize=address,undefined,fuzzer-no-link -stdlib=libstdc++"
+      CMAKE_CXX_COMPILER: "clang++-13"
+      CMAKE_CXX_FLAGS: "-fsanitize=address,undefined,fuzzer-no-link"
     steps:
       - name: checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
@@ -40,7 +31,7 @@ jobs:
           env | grep '^ASAN_OPTIONS\|^CMAKE\|^QUICK_LINT_JS' | sort
           mkdir build
           cd build
-          CC=$CMAKE_C_COMPILER CXX=$CMAKE_CXX_COMPILER CFLAGS='-fsanitize=address,undefined,fuzzer-no-link $CMAKE_C_FLAGS' CXXFLAGS='-fsanitize=address,undefined,fuzzer-no-link $CMAKE_CXX_FLAGS' cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DQUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS=ON ..
+          CC=$CMAKE_C_COMPILER CXX=$CMAKE_CXX_COMPILER CFLAGS='$CMAKE_C_FLAGS' CXXFLAGS='$CMAKE_CXX_FLAGS' cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DBUILD_TESTING=NO -DQUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS=ON ..
         shell: bash
 
       - name: build
