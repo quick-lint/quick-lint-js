@@ -41,7 +41,6 @@ jobs:
           mkdir build
           cd build
           CC=$CMAKE_C_COMPILER CXX=$CMAKE_CXX_COMPILER CFLAGS='-fsanitize=address,undefined,fuzzer-no-link $CMAKE_C_FLAGS' CXXFLAGS='-fsanitize=address,undefined,fuzzer-no-link $CMAKE_CXX_FLAGS' cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DQUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS=ON ..
-          cd ..
         shell: bash
 
       - name: build
