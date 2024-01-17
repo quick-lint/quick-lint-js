@@ -37,12 +37,22 @@ jobs:
       - name: build
         run: ninja -C build
 
-      # - name: sample run
-      #   run: |
-      #     mkdir fuzz-tmp
-      #     ls build/fuzz/
-      #     # try running every fuzzer for a very short time
-      #     for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
+      - name: load corpus
+        uses: actions/upload-artifact@v3
+        with:
+          name: fuzz-corpus-test
+
+      - name: run
+        run: |
+          mkdir -p corpus/test
+          # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
+          ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -runs=10000
+
+      - name: save corpus
+        uses: actions/upload-artifact@v3
+        with:
+          name: fuzz-corpus-test
+          path: corpus/test
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
