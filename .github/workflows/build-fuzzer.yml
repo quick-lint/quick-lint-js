@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: corpus
-          key: fuzz-corpus-${{ github.run_id }}
+          key: fuzz-corpus-${{ github.run_number }}
           restore-keys: |
             fuzz-corpus
 
