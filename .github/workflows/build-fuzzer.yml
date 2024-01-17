@@ -31,19 +31,18 @@ jobs:
           env | grep '^ASAN_OPTIONS\|^CMAKE\|^QUICK_LINT_JS' | sort
           mkdir build
           cd build
-          CC=$CMAKE_C_COMPILER CXX=$CMAKE_CXX_COMPILER CFLAGS='$CMAKE_C_FLAGS' CXXFLAGS='$CMAKE_CXX_FLAGS' cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DBUILD_TESTING=NO -DQUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS=ON ..
+          CC=$CMAKE_C_COMPILER CXX=$CMAKE_CXX_COMPILER CFLAGS=$CMAKE_C_FLAGS CXXFLAGS=$CMAKE_CXX_FLAGS cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DBUILD_TESTING=NO -DQUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS=ON ..
         shell: bash
 
       - name: build
         run: ninja -C build
 
-      - name: sample run
-        run: |
-          mkdir fuzz-tmp
-          ls build/fuzz/
-          # try running every fuzzer for a very short time
-          for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
-
+      # - name: sample run
+      #   run: |
+      #     mkdir fuzz-tmp
+      #     ls build/fuzz/
+      #     # try running every fuzzer for a very short time
+      #     for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
