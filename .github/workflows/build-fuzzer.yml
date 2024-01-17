@@ -31,7 +31,7 @@ jobs:
         shell: bash
 
       - name: build
-        run: ninja -C build
+        run: ninja -C build quick-lint-js-fuzz-lex
 
       - name: setup cache
         id: cache-corpus
