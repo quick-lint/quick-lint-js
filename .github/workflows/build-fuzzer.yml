@@ -50,9 +50,10 @@ jobs:
           # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
           for FILE in build/fuzz/quick-lint-js-fuzz-*;
           do
+            NAME=$(basename ${FILE})
             echo running: $FILE;
-            mkdir -p corpus/$FILE
-            ./build/fuzz/$FILE corpus/$FILE -artifact_prefix=$ARTIFACT_PREFIX$FILE- $LIBFUZZ_FLAGS || echo "fuzzer $FILE found something!";
+            mkdir -p corpus/$NAME
+            ./build/fuzz/$NAME corpus/$NAME -artifact_prefix=$ARTIFACT_PREFIX$NAME- $LIBFUZZ_FLAGS || echo "fuzzer $NAME found something!";
           done
 
       - name: move artifacts & logs
