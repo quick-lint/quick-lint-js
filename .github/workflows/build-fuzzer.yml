@@ -32,6 +32,7 @@ jobs:
         shell: bash
 
       - name: build
+        if: failure()
         run: ninja -C build quick-lint-js-fuzz-lex
 
       - name: setup cache
@@ -49,6 +50,7 @@ jobs:
       #   tar -xJf corpus.tar.xz
 
       - name: run
+        if: failure()
         run: |
           mkdir -p corpus/test
           # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
@@ -63,7 +65,7 @@ jobs:
       #     tar -cvJf artifact-upload/artifacts.tar.xz $ARTIFACT_PREFIX*
 
       - name: move artifacts & logs
-        if: failure()
+        # if: failure()
         # TODO: remove the 'v' flag?
         run: |
           mkdir -p artifact-upload
@@ -71,7 +73,7 @@ jobs:
           cp fuzz-* artifact-upload/
 
       - name: save artifacts
-        if: failure()
+        # if: failure()
         uses: actions/upload-artifact@v3
         with:
           name: fuzz-artifacts-${{ github.run_number }}
