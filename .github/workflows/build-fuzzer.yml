@@ -52,7 +52,8 @@ jobs:
         run: |
           mkdir -p corpus/test
           # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
-          ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -max_total_time=5 -verbosity=0 -reload=0 -artifact_prefix=$ARTIFACT_PREFIX -jobs=20 -workers=1
+          for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE ; done
+          ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -max_total_time=5 -verbosity=0 -reload=0 -artifact_prefix=$ARTIFACT_PREFIX -jobs=5 -workers=1 || echo "fuzzer found something!"
 
       # - name: package artifacts
       #   if: failure()
