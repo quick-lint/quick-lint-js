@@ -55,19 +55,19 @@ jobs:
           ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -max_total_time=5 -verbosity=0 -reload=0 -artifact_prefix=$ARTIFACT_PREFIX -jobs=20 -workers=1
 
       - name: package artifacts
-        if: ${{ failure() }} # did we find a bug?
+        if: failure()
         # TODO: remove the 'v' flag?
         run: tar -cvJf artifacts.tar.xz $ARTIFACT_PREFIX*
 
       - name: save artifacts
-        if: ${{ failure() }} # did we find a bug?
+        if: failure()
         uses: actions/upload-artifact@v3
         with:
           name: fuzz-artifacts-${{ github.run_number }}
           path: artifacts.tar.xz
 
       - name: test always
-        if: ${{ always() }}
+        if: always()
         run: ls -laph
 
       # - name: package corpus
