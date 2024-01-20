@@ -57,14 +57,16 @@ jobs:
       - name: package artifacts
         if: failure()
         # TODO: remove the 'v' flag?
-        run: tar -cvJf artifacts.tar.xz $ARTIFACT_PREFIX*
+        run: |
+          mkdir -p xxx
+          tar -cvJf xxx/artifacts.tar.xz $ARTIFACT_PREFIX*
 
       - name: save artifacts
         if: failure()
         uses: actions/upload-artifact@v3
         with:
           name: fuzz-artifacts-${{ github.run_number }}
-          path: artifacts.tar.xz
+          path: xxx
 
       - name: test always
         if: always()
