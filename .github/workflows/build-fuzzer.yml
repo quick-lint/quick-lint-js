@@ -18,6 +18,7 @@ jobs:
       CMAKE_C_FLAGS: "-fsanitize=address,undefined,fuzzer-no-link -stdlib=libstdc++"
       CMAKE_CXX_COMPILER: "clang++-13"
       CMAKE_CXX_FLAGS: "-fsanitize=address,undefined,fuzzer-no-link"
+      ARTIFACT_PREFIX: "artifacts-"
     steps:
       - name: checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
@@ -51,7 +52,17 @@ jobs:
         run: |
           mkdir -p corpus/test
           # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
-          ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -max_total_time=5 -verbosity=0
+          ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -max_total_time=5 -verbosity=0 -reload=0 -artifact_prefix=$ARTIFACT_PREFIX
+
+      - name: package artifacts
+        # TODO: remove the 'v' flag?
+        run: tar -cvJf artifacts.tar.xz $ARTIFACT_PREFIX*
+
+      - name: save artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: fuzz-artifacts-${{ github.run_number }}
+          path: artifacts.tar.xz
 
       # - name: package corpus
       #   run: tar -cJf corpus.tar.xz corpus/*
@@ -61,7 +72,6 @@ jobs:
       #   with:
       #     name: fuzz-corpus-test
       #     path: corpus.tar.xz
-
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
