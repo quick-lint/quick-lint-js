@@ -35,14 +35,15 @@ jobs:
         if: failure()
         run: ninja -C build quick-lint-js-fuzz-lex
 
-      - name: setup cache
-        id: cache-corpus
-        uses: actions/cache@v4
-        with:
-          path: corpus
-          key: fuzz-corpus-${{ github.run_number }}
-          restore-keys: |
-            fuzz-corpus
+      # TODO: should we keep the corpus between runs???
+      # - name: setup cache
+      #   id: cache-corpus
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: corpus
+      #     key: fuzz-corpus-${{ github.run_number }}
+      #     restore-keys: |
+      #       fuzz-corpus
 
       # - name: unpack corpus
       #   run: |
@@ -66,11 +67,10 @@ jobs:
 
       - name: move artifacts & logs
         # if: failure()
-        # TODO: remove the 'v' flag?
         run: |
           mkdir -p artifact-upload
-          cp $ARTIFACT_PREFIX* artifact-upload/
-          cp fuzz-* artifact-upload/
+          cp $ARTIFACT_PREFIX* artifact-upload/ || :
+          cp fuzz-* artifact-upload/ || :
 
       - name: save artifacts
         # if: failure()
@@ -78,10 +78,6 @@ jobs:
         with:
           name: fuzz-artifacts-${{ github.run_number }}
           path: artifact-upload
-
-      - name: test always
-        if: always()
-        run: ls -laph
 
       # - name: package corpus
       #   run: tar -cJf corpus.tar.xz corpus/*
