@@ -54,19 +54,27 @@ jobs:
           # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
           ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -max_total_time=5 -verbosity=0 -reload=0 -artifact_prefix=$ARTIFACT_PREFIX -jobs=20 -workers=1
 
-      - name: package artifacts
+      # - name: package artifacts
+      #   if: failure()
+      #   # TODO: remove the 'v' flag?
+      #   run: |
+      #     mkdir -p artifact-upload
+      #     tar -cvJf artifact-upload/artifacts.tar.xz $ARTIFACT_PREFIX*
+
+      - name: move artifacts & logs
         if: failure()
         # TODO: remove the 'v' flag?
         run: |
-          mkdir -p xxx
-          tar -cvJf xxx/artifacts.tar.xz $ARTIFACT_PREFIX*
+          mkdir -p artifact-upload
+          cp $ARTIFACT_PREFIX* artifact-upload/
+          cp fuzz-* artifact-upload/
 
       - name: save artifacts
         if: failure()
         uses: actions/upload-artifact@v3
         with:
           name: fuzz-artifacts-${{ github.run_number }}
-          path: xxx
+          path: artifact-upload
 
       - name: test always
         if: always()
