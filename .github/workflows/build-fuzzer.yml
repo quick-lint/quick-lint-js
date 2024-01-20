@@ -19,6 +19,7 @@ jobs:
       CMAKE_CXX_COMPILER: "clang++-13"
       CMAKE_CXX_FLAGS: "-fsanitize=address,undefined,fuzzer-no-link"
       ARTIFACT_PREFIX: "artifacts-"
+      LIBFUZZ_FALGS: "-max_total_time=5 -verbosity=0 -reload=0 -jobs=5 -workers=1"
     steps:
       - name: checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
@@ -32,8 +33,7 @@ jobs:
         shell: bash
 
       - name: build
-        if: failure()
-        run: ninja -C build quick-lint-js-fuzz-lex
+        run: ninja -C build
 
       # TODO: should we keep the corpus between runs???
       # - name: setup cache
@@ -45,25 +45,15 @@ jobs:
       #     restore-keys: |
       #       fuzz-corpus
 
-      # - name: unpack corpus
-      #   run: |
-      #   ls .
-      #   tar -xJf corpus.tar.xz
-
       - name: run
-        if: failure()
         run: |
-          mkdir -p corpus/test
           # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
-          for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE ; done
-          ./build/fuzz/quick-lint-js-fuzz-lex corpus/test -max_total_time=5 -verbosity=0 -reload=0 -artifact_prefix=$ARTIFACT_PREFIX -jobs=5 -workers=1 || echo "fuzzer found something!"
-
-      # - name: package artifacts
-      #   if: failure()
-      #   # TODO: remove the 'v' flag?
-      #   run: |
-      #     mkdir -p artifact-upload
-      #     tar -cvJf artifact-upload/artifacts.tar.xz $ARTIFACT_PREFIX*
+          for FILE in build/fuzz/quick-lint-js-fuzz-*;
+          do
+            echo running: $FILE;
+            mkdir -p corpus/$FILE
+            ./build/fuzz/$FILE corpus/$FILE -artifact_prefix=$ARTIFACT_PREFIX$FILE- $LIBFUZZ_FLAGS || echo "fuzzer $FILE found something!";
+          done
 
       - name: move artifacts & logs
         # if: failure()
@@ -78,15 +68,6 @@ jobs:
         with:
           name: fuzz-artifacts-${{ github.run_number }}
           path: artifact-upload
-
-      # - name: package corpus
-      #   run: tar -cJf corpus.tar.xz corpus/*
-
-      # - name: save corpus
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: fuzz-corpus-test
-      #     path: corpus.tar.xz
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
