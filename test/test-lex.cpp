@@ -1421,6 +1421,21 @@ TEST_F(Test_Lex, split_greater_from_bigger_token) {
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::semicolon);
   }
+
+  {
+    Padded_String input(u8">=>;"_sv);
+    Lexer l(&input, &Null_Diag_Reporter::instance);
+    EXPECT_EQ(l.peek().type, Token_Type::greater_equal);
+
+    l.skip_as_greater();
+    EXPECT_EQ(l.peek().type, Token_Type::equal_greater);
+    EXPECT_EQ(l.peek().begin, &input[1]);
+    EXPECT_EQ(l.peek().end, &input[3]);
+    EXPECT_EQ(l.end_of_previous_token(), &input[1]);
+    l.skip();
+
+    EXPECT_EQ(l.peek().type, Token_Type::semicolon);
+  }
 }
 
 TEST_F(Test_Lex, split_greater_from_bigger_token_has_no_leading_newline) {
