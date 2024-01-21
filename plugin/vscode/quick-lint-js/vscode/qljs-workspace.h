@@ -248,6 +248,8 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
     QLJS_Workspace* workspace_;
   };
 
+ private:
+  Translator translator_;
   bool disposed_ = false;
   VSCode_Tracer tracer_;
   VSCode_Module vscode_;

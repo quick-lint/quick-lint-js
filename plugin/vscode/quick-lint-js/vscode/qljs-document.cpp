@@ -22,7 +22,7 @@ void QLJS_Config_Document::after_modification(::Napi::Env env,
 void QLJS_Lintable_Document::after_modification(
     ::Napi::Env env, QLJS_Workspace& workspace,
     VSCode_Diagnostic_Collection diagnostic_collection) {
-  this->lint_javascript_and_publish_diagnostics(env, workspace.vscode_,
+  this->lint_javascript_and_publish_diagnostics(env, workspace,
                                                 diagnostic_collection);
 }
 
@@ -61,10 +61,10 @@ void QLJS_Config_Document::finish_init(
   auto loaded_config_result =
       workspace.config_loader_.watch_and_load_config_file(*file_path, this);
   if (loaded_config_result.ok()) {
+    this->loaded_config_ = *loaded_config_result;
     workspace.vscode_.load_non_persistent(env);
-    this->lint_config_and_publish_diagnostics(env, workspace.vscode_,
-                                              workspace.diagnostic_collection(),
-                                              *loaded_config_result);
+    this->lint_config_and_publish_diagnostics(
+        env, workspace, workspace.diagnostic_collection());
   } else {
     QLJS_UNIMPLEMENTED();
   }
@@ -74,16 +74,26 @@ void QLJS_Config_Document::on_config_file_changed(
     ::Napi::Env env, QLJS_Workspace& workspace,
     VSCode_Diagnostic_Collection diagnostic_collection,
     Loaded_Config_File* config_file) {
-  this->lint_config_and_publish_diagnostics(env, workspace.vscode_,
-                                            diagnostic_collection, config_file);
+  this->loaded_config_ = config_file;
+  this->lint_config_and_publish_diagnostics(env, workspace,
+                                            diagnostic_collection);
 }
 
 void QLJS_Config_Document::lint_config_and_publish_diagnostics(
-    ::Napi::Env env, VSCode_Module& vscode,
-    VSCode_Diagnostic_Collection diagnostic_collection,
-    Loaded_Config_File* loaded_config) {
-  diagnostic_collection.set(this->uri(),
-                            this->lint_config(env, &vscode, loaded_config));
+    ::Napi::Env env, QLJS_Workspace& workspace,
+    VSCode_Diagnostic_Collection diagnostic_collection) {
+  diagnostic_collection.set(this->uri(), this->lint_config(env, workspace));
+}
+
+::Napi::Array QLJS_Config_Document::lint_config(::Napi::Env env,
+                                                QLJS_Workspace& workspace) {
+  workspace.vscode_.load_non_persistent(env);
+
+  LSP_Locator locator(&this->loaded_config_->file_content);
+  VSCode_Diag_Reporter diag_reporter(&workspace.vscode_, env, &locator,
+                                     this->uri(), workspace.translator_);
+  diag_reporter.report(this->loaded_config_->errors);
+  return std::move(diag_reporter).diagnostics();
 }
 
 void QLJS_Lintable_Document::on_config_file_changed(
@@ -92,14 +102,30 @@ void QLJS_Lintable_Document::on_config_file_changed(
     Loaded_Config_File* config_file) {
   this->config_ =
       config_file ? &config_file->config : &workspace.default_config_;
-  this->lint_javascript_and_publish_diagnostics(env, workspace.vscode_,
+  this->lint_javascript_and_publish_diagnostics(env, workspace,
                                                 diagnostic_collection);
 }
 
 void QLJS_Lintable_Document::lint_javascript_and_publish_diagnostics(
-    ::Napi::Env env, VSCode_Module& vscode,
+    ::Napi::Env env, QLJS_Workspace& workspace,
     VSCode_Diagnostic_Collection diagnostic_collection) {
-  diagnostic_collection.set(this->uri(), this->lint_javascript(env, &vscode));
+  diagnostic_collection.set(this->uri(), this->lint_javascript(env, workspace));
+}
+
+::Napi::Array QLJS_Lintable_Document::lint_javascript(
+    ::Napi::Env env, QLJS_Workspace& workspace) {
+  VSCode_Module& vscode = workspace.vscode_;
+  vscode.load_non_persistent(env);
+
+  VSCode_Diag_Reporter diag_reporter(&vscode, env, &this->document_.locator(),
+                                     this->uri(), workspace.translator_);
+  parse_and_lint(this->document_.string(), diag_reporter,
+                 Linter_Options{
+                     .language = this->language_,
+                     .configuration = this->config_,
+                 });
+
+  return std::move(diag_reporter).diagnostics();
 }
 }
 

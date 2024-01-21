@@ -18,8 +18,9 @@ class VSCode_Diag_Formatter
   explicit VSCode_Diag_Formatter(VSCode_Module* vscode, ::Napi::Env env,
                                  ::Napi::Array diagnostics,
                                  const LSP_Locator* locator,
-                                 ::Napi::Value document_uri)
-      : Diagnostic_Formatter(qljs_messages),
+                                 ::Napi::Value document_uri,
+                                 Translator message_translator)
+      : Diagnostic_Formatter(message_translator),
         vscode_(vscode),
         env_(env),
         diagnostics_(diagnostics),
@@ -129,12 +130,14 @@ class VSCode_Diag_Reporter final : public Diag_Reporter {
  public:
   explicit VSCode_Diag_Reporter(VSCode_Module* vscode, ::Napi::Env env,
                                 const LSP_Locator* locator,
-                                ::Napi::Value document_uri)
+                                ::Napi::Value document_uri,
+                                Translator message_translator)
       : vscode_(vscode),
         env_(env),
         diagnostics_(::Napi::Array::New(env)),
         locator_(locator),
-        document_uri_(document_uri) {}
+        document_uri_(document_uri),
+        message_translator_(message_translator) {}
 
   ::Napi::Array diagnostics() const { return this->diagnostics_; }
 
@@ -144,7 +147,8 @@ class VSCode_Diag_Reporter final : public Diag_Reporter {
         /*env=*/this->env_,
         /*diagnostics=*/this->diagnostics_,
         /*locator=*/this->locator_,
-        /*document_uri=*/this->document_uri_);
+        /*document_uri=*/this->document_uri_,
+        /*message_translator=*/this->message_translator_);
     formatter.format(get_diagnostic_info(type), diag);
   }
 
@@ -154,6 +158,7 @@ class VSCode_Diag_Reporter final : public Diag_Reporter {
   ::Napi::Array diagnostics_;
   const LSP_Locator* locator_;
   ::Napi::Value document_uri_;
+  Translator message_translator_;
 };
 }
 
