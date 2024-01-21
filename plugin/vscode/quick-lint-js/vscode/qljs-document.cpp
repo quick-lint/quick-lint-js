@@ -79,6 +79,12 @@ void QLJS_Config_Document::on_config_file_changed(
                                             diagnostic_collection);
 }
 
+void QLJS_Config_Document::on_translator_changed(
+    ::Napi::Env env, QLJS_Workspace& workspace,
+    VSCode_Diagnostic_Collection diagnostic_collection) {
+  this->lint_config_and_publish_diagnostics(env, workspace,
+                                            diagnostic_collection);
+}
 void QLJS_Config_Document::lint_config_and_publish_diagnostics(
     ::Napi::Env env, QLJS_Workspace& workspace,
     VSCode_Diagnostic_Collection diagnostic_collection) {
@@ -106,6 +112,12 @@ void QLJS_Lintable_Document::on_config_file_changed(
                                                 diagnostic_collection);
 }
 
+void QLJS_Lintable_Document::on_translator_changed(
+    ::Napi::Env env, QLJS_Workspace& workspace,
+    VSCode_Diagnostic_Collection diagnostic_collection) {
+  this->lint_javascript_and_publish_diagnostics(env, workspace,
+                                                diagnostic_collection);
+}
 void QLJS_Lintable_Document::lint_javascript_and_publish_diagnostics(
     ::Napi::Env env, QLJS_Workspace& workspace,
     VSCode_Diagnostic_Collection diagnostic_collection) {

@@ -74,6 +74,113 @@ for (let extension of [".js", ".mjs", ".cjs", ".jsx"]) {
   };
 }
 
+// SNARKY tests
+for (let testCase of [
+  {
+    fileName: "hello.js",
+    content: "undeclaredVariable",
+    englishMessage: "use of undeclared variable: undeclaredVariable",
+    snarkyEnglishMessage: "did you fail spelling class?",
+  },
+  {
+    fileName: "quick-lint-js.config",
+    content: "{",
+    englishMessage: "JSON syntax error",
+    snarkyEnglishMessage: "yeah, JSON sucks; try quick-lint-json",
+  },
+]) {
+  tests = {
+    ...tests,
+    [`snarky enabled at start (${testCase.fileName})`]: async ({
+      addCleanup,
+    }) => {
+      addCleanup(resetConfigurationAsync);
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("snarky", true, vscode.ConfigurationTarget.Workspace);
+
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let filePath = path.join(scratchDirectory, testCase.fileName);
+      fs.writeFileSync(filePath, testCase.content);
+      let helloURI = vscode.Uri.file(filePath);
+      let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+      await loadExtensionAsync({ addCleanup });
+      let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+      await waitUntilAnyDiagnosticsAsync(helloURI);
+      let diags = normalizeDiagnostics(helloURI).map(({ message }) => message);
+      assert.deepStrictEqual(diags, [testCase.snarkyEnglishMessage]);
+    },
+
+    [`enabling snarky re-lints (${testCase.fileName})`]: async ({
+      addCleanup,
+    }) => {
+      addCleanup(resetConfigurationAsync);
+      await loadExtensionAsync({ addCleanup });
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let filePath = path.join(scratchDirectory, testCase.fileName);
+      fs.writeFileSync(filePath, testCase.content);
+      let helloURI = vscode.Uri.file(filePath);
+      let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+      let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+      // 1. Make sure we're polite at the start
+      {
+        await waitUntilAnyDiagnosticsAsync(helloURI);
+        let diagMessages = normalizeDiagnostics(helloURI).map(
+          ({ message }) => message
+        );
+        assert.deepStrictEqual(diagMessages, [testCase.englishMessage]);
+      }
+
+      // 2. Enable snarky
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("snarky", true, vscode.ConfigurationTarget.Workspace);
+
+      // 3. Make sure we're snarky now
+      await pollAsync(() => {
+        let diagMessages = normalizeDiagnostics(helloURI).map(
+          ({ message }) => message
+        );
+        let want = [testCase.snarkyEnglishMessage];
+        assert.deepStrictEqual(diagMessages, want);
+      });
+    },
+
+    [`disabling snarky re-lints (${testCase.fileName})`]: async ({
+      addCleanup,
+    }) => {
+      addCleanup(resetConfigurationAsync);
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("snarky", true, vscode.ConfigurationTarget.Workspace);
+      let scratchDirectory = makeScratchDirectory({ addCleanup });
+      let filePath = path.join(scratchDirectory, testCase.fileName);
+      fs.writeFileSync(filePath, testCase.content);
+      let helloURI = vscode.Uri.file(filePath);
+      let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+      await loadExtensionAsync({ addCleanup });
+      let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+      // 1. Disable snarky
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("snarky", false, vscode.ConfigurationTarget.Workspace);
+
+      // 2. Make sure we're polite now
+      await pollAsync(() => {
+        let diagMessages = normalizeDiagnostics(helloURI).map(
+          ({ message }) => message
+        );
+        let want = [testCase.englishMessage];
+        assert.deepStrictEqual(diagMessages, want);
+      });
+    },
+  };
+}
+
 tests = {
   ...tests,
 
@@ -1535,7 +1642,7 @@ async function pollAsync(callback) {
 }
 
 async function resetConfigurationAsync() {
-  for (let setting of ["logging"]) {
+  for (let setting of ["logging", "snarky"]) {
     await vscode.workspace
       .getConfiguration("quick-lint-js")
       .update(setting, undefined, vscode.ConfigurationTarget.Workspace);

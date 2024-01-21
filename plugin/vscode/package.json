@@ -47,6 +47,12 @@
           ],
           "default": "off",
           "description": "Log document changes. Useful for quick-lint-js contributors."
+        },
+        "quick-lint-js.snarky": {
+          "scope": "window",
+          "type": "boolean",
+          "default": false,
+          "description": "Add spice to your failures."
         }
       }
     },

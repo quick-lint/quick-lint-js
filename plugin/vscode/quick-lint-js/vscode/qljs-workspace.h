@@ -73,6 +73,8 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
   // Disable logging if logging is enabled.
   void disable_logging();
 
+  void on_translator_changed(::Napi::Env env);
+
   ~QLJS_Workspace();
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info);
@@ -248,8 +250,13 @@ class QLJS_Workspace : public ::Napi::ObjectWrap<QLJS_Workspace> {
     QLJS_Workspace* workspace_;
   };
 
+ public:
+  bool is_snarky_enabled() const;
+
  private:
+  bool is_snarky_enabled_ = false;
   Translator translator_;
+
   bool disposed_ = false;
   VSCode_Tracer tracer_;
   VSCode_Module vscode_;
