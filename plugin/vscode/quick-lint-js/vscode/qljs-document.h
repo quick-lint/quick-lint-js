@@ -120,19 +120,12 @@ class QLJS_Config_Document : public QLJS_Document_Base {
                               Loaded_Config_File* config_file) override;
 
  private:
-  void lint_config_and_publish_diagnostics(::Napi::Env, VSCode_Module&,
-                                           VSCode_Diagnostic_Collection,
-                                           Loaded_Config_File* loaded_config);
+  void lint_config_and_publish_diagnostics(::Napi::Env, QLJS_Workspace&,
+                                           VSCode_Diagnostic_Collection);
 
-  ::Napi::Array lint_config(::Napi::Env env, VSCode_Module* vscode,
-                            Loaded_Config_File* loaded_config) {
-    vscode->load_non_persistent(env);
+  ::Napi::Array lint_config(::Napi::Env env, QLJS_Workspace& workspace);
 
-    LSP_Locator locator(&loaded_config->file_content);
-    VSCode_Diag_Reporter diag_reporter(vscode, env, &locator, this->uri());
-    diag_reporter.report(loaded_config->errors);
-    return std::move(diag_reporter).diagnostics();
-  }
+  Loaded_Config_File* loaded_config_ = nullptr;
 };
 
 class QLJS_Lintable_Document : public QLJS_Document_Base {
@@ -150,23 +143,11 @@ class QLJS_Lintable_Document : public QLJS_Document_Base {
                               VSCode_Diagnostic_Collection,
                               Loaded_Config_File* config_file) override;
 
-  void lint_javascript_and_publish_diagnostics(::Napi::Env, VSCode_Module&,
+  void lint_javascript_and_publish_diagnostics(::Napi::Env, QLJS_Workspace&,
                                                VSCode_Diagnostic_Collection);
 
  private:
-  ::Napi::Array lint_javascript(::Napi::Env env, VSCode_Module* vscode) {
-    vscode->load_non_persistent(env);
-
-    VSCode_Diag_Reporter diag_reporter(vscode, env, &this->document_.locator(),
-                                       this->uri());
-    parse_and_lint(this->document_.string(), diag_reporter,
-                   Linter_Options{
-                       .language = this->language_,
-                       .configuration = this->config_,
-                   });
-
-    return std::move(diag_reporter).diagnostics();
-  }
+  ::Napi::Array lint_javascript(::Napi::Env env, QLJS_Workspace& workspace);
 
   Configuration* config_;  // Initialized by finish_init.
 
