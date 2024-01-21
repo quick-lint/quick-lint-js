@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* TypeScript: `(): RT<T>=>null` (with no spaces in `>=>`) now parses correctly.
+  (Fixed by [vegerot][].)
+
 ## 3.1.0 (2024-01-10)
 
 [Downloads](https://c.quick-lint-js.com/releases/3.1.0/)
@@ -1392,6 +1399,7 @@ Beta release.
 [strager]: https://github.com/strager
 [tiagovla]: https://github.com/tiagovla
 [toastin0]: https://github.com/toastin0
+[vegerot]: https://github.com/vegerot
 [wagner riffel]: https://github.com/wgrr
 
 [#1128]: https://github.com/quick-lint/quick-lint-js/issues/1128
