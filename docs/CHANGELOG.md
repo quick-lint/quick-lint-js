@@ -13,6 +13,7 @@ Semantic Versioning.
 * VS Code: You can now make quick-lint-js messages fun and insulting with the
   `quick-lint-js.snarky` setting (disabled by default). (Implemented by
   [vegerot][].)
+* TypeScript: Decorators on abstract classes are now parsed. ([#1194][])
 
 ### Fixed
 
@@ -1415,6 +1416,7 @@ Beta release.
 [#1168]: https://github.com/quick-lint/quick-lint-js/pull/1168
 [#1171]: https://github.com/quick-lint/quick-lint-js/issues/1171
 [#1180]: https://github.com/quick-lint/quick-lint-js/issues/1180
+[#1194]: https://github.com/quick-lint/quick-lint-js/issues/1194
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
 [E0003]: https://quick-lint-js.com/errors/E0003/

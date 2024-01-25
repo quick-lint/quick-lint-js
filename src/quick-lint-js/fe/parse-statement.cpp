@@ -2999,6 +2999,7 @@ void Parser::parse_and_visit_decorator_statement(Parse_Visitor_Base &v) {
   this->parse_and_visit_one_or_more_decorators(decorator_visits.visitor());
 
   switch (this->peek().type) {
+  case Token_Type::kw_abstract:
   case Token_Type::kw_class:
     this->parse_and_visit_class(
         v, Parse_Class_Options{

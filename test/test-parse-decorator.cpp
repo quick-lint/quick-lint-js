@@ -456,6 +456,17 @@ TEST_F(Test_Parse_Decorator,
       typescript_options);
 }
 
+TEST_F(Test_Parse_Decorator, decorator_on_typescript_abstract_class) {
+  test_parse_and_visit_module(
+      u8"@decorator abstract class C { abstract m(); }"_sv, no_diags,
+      typescript_options);
+
+  test_parse_and_visit_module(
+      u8"@decorator abstract\nclass C { abstract m(); }"_sv,  //
+      u8"           ^^^^^^^^ Diag_Newline_Not_Allowed_After_Abstract_Keyword.abstract_keyword"_diag,
+      typescript_options);
+}
+
 TEST_F(Test_Parse_Decorator, typescript_parameter_decorator) {
   {
     Spy_Visitor p = test_parse_and_visit_statement(

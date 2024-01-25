@@ -25,6 +25,20 @@
 namespace quick_lint_js {
 void Parser::parse_and_visit_class(Parse_Visitor_Base &v,
                                    Parse_Class_Options options) {
+  if (this->peek().type == Token_Type::kw_abstract) {
+    if (options.abstract_keyword_span.has_value()) {
+      // abstract abstract class???
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
+    options.abstract_keyword_span = this->peek().span();
+    this->skip();
+    if (this->peek().has_leading_newline) {
+      this->diag_reporter_->report(
+          Diag_Newline_Not_Allowed_After_Abstract_Keyword{
+              .abstract_keyword = *options.abstract_keyword_span,
+          });
+    }
+  }
   QLJS_ASSERT(this->peek().type == Token_Type::kw_class);
   Source_Code_Span class_keyword_span = this->peek().span();
 
