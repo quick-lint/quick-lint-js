@@ -63,6 +63,7 @@ Span<std::string_view> get_user_locale_preferences(
 
   // TODO(strager): Determine the language using macOS' and Windows' native
   // APIs. See GNU gettext's _nl_language_preferences_default.
+  // TODO (#529): Also use VSCode's "Display Language" setting
 
   Vector<std::string_view> locales("locales", allocator);
   locales.push_back(locale);
