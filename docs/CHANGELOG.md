@@ -8,6 +8,12 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* VS Code: You can now make quick-lint-js messages fun and insulting with the
+  `quick-lint-js.snarky` setting (disabled by default). (Implemented by
+  [vegerot][].)
+
 ### Fixed
 
 * TypeScript: `(): RT<T>=>null` (with no spaces in `>=>`) now parses correctly.
