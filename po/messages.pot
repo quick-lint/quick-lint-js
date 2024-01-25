@@ -2417,6 +2417,10 @@ msgstr ""
 msgid "using a '.' after a '?.' might fail, since '?.' might return 'undefined'."
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

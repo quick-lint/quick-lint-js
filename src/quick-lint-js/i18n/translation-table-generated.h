@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 606;
-constexpr std::size_t translation_table_string_table_size = 82482;
+constexpr std::uint16_t translation_table_mapping_table_size = 607;
+constexpr std::size_t translation_table_string_table_size = 82559;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -179,6 +179,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript's 'enum' feature is not allowed in JavaScript"sv,
           "TypeScript's 'interface' feature is not allowed in JavaScript code"sv,
           "TypeScript's 'readonly' feature is not allowed in JavaScript code"sv,
+          "Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?"sv,
           "a 'do-while' loop"sv,
           "a 'for' loop"sv,
           "a 'typeof' type"sv,
