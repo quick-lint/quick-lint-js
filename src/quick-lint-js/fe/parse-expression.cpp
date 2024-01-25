@@ -172,8 +172,6 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
     break;
   case Expression_Kind::Dot:
     this->visit_expression(ast->child_0(), v, Variable_Context::rhs);
-    this->warn_on_dot_operator_after_optional_chain(
-        expression_cast<Expression::Dot*>(ast));
     break;
   case Expression_Kind::Index:
     this->visit_expression(ast->child_0(), v, Variable_Context::rhs);

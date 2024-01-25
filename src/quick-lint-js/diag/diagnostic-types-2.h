@@ -31,6 +31,7 @@ QLJS_RESERVED_DIAG("E0271")
 QLJS_RESERVED_DIAG("E0279")
 QLJS_RESERVED_DIAG("E0391")
 QLJS_RESERVED_DIAG("E0707")
+QLJS_RESERVED_DIAG("E0718")
 
 struct Diag_Abstract_Field_Cannot_Have_Initializer {
   [[qljs::diag("E0295", Diagnostic_Severity::error)]]  //
@@ -3587,17 +3588,6 @@ struct Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type {
   [[qljs::message("namespace alias cannot use 'import type'",
                   ARG(type_keyword))]]  //
   Source_Code_Span type_keyword;
-};
-
-struct Diag_Using_Dot_After_Optional_Chaining {
-  [[qljs::diag("E0718", Diagnostic_Severity::warning)]]  //
-  // clang-format off
-  [[qljs::message("using a '.' after a '?.' might fail, since '?.' might "
-                  "return 'undefined'.",
-                  ARG(dot_op), ARG(optional_chain_op))]]  //
-  // clang-format on
-  Source_Code_Span dot_op;
-  Source_Code_Span optional_chain_op;
 };
 }
 QLJS_WARNING_POP
