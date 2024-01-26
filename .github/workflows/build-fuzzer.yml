@@ -1,0 +1,88 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+name: build the fuzzers
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    name: "Clang 13 Release libstdc++"
+    runs-on: ubuntu-latest
+    container: "ghcr.io/quick-lint/quick-lint-js-github-clang:v1"
+    env:
+      CMAKE_BUILD_TYPE: "Release"
+      CMAKE_C_COMPILER: "clang-13"
+      CMAKE_C_FLAGS: "-fsanitize=address,undefined,fuzzer-no-link -stdlib=libstdc++"
+      CMAKE_CXX_COMPILER: "clang++-13"
+      CMAKE_CXX_FLAGS: "-fsanitize=address,undefined,fuzzer-no-link"
+      ARTIFACT_PREFIX: "artifacts-"
+      LIBFUZZ_FALGS: "-max_total_time=5 -verbosity=0 -reload=0 -jobs=5 -workers=1"
+    steps:
+      - name: checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+
+      - name: configure
+        run: |
+          env | grep '^ASAN_OPTIONS\|^CMAKE\|^QUICK_LINT_JS' | sort
+          mkdir build
+          cd build
+          CC=$CMAKE_C_COMPILER CXX=$CMAKE_CXX_COMPILER CFLAGS=$CMAKE_C_FLAGS CXXFLAGS=$CMAKE_CXX_FLAGS cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DBUILD_TESTING=NO -DQUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS=ON ..
+        shell: bash
+
+      - name: build
+        run: ninja -C build
+
+      # TODO: should we keep the corpus between runs???
+      # - name: setup cache
+      #   id: cache-corpus
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: corpus
+      #     key: fuzz-corpus-${{ github.run_number }}
+      #     restore-keys: |
+      #       fuzz-corpus
+
+      - name: run
+        run: |
+          # for FILE in build/fuzz/quick-lint-js-fuzz-*; do echo running: $FILE; $FILE fuzz-tmp -runs=100 || exit 1; done
+          for FILE in build/fuzz/quick-lint-js-fuzz-*;
+          do
+            NAME=$(basename ${FILE})
+            echo running: $FILE;
+            mkdir -p corpus/$NAME
+            ./build/fuzz/$NAME corpus/$NAME -artifact_prefix=$ARTIFACT_PREFIX$NAME- $LIBFUZZ_FLAGS || echo "fuzzer $NAME found something!";
+          done
+
+      - name: move artifacts & logs
+        # if: failure()
+        run: |
+          mkdir -p artifact-upload
+          cp $ARTIFACT_PREFIX* artifact-upload/ || :
+          cp fuzz-* artifact-upload/ || :
+
+      - name: save artifacts
+        # if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: fuzz-artifacts-${{ github.run_number }}
+          path: artifact-upload
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
