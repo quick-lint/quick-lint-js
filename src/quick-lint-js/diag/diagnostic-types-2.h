@@ -3603,7 +3603,7 @@ struct Diag_Using_Dot_After_Optional_Chaining {
 struct Diag_Unexpected_Await_On_Function_Declaration {
   [[qljs::diag("E0719", Diagnostic_Severity::warning)]]  //
   // clang-format off
-  [[qljs::message("Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
+  [[qljs::message("unexpected 'await' keyword on function declaration; maybe you meant 'async'?",
                   ARG(await_keyword))]]  //
   // clang-format on
   Source_Code_Span await_keyword;

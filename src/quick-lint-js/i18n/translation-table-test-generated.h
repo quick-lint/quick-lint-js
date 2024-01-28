@@ -1712,17 +1712,6 @@ inline const Translated_String test_translation_table[606] = {
         },
     },
     {
-        "Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?"_translatable,
-        u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
-        {
-            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
-            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
-            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
-            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
-            u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?",
-        },
-    },
-    {
         "a 'do-while' loop"_translatable,
         u8"a 'do-while' loop",
         {
@@ -6043,6 +6032,17 @@ inline const Translated_String test_translation_table[606] = {
             u8"'\\' inattendu dans un identifiant",
             u8"'\\' inesperado em um identificador",
             u8"of\u00f6rv\u00e4ntad '\\' i identifierare",
+        },
+    },
+    {
+        "unexpected 'await' keyword on function declaration; maybe you meant 'async'?"_translatable,
+        u8"unexpected 'await' keyword on function declaration; maybe you meant 'async'?",
+        {
+            u8"unexpected 'await' keyword on function declaration; maybe you meant 'async'?",
+            u8"unexpected 'await' keyword on function declaration; maybe you meant 'async'?",
+            u8"unexpected 'await' keyword on function declaration; maybe you meant 'async'?",
+            u8"unexpected 'await' keyword on function declaration; maybe you meant 'async'?",
+            u8"unexpected 'await' keyword on function declaration; maybe you meant 'async'?",
         },
     },
     {

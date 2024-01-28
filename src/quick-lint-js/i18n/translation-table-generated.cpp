@@ -164,8 +164,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 55, 0, 47},                //
         {0, 36, 0, 53, 0, 57},               //
         {0, 0, 0, 66, 0, 67},                //
-        {0, 0, 0, 0, 0, 66},                 //
-        {56, 22, 0, 65, 0, 77},              //
+        {56, 22, 0, 65, 0, 66},              //
         {23, 15, 0, 19, 0, 18},              //
         {0, 0, 0, 0, 0, 13},                 //
         {18, 18, 0, 14, 0, 16},              //
@@ -558,7 +557,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 15},                 //
         {0, 0, 0, 15, 0, 62},                //
         {16, 12, 14, 32, 17, 34},            //
-        {31, 12, 34, 35, 33, 29},            //
+        {0, 0, 0, 0, 0, 29},                 //
+        {31, 12, 34, 35, 33, 77},            //
         {53, 46, 52, 49, 41, 43},            //
         {45, 43, 53, 32, 39, 33},            //
         {56, 49, 55, 52, 44, 46},            //
@@ -2037,7 +2037,6 @@ const Translation_Table translation_data = {
         u8"TypeScript's 'enum' feature is not allowed in JavaScript\0"
         u8"TypeScript's 'interface' feature is not allowed in JavaScript code\0"
         u8"TypeScript's 'readonly' feature is not allowed in JavaScript code\0"
-        u8"Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?\0"
         u8"a 'do-while' loop\0"
         u8"a 'for' loop\0"
         u8"a 'typeof' type\0"
@@ -2431,6 +2430,7 @@ const Translation_Table translation_data = {
         u8"unexpected '?' in type; use '| void' to make an optional type\0"
         u8"unexpected '?' when destructuring\0"
         u8"unexpected '\\' in identifier\0"
+        u8"unexpected 'await' keyword on function declaration; maybe you meant 'async'?\0"
         u8"unexpected 'case' outside switch statement\0"
         u8"unexpected 'catch' without 'try'\0"
         u8"unexpected 'default' outside switch statement\0"

@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <cstdio>
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/assert.h>

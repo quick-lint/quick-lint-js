@@ -2418,7 +2418,7 @@ msgid "using a '.' after a '?.' might fail, since '?.' might return 'undefined'.
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "Unexpected 'await' keyword on function declaration. Maybe you meant 'async'?"
+msgid "unexpected 'await' keyword on function declaration; maybe you meant 'async'?"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp
