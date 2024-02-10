@@ -425,6 +425,9 @@ class Path_Canonicalizer_Base {
     path_to_process_ = path_to_process_.substr(next_component_index);
   }
 
+  // TODO(strager): Have canonicalize_path accept an allocator.
+  Monotonic_Allocator allocator_{"Path_Canonicalizer_Base"};
+
   Canonicalize_Observer *observer_;
   Path_String_View original_path_;
 
@@ -583,51 +586,13 @@ class Windows_Path_Canonicalizer
 
   quick_lint_js::Result<void, Canonicalizing_Path_IO_Error>
   process_start_of_path() {
-    std::wstring temp(path_to_process_);
-
-    // The PathCch functions only support '\' as a directory separator. Convert
-    // all '/'s into '\'s.
-    for (wchar_t &c : temp) {
-      if (c == L'/') {
-        c = L'\\';
-      }
-    }
-
-    wchar_t *root_end;
-    HRESULT result = ::PathCchSkipRoot(temp.data(), &root_end);
-    switch (result) {
-    case S_OK:
-      // Path is absolute.
-      QLJS_ASSERT(root_end != temp.data());
-
-      path_to_process_ = path_to_process_.substr(root_end - temp.data());
-      skip_to_next_component();
-
-      // Drop '\' from 'C:\' if present.
-      if (root_end[-1] == L'\\') {
-        --root_end;
-      }
-      canonical_.assign(temp.data(), root_end);
-
-      need_root_slash_ = true;
-      break;
-
-    case HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER): {
-      // Path is invalid or is relative. Assume that it is relative.
-      quick_lint_js::Result<void, Windows_File_IO_Error> r = load_cwd();
-      if (!r.ok()) {
-        return failed_result(Canonicalizing_Path_IO_Error{
-            .canonicalizing_path = Path_String(this->path_to_process_),
-            .io_error = r.error(),
-        });
-      }
-      break;
-    }
-
-    default:
-      QLJS_UNIMPLEMENTED();
-      break;
-    }
+    // FIXME(strager): Do we need to copy (std::wstring) to add the null
+    // terminator?
+    Simplified_Path simplified_path = simplify_path_and_make_absolute(
+        &this->allocator_, std::wstring(path_to_process_).c_str());
+    this->canonical_ = simplified_path.root;
+    this->path_to_process_ = simplified_path.relative;
+    this->need_root_slash_ = true;
 
     return {};
   }

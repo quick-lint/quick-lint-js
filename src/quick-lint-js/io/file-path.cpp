@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/util/ascii.h>
@@ -160,6 +161,78 @@ std::string_view path_file_name(std::string_view path) {
   }
   return path.substr(last_slash_index + 1);
 }
+
+#if defined(_WIN32)
+Simplified_Path simplify_path_and_make_absolute(Monotonic_Allocator* allocator,
+                                                const wchar_t* path) {
+  Span<wchar_t> absolute_path_buffer;
+  if (path[0] == L'\\' && path[1] == L'\\' && path[2] == L'?' &&
+      path[3] == L'\\') {
+    // ::GetFullPathNameW mangles \\?\ paths, but we want \\?\ paths to be
+    // untouched. Also, ::PathCchSkipRoot treats \ and / the same, but they
+    // differ for \\?\ paths. Handle \\?\ paths specially.
+    absolute_path_buffer = allocator->new_objects_copy(
+        Span<const wchar_t>(path, std::wcslen(path) + 1));
+
+    const wchar_t* root_end = std::find(absolute_path_buffer.begin() + 4,
+                                        absolute_path_buffer.end() - 1, L'\\');
+
+    const wchar_t* relative_start =
+        *root_end == L'\\' ? root_end + 1 : root_end;
+
+    return Simplified_Path{
+        .full_path = absolute_path_buffer.data(),
+        .root = make_string_view(absolute_path_buffer.data(), root_end),
+        .relative =
+            make_string_view(relative_start, absolute_path_buffer.end() - 1),
+    };
+  }
+
+  if (path[0] == L'\0') {
+    // ::GetFullPathNameW returns 0 if path is empty, causing us to
+    // underallocate. ::PathCchSkipRoot also fails if path is empty. Avoid
+    // problems by special-casing empty inputs.
+    Span<wchar_t> full_path =
+        allocator->new_objects_copy(Span<const wchar_t>({L'\0'}));
+    return Simplified_Path{
+        .full_path = full_path.data(),
+        .root = std::wstring_view(),
+        .relative = std::wstring_view(),
+    };
+  }
+
+  ::DWORD absolute_path_buffer_size =
+      ::GetFullPathNameW(path, 0, nullptr, nullptr);
+  QLJS_ALWAYS_ASSERT(absolute_path_buffer_size > 0);
+  absolute_path_buffer = allocator->allocate_uninitialized_span<wchar_t>(
+      absolute_path_buffer_size);
+  ::DWORD absolute_path_length = ::GetFullPathNameW(
+      path, absolute_path_buffer_size, absolute_path_buffer.data(), nullptr);
+  QLJS_ALWAYS_ASSERT(absolute_path_length < absolute_path_buffer_size);
+  QLJS_ALWAYS_ASSERT(absolute_path_buffer[absolute_path_length] == L'\0');
+  absolute_path_buffer =
+      absolute_path_buffer.subspan(0, absolute_path_length + 1);
+
+  const wchar_t* relative_start;
+  ::HRESULT result =
+      ::PathCchSkipRoot(absolute_path_buffer.data(), &relative_start);
+  if (result != S_OK) {
+    QLJS_UNIMPLEMENTED();
+  }
+  const wchar_t* root_end = relative_start;
+  if (root_end != path && root_end[-1] == L'\\') {
+    // Don't include the trailing '\'.
+    root_end -= 1;
+  }
+
+  return Simplified_Path{
+      .full_path = absolute_path_buffer.data(),
+      .root = make_string_view(absolute_path_buffer.data(), root_end),
+      .relative =
+          make_string_view(relative_start, absolute_path_buffer.end() - 1),
+  };
+}
+#endif
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

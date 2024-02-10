@@ -533,6 +533,7 @@ quick_lint_js_add_library(
   quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
   quick-lint-js/i18n/po-parser-debug.cpp
+  quick-lint-js/io/file-path-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp
   quick-lint-js/port/char8-debug.cpp
 )

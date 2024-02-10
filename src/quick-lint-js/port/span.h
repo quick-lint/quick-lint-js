@@ -76,6 +76,15 @@ class Span {
 
   bool empty() const { return this->size() == 0; }
 
+  Span subspan(Span_Size offset, Span_Size count) {
+    // TODO(strager): Be lax with offset and count.
+    QLJS_ASSERT(offset >= 0);
+    QLJS_ASSERT(offset <= this->size());
+    QLJS_ASSERT(count >= 0);
+    QLJS_ASSERT(count + offset <= this->size());
+    return Span(this->begin() + offset, this->begin() + offset + count);
+  }
+
   friend bool operator==(Span lhs, Span rhs) {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
   }

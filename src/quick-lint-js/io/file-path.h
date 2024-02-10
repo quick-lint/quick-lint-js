@@ -3,9 +3,12 @@
 
 #pragma once
 
+#include <ostream>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/util/cpp.h>
 #include <string>
+#include <string_view>
 
 #if defined(_WIN32)
 #define QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "\\"
@@ -22,6 +25,42 @@ namespace quick_lint_js {
 std::string parent_path(std::string&&);
 
 std::string_view path_file_name(std::string_view);
+
+#if defined(_WIN32)
+struct Simplified_Path {
+  // Null-terminated absolute path.
+  wchar_t* full_path;
+
+  // Root portion of the path. Substring of full_path. Does not contain a
+  // trailing '\'.
+  std::wstring_view root;
+
+  // Relative portion of the path. Substring of full_path. Does not start with a
+  // leading '\'.
+  std::wstring_view relative;
+
+  friend std::ostream& operator<<(std::ostream&, Simplified_Path);
+};
+
+// Simplify (resolve '.' and '..') and make the path absolute (based on the
+// current working directories).
+//
+// This function should not change the path according to ::CreateFileW and other
+// Win32 APIs.
+//
+// * Preserves at most one trailing '\'.
+// * Combines redundant '\' characters.
+// * Expands relative paths into absolute paths using the process's current
+//   working directory and the process's per-drive working directories.
+// * Does not resolve symlinks, junctions, shortcuts, etc.
+// * Does not check validity of the path.
+// * Does not check for existence of directories and files in the path.
+// * Does not convert 8.3 names into long names.
+//
+// Returns pointers into memory allocated by 'allocator'.
+Simplified_Path simplify_path_and_make_absolute(Monotonic_Allocator* allocator,
+                                                const wchar_t* path);
+#endif
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

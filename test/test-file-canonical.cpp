@@ -27,10 +27,10 @@
 #include <string>
 
 #if defined(_WIN32)
-// TODO(strager): This should be 1, not 0. Windows allows you to access
-// 'c:\file.txt\.', for example.
-#define QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS 0
+// Windows allows you to access 'c:\file.txt\.', for example.
+#define QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS 1
 #else
+// POSIX does not allow you to access '/file.txt/.'.
 #define QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS 0
 #endif
 
@@ -262,7 +262,7 @@ TEST_F(Test_File_Canonical, canonical_path_removes_trailing_dot_component) {
 }
 
 TEST_F(Test_File_Canonical,
-       canonical_path_fails_with_dot_component_after_regular_file) {
+       canonical_path_fails_with_dot_and_component_after_regular_file) {
   std::string temp_dir = this->make_temporary_directory();
   write_file_or_exit(temp_dir + "/just-a-file", u8""_sv);
 
@@ -280,6 +280,36 @@ TEST_F(Test_File_Canonical,
   EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
 #endif
 }
+
+#if QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS
+TEST_F(Test_File_Canonical, canonical_path_removes_dot_after_regular_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file_or_exit(temp_dir + "/just-a-file", u8""_sv);
+
+  std::string input_path = temp_dir + "/just-a-file/.";
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
+      canonicalize_path(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
+
+  EXPECT_THAT(std::string(canonical->path()), Not(::testing::EndsWith("/.")));
+  EXPECT_THAT(std::string(canonical->path()), Not(::testing::EndsWith("\\.")));
+  EXPECT_SAME_FILE(canonical->path(), input_path);
+}
+#else
+TEST_F(Test_File_Canonical, canonical_path_fails_with_dot_after_regular_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file_or_exit(temp_dir + "/just-a-file", u8""_sv);
+
+  std::string input_path = temp_dir + "/just-a-file/.";
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
+      canonicalize_path(input_path);
+  ASSERT_FALSE(canonical.ok());
+  EXPECT_EQ(canonical.error().input_path, input_path);
+  EXPECT_THAT(canonical.error().canonicalizing_path,
+              ::testing::EndsWith("just-a-file"));
+  EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
+}
+#endif
 
 TEST_F(Test_File_Canonical,
        canonical_path_removes_dot_components_after_missing_path) {
@@ -301,28 +331,42 @@ TEST_F(Test_File_Canonical,
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\.\\")));
 }
 
-// TODO(strager): This test is wrong if
-// QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS.
+#if QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS
+TEST_F(Test_File_Canonical,
+       canonical_path_simplifies_dot_dot_component_after_regular_file) {
+  std::string temp_dir = this->make_temporary_directory();
+  write_file_or_exit(temp_dir + "/just-a-file", u8""_sv);
+  write_file_or_exit(temp_dir + "/other.txt", u8""_sv);
+
+  std::string input_path = temp_dir + "/just-a-file/../other.txt";
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
+      canonicalize_path(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
+
+  EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/../")));
+  EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\..\\")));
+  EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/just-a-file/")));
+  EXPECT_THAT(std::string(canonical->path()),
+              Not(HasSubstr("\\just-a-file\\")));
+  EXPECT_SAME_FILE(canonical->path(), temp_dir + "/other.txt");
+}
+#else
 TEST_F(Test_File_Canonical,
        canonical_path_fails_with_dot_dot_component_after_regular_file) {
   std::string temp_dir = this->make_temporary_directory();
   write_file_or_exit(temp_dir + "/just-a-file", u8""_sv);
   write_file_or_exit(temp_dir + "/other.txt", u8""_sv);
 
-  std::string input_path = temp_dir + "/just-a-file/../other.text";
+  std::string input_path = temp_dir + "/just-a-file/../other.txt";
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
       canonicalize_path(input_path);
   ASSERT_FALSE(canonical.ok());
   EXPECT_EQ(canonical.error().input_path, input_path);
   EXPECT_THAT(canonical.error().canonicalizing_path,
               ::testing::EndsWith("just-a-file"));
-#if QLJS_HAVE_WINDOWS_H
-  EXPECT_EQ(canonical.error().io_error.error, ERROR_DIRECTORY);
-#endif
-#if QLJS_HAVE_UNISTD_H
   EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
-#endif
 }
+#endif
 
 #if QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS
 TEST_F(Test_File_Canonical,
@@ -335,8 +379,8 @@ TEST_F(Test_File_Canonical,
       canonicalize_path(input_path);
   ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
-  EXPECT_FALSE(ends_with(canonical->path(), "/..")) << canonical.path();
-  EXPECT_FALSE(ends_with(canonical->path(), "\\..")) << canonical.path();
+  EXPECT_THAT(std::string(canonical->path()), Not(::testing::EndsWith("/.")));
+  EXPECT_THAT(std::string(canonical->path()), Not(::testing::EndsWith("\\.")));
   EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("fake-subdir")));
   EXPECT_SAME_FILE(canonical->path(), temp_dir + "/just-a-file");
 }
@@ -353,12 +397,7 @@ TEST_F(Test_File_Canonical,
   EXPECT_EQ(canonical.error().input_path, input_path);
   EXPECT_THAT(canonical.error().canonicalizing_path,
               ::testing::EndsWith("just-a-file"));
-#if QLJS_HAVE_WINDOWS_H
-  EXPECT_EQ(canonical.error().io_error.error, ERROR_DIRECTORY);
-#endif
-#if QLJS_HAVE_UNISTD_H
   EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
-#endif
 }
 #endif
 
@@ -372,8 +411,8 @@ TEST_F(Test_File_Canonical, canonical_path_with_dot_after_regular_file) {
       canonicalize_path(input_path);
   ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
 
-  EXPECT_FALSE(ends_with(canonical->path(), "/.")) << canonical.path();
-  EXPECT_FALSE(ends_with(canonical->path(), "\\.")) << canonical.path();
+  EXPECT_THAT(std::string(canonical->path()), Not(::testing::EndsWith("/.")));
+  EXPECT_THAT(std::string(canonical->path()), Not(::testing::EndsWith("\\.")));
   EXPECT_SAME_FILE(canonical->path(), temp_dir + "/just-a-file");
 }
 #else
@@ -389,12 +428,7 @@ TEST_F(Test_File_Canonical,
   EXPECT_EQ(canonical.error().input_path, input_path);
   EXPECT_THAT(canonical.error().canonicalizing_path,
               ::testing::EndsWith("just-a-file"));
-#if QLJS_HAVE_WINDOWS_H
-  EXPECT_EQ(canonical.error().io_error.error, ERROR_DIRECTORY);
-#endif
-#if QLJS_HAVE_UNISTD_H
   EXPECT_EQ(canonical.error().io_error.error, ENOTDIR);
-#endif
 }
 #endif
 
@@ -518,6 +552,23 @@ TEST_F(Test_File_Canonical,
   }
 }
 
+#if QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS
+TEST_F(Test_File_Canonical,
+       canonical_path_folds_dot_dot_components_after_missing_path) {
+  std::string temp_dir = this->make_temporary_directory();
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> temp_dir_canonical =
+      canonicalize_path(temp_dir);
+  ASSERT_TRUE(temp_dir_canonical.ok())
+      << temp_dir_canonical.error().to_string();
+  write_file_or_exit(temp_dir + "/real.js", u8""_sv);
+
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
+      canonicalize_path(temp_dir + "/does-not-exist/../real.js");
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
+
+  EXPECT_SAME_FILE(canonical->path(), temp_dir + "/real.js");
+}
+#else
 TEST_F(Test_File_Canonical,
        canonical_path_keeps_dot_dot_components_after_missing_path) {
   std::string temp_dir = this->make_temporary_directory();
@@ -538,6 +589,7 @@ TEST_F(Test_File_Canonical,
                 ".." QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR + "real.js");
   EXPECT_TRUE(canonical->have_missing_components());
 }
+#endif
 
 TEST_F(Test_File_Canonical, canonical_path_makes_relative_paths_absolute) {
   std::string temp_dir = this->make_temporary_directory();
