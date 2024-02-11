@@ -23,6 +23,9 @@
 
 namespace quick_lint_js {
 std::string parent_path(std::string&&);
+#if defined(_WIN32)
+std::wstring parent_path(std::wstring&&);
+#endif
 
 std::string_view path_file_name(std::string_view);
 

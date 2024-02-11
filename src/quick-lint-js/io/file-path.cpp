@@ -35,20 +35,22 @@ void remove_trailing_slashes(std::string_view& path) {
 }
 
 #if QLJS_HAVE_WINDOWS_H
+void force_backslashes_in_path(std::wstring& path) {
+  // The PathCch functions only support '\' as a directory separator. Convert
+  // all '/'s into '\'s.
+  for (wchar_t& c : path) {
+    if (c == L'/') {
+      c = L'\\';
+    }
+  }
+}
+
 std::wstring wide_path_with_backslashes(const std::string& path) {
   std::optional<std::wstring> wpath = mbstring_to_wstring(path.c_str());
   if (!wpath.has_value()) {
     QLJS_UNIMPLEMENTED();
   }
-
-  // The PathCch functions only support '\' as a directory separator. Convert
-  // all '/'s into '\'s.
-  for (wchar_t& c : *wpath) {
-    if (c == L'/') {
-      c = L'\\';
-    }
-  }
-
+  force_backslashes_in_path(*wpath);
   return std::move(*wpath);
 }
 
@@ -80,6 +82,8 @@ std::string parent_path(std::string&& path) {
 #if QLJS_HAVE_DIRNAME
   return ::dirname(path.data());
 #elif QLJS_HAVE_WINDOWS_H
+  // See also the std::wstring overload of parent_path.
+
   HRESULT result;
 
   if (path == R"(\\?\)"sv || path == R"(\\?)"sv) {
@@ -129,6 +133,45 @@ std::string parent_path(std::string&& path) {
   return path.substr(0, result_with_backslashes.size());
 #endif
 }
+
+#if QLJS_HAVE_WINDOWS_H
+std::wstring parent_path(std::wstring&& path) {
+  // See also the std::string overload of parent_path.
+
+  HRESULT result;
+
+  if (path == LR"(\\?\)"sv || path == LR"(\\?)"sv) {
+    // Invalid path. Leave as-is.
+    return path;
+  }
+
+  force_backslashes_in_path(path);
+  safely_remove_trailing_backslashes(path);
+
+  result = ::PathCchRemoveFileSpec(path.data(), path.size() + 1);
+  switch (result) {
+  case S_OK:
+    break;
+  case S_FALSE:
+    // Path is a root path already.
+    break;
+  case HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER):
+    // Path is invalid.
+    QLJS_UNIMPLEMENTED();
+    break;
+  default:
+    QLJS_UNIMPLEMENTED();
+    break;
+  }
+
+  path.resize(std::wcslen(path.data()));
+  if (path.empty()) {
+    return L".";
+  }
+
+  return path.substr(0, path.size());
+}
+#endif
 
 std::string_view path_file_name(std::string_view path) {
 #if QLJS_HAVE_WINDOWS_H

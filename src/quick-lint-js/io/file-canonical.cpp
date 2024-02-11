@@ -11,8 +11,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file-path.h>
@@ -31,6 +33,7 @@
 
 #if QLJS_HAVE_WINDOWS_H
 #include <quick-lint-js/port/windows.h>
+#include <winioctl.h>
 #include <pathcch.h>
 #endif
 
@@ -303,7 +306,7 @@ class Path_Canonicalizer_Base {
     directory,
     does_not_exist,
     other,
-    symlink,
+    symlink_or_reparse_point,
   };
 
   quick_lint_js::Result<void, Platform_File_IO_Error> load_cwd() {
@@ -387,9 +390,9 @@ class Path_Canonicalizer_Base {
         }
         break;
 
-      case File_Type::symlink: {
+      case File_Type::symlink_or_reparse_point: {
         quick_lint_js::Result<void, Canonicalizing_Path_IO_Error> r =
-            this->derived().resolve_symlink();
+            this->derived().resolve_symlink_or_reparse_point();
         if (!r.ok()) return r.propagate();
         break;
       }
@@ -503,7 +506,7 @@ class POSIX_Path_Canonicalizer
       return failed_result(POSIX_File_IO_Error{errno});
     }
     if (S_ISLNK(s.st_mode)) {
-      return File_Type::symlink;
+      return File_Type::symlink_or_reparse_point;
     }
     if (S_ISDIR(s.st_mode)) {
       return File_Type::directory;
@@ -511,7 +514,8 @@ class POSIX_Path_Canonicalizer
     return File_Type::other;
   }
 
-  quick_lint_js::Result<void, Canonicalizing_Path_IO_Error> resolve_symlink() {
+  quick_lint_js::Result<void, Canonicalizing_Path_IO_Error>
+  resolve_symlink_or_reparse_point() {
     symlink_depth_ += 1;
     if (symlink_depth_ >= symlink_depth_limit_) {
       return failed_result(Canonicalizing_Path_IO_Error{
@@ -586,10 +590,19 @@ class Windows_Path_Canonicalizer
 
   quick_lint_js::Result<void, Canonicalizing_Path_IO_Error>
   process_start_of_path() {
-    // FIXME(strager): Do we need to copy (std::wstring) to add the null
-    // terminator?
-    Simplified_Path simplified_path = simplify_path_and_make_absolute(
-        &this->allocator_, std::wstring(path_to_process_).c_str());
+    // FIXME(strager): Do we need to copy to add the null terminator? If the
+    // null terminator is guaranteed to already exists, we should remove this
+    // copy.
+    std::wstring path(path_to_process_);
+
+    // HACK(strager): PathCchSkipRoot and PathAllocCanonicalize don't support
+    // \??\ but does support \\?\. Convert \??\ to \\?\.
+    if (starts_with(std::wstring_view(path), LR"(\??\)"sv)) {
+      path[1] = L'\\';
+    }
+
+    Simplified_Path simplified_path =
+        simplify_path_and_make_absolute(&this->allocator_, path.c_str());
     this->canonical_ = simplified_path.root;
     this->path_to_process_ = simplified_path.relative;
     this->need_root_slash_ = true;
@@ -628,7 +641,7 @@ class Windows_Path_Canonicalizer
       return failed_result(Windows_File_IO_Error{error});
     }
     if (attributes & FILE_ATTRIBUTE_REPARSE_POINT) {
-      return File_Type::symlink;
+      return File_Type::symlink_or_reparse_point;
     }
     if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
       return File_Type::directory;
@@ -636,9 +649,95 @@ class Windows_Path_Canonicalizer
     return File_Type::other;
   }
 
-  quick_lint_js::Result<void, Canonicalizing_Path_IO_Error> resolve_symlink() {
-    // TODO(strager): Support symlinks on Windows.
-    QLJS_UNIMPLEMENTED();
+  quick_lint_js::Result<void, Canonicalizing_Path_IO_Error>
+  resolve_symlink_or_reparse_point() {
+    symlink_depth_ += 1;
+    if (symlink_depth_ >= symlink_depth_limit_) {
+      return failed_result(Canonicalizing_Path_IO_Error{
+          .canonicalizing_path = canonical_,
+          .io_error = Windows_File_IO_Error{ERROR_CANT_RESOLVE_FILENAME},
+      });
+    }
+
+    Windows_Handle_File file(
+        ::CreateFileW(canonical_.c_str(), FILE_READ_ATTRIBUTES,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                      /*lpSecurityAttributes=*/nullptr, OPEN_EXISTING,
+                      FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+                      /*hTemplateFile=*/nullptr));
+    if (!file.valid()) {
+      return failed_result(Canonicalizing_Path_IO_Error{
+          .canonicalizing_path = canonical_,
+          .io_error = Windows_File_IO_Error{::GetLastError()},
+      });
+    }
+
+    Monotonic_Allocator memory("resolve_symlink_or_reparse_point");
+    Vector<char> reparse_data_raw("reparse_data", &memory);
+    // See NOTE[reparse-point-null-terminator] for why we add sizeof(wchar_t).
+    reparse_data_raw.resize(MAXIMUM_REPARSE_DATA_BUFFER_SIZE + sizeof(wchar_t));
+
+    ::DWORD bytes_returned;
+    if (!::DeviceIoControl(
+            file.get(), FSCTL_GET_REPARSE_POINT,
+            /*lpInBuffer=*/nullptr, /*nInBufferSize=*/0,
+            /*lpOutBuffer=*/reparse_data_raw.data(),
+            /*nOutBufferSize=*/narrow_cast<::DWORD>(reparse_data_raw.size()),
+            &bytes_returned, /*lpOverlapped=*/nullptr)) {
+      return failed_result(Canonicalizing_Path_IO_Error{
+          .canonicalizing_path = canonical_,
+          .io_error = Windows_File_IO_Error{::GetLastError()},
+      });
+    }
+    file.close();
+
+    ::REPARSE_DATA_BUFFER *reparse_data =
+        reinterpret_cast<::REPARSE_DATA_BUFFER *>(reparse_data_raw.data());
+    switch (reparse_data->ReparseTag) {
+    case IO_REPARSE_TAG_MOUNT_POINT:
+      QLJS_UNIMPLEMENTED();
+      break;
+
+    case IO_REPARSE_TAG_SYMLINK: {
+      auto &symlink = reparse_data->SymbolicLinkReparseBuffer;
+      std::wstring &new_readlink_buffer =
+          readlink_buffers_[1 - used_readlink_buffer_];
+      // NOTE[reparse-point-null-terminator]: The path is not null-terminated.
+      std::wstring_view symlink_target(
+          &symlink.PathBuffer[symlink.SubstituteNameOffset / sizeof(wchar_t)],
+          symlink.SubstituteNameLength / sizeof(wchar_t));
+
+      if (symlink.Flags & SYMLINK_FLAG_RELATIVE) {
+        canonical_ = parent_path(std::move(canonical_));
+        new_readlink_buffer.reserve(canonical_.size() + 1 +
+                                    symlink_target.size() +
+                                    path_to_process_.size());
+        new_readlink_buffer.clear();
+        new_readlink_buffer += canonical_;
+        new_readlink_buffer += L'\\';
+        new_readlink_buffer += symlink_target;
+      } else {
+        new_readlink_buffer.reserve(symlink_target.size() +
+                                    path_to_process_.size());
+        new_readlink_buffer = symlink_target;
+      }
+      new_readlink_buffer += path_to_process_;
+      path_to_process_ = new_readlink_buffer;
+      // After assigning to path_to_process_,
+      // readlink_buffers_[used_readlink_buffer_] is no longer in use.
+      swap_readlink_buffers();
+
+      Result<void, Canonicalizing_Path_IO_Error> r = process_start_of_path();
+      if (!r.ok()) return r.propagate();
+
+      break;
+    }
+
+    default:
+      QLJS_UNIMPLEMENTED();
+      break;
+    }
+
     return {};
   }
 

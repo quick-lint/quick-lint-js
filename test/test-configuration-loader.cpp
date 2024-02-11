@@ -1963,8 +1963,6 @@ TEST_F(Test_Configuration_Loader,
 }
 #endif
 
-// TODO(strager): Test symlinks on Windows too.
-#if QLJS_HAVE_UNISTD_H
 TEST_F(Test_Configuration_Loader,
        changing_direct_config_path_symlink_is_detected_as_change) {
   std::string project_dir = this->make_temporary_directory();
@@ -1974,15 +1972,16 @@ TEST_F(Test_Configuration_Loader,
   std::string after_config_file = project_dir + "/after.config";
   write_file_or_exit(after_config_file, u8R"({"globals": {"after": true}})"_sv);
   std::string config_symlink = project_dir + "/quick-lint-js.config";
-  ASSERT_EQ(::symlink("before.config", config_symlink.c_str()), 0)
-      << std::strerror(errno);
+  create_posix_file_symbolic_link_or_exit(config_symlink.c_str(),
+                                          "before.config");
 
   Change_Detecting_Configuration_Loader loader;
   loader.watch_and_load_config_file(config_symlink, /*token=*/&config_symlink);
 
   ASSERT_EQ(std::remove(config_symlink.c_str()), 0) << std::strerror(errno);
-  ASSERT_EQ(::symlink("after.config", config_symlink.c_str()), 0)
-      << std::strerror(errno);
+
+  create_posix_file_symbolic_link_or_exit(config_symlink.c_str(),
+                                          "after.config");
 
   Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
@@ -2009,16 +2008,15 @@ TEST_F(Test_Configuration_Loader,
   std::string after_config_file = project_dir + "/after/quick-lint-js.config";
   write_file_or_exit(after_config_file, u8R"({"globals": {"after": true}})"_sv);
   std::string subdir_symlink = project_dir + "/subdir";
-  ASSERT_EQ(::symlink("before", subdir_symlink.c_str()), 0)
-      << std::strerror(errno);
+  create_posix_directory_symbolic_link_or_exit(subdir_symlink.c_str(),
+                                               "before");
 
   Change_Detecting_Configuration_Loader loader;
   loader.watch_and_load_config_file(subdir_symlink + "/quick-lint-js.config",
                                     /*token=*/nullptr);
 
-  ASSERT_EQ(std::remove(subdir_symlink.c_str()), 0) << std::strerror(errno);
-  ASSERT_EQ(::symlink("after", subdir_symlink.c_str()), 0)
-      << std::strerror(errno);
+  delete_posix_symbolic_link_or_exit(subdir_symlink.c_str());
+  create_posix_directory_symbolic_link_or_exit(subdir_symlink.c_str(), "after");
 
   Span<Configuration_Change> changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAreArray({::testing::_}));
@@ -2032,7 +2030,6 @@ TEST_F(Test_Configuration_Loader,
 
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 }
-#endif
 
 TEST_F(Test_Configuration_Loader,
        swapping_parent_directory_with_another_is_detected_as_change) {

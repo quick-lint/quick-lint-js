@@ -168,6 +168,15 @@ std::string Write_File_IO_Error::to_string() const {
   std::exit(1);
 }
 
+std::string Delete_File_IO_Error::to_string() const {
+  return "failed to delete "s + this->path + ": "s + this->io_error.to_string();
+}
+
+[[noreturn]] void Delete_File_IO_Error::print_and_exit() const {
+  std::fprintf(stderr, "error: %s\n", this->to_string().c_str());
+  std::exit(1);
+}
+
 std::string Symlink_IO_Error::to_string() const {
   return "failed to create symlink to "s + this->target + " at " + this->path +
          ": "s + this->io_error.to_string();
@@ -496,6 +505,62 @@ void create_posix_file_symbolic_link_or_exit(const char *path,
                                              const char *target) {
   Result<void, Symlink_IO_Error> result =
       create_posix_file_symbolic_link(path, target);
+  if (!result.ok()) {
+    result.error().print_and_exit();
+  }
+}
+
+Result<void, Delete_File_IO_Error> delete_posix_symbolic_link(
+    const char *path) {
+#if defined(QLJS_FILE_POSIX)
+  int rc = ::unlink(path);
+  if (rc != 0) {
+    return failed_result(Delete_File_IO_Error{
+        .path = path,
+        .io_error = POSIX_File_IO_Error{errno},
+    });
+  }
+  return {};
+#elif defined(QLJS_FILE_WINDOWS)
+  std::optional<std::wstring> wpath = mbstring_to_wstring(path);
+  if (!wpath.has_value()) {
+    return failed_result(Delete_File_IO_Error{
+        .path = path,
+        .io_error = Windows_File_IO_Error{ERROR_INVALID_PARAMETER},
+    });
+  }
+
+  ::DWORD attributes = ::GetFileAttributesW(wpath->c_str());
+  if (attributes == INVALID_FILE_ATTRIBUTES) {
+    return failed_result(Delete_File_IO_Error{
+        .path = path,
+        .io_error = Windows_File_IO_Error{::GetLastError()},
+    });
+  }
+  if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
+    if (!::RemoveDirectoryW(wpath->c_str())) {
+      return failed_result(Delete_File_IO_Error{
+          .path = path,
+          .io_error = Windows_File_IO_Error{::GetLastError()},
+      });
+    }
+  } else {
+    if (!::DeleteFileW(wpath->c_str())) {
+      return failed_result(Delete_File_IO_Error{
+          .path = path,
+          .io_error = Windows_File_IO_Error{::GetLastError()},
+      });
+    }
+  }
+
+  return {};
+#else
+#error "Unknown platform"
+#endif
+}
+
+void delete_posix_symbolic_link_or_exit(const char *path) {
+  Result<void, Delete_File_IO_Error> result = delete_posix_symbolic_link(path);
   if (!result.ok()) {
     result.error().print_and_exit();
   }

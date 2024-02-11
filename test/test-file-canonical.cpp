@@ -666,15 +666,11 @@ TEST_F(Test_File_Canonical, canonical_path_with_root_as_cwd) {
   EXPECT_SAME_FILE(canonical->path(), input_path);
 }
 
-// TODO(strager): Test symlinks on Windows too.
-#if QLJS_HAVE_UNISTD_H
 TEST_F(Test_File_Canonical, canonical_path_resolves_file_absolute_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
   write_file_or_exit(temp_dir + "/realfile", u8""_sv);
-  ASSERT_EQ(::symlink((temp_dir + "/realfile").c_str(),
-                      (temp_dir + "/linkfile").c_str()),
-            0)
-      << std::strerror(errno);
+  create_posix_file_symbolic_link_or_exit((temp_dir + "/linkfile").c_str(),
+                                          (temp_dir + "/realfile").c_str());
 
   std::string input_path = temp_dir + "/linkfile";
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
@@ -691,8 +687,8 @@ TEST_F(Test_File_Canonical, canonical_path_resolves_file_absolute_symlinks) {
 TEST_F(Test_File_Canonical, canonical_path_resolves_file_relative_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
   write_file_or_exit(temp_dir + "/realfile", u8""_sv);
-  ASSERT_EQ(::symlink("realfile", (temp_dir + "/linkfile").c_str()), 0)
-      << std::strerror(errno);
+  create_posix_file_symbolic_link_or_exit((temp_dir + "/linkfile").c_str(),
+                                          "realfile");
 
   std::string input_path = temp_dir + "/linkfile";
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
@@ -710,10 +706,8 @@ TEST_F(Test_File_Canonical,
        canonical_path_resolves_directory_absolute_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
   create_directory_or_exit(temp_dir + "/realdir");
-  ASSERT_EQ(::symlink((temp_dir + "/realdir").c_str(),
-                      (temp_dir + "/linkdir").c_str()),
-            0)
-      << std::strerror(errno);
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/linkdir").c_str(),
+                                               (temp_dir + "/realdir").c_str());
   write_file_or_exit(temp_dir + "/realdir/temp.js", u8""_sv);
 
   std::string input_path = temp_dir + "/linkdir/temp.js";
@@ -733,8 +727,8 @@ TEST_F(Test_File_Canonical,
        canonical_path_resolves_directory_relative_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
   create_directory_or_exit(temp_dir + "/realdir");
-  ASSERT_EQ(::symlink("realdir", (temp_dir + "/linkdir").c_str()), 0)
-      << std::strerror(errno);
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/linkdir").c_str(),
+                                               "realdir");
   write_file_or_exit(temp_dir + "/realdir/temp.js", u8""_sv);
 
   std::string input_path = temp_dir + "/linkdir/temp.js";
@@ -750,15 +744,41 @@ TEST_F(Test_File_Canonical,
   EXPECT_SAME_FILE(canonical->path(), input_path);
 }
 
+// Windows and POSIX behave differently. Windows resolves '..' in the path prior
+// to following the symlink. POSIX follows '..' in the path after following the
+// symlink.
+#if defined(_WIN32)
 TEST_F(Test_File_Canonical,
-       canonical_path_resolves_dot_dot_with_directory_symlinks) {
+       canonical_path_resolves_dot_dot_before_following_directory_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
   create_directory_or_exit(temp_dir + "/dir");
   create_directory_or_exit(temp_dir + "/dir/subdir");
-  ASSERT_EQ(::symlink((temp_dir + "/dir/subdir").c_str(),
-                      (temp_dir + "/linkdir").c_str()),
-            0)
-      << std::strerror(errno);
+  // NOTE(strager): In this test, linkdir isn't used. (This behavior differs
+  // from POSIX.)
+  create_posix_directory_symbolic_link_or_exit(
+      (temp_dir + "/linkdir").c_str(), (temp_dir + "/dir/subdir").c_str());
+  write_file_or_exit(temp_dir + "/temp.js", u8""_sv);
+
+  std::string input_path = temp_dir + "/linkdir/../temp.js";
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
+      canonicalize_path(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
+
+  EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/linkdir/")));
+  EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\linkdir\\")));
+  EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/dir/")));
+  EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\dir\\")));
+  EXPECT_SAME_FILE(canonical->path(), temp_dir + "/temp.js");
+  EXPECT_SAME_FILE(canonical->path(), input_path);
+}
+#else
+TEST_F(Test_File_Canonical,
+       canonical_path_resolves_dot_dot_after_following_directory_symlinks) {
+  std::string temp_dir = this->make_temporary_directory();
+  create_directory_or_exit(temp_dir + "/dir");
+  create_directory_or_exit(temp_dir + "/dir/subdir");
+  create_posix_directory_symbolic_link_or_exit(
+      (temp_dir + "/linkdir").c_str(), (temp_dir + "/dir/subdir").c_str());
   write_file_or_exit(temp_dir + "/dir/temp.js", u8""_sv);
 
   std::string input_path = temp_dir + "/linkdir/../temp.js";
@@ -771,13 +791,15 @@ TEST_F(Test_File_Canonical,
   EXPECT_SAME_FILE(canonical->path(), temp_dir + "/dir/temp.js");
   EXPECT_SAME_FILE(canonical->path(), input_path);
 }
+#endif
 
 TEST_F(Test_File_Canonical, canonical_path_resolves_dot_dot_inside_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
   create_directory_or_exit(temp_dir + "/dir");
   create_directory_or_exit(temp_dir + "/otherdir");
-  ASSERT_EQ(::symlink("../otherdir", (temp_dir + "/dir/linkdir").c_str()), 0)
-      << std::strerror(errno);
+  create_posix_directory_symbolic_link_or_exit(
+      (temp_dir + "/dir/linkdir").c_str(),
+      ".." QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "otherdir");
   write_file_or_exit(temp_dir + "/otherdir/temp.js", u8""_sv);
 
   std::string input_path = temp_dir + "/dir/linkdir/temp.js";
@@ -794,10 +816,10 @@ TEST_F(Test_File_Canonical, canonical_path_resolves_dot_dot_inside_symlinks) {
 TEST_F(Test_File_Canonical,
        canonical_path_fails_with_symlink_loop_in_directory) {
   std::string temp_dir = this->make_temporary_directory();
-  ASSERT_EQ(::symlink("link1", (temp_dir + "/link2").c_str()), 0)
-      << std::strerror(errno);
-  ASSERT_EQ(::symlink("link2", (temp_dir + "/link1").c_str()), 0)
-      << std::strerror(errno);
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/link2").c_str(),
+                                               "link1");
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/link1").c_str(),
+                                               "link2");
 
   std::string input_path = temp_dir + "/link1/file.js";
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
@@ -819,8 +841,8 @@ TEST_F(Test_File_Canonical,
       canonicalize_path(temp_dir);
   ASSERT_TRUE(temp_dir_canonical.ok())
       << temp_dir_canonical.error().to_string();
-  ASSERT_EQ(::symlink("does-not-exist", (temp_dir + "/testlink").c_str()), 0)
-      << std::strerror(errno);
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/testlink").c_str(),
+                                               "does-not-exist");
 
   std::string input_path = temp_dir + "/testlink/file.js";
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
@@ -844,8 +866,8 @@ TEST_F(Test_File_Canonical, canonical_path_with_broken_symlink_file_fails) {
       canonicalize_path(temp_dir);
   ASSERT_TRUE(temp_dir_canonical.ok())
       << temp_dir_canonical.error().to_string();
-  ASSERT_EQ(::symlink("does-not-exist", (temp_dir + "/testlink").c_str()), 0)
-      << std::strerror(errno);
+  create_posix_file_symbolic_link_or_exit((temp_dir + "/testlink").c_str(),
+                                          "does-not-exist");
 
   std::string input_path = temp_dir + "/testlink";
   Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
@@ -865,8 +887,8 @@ TEST_F(Test_File_Canonical, canonical_path_with_broken_symlink_file_fails) {
 TEST_F(Test_File_Canonical, canonical_path_resolves_symlinks_in_cwd) {
   std::string temp_dir = this->make_temporary_directory();
   create_directory_or_exit(temp_dir + "/realdir");
-  ASSERT_EQ(::symlink("realdir", (temp_dir + "/linkdir").c_str()), 0)
-      << std::strerror(errno);
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/linkdir").c_str(),
+                                               "realdir");
   write_file_or_exit(temp_dir + "/realdir/temp.js", u8""_sv);
   this->set_current_working_directory(temp_dir + "/linkdir");
 
@@ -884,11 +906,11 @@ TEST_F(Test_File_Canonical, canonical_path_resolves_symlinks_in_cwd) {
 TEST_F(Test_File_Canonical,
        canonical_path_resolves_symlink_pointing_to_symlink) {
   std::string temp_dir = this->make_temporary_directory();
-  ASSERT_EQ(::symlink("otherlinkdir/subdir", (temp_dir + "/linkdir").c_str()),
-            0)
-      << std::strerror(errno);
-  ASSERT_EQ(::symlink("realdir", (temp_dir + "/otherlinkdir").c_str()), 0)
-      << std::strerror(errno);
+  create_posix_directory_symbolic_link_or_exit(
+      (temp_dir + "/linkdir").c_str(),
+      "otherlinkdir" QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "subdir");
+  create_posix_directory_symbolic_link_or_exit(
+      (temp_dir + "/otherlinkdir").c_str(), "realdir");
   create_directory_or_exit(temp_dir + "/realdir");
   create_directory_or_exit(temp_dir + "/realdir/subdir");
   write_file_or_exit(temp_dir + "/realdir/subdir/hello.js", u8""_sv);
@@ -906,7 +928,8 @@ TEST_F(Test_File_Canonical,
   EXPECT_SAME_FILE(canonical->path(), temp_dir + "/realdir/subdir/hello.js");
   EXPECT_SAME_FILE(canonical->path(), input_path);
 }
-#endif
+
+// TODO(strager): Test Windows junctions.
 
 #if QLJS_HAVE_UNISTD_H
 TEST_F(Test_File_Canonical, unsearchable_parent_directory) {

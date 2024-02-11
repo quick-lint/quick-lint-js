@@ -57,6 +57,15 @@ template <>
 struct Hasher<String8> : Hasher<String8_View> {};
 #endif
 
+template <>
+struct Hasher<std::wstring_view> {
+  std::size_t operator()(std::wstring_view s) const {
+    return std::hash<std::wstring_view>()(s);
+  }
+};
+template <>
+struct Hasher<std::wstring> : Hasher<std::wstring_view> {};
+
 template <class T1, class T2>
 struct Hasher<std::pair<T1, T2>> {
   template <class U1, class U2>

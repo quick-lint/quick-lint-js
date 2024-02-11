@@ -153,7 +153,8 @@ extern ::DWORD mock_win32_force_directory_file_id_error;
 extern ::DWORD mock_win32_force_directory_ioctl_error;
 
 // Not thread-safe.
-class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
+class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem,
+                                          Canonicalize_Observer {
  public:
   explicit Change_Detecting_Filesystem_Win32(
       Windows_Handle_File_Ref io_completion_port, ::ULONG_PTR completion_key);
@@ -163,6 +164,9 @@ class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
       const std::string&) override;
   Result<Padded_String, Read_File_IO_Error> read_file(
       const Canonical_Path&) override;
+
+  void on_canonicalize_child_of_directory(const char*) override;
+  void on_canonicalize_child_of_directory(const wchar_t*) override;
 
   Windows_Handle_File_Ref io_completion_port() const {
     return this->io_completion_port_;
@@ -200,6 +204,7 @@ class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
 
   // Calls SetLastError and returns false on failure.
   bool watch_directory(const Canonical_Path&);
+  bool watch_directory(const wchar_t* path);
 
   void cancel_watch(std::unique_ptr<Watched_Directory>&&);
 
@@ -210,7 +215,7 @@ class Change_Detecting_Filesystem_Win32 : public Configuration_Filesystem {
   Windows_Handle_File_Ref io_completion_port_;
   ::ULONG_PTR completion_key_;
 
-  Hash_Map<Canonical_Path, std::unique_ptr<Watched_Directory>>
+  Hash_Map<std::wstring, std::unique_ptr<Watched_Directory>>
       watched_directories_;
   std::vector<std::unique_ptr<Watched_Directory>>
       cancelling_watched_directories_;

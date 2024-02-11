@@ -55,6 +55,14 @@ struct Symlink_IO_Error {
   [[noreturn]] void print_and_exit() const;
 };
 
+struct Delete_File_IO_Error {
+  std::string path;
+  Platform_File_IO_Error io_error;
+
+  std::string to_string() const;
+  [[noreturn]] void print_and_exit() const;
+};
+
 Result<Padded_String, Read_File_IO_Error> read_file(const std::string &path);
 Result<Padded_String, Read_File_IO_Error> read_file(const char *path);
 Result<Padded_String, Read_File_IO_Error> read_file(const char *path,
@@ -104,6 +112,9 @@ void create_posix_directory_symbolic_link_or_exit(const char *path,
                                                   const char *target);
 void create_posix_file_symbolic_link_or_exit(const char *path,
                                              const char *target);
+
+Result<void, Delete_File_IO_Error> delete_posix_symbolic_link(const char *path);
+void delete_posix_symbolic_link_or_exit(const char *path);
 }
 
 #endif

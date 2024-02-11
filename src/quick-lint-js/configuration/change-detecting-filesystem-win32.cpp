@@ -101,7 +101,7 @@ Change_Detecting_Filesystem_Win32::~Change_Detecting_Filesystem_Win32() {
 
 Result<Canonical_Path_Result, Canonicalize_Path_IO_Error>
 Change_Detecting_Filesystem_Win32::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path(path);
+  return quick_lint_js::canonicalize_path(path, this);
 }
 
 Result<Padded_String, Read_File_IO_Error>
@@ -120,6 +120,39 @@ Change_Detecting_Filesystem_Win32::read_file(const Canonical_Path& path) {
       quick_lint_js::read_file(path.c_str());
   if (!r.ok()) return r.propagate();
   return *std::move(r);
+}
+
+void Change_Detecting_Filesystem_Win32::on_canonicalize_child_of_directory(
+    const char*) {
+  // We don't use char paths on Windows.
+  QLJS_UNIMPLEMENTED();
+}
+
+void Change_Detecting_Filesystem_Win32::on_canonicalize_child_of_directory(
+    const wchar_t* path) {
+  // TODO(strager): Only watch parents of symlinks and of the target file. For
+  // example:
+  //
+  // Given a symlink C:\foo\bar.txt pointing to D:\baz\qix.txt,
+  // and assuming read_file("C:\\foo\\bar.txt"), then we should create oplocks
+  // for only the following directories:
+  //
+  // C:\foo
+  // D:\baz
+  //
+  // But today, we create oplocks for C:\, C:\foo, D:\, and D:\baz. This is
+  // inefficient.
+  bool ok = this->watch_directory(path);
+  if (!ok) {
+    std::optional<std::string> narrow_path = wstring_to_mbstring(path);
+    if (!narrow_path.has_value()) {
+      QLJS_UNIMPLEMENTED();
+    }
+    this->watch_errors_.emplace_back(Watch_IO_Error{
+        .path = narrow_path->c_str(),
+        .io_error = Windows_File_IO_Error{::GetLastError()},
+    });
+  }
 }
 
 bool Change_Detecting_Filesystem_Win32::handle_event(
@@ -179,9 +212,13 @@ bool Change_Detecting_Filesystem_Win32::watch_directory(
   if (!wpath.has_value()) {
     QLJS_UNIMPLEMENTED();
   }
+  return this->watch_directory(wpath->c_str());
+}
 
+bool Change_Detecting_Filesystem_Win32::watch_directory(
+    const wchar_t* directory) {
   Windows_Handle_File directory_handle(::CreateFileW(
-      wpath->c_str(), /*dwDesiredAccess=*/GENERIC_READ,
+      directory, /*dwDesiredAccess=*/GENERIC_READ,
       /*dwShareMode=*/FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
       /*lpSecurityAttributes=*/nullptr,
       /*dwCreationDisposition=*/OPEN_EXISTING,
@@ -215,9 +252,9 @@ bool Change_Detecting_Filesystem_Win32::watch_directory(
     }
 
     QLJS_DEBUG_LOG(
-        "note: Directory handle %#llx: %s: Directory identity changed\n",
+        "note: Directory handle %#llx: %ls: Directory identity changed\n",
         reinterpret_cast<unsigned long long>(old_dir->directory_handle.get()),
-        directory.c_str());
+        directory);
     this->cancel_watch(std::move(watched_directory_it->second));
     watched_directory_it->second = std::move(new_dir);
   }
@@ -249,6 +286,10 @@ bool Change_Detecting_Filesystem_Win32::watch_directory(
     DWORD error = ::GetLastError();
     if (error == ERROR_IO_PENDING) {
       // run_io_thread will handle the oplock breaking.
+      QLJS_DEBUG_LOG(
+          "note: Watching directory with handle %#llx: %ls\n",
+          reinterpret_cast<unsigned long long>(dir->directory_handle.get()),
+          directory);
     } else {
       // FIXME(strager): Should we close the directory handle?
       return false;
@@ -297,7 +338,7 @@ void Change_Detecting_Filesystem_Win32::handle_oplock_broke_event(
   //
   // https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_request_oplock
   QLJS_DEBUG_LOG(
-      "note: Directory handle %#llx: %s: Oplock broke\n",
+      "note: Directory handle %#llx: %ls: Oplock broke\n",
       reinterpret_cast<unsigned long long>(dir->directory_handle.get()),
       directory_it->first.c_str());
   QLJS_ASSERT(number_of_bytes_transferred == sizeof(dir->oplock_response));
