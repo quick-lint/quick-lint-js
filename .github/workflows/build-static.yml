@@ -67,10 +67,38 @@ jobs:
           cmake --build build-tools --config Debug --target quick-lint-js-build-tools
 
       - name: configure
+        shell: "python3 {0}"
         run: |
-          env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
-          cmake ${CMAKE_C_COMPILER:+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER:+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=${{ matrix.toolchain.test }} -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" ${{ fromJSON('["", "-DQUICK_LINT_JS_USE_BUILD_TOOLS=${PWD}/build-tools"]')[matrix.toolchain.cross_compiling] }} ${CMAKE_EXTRA_FLAGS} -S . -B build
-        shell: bash
+          import os
+          import shlex
+          import subprocess
+
+          def var(name):
+            return os.environ.get(name, '')
+
+          command = [
+            "cmake",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_TESTING=${{ matrix.toolchain.test }}",
+            "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES",
+            "-S", ".", "-B", "build",
+            f"-DCMAKE_C_FLAGS={var('CMAKE_C_FLAGS')}",
+            f"-DCMAKE_CXX_FLAGS={var('CMAKE_CXX_FLAGS')}",
+            f"-DCMAKE_EXE_LINKER_FLAGS={var('CMAKE_EXE_LINKER_FLAGS')}",
+            f"-DCMAKE_SHARED_LINKER_FLAGS={var('CMAKE_SHARED_LINKER_FLAGS')}",
+          ]
+          c_compiler = var('CMAKE_C_COMPILER')
+          if c_compiler: command.append(f"-DCMAKE_C_COMPILER={c_compiler}")
+          cxx_compiler = var('CMAKE_CXX_COMPILER')
+          if cxx_compiler: command.append(f"-DCMAKE_CXX_COMPILER={cxx_compiler}")
+          if "${{ matrix.toolchain.cross_compiling }}":
+            command.append(f"-DQUICK_LINT_JS_USE_BUILD_TOOLS={os.getcwd()}/build-tools")
+          command.extend(var('CMAKE_EXTRA_FLAGS').split())
+
+          print(" ".join(shlex.quote(arg) for arg in command), flush=True)
+          result = subprocess.run(command)
+          exit(result.returncode)
+
       - name: build
         run: cmake --build build --config Release
       - name: test
