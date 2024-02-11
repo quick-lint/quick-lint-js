@@ -18,6 +18,7 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/enum.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <random>
 #include <string>
@@ -354,7 +355,7 @@ Result<void, Platform_File_IO_Error> list_directory(
 
 Result<void, Platform_File_IO_Error> list_directory(
     const char *directory,
-    Temporary_Function_Ref<void(const char *, bool is_directory)> visit_file) {
+    Temporary_Function_Ref<void(const char *, File_Type_Flags)> visit_file) {
 #if QLJS_HAVE_WINDOWS_H
   return list_directory_raw(directory, [&](::WIN32_FIND_DATAW &entry) -> void {
     // TODO(strager): Reduce allocations.
@@ -364,9 +365,17 @@ Result<void, Platform_File_IO_Error> list_directory(
       QLJS_UNIMPLEMENTED();
     }
     if (!is_dot_or_dot_dot(entry_name->c_str())) {
-      bool is_directory = (entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ==
-                          FILE_ATTRIBUTE_DIRECTORY;
-      visit_file(entry_name->c_str(), is_directory);
+      File_Type_Flags flags = File_Type_Flags::none;
+      if ((entry.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ==
+          FILE_ATTRIBUTE_DIRECTORY) {
+        flags = enum_set_flags(flags, File_Type_Flags::is_directory);
+      }
+      if ((entry.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) ==
+          FILE_ATTRIBUTE_REPARSE_POINT) {
+        flags = enum_set_flags(
+            flags, File_Type_Flags::is_symbolic_link_or_reparse_point);
+      }
+      visit_file(entry_name->c_str(), flags);
     }
   });
 #elif QLJS_HAVE_DIRENT_H
@@ -375,8 +384,9 @@ Result<void, Platform_File_IO_Error> list_directory(
     if (is_dot_or_dot_dot(entry->d_name)) {
       return;
     }
-    bool is_directory;
-    if (entry->d_type == DT_UNKNOWN) {
+    File_Type_Flags flags = File_Type_Flags::none;
+    switch (entry->d_type) {
+    case DT_UNKNOWN: {
       temp_path.clear();
       temp_path += directory;
       temp_path += QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR;
@@ -387,14 +397,31 @@ Result<void, Platform_File_IO_Error> list_directory(
         if (errno == ENOENT) {
           return;
         }
-        is_directory = false;
       } else {
-        is_directory = S_ISDIR(s.st_mode);
+        if (S_ISDIR(s.st_mode)) {
+          flags = enum_set_flags(flags, File_Type_Flags::is_directory);
+        }
+        if (S_ISLNK(s.st_mode)) {
+          flags = enum_set_flags(
+              flags, File_Type_Flags::is_symbolic_link_or_reparse_point);
+        }
       }
-    } else {
-      is_directory = entry->d_type == DT_DIR;
+      break;
     }
-    visit_file(entry->d_name, is_directory);
+
+    case DT_DIR:
+      flags = enum_set_flags(flags, File_Type_Flags::is_directory);
+      break;
+
+    case DT_LNK:
+      flags = enum_set_flags(
+          flags, File_Type_Flags::is_symbolic_link_or_reparse_point);
+      break;
+
+    default:
+      break;
+    }
+    visit_file(entry->d_name, flags);
   });
 #else
 #error "Unsupported platform"
@@ -419,14 +446,16 @@ void list_directory_recursively(const char *directory,
       std::size_t path_length = this->path.size();
 
       auto visit_child = [&](const char *child_name,
-                             bool is_directory) -> void {
+                             File_Type_Flags flags) -> void {
         this->path.resize(path_length);
         this->path += QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR;
         this->path += child_name;
-        if (is_directory) {
+        if (enum_has_flags(flags, File_Type_Flags::is_directory) &&
+            !enum_has_flags(
+                flags, File_Type_Flags::is_symbolic_link_or_reparse_point)) {
           this->recurse(depth + 1);
         } else {
-          this->visitor.visit_file(path);
+          this->visitor.visit_file(path, flags);
         }
       };
 

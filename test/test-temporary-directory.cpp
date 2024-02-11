@@ -15,11 +15,14 @@
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/permissions.h>
+#include <quick-lint-js/util/enum.h>
 #include <string>
 
 #if QLJS_HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -60,6 +63,34 @@ TEST(Test_Temporary_Directory,
   EXPECT_FILE_DOES_NOT_EXIST(sub_dir);
 }
 #endif
+
+TEST(Test_Temporary_Directory,
+     delete_directory_containing_symlink_to_missing_directory) {
+  std::string temp_dir = make_temporary_directory();
+  std::string sub_dir = temp_dir + "/sub_dir";
+  create_directory_or_exit(sub_dir);
+  create_posix_directory_symbolic_link_or_exit((sub_dir + "/linkdir").c_str(),
+                                               "doesnotexist");
+
+  delete_directory_recursive(sub_dir);
+
+  EXPECT_FILE_DOES_NOT_EXIST(sub_dir + "/linkdir");
+  EXPECT_FILE_DOES_NOT_EXIST(sub_dir);
+}
+
+TEST(Test_Temporary_Directory,
+     delete_file_containing_symlink_to_missing_directory) {
+  std::string temp_dir = make_temporary_directory();
+  std::string sub_dir = temp_dir + "/sub_dir";
+  create_directory_or_exit(sub_dir);
+  create_posix_file_symbolic_link_or_exit((sub_dir + "/linkfile").c_str(),
+                                          "doesnotexist");
+
+  delete_directory_recursive(sub_dir);
+
+  EXPECT_FILE_DOES_NOT_EXIST(sub_dir + "/linkfile");
+  EXPECT_FILE_DOES_NOT_EXIST(sub_dir);
+}
 
 TEST(Test_Temporary_Directory,
      creating_directory_over_existing_directory_fails) {
@@ -204,7 +235,7 @@ TEST_F(Test_Directory, list_directory_recursively) {
   create_directory_or_exit(temp_dir + "/dir-c");
 
   struct Test_Visitor final : public List_Directory_Visitor {
-    void visit_file(const std::string& path) override {
+    void visit_file(const std::string& path, File_Type_Flags) override {
       this->visited_files.push_back(path);
     }
 
@@ -247,12 +278,110 @@ TEST_F(Test_Directory, list_directory_recursively) {
 #undef SEP
 }
 
+TEST_F(Test_Directory, list_directory_with_symlinks) {
+  std::string temp_dir = this->make_temporary_directory();
+  create_directory_or_exit(temp_dir + "/dir");
+  write_file_or_exit(temp_dir + "/file", u8""_sv);
+  // clang-format off
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/dir-symlink").c_str(), "dir");
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/missing-dir-symlink").c_str(), "missing-dir");
+  create_posix_file_symbolic_link_or_exit((temp_dir + "/file-symlink").c_str(), "file");
+  create_posix_file_symbolic_link_or_exit((temp_dir + "/missing-file-symlink").c_str(), "missing-file");
+  // clang-format on
+
+  std::vector<std::string> visited_files;
+  list_directory(
+      temp_dir.c_str(), [&](const char* name, File_Type_Flags flags) -> void {
+        if (name == "dir-symlink"sv || name == "missing-dir-symlink"sv) {
+          EXPECT_TRUE(enum_has_flags(
+              flags, File_Type_Flags::is_symbolic_link_or_reparse_point));
+#if defined(_WIN32)
+          EXPECT_TRUE(enum_has_flags(flags, File_Type_Flags::is_directory));
+#else
+          EXPECT_FALSE(enum_has_flags(flags, File_Type_Flags::is_directory));
+#endif
+        } else if (name == "file-symlink"sv ||
+                   name == "missing-file-symlink"sv) {
+          EXPECT_TRUE(enum_has_flags(
+              flags, File_Type_Flags::is_symbolic_link_or_reparse_point));
+          EXPECT_FALSE(enum_has_flags(flags, File_Type_Flags::is_directory));
+        }
+        visited_files.emplace_back(name);
+      });
+
+  EXPECT_THAT(visited_files, ::testing::UnorderedElementsAreArray({
+                                 "dir",
+                                 "file",
+                                 "dir-symlink",
+                                 "missing-dir-symlink",
+                                 "file-symlink",
+                                 "missing-file-symlink",
+                             }));
+}
+
+TEST_F(Test_Directory, list_directory_recursively_with_symlinks) {
+  std::string temp_dir = this->make_temporary_directory();
+  create_directory_or_exit(temp_dir + "/dir");
+  write_file_or_exit(temp_dir + "/file", u8""_sv);
+  // clang-format off
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/dir-symlink").c_str(), "dir");
+  create_posix_directory_symbolic_link_or_exit((temp_dir + "/missing-dir-symlink").c_str(), "missing-dir");
+  create_posix_file_symbolic_link_or_exit((temp_dir + "/file-symlink").c_str(), "file");
+  create_posix_file_symbolic_link_or_exit((temp_dir + "/missing-file-symlink").c_str(), "missing-file");
+  // clang-format on
+
+  struct Test_Visitor final : public List_Directory_Visitor {
+    void visit_file(const std::string& path, File_Type_Flags flags) override {
+      SCOPED_TRACE(path);
+      std::string_view name = path_file_name(path);
+      this->visited_files.emplace_back(name);
+
+      if (name == "dir-symlink" || name == "missing-dir-symlink") {
+        EXPECT_TRUE(enum_has_flags(
+            flags, File_Type_Flags::is_symbolic_link_or_reparse_point));
+#if defined(_WIN32)
+        EXPECT_TRUE(enum_has_flags(flags, File_Type_Flags::is_directory));
+#else
+        EXPECT_FALSE(enum_has_flags(flags, File_Type_Flags::is_directory));
+#endif
+      } else if (name == "file-symlink" || name == "missing-file-symlink") {
+        EXPECT_TRUE(enum_has_flags(
+            flags, File_Type_Flags::is_symbolic_link_or_reparse_point));
+        EXPECT_FALSE(enum_has_flags(flags, File_Type_Flags::is_directory));
+      }
+    }
+
+    void visit_directory_pre(const std::string&) override {}
+
+    void visit_directory_post(const std::string&) override {}
+
+    void on_error(const Platform_File_IO_Error& error,
+                  [[maybe_unused]] int depth) override {
+      ADD_FAILURE() << error.to_string();
+    }
+
+    std::vector<std::string> visited_files;
+  };
+  Test_Visitor visitor;
+  list_directory_recursively(temp_dir.c_str(), visitor);
+
+  EXPECT_THAT(visitor.visited_files, ::testing::UnorderedElementsAreArray({
+                                         "file",
+                                         "dir-symlink",
+                                         "missing-dir-symlink",
+                                         "file-symlink",
+                                         "missing-file-symlink",
+                                     }));
+}
+
 TEST_F(Test_Directory, list_directory_recursively_on_regular_file_fails) {
   std::string temp_dir = this->make_temporary_directory();
   write_file_or_exit(temp_dir + "/testfile", u8""_sv);
 
   struct Test_Visitor final : public List_Directory_Visitor {
-    void visit_file(const std::string& path) override { ADD_FAILURE() << path; }
+    void visit_file(const std::string& path, File_Type_Flags) override {
+      ADD_FAILURE() << path;
+    }
 
     void on_error(const Platform_File_IO_Error& error, int depth) override {
       SCOPED_TRACE(error.to_string());

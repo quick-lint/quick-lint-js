@@ -38,6 +38,13 @@ void create_directory_or_exit(const std::string& path);
 Result<std::string, Platform_File_IO_Error> make_timestamped_directory(
     std::string_view parent_directory, const char* format);
 
+enum class File_Type_Flags : std::uint8_t {
+  none = 0,
+
+  is_directory = 1 << 0,
+  is_symbolic_link_or_reparse_point = 1 << 1,
+};
+
 // Call visit_file for each child of the given directory.
 //
 // '.' and '..' are excluded.
@@ -48,7 +55,7 @@ Result<void, Platform_File_IO_Error> list_directory(
     Temporary_Function_Ref<void(const char*)> visit_file);
 Result<void, Platform_File_IO_Error> list_directory(
     const char* directory,
-    Temporary_Function_Ref<void(const char*, bool is_directory)> visit_file);
+    Temporary_Function_Ref<void(const char*, File_Type_Flags)> visit_file);
 
 QLJS_WARNING_PUSH
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69210
@@ -61,7 +68,10 @@ class List_Directory_Visitor {
   // 'directory' given to list_directory_recursively.
   //
   // visit_file is not called for '.' or '..' entries.
-  virtual void visit_file(const std::string& path) = 0;
+  //
+  // On Windows, visit_file is called for directory symbolic links and directory
+  // reparse points.
+  virtual void visit_file(const std::string& path, File_Type_Flags flags) = 0;
 
   // Called before descending into a directory.
   virtual void visit_directory_pre(const std::string& path);

@@ -304,7 +304,7 @@ void process_test_case_directory_or_file(
                                const char* root_path)
         : expected_results(expected_results), root_path(root_path) {}
 
-    void visit_file(const std::string& file_path) override {
+    void visit_file(const std::string& file_path, File_Type_Flags) override {
       if (ends_with(file_path, ".ts"sv) || ends_with(file_path, ".tsx"sv)) {
         process_test_case_file(this->expected_results, file_path.c_str());
       }

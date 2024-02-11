@@ -46,6 +46,15 @@ struct Write_File_IO_Error {
   [[noreturn]] void print_and_exit() const;
 };
 
+struct Symlink_IO_Error {
+  std::string path;
+  std::string target;
+  Platform_File_IO_Error io_error;
+
+  std::string to_string() const;
+  [[noreturn]] void print_and_exit() const;
+};
+
 Result<Padded_String, Read_File_IO_Error> read_file(const std::string &path);
 Result<Padded_String, Read_File_IO_Error> read_file(const char *path);
 Result<Padded_String, Read_File_IO_Error> read_file(const char *path,
@@ -77,6 +86,24 @@ Result<Platform_File, Write_File_IO_Error> open_file_for_writing(
 #if QLJS_HAVE_WINDOWS_H
 bool file_ids_equal(const ::FILE_ID_INFO &, const ::FILE_ID_INFO &);
 #endif
+
+// Create a POSIX/UNIX-style symbolic link.
+//
+// On POSIX platforms like Linux and macOS, calls ::symlink.
+// create_posix_directory_symbolic_link and create_posix_file_symbolic_link
+// behave identically.
+//
+// On Windows, calls ::CreateSymbolicLinkW with
+// SYMBOLIC_LINK_FLAG_DIRECTORY (for create_posix_directory_symbolic_link) or
+// without SYMBOLIC_LINK_FLAG_DIRECTORY (for create_posix_file_symbolic_link).
+Result<void, Symlink_IO_Error> create_posix_directory_symbolic_link(
+    const char *path, const char *target);
+Result<void, Symlink_IO_Error> create_posix_file_symbolic_link(
+    const char *path, const char *target);
+void create_posix_directory_symbolic_link_or_exit(const char *path,
+                                                  const char *target);
+void create_posix_file_symbolic_link_or_exit(const char *path,
+                                             const char *target);
 }
 
 #endif

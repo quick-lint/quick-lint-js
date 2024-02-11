@@ -16,6 +16,7 @@
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/windows-error.h>
 #include <quick-lint-js/util/cast.h>
+#include <quick-lint-js/util/enum.h>
 #include <quick-lint-js/util/math-overflow.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
@@ -35,7 +36,8 @@
 namespace quick_lint_js {
 void delete_directory_recursive(const std::string& path) {
   struct Delete_Visitor : public List_Directory_Visitor {
-    void visit_file(const std::string& path) override {
+    void visit_file(const std::string& path,
+                    [[maybe_unused]] File_Type_Flags flags) override {
 #if QLJS_HAVE_UNISTD_H
       int rc = std::remove(path.c_str());
       if (rc != 0) {
@@ -50,9 +52,20 @@ void delete_directory_recursive(const std::string& path) {
                      path.c_str());
         return;
       }
-      if (!::DeleteFileW(wpath->c_str())) {
-        std::fprintf(stderr, "warning: failed to delete %s: %s\n", path.c_str(),
-                     windows_error_message(::GetLastError()).c_str());
+      if (enum_has_flags(flags, File_Type_Flags::is_directory)) {
+        QLJS_ASSERT(enum_has_flags(
+            flags, File_Type_Flags::is_symbolic_link_or_reparse_point));
+        if (!::RemoveDirectoryW(wpath->c_str())) {
+          std::fprintf(
+              stderr, "warning: failed to delete directory symlink %s: %s\n",
+              path.c_str(), windows_error_message(::GetLastError()).c_str());
+        }
+      } else {
+        if (!::DeleteFileW(wpath->c_str())) {
+          std::fprintf(stderr, "warning: failed to delete %s: %s\n",
+                       path.c_str(),
+                       windows_error_message(::GetLastError()).c_str());
+        }
       }
 #else
 #error "Unsupported platform"

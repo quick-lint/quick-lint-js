@@ -127,14 +127,16 @@ inline ::testing::AssertionResult assert_same_file(
   return assert_same_file(lhs_expr, rhs_expr, lhs_path.c_str(), rhs_path);
 }
 
+// Does not follow symlinks.
 inline ::testing::AssertionResult assert_file_does_not_exist(const char* expr,
                                                              const char* path) {
   bool exists;
 #if QLJS_HAVE_STD_FILESYSTEM
-  exists = std::filesystem::exists(std::filesystem::path(path));
+  exists = std::filesystem::exists(
+      std::filesystem::symlink_status(std::filesystem::path(path)));
 #elif QLJS_HAVE_SYS_STAT_H
   struct ::stat s;
-  if (::stat(path, &s) == 0) {
+  if (::lstat(path, &s) == 0) {
     exists = true;
   } else {
     switch (errno) {

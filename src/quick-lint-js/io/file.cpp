@@ -168,6 +168,16 @@ std::string Write_File_IO_Error::to_string() const {
   std::exit(1);
 }
 
+std::string Symlink_IO_Error::to_string() const {
+  return "failed to create symlink to "s + this->target + " at " + this->path +
+         ": "s + this->io_error.to_string();
+}
+
+[[noreturn]] void Symlink_IO_Error::print_and_exit() const {
+  std::fprintf(stderr, "error: %s\n", this->to_string().c_str());
+  std::exit(1);
+}
+
 bool operator==(const Read_File_IO_Error &lhs, const Read_File_IO_Error &rhs) {
   return lhs.path == rhs.path && lhs.io_error == rhs.io_error;
 }
@@ -411,6 +421,85 @@ bool file_ids_equal(const ::FILE_ID_INFO &a, const ::FILE_ID_INFO &b) {
          std::memcmp(&b.FileId, &a.FileId, sizeof(b.FileId)) == 0;
 }
 #endif
+
+namespace {
+Result<void, Symlink_IO_Error> create_posix_symbolic_link(
+    const char *path, const char *target, [[maybe_unused]] bool is_directory) {
+#if defined(QLJS_FILE_POSIX)
+  int rc = ::symlink(target, path);
+  if (rc != 0) {
+    return failed_result(Symlink_IO_Error{
+        .path = path,
+        .target = target,
+        .io_error = POSIX_File_IO_Error{errno},
+    });
+  }
+  return {};
+#elif defined(QLJS_FILE_WINDOWS)
+  std::optional<std::wstring> wpath = mbstring_to_wstring(path);
+  std::optional<std::wstring> wtarget = mbstring_to_wstring(target);
+  if (!wpath.has_value() || !wtarget.has_value()) {
+    return failed_result(Symlink_IO_Error{
+        .path = path,
+        .target = target,
+        .io_error = Windows_File_IO_Error{ERROR_INVALID_PARAMETER},
+    });
+  }
+
+  // TODO(strager): Ensure a relative target path creates relative symlinks, not
+  // absolute symlinks resolved to the current working directory.
+  //
+  // FIXME(strager): With SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE,
+  // ::CreateSymbolicLinkW can fail with ERROR_INVALID_PARAMETER or maybe
+  // something else. Need to test more Windows versions.
+  //
+  // NOTE(strager): ::CreateSymbolicLinkW fails with ERROR_PRIVILEGE_NOT_HELD
+  // (1314) if SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE is not set.
+  if (!::CreateSymbolicLinkW(
+          wpath->c_str(), wtarget->c_str(),
+          SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE |
+              (is_directory ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0))) {
+    return failed_result(Symlink_IO_Error{
+        .path = path,
+        .target = target,
+        .io_error = Windows_File_IO_Error{::GetLastError()},
+    });
+  }
+
+  return {};
+#else
+#error "Unknown platform"
+#endif
+}
+}
+
+Result<void, Symlink_IO_Error> create_posix_directory_symbolic_link(
+    const char *path, const char *target) {
+  return create_posix_symbolic_link(path, target, /*is_directory=*/true);
+}
+
+Result<void, Symlink_IO_Error> create_posix_file_symbolic_link(
+    const char *path, const char *target) {
+  return create_posix_symbolic_link(path, target, /*is_directory=*/false);
+}
+
+void create_posix_directory_symbolic_link_or_exit(const char *path,
+                                                  const char *target) {
+  Result<void, Symlink_IO_Error> result =
+      create_posix_directory_symbolic_link(path, target);
+  if (!result.ok()) {
+    result.error().print_and_exit();
+  }
+}
+
+void create_posix_file_symbolic_link_or_exit(const char *path,
+                                             const char *target) {
+  Result<void, Symlink_IO_Error> result =
+      create_posix_file_symbolic_link(path, target);
+  if (!result.ok()) {
+    result.error().print_and_exit();
+  }
+}
 }
 
 #endif
