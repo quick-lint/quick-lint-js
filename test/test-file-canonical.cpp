@@ -723,6 +723,102 @@ TEST_F(Test_File_Canonical,
   EXPECT_SAME_FILE(canonical->path(), input_path);
 }
 
+#if defined(_WIN32)
+TEST_F(Test_File_Canonical, canonical_path_resolves_directory_junctions) {
+  std::string temp_dir = this->make_temporary_directory();
+  create_directory_or_exit(temp_dir + "/realdir");
+  create_windows_junction_or_exit(
+      (temp_dir + "/linkdir").c_str(),
+      ("\\??\\" + temp_dir + QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "realdir")
+          .c_str());
+  write_file_or_exit(temp_dir + "/realdir/temp.js", u8""_sv);
+
+  std::string input_path = temp_dir + "/linkdir/temp.js";
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
+      canonicalize_path(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
+
+  EXPECT_THAT(std::string(canonical->path()),
+              AnyOf(HasSubstr("/realdir/"), HasSubstr("\\realdir\\")));
+  EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("/linkdir/")));
+  EXPECT_THAT(std::string(canonical->path()), Not(HasSubstr("\\linkdir\\")));
+  EXPECT_SAME_FILE(canonical->path(), temp_dir + "/realdir/temp.js");
+  EXPECT_SAME_FILE(canonical->path(), input_path);
+}
+#endif
+
+#if defined(_WIN32)
+TEST_F(Test_File_Canonical, symlink_with_dot_dot_escapes_symlinked_dir) {
+  // $temp_dir\dir [directory]
+  // $temp_dir\dir\file.txt [file]
+  // $temp_dir\dir\subdir [directory]
+  // $temp_dir\dir\subdir\filelink.txt [symlink] -> ..\file.txt
+  // $temp_dir\linkdir [junction] -> $temp_dir\dir\subdir
+  // $temp_dir\file.txt [file]
+  //
+  // $temp_dir\linkdir\filelink.txt
+  // is the same as $temp_dir\dir\subdir\..\file.txt
+  // is the same as $temp_dir\dir\file.txt
+
+  std::string temp_dir = this->make_temporary_directory();
+  create_directory_or_exit(temp_dir + "/dir");
+  write_file_or_exit(temp_dir + "/dir/file.txt", u8"$tempdir/dir/file.txt");
+  create_directory_or_exit(temp_dir + "/dir/subdir");
+  create_posix_file_symbolic_link_or_exit(
+      (temp_dir + "/dir/subdir/filelink.txt").c_str(), "..\\file.txt");
+  create_posix_directory_symbolic_link(
+      (temp_dir + "/linkdir").c_str(),
+      "dir" QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "subdir");
+  write_file_or_exit(temp_dir + "/file.txt", u8"$tempdir/file.txt");
+
+  std::string input_path = temp_dir + "/linkdir/filelink.txt";
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
+      canonicalize_path(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
+
+  EXPECT_SAME_FILE(canonical->path(), temp_dir + "/dir/subdir/../file.txt");
+  EXPECT_SAME_FILE(canonical->path(), temp_dir + "/dir/file.txt");
+}
+#endif
+
+#if defined(_WIN32)
+// TODO(#1200): Fix canonicalize_file when it encounters junctions.
+TEST_F(Test_File_Canonical, DISABLED_symlink_with_dot_dot_escapes_junction) {
+  // $temp_dir\dir [directory]
+  // $temp_dir\dir\file.txt [file]
+  // $temp_dir\dir\subdir [directory]
+  // $temp_dir\dir\subdir\filelink.txt [symlink] -> ..\file.txt
+  // $temp_dir\linkdir [junction] -> $temp_dir\dir\subdir
+  // $temp_dir\file.txt [file]
+  //
+  // $temp_dir\linkdir\filelink.txt
+  // is the same as $temp_dir\linkdir\..\file.txt
+  // is the same as $temp_dir\file.txt
+
+  std::string temp_dir = this->make_temporary_directory();
+  create_directory_or_exit(temp_dir + "/dir");
+  write_file_or_exit(temp_dir + "/dir/file.txt", u8"$tempdir/dir/file.txt");
+  create_directory_or_exit(temp_dir + "/dir/subdir");
+  create_posix_file_symbolic_link_or_exit(
+      (temp_dir + "/dir/subdir/filelink.txt").c_str(), "..\\file.txt");
+  create_windows_junction_or_exit(
+      (temp_dir + "/linkdir").c_str(),
+      ("\\??\\" + temp_dir +
+       QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR
+       "dir" QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR "subdir")
+          .c_str());
+  write_file_or_exit(temp_dir + "/file.txt", u8"$tempdir/file.txt");
+
+  std::string input_path = temp_dir + "/linkdir/filelink.txt";
+  Result<Canonical_Path_Result, Canonicalize_Path_IO_Error> canonical =
+      canonicalize_path(input_path);
+  ASSERT_TRUE(canonical.ok()) << canonical.error().to_string();
+
+  EXPECT_SAME_FILE(canonical->path(), temp_dir + "/linkdir/../file.txt");
+  EXPECT_SAME_FILE(canonical->path(), temp_dir + "/file.txt");
+}
+#endif
+
 TEST_F(Test_File_Canonical,
        canonical_path_resolves_directory_relative_symlinks) {
   std::string temp_dir = this->make_temporary_directory();

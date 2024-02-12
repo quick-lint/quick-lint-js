@@ -115,6 +115,10 @@ void create_posix_file_symbolic_link_or_exit(const char *path,
 
 Result<void, Delete_File_IO_Error> delete_posix_symbolic_link(const char *path);
 void delete_posix_symbolic_link_or_exit(const char *path);
+
+// target must begin with \??\.
+void create_windows_junction_or_exit(const char *path, const char *target);
+
 }
 
 #endif

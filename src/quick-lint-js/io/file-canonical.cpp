@@ -694,9 +694,34 @@ class Windows_Path_Canonicalizer
     ::REPARSE_DATA_BUFFER *reparse_data =
         reinterpret_cast<::REPARSE_DATA_BUFFER *>(reparse_data_raw.data());
     switch (reparse_data->ReparseTag) {
-    case IO_REPARSE_TAG_MOUNT_POINT:
-      QLJS_UNIMPLEMENTED();
+    // NOTE(strager): Mount points are also known as junctions.
+    case IO_REPARSE_TAG_MOUNT_POINT: {
+      // TODO(#1200): Make '..' after following the junction escape the
+      // junction.
+
+      auto &mount_point = reparse_data->MountPointReparseBuffer;
+      std::wstring &new_readlink_buffer =
+          readlink_buffers_[1 - used_readlink_buffer_];
+      // NOTE[reparse-point-null-terminator]: The path is not null-terminated.
+      std::wstring_view target(
+          &mount_point
+               .PathBuffer[mount_point.SubstituteNameOffset / sizeof(wchar_t)],
+          mount_point.SubstituteNameLength / sizeof(wchar_t));
+
+      // NOTE(strager): Mount point targets are always absolute.
+      new_readlink_buffer.reserve(target.size() + path_to_process_.size());
+      new_readlink_buffer = target;
+      new_readlink_buffer += path_to_process_;
+      path_to_process_ = new_readlink_buffer;
+      // After assigning to path_to_process_,
+      // readlink_buffers_[used_readlink_buffer_] is no longer in use.
+      swap_readlink_buffers();
+
+      Result<void, Canonicalizing_Path_IO_Error> r = process_start_of_path();
+      if (!r.ok()) return r.propagate();
+
       break;
+    }
 
     case IO_REPARSE_TAG_SYMLINK: {
       auto &symlink = reparse_data->SymbolicLinkReparseBuffer;

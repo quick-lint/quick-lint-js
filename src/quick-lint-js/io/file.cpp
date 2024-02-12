@@ -11,6 +11,7 @@
 #include <cstring>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
@@ -40,6 +41,7 @@
 
 #if QLJS_HAVE_WINDOWS_H
 #include <quick-lint-js/port/windows.h>
+#include <winioctl.h>
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
@@ -565,6 +567,80 @@ void delete_posix_symbolic_link_or_exit(const char *path) {
     result.error().print_and_exit();
   }
 }
+
+#if defined(QLJS_FILE_WINDOWS)
+void create_windows_junction_or_exit(const char *path, const char *target) {
+  Monotonic_Allocator memory("create_windows_junction");
+
+  std::optional<std::wstring> wpath = mbstring_to_wstring(path);
+  std::optional<std::wstring> wtarget = mbstring_to_wstring(target);
+  if (!wpath.has_value() || !wtarget.has_value()) {
+    std::fprintf(stderr, "fatal: cannot convert path to wide string\n");
+    std::abort();
+  }
+  if (!::CreateDirectoryW(wpath->c_str(), /*lpSecurityAttributes=*/nullptr)) {
+    std::fprintf(stderr, "fatal: CreateDirectoryW failed\n");
+    std::abort();
+  }
+  Windows_Handle_File file(
+      ::CreateFileW(wpath->c_str(), GENERIC_WRITE,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                    /*lpSecurityAttributes=*/nullptr, OPEN_EXISTING,
+                    FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+                    /*hTemplateFile=*/nullptr));
+
+  std::size_t reparse_data_data_size =
+      offsetof(
+          decltype(
+              std::declval<::REPARSE_DATA_BUFFER>().MountPointReparseBuffer),
+          PathBuffer) +
+      // SubsituteName. +1 for null terminator.
+      (wtarget->size() + 1) * sizeof(wchar_t) +
+      // PrintName. Empty string with null terminator.
+      sizeof(wchar_t);
+  std::size_t reparse_data_total_size =
+      offsetof(::REPARSE_DATA_BUFFER, MountPointReparseBuffer) +
+      reparse_data_data_size;
+  ::REPARSE_DATA_BUFFER *reparse_data =
+      reinterpret_cast<::REPARSE_DATA_BUFFER *>(memory.allocate(
+          reparse_data_total_size, alignof(::REPARSE_DATA_BUFFER)));
+  reparse_data->ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
+  reparse_data->ReparseDataLength = reparse_data_data_size;
+  reparse_data->Reserved = 0;
+
+  // Write the null-terminated SubstituteName (*wtarget) followed by the
+  // null-terminated PrintName (L"").
+  {
+    wchar_t *path_buffer = reparse_data->MountPointReparseBuffer.PathBuffer;
+    auto current_offset = [&]() -> ::USHORT {
+      return narrow_cast<::USHORT>(
+          (reinterpret_cast<char *>(path_buffer) -
+           reinterpret_cast<char *>(
+               reparse_data->MountPointReparseBuffer.PathBuffer)));
+    };
+    reparse_data->MountPointReparseBuffer.SubstituteNameOffset =
+        current_offset();
+    reparse_data->MountPointReparseBuffer.SubstituteNameLength =
+        wtarget->size() * sizeof(wchar_t);
+    path_buffer = std::copy(wtarget->begin(), wtarget->end(), path_buffer);
+    *path_buffer++ = L'\0';
+
+    reparse_data->MountPointReparseBuffer.PrintNameOffset = current_offset();
+    reparse_data->MountPointReparseBuffer.PrintNameLength = 0;
+    *path_buffer++ = L'\0';
+  }
+
+  if (!::DeviceIoControl(file.get(), FSCTL_SET_REPARSE_POINT, reparse_data,
+                         narrow_cast<::DWORD>(reparse_data_total_size),
+                         /*lpOutBuffer=*/nullptr,
+                         /*nOutBufferSize=*/0,
+                         /*lpBytesReturned=*/nullptr,
+                         /*lpOverlapped=*/nullptr)) {
+    std::fprintf(stderr, "fatal: DeviceIoControl failed\n");
+    std::abort();
+  }
+}
+#endif
 }
 
 #endif
