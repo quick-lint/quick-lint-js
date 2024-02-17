@@ -80,7 +80,7 @@
     "test": "node test/run-vscode-tests.js"
   },
   "devDependencies": {
-    "@vscode/test-electron": "2.3.0",
+    "@vscode/test-electron": "2.3.9",
     "colors": "1.4.0",
     "prettier": "2.8.4",
     "vsce": "2.15.0"
