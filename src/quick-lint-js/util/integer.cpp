@@ -21,6 +21,15 @@
 #include <string>
 #include <type_traits>
 
+#ifdef SIMDJSON_SWAR_NUMBER_PARSING
+#if SIMDJSON_SWAR_NUMBER_PARSING
+#undef SIMDJSON_SWAR_NUMBER_PARSING
+#include <quick-lint-js/../../vendor/simdjson/include/simdjson/generic/jsoncharutils.h>
+#include <quick-lint-js/../../vendor/simdjson/include/simdjson/generic/numberparsing.h>
+#define SIMDJSON_SWAR_NUMBER_PARSING 1
+#endif
+#endif
+
 QLJS_WARNING_IGNORE_CLANG("-Wmissing-prototypes")  // TODO(strager): Fix.
 QLJS_WARNING_IGNORE_GCC("-Wmissing-declarations")  // TODO(strager): Fix.
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
@@ -194,7 +203,78 @@ Parse_Integer_Exact_Error parse_integer_exact_generic(
 
 template <class T>
 Parse_Integer_Exact_Error parse_integer_exact(std::string_view s, T &value) {
-  return parse_integer_exact_generic<char, Decimal<char>, T>(s, value);
+  if (s.empty()) {
+    return Parse_Integer_Exact_Error::invalid;
+  }
+
+  if constexpr (std::numeric_limits<T>::max() >
+                std::numeric_limits<long long>::max()) {
+    return parse_integer_exact_generic<char, Decimal<char>, T>(s, value);
+  }
+
+  const char *s_first_digit = &(s.front());
+  const char *s_end = &(s.back()) + 1;
+  bool negative = false;
+
+  while (s_first_digit < s_end) {
+    char c = *s_first_digit;
+    if (c >= '1' && c <= '9') {
+      break;
+    } else if (c == '-') {
+      if (negative) {
+        return Parse_Integer_Exact_Error::invalid;
+      } else {
+        negative = true;
+      }
+    } else if (c == '0') {
+      if (negative) {
+        return Parse_Integer_Exact_Error::invalid;
+      }
+    } else {
+      return Parse_Integer_Exact_Error::invalid;
+    }
+    s_first_digit++;
+  }
+
+  if (s_first_digit != s_end) {
+    for (const char *i = s_first_digit; i < s_end; i++) {
+      if (*i < '0' || *i > '9') {
+        return Parse_Integer_Exact_Error::invalid;
+      }
+    }
+  } else {
+    value = static_cast<T>(0);
+    return Parse_Integer_Exact_Error::ok;
+  }
+
+  const simdjson::simdjson_result<int64_t> parse_result =
+      simdjson::fallback::numberparsing::parse_integer(
+          reinterpret_cast<const uint8_t *>(
+              static_cast<const char *>(s_first_digit - negative)),
+          reinterpret_cast<const uint8_t *>(static_cast<const char *>(s_end)));
+
+  switch (parse_result.error()) {
+  case (simdjson::SUCCESS):
+    break;
+  case (simdjson::INCORRECT_TYPE):
+    return Parse_Integer_Exact_Error::out_of_range;
+  case (simdjson::NUMBER_ERROR):
+    return Parse_Integer_Exact_Error::invalid;
+  default:
+    QLJS_UNREACHABLE();
+  }
+
+  int64_t parse_value = parse_result.value_unsafe();
+
+  static constexpr T result_min = std::numeric_limits<T>::min();
+  static constexpr T result_max = std::numeric_limits<T>::max();
+
+  if (parse_value < result_min || parse_value > result_max) {
+    return Parse_Integer_Exact_Error::out_of_range;
+  }
+
+  value = static_cast<T>(parse_value);
+  return Parse_Integer_Exact_Error::ok;
 }
 
 template Parse_Integer_Exact_Error parse_integer_exact(std::string_view,
