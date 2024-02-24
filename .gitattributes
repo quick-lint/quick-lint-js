@@ -9,3 +9,6 @@
 /docs/** linguist-documentation
 /docs/analytics/** -linguist-documentation
 /website/** linguist-documentation
+
+# Auto detect text files and perform LF normalization
+* text=auto
