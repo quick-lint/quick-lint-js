@@ -19,6 +19,12 @@ Semantic Versioning.
 
 * TypeScript: `(): RT<T>=>null` (with no spaces in `>=>`) now parses correctly.
   (Fixed by [vegerot][].)
+* Fixed [E0718][] falsely diagnosing valid code. ([#1192][], [#1199][])
+* quick-lint-js no longer crashes in the presence of symbolic links and
+  directory junctions on Windows. ([#1182][])
+* Fixed a read buffer overflow (possibly leading to a crash) when checking
+  whether short identifiers containing Unicode escape sequences are keywords.
+  (x86 and x86_64 only.) ([#1191][])
 
 ## 3.1.0 (2024-01-10)
 
@@ -1416,7 +1422,11 @@ Beta release.
 [#1168]: https://github.com/quick-lint/quick-lint-js/pull/1168
 [#1171]: https://github.com/quick-lint/quick-lint-js/issues/1171
 [#1180]: https://github.com/quick-lint/quick-lint-js/issues/1180
+[#1182]: https://github.com/quick-lint/quick-lint-js/issues/1182
+[#1191]: https://github.com/quick-lint/quick-lint-js/issues/1191
+[#1192]: https://github.com/quick-lint/quick-lint-js/issues/1192
 [#1194]: https://github.com/quick-lint/quick-lint-js/issues/1194
+[#1199]: https://github.com/quick-lint/quick-lint-js/issues/1199
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
 [E0003]: https://quick-lint-js.com/errors/E0003/
