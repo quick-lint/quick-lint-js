@@ -19,6 +19,9 @@ Semantic Versioning.
 
 * TypeScript: `(): RT<T>=>null` (with no spaces in `>=>`) now parses correctly.
   (Fixed by [vegerot][].)
+* Fixed a read buffer overflow (possibly leading to a crash) when checking
+  whether short identifiers containing Unicode escape sequences are keywords.
+  (x86 and x86_64 only.) (Reported by [Roland Strasser][].)
 
 ## 3.1.0 (2024-01-10)
 
