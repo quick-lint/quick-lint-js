@@ -14,6 +14,7 @@
 #include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/fe/keyword-lexer.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/bit.h>
@@ -1832,9 +1833,15 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
     }
   }
 
+  String8_View normalized_view = normalized.release_to_string_view();
+
+  // Add padding bytes required by Keyword_Lexer. This should not be considered
+  // part of the returned string.
+  normalized.resize(normalized.size() + Keyword_Lexer::padding_size);
+
   return Parsed_Identifier{
       .after = input,
-      .normalized = normalized.release_to_string_view(),
+      .normalized = normalized_view,
       .escape_sequences = escape_sequences,
   };
 }
