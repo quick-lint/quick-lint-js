@@ -530,6 +530,7 @@ quick_lint_js_add_library(
   quick-lint-js/container/padded-string-debug.cpp
   quick-lint-js/container/vector-profiler-debug.cpp
   quick-lint-js/diag/diag-debug.cpp
+  quick-lint-js/diag/diag-list-debug.cpp
   quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
   quick-lint-js/i18n/po-parser-debug.cpp

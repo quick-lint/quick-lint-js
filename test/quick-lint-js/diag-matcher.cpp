@@ -81,17 +81,23 @@ class Diag_Fields_Matcher_Impl_Base
   explicit Diag_Fields_Matcher_Impl_Base(State s) : state_(std::move(s)) {}
 
   void DescribeTo(std::ostream *out) const final {
-    *out << "has type " << this->state_.type;
-    this->describe_fields_to(out);
+    *out << this->state_.type << "{";
+
+    bool is_first_field = true;
+    for (const Field &f : this->state_.fields) {
+      if (!is_first_field) {
+        *out << ", ";
+      }
+      this->describe_field(f, out);
+      is_first_field = false;
+    }
+
+    *out << "}";
   }
 
   void DescribeNegationTo(std::ostream *out) const final {
-    *out << "doesn't have type " << this->state_.type;
-    this->describe_fields_to(out);
-  }
-
-  void describe_fields_to(std::ostream *) const {
-    // TODO(strager)
+    *out << "not ";
+    this->DescribeTo(out);
   }
 
   bool MatchAndExplain(const Diag_Collector::Diag &error,
@@ -127,6 +133,7 @@ class Diag_Fields_Matcher_Impl_Base
   }
 
  protected:
+  virtual void describe_field(const Field &, std::ostream *out) const = 0;
   virtual bool field_matches(const Any_Diag_Pointer &error, const Field &f,
                              testing::MatchResultListener *listener) const = 0;
 
@@ -147,6 +154,48 @@ class Diag_Matcher_2::Impl final
   using Base::Diag_Fields_Matcher_Impl_Base;
 
  protected:
+  void describe_field(const Field &f, std::ostream *out) const override {
+    *out << "." << f.arg.member_name << " = ";
+    switch (f.arg.member_type) {
+    case Diagnostic_Arg_Type::source_code_span:
+      *out << f.begin_offset << ".." << f.end_offset;
+      break;
+
+    case Diagnostic_Arg_Type::char8:
+      *out << "'";
+      // TODO(strager): Escape characters like ' and \ and (null) and (tab).
+      *out << static_cast<char>(f.character);
+      *out << "'";
+      break;
+
+    case Diagnostic_Arg_Type::string8_view:
+      *out << "\"";
+      // TODO(strager): Escape characters like ' and \ and (null) and (tab).
+      *out << out_string8(f.string);
+      *out << "\"";
+      break;
+
+    case Diagnostic_Arg_Type::enum_kind:
+      *out << "Enum_Kind::";
+      *out << f.enum_kind;
+      break;
+
+    case Diagnostic_Arg_Type::statement_kind:
+      *out << "Statement_Kind::";
+      *out << f.statement_kind;
+      break;
+
+    case Diagnostic_Arg_Type::variable_kind:
+      *out << "Variable_Kind::";
+      *out << f.variable_kind;
+      break;
+
+    case Diagnostic_Arg_Type::invalid:
+      QLJS_UNREACHABLE();
+      break;
+    }
+  }
+
   bool field_matches(const Any_Diag_Pointer &error, const Field &f,
                      testing::MatchResultListener *listener) const override {
     switch (f.arg.member_type) {

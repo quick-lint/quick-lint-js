@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/port/memory-resource.h>
 
@@ -80,6 +81,8 @@ class Diag_List {
 
   friend class Diag_List_Diag_Reporter;
 };
+
+std::ostream &operator<<(std::ostream &, const Diag_List &);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

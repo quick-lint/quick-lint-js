@@ -566,10 +566,17 @@ class Diag_List_Matcher_Impl
       : error_matchers_(std::move(error_matchers)) {}
 
   void DescribeTo([[maybe_unused]] std::ostream* out) const override {
-    // FIXME(strager): Do we need to write anything here?
-  }
-
-  void DescribeNegationTo([[maybe_unused]] std::ostream* out) const override {
+    *out << this->error_matchers_.size() << " "
+         << (this->error_matchers_.size() == 1 ? "diagnostic" : "diagnostics");
+    if (!this->error_matchers_.empty()) {
+      *out << ": {\n";
+      for (const Diag_Matcher_2& matcher : this->error_matchers_) {
+        *out << "  ";
+        matcher.DescribeTo(out);
+        *out << ",\n";
+      }
+      *out << "}";
+    }
     // FIXME(strager): Do we need to write anything here?
   }
 

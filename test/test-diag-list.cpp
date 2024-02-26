@@ -176,6 +176,20 @@ TEST(Test_Diag_List, clear_removes_old_diagnostics) {
   });
   EXPECT_EQ(count, 1);
 }
+
+TEST(Test_Diag_List, pretty_print_one_diag) {
+  // TODO(strager): Include location information.
+
+  Linked_Bump_Allocator memory("test");
+  {
+    Diag_List diags(&memory);
+    Padded_String code(u8"hello"_sv);
+    diags.add(Diag_Let_With_No_Bindings{.where = span_of(code)});
+    std::ostringstream ss;
+    ss << diags;
+    EXPECT_EQ(ss.str(), "1 diagnostic: {\n  Diag_Let_With_No_Bindings,\n}");
+  }
+}
 }
 }
 

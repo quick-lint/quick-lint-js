@@ -846,6 +846,10 @@ TEST_F(Test_Diagnostic_Assertion_2, match_offsets_of_1_field_message) {
     EXPECT_EQ(get_matcher_message(matcher, diags),
               "whose element #0 doesn't match, whose .continue_statement (1-4) "
               "doesn't equal 0-5");
+    EXPECT_EQ(get_matcher_description(matcher),
+              "1 diagnostic: {\n  "
+              "Diag_Invalid_Continue{.continue_statement = 0..5},\n"
+              "}");
   }
 
   {
@@ -858,6 +862,10 @@ TEST_F(Test_Diagnostic_Assertion_2, match_offsets_of_1_field_message) {
     EXPECT_EQ(get_matcher_message(matcher, diags),
               "whose element #0 doesn't match, whose .break_statement (1-4) "
               "doesn't equal 0-5");
+    EXPECT_EQ(get_matcher_description(matcher),
+              "1 diagnostic: {\n  "
+              "Diag_Invalid_Break{.break_statement = 0..5},\n"
+              "}");
   }
 }
 
@@ -900,6 +908,11 @@ TEST_F(Test_Diagnostic_Assertion_2, char8_message) {
   EXPECT_EQ(get_matcher_message(matcher, diags),
             "whose element #0 doesn't match, whose .where (0-1) equals 0-1 and "
             "whose .token ('(') doesn't equal ')'");
+  EXPECT_EQ(get_matcher_description(matcher),
+            "1 diagnostic: {\n"
+            "  Diag_Expected_Parenthesis_Around_Do_While_Condition"
+            "{.where = 0..1, .token = ')'},\n"
+            "}");
 }
 
 TEST_F(Test_Diagnostic_Assertion_2, match_span_and_string8_view) {
@@ -942,6 +955,50 @@ TEST_F(Test_Diagnostic_Assertion_2, string8_view_message) {
       get_matcher_message(matcher, diags),
       "whose element #0 doesn't match, whose .characters (0-1) equals 0-1 and "
       "whose .rounded_val (\"HELLO\") doesn't equal \"hello\"");
+  EXPECT_EQ(get_matcher_description(matcher),
+            "1 diagnostic: {\n"
+            "  Diag_Integer_Literal_Will_Lose_Precision"
+            "{.characters = 0..1, .rounded_val = \"hello\"},\n"
+            "}");
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, enum_kind_message) {
+  Padded_String code(u8"hi"_sv);
+  ::testing::Matcher matcher = diagnostics_matcher_2(
+      &code, {u8"^ Diag_TypeScript_Enum_Value_Must_Be_Constant.expression"_diag
+              u8"{.declared_enum_kind=Enum_Kind::declare_const_enum}"_diag});
+  EXPECT_EQ(get_matcher_description(matcher),
+            "1 diagnostic: {\n"
+            "  Diag_TypeScript_Enum_Value_Must_Be_Constant"
+            "{.expression = 0..1, "
+            ".declared_enum_kind = Enum_Kind::declare_const_enum},\n"
+            "}");
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, statement_kind_message) {
+  Padded_String code(u8"hi"_sv);
+  ::testing::Matcher matcher = diagnostics_matcher_2(
+      &code, {u8"^ Diag_Class_Statement_Not_Allowed_In_Body.expected_body"_diag
+              u8"{.kind_of_statement=Statement_Kind::do_while_loop}"_diag});
+  EXPECT_EQ(get_matcher_description(matcher),
+            "1 diagnostic: {\n  "
+            "Diag_Class_Statement_Not_Allowed_In_Body"
+            "{.expected_body = 0..1, "
+            ".kind_of_statement = Statement_Kind::do_while_loop},\n"
+            "}");
+}
+
+TEST_F(Test_Diagnostic_Assertion_2, variable_kind_message) {
+  Padded_String code(u8"hi"_sv);
+  ::testing::Matcher matcher = diagnostics_matcher_2(
+      &code, {u8"^ Diag_Assignment_To_Const_Variable.declaration"_diag
+              u8"{.var_kind=Variable_Kind::_const}"_diag});
+  EXPECT_EQ(get_matcher_description(matcher),
+            "1 diagnostic: {\n"
+            "  Diag_Assignment_To_Const_Variable"
+            "{.declaration = 0..1, "
+            ".var_kind = Variable_Kind::_const},\n"
+            "}");
 }
 
 TEST_F(Test_Diagnostic_Assertion_2,

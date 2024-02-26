@@ -41,6 +41,13 @@ inline void PrintTo(const std::basic_string_view<char8_t> &s,
 #endif
 
 template <class Value>
+std::string get_matcher_description(::testing::Matcher<const Value &> matcher) {
+  std::ostringstream ss;
+  matcher.DescribeTo(&ss);
+  return ss.str();
+}
+
+template <class Value>
 std::string get_matcher_message(::testing::Matcher<const Value &> matcher,
                                 const Value &value) {
   ::testing::StringMatchResultListener listener;

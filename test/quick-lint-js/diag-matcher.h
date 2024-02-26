@@ -94,6 +94,10 @@ class Diag_Matcher_2 {
   /*implicit*/ operator testing::Matcher<const Diag_Collector::Diag &>() const;
   /*implicit*/ operator testing::Matcher<const Any_Diag_Pointer &>() const;
 
+  void DescribeTo(std::ostream *out) const {
+    return ::testing::Matcher<const Any_Diag_Pointer &>(*this).DescribeTo(out);
+  }
+
  private:
   class Impl;
 
