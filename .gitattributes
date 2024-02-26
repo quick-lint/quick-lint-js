@@ -10,10 +10,6 @@
 /docs/analytics/** -linguist-documentation
 /website/** linguist-documentation
 
-<<<<<<< Updated upstream
-# Auto detect text files and perform LF normalization
-* text=auto
-=======
 # Set the default behavior, in case people don't have core.autocrlf set.
 * text=auto
 
@@ -22,4 +18,3 @@
 *.cpp text
 *.h text
 *.pot
->>>>>>> Stashed changes
