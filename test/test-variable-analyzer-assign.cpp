@@ -194,7 +194,8 @@ TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_typescript_enum) {
       typescript_analyze_options, default_globals);
 }
 
-TEST(Test_Variable_Analyzer_Assign, cannot_assign_to_typescript_import_alias) {
+TEST(Test_Variable_Analyzer_Assign,
+     cannot_assign_to_typescript_namespace_alias) {
   test_parse_and_analyze(
       u8"namespace A {}  import B = A;  B = null;"_sv,  //
       u8"                               ^ Diag_Assignment_To_Const_Variable.assignment\n"_diag

@@ -319,6 +319,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Implements_Must_Be_After_Extends) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Index_Signature_Cannot_Be_Method) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Index_Signature_Needs_Type) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Infer_Outside_Conditional_Type) \
@@ -475,7 +476,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 461;
+inline constexpr int Diag_Type_Count = 462;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

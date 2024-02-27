@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[604] = {
+inline const Translated_String test_translation_table[605] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1489,6 +1489,17 @@ inline const Translated_String test_translation_table[604] = {
             u8"TypeScript interface properties cannot be 'static'",
             u8"propriedades de interfaces do TypeScript n\u00e3o podem ser 'static'",
             u8"TypeScript interface properties cannot be 'static'",
+        },
+    },
+    {
+        "TypeScript namespace aliases are not allowed in JavaScript"_translatable,
+        u8"TypeScript namespace aliases are not allowed in JavaScript",
+        {
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
         },
     },
     {
