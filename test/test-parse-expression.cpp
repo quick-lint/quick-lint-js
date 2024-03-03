@@ -3834,6 +3834,69 @@ TEST_F(Test_Parse_Expression, precedence) {
     }
   }
 }
+
+TEST_F(Test_Parse_Expression, confusable_symbols) {
+  // In a previous version of quick-lint-js, confusable symbols would cause
+  // assertion failures during parsing.
+
+  {
+    Test_Parser p(u8"f\u2768)"_sv, capture_diags);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), Expression_Kind::Call);
+    p.assert_offsets(static_cast<Expression::Call*>(ast)->left_paren_span(),
+                     u8"f"_sv.size(), u8"f\u2768"_sv.size());
+  }
+
+  {
+    Test_Parser p(u8"(foo \u0294)"_sv, capture_diags);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->without_paren()->kind(), Expression_Kind::Optional);
+    p.assert_offsets(static_cast<Expression::Optional*>(ast->without_paren())
+                         ->question_span(),
+                     u8"(foo "_sv.size(), u8"(foo \u0294"_sv.size());
+  }
+
+  {
+    Test_Parser p(u8"(x \u0589 y)"_sv, capture_diags);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->without_paren()->kind(), Expression_Kind::Type_Annotated);
+    p.assert_offsets(
+        static_cast<Expression::Type_Annotated*>(ast->without_paren())
+            ->colon_span(),
+        u8"(x "_sv.size(), u8"(x \u0589"_sv.size());
+  }
+
+  {
+    Test_Parser p(u8"foo \u01c3"_sv, capture_diags);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), Expression_Kind::Non_Null_Assertion);
+    p.assert_offsets(
+        static_cast<Expression::Non_Null_Assertion*>(ast)->bang_span(),
+        u8"foo "_sv.size(), u8"foo \u01c3"_sv.size());
+  }
+
+  {
+    Test_Parser p(u8"(foo \u201a)"_sv, capture_diags);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->without_paren()->kind(), Expression_Kind::Trailing_Comma);
+    p.assert_offsets(
+        static_cast<Expression::Trailing_Comma*>(ast->without_paren())
+            ->comma_span(),
+        u8"(foo "_sv.size(), u8"(foo \u201a"_sv.size());
+  }
+
+  {
+    Test_Parser p(u8"\u2768\u2769"_sv, capture_diags);
+    Expression* ast = p.parse_expression();
+    EXPECT_EQ(ast->kind(), Expression_Kind::Paren_Empty);
+    p.assert_offsets(
+        static_cast<Expression::Paren_Empty*>(ast)->left_paren_span(),
+        u8""_sv.size(), u8"\u2768"_sv.size());
+    p.assert_offsets(
+        static_cast<Expression::Paren_Empty*>(ast)->right_paren_span(),
+        u8"\u2768"_sv.size(), u8"\u2768\u2769"_sv.size());
+  }
+}
 }
 }
 

@@ -93,16 +93,113 @@ constexpr char32_t right_double_quote = U'\u201d';
 
 struct Confusable_Symbol {
   char32_t confusable;
-  Char8 confusable_name[20];
+  Char8 confusable_name[51];
   Char8 symbol;
-  Char8 symbol_name[20];
+  Char8 symbol_name[21];
   Token_Type symbol_token_type;
 };
 
 Confusable_Symbol confusable_symbols[] = {
-    {0x037e, u8"Greek Question Mark", u8';', u8"semicolon",
-     Token_Type::semicolon},
-    // TODO(strager): Add more.
+    // clang-format off
+    { 0x037e, u8"Greek Question Mark", u8';', u8"semicolon", Token_Type::semicolon},
+
+    { 0x02d0, u8"Modifier Letter Triangular Colon",              u8':', u8"colon", Token_Type::colon},
+    { 0x02f8, u8"Modifier Letter Raised Colon",                  u8':', u8"colon", Token_Type::colon},
+    { 0x0589, u8"Armenian Full Stop",                            u8':', u8"colon", Token_Type::colon},
+    { 0x05c3, u8"Hebrew Punctuation Sof Pasuq",                  u8':', u8"colon", Token_Type::colon},
+    { 0x0703, u8"Syriac Supralinear Colon",                      u8':', u8"colon", Token_Type::colon},
+    { 0x0704, u8"Syriac Sublinear Colon",                        u8':', u8"colon", Token_Type::colon},
+    { 0x0903, u8"Devanagari Sign Visarga",                       u8':', u8"colon", Token_Type::colon},
+    { 0x0a83, u8"Gujarati Sign Visarga",                         u8':', u8"colon", Token_Type::colon},
+    { 0x16ec, u8"Runic Multiple Punctuation",                    u8':', u8"colon", Token_Type::colon},
+    { 0x1803, u8"Mongolian Full Stop",                           u8':', u8"colon", Token_Type::colon},
+    { 0x1809, u8"Mongolian Manchu Full Stop",                    u8':', u8"colon", Token_Type::colon},
+    { 0x205a, u8"Two Dot Punctuation",                           u8':', u8"colon", Token_Type::colon},
+    { 0x2236, u8"Ratio",                                         u8':', u8"colon", Token_Type::colon},
+    { 0xa4fd, u8"Lisu Letter Tone Mya Jeu",                      u8':', u8"colon", Token_Type::colon},
+    { 0xa789, u8"Modifier Letter Colon",                         u8':', u8"colon", Token_Type::colon},
+    { 0xfe30, u8"Presentation Form For Vertical Two Dot Leader", u8':', u8"colon", Token_Type::colon},
+    { 0xff1a, u8"Fullwidth Colon",                               u8':', u8"colon", Token_Type::colon},
+
+    { 0x00b8, u8"Cedilla",                     u8',', u8"comma", Token_Type::comma},
+    { 0x060d, u8"Arabic Date Separator",       u8',', u8"comma", Token_Type::comma},
+    { 0x066b, u8"Arabic Decimal Separator",    u8',', u8"comma", Token_Type::comma},
+    { 0x201a, u8"Single Low-9 Quotation Mark", u8',', u8"comma", Token_Type::comma},
+    { 0xa4f9, u8"Lisu Letter Tone Na Po",      u8',', u8"comma", Token_Type::comma},
+
+    { 0x01c3, u8"Latin Letter Retroflex Click", u8'!', u8"exclamation mark", Token_Type::bang},
+    { 0x2d51, u8"Tifinagh Letter Tuareg Yang",  u8'!', u8"exclamation mark", Token_Type::bang},
+    { 0xff01, u8"Fullwidth Exclamation Mark",   u8'!', u8"exclamation mark", Token_Type::bang},
+
+    // TODO(strager): Also match symbols like "․․․".
+    { 0x0660, u8"Arabic-Indic Digit Zero",                   u8'.', u8"dot", Token_Type::dot},
+    { 0x06f0, u8"Extended Arabic-Indic Digit Zero",          u8'.', u8"dot", Token_Type::dot},
+    { 0x0701, u8"Syriac Supralinear Full Stop",              u8'.', u8"dot", Token_Type::dot},
+    { 0x0702, u8"Syriac Sublinear Full Stop",                u8'.', u8"dot", Token_Type::dot},
+    { 0x2024, u8"One Dot Leader",                            u8'.', u8"dot", Token_Type::dot},
+    { 0xa4f8, u8"Lisu Letter Tone Mya Ti",                   u8'.', u8"dot", Token_Type::dot},
+    { 0xa60e, u8"Vai Full Stop",                             u8'.', u8"dot", Token_Type::dot},
+    {0x10a50, u8"Kharoshthi Punctuation Dot",                u8'.', u8"dot", Token_Type::dot},
+    {0x1d16d, u8"Musical Symbol Combining Augmentation Dot", u8'.', u8"dot", Token_Type::dot},
+
+    // NOTE(strager): We diverge from Unicode here. Unicode considers a few of these as parentheses.
+    { 0x2772, u8"Light Left Tortoise Shell Bracket Ornament",  u8'(', u8"left square bracket", Token_Type::left_square},
+    { 0x2773, u8"Light Right Tortoise Shell Bracket Ornament", u8')', u8"right square bracket", Token_Type::right_square},
+    { 0x3014, u8"Left Tortoise Shell Bracket",                 u8'(', u8"left square bracket", Token_Type::left_square},
+    { 0x3015, u8"Right Tortoise Shell Bracket",                u8')', u8"right square bracket", Token_Type::right_square},
+    { 0xff3b, u8"Fullwidth Left Square Bracket",               u8'(', u8"left square bracket", Token_Type::left_square},
+    { 0xff3d, u8"Fullwidth Right Square Bracket",              u8')', u8"right square bracket", Token_Type::right_square},
+
+    { 0x2768, u8"Medium Left Parenthesis Ornament",  u8'(', u8"left parenthesis", Token_Type::left_paren},
+    { 0x2769, u8"Medium Right Parenthesis Ornament", u8')', u8"right parenthesis", Token_Type::right_paren},
+    { 0xfd3e, u8"Ornate Left Parenthesis",           u8'(', u8"left parenthesis", Token_Type::left_paren},
+    { 0xfd3f, u8"Ornate Right Parenthesis",          u8')', u8"right parenthesis", Token_Type::right_paren},
+
+    { 0x2774, u8"Medium Left Curly Bracket Ornament",  u8'{', u8"left curly bracket", Token_Type::left_curly},
+    { 0x2775, u8"Medium Right Curly Bracket Ornament", u8'}', u8"right curly bracket", Token_Type::right_curly},
+    {0x1d114, u8"Musical Symbol Brace",                u8'{', u8"left curly bracket", Token_Type::left_curly},
+
+    // TODO(strager): Also match symbols like "ꝸ=" and "᐀᐀".
+    // NOTE(strager): 0x0294 is legal in identifiers.
+    { 0x0294, u8"Latin Letter Glottal Stop",         u8'?', u8"question mark", Token_Type::question},
+    { 0x0241, u8"Latin Capital Letter Glottal Stop", u8'?', u8"question mark", Token_Type::question},
+    { 0x097d, u8"Devanagari Letter Glottal Stop",    u8'?', u8"question mark", Token_Type::question},
+    { 0x13ae, u8"Cherokee Letter He",                u8'?', u8"question mark", Token_Type::question},
+    { 0xa6eb, u8"Bamum Letter Ntuu",                 u8'?', u8"question mark", Token_Type::question},
+
+    { 0xa778, u8"Latin Small Letter Um", u8'&', u8"ampersand", Token_Type::ampersand},
+
+    { 0x066d, u8"Arabic Five Pointed Star", u8'*', u8"asterisk", Token_Type::star},
+    { 0x204e, u8"Low Asterisk",             u8'*', u8"asterisk", Token_Type::star},
+    { 0x2217, u8"Asterisk Operator",        u8'*', u8"asterisk", Token_Type::star},
+    {0x1031f, u8"Old Italic Letter Ess",    u8'*', u8"asterisk", Token_Type::star},
+
+    { 0x02c4, u8"Modifier Letter Up Arrowhead",      u8'^', u8"circumflex", Token_Type::circumflex},
+    { 0x02c6, u8"Modifier Letter Circumflex Accent", u8'^', u8"circumflex", Token_Type::circumflex},
+
+    { 0x02c2, u8"Modifier Letter Left Arrowhead",                    u8'<', u8"less than", Token_Type::less},
+    { 0x1438, u8"Canadian Syllabics Pa",                             u8'<', u8"less than", Token_Type::less},
+    { 0x16b2, u8"Runic Letter Kauna",                                u8'<', u8"less than", Token_Type::less},
+    { 0x2039, u8"Single Left-Pointing Angle Quotation Mark",         u8'<', u8"less than", Token_Type::less},
+    { 0x276e, u8"Heavy Left-Pointing Angle Quotation Mark Ornament", u8'<', u8"less than", Token_Type::less},
+    {0x1d236, u8"Greek Instrumental Notation Symbol-40",             u8'<', u8"less than", Token_Type::less},
+
+    { 0x02c3, u8"Modifier Letter Right Arrowhead",                    u8'>', u8"greater than", Token_Type::greater},
+    { 0x1433, u8"Canadian Syllabics Po",                              u8'>', u8"greater than", Token_Type::greater},
+    { 0x203a, u8"Single Right-Pointing Angle Quotation Mark",         u8'>', u8"greater than", Token_Type::greater},
+    { 0x276f, u8"Heavy Right-Pointing Angle Quotation Mark Ornament", u8'>', u8"greater than", Token_Type::greater},
+    {0x16f3f, u8"Miao Letter Archaic Zza",                            u8'>', u8"greater than", Token_Type::greater},
+    {0x1d237, u8"Greek Instrumental Notation Symbol-42",              u8'>', u8"greater than", Token_Type::greater},
+
+    { 0x02dc, u8"Small Tilde",       u8'~', u8"tilde", Token_Type::tilde},
+    { 0x1fc0, u8"Greek Perispomeni", u8'~', u8"tilde", Token_Type::tilde},
+    { 0x2053, u8"Swung Dash",        u8'~', u8"tilde", Token_Type::tilde},
+    { 0x223c, u8"Tilde Operator",    u8'~', u8"tilde", Token_Type::tilde},
+
+    { 0x1400, u8"Canadian Syllabics Hyphen",       u8'=', u8"equals", Token_Type::equal},
+    { 0x2e40, u8"Double Hyphen",                   u8'=', u8"equals", Token_Type::equal},
+    { 0x30a0, u8"Katakana-Hiragana Double Hyphen", u8'=', u8"equals", Token_Type::equal},
+    { 0xa4ff, u8"Lisu Punctuation Full Stop",      u8'=', u8"equals", Token_Type::equal},
 };
 
 bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,

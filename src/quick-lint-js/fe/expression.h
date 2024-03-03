@@ -615,23 +615,19 @@ class Expression::Call final : public Expression {
                 Source_Code_Span left_paren_span, const Char8 *span_end,
                 std::optional<Source_Code_Span> optional_chaining_operator)
       : Expression(kind),
-        call_left_paren_begin_(left_paren_span.begin()),
+        call_left_paren_(left_paren_span),
         span_end_(span_end),
         children_(children),
         optional_chaining_operator_begin_(
             optional_chaining_operator.has_value()
                 ? optional_chaining_operator->begin()
                 : nullptr) {
-    QLJS_ASSERT(left_paren_span.size() == 1);
     if (optional_chaining_operator.has_value()) {
       QLJS_ASSERT(optional_chaining_operator->size() == 2);
     }
   }
 
-  Source_Code_Span left_paren_span() const {
-    return Source_Code_Span(this->call_left_paren_begin_,
-                            this->call_left_paren_begin_ + 1);
-  }
+  Source_Code_Span left_paren_span() const { return this->call_left_paren_; }
 
   std::optional<Source_Code_Span> optional_chaining_operator_span() const {
     if (this->optional_chaining_operator_begin_ == nullptr) {
@@ -641,7 +637,7 @@ class Expression::Call final : public Expression {
                             this->optional_chaining_operator_begin_ + 2);
   }
 
-  const Char8 *call_left_paren_begin_;
+  Source_Code_Span call_left_paren_;
   const Char8 *span_end_;
   Expression_Arena::Array_Ptr<Expression *> children_;
   const Char8 *optional_chaining_operator_begin_ = nullptr;
@@ -857,15 +853,11 @@ class Expression::Non_Null_Assertion final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Non_Null_Assertion;
 
   explicit Non_Null_Assertion(Expression *child, Source_Code_Span bang_span)
-      : Expression(kind), bang_end_(bang_span.end()), child_(child) {
-    QLJS_ASSERT(same_pointers(this->bang_span(), bang_span));
-  }
+      : Expression(kind), bang_(bang_span), child_(child) {}
 
-  Source_Code_Span bang_span() const {
-    return Source_Code_Span(this->bang_end_ - 1, this->bang_end_);
-  }
+  Source_Code_Span bang_span() const { return this->bang_; }
 
-  const Char8 *bang_end_;
+  Source_Code_Span bang_;
   Expression *child_;
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Non_Null_Assertion>);
@@ -895,16 +887,12 @@ class Expression::Optional final : public Expression {
   static constexpr Expression_Kind kind = Expression_Kind::Optional;
 
   explicit Optional(Expression *child, Source_Code_Span question_span)
-      : Expression(kind), child_(child), question_end_(question_span.end()) {
-    QLJS_ASSERT(question_span.end() - question_span.begin() == 1);
-  }
+      : Expression(kind), child_(child), question_(question_span) {}
 
-  Source_Code_Span question_span() const {
-    return Source_Code_Span(this->question_end_ - 1, this->question_end_);
-  }
+  Source_Code_Span question_span() const { return this->question_; }
 
   Expression *child_;
-  const Char8 *question_end_;
+  Source_Code_Span question_;
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Optional>);
 
@@ -924,25 +912,26 @@ class Expression::Paren_Empty final : public Expression {
  public:
   static constexpr Expression_Kind kind = Expression_Kind::Paren_Empty;
 
-  explicit Paren_Empty(Source_Code_Span span) : Expression(kind), span_(span) {}
+  explicit Paren_Empty(Source_Code_Span left_paren_span,
+                       Source_Code_Span right_paren_span)
+      : Expression(kind),
+        left_paren_(left_paren_span),
+        right_paren_(right_paren_span) {}
 
-  Source_Code_Span left_paren_span() const {
-    return Source_Code_Span(this->span_.begin(), this->span_.begin() + 1);
-  }
+  Source_Code_Span left_paren_span() const { return this->left_paren_; }
 
-  Source_Code_Span right_paren_span() const {
-    return Source_Code_Span(this->span_.end() - 1, this->span_.end());
-  }
+  Source_Code_Span right_paren_span() const { return this->right_paren_; }
 
   void report_missing_expression_error(Diag_Reporter *reporter) {
     reporter->report(Diag_Missing_Expression_Between_Parentheses{
-        .left_paren_to_right_paren = this->span_,
+        .left_paren_to_right_paren = this->span(),
         .left_paren = this->left_paren_span(),
         .right_paren = this->right_paren_span(),
     });
   }
 
-  Source_Code_Span span_;
+  Source_Code_Span left_paren_;
+  Source_Code_Span right_paren_;
 };
 static_assert(Expression_Arena::is_allocatable<Expression::Paren_Empty>);
 
@@ -1072,16 +1061,12 @@ class Expression::Trailing_Comma final : public Expression {
 
   explicit Trailing_Comma(Expression_Arena::Array_Ptr<Expression *> children,
                           Source_Code_Span comma_span)
-      : Expression(kind), children_(children), comma_end_(comma_span.end()) {
-    QLJS_ASSERT(comma_span.end() == comma_span.begin() + 1);
-  }
+      : Expression(kind), children_(children), comma_(comma_span) {}
 
-  Source_Code_Span comma_span() const {
-    return Source_Code_Span(this->comma_end_ - 1, this->comma_end_);
-  }
+  Source_Code_Span comma_span() const { return this->comma_; }
 
   Expression_Arena::Array_Ptr<Expression *> children_;
-  const Char8 *comma_end_;
+  Source_Code_Span comma_;
 };
 
 class Expression::Type_Annotated final : public Expression {
@@ -1093,23 +1078,18 @@ class Expression::Type_Annotated final : public Expression {
                           const Char8 *span_end)
       : Expression(kind),
         child_(child),
-        colon_(colon_span.begin()),
+        colon_(colon_span),
         type_visits_(std::move(type_visits)),
-        span_end_(span_end) {
-    QLJS_ASSERT(*colon_span.begin() == u8':');
-    QLJS_ASSERT(colon_span.size() == 1);
-  }
+        span_end_(span_end) {}
 
-  Source_Code_Span colon_span() const {
-    return Source_Code_Span(this->colon_, this->colon_ + 1);
-  }
+  Source_Code_Span colon_span() const { return this->colon_; }
 
   void visit_type_annotation(Parse_Visitor_Base &v) {
     std::move(this->type_visits_).move_into(v);
   }
 
   Expression *child_;
-  const Char8 *colon_;
+  Source_Code_Span colon_;
   Buffering_Visitor type_visits_{nullptr};
   const Char8 *span_end_;
 };
@@ -1451,19 +1431,22 @@ inline Source_Code_Span Expression::span() const {
   case Expression_Kind::Non_Null_Assertion: {
     auto *assertion = expression_cast<const Non_Null_Assertion *>(this);
     return Source_Code_Span(assertion->child_->span().begin(),
-                            assertion->bang_end_);
+                            assertion->bang_.end());
   }
   case Expression_Kind::Object:
     return expression_cast<const Object *>(this)->span_;
   case Expression_Kind::Optional: {
     auto *optional = expression_cast<const Expression::Optional *>(this);
     return Source_Code_Span(optional->child_->span().begin(),
-                            optional->question_end_);
+                            optional->question_.end());
   }
   case Expression_Kind::Paren:
     return expression_cast<const Paren *>(this)->span_;
-  case Expression_Kind::Paren_Empty:
-    return expression_cast<const Paren_Empty *>(this)->span_;
+  case Expression_Kind::Paren_Empty: {
+    auto *paren_empty = expression_cast<const Paren_Empty *>(this);
+    return Source_Code_Span(paren_empty->left_paren_.begin(),
+                            paren_empty->right_paren_.end());
+  }
   case Expression_Kind::Private_Variable:
     return expression_cast<const Private_Variable *>(this)
         ->variable_identifier_.span();
@@ -1489,7 +1472,7 @@ inline Source_Code_Span Expression::span() const {
   case Expression_Kind::Trailing_Comma: {
     auto *comma = expression_cast<const Trailing_Comma *>(this);
     return Source_Code_Span(comma->children_.front()->span().begin(),
-                            comma->comma_end_);
+                            comma->comma_.end());
   }
   case Expression_Kind::Type_Annotated: {
     auto *annotated = expression_cast<const Type_Annotated *>(this);

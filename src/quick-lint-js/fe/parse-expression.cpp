@@ -563,8 +563,8 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
       // () => {}
       Source_Code_Span right_paren_span = this->peek().span();
       this->skip();
-      return this->make_expression<Expression::Paren_Empty>(
-          Source_Code_Span(left_paren_span.begin(), right_paren_span.end()));
+      return this->make_expression<Expression::Paren_Empty>(left_paren_span,
+                                                            right_paren_span);
     }
 
     // (x) => {}
@@ -2581,7 +2581,7 @@ Expression* Parser::parse_arrow_function_expression_remainder(
       paren_empty->report_missing_expression_error(this->diag_reporter_);
     } else {
       // () => {}
-      parameter_list_begin = paren_empty->span_.begin();
+      parameter_list_begin = paren_empty->left_paren_.begin();
     }
     break;
   }
