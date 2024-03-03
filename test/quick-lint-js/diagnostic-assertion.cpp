@@ -181,8 +181,12 @@ Diagnostic_Assertion::parse(const Char8* specification) {
   Fixed_Vector<String8_View, 3> diag_members;
 
   String8_View diag_type_span;
-  String8_View extra_member_span;
-  String8_View extra_member_value_span;
+
+  struct Extra_Member {
+    String8_View name;
+    String8_View value;
+  };
+  Fixed_Vector<Extra_Member, 3> extra_members;
 
   for (Fixed_Vector_Size i = 0; i < 3; ++i) {
     Padded_String_Size leading_spaces = lexer.parse_leading_spaces();
@@ -230,29 +234,31 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     ++lexer.p;
   }
 
-  if (*lexer.p == u8'{' && (diag_members.empty() || !diag_members[0].empty())) {
+  while (*lexer.p == u8'{' &&
+         (diag_members.empty() || !diag_members[0].empty())) {
     ++lexer.p;
     if (*lexer.p != u8'.') {
       goto done_unexpected;
     }
     ++lexer.p;
-    extra_member_span = lexer.parse_identifier();
-    if (extra_member_span.empty()) {
+    String8_View name = lexer.parse_identifier();
+    if (name.empty()) {
       lexer.errors.push_back("expected member variable name after '{.'");
     }
 
     if (*lexer.p != u8'=') {
-      extra_member_span = String8_View();
       goto done_unexpected;
     }
     ++lexer.p;
 
-    extra_member_value_span = lexer.parse_extra_member_value();
+    String8_View value = lexer.parse_extra_member_value();
     if (*lexer.p == u8'}') {
       ++lexer.p;
     } else {
       // parse_extra_member_value reported an error already.
     }
+
+    extra_members.push_back(Extra_Member{.name = name, .value = value});
   }
 
   if (*lexer.p != u8'\0') {
@@ -313,24 +319,24 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     out_member.type = member->type;
   }
 
-  if (!extra_member_span.empty()) {
+  for (const Extra_Member& extra_member_assertion : extra_members) {
     const Diagnostic_Info_Variable_Debug* extra_member =
-        diag_info.find(extra_member_span);
+        diag_info.find(extra_member_assertion.name);
     QLJS_ALWAYS_ASSERT(extra_member != nullptr);
 
     Member& out_member = out_assertion.members.emplace_back();
     switch (extra_member->type) {
     case Diagnostic_Arg_Type::char8:
-      if (extra_member_value_span.size() != 1) {
+      if (extra_member_assertion.value.size() != 1) {
         lexer.errors.push_back(
-            concat("member {."sv, to_string_view(extra_member_span),
+            concat("member {."sv, to_string_view(extra_member_assertion.name),
                    "} is a Char8 but the given value is not one byte"sv));
         return failed_result(std::move(lexer.errors));
       }
       out_member.name = extra_member->name;
       out_member.offset = extra_member->offset;
       out_member.type = extra_member->type;
-      out_member.character = extra_member_value_span[0];
+      out_member.character = extra_member_assertion.value[0];
       break;
 
     case Diagnostic_Arg_Type::enum_kind: {
@@ -338,12 +344,13 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       out_member.offset = extra_member->offset;
       out_member.type = extra_member->type;
       std::optional<Enum_Kind> enum_kind =
-          try_parse_enum_kind(extra_member_value_span);
+          try_parse_enum_kind(extra_member_assertion.value);
       if (enum_kind.has_value()) {
         out_member.enum_kind = *enum_kind;
       } else {
-        lexer.errors.push_back(concat("invalid Enum_Kind: "sv,
-                                      to_string_view(extra_member_value_span)));
+        lexer.errors.push_back(
+            concat("invalid Enum_Kind: "sv,
+                   to_string_view(extra_member_assertion.value)));
       }
       break;
     }
@@ -352,7 +359,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       out_member.name = extra_member->name;
       out_member.offset = extra_member->offset;
       out_member.type = extra_member->type;
-      out_member.string = extra_member_value_span;
+      out_member.string = extra_member_assertion.value;
       break;
 
     case Diagnostic_Arg_Type::statement_kind: {
@@ -360,12 +367,13 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       out_member.offset = extra_member->offset;
       out_member.type = extra_member->type;
       std::optional<Statement_Kind> statement_kind =
-          try_parse_statement_kind(extra_member_value_span);
+          try_parse_statement_kind(extra_member_assertion.value);
       if (statement_kind.has_value()) {
         out_member.statement_kind = *statement_kind;
       } else {
-        lexer.errors.push_back(concat("invalid Statement_Kind: "sv,
-                                      to_string_view(extra_member_value_span)));
+        lexer.errors.push_back(
+            concat("invalid Statement_Kind: "sv,
+                   to_string_view(extra_member_assertion.value)));
       }
       break;
     }
@@ -375,19 +383,20 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       out_member.offset = extra_member->offset;
       out_member.type = extra_member->type;
       std::optional<Variable_Kind> variable_kind =
-          try_parse_variable_kind(extra_member_value_span);
+          try_parse_variable_kind(extra_member_assertion.value);
       if (variable_kind.has_value()) {
         out_member.variable_kind = *variable_kind;
       } else {
-        lexer.errors.push_back(concat("invalid Variable_Kind: "sv,
-                                      to_string_view(extra_member_value_span)));
+        lexer.errors.push_back(
+            concat("invalid Variable_Kind: "sv,
+                   to_string_view(extra_member_assertion.value)));
       }
       break;
     }
 
     default:
       lexer.errors.push_back(concat("member {."sv,
-                                    to_string_view(extra_member_span),
+                                    to_string_view(extra_member_assertion.name),
                                     "} has unsupported type"sv));
       break;
     }
