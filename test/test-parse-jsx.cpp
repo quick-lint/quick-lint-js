@@ -365,19 +365,19 @@ TEST_F(Test_Parse_JSX,
   test_parse_and_visit_module(
       u8"c = <d\\u{69}v></x>;"_sv,  //
       u8"                 ^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
-      u8"{.opening_tag_name_pretty=d\\u{69}v}"_diag,  //
+      u8"{.opening_tag_name_pretty=d\\u{{69}}v}"_diag,  //
       jsx_options);
 
   test_parse_and_visit_module(
       u8"c = <s\\u{76}g:p\\u{69}th></x>;"_sv,  //
       u8"                            ^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
-      u8"{.opening_tag_name_pretty=s\\u{76}g:p\\u{69}th}"_diag,  //
+      u8"{.opening_tag_name_pretty=s\\u{{76}}g:p\\u{{69}}th}"_diag,  //
       jsx_options);
 
   test_parse_and_visit_module(
       u8"c = <m\\u{79}.Com\\u{70}onent></x>;"_sv,  //
       u8"                                ^ Diag_Mismatched_JSX_Tags.closing_tag_name"_diag
-      u8"{.opening_tag_name_pretty=m\\u{79}.Com\\u{70}onent}"_diag,  //
+      u8"{.opening_tag_name_pretty=m\\u{{79}}.Com\\u{{70}}onent}"_diag,  //
       jsx_options);
 }
 

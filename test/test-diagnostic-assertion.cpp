@@ -337,7 +337,7 @@ TEST(Test_Diagnostic_Assertion, diag_type_with_string8_view_member_explicit) {
   {
     Diagnostic_Assertion da = parse_or_fail(
         u8"^ Diag_Integer_Literal_Will_Lose_Precision.characters"
-        u8"{.rounded_val=hello{world}smiley}");
+        u8"{.rounded_val=hello{{world}}smiley}");
     ASSERT_EQ(da.members.size(), 2);
     EXPECT_EQ(da.members[1].string, u8"hello{world}smiley"_sv);
   }

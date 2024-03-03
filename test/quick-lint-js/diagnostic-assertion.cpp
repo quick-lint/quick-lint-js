@@ -28,6 +28,11 @@ namespace quick_lint_js {
 static_assert(std::is_trivially_destructible_v<Diagnostic_Assertion>);
 
 namespace {
+Monotonic_Allocator* diagnostic_assertion_allocator() {
+  static Monotonic_Allocator allocator{"diagnostic_assertion_allocator"};
+  return &allocator;
+}
+
 #define QLJS_DIAG_TYPE_NAME(name) \
   {QLJS_CPP_QUOTE_U8_SV(name), ::quick_lint_js::Diag_Type::name},
 Hash_Map<String8_View, Diag_Type> diag_type_name_to_diag_type =
@@ -131,17 +136,34 @@ Diagnostic_Assertion::parse(const Char8* specification) {
       return make_string_view(begin, end);
     }
 
-    String8_View parse_to_closing_curly_at_end_of_line() {
-      const Char8* begin = p;
-      for (; *p != u8'\0'; ++p) {
+    String8_View parse_extra_member_value() {
+      Vector<Char8> string("parse_extra_member_value",
+                           diagnostic_assertion_allocator());
+      for (;;) {
+        if (p[0] == u8'{') {
+          if (p[1] == u8'{') {
+            string += u8'{';
+            p += 2;  // Skip '{{'.
+          } else {
+            errors.push_back("'{' must be escaped with '{'");
+            p += 1;  // Skip '{'.
+          }
+        } else if (p[0] == u8'}') {
+          if (p[1] == u8'}') {
+            string += u8'}';
+            p += 2;  // Skip '}}'.
+          } else {
+            // Found the terminating '}'.
+            return string.release_to_string_view();
+          }
+        } else if (p[0] == u8'\0') {
+          errors.push_back("expected closing '}'");
+          return String8_View();
+        } else {
+          string += p[0];
+          p += 1;
+        }
       }
-      if (p == begin || p[-1] != u8'}') {
-        errors.push_back("expected closing '}'");
-        return String8_View();
-      }
-      const Char8* end = p - 1;
-      QLJS_ASSERT(*p == u8'\0');
-      return make_string_view(begin, end);
     }
 
     const Char8* p;
@@ -225,7 +247,12 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     }
     ++lexer.p;
 
-    extra_member_value_span = lexer.parse_to_closing_curly_at_end_of_line();
+    extra_member_value_span = lexer.parse_extra_member_value();
+    if (*lexer.p == u8'}') {
+      ++lexer.p;
+    } else {
+      // parse_extra_member_value reported an error already.
+    }
   }
 
   if (*lexer.p != u8'\0') {
