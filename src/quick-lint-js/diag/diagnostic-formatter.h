@@ -139,6 +139,8 @@ inline void Diagnostic_Formatter<Derived>::format_message(
       expanded_parameter = this->expand_argument_singular(args, diagnostic, 1);
     } else if (curly_content == u8"2"_sv) {
       expanded_parameter = this->expand_argument(args, diagnostic, 2);
+    } else if (curly_content == u8"3"_sv) {
+      expanded_parameter = this->expand_argument(args, diagnostic, 3);
     } else {
       QLJS_ASSERT(false && "invalid message format: unrecognized placeholder");
       QLJS_UNREACHABLE();

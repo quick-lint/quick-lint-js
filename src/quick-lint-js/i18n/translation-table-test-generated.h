@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[604] = {
+inline const Translated_String test_translation_table[605] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -5746,6 +5746,17 @@ inline const Translated_String test_translation_table[604] = {
             u8"this case will run instead",
             u8"this case will run instead",
             u8"this case will run instead",
+        },
+    },
+    {
+        "this is a {1}, not a {2} ('{3}')"_translatable,
+        u8"this is a {1}, not a {2} ('{3}')",
+        {
+            u8"this is a {1}, not a {2} ('{3}')",
+            u8"this is a {1}, not a {2} ('{3}')",
+            u8"this is a {1}, not a {2} ('{3}')",
+            u8"this is a {1}, not a {2} ('{3}')",
+            u8"this is a {1}, not a {2} ('{3}')",
         },
     },
     {

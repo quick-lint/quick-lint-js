@@ -32,7 +32,7 @@ struct Diag_Collector : public Diag_Reporter {
     explicit Diag(Diag_Type type, const void *data);
 
     Diag_Type type_;
-    alignas(std::uint64_t) std::uint8_t storage_[48];
+    alignas(std::uint64_t) std::uint8_t storage_[56];
 
     friend void diag_collector_static_assertions();
     friend Diag_Collector;

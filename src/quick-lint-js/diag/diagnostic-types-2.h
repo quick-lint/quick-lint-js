@@ -746,6 +746,16 @@ struct Diag_Config_JSX_Mode_Unrecognized {
   Source_Code_Span value;
 };
 
+struct Diag_Confusable_Symbol {
+  [[qljs::diag("E0457", Diagnostic_Severity::error)]]  //
+  [[qljs::message("this is a {1}, not a {2} ('{3}')", ARG(confusable),
+                  ARG(confusable_name), ARG(symbol_name), ARG(symbol))]]  //
+  Source_Code_Span confusable;
+  String8_View confusable_name;
+  Char8 symbol;
+  String8_View symbol_name;
+};
+
 struct Diag_Depth_Limit_Exceeded {
   [[qljs::diag("E0203", Diagnostic_Severity::error)]]    //
   [[qljs::message("depth limit exceeded", ARG(token))]]  //

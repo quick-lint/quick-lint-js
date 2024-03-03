@@ -1989,6 +1989,24 @@ TEST_F(Test_Lex, lex_symbols_separated_by_whitespace) {
                      {Token_Type::dot, Token_Type::dot, Token_Type::dot});
 }
 
+// https://www.unicode.org/reports/tr39/#Confusable_Detection
+TEST_F(Test_Lex, confusable_symbols) {
+  this->check_tokens_with_errors(
+      u8"\u037e"_sv,
+      u8"^^^^^^ Diag_Confusable_Symbol.confusable"_diag
+      u8"{.confusable_name=Greek Question Mark}"_diag
+      u8"{.symbol=;}"_diag
+      u8"{.symbol_name=semicolon}"_diag,
+      {Token_Type::semicolon});
+  this->check_tokens_with_errors(
+      u8"x\u037e"_sv,
+      u8" ^^^^^^ Diag_Confusable_Symbol.confusable"_diag
+      u8"{.confusable_name=Greek Question Mark}"_diag
+      u8"{.symbol=;}"_diag
+      u8"{.symbol_name=semicolon}"_diag,
+      {Token_Type::identifier, Token_Type::semicolon});
+}
+
 TEST_F(Test_Lex, question_followed_by_number_is_not_question_dot) {
   this->check_tokens(u8"?.3"_sv, {Token_Type::question, Token_Type::number});
 }

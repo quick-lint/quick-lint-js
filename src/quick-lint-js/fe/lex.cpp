@@ -91,6 +91,20 @@ constexpr char32_t left_double_quote = U'\u201c';
 constexpr char32_t right_single_quote = U'\u2019';
 constexpr char32_t right_double_quote = U'\u201d';
 
+struct Confusable_Symbol {
+  char32_t confusable;
+  Char8 confusable_name[20];
+  Char8 symbol;
+  Char8 symbol_name[20];
+  Token_Type symbol_token_type;
+};
+
+Confusable_Symbol confusable_symbols[] = {
+    {0x037e, u8"Greek Question Mark", u8';', u8"semicolon",
+     Token_Type::semicolon},
+    // TODO(strager): Add more.
+};
+
 bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
                               char32_t code_point) {
   constexpr int bits_per_byte = 8;
@@ -1817,7 +1831,9 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
               : this->is_identifier_character(code_point, kind);
       if (!is_legal_character) {
         if (this->is_ascii_character(code_point) ||
-            this->is_non_ascii_whitespace_character(code_point)) {
+            this->is_non_ascii_whitespace_character(code_point) ||
+            // Confusable symbols are handled by parse_non_ascii.
+            this->is_confusable_symbol_character(code_point)) {
           break;
         } else {
           this->diag_reporter_->report(Diag_Character_Disallowed_In_Identifiers{
@@ -1850,6 +1866,8 @@ QLJS_WARNING_POP
 void Lexer::parse_non_ascii() {
   Decode_UTF8_Result character = decode_utf_8(Padded_String_View(
       this->input_, this->original_input_.null_terminator()));
+  // FIXME(strager): We probably need to check character.ok.
+
   if (character.code_point == left_single_quote ||
       character.code_point == right_single_quote ||
       character.code_point == left_double_quote ||
@@ -1857,14 +1875,30 @@ void Lexer::parse_non_ascii() {
     this->input_ = this->parse_smart_quote_string_literal(character);
     this->last_token_.type = Token_Type::string;
     this->last_token_.end = this->input_;
-  } else {
-    Parsed_Identifier ident = this->parse_identifier_slow(
-        this->input_, this->input_, Identifier_Kind::javascript);
-    this->input_ = ident.after;
-    this->last_token_.normalized_identifier = ident.normalized;
-    this->last_token_.end = ident.after;
-    this->last_token_.type = Token_Type::identifier;
+    return;
   }
+
+  for (const Confusable_Symbol& confusable : confusable_symbols) {
+    if (character.code_point == confusable.confusable) {
+      this->input_ += character.size;
+      this->last_token_.end = this->input_;
+      this->last_token_.type = confusable.symbol_token_type;
+      this->diag_reporter_->report(Diag_Confusable_Symbol{
+          .confusable = this->last_token_.span(),
+          .confusable_name = confusable.confusable_name,
+          .symbol = confusable.symbol,
+          .symbol_name = confusable.symbol_name,
+      });
+      return;
+    }
+  }
+
+  Parsed_Identifier ident = this->parse_identifier_slow(
+      this->input_, this->input_, Identifier_Kind::javascript);
+  this->input_ = ident.after;
+  this->last_token_.normalized_identifier = ident.normalized;
+  this->last_token_.end = ident.after;
+  this->last_token_.type = Token_Type::identifier;
 }
 
 QLJS_WARNING_PUSH
@@ -2317,6 +2351,15 @@ bool Lexer::is_ascii_character(Char8 code_unit) {
 
 bool Lexer::is_ascii_character(char32_t code_point) {
   return code_point < 0x80;
+}
+
+bool Lexer::is_confusable_symbol_character(char32_t code_point) {
+  for (const Confusable_Symbol& confusable : confusable_symbols) {
+    if (code_point == confusable.confusable) {
+      return true;
+    }
+  }
+  return false;
 }
 
 int Lexer::newline_character_size(const Char8* input) {

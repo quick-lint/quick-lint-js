@@ -80,7 +80,7 @@ struct Diagnostic_Message_Arg_Info {
   Diagnostic_Arg_Type type : (8 - offset_bits) QLJS_WORK_AROUND_GCC_BUG_105191;
 };
 
-using Diagnostic_Message_Args = std::array<Diagnostic_Message_Arg_Info, 3>;
+using Diagnostic_Message_Args = std::array<Diagnostic_Message_Arg_Info, 4>;
 
 struct Diagnostic_Info {
   std::array<char, 5> code_string() const;

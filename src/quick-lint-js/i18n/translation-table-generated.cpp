@@ -532,6 +532,7 @@ const Translation_Table translation_data = {
         {46, 25, 63, 57, 39, 51},            //
         {0, 0, 0, 0, 0, 52},                 //
         {0, 0, 0, 0, 0, 27},                 //
+        {0, 0, 0, 0, 0, 33},                 //
         {0, 0, 0, 61, 0, 61},                //
         {50, 25, 0, 70, 0, 78},              //
         {33, 21, 74, 25, 44, 21},            //
@@ -2402,6 +2403,7 @@ const Translation_Table translation_data = {
         u8"switch statement is missing '{1}' around condition\0"
         u8"switch statement needs parentheses around condition\0"
         u8"this case will run instead\0"
+        u8"this is a {1}, not a {2} ('{3}')\0"
         u8"this required parameter appears after the optional parameter\0"
         u8"this tuple type is a named tuple type because at least one element has a name\0"
         u8"this {0} looks fishy\0"

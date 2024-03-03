@@ -327,6 +327,8 @@ class Lexer {
   static bool is_ascii_character(Char8 code_unit);
   static bool is_ascii_character(char32_t code_point);
 
+  static bool is_confusable_symbol_character(char32_t code_point);
+
   static int newline_character_size(const Char8*);
   static bool is_newline_character(char32_t code_point);
 

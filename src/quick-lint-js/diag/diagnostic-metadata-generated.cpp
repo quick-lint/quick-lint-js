@@ -1392,6 +1392,23 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Confusable_Symbol
+    {
+      .code = 457,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("this is a {1}, not a {2} ('{3}')"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Confusable_Symbol, confusable), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Confusable_Symbol, confusable_name), Diagnostic_Arg_Type::string8_view),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Confusable_Symbol, symbol_name), Diagnostic_Arg_Type::string8_view),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Confusable_Symbol, symbol), Diagnostic_Arg_Type::char8),
+        },
+      },
+    },
+
     // Diag_Depth_Limit_Exceeded
     {
       .code = 203,

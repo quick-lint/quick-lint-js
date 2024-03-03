@@ -118,7 +118,7 @@ struct Diagnostic_Assertion {
   };
 
   Diag_Type type = Diag_Type();
-  Fixed_Vector<Member, 3> members;
+  Fixed_Vector<Member, 4> members;
 
   // Whether adjusted_for_escaped_characters should be called to compensate for
   // control characters.

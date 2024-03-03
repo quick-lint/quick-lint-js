@@ -718,6 +718,10 @@ msgid "unknown JSX mode; try \"none\" or \"react\""
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "this is a {1}, not a {2} ('{3}')"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "depth limit exceeded"
 msgstr ""
 

@@ -101,6 +101,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Config_Globals_Type_Mismatch) \
   QLJS_DIAG_TYPE_NAME(Diag_Config_JSX_Mode_Type_Mismatch) \
   QLJS_DIAG_TYPE_NAME(Diag_Config_JSX_Mode_Unrecognized) \
+  QLJS_DIAG_TYPE_NAME(Diag_Confusable_Symbol) \
   QLJS_DIAG_TYPE_NAME(Diag_Depth_Limit_Exceeded) \
   QLJS_DIAG_TYPE_NAME(Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type) \
   QLJS_DIAG_TYPE_NAME(Diag_Dot_Dot_Is_Not_An_Operator) \
@@ -475,7 +476,7 @@ namespace quick_lint_js {
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 461;
+inline constexpr int Diag_Type_Count = 462;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

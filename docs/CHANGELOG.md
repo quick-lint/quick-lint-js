@@ -13,6 +13,8 @@ Semantic Versioning.
 * VS Code: You can now make quick-lint-js messages fun and insulting with the
   `quick-lint-js.snarky` setting (disabled by default). (Implemented by
   [vegerot][].)
+* Using Greek question mark (;, U+037E) instead of a semicolon (;, U+003B) now
+  reports [E0457][] ("this is a Greek Question Mark, not a semicolon (';')").
 * TypeScript: Decorators on abstract classes are now parsed. ([#1194][])
 
 ### Fixed
