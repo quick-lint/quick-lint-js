@@ -185,13 +185,13 @@ class Test_Parser {
                           Source_Location caller);
 
  private:
+  Monotonic_Allocator diag_allocator_{"Test_Parser::diag_allocator_"};
+  Diag_List_Diag_Reporter diag_reporter_{&this->diag_allocator_};
+
   Padded_String code_;
   Spy_Visitor errors_;
   Failing_Diag_Reporter failing_reporter_;
   quick_lint_js::Parser parser_;
-
-  Monotonic_Allocator diag_allocator_{"Test_Parser::diag_allocator_"};
-  Diag_List_Diag_Reporter diag_reporter_{&this->diag_allocator_};
 
  public:
   // Aliases for convenience.
