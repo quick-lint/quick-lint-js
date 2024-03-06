@@ -585,6 +585,8 @@ TEST(Test_Variable_Analyzer_Type,
 }
 
 TEST(Test_Variable_Analyzer_Type, mixing_non_type_and_type_only_is_okay) {
+  Monotonic_Allocator memory("test");
+
   const Char8 type_declaration[] = u8"C";
   const Char8 non_type_declaration[] = u8"C";
 
@@ -605,8 +607,8 @@ TEST(Test_Variable_Analyzer_Type, mixing_non_type_and_type_only_is_okay) {
       {
         // interface C {}
         // let C;
-        Diag_Collector v;
-        Variable_Analyzer l(&v, &default_globals, javascript_var_options);
+        Diag_List_Diag_Reporter diags(&memory);
+        Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(type_declaration),
                                      type_declaration_kind,
                                      Variable_Declaration_Flags::none);
@@ -615,14 +617,14 @@ TEST(Test_Variable_Analyzer_Type, mixing_non_type_and_type_only_is_okay) {
                                      Variable_Declaration_Flags::none);
         l.visit_end_of_module();
 
-        EXPECT_THAT(v.errors, IsEmpty());
+        EXPECT_THAT(diags.diags(), IsEmpty());
       }
 
       {
         // let C;
         // interface C {}
-        Diag_Collector v;
-        Variable_Analyzer l(&v, &default_globals, javascript_var_options);
+        Diag_List_Diag_Reporter diags(&memory);
+        Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(non_type_declaration),
                                      non_type_declaration_kind,
                                      Variable_Declaration_Flags::none);
@@ -631,7 +633,7 @@ TEST(Test_Variable_Analyzer_Type, mixing_non_type_and_type_only_is_okay) {
                                      Variable_Declaration_Flags::none);
         l.visit_end_of_module();
 
-        EXPECT_THAT(v.errors, IsEmpty());
+        EXPECT_THAT(diags.diags(), IsEmpty());
       }
     }
   }

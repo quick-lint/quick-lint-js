@@ -54,27 +54,27 @@ void test_parse_and_analyze(String8_View input, Diagnostic_Assertion diag0,
 }
 
 void test_parse_and_analyze(String8_View input,
-                            Span<const Diagnostic_Assertion> diags,
+                            Span<const Diagnostic_Assertion> diag_assertions,
                             const Test_Parse_And_Analyze_Options& options,
                             const Global_Declared_Variable_Set& globals,
                             Source_Location caller) {
+  Monotonic_Allocator memory("test");
   Padded_String code(input);
 
   Failing_Diag_Reporter failing_diag_reporter;
-  Diag_Collector diag_collector;
+  Diag_List_Diag_Reporter diags(&memory);
 
   Parser p(&code,
            options.allow_parse_errors
-               ? base_cast<Diag_Reporter*>(&diag_collector)
+               ? base_cast<Diag_Reporter*>(&diags)
                : base_cast<Diag_Reporter*>(&failing_diag_reporter),
            options.parse_options);
 
-  Variable_Analyzer var_analyzer(&diag_collector, &globals,
-                                 options.analyze_options);
+  Variable_Analyzer var_analyzer(&diags, &globals, options.analyze_options);
 
   p.parse_and_visit_module(var_analyzer);
 
-  assert_diagnostics(&code, diag_collector.errors, diags, caller);
+  assert_diagnostics(&code, diags.diags(), diag_assertions, caller);
 }
 }
 

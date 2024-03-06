@@ -583,13 +583,13 @@ TEST_F(Test_Parse, unimplemented_token_crashes_SLOW) {
 
 TEST_F(Test_Parse, unimplemented_token_doesnt_crash_if_caught) {
   {
-    Diag_Collector diags;
+    Diag_List_Diag_Reporter diags(&this->memory_);
     Parser p(&unimplemented_token_code, &diags, javascript_options);
     Spy_Visitor v;
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.visits, IsEmpty());
-    assert_diagnostics(&unimplemented_token_code, diags.errors,
+    assert_diagnostics(&unimplemented_token_code, diags.diags(),
                        {
                            DIAGNOSTIC_ASSERTION_SPAN(Diag_Unexpected_Token,  //
                                                      token, 0, u8"]"_sv),
