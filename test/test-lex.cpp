@@ -2962,11 +2962,9 @@ TEST_F(Test_Lex, jsx_nested_children) {
 void Test_Lex::check_single_token(String8_View input,
                                   String8_View expected_identifier_name,
                                   Source_Location local_caller) {
-  static Source_Location caller;
-  caller = local_caller;
   this->check_single_token_with_errors(input,
                                        Span<const Diagnostic_Assertion>(),
-                                       expected_identifier_name, caller);
+                                       expected_identifier_name, local_caller);
 }
 
 void Test_Lex::check_single_token_with_errors(
@@ -3012,21 +3010,17 @@ void Test_Lex::check_single_token_with_errors(
 void Test_Lex::check_tokens(
     String8_View input, std::initializer_list<Token_Type> expected_token_types,
     Source_Location local_caller) {
-  static Source_Location caller;
-  caller = local_caller;
   this->check_tokens_with_errors(input, Span<const Diagnostic_Assertion>(),
-                                 expected_token_types, caller);
+                                 expected_token_types, local_caller);
 }
 
 void Test_Lex::check_tokens(
     Padded_String_View input,
     std::initializer_list<Token_Type> expected_token_types,
     Source_Location local_caller) {
-  static Source_Location caller;
-  caller = local_caller;
   this->check_tokens_with_errors(input.string_view(),
                                  Span<const Diagnostic_Assertion>(),
-                                 expected_token_types, caller);
+                                 expected_token_types, local_caller);
 }
 
 void Test_Lex::check_tokens_with_errors(
