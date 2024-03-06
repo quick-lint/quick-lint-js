@@ -91,7 +91,6 @@ class Diag_Matcher_2 {
   Diag_Matcher_2 &operator=(const Diag_Matcher_2 &) = default;
   Diag_Matcher_2 &operator=(Diag_Matcher_2 &&) = default;
 
-  /*implicit*/ operator testing::Matcher<const Diag_Collector::Diag &>() const;
   /*implicit*/ operator testing::Matcher<const Any_Diag_Pointer &>() const;
 
   void DescribeTo(std::ostream *out) const {

@@ -501,21 +501,6 @@ Diagnostic_Assertion operator""_diag(
   return Diagnostic_Assertion::parse_or_exit(specification);
 }
 
-void assert_diagnostics(Padded_String_View code,
-                        const std::vector<Diag_Collector::Diag>& diagnostics,
-                        Span<const Diagnostic_Assertion> assertions,
-                        Source_Location caller) {
-  EXPECT_THAT_AT_CALLER(diagnostics, diagnostics_matcher(code, assertions));
-}
-
-void assert_diagnostics(Padded_String_View code,
-                        const std::vector<Diag_Collector::Diag>& diagnostics,
-                        std::initializer_list<Diagnostic_Assertion> assertions,
-                        Source_Location caller) {
-  assert_diagnostics(code, diagnostics,
-                     Span<const Diagnostic_Assertion>(assertions), caller);
-}
-
 void assert_diagnostics(Padded_String_View code, const Diag_List& diagnostics,
                         Span<const Diagnostic_Assertion> assertions,
                         Source_Location caller) {
@@ -527,71 +512,6 @@ void assert_diagnostics(Padded_String_View code, const Diag_List& diagnostics,
                         Source_Location caller) {
   assert_diagnostics(code, diagnostics,
                      Span<const Diagnostic_Assertion>(assertions), caller);
-}
-
-// TODO(#1154): Delete in favor of diagnostics_matcher_2.
-::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
-diagnostics_matcher(Padded_String_View code,
-                    Span<const Diagnostic_Assertion> assertions) {
-  std::vector<Diag_Matcher_2> error_matchers;
-  for (const Diagnostic_Assertion& diag : assertions) {
-    Diagnostic_Assertion adjusted_diag =
-        diag.adjusted_for_escaped_characters(code.string_view());
-
-    std::vector<Diag_Matcher_2::Field> fields;
-    for (const Diagnostic_Assertion::Member& member : adjusted_diag.members) {
-      Diag_Matcher_2::Field field;
-      field.arg = Diag_Matcher_Arg{
-          .member_name = to_string_view(member.name),
-          .member_offset = member.offset,
-          .member_type = member.type,
-      };
-      switch (member.type) {
-      case Diagnostic_Arg_Type::source_code_span:
-        field.begin_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
-            member.span_begin_offset);
-        field.end_offset = narrow_cast<CLI_Source_Position::Offset_Type>(
-            member.span_end_offset);
-        break;
-      case Diagnostic_Arg_Type::char8:
-        field.character = member.character;
-        break;
-      case Diagnostic_Arg_Type::enum_kind:
-        field.enum_kind = member.enum_kind;
-        break;
-      case Diagnostic_Arg_Type::string8_view:
-        field.string = member.string;
-        break;
-      case Diagnostic_Arg_Type::statement_kind:
-        field.statement_kind = member.statement_kind;
-        break;
-      case Diagnostic_Arg_Type::variable_kind:
-        field.variable_kind = member.variable_kind;
-        break;
-      default:
-        QLJS_ASSERT(false);
-        break;
-      }
-      fields.push_back(field);
-    }
-
-    error_matchers.push_back(
-        Diag_Matcher_2(code, adjusted_diag.type, std::move(fields)));
-  }
-  if (error_matchers.size() <= 1) {
-    // ElementsAreArray produces better diagnostics than
-    // UnorderedElementsAreArray.
-    return ::testing::ElementsAreArray(std::move(error_matchers));
-  } else {
-    return ::testing::UnorderedElementsAreArray(std::move(error_matchers));
-  }
-}
-
-::testing::Matcher<const std::vector<Diag_Collector::Diag>&>
-diagnostics_matcher(Padded_String_View code,
-                    std::initializer_list<Diagnostic_Assertion> assertions) {
-  return diagnostics_matcher(code,
-                             Span<const Diagnostic_Assertion>(assertions));
 }
 
 namespace {

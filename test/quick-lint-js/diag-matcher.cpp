@@ -75,8 +75,7 @@ Variable_Kind Diag_Matcher_Arg::get_variable_kind(
 
 template <class State, class Field>
 class Diag_Fields_Matcher_Impl_Base
-    : public testing::MatcherInterface<const Diag_Collector::Diag &>,
-      public testing::MatcherInterface<const Any_Diag_Pointer &> {
+    : public testing::MatcherInterface<const Any_Diag_Pointer &> {
  public:
   explicit Diag_Fields_Matcher_Impl_Base(State s) : state_(std::move(s)) {}
 
@@ -98,16 +97,6 @@ class Diag_Fields_Matcher_Impl_Base
   void DescribeNegationTo(std::ostream *out) const final {
     *out << "not ";
     this->DescribeTo(out);
-  }
-
-  bool MatchAndExplain(const Diag_Collector::Diag &error,
-                       testing::MatchResultListener *listener) const final {
-    return this->MatchAndExplain(
-        Any_Diag_Pointer{
-            .type = error.type(),
-            .data = error.data(),
-        },
-        listener);
   }
 
   bool MatchAndExplain(const Any_Diag_Pointer &error,
@@ -267,11 +256,6 @@ class Diag_Matcher_2::Impl final
     }
   }
 };
-
-Diag_Matcher_2::operator testing::Matcher<const Diag_Collector::Diag &>()
-    const {
-  return testing::Matcher<const Diag_Collector::Diag &>(new Impl(this->state_));
-}
 
 Diag_Matcher_2::operator testing::Matcher<const Any_Diag_Pointer &>() const {
   return testing::Matcher<const Any_Diag_Pointer &>(new Impl(this->state_));
