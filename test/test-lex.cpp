@@ -46,11 +46,6 @@ class Test_Lex : public ::testing::Test {
                           String8_View expected_identifier_name,
                           Source_Location = Source_Location::current());
   void check_single_token_with_errors(
-      String8_View input, String8_View expected_identifier_name,
-      void (*check_errors)(Padded_String_View input,
-                           const std::vector<Diag_Collector::Diag>&),
-      Source_Location = Source_Location::current());
-  void check_single_token_with_errors(
       String8_View input, Diagnostic_Assertion,
       String8_View expected_identifier_name,
       Source_Location = Source_Location::current());
@@ -84,18 +79,6 @@ class Test_Lex : public ::testing::Test {
   void check_tokens_with_errors(
       String8_View input, Span<const Diagnostic_Assertion>,
       std::initializer_list<Token_Type> expected_token_types, Source_Location);
-  void check_tokens_with_errors(
-      String8_View input,
-      std::initializer_list<Token_Type> expected_token_types,
-      void (*check_errors)(Padded_String_View input,
-                           const std::vector<Diag_Collector::Diag>&),
-      Source_Location = Source_Location::current());
-  void check_tokens_with_errors(
-      Padded_String_View input,
-      std::initializer_list<Token_Type> expected_token_types,
-      void (*check_errors)(Padded_String_View input,
-                           const std::vector<Diag_Collector::Diag>&),
-      Source_Location = Source_Location::current());
   std::vector<Token> lex_to_eof(Padded_String_View, Diag_Reporter&);
   std::vector<Token> lex_to_eof(Padded_String_View,
                                 Source_Location = Source_Location::current());
@@ -2982,37 +2965,9 @@ void Test_Lex::check_single_token(String8_View input,
                                   Source_Location local_caller) {
   static Source_Location caller;
   caller = local_caller;
-  this->check_single_token_with_errors(
-      input, expected_identifier_name,
-      [](Padded_String_View, const auto& errors) {
-        EXPECT_THAT_AT_CALLER(errors, IsEmpty());
-      },
-      caller);
-}
-
-void Test_Lex::check_single_token_with_errors(
-    String8_View input, String8_View expected_identifier_name,
-    void (*check_errors)(Padded_String_View input,
-                         const std::vector<Diag_Collector::Diag>&),
-    Source_Location caller) {
-  Padded_String code(input);
-  Diag_Collector errors;
-  std::vector<Token> lexed_tokens = this->lex_to_eof(&code, errors);
-
-  EXPECT_THAT_AT_CALLER(
-      lexed_tokens,
-      ElementsAreArray({
-          ::testing::Field("type", &Token::type,
-                           ::testing::AnyOf(Token_Type::identifier,
-                                            Token_Type::private_identifier)),
-      }));
-  if (lexed_tokens.size() == 1 &&
-      (lexed_tokens[0].type == Token_Type::identifier ||
-       lexed_tokens[0].type == Token_Type::private_identifier)) {
-    EXPECT_EQ_AT_CALLER(lexed_tokens[0].identifier_name().normalized_name(),
-                        expected_identifier_name);
-  }
-  check_errors(&code, errors.errors);
+  this->check_single_token_with_errors(input,
+                                       Span<const Diagnostic_Assertion>(),
+                                       expected_identifier_name, caller);
 }
 
 void Test_Lex::check_single_token_with_errors(
@@ -3060,12 +3015,8 @@ void Test_Lex::check_tokens(
     Source_Location local_caller) {
   static Source_Location caller;
   caller = local_caller;
-  this->check_tokens_with_errors(
-      input, expected_token_types,
-      [](Padded_String_View, const auto& errors) {
-        EXPECT_THAT_AT_CALLER(errors, IsEmpty());
-      },
-      caller);
+  this->check_tokens_with_errors(input, Span<const Diagnostic_Assertion>(),
+                                 expected_token_types, caller);
 }
 
 void Test_Lex::check_tokens(
@@ -3074,12 +3025,9 @@ void Test_Lex::check_tokens(
     Source_Location local_caller) {
   static Source_Location caller;
   caller = local_caller;
-  this->check_tokens_with_errors(
-      input, expected_token_types,
-      [](Padded_String_View, const auto& errors) {
-        EXPECT_THAT_AT_CALLER(errors, IsEmpty());
-      },
-      caller);
+  this->check_tokens_with_errors(input.string_view(),
+                                 Span<const Diagnostic_Assertion>(),
+                                 expected_token_types, caller);
 }
 
 void Test_Lex::check_tokens_with_errors(
@@ -3130,35 +3078,6 @@ void Test_Lex::check_tokens_with_errors(
                         ::testing::ElementsAreArray(expected_token_types));
 
   assert_diagnostics(&code, errors.diags(), diag_assertions, caller);
-}
-
-void Test_Lex::check_tokens_with_errors(
-    String8_View input, std::initializer_list<Token_Type> expected_token_types,
-    void (*check_errors)(Padded_String_View input,
-                         const std::vector<Diag_Collector::Diag>&),
-    Source_Location caller) {
-  Padded_String code(input);
-  return this->check_tokens_with_errors(&code, expected_token_types,
-                                        check_errors, caller);
-}
-
-void Test_Lex::check_tokens_with_errors(
-    Padded_String_View input,
-    std::initializer_list<Token_Type> expected_token_types,
-    void (*check_errors)(Padded_String_View input,
-                         const std::vector<Diag_Collector::Diag>&),
-    Source_Location caller) {
-  Diag_Collector errors;
-  std::vector<Token> lexed_tokens = this->lex_to_eof(input, errors);
-
-  std::vector<Token_Type> lexed_token_types;
-  for (const Token& t : lexed_tokens) {
-    lexed_token_types.push_back(t.type);
-  }
-
-  EXPECT_THAT_AT_CALLER(lexed_token_types,
-                        ::testing::ElementsAreArray(expected_token_types));
-  check_errors(input, errors.errors);
 }
 
 std::vector<Token> Test_Lex::lex_to_eof(Padded_String_View input,
