@@ -50,8 +50,6 @@ quick_lint_js_add_executable(
   quick-lint-js-test
   quick-lint-js/array.h
   quick-lint-js/characters.h
-  quick-lint-js/diag-collector.cpp
-  quick-lint-js/diag-collector.h
   quick-lint-js/diag-matcher.cpp
   quick-lint-js/diag-matcher.h
   quick-lint-js/diagnostic-assertion.cpp

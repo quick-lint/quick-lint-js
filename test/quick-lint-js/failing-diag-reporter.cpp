@@ -2,7 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <gtest/gtest.h>
-#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/failing-diag-reporter.h>
 
 namespace quick_lint_js {

@@ -12,7 +12,6 @@
 #include <quick-lint-js/container/concat.h>
 #include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/fe/lex.h>

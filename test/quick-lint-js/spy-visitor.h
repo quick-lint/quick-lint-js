@@ -5,7 +5,6 @@
 
 #include <iosfwd>
 #include <optional>
-#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/parse-visitor.h>

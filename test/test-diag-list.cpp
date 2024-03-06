@@ -4,7 +4,6 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/container/linked-bump-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>

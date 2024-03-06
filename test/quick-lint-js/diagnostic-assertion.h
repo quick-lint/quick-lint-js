@@ -9,7 +9,6 @@
 #include <quick-lint-js/container/fixed-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/result.h>
-#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/port/char8.h>

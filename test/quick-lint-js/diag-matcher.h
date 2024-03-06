@@ -8,7 +8,6 @@
 #include <optional>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/diag/diagnostic.h>
 #include <quick-lint-js/fe/source-code-span.h>
