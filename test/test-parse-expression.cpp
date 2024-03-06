@@ -1068,7 +1068,7 @@ TEST_F(Test_Parse_Expression,
       } else if (test.expected_normal_function) {
         // 'await' should look like an identifier.
         EXPECT_EQ(summarize(ast), test.expected_normal_function);
-        EXPECT_THAT(p.legacy_errors(), IsEmpty());
+        EXPECT_THAT(p.errors, IsEmpty());
       } else {
         // 'await' doesn't look like an identifier. We should report an error
         // and recover as if 'await' was an operator.
@@ -1109,7 +1109,7 @@ TEST_F(Test_Parse_Expression,
                                u8"^^^^^ Diag_Redundant_Await"_diag,
                            });
       } else {
-        EXPECT_THAT(p.legacy_errors(), IsEmpty());
+        EXPECT_THAT(p.errors, IsEmpty());
       }
     }
 
@@ -1126,7 +1126,7 @@ TEST_F(Test_Parse_Expression,
                                u8"^^^^^ Diag_Redundant_Await"_diag,
                            });
       } else {
-        EXPECT_THAT(p.legacy_errors(), IsEmpty());
+        EXPECT_THAT(p.errors, IsEmpty());
       }
     }
   }

@@ -370,12 +370,6 @@ void Test_Parser::assert_diagnostics(Span<const Diagnostic_Assertion> diags,
   quick_lint_js::assert_diagnostics(this->code, this->errors, diags, caller);
 }
 
-std::vector<Diag_Collector::Diag> Test_Parser::legacy_errors() {
-  Diag_Collector d;
-  d.report(this->diag_reporter_.diags());
-  return std::move(d.errors);
-}
-
 Spy_Visitor test_parse_and_visit_statement(String8_View input, No_Diags_Tag,
                                            Parser_Options options,
                                            Source_Location caller) {

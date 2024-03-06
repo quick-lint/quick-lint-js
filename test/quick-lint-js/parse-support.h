@@ -207,9 +207,6 @@ class Test_Parser {
   std::vector<String8>& variable_uses = this->errors_.variable_uses;
   const Diag_List& errors = this->diag_reporter_.diags();
   Padded_String_View code = Padded_String_View(&this->code_);
-
-  // TODO(#1154): Delete this.
-  std::vector<Diag_Collector::Diag> legacy_errors();
 };
 
 struct No_Diags_Tag {};

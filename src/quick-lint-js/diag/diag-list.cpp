@@ -66,6 +66,12 @@ void Diag_List::add_impl(Diag_Type type, void *diag, std::size_t diag_size) {
 
 bool Diag_List::empty() const { return this->first_ == nullptr; }
 
+Span_Size Diag_List::size() const {
+  Span_Size count = 0;
+  this->for_each([&](auto &&...) { count += 1; });
+  return count;
+}
+
 bool Diag_List::reported_any_diagnostic_except_since(
     std::initializer_list<Diag_Type> ignored_types, const Rewind_State &r) {
   for (Node_Base *node = r.last_ == nullptr ? this->first_ : r.last_;
