@@ -3538,6 +3538,13 @@ struct Diag_Xor_Used_As_Exponentiation {
   Source_Code_Span xor_operator;
 };
 
+struct Diag_Typeof_Variable_Equals_Undefined {
+  [[qljs::diag("E0458", Diagnostic_Severity::warning)]] //
+  [[qljs::message("typeof result is of type string and so will never equal "
+                  "undefined; use 'undefined' instead", ARG(typeof_operator))]] //
+  Source_Code_Span typeof_operator;
+};
+
 struct Diag_Expected_Expression_In_Template_Literal {
   [[qljs::diag("E0711", Diagnostic_Severity::error)]]  //
   [[qljs::message("missing expression in placeholder within template literal",

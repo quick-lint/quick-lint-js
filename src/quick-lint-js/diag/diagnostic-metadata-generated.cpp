@@ -6816,6 +6816,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Typeof_Variable_Equals_Undefined
+    {
+      .code = 458,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("typeof result is of type string and so will never equal undefined; use 'undefined' instead"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Typeof_Variable_Equals_Undefined, typeof_operator), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Expected_Expression_In_Template_Literal
     {
       .code = 711,
