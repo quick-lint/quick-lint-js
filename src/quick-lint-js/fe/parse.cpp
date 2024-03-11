@@ -521,6 +521,40 @@ void Parser::warn_on_xor_operator_as_exponentiation(
   }
 }
 
+void Parser::warn_on_typeof_variable_equals_undefined(
+    Expression::Binary_Operator* ast) {
+  auto is_comparison_operator = [](String8_View s) -> bool {
+    return s == u8"=="_sv || s == u8"==="_sv || s == u8"!="_sv ||
+           s == u8"!=="_sv;
+  };
+
+  for (Span_Size i = 0; i < ast->child_count() - 1; i++) {
+    Source_Code_Span eq_span = ast->operator_spans_[i];
+    if (is_comparison_operator(eq_span.string_view())) {
+      Expression *typeof_op = ast->child(i)->without_paren();
+      Expression *undefined = ast->child(i+1)->without_paren();
+      if (typeof_op->kind() == Expression_Kind::Typeof &&
+          undefined->kind() == Expression_Kind::Variable) {
+        //fallthrough
+      } else if (undefined->kind() == Expression_Kind::Typeof &&
+                 typeof_op->kind() == Expression_Kind::Variable) {
+        std::swap(undefined, typeof_op);
+        //falltrough
+      } else {
+        continue; //does not match
+      }
+
+      Expression::Variable *undefined_variable = expression_cast<Expression::Variable*>(undefined);
+      
+      if (undefined_variable->type_ == Token_Type::kw_undefined) {
+        this->diag_reporter_->report(Diag_Typeof_Variable_Equals_Undefined{
+            .typeof_operator = undefined_variable->span()});
+      }
+    }
+  }
+}
+
+
 void Parser::error_on_pointless_compare_against_literal(
     Expression::Binary_Operator* ast) {
   auto is_comparison_operator = [](String8_View s) -> bool {

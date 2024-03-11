@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[605] = {
+inline const Translated_String test_translation_table[606] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -5856,6 +5856,17 @@ inline const Translated_String test_translation_table[605] = {
             u8"type {0} is being defined here",
             u8"type {0} is being defined here",
             u8"type {0} is being defined here",
+        },
+    },
+    {
+        "typeof result is of type string and so will never equal undefined; use 'undefined' instead"_translatable,
+        u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+        {
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
         },
     },
     {
