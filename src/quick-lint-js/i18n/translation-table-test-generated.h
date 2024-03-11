@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[604] = {
+inline const Translated_String test_translation_table[605] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -2061,6 +2061,17 @@ inline const Translated_String test_translation_table[604] = {
             u8"accessors cannot be optional",
             u8"accessors cannot be optional",
             u8"accessors cannot be optional",
+        },
+    },
+    {
+        "ambiguous use of the keyword 'let'; let is a function in this scope"_translatable,
+        u8"ambiguous use of the keyword 'let'; let is a function in this scope",
+        {
+            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
+            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
+            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
+            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
+            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
         },
     },
     {

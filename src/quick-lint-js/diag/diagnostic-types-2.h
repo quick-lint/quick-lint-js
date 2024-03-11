@@ -3589,6 +3589,16 @@ struct Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type {
                   ARG(type_keyword))]]  //
   Source_Code_Span type_keyword;
 };
+
+struct Diag_Ambiguous_Let_Call {
+  [[qljs::diag("E0720", Diagnostic_Severity::warning)]]  //
+  [
+      [qljs::message("ambiguous use of the keyword 'let'; "
+                     "let is a function in this scope",
+                     ARG(let_function_call))]]  //
+  Source_Code_Span let_function_call;
+};
+
 }
 QLJS_WARNING_POP
 

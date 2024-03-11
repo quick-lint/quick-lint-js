@@ -196,7 +196,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 58, 0, 50},                //
         {0, 0, 0, 0, 0, 57},                 //
         {0, 0, 0, 0, 0, 37},                 //
-        {14, 14, 0, 64, 0, 29},              //
+        {0, 0, 0, 0, 0, 29},                 //
+        {14, 14, 0, 64, 0, 68},              //
         {0, 0, 0, 0, 0, 18},                 //
         {0, 0, 0, 0, 0, 8},                  //
         {0, 0, 0, 0, 0, 16},                 //
@@ -2067,6 +2068,7 @@ const Translation_Table translation_data = {
         u8"abstract properties are only allowed in abstract classes\0"
         u8"abstract properties cannot be static\0"
         u8"accessors cannot be optional\0"
+        u8"ambiguous use of the keyword 'let'; let is a function in this scope\0"
         u8"an 'if' statement\0"
         u8"an enum\0"
         u8"an import alias\0"

@@ -162,6 +162,18 @@ parse_statement:
       Expression *ast =
           this->parse_expression(v, Precedence{.in_operator = true});
       this->visit_expression(ast, v, Variable_Context::rhs);
+
+      // let ({x} = y);  // Ambiguous if 'let' is a function
+      if (ast->kind() == Expression_Kind::Call) {
+        Expression::Call *call = expression_cast<Expression::Call *>(ast);
+        if (call->child_count() == 2 &&
+            call->child_1()->kind() == Expression_Kind::Assignment &&
+            call->child_1()->child_0()->kind() == Expression_Kind::Object) {
+          this->diag_reporter_->report(
+              Diag_Ambiguous_Let_Call{.let_function_call = let_token.span()});
+        }
+      }
+
       this->parse_end_of_expression_statement();
     } else {
       // Variable declaration.

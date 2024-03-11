@@ -6912,6 +6912,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_Ambiguous_Let_Call
+    {
+      .code = 720,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("ambiguous use of the keyword 'let'; let is a function in this scope"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Ambiguous_Let_Call, let_function_call), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 

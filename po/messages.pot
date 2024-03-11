@@ -2413,6 +2413,10 @@ msgstr ""
 msgid "namespace alias cannot use 'import type'"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "ambiguous use of the keyword 'let'; let is a function in this scope"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
