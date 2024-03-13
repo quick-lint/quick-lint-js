@@ -196,8 +196,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 58, 0, 50},                //
         {0, 0, 0, 0, 0, 57},                 //
         {0, 0, 0, 0, 0, 37},                 //
-        {0, 0, 0, 0, 0, 29},                 //
-        {14, 14, 0, 64, 0, 68},              //
+        {14, 14, 0, 64, 0, 29},              //
         {0, 0, 0, 0, 0, 18},                 //
         {0, 0, 0, 0, 0, 8},                  //
         {0, 0, 0, 0, 0, 16},                 //
@@ -318,7 +317,8 @@ const Translation_Table translation_data = {
         {61, 26, 69, 43, 41, 46},            //
         {53, 51, 0, 0, 0, 51},               //
         {0, 0, 0, 0, 0, 25},                 //
-        {27, 25, 64, 54, 59, 9},             //
+        {0, 0, 0, 0, 0, 9},                  //
+        {27, 25, 64, 54, 59, 95},            //
         {29, 17, 31, 33, 0, 27},             //
         {68, 28, 70, 45, 30, 55},            //
         {0, 0, 0, 24, 0, 23},                //
@@ -2068,7 +2068,6 @@ const Translation_Table translation_data = {
         u8"abstract properties are only allowed in abstract classes\0"
         u8"abstract properties cannot be static\0"
         u8"accessors cannot be optional\0"
-        u8"ambiguous use of the keyword 'let'; let is a function in this scope\0"
         u8"an 'if' statement\0"
         u8"an enum\0"
         u8"an import alias\0"
@@ -2190,6 +2189,7 @@ const Translation_Table translation_data = {
         u8"forwarding exports are only allowed in export-from\0"
         u8"free {1} and {0} {1} {2}\0"
         u8"function\0"
+        u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable\0"
         u8"function call started here\0"
         u8"function called before declaration in block scope: {0}\0"
         u8"function declared here\0"

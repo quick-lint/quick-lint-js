@@ -2064,17 +2064,6 @@ inline const Translated_String test_translation_table[605] = {
         },
     },
     {
-        "ambiguous use of the keyword 'let'; let is a function in this scope"_translatable,
-        u8"ambiguous use of the keyword 'let'; let is a function in this scope",
-        {
-            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
-            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
-            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
-            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
-            u8"ambiguous use of the keyword 'let'; let is a function in this scope",
-        },
-    },
-    {
         "an 'if' statement"_translatable,
         u8"an 'if' statement",
         {
@@ -3403,6 +3392,17 @@ inline const Translated_String test_translation_table[605] = {
             u8"function",
             u8"function",
             u8"function",
+        },
+    },
+    {
+        "function 'let' call may be confused for destructuring;remove parentheses to declare a variable"_translatable,
+        u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
+        {
+            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
         },
     },
     {

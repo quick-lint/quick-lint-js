@@ -163,14 +163,17 @@ parse_statement:
           this->parse_expression(v, Precedence{.in_operator = true});
       this->visit_expression(ast, v, Variable_Context::rhs);
 
-      // let ({x} = y);  // Ambiguous if 'let' is a function
+      // let ({x} = y);  // Confusing, if 'let' is a function
       if (ast->kind() == Expression_Kind::Call) {
         Expression::Call *call = expression_cast<Expression::Call *>(ast);
         if (call->child_count() == 2 &&
+            call->child_0()->kind() == Expression_Kind::Variable &&
+            expression_cast<Expression::Variable *>(call->child_0())->type_ ==
+                Token_Type::kw_let &&
             call->child_1()->kind() == Expression_Kind::Assignment &&
             call->child_1()->child_0()->kind() == Expression_Kind::Object) {
           this->diag_reporter_->report(
-              Diag_Ambiguous_Let_Call{.let_function_call = let_token.span()});
+              Diag_Confusing_Let_Call{.let_function_call = let_token.span()});
         }
       }
 

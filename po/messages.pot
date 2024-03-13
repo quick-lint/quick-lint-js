@@ -2414,7 +2414,7 @@ msgid "namespace alias cannot use 'import type'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "ambiguous use of the keyword 'let'; let is a function in this scope"
+msgid "function 'let' call may be confused for destructuring;remove parentheses to declare a variable"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp

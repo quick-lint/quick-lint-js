@@ -508,9 +508,11 @@ TEST_F(Test_Parse_Warning, early_exit_does_not_trigger_fallthrough_warning) {
   }
 }
 
-TEST_F(Test_Parse_Warning, warn_on_ambiguous_let_use) {
+TEST_F(Test_Parse_Warning, warn_on_confusing_let_use) {
   test_parse_and_visit_statement(u8"let ({x} = y);"_sv,  //
-                                 u8"^^^ Diag_Ambiguous_Let_Call"_diag);
+                                 u8"^^^ Diag_Confusing_Let_Call"_diag);
+  test_parse_and_visit_statement(u8"let.prop({x} = y);"_sv, no_diags);
+  test_parse_and_visit_statement(u8"let (x = y);"_sv, no_diags);
 }
 }
 }
