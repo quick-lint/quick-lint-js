@@ -6918,7 +6918,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       .code = 720,
       .severity = Diagnostic_Severity::warning,
       .message_formats = {
-        QLJS_TRANSLATABLE("function 'let' call may be confused for destructuring;remove parentheses to declare a variable"),
+        QLJS_TRANSLATABLE("function 'let' call may be confused for destructuring; remove parentheses to declare a variable"),
       },
       .message_args = {
         {

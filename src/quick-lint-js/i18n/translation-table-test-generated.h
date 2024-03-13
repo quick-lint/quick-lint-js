@@ -3395,14 +3395,14 @@ inline const Translated_String test_translation_table[605] = {
         },
     },
     {
-        "function 'let' call may be confused for destructuring;remove parentheses to declare a variable"_translatable,
-        u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
+        "function 'let' call may be confused for destructuring; remove parentheses to declare a variable"_translatable,
+        u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
         {
-            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
-            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
-            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
-            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
-            u8"function 'let' call may be confused for destructuring;remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
         },
     },
     {
