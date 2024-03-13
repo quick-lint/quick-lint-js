@@ -6825,7 +6825,7 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
       .message_args = {
         {
-          Diagnostic_Message_Arg_Info(offsetof(Diag_Typeof_Variable_Equals_Undefined, typeof_operator), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Typeof_Variable_Equals_Undefined, undefined), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

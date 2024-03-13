@@ -3539,10 +3539,12 @@ struct Diag_Xor_Used_As_Exponentiation {
 };
 
 struct Diag_Typeof_Variable_Equals_Undefined {
-  [[qljs::diag("E0458", Diagnostic_Severity::warning)]] //
+  [[qljs::diag("E0458", Diagnostic_Severity::warning)]]  //
+  // clang-format off
   [[qljs::message("typeof result is of type string and so will never equal "
-                  "undefined; use 'undefined' instead", ARG(typeof_operator))]] //
-  Source_Code_Span typeof_operator;
+                  "undefined; use 'undefined' instead", ARG(undefined))]]  //
+  // clang-format on
+  Source_Code_Span undefined;
 };
 
 struct Diag_Expected_Expression_In_Template_Literal {

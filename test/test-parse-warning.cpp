@@ -419,31 +419,27 @@ TEST_F(Test_Parse_Warning, warn_on_variable_assigned_to_self_is_noop) {
 
 TEST_F(Test_Parse_Warning, warn_on_typeof_variable_equals_undefined) {
   test_parse_and_visit_statement(
-    u8"if (typeof x === undefined) {}"_sv, //
-    u8"                 ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag
-  );
+      u8"if (typeof x === undefined) {}"_sv,  //
+      u8"                 ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
   test_parse_and_visit_statement(
-    u8"if ((typeof x) == (undefined)) {}"_sv, //
-    u8"                   ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag
-  );
+      u8"if ((typeof x) == (undefined)) {}"_sv,  //
+      u8"                   ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
   test_parse_and_visit_statement(
-    u8"if (typeof x != undefined) {}"_sv, //
-    u8"                ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag
-  );
+      u8"if (typeof x != undefined) {}"_sv,  //
+      u8"                ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
   test_parse_and_visit_statement(
-    u8"if ((typeof x) !== (undefined)) {}"_sv, //
-    u8"                    ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag
-  );
+      u8"if ((typeof x) !== (undefined)) {}"_sv,  //
+      u8"                    ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
   test_parse_and_visit_statement(
-    u8"if (undefined == typeof x) {}"_sv, //
-    u8"    ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag
-  );
+      u8"if (undefined == typeof x) {}"_sv,  //
+      u8"    ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
   test_parse_and_visit_statement(
-    u8"if (undefined === typeof x) {}"_sv, //
-    u8"    ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag
-  );
-  test_parse_and_visit_statement(u8"if (typeof x == 'undefined') {}"_sv, no_diags);
-  test_parse_and_visit_statement(u8"if (typeof x === 'undefined') {}"_sv, no_diags);
+      u8"if (undefined === typeof x) {}"_sv,  //
+      u8"    ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
+  test_parse_and_visit_statement(u8"if (typeof x == 'undefined') {}"_sv,
+                                 no_diags);
+  test_parse_and_visit_statement(u8"if (typeof x === 'undefined') {}"_sv,
+                                 no_diags);
 }
 
 TEST_F(Test_Parse_Warning, warn_on_xor_operation_used_as_exponentiation) {
