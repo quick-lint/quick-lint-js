@@ -3531,6 +3531,9 @@ struct Diag_Variable_Assigned_To_Self_Is_Noop {
   Source_Code_Span assignment_statement;
 };
 
+
+
+
 struct Diag_Xor_Used_As_Exponentiation {
   [[qljs::diag("E0710", Diagnostic_Severity::warning)]]  //
   [[qljs::message("'^' is the XOR operator; to exponentiate, use '**' instead",
@@ -3598,6 +3601,13 @@ struct Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type {
   [[qljs::message("namespace alias cannot use 'import type'",
                   ARG(type_keyword))]]  //
   Source_Code_Span type_keyword;
+};
+
+struct Diag_To_String_After_Increment {
+  [[qljs::diag("E0721", Diagnostic_Severity::error)]]  //
+  [[qljs::message("invalid syntax; missing parentheses around {0}",
+                  ARG(increment))]]  //
+  Source_Code_Span increment;
 };
 }
 QLJS_WARNING_POP
