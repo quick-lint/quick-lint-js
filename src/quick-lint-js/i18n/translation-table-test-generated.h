@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[605] = {
+inline const Translated_String test_translation_table[606] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -3898,6 +3898,17 @@ inline const Translated_String test_translation_table[605] = {
             u8"litt\u00e9ral isol\u00e9 invalide dans un litt\u00e9ral objet",
             u8"valor sozinho \u00e9 inv\u00e1lido em um objeto",
             u8"ogiltigt l\u00e5neuttryck i objektliteral",
+        },
+    },
+    {
+        "invalid syntax; missing parentheses around {0}"_translatable,
+        u8"invalid syntax; missing parentheses around {0}",
+        {
+            u8"invalid syntax; missing parentheses around {0}",
+            u8"invalid syntax; missing parentheses around {0}",
+            u8"invalid syntax; missing parentheses around {0}",
+            u8"invalid syntax; missing parentheses around {0}",
+            u8"invalid syntax; missing parentheses around {0}",
         },
     },
     {

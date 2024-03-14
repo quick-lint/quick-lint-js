@@ -506,6 +506,15 @@ TEST_F(Test_Parse_Warning, early_exit_does_not_trigger_fallthrough_warning) {
         no_diags);
   }
 }
+
+TEST_F(Test_Parse_Warning, to_string_called_directly_after_postfix) {
+  test_parse_and_visit_expression(
+      u8"x++.toString()"_sv, //
+      u8"^^^ Diag_To_String_After_Postfix"_diag);
+  test_parse_and_visit_expression(
+      u8"(x++).toString()"_sv,
+      no_diags);
+}
 }
 }
 

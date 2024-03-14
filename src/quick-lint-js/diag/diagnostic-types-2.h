@@ -3603,11 +3603,11 @@ struct Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type {
   Source_Code_Span type_keyword;
 };
 
-struct Diag_To_String_After_Increment {
+struct Diag_To_String_After_Postfix {
   [[qljs::diag("E0721", Diagnostic_Severity::error)]]  //
   [[qljs::message("invalid syntax; missing parentheses around {0}",
-                  ARG(increment))]]  //
-  Source_Code_Span increment;
+                  ARG(postfix_expression))]]  //
+  Source_Code_Span postfix_expression;
 };
 }
 QLJS_WARNING_POP
