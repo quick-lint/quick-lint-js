@@ -6930,16 +6930,16 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
-    // Diag_To_String_After_Increment
+    // Diag_Invalid_Operator_Directly_After_Postfix
     {
       .code = 721,
       .severity = Diagnostic_Severity::error,
       .message_formats = {
-        QLJS_TRANSLATABLE("invalid syntax; missing parentheses around {0}"),
+        QLJS_TRANSLATABLE("invalid syntax; missing parentheses around '{0}'"),
       },
       .message_args = {
         {
-          Diagnostic_Message_Arg_Info(offsetof(Diag_To_String_After_Increment, increment), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Invalid_Operator_Directly_After_Postfix, postfix_expression), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

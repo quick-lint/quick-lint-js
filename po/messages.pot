@@ -2418,7 +2418,7 @@ msgid "namespace alias cannot use 'import type'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "invalid syntax; missing parentheses around {0}"
+msgid "invalid syntax; missing parentheses around '{0}'"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp

@@ -3901,14 +3901,14 @@ inline const Translated_String test_translation_table[606] = {
         },
     },
     {
-        "invalid syntax; missing parentheses around {0}"_translatable,
-        u8"invalid syntax; missing parentheses around {0}",
+        "invalid syntax; missing parentheses around '{0}'"_translatable,
+        u8"invalid syntax; missing parentheses around '{0}'",
         {
-            u8"invalid syntax; missing parentheses around {0}",
-            u8"invalid syntax; missing parentheses around {0}",
-            u8"invalid syntax; missing parentheses around {0}",
-            u8"invalid syntax; missing parentheses around {0}",
-            u8"invalid syntax; missing parentheses around {0}",
+            u8"invalid syntax; missing parentheses around '{0}'",
+            u8"invalid syntax; missing parentheses around '{0}'",
+            u8"invalid syntax; missing parentheses around '{0}'",
+            u8"invalid syntax; missing parentheses around '{0}'",
+            u8"invalid syntax; missing parentheses around '{0}'",
         },
     },
     {

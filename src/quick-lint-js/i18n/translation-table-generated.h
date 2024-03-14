@@ -19,7 +19,7 @@ using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
 constexpr std::uint16_t translation_table_mapping_table_size = 607;
-constexpr std::size_t translation_table_string_table_size = 82488;
+constexpr std::size_t translation_table_string_table_size = 82490;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -378,7 +378,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "invalid function parameter"sv,
           "invalid hex escape sequence: {0}"sv,
           "invalid lone literal in object literal"sv,
-          "invalid syntax; missing parentheses around {0}"sv,
+          "invalid syntax; missing parentheses around '{0}'"sv,
           "keywords cannot contain escape sequences"sv,
           "label named 'await' not allowed in async function"sv,
           "labelled statement"sv,

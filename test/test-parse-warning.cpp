@@ -507,13 +507,19 @@ TEST_F(Test_Parse_Warning, early_exit_does_not_trigger_fallthrough_warning) {
   }
 }
 
-TEST_F(Test_Parse_Warning, to_string_called_directly_after_postfix) {
+TEST_F(Test_Parse_Warning, invalid_operator_directly_after_postfix) {
   test_parse_and_visit_expression(
-      u8"x++.toString()"_sv, //
-      u8"^^^ Diag_To_String_After_Postfix"_diag);
+      u8"x++.toString()"_sv,  //
+      u8"^^^ Diag_Invalid_Operator_Directly_After_Postfix"_diag);
+  test_parse_and_visit_expression(u8"(x++).toString()"_sv, no_diags);
   test_parse_and_visit_expression(
-      u8"(x++).toString()"_sv,
-      no_diags);
+      u8"x++.constructor"_sv,  //
+      u8"^^^ Diag_Invalid_Operator_Directly_After_Postfix"_diag);
+  test_parse_and_visit_expression(u8"(x++).constructor"_sv, no_diags);
+  test_parse_and_visit_expression(
+      u8"x--?.constructor"_sv,  //
+      u8"^^^ Diag_Invalid_Operator_Directly_After_Postfix"_diag);
+  test_parse_and_visit_expression(u8"(x--)?.constructor"_sv, no_diags);
 }
 }
 }
