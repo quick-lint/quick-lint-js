@@ -417,6 +417,31 @@ TEST_F(Test_Parse_Warning, warn_on_variable_assigned_to_self_is_noop) {
   test_parse_and_visit_statement(u8"x &&= x"_sv, no_diags);
 }
 
+TEST_F(Test_Parse_Warning, warn_on_typeof_variable_equals_undefined) {
+  test_parse_and_visit_statement(
+      u8"if (typeof x === undefined) {}"_sv,  //
+      u8"                 ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
+  test_parse_and_visit_statement(
+      u8"if ((typeof x) == (undefined)) {}"_sv,  //
+      u8"                   ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
+  test_parse_and_visit_statement(
+      u8"if (typeof x != undefined) {}"_sv,  //
+      u8"                ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
+  test_parse_and_visit_statement(
+      u8"if ((typeof x) !== (undefined)) {}"_sv,  //
+      u8"                    ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
+  test_parse_and_visit_statement(
+      u8"if (undefined == typeof x) {}"_sv,  //
+      u8"    ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
+  test_parse_and_visit_statement(
+      u8"if (undefined === typeof x) {}"_sv,  //
+      u8"    ^^^^^^^^^ Diag_Typeof_Variable_Equals_Undefined"_diag);
+  test_parse_and_visit_statement(u8"if (typeof x == 'undefined') {}"_sv,
+                                 no_diags);
+  test_parse_and_visit_statement(u8"if (typeof x === 'undefined') {}"_sv,
+                                 no_diags);
+}
+
 TEST_F(Test_Parse_Warning, warn_on_xor_operation_used_as_exponentiation) {
   test_parse_and_visit_expression(
       u8"2 ^ 8"_sv,  //
@@ -507,6 +532,13 @@ TEST_F(Test_Parse_Warning, early_exit_does_not_trigger_fallthrough_warning) {
   }
 }
 
+TEST_F(Test_Parse_Warning, warn_on_confusing_let_use) {
+  test_parse_and_visit_statement(u8"let ({x} = y);"_sv,  //
+                                 u8"^^^ Diag_Confusing_Let_Call"_diag);
+  test_parse_and_visit_statement(u8"let.prop({x} = y);"_sv, no_diags);
+  test_parse_and_visit_statement(u8"let (x = y);"_sv, no_diags);
+}
+
 TEST_F(Test_Parse_Warning, invalid_operator_directly_after_postfix) {
   test_parse_and_visit_expression(
       u8"x++.toString()"_sv,  //
@@ -520,7 +552,6 @@ TEST_F(Test_Parse_Warning, invalid_operator_directly_after_postfix) {
       u8"x--?.constructor"_sv,  //
       u8"^^^ Diag_Invalid_Operator_Directly_After_Postfix"_diag);
   test_parse_and_visit_expression(u8"(x--)?.constructor"_sv, no_diags);
-}
 }
 }
 

@@ -28,6 +28,7 @@ struct Translated_String {
 
 // clang-format off
 inline const Translated_String test_translation_table[606] = {
+
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -1489,6 +1490,17 @@ inline const Translated_String test_translation_table[606] = {
             u8"TypeScript interface properties cannot be 'static'",
             u8"propriedades de interfaces do TypeScript n\u00e3o podem ser 'static'",
             u8"TypeScript interface properties cannot be 'static'",
+        },
+    },
+    {
+        "TypeScript namespace aliases are not allowed in JavaScript"_translatable,
+        u8"TypeScript namespace aliases are not allowed in JavaScript",
+        {
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
+            u8"TypeScript namespace aliases are not allowed in JavaScript",
         },
     },
     {
@@ -3392,6 +3404,17 @@ inline const Translated_String test_translation_table[606] = {
             u8"function",
             u8"function",
             u8"function",
+        },
+    },
+    {
+        "function 'let' call may be confused for destructuring; remove parentheses to declare a variable"_translatable,
+        u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
+        {
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
+            u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable",
         },
     },
     {
@@ -5867,6 +5890,17 @@ inline const Translated_String test_translation_table[606] = {
             u8"type {0} is being defined here",
             u8"type {0} is being defined here",
             u8"type {0} is being defined here",
+        },
+    },
+    {
+        "typeof result is of type string and so will never equal undefined; use 'undefined' instead"_translatable,
+        u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+        {
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
+            u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead",
         },
     },
     {

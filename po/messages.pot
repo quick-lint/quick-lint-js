@@ -1734,6 +1734,10 @@ msgid "write 'const' instead of '{0}' here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "TypeScript namespace aliases are not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "index signature must be a field, not a method"
 msgstr ""
 
@@ -2382,6 +2386,10 @@ msgid "'^' is the XOR operator; to exponentiate, use '**' instead"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "typeof result is of type string and so will never equal undefined; use 'undefined' instead"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing expression in placeholder within template literal"
 msgstr ""
 
@@ -2418,7 +2426,7 @@ msgid "namespace alias cannot use 'import type'"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
-msgid "invalid syntax; missing parentheses around '{0}'"
+msgid "function 'let' call may be confused for destructuring; remove parentheses to declare a variable"
 msgstr ""
 
 #: test/test-diagnostic-formatter.cpp

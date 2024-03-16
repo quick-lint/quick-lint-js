@@ -144,7 +144,8 @@ const Translation_Table translation_data = {
         {0, 45, 0, 77, 0, 61},               //
         {0, 0, 0, 61, 0, 51},                //
         {0, 44, 0, 104, 0, 81},              //
-        {0, 0, 0, 65, 0, 51},                //
+        {0, 0, 0, 0, 0, 51},                 //
+        {0, 0, 0, 65, 0, 59},                //
         {0, 0, 0, 60, 0, 52},                //
         {0, 0, 0, 84, 0, 59},                //
         {0, 0, 0, 83, 0, 61},                //
@@ -317,7 +318,8 @@ const Translation_Table translation_data = {
         {61, 26, 69, 43, 41, 46},            //
         {53, 51, 0, 0, 0, 51},               //
         {0, 0, 0, 0, 0, 25},                 //
-        {27, 25, 64, 54, 59, 9},             //
+        {0, 0, 0, 0, 0, 9},                  //
+        {27, 25, 64, 54, 59, 96},            //
         {29, 17, 31, 33, 0, 27},             //
         {68, 28, 70, 45, 30, 55},            //
         {0, 0, 0, 24, 0, 23},                //
@@ -542,7 +544,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 11},                 //
         {0, 0, 0, 0, 0, 75},                 //
         {0, 0, 0, 0, 0, 58},                 //
-        {27, 19, 30, 29, 22, 31},            //
+        {0, 0, 0, 0, 0, 31},                 //
+        {27, 19, 30, 29, 22, 91},            //
         {25, 50, 0, 36, 0, 23},              //
         {66, 43, 31, 36, 30, 44},            //
         {70, 22, 62, 50, 61, 49},            //
@@ -2017,6 +2020,7 @@ const Translation_Table translation_data = {
         u8"TypeScript interface methods cannot contain a body\0"
         u8"TypeScript interface properties are always public and cannot be marked protected\0"
         u8"TypeScript interface properties cannot be 'static'\0"
+        u8"TypeScript namespace aliases are not allowed in JavaScript\0"
         u8"TypeScript namespaces are not allowed in JavaScript\0"
         u8"TypeScript non-null assertion is not allowed on parameters\0"
         u8"TypeScript non-null assertions are not allowed in JavaScript\0"
@@ -2190,6 +2194,7 @@ const Translation_Table translation_data = {
         u8"forwarding exports are only allowed in export-from\0"
         u8"free {1} and {0} {1} {2}\0"
         u8"function\0"
+        u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable\0"
         u8"function call started here\0"
         u8"function called before declaration in block scope: {0}\0"
         u8"function declared here\0"
@@ -2415,6 +2420,7 @@ const Translation_Table translation_data = {
         u8"type annotation is required when using '!' (definite assignment assertion)\0"
         u8"type predicates are only allowed as function return types\0"
         u8"type {0} is being defined here\0"
+        u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead\0"
         u8"unclosed block comment\0"
         u8"unclosed class; expected '}' by end of file\0"
         u8"unclosed code block; expected '}' by end of file\0"

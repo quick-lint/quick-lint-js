@@ -4654,6 +4654,24 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript
+    {
+      .code = 719,
+      .severity = Diagnostic_Severity::error,
+      .message_formats = {
+        QLJS_TRANSLATABLE("TypeScript namespace aliases are not allowed in JavaScript"),
+        QLJS_TRANSLATABLE("write 'const' instead of '{0}' here"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript, equal), Diagnostic_Arg_Type::source_code_span),
+        },
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript, import_keyword), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_TypeScript_Index_Signature_Cannot_Be_Method
     {
       .code = 227,
@@ -6816,6 +6834,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Typeof_Variable_Equals_Undefined
+    {
+      .code = 458,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("typeof result is of type string and so will never equal undefined; use 'undefined' instead"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Typeof_Variable_Equals_Undefined, undefined), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Expected_Expression_In_Template_Literal
     {
       .code = 711,
@@ -6930,16 +6962,16 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
-    // Diag_Invalid_Operator_Directly_After_Postfix
+    // Diag_Confusing_Let_Call
     {
-      .code = 721,
-      .severity = Diagnostic_Severity::error,
+      .code = 720,
+      .severity = Diagnostic_Severity::warning,
       .message_formats = {
-        QLJS_TRANSLATABLE("invalid syntax; missing parentheses around '{0}'"),
+        QLJS_TRANSLATABLE("function 'let' call may be confused for destructuring; remove parentheses to declare a variable"),
       },
       .message_args = {
         {
-          Diagnostic_Message_Arg_Info(offsetof(Diag_Invalid_Operator_Directly_After_Postfix, postfix_expression), Diagnostic_Arg_Type::source_code_span),
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Confusing_Let_Call, let_function_call), Diagnostic_Arg_Type::source_code_span),
         },
       },
     },

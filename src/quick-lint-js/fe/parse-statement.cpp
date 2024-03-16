@@ -162,6 +162,21 @@ parse_statement:
       Expression *ast =
           this->parse_expression(v, Precedence{.in_operator = true});
       this->visit_expression(ast, v, Variable_Context::rhs);
+
+      // let ({x} = y);  // Confusing, if 'let' is a function
+      if (ast->kind() == Expression_Kind::Call) {
+        Expression::Call *call = expression_cast<Expression::Call *>(ast);
+        if (call->child_count() == 2 &&
+            call->child_0()->kind() == Expression_Kind::Variable &&
+            expression_cast<Expression::Variable *>(call->child_0())->type_ ==
+                Token_Type::kw_let &&
+            call->child_1()->kind() == Expression_Kind::Assignment &&
+            call->child_1()->child_0()->kind() == Expression_Kind::Object) {
+          this->diag_reporter_->report(
+              Diag_Confusing_Let_Call{.let_function_call = let_token.span()});
+        }
+      }
+
       this->parse_end_of_expression_statement();
     } else {
       // Variable declaration.
@@ -4566,7 +4581,7 @@ void Parser::parse_and_visit_import(
   Source_Code_Span import_span = this->peek().span();
   this->skip();
 
-  bool possibly_typescript_import_alias = false;
+  bool possibly_typescript_import_namespace_alias = false;
   // For 'import fs from "node:fs";', declared_variable is 'fs'.
   std::optional<Token> declared_variable = std::nullopt;
   Variable_Kind declared_variable_kind = Variable_Kind::_import;
@@ -4671,8 +4686,9 @@ void Parser::parse_and_visit_import(
       }
     } else {
       // import fs from "fs";
+      // import myns = ns;
       // import fs = require("fs");  // TypeScript only.
-      possibly_typescript_import_alias = true;
+      possibly_typescript_import_namespace_alias = true;
     }
     break;
 
@@ -4776,7 +4792,7 @@ void Parser::parse_and_visit_import(
           break;
         }
       } else {
-        possibly_typescript_import_alias = true;
+        possibly_typescript_import_namespace_alias = true;
       }
       break;
 
@@ -4825,15 +4841,8 @@ void Parser::parse_and_visit_import(
   // import myns = ns;           // TypeScript only.
   // import C = ns.C;            // TypeScript only.
   case Token_Type::equal:
-    if (possibly_typescript_import_alias) {
-      if (!this->options_.typescript) {
-        this->diag_reporter_->report(
-            Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript{
-                .import_keyword = import_span,
-                .equal = this->peek().span(),
-            });
-      }
-
+    if (possibly_typescript_import_namespace_alias) {
+      Source_Code_Span equal_span = this->peek().span();
       this->skip();
       switch (this->peek().type) {
       QLJS_CASE_CONTEXTUAL_KEYWORD:
@@ -4845,6 +4854,13 @@ void Parser::parse_and_visit_import(
           // import fs = require("fs");
           // import type fs = require("fs");
 
+          if (!this->options_.typescript) {
+            this->diag_reporter_->report(
+                Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript{
+                    .import_keyword = import_span,
+                    .equal = equal_span,
+                });
+          }
           // NOTE[TypeScript-type-import-alias]: 'import fs = ' and
           // 'import type fs = ...' both declare variables which conflict with
           // 'let', 'class', etc. Overwrite Variable_Kind::_import_type.
@@ -4875,6 +4891,15 @@ void Parser::parse_and_visit_import(
             this->diag_reporter_->report(
                 Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type{
                     .type_keyword = *type_span});
+          } else {
+            if (!this->options_.typescript) {
+              // import a = b; // Invalid.
+              this->diag_reporter_->report(
+                  Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript{
+                      .import_keyword = import_span,
+                      .equal = equal_span,
+                  });
+            }
           }
           // import myns = ns;
           // import C = ns.C;

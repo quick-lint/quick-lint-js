@@ -320,6 +320,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Implements_Must_Be_After_Extends) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript) \
+  QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Index_Signature_Cannot_Be_Method) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Index_Signature_Needs_Type) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Infer_Outside_Conditional_Type) \
@@ -466,6 +467,7 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Spread_Must_Precede_Variable_Name) \
   QLJS_DIAG_TYPE_NAME(Diag_Variable_Assigned_To_Self_Is_Noop) \
   QLJS_DIAG_TYPE_NAME(Diag_Xor_Used_As_Exponentiation) \
+  QLJS_DIAG_TYPE_NAME(Diag_Typeof_Variable_Equals_Undefined) \
   QLJS_DIAG_TYPE_NAME(Diag_Expected_Expression_In_Template_Literal) \
   QLJS_DIAG_TYPE_NAME(Diag_Missing_Comma_Between_Array_Elements) \
   QLJS_DIAG_TYPE_NAME(Diag_Class_Generator_On_Getter_Or_Setter) \
@@ -473,11 +475,11 @@ namespace quick_lint_js {
   QLJS_DIAG_TYPE_NAME(Diag_Multiple_Export_Defaults) \
   QLJS_DIAG_TYPE_NAME(Diag_Unintuitive_Bitshift_Precedence) \
   QLJS_DIAG_TYPE_NAME(Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type) \
-  QLJS_DIAG_TYPE_NAME(Diag_Invalid_Operator_Directly_After_Postfix) \
+  QLJS_DIAG_TYPE_NAME(Diag_Confusing_Let_Call) \
   /* END */
 // clang-format on
 
-inline constexpr int Diag_Type_Count = 463;
+inline constexpr int Diag_Type_Count = 465;
 
 extern const Diagnostic_Info all_diagnostic_infos[Diag_Type_Count];
 }

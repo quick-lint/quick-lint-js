@@ -355,7 +355,7 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
-     import_alias_does_not_conflict_with_most_other_things) {
+     namespace_alias_does_not_conflict_with_most_other_things) {
   for (String8_View other_thing : {
            u8"class A {}"_sv,
            u8"const A = 42;"_sv,
@@ -375,7 +375,7 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
-     import_alias_conflicts_with_import) {
+     import_namespace_alias_conflicts_with_import) {
   test_parse_and_analyze(
       u8"namespace ns {}  import A = ns; import A from 'mod';"_sv,  //
       u8"                                       ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
@@ -400,7 +400,7 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
-     import_alias_conflicts_with_import_alias) {
+     namespace_alias_conflicts_with_namespace_alias) {
   test_parse_and_analyze(
       u8"namespace ns1 {}  namespace ns2 {}  import A = ns1; import A = ns2;"_sv,  //
       u8"                                                           ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
@@ -409,7 +409,7 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
-     import_alias_conflicts_with_namespace) {
+     namespace_alias_conflicts_with_namespace) {
   test_parse_and_analyze(
       u8"namespace ns {}  import A = ns; namespace A {}"_sv,  //
       u8"                                          ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag
@@ -423,7 +423,7 @@ TEST(Test_Variable_Analyzer_Multiple_Declarations,
 }
 
 TEST(Test_Variable_Analyzer_Multiple_Declarations,
-     import_alias_conflicts_with_enum) {
+     namespace_alias_conflicts_with_enum) {
   test_parse_and_analyze(
       u8"namespace ns {}  import A = ns; enum A {}"_sv,  //
       u8"                                     ^ Diag_Redeclaration_Of_Variable.redeclaration\n"_diag

@@ -6,6 +6,23 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* `let({x} = y);` now reports [E0720][] ("function 'let' call may be confused
+  for destructuring; remove parentheses to declare a variable"). (Implemented by
+  [msharipov][].) ([#1203][])
+* `typeof myVar === undefined` now reports [E0458][] ("typeof result is of type
+  string and so will never equal undefined; use 'undefined' instead").
+  (Implemented by [CoderMuffin][].) ([#1207][])
+
+### Fixed
+
+* `import Chart = goog.Chart;` in JavaScript code now correctly mentions
+  "namespace aliases" instead of "import aliases". (Implemented by
+  [UnfairBots][].) ([#1138][])
+
 ## 3.2.0 (2024-03-03)
 
 [Downloads](https://c.quick-lint-js.com/releases/3.2.0/)
@@ -1376,6 +1393,7 @@ Beta release.
 [Ariel Don]: https://github.com/arieldon
 [Austin Garcia]: https://github.com/holychowders
 [Christian Mund]: https://github.com/kkkrist
+[CoderMuffin]: https://github.com/CoderMuffin
 [Daniel La Rocque]: https://github.com/dlarocque
 [Dave Churchill]: https://www.cs.mun.ca/~dchurchill/
 [David Vasileff]: https://github.com/dav000
@@ -1406,6 +1424,7 @@ Beta release.
 [Shivam Mehta]: https://github.com/maniac-en
 [Tom Binford]: https://github.com/TomBinford
 [Tony Sathre]: https://github.com/tonysathre
+[UnfairBots]: https://github.com/UnfairBots
 [Yash Masani]: https://github.com/yashmasani
 [Yunus]: https://github.com/yunusey
 [clegoz]: https://github.com/clegoz
@@ -1413,6 +1432,7 @@ Beta release.
 [david doroz]: https://github.com/DaviddHub
 [koopiehoop]: https://github.com/koopiehoop
 [mirabellier]: https://github.com/mirabellierr
+[msharipov]: https://github.com/msharipov
 [ooblegork]: https://github.com/ooblegork
 [pedrobl1718]: https://github.com/pedrobl85
 [strager]: https://github.com/strager
@@ -1422,6 +1442,7 @@ Beta release.
 [wagner riffel]: https://github.com/wgrr
 
 [#1128]: https://github.com/quick-lint/quick-lint-js/issues/1128
+[#1138]: https://github.com/quick-lint/quick-lint-js/issues/1138
 [#1139]: https://github.com/quick-lint/quick-lint-js/issues/1139
 [#1152]: https://github.com/quick-lint/quick-lint-js/issues/1152
 [#1155]: https://github.com/quick-lint/quick-lint-js/issues/1155
@@ -1433,6 +1454,8 @@ Beta release.
 [#1192]: https://github.com/quick-lint/quick-lint-js/issues/1192
 [#1194]: https://github.com/quick-lint/quick-lint-js/issues/1194
 [#1199]: https://github.com/quick-lint/quick-lint-js/issues/1199
+[#1203]: https://github.com/quick-lint/quick-lint-js/issues/1203
+[#1207]: https://github.com/quick-lint/quick-lint-js/issues/1207
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
 [E0003]: https://quick-lint-js.com/errors/E0003/
@@ -1564,6 +1587,7 @@ Beta release.
 [E0450]: https://quick-lint-js.com/errors/E0450/
 [E0451]: https://quick-lint-js.com/errors/E0451/
 [E0452]: https://quick-lint-js.com/errors/E0452/
+[E0458]: https://quick-lint-js.com/errors/E0458/
 [E0707]: https://quick-lint-js.com/errors/E0707/
 [E0708]: https://quick-lint-js.com/errors/E0708/
 [E0709]: https://quick-lint-js.com/errors/E0709/
@@ -1575,3 +1599,4 @@ Beta release.
 [E0716]: https://quick-lint-js.com/errors/E0716/
 [E0717]: https://quick-lint-js.com/errors/E0717/
 [E0718]: https://quick-lint-js.com/errors/E0718/
+[E0720]: https://quick-lint-js.com/errors/E0720/

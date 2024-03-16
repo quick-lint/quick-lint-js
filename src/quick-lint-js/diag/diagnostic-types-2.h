@@ -2417,6 +2417,16 @@ struct Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript {
   Source_Code_Span equal;
 };
 
+struct Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript {
+  [[qljs::diag("E0719", Diagnostic_Severity::error)]]  //
+  [[qljs::message("TypeScript namespace aliases are not allowed in JavaScript",
+                  ARG(equal))]]  //
+  [[qljs::message("write 'const' instead of '{0}' here",
+                  ARG(import_keyword))]]  //
+  Source_Code_Span import_keyword;
+  Source_Code_Span equal;
+};
+
 struct Diag_TypeScript_Index_Signature_Cannot_Be_Method {
   [[qljs::diag("E0227", Diagnostic_Severity::error)]]  //
   [[qljs::message("index signature must be a field, not a method",
@@ -3538,6 +3548,15 @@ struct Diag_Xor_Used_As_Exponentiation {
   Source_Code_Span xor_operator;
 };
 
+struct Diag_Typeof_Variable_Equals_Undefined {
+  [[qljs::diag("E0458", Diagnostic_Severity::warning)]]  //
+  // clang-format off
+  [[qljs::message("typeof result is of type string and so will never equal "
+                  "undefined; use 'undefined' instead", ARG(undefined))]]  //
+  // clang-format on
+  Source_Code_Span undefined;
+};
+
 struct Diag_Expected_Expression_In_Template_Literal {
   [[qljs::diag("E0711", Diagnostic_Severity::error)]]  //
   [[qljs::message("missing expression in placeholder within template literal",
@@ -3598,6 +3617,15 @@ struct Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type {
   [[qljs::message("namespace alias cannot use 'import type'",
                   ARG(type_keyword))]]  //
   Source_Code_Span type_keyword;
+};
+
+struct Diag_Confusing_Let_Call {
+  [[qljs::diag("E0720", Diagnostic_Severity::warning)]]  //
+  [
+      [qljs::message("function 'let' call may be confused for destructuring; "
+                     "remove parentheses to declare a variable",
+                     ARG(let_function_call))]]  //
+  Source_Code_Span let_function_call;
 };
 
 struct Diag_Invalid_Operator_Directly_After_Postfix {

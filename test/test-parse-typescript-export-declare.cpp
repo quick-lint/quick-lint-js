@@ -71,7 +71,7 @@ TEST_F(Test_Parse_TypeScript_Export_Declare, export_declare_abstract_class) {
 }
 
 TEST_F(Test_Parse_TypeScript_Export_Declare,
-       export_declare_import_alias_is_not_allowed) {
+       export_declare_namespace_alias_is_not_allowed) {
   test_parse_and_visit_module(
       u8"export declare import A = B;"_sv,                              //
       u8"       ^^^^^^^ Diag_Import_Cannot_Have_Declare_Keyword"_diag,  //
