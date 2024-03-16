@@ -6961,6 +6961,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_Confusing_Let_Call
+    {
+      .code = 720,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("function 'let' call may be confused for destructuring; remove parentheses to declare a variable"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Confusing_Let_Call, let_function_call), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 

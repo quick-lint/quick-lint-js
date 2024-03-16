@@ -318,7 +318,8 @@ const Translation_Table translation_data = {
         {61, 26, 69, 43, 41, 46},            //
         {53, 51, 0, 0, 0, 51},               //
         {0, 0, 0, 0, 0, 25},                 //
-        {27, 25, 64, 54, 59, 9},             //
+        {0, 0, 0, 0, 0, 9},                  //
+        {27, 25, 64, 54, 59, 96},            //
         {29, 17, 31, 33, 0, 27},             //
         {68, 28, 70, 45, 30, 55},            //
         {0, 0, 0, 24, 0, 23},                //
@@ -2192,6 +2193,7 @@ const Translation_Table translation_data = {
         u8"forwarding exports are only allowed in export-from\0"
         u8"free {1} and {0} {1} {2}\0"
         u8"function\0"
+        u8"function 'let' call may be confused for destructuring; remove parentheses to declare a variable\0"
         u8"function call started here\0"
         u8"function called before declaration in block scope: {0}\0"
         u8"function declared here\0"

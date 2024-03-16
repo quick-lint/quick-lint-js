@@ -3618,6 +3618,16 @@ struct Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type {
                   ARG(type_keyword))]]  //
   Source_Code_Span type_keyword;
 };
+
+struct Diag_Confusing_Let_Call {
+  [[qljs::diag("E0720", Diagnostic_Severity::warning)]]  //
+  [
+      [qljs::message("function 'let' call may be confused for destructuring; "
+                     "remove parentheses to declare a variable",
+                     ARG(let_function_call))]]  //
+  Source_Code_Span let_function_call;
+};
+
 }
 QLJS_WARNING_POP
 
