@@ -830,7 +830,7 @@ TEST_F(Test_Parse_TypeScript_Module,
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Module, export_import_alias) {
+TEST_F(Test_Parse_TypeScript_Module, export_namespace_alias) {
   {
     Spy_Visitor p = test_parse_and_visit_module(u8"export import A = B;"_sv,
                                                 no_diags, typescript_options);
@@ -845,7 +845,7 @@ TEST_F(Test_Parse_TypeScript_Module, export_import_alias) {
 }
 
 TEST_F(Test_Parse_TypeScript_Module,
-       export_import_alias_cannot_be_named_certain_keywords) {
+       export_namespace_alias_cannot_be_named_certain_keywords) {
   // TODO[TypeScript-export-namespace-alias-keyword-name]: Disallow 'await',
   // 'implements', etc. (strict_reserved_keywords).
   for (String8_View keyword : disallowed_binding_identifier_keywords) {

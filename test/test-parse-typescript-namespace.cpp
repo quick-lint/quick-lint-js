@@ -657,12 +657,26 @@ TEST_F(Test_Parse_TypeScript_Namespace,
   {
     Spy_Visitor p = test_parse_and_visit_statement(
         u8"import A = ns;"_sv,  //
-        u8"^^^^^^ Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript.import_keyword\n"_diag
+        u8"^^^^^^ Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript.import_keyword\n"_diag
         u8"         ^ .equal"_diag,  //
         javascript_options);
     EXPECT_THAT(p.visits, ElementsAreArray({
                               "visit_variable_declaration",    // A
                               "visit_variable_namespace_use",  // ns
+                          }));
+  }
+}
+
+TEST_F(Test_Parse_TypeScript_Namespace,
+       import_alias_not_allowed_in_javascript) {
+  {
+    Spy_Visitor p = test_parse_and_visit_statement(
+        u8"import A = require('ns');"_sv,  //
+        u8"^^^^^^ Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript.import_keyword\n"_diag
+        u8"         ^ .equal"_diag,  //
+        javascript_options);
+    EXPECT_THAT(p.visits, ElementsAreArray({
+                              "visit_variable_declaration",  // A
                           }));
   }
 }
@@ -721,7 +735,7 @@ TEST_F(Test_Parse_TypeScript_Namespace,
   }
 }
 
-TEST_F(Test_Parse_TypeScript_Namespace, import_alias_of_namespace_member) {
+TEST_F(Test_Parse_TypeScript_Namespace, namespace_alias_of_namespace_member) {
   {
     Spy_Visitor p = test_parse_and_visit_module(u8"import A = ns.B;"_sv,
                                                 no_diags, typescript_options);
@@ -762,7 +776,7 @@ TEST_F(Test_Parse_TypeScript_Namespace, import_alias_of_namespace_member) {
 }
 
 TEST_F(Test_Parse_TypeScript_Namespace,
-       import_alias_requires_semicolon_or_newline) {
+       namespace_alias_requires_semicolon_or_newline) {
   {
     Spy_Visitor p = test_parse_and_visit_module(
         u8"import A = ns nextStatement"_sv,                              //
@@ -778,7 +792,7 @@ TEST_F(Test_Parse_TypeScript_Namespace,
 }
 
 TEST_F(Test_Parse_TypeScript_Namespace,
-       namespace_can_be_contextual_keyword_in_import_alias) {
+       namespace_can_be_contextual_keyword_in_namespace_alias) {
   for (String8 name : contextual_keywords) {
     Padded_String code(concat(u8"import A = "_sv, name, u8".Member;"_sv));
     SCOPED_TRACE(code);
@@ -794,7 +808,7 @@ TEST_F(Test_Parse_TypeScript_Namespace,
 }
 
 TEST_F(Test_Parse_TypeScript_Namespace,
-       namespace_member_can_be_contextual_keyword_in_import_alias) {
+       namespace_member_can_be_contextual_keyword_in_namespace_alias) {
   for (String8 name : contextual_keywords) {
     Padded_String code(concat(u8"import A = ns."_sv, name, u8";"_sv));
     SCOPED_TRACE(code);

@@ -144,7 +144,8 @@ const Translation_Table translation_data = {
         {0, 45, 0, 77, 0, 61},               //
         {0, 0, 0, 61, 0, 51},                //
         {0, 44, 0, 104, 0, 81},              //
-        {0, 0, 0, 65, 0, 51},                //
+        {0, 0, 0, 0, 0, 51},                 //
+        {0, 0, 0, 65, 0, 59},                //
         {0, 0, 0, 60, 0, 52},                //
         {0, 0, 0, 84, 0, 59},                //
         {0, 0, 0, 83, 0, 61},                //
@@ -2016,6 +2017,7 @@ const Translation_Table translation_data = {
         u8"TypeScript interface methods cannot contain a body\0"
         u8"TypeScript interface properties are always public and cannot be marked protected\0"
         u8"TypeScript interface properties cannot be 'static'\0"
+        u8"TypeScript namespace aliases are not allowed in JavaScript\0"
         u8"TypeScript namespaces are not allowed in JavaScript\0"
         u8"TypeScript non-null assertion is not allowed on parameters\0"
         u8"TypeScript non-null assertions are not allowed in JavaScript\0"

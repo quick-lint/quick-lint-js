@@ -2417,6 +2417,16 @@ struct Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript {
   Source_Code_Span equal;
 };
 
+struct Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript {
+  [[qljs::diag("E0719", Diagnostic_Severity::error)]]  //
+  [[qljs::message("TypeScript namespace aliases are not allowed in JavaScript",
+                  ARG(equal))]]  //
+  [[qljs::message("write 'const' instead of '{0}' here",
+                  ARG(import_keyword))]]  //
+  Source_Code_Span import_keyword;
+  Source_Code_Span equal;
+};
+
 struct Diag_TypeScript_Index_Signature_Cannot_Be_Method {
   [[qljs::diag("E0227", Diagnostic_Severity::error)]]  //
   [[qljs::message("index signature must be a field, not a method",

@@ -1734,6 +1734,10 @@ msgid "write 'const' instead of '{0}' here"
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "TypeScript namespace aliases are not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "index signature must be a field, not a method"
 msgstr ""
 
