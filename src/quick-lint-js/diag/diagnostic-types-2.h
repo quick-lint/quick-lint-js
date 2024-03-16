@@ -3628,6 +3628,12 @@ struct Diag_Confusing_Let_Call {
   Source_Code_Span let_function_call;
 };
 
+struct Diag_Invalid_Operator_Directly_After_Postfix {
+  [[qljs::diag("E0721", Diagnostic_Severity::error)]]  //
+  [[qljs::message("invalid syntax; missing parentheses around '{0}'",
+                  ARG(postfix_expression))]]  //
+  Source_Code_Span postfix_expression;
+};
 }
 QLJS_WARNING_POP
 
