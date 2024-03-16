@@ -36,6 +36,8 @@ authored portions of quick-lint-js:
 * Brandon Conway; brandoncc@gmail.com; signed CLA-v1.md
 * Carlo Cabrera; https://github.com/carlocab; signed CLA-v1.md
 * Christopher M Stoddard; https://github.com/cmstoddard; signed CLA-v1.md
+* CoderMuffin; john@mooseandlemur.com; signed CLA-v1.md
+* Cuong Do; cuong7dovan@gmail.com; signed CLA-v1.md
 * Daniel La Rocque; dlarocque.contact@gmail.com; signed CLA-v1.md
 * David Vasileff; signed CLA-v1.md
 * Dylan Elliott; signed CLA-v1.md
@@ -88,6 +90,7 @@ authored portions of quick-lint-js:
 * clegoz; signed CLA-v1.md
 * daethtech; https://github.com/daethtech; signed CLA-v1.md
 * emadflash; signed CLA-v1.md
+* msharipov; msharipovr@gmail.com; signed CLA-v1.md
 * ooblegork; codyxvalley@mail.fresnostate.edu; signed CLA-v1.md
 * oren; countoren@gmail.com; signed CLA-v1.md
 * pedrobl85; pedrobl1718@gmail.com; signed CLA-v1.md
