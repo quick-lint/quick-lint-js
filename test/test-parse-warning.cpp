@@ -554,6 +554,7 @@ TEST_F(Test_Parse_Warning, invalid_operator_directly_after_postfix) {
   test_parse_and_visit_expression(u8"(x--)?.constructor"_sv, no_diags);
 }
 }
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
