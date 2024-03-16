@@ -542,7 +542,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 11},                 //
         {0, 0, 0, 0, 0, 75},                 //
         {0, 0, 0, 0, 0, 58},                 //
-        {27, 19, 30, 29, 22, 31},            //
+        {0, 0, 0, 0, 0, 31},                 //
+        {27, 19, 30, 29, 22, 91},            //
         {25, 50, 0, 36, 0, 23},              //
         {66, 43, 31, 36, 30, 44},            //
         {70, 22, 62, 50, 61, 49},            //
@@ -2415,6 +2416,7 @@ const Translation_Table translation_data = {
         u8"type annotation is required when using '!' (definite assignment assertion)\0"
         u8"type predicates are only allowed as function return types\0"
         u8"type {0} is being defined here\0"
+        u8"typeof result is of type string and so will never equal undefined; use 'undefined' instead\0"
         u8"unclosed block comment\0"
         u8"unclosed class; expected '}' by end of file\0"
         u8"unclosed code block; expected '}' by end of file\0"
