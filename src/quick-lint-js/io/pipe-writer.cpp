@@ -35,8 +35,11 @@ Background_Thread_Pipe_Writer::Background_Thread_Pipe_Writer(
 }
 
 Background_Thread_Pipe_Writer::~Background_Thread_Pipe_Writer() {
-  this->stop_ = true;
-  this->data_is_pending_.notify_one();
+  {
+    std::unique_lock<Mutex> lock(this->mutex_);
+    this->stop_ = true;
+    this->data_is_pending_.notify_one();
+  }
   this->flushing_thread_.join();
 }
 
