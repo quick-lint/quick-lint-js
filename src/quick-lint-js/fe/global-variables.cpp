@@ -463,7 +463,7 @@ const Global_Group global_groups[] = {
         .globals = global_variables_browser,
         .type_only_globals = global_variables_web_types,
         .globals_count = 990,
-        .type_only_globals_count = 86,
+        .type_only_globals_count = 515,
     },
     {
         .name = u8"bun",
@@ -522,7 +522,7 @@ const Global_Group global_groups[] = {
         .globals = global_variables_web_worker,
         .type_only_globals = global_variables_web_types,
         .globals_count = 232,
-        .type_only_globals_count = 86,
+        .type_only_globals_count = 515,
     },
 };
 static_assert(global_group_count == std::size(global_groups),

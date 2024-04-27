@@ -232,11 +232,11 @@ function collectExposedGlobals(globals, idlObject, allIDLObjects) {
       break;
 
     case "callback":
-    case "dictionary":
     case "enum":
     case "interface mixin":
       break;
 
+    case "dictionary":
     case "typedef":
       globals.addGlobal("types", idlObject.name);
       break;

@@ -19,6 +19,8 @@ Semantic Versioning.
 
 ### Fixed
 
+* quick-lint-js no longer warns about DOM types such as
+  `IntersectionObserverInit`. ([#1216][])
 * `import Chart = goog.Chart;` in JavaScript code now correctly mentions
   "namespace aliases" instead of "import aliases". (Implemented by
   [UnfairBots][].) ([#1138][])
@@ -1456,6 +1458,7 @@ Beta release.
 [#1199]: https://github.com/quick-lint/quick-lint-js/issues/1199
 [#1203]: https://github.com/quick-lint/quick-lint-js/issues/1203
 [#1207]: https://github.com/quick-lint/quick-lint-js/issues/1207
+[#1216]: https://github.com/quick-lint/quick-lint-js/issues/1216
 
 [E0001]: https://quick-lint-js.com/errors/E0001/
 [E0003]: https://quick-lint-js.com/errors/E0003/
