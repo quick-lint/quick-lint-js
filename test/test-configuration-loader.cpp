@@ -2334,7 +2334,7 @@ bool Change_Detecting_Configuration_Loader::detect_changes() {
   return kqueue_rc != 0;
 #elif defined(_WIN32)
   std::unique_lock<Mutex> lock(this->mutex_);
-  this->detect_changes_locked(lock);
+  return this->detect_changes_locked(lock);
 #else
 #error "Unsupported platform"
 #endif
