@@ -279,7 +279,8 @@ const Translation_Table translation_data = {
         {0, 0, 0, 0, 0, 43},                 //
         {0, 0, 0, 33, 0, 5},                 //
         {0, 0, 0, 47, 0, 35},                //
-        {31, 20, 35, 43, 34, 30},            //
+        {0, 0, 0, 0, 0, 30},                 //
+        {31, 20, 35, 43, 34, 77},            //
         {64, 53, 0, 54, 0, 48},              //
         {74, 36, 0, 56, 0, 60},              //
         {63, 41, 0, 51, 0, 42},              //
@@ -2154,6 +2155,7 @@ const Translation_Table translation_data = {
         u8"enum\0"
         u8"enum member name cannot be numeric\0"
         u8"enum member needs initializer\0"
+        u8"equality check result is unused; did you mean to use assignment (=) instead?\0"
         u8"escaped character is not allowed in identifiers\0"
         u8"escaping '-' is not allowed in tag names; write '-' instead\0"
         u8"event attributes must be camelCase: '{1}'\0"

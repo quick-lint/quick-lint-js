@@ -406,6 +406,27 @@ void Parser::warn_on_unintuitive_bitshift_precedence(Expression* ast) {
     }
   }
 }
+void Parser::warn_on_equality_check_used_as_statement(Expression* ast) {
+  ast = ast->without_paren();
+  auto is_comparison_operator = [](String8_View s) {
+    return s == u8"=="_sv || s == u8"==="_sv || s == u8"!="_sv ||
+           s == u8"!=="_sv;
+  };
+
+  if (ast->kind() != Expression_Kind::Binary_Operator) return;
+  auto* binary_op = static_cast<Expression::Binary_Operator*>(ast);
+
+  // only interested in the first operator, others may just be ordinary
+  // comparisons
+  if (ast->child_count() <= 1) return;
+  Source_Code_Span eq_span = binary_op->operator_spans_[0];
+
+  if (is_comparison_operator(eq_span.string_view())) {
+    this->diag_reporter_->report(
+        quick_lint_js::Diag_Equality_Check_Used_As_Statement{.equals_operator =
+                                                                 eq_span});
+  }
+}
 void Parser::error_on_pointless_string_compare(
     Expression::Binary_Operator* ast) {
   auto is_comparison_operator = [](String8_View s) {
