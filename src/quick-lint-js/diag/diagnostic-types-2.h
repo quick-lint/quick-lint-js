@@ -3557,6 +3557,16 @@ struct Diag_Typeof_Variable_Equals_Undefined {
   Source_Code_Span undefined;
 };
 
+struct Diag_Equality_Check_Used_As_Statement {
+  [[qljs::diag("E0459", Diagnostic_Severity::warning)]]  //
+  // clang-format off
+  [[qljs::message("equality check result is unused; did you mean to use "
+                  "assignment (=) instead?",
+                  ARG(equals_operator))]]  //
+  // clang-format on
+  Source_Code_Span equals_operator;
+};
+
 struct Diag_Expected_Expression_In_Template_Literal {
   [[qljs::diag("E0711", Diagnostic_Severity::error)]]  //
   [[qljs::message("missing expression in placeholder within template literal",

@@ -609,6 +609,7 @@ class Parser {
   void warn_on_xor_operator_as_exponentiation(Expression::Binary_Operator *);
   void warn_on_typeof_variable_equals_undefined(Expression::Binary_Operator *);
   void warn_on_unintuitive_bitshift_precedence(Expression *ast);
+  void warn_on_equality_check_used_as_statement(Expression *ast);
   void error_on_pointless_string_compare(Expression::Binary_Operator *);
   void error_on_pointless_compare_against_literal(
       Expression::Binary_Operator *);
