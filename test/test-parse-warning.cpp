@@ -538,6 +538,21 @@ TEST_F(Test_Parse_Warning, warn_on_confusing_let_use) {
   test_parse_and_visit_statement(u8"let.prop({x} = y);"_sv, no_diags);
   test_parse_and_visit_statement(u8"let (x = y);"_sv, no_diags);
 }
+
+TEST_F(Test_Parse_Warning, invalid_operator_directly_after_postfix) {
+  test_parse_and_visit_expression(
+      u8"x++.toString()"_sv,  //
+      u8"^^^ Diag_Invalid_Operator_Directly_After_Postfix"_diag);
+  test_parse_and_visit_expression(u8"(x++).toString()"_sv, no_diags);
+  test_parse_and_visit_expression(
+      u8"x++.constructor"_sv,  //
+      u8"^^^ Diag_Invalid_Operator_Directly_After_Postfix"_diag);
+  test_parse_and_visit_expression(u8"(x++).constructor"_sv, no_diags);
+  test_parse_and_visit_expression(
+      u8"x--?.constructor"_sv,  //
+      u8"^^^ Diag_Invalid_Operator_Directly_After_Postfix"_diag);
+  test_parse_and_visit_expression(u8"(x--)?.constructor"_sv, no_diags);
+}
 }
 }
 
