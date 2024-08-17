@@ -32,7 +32,7 @@ jobs:
         run: |
           set -x
           formula_path="$(brew formula quick-lint/quick-lint-js/quick-lint-js)"
-          sed -e 's,:branch => "master",:revision => "'"$(git rev-parse HEAD)"'",' "${formula_path}"
+          sed -i -e 's,branch: "master",revision: "'"$(git rev-parse HEAD)"'",' "${formula_path}"
           printf 'updated formula:\n'
           cat "${formula_path}"
 
