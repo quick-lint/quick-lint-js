@@ -26,6 +26,7 @@ set(
   NEOVIM_FILES
   ${VIM_FILES}
   lua/lspconfig/quick_lint_js.lua
+  lua/quick-lint-js.lua
 )
 foreach (FILE IN LISTS NEOVIM_FILES)
   get_filename_component(DIR "${FILE}" DIRECTORY)

@@ -19,6 +19,9 @@ Semantic Versioning.
 
 ### Fixed
 
+* The Homebrew package is no longer missing the
+  `homebrew/share/nvim/site/lua/quick-lint-js.lua` file. This fixes the "module
+  'quick-lint-js' not found" error in the Neovim plugin.
 * quick-lint-js no longer warns about DOM types such as
   `IntersectionObserverInit`. ([#1216][])
 * `import Chart = goog.Chart;` in JavaScript code now correctly mentions
