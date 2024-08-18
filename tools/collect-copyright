@@ -834,7 +834,7 @@ class Debian:
 
         packages = []
         for line in process.stdout.splitlines():
-            match = re.match(f"^(?P<package>\S+): (?P<file>.*)$", line)
+            match = re.match(f"^(?P<package>\\S+): (?P<file>.*)$", line)
             if match is not None:
                 file = match.group("file")
                 package_name = match.group("package")
