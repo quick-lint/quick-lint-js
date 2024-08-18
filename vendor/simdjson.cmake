@@ -49,6 +49,11 @@ if (QUICK_LINT_JS_USE_BUNDLED_SIMDJSON)
   )
 else ()
   find_package(simdjson REQUIRED)
+  if (TARGET simdjson::simdjson AND NOT TARGET simdjson)
+    # Support Homebrew's simdjson 3.10.0's simdjsonTargets.cmake which defines a
+    # simdjson::simdjson target but not a simdjson target.
+    add_library(simdjson ALIAS simdjson::simdjson)
+  endif ()
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
