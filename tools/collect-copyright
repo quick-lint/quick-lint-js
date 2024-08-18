@@ -483,6 +483,10 @@ class Homebrew:
         source_uris: typing.Tuple[str, ...]
         path: str
 
+    class _NameAndVersion(typing.NamedTuple):
+        name: str
+        version: str
+
     def __init__(self, brew_prefix: str) -> None:
         self.__brew_prefix = brew_prefix
 
@@ -490,20 +494,20 @@ class Homebrew:
         self, files: typing.Iterable[str]
     ) -> typing.List[InstalledPackage]:
         files_from_unknown_formula = set()
-        formulae = set()
+        formulae_names_and_versions = set()
         for file in files:
-            formula_name = self._get_formula_name_from_path(file)
-            if formula_name is not None:
-                formulae.add(formula_name)
+            formula_name_and_version = self._get_formula_name_and_version_from_path(file)
+            if formula_name_and_version is not None:
+                formulae_names_and_versions.add(formula_name_and_version)
             else:
                 files_from_unknown_formula.add(file)
         if files_from_unknown_formula:
             warn(
                 f"could not determine formula for files: {' '.join(sorted(files_from_unknown_formula))}"
             )
-        return [self._make_installed_package(f) for f in formulae]
+        return [self._make_installed_package(formula_name=f.name, formula_version=f.version) for f in formulae_names_and_versions]
 
-    def _get_formula_name_from_path(self, path: str) -> typing.Optional[str]:
+    def _get_formula_name_and_version_from_path(self, path: str) -> typing.Optional["_NameAndVersion"]:
         try:
             # path_in_brew will look like:
             # Cellar/llvm@13/13.0.1/lib/libc++.a
@@ -511,7 +515,10 @@ class Homebrew:
                 self.__brew_prefix
             )
             if len(path_in_brew.parts) >= 2 and path_in_brew.parts[0] == "Cellar":
-                return path_in_brew.parts[1]
+                return Homebrew._NameAndVersion(
+                    name=path_in_brew.parts[1],
+                    version=path_in_brew.parts[2],
+                )
         except ValueError:
             # Path isn't in the brew prefix.
             return None
@@ -528,44 +535,49 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
                 f"could not determine copyright for formula: {package.name}"
             )
 
-    def _make_installed_package(self, formula_name: str) -> InstalledPackage:
-        installed_path = pathlib.Path(self.__brew_prefix) / "opt" / formula_name
-        version = pathlib.Path(os.readlink(installed_path)).name
-        install_receipt = json.loads(
-            (installed_path / "INSTALL_RECEIPT.json").read_text()
-        )
+    def _make_installed_package(self, formula_name: str, formula_version: str) -> InstalledPackage:
+        print("@@@", formula_name, file=sys.stderr)
+        # TODO(strager): Cache output of 'brew info'.
+        brew_info_json = subprocess.check_output(
+            [pathlib.Path(self.__brew_prefix) / "bin" / "brew", "info", "--json", "--installed"],
+            encoding="utf-8",
+        ).rstrip("\n")
+        brew_info = json.loads(brew_info_json)
 
-        tap = install_receipt["source"]["tap"]
+        formula_brew_info = None
+        for f in brew_info:
+            if f["name"] == formula_name:
+                formula_brew_info = f
+                break
+        if formula_brew_info is None:
+            raise Exception(f"Could not find formula {formula_name} in output of 'brew info --installed --json'")
+
+        installed_path = pathlib.Path(self.__brew_prefix) / "opt" / formula_name
+        #version = pathlib.Path(os.readlink(installed_path)).name
+        #install_receipt = json.loads(
+        #    (installed_path / "INSTALL_RECEIPT.json").read_text()
+        #)
+
+        #tap = install_receipt["source"]["tap"]
+        tap = formula_brew_info["tap"]
         if tap != "homebrew/core":
             raise Exception(f"Unsupported tap for formula {formula_name}: {tap}")
+        #tap_git_commit = install_receipt["source"]["tap_git_head"]
+        tap_git_commit = formula_brew_info["tap_git_head"]
 
-        formula_rb_path = pathlib.Path(install_receipt["source"]["path"])
-        # TODO(strager): Get the exact version installed, not the latest
-        # version.
-        tap_git_commit = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], encoding="utf-8", cwd=formula_rb_path.parent
-        ).rstrip("\n")
-        formula_rb_repo_path = self._relative_path_within_git_checkout(formula_rb_path)
+        #formula_rb_path = pathlib.Path(install_receipt["source"]["path"])
+        #formula_rb_repo_path = self._relative_path_within_git_checkout(formula_rb_path)
+        formula_rb_repo_path = formula_brew_info["ruby_source_path"]
 
         return self.InstalledPackage(
             name=formula_name,
             source=formula_name,
-            version=version,
+            version=formula_version,
             source_uris=[
                 f"https://github.com/Homebrew/homebrew-core/blob/{tap_git_commit}/{formula_rb_repo_path}"
             ],
             path=str(installed_path),
         )
-
-    def _relative_path_within_git_checkout(
-        self, file_path: pathlib.Path
-    ) -> pathlib.Path:
-        checkout_path = subprocess.check_output(
-            ["git", "rev-parse", "--show-toplevel"],
-            cwd=file_path.parent,
-            encoding="utf-8",
-        ).rstrip("\n")
-        return file_path.relative_to(checkout_path)
 
     def _is_llvm_file(self, file_path: str) -> bool:
         return is_path_relative(
