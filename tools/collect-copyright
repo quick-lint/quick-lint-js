@@ -536,7 +536,6 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
             )
 
     def _make_installed_package(self, formula_name: str, formula_version: str) -> InstalledPackage:
-        print("@@@", formula_name, file=sys.stderr)
         # TODO(strager): Cache output of 'brew info'.
         brew_info_json = subprocess.check_output(
             [pathlib.Path(self.__brew_prefix) / "bin" / "brew", "info", "--json", "--installed"],
@@ -553,20 +552,10 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
             raise Exception(f"Could not find formula {formula_name} in output of 'brew info --installed --json'")
 
         installed_path = pathlib.Path(self.__brew_prefix) / "opt" / formula_name
-        #version = pathlib.Path(os.readlink(installed_path)).name
-        #install_receipt = json.loads(
-        #    (installed_path / "INSTALL_RECEIPT.json").read_text()
-        #)
-
-        #tap = install_receipt["source"]["tap"]
         tap = formula_brew_info["tap"]
         if tap != "homebrew/core":
             raise Exception(f"Unsupported tap for formula {formula_name}: {tap}")
-        #tap_git_commit = install_receipt["source"]["tap_git_head"]
         tap_git_commit = formula_brew_info["tap_git_head"]
-
-        #formula_rb_path = pathlib.Path(install_receipt["source"]["path"])
-        #formula_rb_repo_path = self._relative_path_within_git_checkout(formula_rb_path)
         formula_rb_repo_path = formula_brew_info["ruby_source_path"]
 
         return self.InstalledPackage(
