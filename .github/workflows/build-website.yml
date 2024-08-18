@@ -55,12 +55,15 @@ jobs:
 
       - name: check links (dev)
         run: |
+          # HACK(strager): We write "::1" instead of "localhost" because the
+          # latter listens on IPv6 but connects on IPv4 for some reason.
+
           server_process_is_alive() {
             kill -0 "${server_pid}"
           }
           http_server_is_running() {
             curl_status=0
-            curl --no-progress-meter --head -o /dev/null 'http://localhost:9001/' || curl_status="${?}"
+            curl --no-progress-meter --head -o /dev/null 'http://[::1]:9001/' || curl_status="${?}"
             if [ "${curl_status}" -eq 7 ]; then  # 7 is 'Failed to connect to host.'
               return 1
             fi
@@ -69,14 +72,14 @@ jobs:
 
           set -x
           cd website/
-          yarn start localhost 9001 &
+          yarn start ::1 9001 &
           server_pid="${!}"
           cd ../
 
           while server_process_is_alive && ! http_server_is_running; do
             sleep 0.1
           done
-          ./website/tools/check-links.mjs http://localhost:9001/
+          ./website/tools/check-links.mjs http://[::1]:9001/
           kill "${server_pid}"
         shell: bash
 
