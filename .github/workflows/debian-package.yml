@@ -67,8 +67,9 @@ jobs:
           - {arch: amd64, runs_on: ubuntu-latest, docker_container: "debian:bullseye", name: "Debian 11 Bullseye"}
           - {arch: amd64, runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster"}
           - {arch: amd64, runs_on: ubuntu-latest, docker_container: "pureos/pureos:amber-latest", name: "PureOS Amber"}
-          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial"}
-          - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic"}
+          # TODO(strager): Fix Node.js 20 used by actions/download-artifact, or drop support for these OSs.
+          #- {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial"}
+          #- {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic"}
           - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
           - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "debian:bullseye", name: "Debian 11 Bullseye"}
           - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "debian:buster", name: "Debian 10 Buster"}
