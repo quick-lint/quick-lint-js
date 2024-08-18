@@ -14,7 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-11, name: "macOS 11"}
           - {runs_on: macos-12, name: "macOS 12"}
     runs-on: ${{ matrix.toolchain.runs_on }}
     env:
