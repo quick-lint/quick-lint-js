@@ -43,9 +43,9 @@ void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
     break;
   }
 
-  Parser p(code, &reporter, parser_options);
+  Parser p(code, parser_options);
   Variable_Analyzer var_analyzer(
-      &reporter, &options.configuration->globals(),
+      &p.diag_list_diag_reporter(), &options.configuration->globals(),
       Variable_Analyzer_Options{
           .allow_deleting_typescript_variable = !parser_options.typescript,
           .eval_can_declare_variables = !parser_options.typescript,
@@ -73,6 +73,8 @@ void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
     // TODO(strager): Should we do anything on failure? Should we show a
     // pop-up message for example? Or is the existing diagnostic enough?
   }
+
+  reporter.report(p.diags());
 
   debug_probe_publish_vector_profile();
 }
