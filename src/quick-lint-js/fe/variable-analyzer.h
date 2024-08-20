@@ -12,6 +12,7 @@
 #include <vector>
 
 namespace quick_lint_js {
+class Diag_List_Diag_Reporter;
 class Diag_Reporter;
 class Global_Declared_Variable_Set;
 struct Global_Declared_Variable;
@@ -56,7 +57,7 @@ struct Variable_Analyzer_Options {
 class Variable_Analyzer final : public Parse_Visitor_Base {
  public:
   explicit Variable_Analyzer(
-      Diag_Reporter *diag_reporter,
+      Diag_List_Diag_Reporter *diag_reporter,
       const Global_Declared_Variable_Set *global_variables,
       Variable_Analyzer_Options options);
 

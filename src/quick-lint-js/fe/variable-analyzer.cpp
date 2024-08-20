@@ -106,7 +106,7 @@ bool is_runtime_and_type(Variable_Kind);
 }
 
 Variable_Analyzer::Variable_Analyzer(
-    Diag_Reporter *diag_reporter,
+    Diag_List_Diag_Reporter *diag_reporter,
     const Global_Declared_Variable_Set *global_variables,
     Variable_Analyzer_Options options)
     : global_scope_(global_variables),
