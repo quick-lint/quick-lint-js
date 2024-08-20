@@ -1271,10 +1271,8 @@ void Lexer::roll_back_transaction(Lexer_Transaction&& transaction) {
   this->transaction_allocator_.rewind(std::move(transaction.allocator_rewind));
 }
 
-bool Lexer::transaction_has_lex_diagnostics(const Lexer_Transaction&) const {
-  Buffering_Diag_Reporter* buffered_diagnostics =
-      derived_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
-  return !buffered_diagnostics->empty();
+bool Lexer::transaction_has_lex_diagnostics(const Lexer_Transaction& transaction) const {
+  return !transaction.reporter->diags().empty();
 }
 
 void Lexer::insert_semicolon() {
