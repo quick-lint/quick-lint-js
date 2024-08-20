@@ -347,9 +347,7 @@ Expression* Parser::parse_expression(Parse_Visitor_Base& v, Precedence prec) {
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
     return ast;
   }
-  ast = this->parse_expression_remainder(v, ast, prec);
-  this->flush_diags_to_user_reporter_if_needed();
-  return ast;
+  return this->parse_expression_remainder(v, ast, prec);
 }
 
 // TODO(strager): Why do we need precedence here? Could we get rid of prec?

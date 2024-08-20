@@ -911,8 +911,6 @@ again:
                .parse_question_as_invalid = false,
            });
   }
-
-  this->flush_diags_to_user_reporter_if_needed();
 }
 
 void Parser::parse_and_visit_typescript_arrow_type_expression(

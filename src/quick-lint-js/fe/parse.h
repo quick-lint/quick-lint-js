@@ -127,13 +127,6 @@ class Parser {
     return this->lexer_.diag_list_diag_reporter();
   }
 
- private:
-  // TODO(#1154): Delete this.
-  void flush_diags_to_user_reporter_if_needed() {
-    this->lexer_.flush_diags_to_user_reporter_if_needed();
-  }
-
- public:
   // For testing and internal use only.
   [[nodiscard]] Function_Guard enter_function(Function_Attributes);
 
@@ -179,7 +172,6 @@ class Parser {
             break;
           }
 
-          this->flush_diags_to_user_reporter_if_needed();
           return false;
         });
 
@@ -859,8 +851,6 @@ class Parser {
       auto disable_guard = alloc.disable();
       this->visit_expression(ast, v, Variable_Context::rhs);
     }
-
-    this->flush_diags_to_user_reporter_if_needed();
   }
 
   Expression *parse_expression(Parse_Visitor_Base &, Precedence);

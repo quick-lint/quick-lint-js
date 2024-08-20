@@ -70,7 +70,6 @@ void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
   }
   this->check_all_jsx_attributes();
   v.visit_end_of_module();
-  this->flush_diags_to_user_reporter_if_needed();
 }
 
 bool Parser::parse_and_visit_statement(Parse_Visitor_Base &v,
@@ -785,7 +784,6 @@ parse_statement:
 
   case Token_Type::end_of_file:
   case Token_Type::right_curly:
-    this->flush_diags_to_user_reporter_if_needed();
     // Do not set is_current_typescript_namespace_non_empty_.
     return false;
 
@@ -794,7 +792,6 @@ parse_statement:
     break;
   }
 
-  this->flush_diags_to_user_reporter_if_needed();
   return true;
 }
 
@@ -1684,7 +1681,6 @@ void Parser::parse_and_visit_typescript_generic_parameters(
           });
     }
     this->skip();
-    this->flush_diags_to_user_reporter_if_needed();
     return;
   }
   for (const Source_Code_Span &comma : leading_commas) {
@@ -1909,8 +1905,6 @@ done_parsing_modifiers:
 
   // See NOTE[generic-type-parameter-visit-order].
   extends_visits.visitor().move_into(v);
-
-  this->flush_diags_to_user_reporter_if_needed();
 }
 
 void Parser::parse_and_visit_statement_block_no_scope(Parse_Visitor_Base &v) {

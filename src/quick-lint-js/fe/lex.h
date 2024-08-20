@@ -342,25 +342,9 @@ class Lexer {
 
   static Token_Type identifier_token_type(String8_View);
 
- public:
-  // TODO(#1154): Delete this.
-  void flush_diags_to_user_reporter_if_needed() {
-    int i = 0;
-    this->diags().for_each([&](Diag_Type diag_type, void* diag_data) {
-      if (i >= this->diags_reporter_to_user_) {
-        this->user_diag_reporter_->report_impl(diag_type, diag_data);
-        this->diags_reporter_to_user_ += 1;
-      }
-      i += 1;
-    });
-  }
-
- private:
   Token last_token_;
   const Char8* last_last_token_end_;
   const Char8* input_;
-  Diag_Reporter* user_diag_reporter_;  // TODO(#1154): Delete.
-  int diags_reporter_to_user_ = 0;     // TODO(#1154): Delete.
   Padded_String_View original_input_;
   Lexer_Options options_;
 

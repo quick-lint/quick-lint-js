@@ -965,7 +965,6 @@ void Parser::commit_transaction(Parser_Transaction&& transaction) {
   this->diag_reporter_ = transaction.old_diag_reporter;
 
   this->lexer_.commit_transaction(std::move(transaction.lex_transaction));
-  this->flush_diags_to_user_reporter_if_needed();
 }
 
 void Parser::roll_back_transaction(Parser_Transaction&& transaction) {
