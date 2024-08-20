@@ -43,7 +43,11 @@ class Lexer {
     jsx,  // Allows '-'.
   };
 
+  explicit Lexer(Padded_String_View input);
+  explicit Lexer(Padded_String_View input, Lexer_Options);
+  // TODO(#1154): Delete this overload.
   explicit Lexer(Padded_String_View input, Diag_Reporter*);
+  // TODO(#1154): Delete this overload.
   explicit Lexer(Padded_String_View input, Diag_Reporter*, Lexer_Options);
 
   // Return information about the current token.

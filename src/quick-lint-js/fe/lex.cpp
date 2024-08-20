@@ -225,6 +225,12 @@ bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
 }
 }
 
+Lexer::Lexer(Padded_String_View input)
+    : Lexer(input, &Null_Diag_Reporter::instance, Lexer_Options()) {}
+
+Lexer::Lexer(Padded_String_View input, Lexer_Options options)
+    : Lexer(input, &Null_Diag_Reporter::instance, options) {}
+
 Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter)
     : Lexer(input, diag_reporter, Lexer_Options()) {}
 
