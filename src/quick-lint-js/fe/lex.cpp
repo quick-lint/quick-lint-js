@@ -226,18 +226,11 @@ bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
 }
 
 Lexer::Lexer(Padded_String_View input)
-    : Lexer(input, &Null_Diag_Reporter::instance, Lexer_Options()) {}
+    : Lexer(input, Lexer_Options()) {}
 
 Lexer::Lexer(Padded_String_View input, Lexer_Options options)
-    : Lexer(input, &Null_Diag_Reporter::instance, options) {}
-
-Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter)
-    : Lexer(input, diag_reporter, Lexer_Options()) {}
-
-Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter,
-             Lexer_Options options)
     : input_(input.data()),
-      user_diag_reporter_(diag_reporter),
+      user_diag_reporter_(&Null_Diag_Reporter::instance),
       original_input_(input),
       options_(options) {
   this->last_token_.end = this->input_;

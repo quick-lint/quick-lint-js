@@ -46,7 +46,7 @@ Parser_Transaction::Parser_Transaction(Lexer* l,
           std::exchange(*diag_reporter_pointer, &this->reporter)) {}
 
 Parser::Parser(Padded_String_View input, Parser_Options options)
-    : lexer_(input, &Null_Diag_Reporter::instance,
+    : lexer_(input,
              Lexer_Options{
                  .typescript = options.typescript,
              }),
