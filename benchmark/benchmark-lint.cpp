@@ -43,7 +43,7 @@ void benchmark_lint(benchmark::State &state) {
 
   for (auto _ : state) {
     Monotonic_Allocator memory("benchmark");
-    Diag_List_Diag_Reporter diags(&memory);
+    Diag_List diags(&memory);
     Variable_Analyzer l(&diags, &config.globals(), var_options);
     visitor.copy_into(l);
 
@@ -73,8 +73,7 @@ void benchmark_parse_and_lint(benchmark::State &state) {
   Configuration config;
   for (auto _ : state) {
     Parser p(&source, p_options);
-    Variable_Analyzer l(&p.diag_list_diag_reporter(), &config.globals(),
-                        var_options);
+    Variable_Analyzer l(&p.diags(), &config.globals(), var_options);
     p.parse_and_visit_module(l);
   }
 }
@@ -114,7 +113,7 @@ void benchmark_undeclared_variable_references(benchmark::State &state) {
   Variable_Analyzer_Options var_options;
   for (auto _ : state) {
     Monotonic_Allocator memory("benchmark");
-    Diag_List_Diag_Reporter diags(&memory);
+    Diag_List diags(&memory);
     Variable_Analyzer l(&diags, &globals, var_options);
     for (Identifier &variable_use : variable_use_identifiers) {
       l.visit_variable_use(variable_use);

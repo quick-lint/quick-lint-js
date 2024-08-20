@@ -412,7 +412,7 @@ TEST(Test_Variable_Analyzer_Type,
     {
       // interface I {}
       // I;              // ERROR
-      Diag_List_Diag_Reporter v(&memory);
+      Diag_List v(&memory);
       Variable_Analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration),
                                    Variable_Kind::_interface,
@@ -420,7 +420,7 @@ TEST(Test_Variable_Analyzer_Type,
       visit_kind.visit(l);
       l.visit_end_of_module();
 
-      visit_kind.check_diagnostics(v.diags(), std::nullopt);
+      visit_kind.check_diagnostics(v, std::nullopt);
     }
 
     {
@@ -428,7 +428,7 @@ TEST(Test_Variable_Analyzer_Type,
       // {
       //   I;            // ERROR
       // }
-      Diag_List_Diag_Reporter v(&memory);
+      Diag_List v(&memory);
       Variable_Analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration),
                                    Variable_Kind::_interface,
@@ -438,7 +438,7 @@ TEST(Test_Variable_Analyzer_Type,
       l.visit_exit_block_scope();
       l.visit_end_of_module();
 
-      visit_kind.check_diagnostics(v.diags(), std::nullopt);
+      visit_kind.check_diagnostics(v, std::nullopt);
     }
 
     {
@@ -448,7 +448,7 @@ TEST(Test_Variable_Analyzer_Type,
       //     I;            // ERROR
       //   });
       // });
-      Diag_List_Diag_Reporter v(&memory);
+      Diag_List v(&memory);
       Variable_Analyzer l(&v, &default_globals, javascript_var_options);
       l.visit_variable_declaration(identifier_of(declaration),
                                    Variable_Kind::_interface,
@@ -462,7 +462,7 @@ TEST(Test_Variable_Analyzer_Type,
       l.visit_exit_function_scope();
       l.visit_end_of_module();
 
-      visit_kind.check_diagnostics(v.diags(), std::nullopt);
+      visit_kind.check_diagnostics(v, std::nullopt);
     }
 
     for (Variable_Kind outer_kind : {
@@ -483,7 +483,7 @@ TEST(Test_Variable_Analyzer_Type,
         //   interface I {}
         //   I;
         // }
-        Diag_List_Diag_Reporter v(&memory);
+        Diag_List v(&memory);
         Variable_Analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(outer_declaration),
                                      outer_kind,
@@ -496,7 +496,7 @@ TEST(Test_Variable_Analyzer_Type,
         l.visit_exit_block_scope();
         l.visit_end_of_module();
 
-        visit_kind.check_diagnostics(v.diags(), outer_kind);
+        visit_kind.check_diagnostics(v, outer_kind);
       }
 
       {
@@ -505,7 +505,7 @@ TEST(Test_Variable_Analyzer_Type,
         // {
         //   I;
         // }
-        Diag_List_Diag_Reporter v(&memory);
+        Diag_List v(&memory);
         Variable_Analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(outer_declaration),
                                      outer_kind,
@@ -518,14 +518,14 @@ TEST(Test_Variable_Analyzer_Type,
         l.visit_exit_block_scope();
         l.visit_end_of_module();
 
-        visit_kind.check_diagnostics(v.diags(), outer_kind);
+        visit_kind.check_diagnostics(v, outer_kind);
       }
 
       {
         // let I;
         // interface I {}
         // I;
-        Diag_List_Diag_Reporter v(&memory);
+        Diag_List v(&memory);
         Variable_Analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(outer_declaration),
                                      outer_kind,
@@ -536,14 +536,14 @@ TEST(Test_Variable_Analyzer_Type,
         visit_kind.visit(l);
         l.visit_end_of_module();
 
-        visit_kind.check_diagnostics(v.diags(), outer_kind);
+        visit_kind.check_diagnostics(v, outer_kind);
       }
 
       {
         // interface I {}
         // let I;
         // I;
-        Diag_List_Diag_Reporter v(&memory);
+        Diag_List v(&memory);
         Variable_Analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(declaration),
                                      Variable_Kind::_interface,
@@ -554,7 +554,7 @@ TEST(Test_Variable_Analyzer_Type,
         visit_kind.visit(l);
         l.visit_end_of_module();
 
-        visit_kind.check_diagnostics(v.diags(), outer_kind);
+        visit_kind.check_diagnostics(v, outer_kind);
       }
 
       {
@@ -563,7 +563,7 @@ TEST(Test_Variable_Analyzer_Type,
         // });
         // interface I {}
         // let I;
-        Diag_List_Diag_Reporter v(&memory);
+        Diag_List v(&memory);
         Variable_Analyzer l(&v, &default_globals, javascript_var_options);
         l.visit_enter_function_scope();
         l.visit_enter_function_scope_body();
@@ -577,7 +577,7 @@ TEST(Test_Variable_Analyzer_Type,
                                      Variable_Declaration_Flags::none);
         l.visit_end_of_module();
 
-        visit_kind.check_diagnostics(v.diags(), outer_kind);
+        visit_kind.check_diagnostics(v, outer_kind);
       }
     }
   }
@@ -606,7 +606,7 @@ TEST(Test_Variable_Analyzer_Type, mixing_non_type_and_type_only_is_okay) {
       {
         // interface C {}
         // let C;
-        Diag_List_Diag_Reporter diags(&memory);
+        Diag_List diags(&memory);
         Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(type_declaration),
                                      type_declaration_kind,
@@ -616,13 +616,13 @@ TEST(Test_Variable_Analyzer_Type, mixing_non_type_and_type_only_is_okay) {
                                      Variable_Declaration_Flags::none);
         l.visit_end_of_module();
 
-        EXPECT_THAT(diags.diags(), IsEmpty());
+        EXPECT_THAT(diags, IsEmpty());
       }
 
       {
         // let C;
         // interface C {}
-        Diag_List_Diag_Reporter diags(&memory);
+        Diag_List diags(&memory);
         Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
         l.visit_variable_declaration(identifier_of(non_type_declaration),
                                      non_type_declaration_kind,
@@ -632,7 +632,7 @@ TEST(Test_Variable_Analyzer_Type, mixing_non_type_and_type_only_is_okay) {
                                      Variable_Declaration_Flags::none);
         l.visit_end_of_module();
 
-        EXPECT_THAT(diags.diags(), IsEmpty());
+        EXPECT_THAT(diags, IsEmpty());
       }
     }
   }

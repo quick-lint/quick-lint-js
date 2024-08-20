@@ -12,8 +12,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-class Diag_List_Diag_Reporter;
-class Diag_Reporter;
+class Diag_List;
 class Global_Declared_Variable_Set;
 struct Global_Declared_Variable;
 
@@ -57,7 +56,7 @@ struct Variable_Analyzer_Options {
 class Variable_Analyzer final : public Parse_Visitor_Base {
  public:
   explicit Variable_Analyzer(
-      Diag_List_Diag_Reporter *diag_reporter,
+      Diag_List *out_diags,
       const Global_Declared_Variable_Set *global_variables,
       Variable_Analyzer_Options options);
 
@@ -415,7 +414,7 @@ class Variable_Analyzer final : public Parse_Visitor_Base {
   // with the 'declare' keyword.
   unsigned typescript_ambient_context_depth_ = 0;
 
-  Diag_Reporter *diag_reporter_;
+  Diag_List *diags_;
 
   Variable_Analyzer_Options options_;
 };

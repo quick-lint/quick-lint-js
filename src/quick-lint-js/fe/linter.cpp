@@ -45,7 +45,7 @@ void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
 
   Parser p(code, parser_options);
   Variable_Analyzer var_analyzer(
-      &p.diag_list_diag_reporter(), &options.configuration->globals(),
+      &p.diags(), &options.configuration->globals(),
       Variable_Analyzer_Options{
           .allow_deleting_typescript_variable = !parser_options.typescript,
           .eval_can_declare_variables = !parser_options.typescript,

@@ -61,8 +61,7 @@ void test_parse_and_analyze(String8_View input,
   Padded_String code(input);
 
   Parser p(&code, options.parse_options);
-  Variable_Analyzer var_analyzer(&p.diag_list_diag_reporter(), &globals,
-                                 options.analyze_options);
+  Variable_Analyzer var_analyzer(&p.diags(), &globals, options.analyze_options);
   p.parse_and_visit_module(var_analyzer);
 
   assert_diagnostics(&code, p.diags(), diag_assertions, caller);

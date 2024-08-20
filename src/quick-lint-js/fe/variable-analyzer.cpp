@@ -106,12 +106,9 @@ bool is_runtime_and_type(Variable_Kind);
 }
 
 Variable_Analyzer::Variable_Analyzer(
-    Diag_List_Diag_Reporter *diag_reporter,
-    const Global_Declared_Variable_Set *global_variables,
+    Diag_List *out_diags, const Global_Declared_Variable_Set *global_variables,
     Variable_Analyzer_Options options)
-    : global_scope_(global_variables),
-      diag_reporter_(diag_reporter),
-      options_(options) {}
+    : global_scope_(global_variables), diags_(out_diags), options_(options) {}
 
 void Variable_Analyzer::visit_enter_block_scope() { this->scopes_.push(); }
 
@@ -438,10 +435,9 @@ void Variable_Analyzer::visit_variable_assertion_signature_use(
   if (var) {
     // FIXME(strager): Should we mark the parameter as used?
   } else {
-    this->diag_reporter_->report(
-        Diag_Use_Of_Undeclared_Parameter_In_Assertion_Signature{
-            .name = name.span(),
-        });
+    this->diags_->add(Diag_Use_Of_Undeclared_Parameter_In_Assertion_Signature{
+        .name = name.span(),
+    });
   }
 }
 
@@ -464,7 +460,7 @@ void Variable_Analyzer::visit_variable_delete_use(
       this->add_variable_use_to_current_scope(std::move(used_var));
     }
   } else {
-    this->diag_reporter_->report(Diag_TypeScript_Delete_Cannot_Delete_Variables{
+    this->diags_->add(Diag_TypeScript_Delete_Cannot_Delete_Variables{
         .delete_expression =
             Source_Code_Span(delete_keyword.begin(), name.span().end()),
     });
@@ -502,10 +498,9 @@ void Variable_Analyzer::visit_variable_type_predicate_use(Identifier name) {
   if (var) {
     // FIXME(strager): Should we mark the parameter as used?
   } else {
-    this->diag_reporter_->report(
-        Diag_Use_Of_Undeclared_Parameter_In_Type_Predicate{
-            .name = name.span(),
-        });
+    this->diags_->add(Diag_Use_Of_Undeclared_Parameter_In_Type_Predicate{
+        .name = name.span(),
+    });
   }
 }
 
@@ -612,7 +607,7 @@ void Variable_Analyzer::visit_end_of_module() {
     if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
       case Used_Variable_Kind::assignment:
-        this->diag_reporter_->report(Diag_Assignment_To_Undeclared_Variable{
+        this->diags_->add(Diag_Assignment_To_Undeclared_Variable{
             .assignment = used_var.name.span()});
         break;
       case Used_Variable_Kind::_delete:
@@ -620,14 +615,14 @@ void Variable_Analyzer::visit_end_of_module() {
         // deletable.
         break;
       case Used_Variable_Kind::type:
-        this->diag_reporter_->report(
+        this->diags_->add(
             Diag_Use_Of_Undeclared_Type{.name = used_var.name.span()});
         break;
       case Used_Variable_Kind::_export:
       case Used_Variable_Kind::_export_default:
       case Used_Variable_Kind::use:
       case Used_Variable_Kind::use_in_type:
-        this->diag_reporter_->report(
+        this->diags_->add(
             Diag_Use_Of_Undeclared_Variable{.name = used_var.name.span()});
         break;
       case Used_Variable_Kind::_typeof:
@@ -780,7 +775,7 @@ void Variable_Analyzer::propagate_variable_declarations_to_parent_scope() {
           (already_declared_variable->kind == Variable_Kind::_const ||
            already_declared_variable->kind == Variable_Kind::_let ||
            already_declared_variable->kind == Variable_Kind::_var)) {
-        this->diag_reporter_->report(Diag_Unused_Variable_Shadows{
+        this->diags_->add(Diag_Unused_Variable_Shadows{
             .shadowing_declaration = var.declaration.span(),
             .shadowed_declaration =
                 already_declared_variable->declaration.span(),
@@ -851,18 +846,18 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
   case Variable_Kind::_import_alias:
   case Variable_Kind::_namespace:
     if (is_global_variable) {
-      this->diag_reporter_->report(Diag_Assignment_To_Const_Global_Variable{
+      this->diags_->add(Diag_Assignment_To_Const_Global_Variable{
           .assignment = assignment.span()});
     } else {
       if (is_assigned_before_declaration) {
-        this->diag_reporter_->report(
+        this->diags_->add(
             Diag_Assignment_To_Const_Variable_Before_Its_Declaration{
                 .declaration = declaration->span(),
                 .assignment = assignment.span(),
                 .var_kind = kind,
             });
       } else {
-        this->diag_reporter_->report(Diag_Assignment_To_Const_Variable{
+        this->diags_->add(Diag_Assignment_To_Const_Variable{
             .declaration = declaration->span(),
             .assignment = assignment.span(),
             .var_kind = kind});
@@ -879,7 +874,7 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
     // HACK(#1141): Avoid false positives in TypeScript by disabling this
     // diagnostic for now.
     if (!this->options_.import_variable_can_be_runtime_or_type) {
-      this->diag_reporter_->report(Diag_Assignment_To_Imported_Variable{
+      this->diags_->add(Diag_Assignment_To_Imported_Variable{
           .declaration = declaration->span(),
           .assignment = assignment.span(),
           .var_kind = kind,
@@ -895,7 +890,7 @@ void Variable_Analyzer::report_error_if_assignment_is_illegal(
       QLJS_WARNING_PUSH
       QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 
-      this->diag_reporter_->report(Diag_Assignment_Before_Variable_Declaration{
+      this->diags_->add(Diag_Assignment_Before_Variable_Declaration{
           .assignment = assignment.span(),
           .declaration = declaration->span(),
       });
@@ -947,7 +942,7 @@ void Variable_Analyzer::report_errors_for_variable_use(
       used_var.kind == Used_Variable_Kind::_delete) {
     // TODO(strager): What if the variable was parenthesized? We should
     // include the closing parenthesis.
-    this->diag_reporter_->report(Diag_Redundant_Delete_Statement_On_Variable{
+    this->diags_->add(Diag_Redundant_Delete_Statement_On_Variable{
         .delete_expression = Source_Code_Span(used_var.delete_keyword_begin,
                                               used_var.name.span().end()),
     });
@@ -958,11 +953,10 @@ void Variable_Analyzer::report_errors_for_variable_use(
         declared.declaration_scope ==
             Declared_Variable_Scope::declared_in_descendant_scope &&
         used_var.kind == Used_Variable_Kind::use) {
-      this->diag_reporter_->report(
-          Diag_Function_Call_Before_Declaration_In_Block_Scope{
-              .use = used_var.name.span(),
-              .declaration = declared.declaration.span(),
-          });
+      this->diags_->add(Diag_Function_Call_Before_Declaration_In_Block_Scope{
+          .use = used_var.name.span(),
+          .declaration = declared.declaration.span(),
+      });
     }
 
     if (use_is_before_declaration) {
@@ -981,7 +975,7 @@ void Variable_Analyzer::report_errors_for_variable_use(
           if (declared.kind == Variable_Kind::_class ||
               declared.kind == Variable_Kind::_const ||
               declared.kind == Variable_Kind::_let) {
-            this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
+            this->diags_->add(Diag_Variable_Used_Before_Declaration{
                 .use = used_var.name.span(),
                 .declaration = declared.declaration.span(),
             });
@@ -995,7 +989,7 @@ void Variable_Analyzer::report_errors_for_variable_use(
           break;
         case Used_Variable_Kind::type:
           if (declared.kind == Variable_Kind::_generic_parameter) {
-            this->diag_reporter_->report(Diag_Variable_Used_Before_Declaration{
+            this->diags_->add(Diag_Variable_Used_Before_Declaration{
                 .use = used_var.name.span(),
                 .declaration = declared.declaration.span(),
             });
@@ -1220,11 +1214,11 @@ bool Variable_Analyzer::report_error_if_variable_declaration_conflicts(
     bool already_declared_is_global_variable =
         already_declared_var.name == nullptr;
     if (already_declared_is_global_variable) {
-      this->diag_reporter_->report(Diag_Redeclaration_Of_Global_Variable{
+      this->diags_->add(Diag_Redeclaration_Of_Global_Variable{
           .redeclaration = newly_declared_var.declaration.span(),
       });
     } else {
-      this->diag_reporter_->report(Diag_Redeclaration_Of_Variable{
+      this->diags_->add(Diag_Redeclaration_Of_Variable{
           .redeclaration = newly_declared_var.declaration.span(),
           .original_declaration = already_declared_var.name->span(),
       });

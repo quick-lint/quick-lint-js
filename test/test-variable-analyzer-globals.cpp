@@ -202,23 +202,23 @@ TEST_F(Test_Variable_Analyzer_Globals, global_variables_are_usable) {
   // Array;
   for (const Char8 *global_variable : writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    Diag_List_Diag_Reporter diags(&this->memory_);
+    Diag_List diags(&this->memory_);
     Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
     l.visit_variable_assignment(identifier_of(global_variable),
                                 Variable_Assignment_Flags::none);
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
-    EXPECT_THAT(diags.diags(), IsEmpty());
+    EXPECT_THAT(diags, IsEmpty());
   }
 
   // NaN;
   for (const Char8 *global_variable : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    Diag_List_Diag_Reporter diags(&this->memory_);
+    Diag_List diags(&this->memory_);
     Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
-    EXPECT_THAT(diags.diags(), IsEmpty());
+    EXPECT_THAT(diags, IsEmpty());
   }
 }
 
@@ -228,14 +228,14 @@ TEST_F(Test_Variable_Analyzer_Globals,
     SCOPED_TRACE(out_string8(global_variable));
 
     // NaN = null;  // ERROR
-    Diag_List_Diag_Reporter diags(&this->memory_);
+    Diag_List diags(&this->memory_);
     Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
     l.visit_variable_assignment(identifier_of(global_variable),
                                 Variable_Assignment_Flags::none);
     l.visit_end_of_module();
 
     auto *diag = get_only_diagnostic<Diag_Assignment_To_Const_Global_Variable>(
-        diags.diags(), Diag_Type::Diag_Assignment_To_Const_Global_Variable);
+        diags, Diag_Type::Diag_Assignment_To_Const_Global_Variable);
     ASSERT_NE(diag, nullptr);
     EXPECT_TRUE(same_pointers(diag->assignment, span_of(global_variable)));
   }
@@ -246,7 +246,7 @@ TEST_F(Test_Variable_Analyzer_Globals,
     // (() => {
     //   NaN = null;  // ERROR
     // });
-    Diag_List_Diag_Reporter diags(&this->memory_);
+    Diag_List diags(&this->memory_);
     Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -256,7 +256,7 @@ TEST_F(Test_Variable_Analyzer_Globals,
     l.visit_end_of_module();
 
     auto *diag = get_only_diagnostic<Diag_Assignment_To_Const_Global_Variable>(
-        diags.diags(), Diag_Type::Diag_Assignment_To_Const_Global_Variable);
+        diags, Diag_Type::Diag_Assignment_To_Const_Global_Variable);
     ASSERT_NE(diag, nullptr);
     EXPECT_TRUE(same_pointers(diag->assignment, span_of(global_variable)));
   }
@@ -265,11 +265,11 @@ TEST_F(Test_Variable_Analyzer_Globals,
 TEST_F(Test_Variable_Analyzer_Globals, nodejs_global_variables_are_usable) {
   for (const Char8 *global_variable : nodejs_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    Diag_List_Diag_Reporter diags(&this->memory_);
+    Diag_List diags(&this->memory_);
     Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
-    EXPECT_THAT(diags.diags(), IsEmpty());
+    EXPECT_THAT(diags, IsEmpty());
   }
 }
 
@@ -278,7 +278,7 @@ TEST_F(Test_Variable_Analyzer_Globals,
   for (Variable_Declaration_Flags flags :
        {Variable_Declaration_Flags::none,
         Variable_Declaration_Flags::initialized_with_equals}) {
-    Diag_List_Diag_Reporter diags(&this->memory_);
+    Diag_List diags(&this->memory_);
     Variable_Analyzer l(&diags, &default_globals, javascript_var_options);
     // Intentionally excluded: __dirname, __filename, exports, module, require
     for (const Char8 *global_variable : nodejs_global_variables) {
@@ -287,7 +287,7 @@ TEST_F(Test_Variable_Analyzer_Globals,
     }
     l.visit_end_of_module();
 
-    EXPECT_THAT(diags.diags(), IsEmpty());
+    EXPECT_THAT(diags, IsEmpty());
   }
 }
 
@@ -298,25 +298,25 @@ TEST_F(Test_Variable_Analyzer_Globals,
 
     // Awaited;
     {
-      Diag_List_Diag_Reporter diags(&this->memory_);
+      Diag_List diags(&this->memory_);
       Variable_Analyzer l(&diags, &default_globals, typescript_var_options);
       l.visit_variable_use(identifier_of(global_variable));
       l.visit_end_of_module();
       auto *diag = get_only_diagnostic<Diag_Use_Of_Undeclared_Variable>(
-          diags.diags(), Diag_Type::Diag_Use_Of_Undeclared_Variable);
+          diags, Diag_Type::Diag_Use_Of_Undeclared_Variable);
       ASSERT_NE(diag, nullptr);
       EXPECT_TRUE(same_pointers(diag->name, span_of(global_variable)));
     }
 
     // Awaited = null;
     {
-      Diag_List_Diag_Reporter diags(&this->memory_);
+      Diag_List diags(&this->memory_);
       Variable_Analyzer l(&diags, &default_globals, typescript_var_options);
       l.visit_variable_assignment(identifier_of(global_variable),
                                   Variable_Assignment_Flags::none);
       l.visit_end_of_module();
       auto *diag = get_only_diagnostic<Diag_Assignment_To_Undeclared_Variable>(
-          diags.diags(), Diag_Type::Diag_Assignment_To_Undeclared_Variable);
+          diags, Diag_Type::Diag_Assignment_To_Undeclared_Variable);
       ASSERT_NE(diag, nullptr);
       EXPECT_TRUE(same_pointers(diag->assignment, span_of(global_variable)));
     }
@@ -328,11 +328,11 @@ TEST_F(Test_Variable_Analyzer_Globals,
   // null as Awaited;
   for (const Char8 *global_variable : type_only_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    Diag_List_Diag_Reporter diags(&this->memory_);
+    Diag_List diags(&this->memory_);
     Variable_Analyzer l(&diags, &default_globals, typescript_var_options);
     l.visit_variable_type_use(identifier_of(global_variable));
     l.visit_end_of_module();
-    EXPECT_THAT(diags.diags(), IsEmpty());
+    EXPECT_THAT(diags, IsEmpty());
   }
 }
 
@@ -348,7 +348,7 @@ TEST_F(Test_Variable_Analyzer_Globals,
   const Char8 anything_1_declaration[] = u8"thisVariableDoesNotExistInAnyList";
   const Char8 anything_2_use[] = u8"iDoNotExistInAnyList";
 
-  Diag_List_Diag_Reporter diags(&this->memory_);
+  Diag_List diags(&this->memory_);
   Variable_Analyzer l(&diags, &globals, javascript_var_options);
   l.visit_variable_declaration(identifier_of(builtin_1_declaration),
                                Variable_Kind::_let,
@@ -360,7 +360,7 @@ TEST_F(Test_Variable_Analyzer_Globals,
   l.visit_variable_use(identifier_of(anything_2_use));
   l.visit_end_of_module();
 
-  EXPECT_THAT(diags.diags(), IsEmpty());
+  EXPECT_THAT(diags, IsEmpty());
 }
 }
 }
