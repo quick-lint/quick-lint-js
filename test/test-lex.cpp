@@ -37,6 +37,12 @@ using ::testing::VariantWith;
 
 namespace quick_lint_js {
 namespace {
+// Contains pointers to objects inside a Lexer.
+struct Tokens_And_Diags {
+  std::vector<Token> tokens;
+  Diag_List* diags;
+};
+
 class Test_Lex : public ::testing::Test {
  protected:
   // NOTE(strager): These functions take callbacks as function pointers to
@@ -78,7 +84,7 @@ class Test_Lex : public ::testing::Test {
   void check_tokens_with_errors(
       String8_View input, Span<const Diagnostic_Assertion>,
       std::initializer_list<Token_Type> expected_token_types, Source_Location);
-  std::vector<Token> lex_to_eof(Padded_String_View, Diag_Reporter&);
+  Tokens_And_Diags lex_to_eof_returning_diags(Padded_String_View);
   std::vector<Token> lex_to_eof(Padded_String_View,
                                 Source_Location = Source_Location::current());
   std::vector<Token> lex_to_eof(String8_View,
@@ -2931,25 +2937,24 @@ void Test_Lex::check_single_token_with_errors(
 void Test_Lex::check_single_token_with_errors(
     String8_View input, Span<const Diagnostic_Assertion> diagnostic_assertions,
     String8_View expected_identifier_name, Source_Location caller) {
-  Diag_List_Diag_Reporter errors(&this->memory_);
   Padded_String code(input);
-  std::vector<Token> lexed_tokens = this->lex_to_eof(&code, errors);
+  Tokens_And_Diags lexed = this->lex_to_eof_returning_diags(&code);
 
   EXPECT_THAT_AT_CALLER(
-      lexed_tokens,
+      lexed.tokens,
       ElementsAreArray({
           ::testing::Field("type", &Token::type,
                            ::testing::AnyOf(Token_Type::identifier,
                                             Token_Type::private_identifier)),
       }));
-  if (lexed_tokens.size() == 1 &&
-      (lexed_tokens[0].type == Token_Type::identifier ||
-       lexed_tokens[0].type == Token_Type::private_identifier)) {
-    EXPECT_EQ_AT_CALLER(lexed_tokens[0].identifier_name().normalized_name(),
+  if (lexed.tokens.size() == 1 &&
+      (lexed.tokens[0].type == Token_Type::identifier ||
+       lexed.tokens[0].type == Token_Type::private_identifier)) {
+    EXPECT_EQ_AT_CALLER(lexed.tokens[0].identifier_name().normalized_name(),
                         expected_identifier_name);
   }
 
-  assert_diagnostics(&code, errors.diags(), diagnostic_assertions, caller);
+  assert_diagnostics(&code, *lexed.diags, diagnostic_assertions, caller);
 }
 
 void Test_Lex::check_tokens(
@@ -3003,31 +3008,29 @@ void Test_Lex::check_tokens_with_errors(
     String8_View input, Span<const Diagnostic_Assertion> diag_assertions,
     std::initializer_list<Token_Type> expected_token_types,
     Source_Location caller) {
-  Diag_List_Diag_Reporter errors(&this->memory_);
   Padded_String code(input);
-  std::vector<Token> lexed_tokens = this->lex_to_eof(&code, errors);
+  Tokens_And_Diags lexed = this->lex_to_eof_returning_diags(&code);
 
   std::vector<Token_Type> lexed_token_types;
-  for (const Token& t : lexed_tokens) {
+  for (const Token& t : lexed.tokens) {
     lexed_token_types.push_back(t.type);
   }
 
   EXPECT_THAT_AT_CALLER(lexed_token_types,
                         ::testing::ElementsAreArray(expected_token_types));
 
-  assert_diagnostics(&code, errors.diags(), diag_assertions, caller);
+  assert_diagnostics(&code, *lexed.diags, diag_assertions, caller);
 }
 
 std::vector<Token> Test_Lex::lex_to_eof(Padded_String_View input,
                                         Source_Location caller) {
-  Diag_List_Diag_Reporter diags(&this->memory_);
-  std::vector<Token> tokens = this->lex_to_eof(input, diags);
-  assert_diagnostics(input, diags.diags(), {}, caller);
-  return tokens;
+  Tokens_And_Diags lexed = this->lex_to_eof_returning_diags(input);
+  assert_diagnostics(input, *lexed.diags, {}, caller);
+  return lexed.tokens;
 }
 
-std::vector<Token> Test_Lex::lex_to_eof(Padded_String_View input,
-                                        Diag_Reporter& errors) {
+Tokens_And_Diags Test_Lex::lex_to_eof_returning_diags(
+    Padded_String_View input) {
   Lexer& l = this->make_lexer(input);
   std::vector<Token> tokens;
   while (l.peek().type != Token_Type::end_of_file) {
@@ -3038,11 +3041,10 @@ std::vector<Token> Test_Lex::lex_to_eof(Padded_String_View input,
       l.skip();
     }
   }
-  // TODO(#1154): Remove or deduplicate with quick_lint_js::parse_and_lint.
-  l.diags().for_each([&](Diag_Type diag_type, void* diag_data) {
-    errors.report_impl(diag_type, diag_data);
-  });
-  return tokens;
+  return Tokens_And_Diags{
+      .tokens = std::move(tokens),
+      .diags = &l.diags(),
+  };
 }
 
 std::vector<Token> Test_Lex::lex_to_eof(String8_View input,
