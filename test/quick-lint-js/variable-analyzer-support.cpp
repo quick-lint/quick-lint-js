@@ -60,16 +60,12 @@ void test_parse_and_analyze(String8_View input,
   Monotonic_Allocator memory("test");
   Padded_String code(input);
 
-  Failing_Diag_Reporter failing_diag_reporter;
-  Diag_List_Diag_Reporter diags(&memory);
-
-  Parser p(&code, &diags, options.parse_options);
-
-  Variable_Analyzer var_analyzer(&diags, &globals, options.analyze_options);
-
+  Parser p(&code, options.parse_options);
+  Variable_Analyzer var_analyzer(&p.diag_list_diag_reporter(), &globals,
+                                 options.analyze_options);
   p.parse_and_visit_module(var_analyzer);
 
-  assert_diagnostics(&code, diags.diags(), diag_assertions, caller);
+  assert_diagnostics(&code, p.diags(), diag_assertions, caller);
 }
 }
 

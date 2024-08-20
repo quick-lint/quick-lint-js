@@ -125,6 +125,11 @@ class Parser {
   // Returns all the diagnostics reported so far by the parser or the lexer.
   Diag_List &diags() { return this->lexer_.diags(); }
 
+  // TODO(#1154): Delete.
+  Diag_List_Diag_Reporter &diag_list_diag_reporter() {
+    return this->lexer_.diag_list_diag_reporter();
+  }
+
  private:
   // TODO(#1154): Delete this.
   void flush_diags_to_user_reporter_if_needed() {
