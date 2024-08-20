@@ -93,7 +93,7 @@ class Test_Parser {
 
   explicit Test_Parser(String8_View input, const Parser_Options& options,
                        Capture_Diags_Tag)
-      : code_(input), parser_(&this->code_, &this->diag_reporter_, options) {}
+      : code_(input), parser_(&this->code_, options) {}
 
   // Fails the test if there are any diagnostics during parsing.
   explicit Test_Parser(String8_View input)
@@ -184,9 +184,6 @@ class Test_Parser {
                           Source_Location caller);
 
  private:
-  Monotonic_Allocator diag_allocator_{"Test_Parser::diag_allocator_"};
-  Diag_List_Diag_Reporter diag_reporter_{&this->diag_allocator_};
-
   Padded_String code_;
   Spy_Visitor errors_;
   Failing_Diag_Reporter failing_reporter_;
@@ -204,7 +201,7 @@ class Test_Parser {
   std::vector<Visited_Variable_Declaration>& variable_declarations =
       this->errors_.variable_declarations;
   std::vector<String8>& variable_uses = this->errors_.variable_uses;
-  const Diag_List& errors = this->diag_reporter_.diags();
+  const Diag_List& errors = this->parser_.diags();
   Padded_String_View code = Padded_String_View(&this->code_);
 };
 

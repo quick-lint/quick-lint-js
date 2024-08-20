@@ -115,6 +115,8 @@ class Parser {
   class Depth_Guard;
   class Function_Guard;
 
+  explicit Parser(Padded_String_View input, Parser_Options options);
+  // TODO(#1154): Delete.
   explicit Parser(Padded_String_View input, Diag_Reporter *diag_reporter,
                   Parser_Options options);
 

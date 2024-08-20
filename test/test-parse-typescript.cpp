@@ -85,9 +85,8 @@ TEST_F(Test_Parse_TypeScript, no_crash) {
            u8"export declare()"_sv,
        }) {
     Monotonic_Allocator memory("test");
-    Diag_List_Diag_Reporter diags(&memory);
     Padded_String code_string(code);
-    Parser p(&code_string, &diags, typescript_options);
+    Parser p(&code_string, typescript_options);
     Spy_Visitor v;
     // Should not crash:
     p.parse_and_visit_module_catching_fatal_parse_errors(v);
