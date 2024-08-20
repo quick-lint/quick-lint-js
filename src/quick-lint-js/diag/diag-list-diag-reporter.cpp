@@ -11,6 +11,8 @@ Diag_List_Diag_Reporter::Diag_List_Diag_Reporter(Memory_Resource* memory)
 
 Diag_List_Diag_Reporter::~Diag_List_Diag_Reporter() = default;
 
+Diag_List& Diag_List_Diag_Reporter::diags() { return this->diags_; }
+
 const Diag_List& Diag_List_Diag_Reporter::diags() const { return this->diags_; }
 
 void Diag_List_Diag_Reporter::report_impl(Diag_Type type, void* diag) {

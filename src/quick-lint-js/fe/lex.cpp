@@ -231,7 +231,7 @@ Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter)
 Lexer::Lexer(Padded_String_View input, Diag_Reporter* diag_reporter,
              Lexer_Options options)
     : input_(input.data()),
-      diag_reporter_(diag_reporter),
+      user_diag_reporter_(diag_reporter),
       original_input_(input),
       options_(options) {
   this->last_token_.end = this->input_;
@@ -266,6 +266,8 @@ void Lexer::parse_bom_before_shebang() {
   while (!this->try_parse_current_token()) {
     // Loop.
   }
+
+  this->flush_diags_to_user_reporter_if_needed();
 }
 
 bool Lexer::try_parse_current_token() {
@@ -1062,6 +1064,8 @@ retry:
     }
     break;
   }
+
+  this->flush_diags_to_user_reporter_if_needed();
 }
 
 void Lexer::skip_in_jsx_children() {
@@ -1241,6 +1245,8 @@ next:
 
   this->input_ = c;
   this->last_token_.end = this->input_;
+
+  this->flush_diags_to_user_reporter_if_needed();
 }
 
 Lexer_Transaction Lexer::begin_transaction() {
@@ -1261,6 +1267,8 @@ void Lexer::commit_transaction(Lexer_Transaction&& transaction) {
   this->diag_reporter_ = transaction.old_diag_reporter;
 
   transaction.reporter.reset();
+
+  this->flush_diags_to_user_reporter_if_needed();
 }
 
 void Lexer::roll_back_transaction(Lexer_Transaction&& transaction) {
@@ -2300,6 +2308,8 @@ void Lexer::skip_jsx_text() {
 done:
   // TODO(strager): Should we set has_leading_newline?
   this->input_ = c;
+
+  this->flush_diags_to_user_reporter_if_needed();
 }
 
 bool Lexer::is_eof(const Char8* input) const {

@@ -15,6 +15,7 @@ class Diag_List_Diag_Reporter final : public Diag_Reporter {
 
   ~Diag_List_Diag_Reporter() override;
 
+  Diag_List& diags();
   const Diag_List& diags() const;
 
   void report_impl(Diag_Type type, void* diag) override;
