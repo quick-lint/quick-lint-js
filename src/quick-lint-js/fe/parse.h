@@ -120,6 +120,16 @@ class Parser {
 
   quick_lint_js::Lexer &lexer() { return this->lexer_; }
 
+  // Returns all the diagnostics reported so far by the parser or the lexer.
+  Diag_List &diags() { return this->lexer_.diags(); }
+
+ private:
+  // TODO(#1154): Delete this.
+  void flush_diags_to_user_reporter_if_needed() {
+    this->lexer_.flush_diags_to_user_reporter_if_needed();
+  }
+
+ public:
   // For testing and internal use only.
   [[nodiscard]] Function_Guard enter_function(Function_Attributes);
 
@@ -165,6 +175,7 @@ class Parser {
             break;
           }
 
+          this->flush_diags_to_user_reporter_if_needed();
           return false;
         });
 
@@ -844,6 +855,8 @@ class Parser {
       auto disable_guard = alloc.disable();
       this->visit_expression(ast, v, Variable_Context::rhs);
     }
+
+    this->flush_diags_to_user_reporter_if_needed();
   }
 
   Expression *parse_expression(Parse_Visitor_Base &, Precedence);
@@ -1097,7 +1110,6 @@ class Parser {
       const;
 
   quick_lint_js::Lexer lexer_;
-  Diag_Reporter *diag_reporter_;
   Parser_Options options_;
   Expression_Arena expressions_;
 
@@ -1106,6 +1118,8 @@ class Parser {
 
   // Memory used for strings in diagnostic messages.
   Monotonic_Allocator diagnostic_memory_{"parser::diagnostic_memory_"};
+
+  Diag_Reporter *diag_reporter_ = &this->lexer_.diag_list_diag_reporter();
 
   // Memory used for TypeScript type expressions.
   // TODO(strager): Rewind periodically (e.g. after parsing a function body).

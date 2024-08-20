@@ -51,7 +51,6 @@ Parser::Parser(Padded_String_View input, Diag_Reporter* diag_reporter,
              Lexer_Options{
                  .typescript = options.typescript,
              }),
-      diag_reporter_(diag_reporter),
       options_(options) {}
 
 Parser::Function_Guard Parser::enter_function(Function_Attributes attributes) {
@@ -967,6 +966,7 @@ void Parser::commit_transaction(Parser_Transaction&& transaction) {
   this->diag_reporter_ = transaction.old_diag_reporter;
 
   this->lexer_.commit_transaction(std::move(transaction.lex_transaction));
+  this->flush_diags_to_user_reporter_if_needed();
 }
 
 void Parser::roll_back_transaction(Parser_Transaction&& transaction) {
