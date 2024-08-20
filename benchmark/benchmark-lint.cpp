@@ -35,7 +35,7 @@ void benchmark_lint(benchmark::State &state) {
 
   Configuration config;
   Parser_Options p_options;
-  Parser p(&source, &Null_Diag_Reporter::instance, p_options);
+  Parser p(&source, p_options);
   Buffering_Visitor visitor(new_delete_resource());
   p.parse_and_visit_module(visitor);
 
@@ -45,6 +45,10 @@ void benchmark_lint(benchmark::State &state) {
     Variable_Analyzer l(&Null_Diag_Reporter::instance, &config.globals(),
                         var_options);
     visitor.copy_into(l);
+
+    // FIXME(strager): This does not deallocate memory. Memory usage will grow
+    // and grow and grow.
+    p.diags().clear();
   }
 }
 BENCHMARK(benchmark_lint);
@@ -67,7 +71,7 @@ void benchmark_parse_and_lint(benchmark::State &state) {
   Variable_Analyzer_Options var_options;
   Configuration config;
   for (auto _ : state) {
-    Parser p(&source, &Null_Diag_Reporter::instance, p_options);
+    Parser p(&source, p_options);
     Variable_Analyzer l(&Null_Diag_Reporter::instance, &config.globals(),
                         var_options);
     p.parse_and_visit_module(l);
