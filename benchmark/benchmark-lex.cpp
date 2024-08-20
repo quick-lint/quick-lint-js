@@ -12,7 +12,7 @@ namespace {
 void benchmark_lex(::benchmark::State &state, String8_View raw_source) {
   Padded_String source(raw_source);
   for (auto _ : state) {
-    Lexer l(&source, &Null_Diag_Reporter::instance);
+    Lexer l(&source);
     while (l.peek().type != Token_Type::end_of_file) {
       l.skip();
     }
