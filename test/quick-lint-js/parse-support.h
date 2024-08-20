@@ -102,42 +102,62 @@ class Test_Parser {
   // Fails the test if there are any diagnostics during parsing.
   explicit Test_Parser(String8_View input, const Parser_Options& options)
       : code_(input),
-        parser_(&this->code_, &this->failing_reporter_, options) {}
+        parser_(&this->code_, options),
+        fail_on_any_diagnostic_(true) {}
 
-  Expression* parse_expression() {
-    return this->parser_.parse_expression(this->errors_);
+  Expression* parse_expression(
+      Source_Location caller = Source_Location::current()) {
+    Expression* ast = this->parser_.parse_expression(this->errors_);
+    this->check_diagnostics(caller);
+    return ast;
   }
 
-  void parse_and_visit_expression() {
+  void parse_and_visit_expression(
+      Source_Location caller = Source_Location::current()) {
     this->parser_.parse_and_visit_expression(this->errors_);
+    this->check_diagnostics(caller);
   }
 
-  void parse_and_visit_statement() {
+  void parse_and_visit_statement(
+      Source_Location caller = Source_Location::current()) {
     EXPECT_TRUE(this->parser_.parse_and_visit_statement(this->errors_));
+    this->check_diagnostics(caller);
   }
 
-  void parse_and_visit_statement(Parser::Parse_Statement_Options options) {
+  void parse_and_visit_statement(
+      Parser::Parse_Statement_Options options,
+      Source_Location caller = Source_Location::current()) {
     EXPECT_TRUE(
         this->parser_.parse_and_visit_statement(this->errors_, options));
+    this->check_diagnostics(caller);
   }
 
-  void parse_and_visit_module() {
+  void parse_and_visit_module(
+      Source_Location caller = Source_Location::current()) {
     this->parser_.parse_and_visit_module(this->errors_);
+    this->check_diagnostics(caller);
   }
 
-  bool parse_and_visit_module_catching_fatal_parse_errors() {
-    return this->parser_.parse_and_visit_module_catching_fatal_parse_errors(
+  bool parse_and_visit_module_catching_fatal_parse_errors(
+      Source_Location caller = Source_Location::current()) {
+    bool ok = this->parser_.parse_and_visit_module_catching_fatal_parse_errors(
         this->errors_);
+    this->check_diagnostics(caller);
+    return ok;
   }
 
   // Does not emit visit_enter_type_scope or visit_exit_type_scope.
-  void parse_and_visit_typescript_type_expression() {
+  void parse_and_visit_typescript_type_expression(
+      Source_Location caller = Source_Location::current()) {
     this->parser_.parse_and_visit_typescript_type_expression_no_scope(
         this->errors_);
+    this->check_diagnostics(caller);
   }
 
-  void parse_and_visit_typescript_generic_parameters() {
+  void parse_and_visit_typescript_generic_parameters(
+      Source_Location caller = Source_Location::current()) {
     this->parser_.parse_and_visit_typescript_generic_parameters(this->errors_);
+    this->check_diagnostics(caller);
   }
 
   [[nodiscard]] quick_lint_js::Parser::Class_Guard enter_class() {
@@ -184,10 +204,17 @@ class Test_Parser {
                           Source_Location caller);
 
  private:
+  void check_diagnostics(Source_Location caller) {
+    if (this->fail_on_any_diagnostic_) {
+      this->assert_diagnostics({}, caller);
+    }
+  }
+
   Padded_String code_;
   Spy_Visitor errors_;
   Failing_Diag_Reporter failing_reporter_;
   quick_lint_js::Parser parser_;
+  bool fail_on_any_diagnostic_ = false;
 
  public:
   // Aliases for convenience.
