@@ -28,7 +28,7 @@ TEST(Test_Variable_Analyzer_Parse, generic_parameter_use_before_declaration) {
       u8"function f<T extends T>() {}"_sv,
       u8"                     ^ Diag_Cyclic_TypeScript_Type_Definition.use\n"_diag
       u8"           ^ .declaration"_diag,
-      typescript_analyze_options.with_allow_parse_errors(), default_globals);
+      typescript_analyze_options, default_globals);
 }
 
 TEST(
@@ -101,8 +101,7 @@ TEST(Test_Variable_Analyzer_Parse, escape_sequence_in_keyword_identifier) {
   // The linter should not report that 'finally' is undeclared.
   test_parse_and_analyze(u8"let which = \\u{66}inally;"_sv,
                          u8"Diag_Keywords_Cannot_Contain_Escape_Sequences"_diag,
-                         javascript_analyze_options.with_allow_parse_errors(),
-                         default_globals);
+                         javascript_analyze_options, default_globals);
 }
 
 TEST(Test_Variable_Analyzer_Parse, delete_local_variable) {

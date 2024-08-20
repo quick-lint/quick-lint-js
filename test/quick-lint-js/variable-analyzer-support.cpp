@@ -63,11 +63,7 @@ void test_parse_and_analyze(String8_View input,
   Failing_Diag_Reporter failing_diag_reporter;
   Diag_List_Diag_Reporter diags(&memory);
 
-  Parser p(&code,
-           options.allow_parse_errors
-               ? base_cast<Diag_Reporter*>(&diags)
-               : base_cast<Diag_Reporter*>(&failing_diag_reporter),
-           options.parse_options);
+  Parser p(&code, &diags, options.parse_options);
 
   Variable_Analyzer var_analyzer(&diags, &globals, options.analyze_options);
 

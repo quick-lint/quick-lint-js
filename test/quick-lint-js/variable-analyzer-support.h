@@ -33,17 +33,6 @@ constexpr Variable_Analyzer_Options typescript_var_options =
 struct Test_Parse_And_Analyze_Options {
   Parser_Options parse_options;
   Variable_Analyzer_Options analyze_options;
-
-  // Our variable analyzer tests should have valid code as input. By default we
-  // don't want to accidentally test parse errors when we're testing the
-  // variable analyzer.
-  bool allow_parse_errors = false;
-
-  Test_Parse_And_Analyze_Options with_allow_parse_errors() const {
-    Test_Parse_And_Analyze_Options o = *this;
-    o.allow_parse_errors = true;
-    return o;
-  }
 };
 
 extern const Test_Parse_And_Analyze_Options javascript_analyze_options;
