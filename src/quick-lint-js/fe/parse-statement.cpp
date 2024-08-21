@@ -516,8 +516,7 @@ parse_statement:
 
     // \u{69}\u{66} // 'if', but escaped.
   case Token_Type::reserved_keyword_with_escape_sequence:
-    this->lexer_.peek().add_diags_for_escape_sequences_in_keyword(
-        this->diag_reporter_->diags());
+    this->lexer_.peek().add_diags_for_escape_sequences_in_keyword(this->diags_);
     // is_current_typescript_namespace_non_empty_ is possibly set by
     // parse_loop_label_or_expression_starting_with_identifier.
     goto parse_loop_label_or_expression_starting_with_identifier;
@@ -1266,7 +1265,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
         switch (exported_bad_token.type) {
         case Token_Type::reserved_keyword_with_escape_sequence:
           exported_bad_token.add_diags_for_escape_sequences_in_keyword(
-              this->diag_reporter_->diags());
+              this->diags_);
           break;
         case Token_Type::string:
           this->diags_.add(
@@ -4582,8 +4581,7 @@ void Parser::parse_and_visit_import(
 
     // import \u{76}ar from "module";  // Invalid.
   case Token_Type::reserved_keyword_with_escape_sequence:
-    this->lexer_.peek().add_diags_for_escape_sequences_in_keyword(
-        this->diag_reporter_->diags());
+    this->lexer_.peek().add_diags_for_escape_sequences_in_keyword(this->diags_);
     this->is_current_typescript_namespace_non_empty_ = true;
     goto identifier;
 
@@ -4948,8 +4946,7 @@ void Parser::parse_and_visit_name_space_import(Parse_Visitor_Base &v) {
 
     // import * as \u{76}ar from "module";  // Invalid.
   case Token_Type::reserved_keyword_with_escape_sequence:
-    this->lexer_.peek().add_diags_for_escape_sequences_in_keyword(
-        this->diag_reporter_->diags());
+    this->lexer_.peek().add_diags_for_escape_sequences_in_keyword(this->diags_);
     goto identifier;
 
   identifier:
@@ -5093,8 +5090,7 @@ void Parser::parse_and_visit_named_exports(
 
           // import {\u{76}ar} from 'other';  // Invalid.
         case Token_Type::reserved_keyword_with_escape_sequence:
-          right_token.add_diags_for_escape_sequences_in_keyword(
-              this->diag_reporter_->diags());
+          right_token.add_diags_for_escape_sequences_in_keyword(this->diags_);
           // FIXME(strager): Declaring a variable with a keyword name is
           // sketchy. Delete this?
           v.visit_variable_declaration(right_token.identifier_name(),
@@ -5247,8 +5243,7 @@ void Parser::parse_and_visit_named_exports(
 
           // import {'name' as \u{76}ar} from 'other';  // Invalid.
         case Token_Type::reserved_keyword_with_escape_sequence:
-          this->peek().add_diags_for_escape_sequences_in_keyword(
-              this->diag_reporter_->diags());
+          this->peek().add_diags_for_escape_sequences_in_keyword(this->diags_);
           v.visit_variable_declaration(this->peek().identifier_name(),
                                        Variable_Kind::_import,
                                        Variable_Declaration_Flags::none);
@@ -5682,7 +5677,7 @@ void Parser::parse_and_visit_let_bindings(
       // \u{69}\u{66} // 'if', but escaped.
     case Token_Type::reserved_keyword_with_escape_sequence:
       this->lexer_.peek().add_diags_for_escape_sequences_in_keyword(
-          this->diag_reporter_->diags());
+          this->diags_);
       goto variable_name;
 
       // let {x} = xs;
