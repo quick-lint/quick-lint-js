@@ -27,10 +27,9 @@ namespace quick_lint_js {
 void Parser::parse_typescript_colon_for_type() {
   QLJS_ASSERT(this->peek().type == Token_Type::colon);
   if (!this->options_.typescript && !this->in_typescript_only_construct_) {
-    this->diag_reporter_->report(
-        Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript{
-            .type_colon = this->peek().span(),
-        });
+    this->diags_.add(Diag_TypeScript_Type_Annotations_Not_Allowed_In_JavaScript{
+        .type_colon = this->peek().span(),
+    });
   }
   this->skip();
 }
@@ -92,11 +91,10 @@ void Parser::parse_and_visit_typescript_type_expression_no_scope(
       switch (this->peek().type) {
       QLJS_CASE_KEYWORD:
       case Token_Type::identifier:
-        this->diag_reporter_->report(
-            Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type{
-                .dot = dot_span,
-                .property_name = this->peek().span(),
-            });
+        this->diags_.add(Diag_Dot_Not_Allowed_After_Generic_Arguments_In_Type{
+            .dot = dot_span,
+            .property_name = this->peek().span(),
+        });
         this->skip();
         break;
       default:
@@ -197,9 +195,8 @@ again:
 
   //: ?Type // invalid
   case Token_Type::question:
-    this->diag_reporter_->report(
-        Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void{
-            .question = this->peek().span()});
+    this->diags_.add(Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void{
+        .question = this->peek().span()});
     this->skip();
     goto again;
 
@@ -253,7 +250,7 @@ again:
           // }
           break;
         } else {
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Newline_Not_Allowed_Before_Is_In_Assertion_Signature{
                   .is_keyword = this->peek().span(),
               });
@@ -270,7 +267,7 @@ again:
         }
       }
       if (!parse_options.allow_assertion_signature_or_type_predicate) {
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_TypeScript_Type_Predicate_Only_Allowed_As_Return_Type{
                 .is_keyword = is_keyword,
             });
@@ -307,7 +304,7 @@ again:
         // <h1></h1>;
       } else {
         if (this->peek().has_leading_newline) {
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Newline_Not_Allowed_Before_Generic_Arguments_In_Type{
                   .less = Source_Code_Span(this->peek().begin,
                                            this->peek().begin + 1),
@@ -325,7 +322,7 @@ again:
           parse_options.type_being_declared->name.normalized_name()) {
         // type T = T;  // Invalid
         // NOTE[TypeScript-cyclic-type]:
-        this->diag_reporter_->report(Diag_Cyclic_TypeScript_Type_Definition{
+        this->diags_.add(Diag_Cyclic_TypeScript_Type_Definition{
             .use = name.span(),
             .declaration = parse_options.type_being_declared->name.span(),
             .kind = parse_options.type_being_declared->kind,
@@ -351,7 +348,7 @@ again:
         this->lexer_.roll_back_transaction(std::move(transaction));
         goto type_variable_or_namespace_or_type_predicate;
       } else {
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_Newline_Not_Allowed_After_Asserts_In_Assertion_Signature{
                 .asserts_keyword = asserts_keyword,
             });
@@ -383,7 +380,7 @@ again:
         }
       }
       if (!parse_options.allow_assertion_signature_or_type_predicate) {
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_TypeScript_Assertion_Signature_Only_Allowed_As_Return_Types{
                 .asserts_keyword = asserts_keyword,
             });
@@ -460,10 +457,9 @@ again:
     this->skip();
 
     if (this->typescript_infer_declaration_buffer_ == nullptr) {
-      this->diag_reporter_->report(
-          Diag_TypeScript_Infer_Outside_Conditional_Type{
-              .infer_keyword = infer_keyword_span,
-          });
+      this->diags_.add(Diag_TypeScript_Infer_Outside_Conditional_Type{
+          .infer_keyword = infer_keyword_span,
+      });
     } else {
       this->typescript_infer_declaration_buffer_->visit_variable_declaration(
           variable, Variable_Kind::_infer_type,
@@ -472,7 +468,7 @@ again:
 
     if (this->peek().type == Token_Type::left_square) {
       // T extends infer U[] ? V : W  // Invalid.
-      this->diag_reporter_->report(Diag_TypeScript_Infer_Requires_Parentheses{
+      this->diags_.add(Diag_TypeScript_Infer_Requires_Parentheses{
           .infer_and_type = Source_Code_Span(infer_keyword_span.begin(),
                                              variable.span().end()),
           .type = variable.span(),
@@ -572,10 +568,9 @@ again:
       }
       // Missing 'new' keyword.
       this->lexer_.commit_transaction(std::move(transaction));
-      this->diag_reporter_->report(
-          Diag_Missing_New_In_Abstract_Constructor_Type{
-              .expected_new = Source_Code_Span::unit(this->peek().begin),
-          });
+      this->diags_.add(Diag_Missing_New_In_Abstract_Constructor_Type{
+          .expected_new = Source_Code_Span::unit(this->peek().begin),
+      });
       this->parse_and_visit_typescript_arrow_type_expression(v);
       break;
 
@@ -603,11 +598,10 @@ again:
   case Token_Type::ampersand:
   case Token_Type::pipe:
     if (leading_binary_operator.has_value()) {
-      this->diag_reporter_->report(
-          Diag_Missing_Type_Between_Intersection_Or_Union{
-              .left_operator = leading_binary_operator.value(),
-              .right_operator = this->peek().span(),
-          });
+      this->diags_.add(Diag_Missing_Type_Between_Intersection_Or_Union{
+          .left_operator = leading_binary_operator.value(),
+          .right_operator = this->peek().span(),
+      });
     } else {
       // ? | Type
       // NOTE(strager): We get here if we reported
@@ -736,11 +730,10 @@ again:
       if (this->peek().type == Token_Type::less_less) {
         // typeof C<<T>() => RetType>  // Invalid.
         const Char8 *second_less = this->peek().begin + 1;
-        this->diag_reporter_->report(
-            Diag_TypeScript_Generic_Less_Less_Not_Split{
-                .expected_space = Source_Code_Span::unit(second_less),
-                .context = Statement_Kind::typeof_type,
-            });
+        this->diags_.add(Diag_TypeScript_Generic_Less_Less_Not_Split{
+            .expected_space = Source_Code_Span::unit(second_less),
+            .context = Statement_Kind::typeof_type,
+        });
       }
       this->parse_and_visit_typescript_generic_arguments_no_scope(
           v, /*in_jsx=*/false);
@@ -794,7 +787,7 @@ again:
   case Token_Type::right_curly:
   case Token_Type::right_paren:
   default:
-    this->diag_reporter_->report(Diag_Missing_TypeScript_Type{
+    this->diags_.add(Diag_Missing_TypeScript_Type{
         .expected_type = Source_Code_Span::unit(this->peek().begin),
     });
     break;
@@ -803,9 +796,8 @@ again:
   //: Type? // invalid
   if (!is_tuple_type && parse_options.parse_question_as_invalid &&
       this->peek().type == Token_Type::question) {
-    this->diag_reporter_->report(
-        Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void{
-            .question = this->peek().span()});
+    this->diags_.add(Diag_TypeScript_Question_In_Type_Expression_Should_Be_Void{
+        .question = this->peek().span()});
     this->skip();
   }
 
@@ -824,10 +816,9 @@ again:
     }
   }
   if (readonly_keyword.has_value() && !(is_array_type || is_tuple_type)) {
-    this->diag_reporter_->report(
-        Diag_TypeScript_Readonly_In_Type_Needs_Array_Or_Tuple_Type{
-            .readonly_keyword = *readonly_keyword,
-        });
+    this->diags_.add(Diag_TypeScript_Readonly_In_Type_Needs_Array_Or_Tuple_Type{
+        .readonly_keyword = *readonly_keyword,
+    });
   }
 
   if (this->peek().type == Token_Type::ampersand ||
@@ -851,10 +842,9 @@ again:
       }
       // type T = U
       // extends B ? A : B;   // Invalid.
-      this->diag_reporter_->report(
-          Diag_Newline_Not_Allowed_Before_Extends_In_Type{
-              .extends_keyword = this->peek().span(),
-          });
+      this->diags_.add(Diag_Newline_Not_Allowed_Before_Extends_In_Type{
+          .extends_keyword = this->peek().span(),
+      });
     }
     this->skip();
 
@@ -1370,10 +1360,9 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
     // [: Type]  // Invalid.
     case Token_Type::colon: {
       Source_Code_Span colon_span = this->peek().span();
-      this->diag_reporter_->report(
-          Diag_TypeScript_Missing_Name_In_Named_Tuple_Type{
-              .colon = colon_span,
-          });
+      this->diags_.add(Diag_TypeScript_Missing_Name_In_Named_Tuple_Type{
+          .colon = colon_span,
+      });
       this->skip();
       this->parse_and_visit_typescript_type_expression_no_scope(
           v, TypeScript_Type_Parse_Options{
@@ -1433,7 +1422,7 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
           Source_Code_Span name_and_colon(element_begin, colon_end);
           if (first_unnamed_element_begin) {
             // [Type1, name: Type2]  // Invalid.
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type{
                     .expected_name_and_colon =
                         Source_Code_Span::unit(first_unnamed_element_begin),
@@ -1450,13 +1439,13 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
           // [name: ...Type]  // Invalid.
           // [...name: ...Type]  // Invalid.
           if (spread.has_value()) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Named_Tuple_Element_Spread_Before_Name_And_Type{
                     .type_spread = this->peek().span(),
                     .name_spread = *spread,
                 });
           } else {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Named_Tuple_Element_Spread_Before_Type{
                     .spread = this->peek().span(),
                     .expected_spread = Source_Code_Span::unit(element_begin),
@@ -1480,7 +1469,7 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
 
         if (first_named_tuple_name_and_colon.has_value()) {
           // [name: Type1, Type2]  // Invalid.
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_TypeScript_Missing_Name_And_Colon_In_Named_Tuple_Type{
                   .expected_name_and_colon =
                       Source_Code_Span::unit(this->peek().begin),
@@ -1513,14 +1502,14 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
       // [name?: Type?]  // Invalid.
       if (optional_question.has_value()) {
         // [name?: Type?]  // Invalid.
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_TypeScript_Named_Tuple_Element_Question_After_Name_And_Type{
                 .type_question = this->peek().span(),
                 .name_question = *optional_question,
             });
       } else if (expected_optional_question) {
         // [name: Type?]  // Invalid.
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_TypeScript_Named_Tuple_Element_Question_After_Type{
                 .question = this->peek().span(),
                 .expected_question =
@@ -1535,15 +1524,14 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
     if (optional_question.has_value()) {
       if (spread.has_value()) {
         // [...Type?]  // Invalid.
-        this->diag_reporter_->report(
-            Diag_TypeScript_Spread_Element_Cannot_Be_Optional{
-                .optional_question = *optional_question,
-                .spread = *spread,
-            });
+        this->diags_.add(Diag_TypeScript_Spread_Element_Cannot_Be_Optional{
+            .optional_question = *optional_question,
+            .spread = *spread,
+        });
         // Don't set last_optional_question; pretend the '?' wasn't there.
       } else if (first_spread.has_value()) {
         // [...Type1, Type2?]  // Invalid.
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_TypeScript_Optional_Tuple_Element_Cannot_Follow_Spread_Element{
                 .optional_question = *optional_question,
                 .previous_spread = *first_spread,
@@ -1562,7 +1550,7 @@ void Parser::parse_and_visit_typescript_tuple_type_expression(
         if (!expected_optional_question) {
           expected_optional_question = this->lexer_.end_of_previous_token();
         }
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_TypeScript_Required_Tuple_Element_After_Optional_Element{
                 .expected_question =
                     Source_Code_Span::unit(expected_optional_question),

@@ -56,7 +56,7 @@ void Parser::parse_and_visit_module(Parse_Visitor_Base &v) {
         break;
 
       case Token_Type::right_curly:
-        this->diag_reporter_->report(Diag_Unmatched_Right_Curly{
+        this->diags_.add(Diag_Unmatched_Right_Curly{
             .right_curly = this->peek().span(),
         });
         this->skip();
@@ -79,16 +79,15 @@ bool Parser::parse_and_visit_statement(Parse_Visitor_Base &v,
   auto on_non_declaring_statement = [&]() -> void {
     if (options.require_declaration) {
       if (this->options_.typescript_definition_file) {
-        this->diag_reporter_->report(Diag_DTS_Non_Declaring_Statement{
+        this->diags_.add(Diag_DTS_Non_Declaring_Statement{
             .first_statement_token = this->peek().span(),
         });
       } else {
         QLJS_ASSERT(options.declare_keyword.has_value());
-        this->diag_reporter_->report(
-            Diag_Declare_Namespace_Cannot_Contain_Statement{
-                .first_statement_token = this->peek().span(),
-                .declare_keyword = *options.declare_keyword,
-            });
+        this->diags_.add(Diag_Declare_Namespace_Cannot_Contain_Statement{
+            .first_statement_token = this->peek().span(),
+            .declare_keyword = *options.declare_keyword,
+        });
       }
     }
   };
@@ -113,7 +112,7 @@ parse_statement:
   case Token_Type::kw_function:
     this->is_current_typescript_namespace_non_empty_ = true;
     if (options.top_level_typescript_definition) {
-      this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+      this->diags_.add(Diag_DTS_Missing_Declare_Or_Export{
           .expected = Source_Code_Span::unit(this->peek().begin),
           .declaring_token = this->peek().span(),
       });
@@ -172,7 +171,7 @@ parse_statement:
                 Token_Type::kw_let &&
             call->child_1()->kind() == Expression_Kind::Assignment &&
             call->child_1()->child_0()->kind() == Expression_Kind::Object) {
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Confusing_Let_Call{.let_function_call = let_token.span()});
         }
       }
@@ -323,7 +322,7 @@ parse_statement:
         v.visit_variable_use(async_token.identifier_name());
         break;
       }
-      this->diag_reporter_->report(
+      this->diags_.add(
           Diag_Async_Export_Function{.async_export = Source_Code_Span(
                                          async_token.begin, this->peek().end)});
       this->skip();
@@ -425,9 +424,8 @@ parse_statement:
     if (this->peek().type == Token_Type::colon) {
       // Labelled statement.
       if (this->in_async_function_) {
-        this->diag_reporter_->report(
-            Diag_Label_Named_Await_Not_Allowed_In_Async_Function{
-                .await = await_token.span(), .colon = this->peek().span()});
+        this->diags_.add(Diag_Label_Named_Await_Not_Allowed_In_Async_Function{
+            .await = await_token.span(), .colon = this->peek().span()});
       }
       this->skip();
       this->check_body_after_label();
@@ -561,7 +559,7 @@ parse_statement:
       // global {}  // Invalid.
       Source_Code_Span declare_keyword =
           Source_Code_Span::unit(this->peek().begin);
-      this->diag_reporter_->report(Diag_TypeScript_Global_Block_Must_Be_Declare{
+      this->diags_.add(Diag_TypeScript_Global_Block_Must_Be_Declare{
           .global_keyword = this->peek().span(),
           .expected_declare_keyword = declare_keyword,
       });
@@ -629,7 +627,7 @@ parse_statement:
     // catch (e) { }  // Invalid.
   case Token_Type::kw_catch: {
     this->is_current_typescript_namespace_non_empty_ = true;
-    this->diag_reporter_->report(Diag_Catch_Without_Try{
+    this->diags_.add(Diag_Catch_Without_Try{
         .catch_token = this->peek().span(),
     });
     bool parsed_catch = this->parse_and_visit_catch_or_finally_or_both(v);
@@ -640,7 +638,7 @@ parse_statement:
     // finally { }  // Invalid.
   case Token_Type::kw_finally: {
     this->is_current_typescript_namespace_non_empty_ = true;
-    this->diag_reporter_->report(Diag_Finally_Without_Try{
+    this->diags_.add(Diag_Finally_Without_Try{
         .finally_token = this->peek().span(),
     });
     bool parsed_finally = this->parse_and_visit_catch_or_finally_or_both(v);
@@ -687,7 +685,7 @@ parse_statement:
     // else { nay; } // Invalid.
   case Token_Type::kw_else: {
     this->is_current_typescript_namespace_non_empty_ = true;
-    this->diag_reporter_->report(Diag_Else_Has_No_If{
+    this->diags_.add(Diag_Else_Has_No_If{
         .else_token = this->peek().span(),
     });
     this->skip();
@@ -720,7 +718,7 @@ parse_statement:
     // is_current_typescript_namespace_non_empty_ is set by
     // parse_and_visit_typescript_enum.
     if (options.top_level_typescript_definition) {
-      this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+      this->diags_.add(Diag_DTS_Missing_Declare_Or_Export{
           .expected = Source_Code_Span::unit(this->peek().begin),
           .declaring_token = this->peek().span(),
       });
@@ -746,7 +744,7 @@ parse_statement:
     // case 3:  // Invalid.
   case Token_Type::kw_case:
     this->is_current_typescript_namespace_non_empty_ = true;
-    this->diag_reporter_->report(Diag_Unexpected_Case_Outside_Switch_Statement{
+    this->diags_.add(Diag_Unexpected_Case_Outside_Switch_Statement{
         .case_token = this->peek().span(),
     });
     this->skip();
@@ -762,10 +760,9 @@ parse_statement:
     // default:  // Invalid.
   case Token_Type::kw_default:
     // Do not set is_current_typescript_namespace_non_empty_.
-    this->diag_reporter_->report(
-        Diag_Unexpected_Default_Outside_Switch_Statement{
-            .default_token = this->peek().span(),
-        });
+    this->diags_.add(Diag_Unexpected_Default_Outside_Switch_Statement{
+        .default_token = this->peek().span(),
+    });
     this->skip();
     if (this->peek().type == Token_Type::colon) {
       this->skip();
@@ -776,7 +773,7 @@ parse_statement:
   case Token_Type::kw_extends:
   case Token_Type::question:
     // Do not set is_current_typescript_namespace_non_empty_.
-    this->diag_reporter_->report(Diag_Unexpected_Token{
+    this->diags_.add(Diag_Unexpected_Token{
         .token = this->peek().span(),
     });
     this->skip();
@@ -843,10 +840,9 @@ Parser::parse_and_visit_typescript_interface_or_namespace_or_type_statement(
         this->roll_back_transaction(std::move(inner_transaction));
 
         if (!is_expression) {
-          this->diag_reporter_->report(
-              Diag_Newline_Not_Allowed_After_Interface_Keyword{
-                  .interface_keyword = initial_keyword.span(),
-              });
+          this->diags_.add(Diag_Newline_Not_Allowed_After_Interface_Keyword{
+              .interface_keyword = initial_keyword.span(),
+          });
         }
       }
       if (initial_keyword.type == Token_Type::kw_module ||
@@ -917,11 +913,11 @@ void Parser::parse_and_visit_break_or_continue() {
   default:
     if (is_break) {
       if (!(this->in_switch_statement_ || this->in_loop_statement_)) {
-        this->diag_reporter_->report(Diag_Invalid_Break{token_span});
+        this->diags_.add(Diag_Invalid_Break{token_span});
       }
     } else {
       if (!this->in_loop_statement_) {
-        this->diag_reporter_->report(Diag_Invalid_Continue{token_span});
+        this->diags_.add(Diag_Invalid_Continue{token_span});
       }
     }
     break;
@@ -932,14 +928,14 @@ void Parser::parse_and_visit_break_or_continue() {
 void Parser::parse_and_visit_throw_statement(Parse_Visitor_Base &v) {
   this->skip();
   if (this->peek().type == Token_Type::semicolon) {
-    this->diag_reporter_->report(
+    this->diags_.add(
         Diag_Expected_Expression_Before_Semicolon{this->peek().span()});
     this->skip();
     return;
   }
   if (this->peek().has_leading_newline) {
     this->lexer_.insert_semicolon();
-    this->diag_reporter_->report(
+    this->diags_.add(
         Diag_Expected_Expression_Before_Newline{this->peek().span()});
     this->skip();
     return;
@@ -989,7 +985,7 @@ void Parser::parse_and_visit_return_statement(
       case Token_Type::string:
       case Token_Type::tilde:
         if (possibly_followed_by_another_statement) {
-          this->diag_reporter_->report(Diag_Return_Statement_Returns_Nothing{
+          this->diags_.add(Diag_Return_Statement_Returns_Nothing{
               .return_keyword = return_span,
           });
         }
@@ -1009,7 +1005,7 @@ void Parser::parse_and_visit_return_statement(
 
 void Parser::parse_end_of_expression_statement() {
   while (this->peek().type == Token_Type::right_paren) {
-    this->diag_reporter_->report(Diag_Unmatched_Parenthesis{
+    this->diags_.add(Diag_Unmatched_Parenthesis{
         .where = this->peek().span(),
     });
     this->skip();
@@ -1039,11 +1035,10 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     this->is_current_typescript_namespace_non_empty_ = true;
     if (this->in_typescript_namespace_or_module_.has_value() &&
         !this->in_typescript_module_) {
-      this->diag_reporter_->report(
-          Diag_TypeScript_Namespace_Cannot_Export_Default{
-              .default_keyword = default_keyword,
-              .namespace_keyword = *this->in_typescript_namespace_or_module_,
-          });
+      this->diags_.add(Diag_TypeScript_Namespace_Cannot_Export_Default{
+          .default_keyword = default_keyword,
+          .namespace_keyword = *this->in_typescript_namespace_or_module_,
+      });
     }
     this->skip();
 
@@ -1099,11 +1094,10 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     // export default @myDecorator class C {}
     case Token_Type::at:
       if (options.decorator_at_span.has_value()) {
-        this->diag_reporter_->report(
-            Diag_Decorator_Before_And_After_Export_Keyword{
-                .decorator_at_before = *options.decorator_at_span,
-                .decorator_at_after = this->peek().span(),
-            });
+        this->diags_.add(Diag_Decorator_Before_And_After_Export_Keyword{
+            .decorator_at_before = *options.decorator_at_span,
+            .decorator_at_after = this->peek().span(),
+        });
       }
       // See NOTE[class-decorator-deferred-visits].
       this->parse_and_visit_one_or_more_decorators(deferred_visits.visitor());
@@ -1158,7 +1152,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     case Token_Type::kw_var: {
       Token declaring_token = this->peek();
       this->skip();
-      this->diag_reporter_->report(Diag_Cannot_Export_Default_Variable{
+      this->diags_.add(Diag_Cannot_Export_Default_Variable{
           .declaring_token = declaring_token.span(),
       });
       this->parse_and_visit_let_bindings(v,
@@ -1225,7 +1219,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
         !options.declare_context.in_module) {
       // declare namespace ns { export * from "b"; }
       // See NOTE[declare-import].
-      this->diag_reporter_->report(Diag_Declare_Namespace_Cannot_Import_Module{
+      this->diags_.add(Diag_Declare_Namespace_Cannot_Import_Module{
           .importing_keyword = this->peek().span(),
           .declare_keyword =
               *options.declare_context.declare_namespace_declare_keyword,
@@ -1256,12 +1250,11 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
       if (options.declare_context.declare_namespace_declare_keyword
               .has_value() &&
           !options.declare_context.in_module) {
-        this->diag_reporter_->report(
-            Diag_Declare_Namespace_Cannot_Import_Module{
-                .importing_keyword = this->peek().span(),
-                .declare_keyword =
-                    *options.declare_context.declare_namespace_declare_keyword,
-            });
+        this->diags_.add(Diag_Declare_Namespace_Cannot_Import_Module{
+            .importing_keyword = this->peek().span(),
+            .declare_keyword =
+                *options.declare_context.declare_namespace_declare_keyword,
+        });
       }
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::string);
@@ -1276,16 +1269,15 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
               this->diag_reporter_->diags());
           break;
         case Token_Type::string:
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Exporting_String_Name_Only_Allowed_For_Export_From{
                   .export_name = exported_bad_token.span(),
               });
           break;
         default:
-          this->diag_reporter_->report(
-              Diag_Cannot_Export_Variable_Named_Keyword{
-                  .export_name = exported_bad_token.span(),
-              });
+          this->diags_.add(Diag_Cannot_Export_Variable_Named_Keyword{
+              .export_name = exported_bad_token.span(),
+          });
           break;
         }
       }
@@ -1306,12 +1298,12 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     std::optional<Source_Code_Span> declare_keyword =
         options.declare_context.maybe_declare_keyword_span();
     if (this->options_.typescript_definition_file) {
-      this->diag_reporter_->report(Diag_DTS_Function_Cannot_Be_Async{
+      this->diags_.add(Diag_DTS_Function_Cannot_Be_Async{
           .async_keyword = async_token_span,
       });
     } else {
       if (declare_keyword.has_value()) {
-        this->diag_reporter_->report(Diag_Declare_Function_Cannot_Be_Async{
+        this->diags_.add(Diag_Declare_Function_Cannot_Be_Async{
             .async_keyword = async_token_span,
         });
       }
@@ -1359,11 +1351,10 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
   // export @myDecorator class C {}
   case Token_Type::at:
     if (options.decorator_at_span.has_value()) {
-      this->diag_reporter_->report(
-          Diag_Decorator_Before_And_After_Export_Keyword{
-              .decorator_at_before = *options.decorator_at_span,
-              .decorator_at_after = this->peek().span(),
-          });
+      this->diags_.add(Diag_Decorator_Before_And_After_Export_Keyword{
+          .decorator_at_before = *options.decorator_at_span,
+          .decorator_at_after = this->peek().span(),
+      });
     }
     // See NOTE[class-decorator-deferred-visits].
     this->parse_and_visit_one_or_more_decorators(deferred_visits.visitor());
@@ -1377,10 +1368,9 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_class);
     if (this->peek().has_leading_newline) {
-      this->diag_reporter_->report(
-          Diag_Newline_Not_Allowed_After_Abstract_Keyword{
-              .abstract_keyword = abstract_keyword,
-          });
+      this->diags_.add(Diag_Newline_Not_Allowed_After_Abstract_Keyword{
+          .abstract_keyword = abstract_keyword,
+      });
     }
     this->parse_and_visit_class(
         v, Parse_Class_Options{
@@ -1414,10 +1404,9 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     Source_Code_Span interface_keyword = this->peek().span();
     this->skip();
     if (this->peek().has_leading_newline) {
-      this->diag_reporter_->report(
-          Diag_Newline_Not_Allowed_After_Interface_Keyword{
-              .interface_keyword = interface_keyword,
-          });
+      this->diags_.add(Diag_Newline_Not_Allowed_After_Interface_Keyword{
+          .interface_keyword = interface_keyword,
+      });
     }
     this->parse_and_visit_typescript_interface(v, interface_keyword);
     break;
@@ -1436,10 +1425,9 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
       // NOTE[ambiguous-ambient-statement-in-namespace].
       typescript_type_only_keyword = type_keyword;
       if (!this->options_.typescript) {
-        this->diag_reporter_->report(
-            Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript{
-                .type_keyword = type_keyword,
-            });
+        this->diags_.add(Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript{
+            .type_keyword = type_keyword,
+        });
       }
       goto named_export_list;
 
@@ -1447,10 +1435,9 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     case Token_Type::star:
       typescript_type_only_keyword = type_keyword;
       if (!this->options_.typescript) {
-        this->diag_reporter_->report(
-            Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript{
-                .type_keyword = type_keyword,
-            });
+        this->diags_.add(Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript{
+            .type_keyword = type_keyword,
+        });
       }
       goto export_star;
 
@@ -1505,12 +1492,12 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
       break;
     }
     if (!this->options_.typescript_definition_file) {
-      this->diag_reporter_->report(
+      this->diags_.add(
           Diag_TypeScript_Export_As_Namespace_Is_Only_Allowed_In_TypeScript_Definition_File{
               .export_keyword = export_token_span,
           });
     } else if (this->in_typescript_namespace_or_module_.has_value()) {
-      this->diag_reporter_->report(
+      this->diags_.add(
           Diag_TypeScript_Export_As_Namespace_Is_Not_Allowed_In_Namespace_Or_Module{
               .export_keyword = export_token_span,
               .namespace_or_module_keyword =
@@ -1539,12 +1526,12 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     Expression *ast = this->parse_expression(v);
     switch (ast->kind()) {
     case Expression_Kind::Variable:
-      this->diag_reporter_->report(Diag_Exporting_Requires_Curlies{
+      this->diags_.add(Diag_Exporting_Requires_Curlies{
           .names = ast->span(),
       });
       break;
     default:
-      this->diag_reporter_->report(Diag_Exporting_Requires_Default{
+      this->diags_.add(Diag_Exporting_Requires_Default{
           .expression = ast->span(),
       });
       break;
@@ -1559,11 +1546,10 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
   case Token_Type::equal: {
     this->is_current_typescript_namespace_non_empty_ = true;
     if (!this->options_.typescript) {
-      this->diag_reporter_->report(
-          Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript{
-              .equal = this->peek().span(),
-              .export_keyword = export_token_span,
-          });
+      this->diags_.add(Diag_TypeScript_Export_Equal_Not_Allowed_In_JavaScript{
+          .equal = this->peek().span(),
+          .export_keyword = export_token_span,
+      });
     }
     this->skip();
     Expression *ast = this->parse_expression(v);
@@ -1578,14 +1564,14 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
 
   case Token_Type::end_of_file:
     // Do not set is_current_typescript_namespace_non_empty_.
-    this->diag_reporter_->report(Diag_Missing_Token_After_Export{
+    this->diags_.add(Diag_Missing_Token_After_Export{
         .export_token = export_token_span,
     });
     break;
 
   case Token_Type::semicolon:
     this->is_current_typescript_namespace_non_empty_ = true;
-    this->diag_reporter_->report(Diag_Missing_Token_After_Export{
+    this->diags_.add(Diag_Missing_Token_After_Export{
         .export_token = export_token_span,
     });
     break;
@@ -1598,11 +1584,10 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
     if (this->peek().has_leading_newline) {
       // export declare   // (newline)
       //   class C { }    // Invalid.
-      this->diag_reporter_->report(
-          Diag_Newline_Not_Allowed_After_Export_Declare{
-              .declare_keyword = declare_span,
-              .export_keyword = export_token_span,
-          });
+      this->diags_.add(Diag_Newline_Not_Allowed_After_Export_Declare{
+          .declare_keyword = declare_span,
+          .export_keyword = export_token_span,
+      });
     }
     this->parse_and_visit_declare_statement(
         v, TypeScript_Declare_Context{
@@ -1612,7 +1597,7 @@ void Parser::parse_and_visit_export(Parse_Visitor_Base &v,
   }
 
   default:
-    this->diag_reporter_->report(Diag_Unexpected_Token_After_Export{
+    this->diags_.add(Diag_Unexpected_Token_After_Export{
         .unexpected_token = this->peek().span(),
     });
     break;
@@ -1634,7 +1619,7 @@ void Parser::found_default_export(Source_Code_Span default_keyword,
       // export default class {}  export default interface I {}
     } else {
       // export default class {}  export default class {}  // Invalid.
-      this->diag_reporter_->report(Diag_Multiple_Export_Defaults{
+      this->diags_.add(Diag_Multiple_Export_Defaults{
           .second_export_default = default_keyword,
           .first_export_default =
               *this->first_export_default_statement_default_keyword_,
@@ -1670,25 +1655,22 @@ void Parser::parse_and_visit_typescript_generic_parameters(
   }
   if (this->peek().type == Token_Type::greater) {
     // <,>    // Invalid.
-    this->diag_reporter_->report(
-        Diag_TypeScript_Generic_Parameter_List_Is_Empty{
-            .expected_parameter = Source_Code_Span::unit(less_end),
-        });
+    this->diags_.add(Diag_TypeScript_Generic_Parameter_List_Is_Empty{
+        .expected_parameter = Source_Code_Span::unit(less_end),
+    });
     for (Vector_Size i = 1; i < leading_commas.size(); ++i) {
-      this->diag_reporter_->report(
-          Diag_Multiple_Commas_In_Generic_Parameter_List{
-              .unexpected_comma = leading_commas[i],
-          });
+      this->diags_.add(Diag_Multiple_Commas_In_Generic_Parameter_List{
+          .unexpected_comma = leading_commas[i],
+      });
     }
     this->skip();
     return;
   }
   for (const Source_Code_Span &comma : leading_commas) {
     // <, T>
-    this->diag_reporter_->report(
-        Diag_Comma_Not_Allowed_Before_First_Generic_Parameter{
-            .unexpected_comma = comma,
-        });
+    this->diags_.add(Diag_Comma_Not_Allowed_Before_First_Generic_Parameter{
+        .unexpected_comma = comma,
+    });
   }
 
   Variable_Kind parameter_kind = Variable_Kind::_generic_parameter;
@@ -1732,9 +1714,8 @@ next_parameter:
       });
       this->skip();
       if (this->lexer_.peek().has_leading_newline) {
-        this->diag_reporter_->report(
-            Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers{
-                .modifier = modifiers.back().identifier.span()});
+        this->diags_.add(Diag_Newline_Not_Allowed_After_In_Out_Const_Modifiers{
+            .modifier = modifiers.back().identifier.span()});
       }
       break;
 
@@ -1803,22 +1784,20 @@ done_parsing_modifiers:
     for (const Modifier &modifier : modifiers) {
       if (modifier.token_type == Token_Type::kw_in) {
         if (first_in_keyword.has_value()) {
-          this->diag_reporter_->report(
-              Diag_TypeScript_Variance_Keyword_Repeated{
-                  .first_keyword = *first_in_keyword,
-                  .second_keyword = modifier.identifier.span(),
-              });
+          this->diags_.add(Diag_TypeScript_Variance_Keyword_Repeated{
+              .first_keyword = *first_in_keyword,
+              .second_keyword = modifier.identifier.span(),
+          });
         } else {
           first_in_keyword = modifier.identifier.span();
         }
       }
       if (modifier.token_type == Token_Type::kw_out) {
         if (first_out_keyword.has_value()) {
-          this->diag_reporter_->report(
-              Diag_TypeScript_Variance_Keyword_Repeated{
-                  .first_keyword = *first_out_keyword,
-                  .second_keyword = modifier.identifier.span(),
-              });
+          this->diags_.add(Diag_TypeScript_Variance_Keyword_Repeated{
+              .first_keyword = *first_out_keyword,
+              .second_keyword = modifier.identifier.span(),
+          });
         } else {
           first_out_keyword = modifier.identifier.span();
         }
@@ -1827,11 +1806,10 @@ done_parsing_modifiers:
           modifier.token_type == Token_Type::kw_in &&
           first_out_keyword.has_value()) {
         // <out in T>  // Invalid.
-        this->diag_reporter_->report(
-            Diag_TypeScript_Variance_Keywords_In_Wrong_Order{
-                .in_keyword = modifier.identifier.span(),
-                .out_keyword = *first_out_keyword,
-            });
+        this->diags_.add(Diag_TypeScript_Variance_Keywords_In_Wrong_Order{
+            .in_keyword = modifier.identifier.span(),
+            .out_keyword = *first_out_keyword,
+        });
         reported_out_in_misorder = true;
       }
     }
@@ -1843,10 +1821,9 @@ done_parsing_modifiers:
     // <T extends U>
     if (this->peek().type == Token_Type::colon) {
       // <T: U>  // Invalid.
-      this->diag_reporter_->report(
-          Diag_Unexpected_Colon_After_Generic_Definition{
-              .colon = this->peek().span(),
-          });
+      this->diags_.add(Diag_Unexpected_Colon_After_Generic_Definition{
+          .colon = this->peek().span(),
+      });
     }
     this->skip();
     this->parse_and_visit_typescript_type_expression(
@@ -1877,17 +1854,16 @@ done_parsing_modifiers:
   case Token_Type::comma:
     this->skip();
     while (this->peek().type == Token_Type::comma) {
-      this->diag_reporter_->report(
-          Diag_Multiple_Commas_In_Generic_Parameter_List{
-              .unexpected_comma = this->peek().span(),
-          });
+      this->diags_.add(Diag_Multiple_Commas_In_Generic_Parameter_List{
+          .unexpected_comma = this->peek().span(),
+      });
       this->skip();
     }
     break;
 
   // <T U>  // Invalid.
   case Token_Type::identifier:
-    this->diag_reporter_->report(Diag_Missing_Comma_Between_Generic_Parameters{
+    this->diags_.add(Diag_Missing_Comma_Between_Generic_Parameters{
         .expected_comma =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
@@ -1945,7 +1921,7 @@ void Parser::parse_and_visit_statement_block_after_left_curly(
         return;
 
       case Token_Type::end_of_file:
-        this->diag_reporter_->report(Diag_Unclosed_Code_Block{
+        this->diags_.add(Diag_Unclosed_Code_Block{
             .block_open = left_curly_span,
         });
         return;
@@ -1978,12 +1954,12 @@ void Parser::parse_and_visit_function_declaration(
     case Function_Parameter_Parse_Result::parsed_parameters:
     case Function_Parameter_Parse_Result::missing_parameters:
       if (this->options_.typescript_definition_file) {
-        this->diag_reporter_->report(Diag_DTS_Function_Cannot_Have_Body{
+        this->diags_.add(Diag_DTS_Function_Cannot_Have_Body{
             .body_start = this->peek().span(),
         });
       } else {
         QLJS_ASSERT(options.declare_keyword.has_value());
-        this->diag_reporter_->report(Diag_Declare_Function_Cannot_Have_Body{
+        this->diags_.add(Diag_Declare_Function_Cannot_Have_Body{
             .body_start = this->peek().span(),
             .declare_keyword = *options.declare_keyword,
         });
@@ -2002,10 +1978,9 @@ void Parser::parse_and_visit_function_declaration(
   };
 
   if (options.declare_keyword.has_value() && !this->options_.typescript) {
-    this->diag_reporter_->report(
-        Diag_Declare_Function_Not_Allowed_In_JavaScript{
-            .declare_keyword = *options.declare_keyword,
-        });
+    this->diags_.add(Diag_Declare_Function_Not_Allowed_In_JavaScript{
+        .declare_keyword = *options.declare_keyword,
+    });
   }
 
   QLJS_ASSERT(this->peek().type == Token_Type::kw_function);
@@ -2018,12 +1993,12 @@ void Parser::parse_and_visit_function_declaration(
       this->parse_generator_star(&options.attributes);
   if (generator_star.has_value()) {
     if (this->options_.typescript_definition_file) {
-      this->diag_reporter_->report(Diag_DTS_Function_Cannot_Be_Generator{
+      this->diags_.add(Diag_DTS_Function_Cannot_Be_Generator{
           .star = *generator_star,
       });
     } else if (options.declare_keyword.has_value()) {
       // declare function *f();  // Invalid.
-      this->diag_reporter_->report(Diag_Declare_Function_Cannot_Be_Generator{
+      this->diags_.add(Diag_Declare_Function_Cannot_Be_Generator{
           .star = *generator_star,
       });
     }
@@ -2032,7 +2007,7 @@ void Parser::parse_and_visit_function_declaration(
   switch (this->peek().type) {
   case Token_Type::kw_await:
     if (this->in_async_function_) {
-      this->diag_reporter_->report(Diag_Cannot_Declare_Await_In_Async_Function{
+      this->diags_.add(Diag_Cannot_Declare_Await_In_Async_Function{
           .name = this->peek().span(),
       });
     }
@@ -2040,10 +2015,9 @@ void Parser::parse_and_visit_function_declaration(
 
   case Token_Type::kw_yield:
     if (this->in_generator_function_) {
-      this->diag_reporter_->report(
-          Diag_Cannot_Declare_Yield_In_Generator_Function{
-              .name = this->peek().span(),
-          });
+      this->diags_.add(Diag_Cannot_Declare_Yield_In_Generator_Function{
+          .name = this->peek().span(),
+      });
     }
     goto named_function;
 
@@ -2059,7 +2033,7 @@ void Parser::parse_and_visit_function_declaration(
   case Token_Type::identifier: {
     if (this->peek().type == Token_Type::kw_let &&
         options.require_name == Name_Requirement::required_for_export) {
-      this->diag_reporter_->report(Diag_Cannot_Export_Let{
+      this->diags_.add(Diag_Cannot_Export_Let{
           .export_name = this->peek().span(),
       });
     }
@@ -2117,7 +2091,7 @@ void Parser::parse_and_visit_function_declaration(
                 this->parse_end_of_typescript_overload_signature(function_name);
             if (r.is_overload_signature) {
               if (generator_star.has_value()) {
-                this->diag_reporter_->report(
+                this->diags_.add(
                     Diag_TypeScript_Function_Overload_Signature_Must_Not_Have_Generator_Star{
                         .generator_star = *generator_star,
                     });
@@ -2148,7 +2122,7 @@ void Parser::parse_and_visit_function_declaration(
               goto invalid_typescript_function_overload_signature;
             }
           }
-          this->diag_reporter_->report(Diag_Missing_Function_Body{
+          this->diags_.add(Diag_Missing_Function_Body{
               .expected_body = Source_Code_Span::unit(
                   this->lexer_.end_of_previous_token())});
         invalid_typescript_function_overload_signature:
@@ -2179,7 +2153,7 @@ void Parser::parse_and_visit_function_declaration(
                                          Variable_Kind::_function,
                                          Variable_Declaration_Flags::none);
 
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Function_Overload_Signature_Must_Have_Same_Name{
                     .overload_name = overload_name.span(),
                     .function_name = real_function_name.span(),
@@ -2191,7 +2165,7 @@ void Parser::parse_and_visit_function_declaration(
 
       if (found_export_keyword.has_value()) {
         for (Source_Code_Span missing_export : missing_export_locations) {
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Missing_Export_For_Function_With_Overload_Signature{
                   .expected_export = missing_export,
                   .existing_export = *found_export_keyword,
@@ -2214,7 +2188,7 @@ void Parser::parse_and_visit_function_declaration(
 
       if (options.declare_keyword.has_value()) {
         // declare function();  // Invalid.
-        this->diag_reporter_->report(Diag_Missing_Name_In_Function_Statement{
+        this->diags_.add(Diag_Missing_Name_In_Function_Statement{
             .where = Source_Code_Span::unit(left_paren_begin),
         });
         parse_and_visit_declare_function_parameters_and_body(
@@ -2235,17 +2209,15 @@ void Parser::parse_and_visit_function_declaration(
             Source_Code_Span(function_token_begin, function_end));
 
         if (this->peek().type != Token_Type::left_paren) {
-          this->diag_reporter_->report(Diag_Missing_Name_In_Function_Statement{
+          this->diags_.add(Diag_Missing_Name_In_Function_Statement{
               .where = Source_Code_Span::unit(left_paren_begin),
           });
         } else {
-          this->diag_reporter_->report(
-              Diag_Missing_Name_Or_Parentheses_For_Function{
-                  .where =
-                      Source_Code_Span(function_token_begin, left_paren_end),
-                  .function =
-                      Source_Code_Span(options.begin, function->span().end()),
-              });
+          this->diags_.add(Diag_Missing_Name_Or_Parentheses_For_Function{
+              .where = Source_Code_Span(function_token_begin, left_paren_end),
+              .function =
+                  Source_Code_Span(options.begin, function->span().end()),
+          });
           Expression *full_expression =
               this->parse_expression_remainder(v, function, Precedence{});
           this->visit_expression(full_expression, v, Variable_Context::rhs);
@@ -2256,7 +2228,7 @@ void Parser::parse_and_visit_function_declaration(
     }
 
     case Name_Requirement::required_for_export: {
-      this->diag_reporter_->report(Diag_Missing_Name_Of_Exported_Function{
+      this->diags_.add(Diag_Missing_Name_Of_Exported_Function{
           .function_keyword = function_token_span,
       });
       this->parse_and_visit_function_parameters_and_body(
@@ -2275,7 +2247,7 @@ void Parser::parse_and_visit_function_declaration(
 
     // { function }  // Invalid.
   default:
-    this->diag_reporter_->report(Diag_Missing_Name_In_Function_Statement{
+    this->diags_.add(Diag_Missing_Name_In_Function_Statement{
         .where = function_token_span,
     });
     break;
@@ -2308,7 +2280,7 @@ void Parser::parse_and_visit_function_parameters_and_body_no_scope(
     break;
 
   case Function_Parameter_Parse_Result::parsed_parameters_missing_body:
-    this->diag_reporter_->report(Diag_Missing_Function_Body{
+    this->diags_.add(Diag_Missing_Function_Body{
         .expected_body =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token())});
     break;
@@ -2329,7 +2301,7 @@ void Parser::parse_and_visit_abstract_function_parameters_and_body_no_scope(
 
   case Function_Parameter_Parse_Result::parsed_parameters:
   case Function_Parameter_Parse_Result::missing_parameters:
-    this->diag_reporter_->report(Diag_Abstract_Methods_Cannot_Contain_Bodies{
+    this->diags_.add(Diag_Abstract_Methods_Cannot_Contain_Bodies{
         .body_start = this->peek().span(),
     });
     v.visit_enter_function_scope_body();
@@ -2356,10 +2328,9 @@ void Parser::parse_and_visit_declare_class_method_parameters_and_body(
 
   case Function_Parameter_Parse_Result::parsed_parameters:
   case Function_Parameter_Parse_Result::missing_parameters:
-    this->diag_reporter_->report(
-        Diag_Declare_Class_Methods_Cannot_Contain_Bodies{
-            .body_start = this->peek().span(),
-        });
+    this->diags_.add(Diag_Declare_Class_Methods_Cannot_Contain_Bodies{
+        .body_start = this->peek().span(),
+    });
     v.visit_enter_function_scope_body();
     this->parse_and_visit_statement_block_no_scope(v);
     break;
@@ -2383,7 +2354,7 @@ void Parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
 
   case Function_Parameter_Parse_Result::parsed_parameters:
   case Function_Parameter_Parse_Result::missing_parameters:
-    this->diag_reporter_->report(Diag_Interface_Methods_Cannot_Contain_Bodies{
+    this->diags_.add(Diag_Interface_Methods_Cannot_Contain_Bodies{
         .body_start = this->peek().span(),
     });
     v.visit_enter_function_scope_body();
@@ -2402,11 +2373,10 @@ Parser::parse_and_visit_function_parameter_list(
     }
     // TODO(strager): Emit a different error if a star was already present
     // (e.g. function* f*() {}).
-    this->diag_reporter_->report(
-        Diag_Generator_Function_Star_Belongs_Before_Name{
-            .function_name = *name,
-            .star = this->peek().span(),
-        });
+    this->diags_.add(Diag_Generator_Function_Star_Belongs_Before_Name{
+        .function_name = *name,
+        .star = this->peek().span(),
+    });
     // in_generator_function_ is restored by an existing function_guard.
     // TODO(strager): Make an explicit guard ourselves instead. We don't
     // guarantee that the caller made a guard.
@@ -2417,10 +2387,9 @@ Parser::parse_and_visit_function_parameter_list(
   if (this->peek().type == Token_Type::less) {
     // function f<T>() {}  // TypeScript only.
     if (!this->options_.typescript) {
-      this->diag_reporter_->report(
-          Diag_TypeScript_Generics_Not_Allowed_In_JavaScript{
-              .opening_less = this->peek().span(),
-          });
+      this->diags_.add(Diag_TypeScript_Generics_Not_Allowed_In_JavaScript{
+          .opening_less = this->peek().span(),
+      });
     }
     this->parse_and_visit_typescript_generic_parameters(v);
   }
@@ -2459,10 +2428,9 @@ Parser::parse_and_visit_function_parameter_list(
     }
 
     if (this->peek().type == Token_Type::equal_greater) {
-      this->diag_reporter_->report(
-          Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator{
-              .arrow_operator = this->peek().span(),
-          });
+      this->diags_.add(Diag_Functions_Or_Methods_Should_Not_Have_Arrow_Operator{
+          .arrow_operator = this->peek().span(),
+      });
       this->skip();
     }
 
@@ -2473,7 +2441,7 @@ Parser::parse_and_visit_function_parameter_list(
 
     // function f {}  // Invalid.
   case Token_Type::left_curly:
-    this->diag_reporter_->report(Diag_Missing_Function_Parameter_List{
+    this->diags_.add(Diag_Missing_Function_Parameter_List{
         .expected_parameter_list =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
@@ -2484,7 +2452,7 @@ Parser::parse_and_visit_function_parameter_list(
   case Token_Type::dot:
   case Token_Type::number:
   case Token_Type::right_curly:
-    this->diag_reporter_->report(Diag_Missing_Function_Parameter_List{
+    this->diags_.add(Diag_Missing_Function_Parameter_List{
         .expected_parameter_list =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
@@ -2495,7 +2463,7 @@ Parser::parse_and_visit_function_parameter_list(
     // TODO: Make parse_and_visit_function_parameters accept a token instead of
     // a Source_Code_Span so we can compare the token type instead of strings.
     if (name->string_view() == u8"async"_sv) {
-      this->diag_reporter_->report(Diag_Function_Async_Function{
+      this->diags_.add(Diag_Function_Async_Function{
           .function_async = this->peek().span(),
       });
       this->skip();
@@ -2533,11 +2501,10 @@ void Parser::parse_and_visit_function_parameters(
       if (last_parameter_spread_span.has_value()) {
         // function f(...args,)  // Trailing comma is illegal.
         QLJS_ASSERT(comma_span.has_value());
-        this->diag_reporter_->report(
-            Diag_Comma_Not_Allowed_After_Spread_Parameter{
-                .comma = *comma_span,
-                .spread = *last_parameter_spread_span,
-            });
+        this->diags_.add(Diag_Comma_Not_Allowed_After_Spread_Parameter{
+            .comma = *comma_span,
+            .spread = *last_parameter_spread_span,
+        });
       }
       goto done;
     }
@@ -2584,20 +2551,20 @@ void Parser::parse_and_visit_function_parameters(
       } else {
         if (!parameter_property_keyword.has_value()) {
           if (!options.is_class_constructor) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Parameter_Property_Only_Allowed_In_Class_Constructor{
                     .property_keyword = accessor_span,
                 });
           }
           if (options.declare_class_keyword) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Parameter_Property_Not_Allowed_In_Declare_Class{
                     .property_keyword = accessor_span,
                     .declare_keyword = *options.declare_class_keyword,
                 });
           }
           if (!this->options_.typescript) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Parameter_Property_Not_Allowed_In_JavaScript{
                     .property_keyword = accessor_span,
                 });
@@ -2611,30 +2578,27 @@ void Parser::parse_and_visit_function_parameters(
     if (this->peek().type == Token_Type::at) {
       // class C { method(@myDecorator parameter) {} }  // TypeScript only.
       if (!this->options_.typescript) {
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_TypeScript_Parameter_Decorator_Not_Allowed_In_JavaScript{
                 .at = this->peek().span(),
             });
       } else {
         if (!options.is_class_method) {
-          this->diag_reporter_->report(
-              Diag_Parameter_Decorator_In_Non_Class_Method{
-                  .decorator_at = this->peek().span(),
-              });
+          this->diags_.add(Diag_Parameter_Decorator_In_Non_Class_Method{
+              .decorator_at = this->peek().span(),
+          });
         }
         if (options.declare_class_keyword.has_value()) {
-          this->diag_reporter_->report(
-              Diag_Parameter_Decorator_In_Declare_Class{
-                  .decorator_at = this->peek().span(),
-                  .declare_keyword = *options.declare_class_keyword,
-              });
+          this->diags_.add(Diag_Parameter_Decorator_In_Declare_Class{
+              .decorator_at = this->peek().span(),
+              .declare_keyword = *options.declare_class_keyword,
+          });
         }
         if (options.abstract_method_keyword.has_value()) {
-          this->diag_reporter_->report(
-              Diag_Parameter_Decorator_In_Abstract_Method{
-                  .decorator_at = this->peek().span(),
-                  .abstract_keyword = *options.abstract_method_keyword,
-              });
+          this->diags_.add(Diag_Parameter_Decorator_In_Abstract_Method{
+              .decorator_at = this->peek().span(),
+              .abstract_keyword = *options.abstract_method_keyword,
+          });
         }
       }
       this->parse_and_visit_one_or_more_decorators(v);
@@ -2677,11 +2641,10 @@ void Parser::parse_and_visit_function_parameters(
             this->roll_back_transaction(std::move(transaction));
           } else {
             this->commit_transaction(std::move(transaction));
-            this->diag_reporter_->report(
-                Diag_Access_Specifier_Must_Precede_Other_Modifiers{
-                    .second_modifier = access_specifier_span,
-                    .first_modifier = readonly_span,
-                });
+            this->diags_.add(Diag_Access_Specifier_Must_Precede_Other_Modifiers{
+                .second_modifier = access_specifier_span,
+                .first_modifier = readonly_span,
+            });
           }
           break;
         }
@@ -2694,11 +2657,10 @@ void Parser::parse_and_visit_function_parameters(
     if (this->peek().type == Token_Type::at) {
       // class C { method(readonly @myDecorator parameter) {} }  // Invalid.
       QLJS_ASSERT(parameter_property_keyword.has_value());
-      this->diag_reporter_->report(
-          Diag_Parameter_Decorator_Must_Preceed_Modifiers{
-              .modifier = *parameter_property_keyword,
-              .decorator_at = this->peek().span(),
-          });
+      this->diags_.add(Diag_Parameter_Decorator_Must_Preceed_Modifiers{
+          .modifier = *parameter_property_keyword,
+          .decorator_at = this->peek().span(),
+      });
       this->parse_and_visit_one_or_more_decorators(v);
     }
 
@@ -2734,7 +2696,7 @@ void Parser::parse_and_visit_function_parameters(
       case Expression_Kind::Array:
         if (parameter_property_keyword.has_value()) {
           // constructor(private [field])  // Invalid.
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured{
                   .destructure_token =
                       expression_cast<const Expression::Array *>(parameter)
@@ -2746,7 +2708,7 @@ void Parser::parse_and_visit_function_parameters(
       case Expression_Kind::Object:
         if (parameter_property_keyword.has_value()) {
           // constructor(private {field})  // Invalid.
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_TypeScript_Parameter_Property_Cannot_Be_Destructured{
                   .destructure_token =
                       expression_cast<const Expression::Object *>(parameter)
@@ -2758,13 +2720,11 @@ void Parser::parse_and_visit_function_parameters(
       case Expression_Kind::Spread:
         if (parameter_property_keyword.has_value()) {
           // constructor(private ...field)  // Invalid.
-          this->diag_reporter_->report(
-              Diag_TypeScript_Parameter_Property_Cannot_Be_Rest{
-                  .spread =
-                      expression_cast<const Expression::Spread *>(parameter)
-                          ->spread_operator_span(),
-                  .property_keyword = *parameter_property_keyword,
-              });
+          this->diags_.add(Diag_TypeScript_Parameter_Property_Cannot_Be_Rest{
+              .spread = expression_cast<const Expression::Spread *>(parameter)
+                            ->spread_operator_span(),
+              .property_keyword = *parameter_property_keyword,
+          });
         }
         break;
       default:
@@ -2787,7 +2747,7 @@ void Parser::parse_and_visit_function_parameters(
         if (previous_optional_span.has_value() &&
             !(parameter->kind() == Expression_Kind::Spread ||
               parameter->kind() == Expression_Kind::Assignment)) {
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter{
                   .optional_parameter = *previous_optional_span,
                   .required_parameter = parameter->span()});
@@ -2803,7 +2763,7 @@ void Parser::parse_and_visit_function_parameters(
     }
     default:
       if (is_after_parameter_name()) {
-        this->diag_reporter_->report(Diag_Missing_Parameter_Name{
+        this->diags_.add(Diag_Missing_Parameter_Name{
             .expected_parameter_name =
                 Source_Code_Span::unit(this->peek().begin),
         });
@@ -2921,7 +2881,7 @@ Parser::parse_end_of_typescript_overload_signature(
   this->lexer_.commit_transaction(std::move(transaction));
   if (has_newline_after_async_keyword) {
     QLJS_ASSERT(async_keyword.has_value());
-    this->diag_reporter_->report(
+    this->diags_.add(
         Diag_Newline_Not_Allowed_Between_Async_And_Function_Keyword{
             .async_keyword = *async_keyword,
             .function_keyword = function_keyword,
@@ -3047,7 +3007,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
   if (this->peek().type == Token_Type::left_curly) {
     // switch { case 1: break; }  // Invalid.
-    this->diag_reporter_->report(Diag_Missing_Condition_For_Switch_Statement{
+    this->diags_.add(Diag_Missing_Condition_For_Switch_Statement{
         .switch_keyword = switch_token_span,
     });
   } else {
@@ -3065,14 +3025,14 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
   case Token_Type::kw_case:
   case Token_Type::kw_default:
-    this->diag_reporter_->report(Diag_Expected_Left_Curly{
+    this->diags_.add(Diag_Expected_Left_Curly{
         .expected_left_curly =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
     break;
 
   default:
-    this->diag_reporter_->report(Diag_Missing_Body_For_Switch_Statement{
+    this->diags_.add(Diag_Missing_Body_For_Switch_Statement{
         .switch_and_condition =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
@@ -3117,7 +3077,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
       if (!is_before_first_switch_case &&
           !is_valid_end_of_case(previous_statement_first_token->type) &&
           !this->peek().has_leading_comment) {
-        this->diag_reporter_->report(Diag_Fallthrough_Without_Comment_In_Switch{
+        this->diags_.add(Diag_Fallthrough_Without_Comment_In_Switch{
             .end_of_case = Source_Code_Span::unit(this->peek().begin)});
       }
       previous_statement_first_token = this->peek();
@@ -3125,7 +3085,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
       Source_Code_Span case_token_span = this->peek().span();
       this->skip();
       if (this->peek().type == Token_Type::colon) {
-        this->diag_reporter_->report(Diag_Expected_Expression_For_Switch_Case{
+        this->diags_.add(Diag_Expected_Expression_For_Switch_Case{
             .case_token = case_token_span,
         });
         this->skip();
@@ -3138,11 +3098,10 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
         Source_Code_Span expression_case_span = ast->span();
         auto [it, inserted] = cases.insert(expression_case_span.string_view());
         if (!inserted) {
-          this->diag_reporter_->report(
-              Diag_Duplicated_Cases_In_Switch_Statement{
-                  .first_switch_case =
-                      Source_Code_Span(it->data(), it->data() + it->size()),
-                  .duplicated_switch_case = expression_case_span});
+          this->diags_.add(Diag_Duplicated_Cases_In_Switch_Statement{
+              .first_switch_case =
+                  Source_Code_Span(it->data(), it->data() + it->size()),
+              .duplicated_switch_case = expression_case_span});
         }
         this->visit_expression(ast, v, Variable_Context::rhs);
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::colon);
@@ -3155,7 +3114,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
       if (!is_before_first_switch_case &&
           !is_valid_end_of_case(previous_statement_first_token->type) &&
           !this->peek().has_leading_comment) {
-        this->diag_reporter_->report(Diag_Fallthrough_Without_Comment_In_Switch{
+        this->diags_.add(Diag_Fallthrough_Without_Comment_In_Switch{
             .end_of_case = Source_Code_Span::unit(this->peek().begin)});
       }
       is_before_first_switch_case = false;
@@ -3166,7 +3125,7 @@ void Parser::parse_and_visit_switch(Parse_Visitor_Base &v) {
 
     default: {
       if (is_before_first_switch_case) {
-        this->diag_reporter_->report(Diag_Statement_Before_First_Switch_Case{
+        this->diags_.add(Diag_Statement_Before_First_Switch_Case{
             .unexpected_statement = this->peek().span(),
         });
       }
@@ -3209,7 +3168,7 @@ void Parser::parse_and_visit_typescript_namespace(
                                                  is_module);
   {
     if (this->peek().type != Token_Type::left_curly) {
-      this->diag_reporter_->report(Diag_Missing_Body_For_TypeScript_Namespace{
+      this->diags_.add(Diag_Missing_Body_For_TypeScript_Namespace{
           .expected_body =
               Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
       });
@@ -3246,16 +3205,14 @@ Parser::parse_and_visit_typescript_namespace_or_module_head(
     std::optional<Source_Code_Span> declare_keyword_span,
     Source_Code_Span namespace_or_module_keyword_span) {
   if (this->peek().has_leading_newline) {
-    this->diag_reporter_->report(
-        Diag_Newline_Not_Allowed_After_Namespace_Keyword{
-            .namespace_keyword = namespace_or_module_keyword_span,
-        });
+    this->diags_.add(Diag_Newline_Not_Allowed_After_Namespace_Keyword{
+        .namespace_keyword = namespace_or_module_keyword_span,
+    });
   }
   if (!this->options_.typescript) {
-    this->diag_reporter_->report(
-        Diag_TypeScript_Namespaces_Not_Allowed_In_JavaScript{
-            .namespace_keyword = namespace_or_module_keyword_span,
-        });
+    this->diags_.add(Diag_TypeScript_Namespaces_Not_Allowed_In_JavaScript{
+        .namespace_keyword = namespace_or_module_keyword_span,
+    });
   }
 
   switch (this->peek().type) {
@@ -3265,7 +3222,7 @@ Parser::parse_and_visit_typescript_namespace_or_module_head(
     if (this->options_.typescript_definition_file &&
         !this->in_typescript_namespace_or_module_ &&
         !declare_keyword_span.has_value() && !export_keyword_span.has_value()) {
-      this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+      this->diags_.add(Diag_DTS_Missing_Declare_Or_Export{
           .expected =
               Source_Code_Span::unit(namespace_or_module_keyword_span.begin()),
           .declaring_token = namespace_or_module_keyword_span,
@@ -3299,16 +3256,15 @@ Parser::parse_and_visit_typescript_namespace_or_module_head(
         namespace_or_module_keyword_span.string_view()[0] == u8'm';
     if (!namespace_keyword_is_module || !declare_keyword_span.has_value() ||
         export_keyword_span.has_value()) {
-      this->diag_reporter_->report(
+      this->diags_.add(
           Diag_String_Namespace_Name_Is_Only_Allowed_With_Declare_Module{
               .module_name = this->peek().span(),
           });
     } else if (this->in_typescript_namespace_or_module_ &&
                !this->in_typescript_module_) {
-      this->diag_reporter_->report(
-          Diag_String_Namespace_Name_Not_Allowed_In_Namespace{
-              .module_name = this->peek().span(),
-          });
+      this->diags_.add(Diag_String_Namespace_Name_Not_Allowed_In_Namespace{
+          .module_name = this->peek().span(),
+      });
     }
     this->skip();
     return std::nullopt;
@@ -3349,7 +3305,7 @@ void Parser::parse_and_visit_typescript_declare_namespace_or_module(
     if (declare_context.in_module) {
       this->consume_semicolon_after_statement();
     } else {
-      this->diag_reporter_->report(Diag_Missing_Body_For_TypeScript_Namespace{
+      this->diags_.add(Diag_Missing_Body_For_TypeScript_Namespace{
           .expected_body =
               Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
       });
@@ -3389,14 +3345,14 @@ void Parser::parse_and_visit_typescript_declare_block(
       return;
 
     case Token_Type::end_of_file:
-      this->diag_reporter_->report(Diag_Unclosed_Code_Block{
+      this->diags_.add(Diag_Unclosed_Code_Block{
           .block_open = left_curly_span,
       });
       return;
 
     case Token_Type::kw_declare: {
       this->is_current_typescript_namespace_non_empty_ = true;
-      this->diag_reporter_->report(
+      this->diags_.add(
           Diag_Declare_Keyword_Is_Not_Allowed_Inside_Declare_Namespace{
               .declare_keyword = this->peek().span(),
               .declare_namespace_declare_keyword =
@@ -3438,15 +3394,14 @@ void Parser::parse_and_visit_typescript_declare_block(
 void Parser::parse_and_visit_typescript_type_alias(
     Parse_Visitor_Base &v, Source_Code_Span type_token) {
   if (this->peek().has_leading_newline) {
-    this->diag_reporter_->report(Diag_Newline_Not_Allowed_After_Type_Keyword{
+    this->diags_.add(Diag_Newline_Not_Allowed_After_Type_Keyword{
         .type_keyword = type_token,
     });
   }
   if (!this->options_.typescript) {
-    this->diag_reporter_->report(
-        Diag_TypeScript_Type_Alias_Not_Allowed_In_JavaScript{
-            .type_keyword = type_token,
-        });
+    this->diags_.add(Diag_TypeScript_Type_Alias_Not_Allowed_In_JavaScript{
+        .type_keyword = type_token,
+    });
   }
   Identifier name = this->peek().identifier_name();
   Variable_Kind kind = Variable_Kind::_type_alias;
@@ -3477,10 +3432,9 @@ void Parser::parse_and_visit_typescript_enum(Parse_Visitor_Base &v,
                                              Enum_Kind kind) {
   QLJS_ASSERT(this->peek().type == Token_Type::kw_enum);
   if (!this->options_.typescript) {
-    this->diag_reporter_->report(
-        Diag_TypeScript_Enum_Is_Not_Allowed_In_JavaScript{
-            .enum_keyword = this->peek().span(),
-        });
+    this->diags_.add(Diag_TypeScript_Enum_Is_Not_Allowed_In_JavaScript{
+        .enum_keyword = this->peek().span(),
+    });
   }
   this->skip();
 
@@ -3526,7 +3480,7 @@ void Parser::parse_and_visit_typescript_enum(Parse_Visitor_Base &v,
 
   case Token_Type::kw_await:
     if (this->in_async_function_) {
-      this->diag_reporter_->report(Diag_Cannot_Declare_Await_In_Async_Function{
+      this->diags_.add(Diag_Cannot_Declare_Await_In_Async_Function{
           .name = this->peek().span(),
       });
     }
@@ -3560,7 +3514,7 @@ void Parser::parse_and_visit_typescript_enum_members(Parse_Visitor_Base &v,
     if (kind == Enum_Kind::normal &&
         last_enum_value_kind == Enum_Value_Kind::computed) {
       QLJS_ASSERT(last_enum_value.has_value());
-      this->diag_reporter_->report(
+      this->diags_.add(
           Diag_TypeScript_Enum_Auto_Member_Needs_Initializer_After_Computed{
               .auto_member_name = member_name,
               .computed_expression = *last_enum_value,
@@ -3598,11 +3552,10 @@ void Parser::parse_and_visit_typescript_enum_members(Parse_Visitor_Base &v,
       case Enum_Kind::const_enum:
       case Enum_Kind::declare_enum: {
         if (value_kind == Enum_Value_Kind::computed) {
-          this->diag_reporter_->report(
-              Diag_TypeScript_Enum_Value_Must_Be_Constant{
-                  .expression = ast_span,
-                  .declared_enum_kind = kind,
-              });
+          this->diags_.add(Diag_TypeScript_Enum_Value_Must_Be_Constant{
+              .expression = ast_span,
+              .declared_enum_kind = kind,
+          });
         }
         break;
       }
@@ -3651,10 +3604,9 @@ next_member:
     case Expression_Kind::Literal:
       break;
     default:
-      this->diag_reporter_->report(
-          Diag_TypeScript_Enum_Computed_Name_Must_Be_Simple{
-              .expression = ast->span(),
-          });
+      this->diags_.add(Diag_TypeScript_Enum_Computed_Name_Must_Be_Simple{
+          .expression = ast->span(),
+      });
       break;
     }
     this->visit_expression(ast, v, Variable_Context::rhs);
@@ -3670,10 +3622,9 @@ next_member:
   // enum E { 42 = 69 }  // Invalid.
   case Token_Type::number: {
     Source_Code_Span member_name = this->peek().span();
-    this->diag_reporter_->report(
-        Diag_TypeScript_Enum_Member_Name_Cannot_Be_Number{
-            .number = member_name,
-        });
+    this->diags_.add(Diag_TypeScript_Enum_Member_Name_Cannot_Be_Number{
+        .number = member_name,
+    });
     this->skip();
     parse_after_member_name(member_name);
     goto next_member;
@@ -3686,10 +3637,9 @@ next_member:
   // enum E { , }    // Invalid.
   // enum E { A,, }  // Invalid.
   case Token_Type::comma:
-    this->diag_reporter_->report(
-        Diag_Extra_Comma_Not_Allowed_Between_Enum_Members{
-            .comma = this->peek().span(),
-        });
+    this->diags_.add(Diag_Extra_Comma_Not_Allowed_Between_Enum_Members{
+        .comma = this->peek().span(),
+    });
     this->skip();
     goto next_member;
 
@@ -3794,7 +3744,7 @@ void Parser::parse_and_visit_try_maybe_catch_maybe_finally(
     this->parse_and_visit_statement_block_no_scope(v);
     v.visit_exit_block_scope();
   } else {
-    this->diag_reporter_->report(Diag_Missing_Body_For_Try_Statement{
+    this->diags_.add(Diag_Missing_Body_For_Try_Statement{
         .try_token = try_token_span,
     });
   }
@@ -3804,12 +3754,11 @@ void Parser::parse_and_visit_try_maybe_catch_maybe_finally(
   if (parsed_try_body && !parsed_catch_or_finally) {
     const Char8 *expected_catch_or_finally =
         this->lexer_.end_of_previous_token();
-    this->diag_reporter_->report(
-        Diag_Missing_Catch_Or_Finally_For_Try_Statement{
-            .expected_catch_or_finally = Source_Code_Span(
-                expected_catch_or_finally, expected_catch_or_finally),
-            .try_token = try_token_span,
-        });
+    this->diags_.add(Diag_Missing_Catch_Or_Finally_For_Try_Statement{
+        .expected_catch_or_finally = Source_Code_Span(
+            expected_catch_or_finally, expected_catch_or_finally),
+        .try_token = try_token_span,
+    });
   }
 }
 
@@ -3829,19 +3778,17 @@ bool Parser::parse_and_visit_catch_or_finally_or_both(Parse_Visitor_Base &v) {
       switch (this->peek().type) {
       case Token_Type::kw_await:
         if (this->in_async_function_) {
-          this->diag_reporter_->report(
-              Diag_Cannot_Declare_Await_In_Async_Function{
-                  .name = this->peek().span(),
-              });
+          this->diags_.add(Diag_Cannot_Declare_Await_In_Async_Function{
+              .name = this->peek().span(),
+          });
         }
         goto catch_identifier;
 
       case Token_Type::kw_yield:
         if (this->in_generator_function_) {
-          this->diag_reporter_->report(
-              Diag_Cannot_Declare_Yield_In_Generator_Function{
-                  .name = this->peek().span(),
-              });
+          this->diags_.add(Diag_Cannot_Declare_Yield_In_Generator_Function{
+              .name = this->peek().span(),
+          });
         }
         goto catch_identifier;
 
@@ -3873,18 +3820,17 @@ bool Parser::parse_and_visit_catch_or_finally_or_both(Parse_Visitor_Base &v) {
       }
 
       case Token_Type::right_paren:
-        this->diag_reporter_->report(
-            Diag_Missing_Catch_Variable_Between_Parentheses{
-                .left_paren_to_right_paren = Source_Code_Span(
-                    catch_left_paren_span.begin(), this->peek().end),
-                .left_paren = catch_left_paren_span,
-                .right_paren = this->peek().span(),
-            });
+        this->diags_.add(Diag_Missing_Catch_Variable_Between_Parentheses{
+            .left_paren_to_right_paren = Source_Code_Span(
+                catch_left_paren_span.begin(), this->peek().end),
+            .left_paren = catch_left_paren_span,
+            .right_paren = this->peek().span(),
+        });
         break;
 
         // catch ("junk") {}
       case Token_Type::string:
-        this->diag_reporter_->report(Diag_Expected_Variable_Name_For_Catch{
+        this->diags_.add(Diag_Expected_Variable_Name_For_Catch{
             .unexpected_token = this->peek().span(),
         });
         this->skip();
@@ -3914,11 +3860,10 @@ bool Parser::parse_and_visit_catch_or_finally_or_both(Parse_Visitor_Base &v) {
           const Char8 *type_expression_end =
               this->lexer_.end_of_previous_token();
           if (this->options_.typescript) {
-            this->diag_reporter_->report(
-                Diag_TypeScript_Catch_Type_Annotation_Must_Be_Any{
-                    .type_expression = Source_Code_Span(type_expression_begin,
-                                                        type_expression_end),
-                });
+            this->diags_.add(Diag_TypeScript_Catch_Type_Annotation_Must_Be_Any{
+                .type_expression = Source_Code_Span(type_expression_begin,
+                                                    type_expression_end),
+            });
           }
           break;
         }
@@ -3932,7 +3877,7 @@ bool Parser::parse_and_visit_catch_or_finally_or_both(Parse_Visitor_Base &v) {
     if (this->peek().type == Token_Type::left_curly) {
       this->parse_and_visit_statement_block_no_scope(v);
     } else {
-      this->diag_reporter_->report(Diag_Missing_Body_For_Catch_Clause{
+      this->diags_.add(Diag_Missing_Body_For_Catch_Clause{
           .catch_token =
               Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
       });
@@ -3950,7 +3895,7 @@ bool Parser::parse_and_visit_catch_or_finally_or_both(Parse_Visitor_Base &v) {
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
     } else {
-      this->diag_reporter_->report(Diag_Missing_Body_For_Finally_Clause{
+      this->diags_.add(Diag_Missing_Body_For_Finally_Clause{
           .finally_token = finally_token_span,
       });
     }
@@ -3979,17 +3924,16 @@ void Parser::parse_and_visit_do_while(Parse_Visitor_Base &v) {
   if (this->peek().type != Token_Type::kw_while) {
     if (body_is_while) {
       // { do while (cond); }  // Invalid
-      this->diag_reporter_->report(Diag_Missing_Body_For_Do_While_Statement{
+      this->diags_.add(Diag_Missing_Body_For_Do_While_Statement{
           .do_token = do_token_span,
       });
     } else {
       // do { } if (cond);  // Invalid
-      this->diag_reporter_->report(
-          Diag_Missing_While_And_Condition_For_Do_While_Statement{
-              .do_token = do_token_span,
-              .expected_while =
-                  Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
-          });
+      this->diags_.add(Diag_Missing_While_And_Condition_For_Do_While_Statement{
+          .do_token = do_token_span,
+          .expected_while =
+              Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
+      });
     }
     return;
   }
@@ -4020,7 +3964,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
       // await operators (Parser_Top_Level_Await_Mode::no_await_operator).
     } else {
       if (!this->in_async_function_) {
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_Await_Operator_Outside_Async{this->peek().span()});
       }
     }
@@ -4028,7 +3972,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
   }
 
   if (this->peek().type != Token_Type::left_paren) {
-    this->diag_reporter_->report(Diag_Missing_For_Loop_Header{
+    this->diags_.add(Diag_Missing_For_Loop_Header{
         .for_token = for_token_span,
     });
     return;
@@ -4060,7 +4004,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
         case Token_Type::identifier:
         default:
           this->lexer_.insert_semicolon();
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Missing_Semicolon_Between_For_Loop_Condition_And_Update{
                   .expected_semicolon = this->peek().span(),
               });
@@ -4068,11 +4012,10 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
 
           // for (init; cond) {}  // Invalid.
         case Token_Type::right_paren:
-          this->diag_reporter_->report(
-              Diag_C_Style_For_Loop_Is_Missing_Third_Component{
-                  .expected_last_component = this->peek().span(),
-                  .existing_semicolon = first_semicolon_span,
-              });
+          this->diags_.add(Diag_C_Style_For_Loop_Is_Missing_Third_Component{
+              .expected_last_component = this->peek().span(),
+              .existing_semicolon = first_semicolon_span,
+          });
           break;
         }
       };
@@ -4108,7 +4051,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
     case Token_Type::identifier:
     default:
       this->lexer_.insert_semicolon();
-      this->diag_reporter_->report(
+      this->diags_.add(
           Diag_Missing_Semicolon_Between_For_Loop_Init_And_Condition{
               .expected_semicolon = this->peek().span(),
           });
@@ -4124,7 +4067,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
       this->visit_assignment_expression(init_expression, rhs, v);
 
       if (this->peek().type == Token_Type::semicolon) {
-        this->diag_reporter_->report(Diag_In_Disallowed_In_C_Style_For_Loop{
+        this->diags_.add(Diag_In_Disallowed_In_C_Style_For_Loop{
             .in_token = in_token_span,
         });
         Source_Code_Span first_semicolon_span = this->peek().span();
@@ -4146,12 +4089,10 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
 
       // for (expression) {}    // Invalid.
     case Token_Type::right_paren:
-      this->diag_reporter_->report(
-          Diag_Missing_For_Loop_Rhs_Or_Components_After_Expression{
-              .header =
-                  Source_Code_Span(left_paren_token_begin, this->peek().end),
-              .for_token = for_token_span,
-          });
+      this->diags_.add(Diag_Missing_For_Loop_Rhs_Or_Components_After_Expression{
+          .header = Source_Code_Span(left_paren_token_begin, this->peek().end),
+          .for_token = for_token_span,
+      });
       this->visit_expression(init_expression, v, Variable_Context::rhs);
       for_loop_style = Loop_Style::c_style;
       break;
@@ -4202,7 +4143,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
       case Token_Type::identifier:
         this->lexer_.roll_back_transaction(std::move(transaction));
         this->skip();  // Re-parse 'let'.
-        this->diag_reporter_->report(Diag_Let_With_No_Bindings{
+        this->diags_.add(Diag_Let_With_No_Bindings{
             .where = declaring_token.span(),
         });
         break;
@@ -4275,7 +4216,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
 
       // for (let myVariable) {}    // Invalid.
     case Token_Type::right_paren:
-      this->diag_reporter_->report(
+      this->diags_.add(
           Diag_Missing_For_Loop_Rhs_Or_Components_After_Declaration{
               .header =
                   Source_Code_Span(left_paren_token_begin, this->peek().end),
@@ -4318,7 +4259,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
       // for await (async of things) {}
       // for (async of things) {}  // Invalid.
       if (!is_for_await) {
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_Cannot_Assign_To_Variable_Named_Async_In_For_Of_Loop{
                 .async_identifier = async_token.span(),
             });
@@ -4348,7 +4289,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
 
     // for () {}  // Invalid.
   case Token_Type::right_paren:
-    this->diag_reporter_->report(Diag_Missing_Header_Of_For_Loop{
+    this->diags_.add(Diag_Missing_Header_Of_For_Loop{
         .where = Source_Code_Span(left_paren_token_begin, this->peek().end),
     });
     for_loop_style = Loop_Style::other;
@@ -4361,18 +4302,17 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
     switch (for_loop_style) {
     case Loop_Style::c_style:
     case Loop_Style::other:
-      this->diag_reporter_->report(
-          Diag_Unexpected_Semicolon_In_C_Style_For_Loop{
-              .semicolon = this->peek().span(),
-          });
+      this->diags_.add(Diag_Unexpected_Semicolon_In_C_Style_For_Loop{
+          .semicolon = this->peek().span(),
+      });
       break;
     case Loop_Style::for_in:
-      this->diag_reporter_->report(Diag_Unexpected_Semicolon_In_For_In_Loop{
+      this->diags_.add(Diag_Unexpected_Semicolon_In_For_In_Loop{
           .semicolon = this->peek().span(),
       });
       break;
     case Loop_Style::for_of:
-      this->diag_reporter_->report(Diag_Unexpected_Semicolon_In_For_Of_Loop{
+      this->diags_.add(Diag_Unexpected_Semicolon_In_For_Of_Loop{
           .semicolon = this->peek().span(),
       });
       break;
@@ -4399,7 +4339,7 @@ void Parser::parse_and_visit_for(Parse_Visitor_Base &v) {
                                              .allow_let_declaration = false,
                                          });
   if (!parsed_body) {
-    this->diag_reporter_->report(Diag_Missing_Body_For_For_Statement{
+    this->diags_.add(Diag_Missing_Body_For_For_Statement{
         .for_and_header =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
@@ -4422,7 +4362,7 @@ void Parser::parse_and_visit_while(Parse_Visitor_Base &v) {
 
   if (this->peek().type == Token_Type::left_curly) {
     // while { body; }  // Invalid.
-    this->diag_reporter_->report(Diag_Missing_Condition_For_While_Statement{
+    this->diags_.add(Diag_Missing_Condition_For_While_Statement{
         .while_keyword = while_token_span,
     });
   } else {
@@ -4441,7 +4381,7 @@ void Parser::parse_and_visit_while(Parse_Visitor_Base &v) {
                                              .allow_let_declaration = false,
                                          });
   if (!parsed_body) {
-    this->diag_reporter_->report(Diag_Missing_Body_For_While_Statement{
+    this->diags_.add(Diag_Missing_Body_For_While_Statement{
         .while_and_condition =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
@@ -4481,7 +4421,7 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
 
   if (this->peek().type == Token_Type::left_curly) {
     // if { body; }  // Invalid.
-    this->diag_reporter_->report(Diag_Missing_Condition_For_If_Statement{
+    this->diags_.add(Diag_Missing_Condition_For_If_Statement{
         .if_keyword = if_token_span,
     });
   } else {
@@ -4523,7 +4463,7 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
   // if (cond);  // Invalid TypeScript.
   case Token_Type::semicolon:
     if (this->options_.typescript) {
-      this->diag_reporter_->report(Diag_Missing_Body_For_If_Statement{
+      this->diags_.add(Diag_Missing_Body_For_If_Statement{
           .expected_body = this->peek().span(),
       });
     } else {
@@ -4533,7 +4473,7 @@ void Parser::parse_and_visit_if(Parse_Visitor_Base &v) {
   case Token_Type::end_of_file:
   case Token_Type::kw_else:
   case Token_Type::right_curly:
-    this->diag_reporter_->report(Diag_Missing_Body_For_If_Statement{
+    this->diags_.add(Diag_Missing_Body_For_If_Statement{
         .expected_body =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
@@ -4557,7 +4497,7 @@ parse_maybe_else:
       bool has_left_curly = this->peek().type == Token_Type::left_curly;
       if (!this->peek().has_leading_newline && has_left_curly) {
         // if (cond) {} else (cond) {} // Invalid
-        this->diag_reporter_->report(Diag_Missing_If_After_Else{
+        this->diags_.add(Diag_Missing_If_After_Else{
             .expected_if = Source_Code_Span::unit(end_of_else),
         });
         parse_and_visit_body();
@@ -4590,7 +4530,7 @@ void Parser::parse_and_visit_import(
       switch (declared_variable->type) {
       // import var from "module";  // Invalid.
       QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD:
-        this->diag_reporter_->report(Diag_Cannot_Import_Variable_Named_Keyword{
+        this->diags_.add(Diag_Cannot_Import_Variable_Named_Keyword{
             .import_name = declared_variable->span(),
         });
         break;
@@ -4611,13 +4551,12 @@ void Parser::parse_and_visit_import(
           // TODO[TypeScript-export-namespace-alias-keyword-name].
         } else {
           if (declared_variable->type == Token_Type::kw_let) {
-            this->diag_reporter_->report(Diag_Cannot_Import_Let{
+            this->diags_.add(Diag_Cannot_Import_Let{
                 .import_name = declared_variable->span()});
           } else {
-            this->diag_reporter_->report(
-                Diag_Cannot_Import_Variable_Named_Keyword{
-                    .import_name = declared_variable->span(),
-                });
+            this->diags_.add(Diag_Cannot_Import_Variable_Named_Keyword{
+                .import_name = declared_variable->span(),
+            });
           }
         }
         break;
@@ -4736,10 +4675,9 @@ void Parser::parse_and_visit_import(
     type_span = this->peek().span();
     auto report_type_only_import_in_javascript_if_needed = [&] {
       if (!this->options_.typescript) {
-        this->diag_reporter_->report(
-            Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript{
-                .type_keyword = *type_span,
-            });
+        this->diags_.add(Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript{
+            .type_keyword = *type_span,
+        });
       }
     };
     Lexer_Transaction transaction = this->lexer_.begin_transaction();
@@ -4769,7 +4707,7 @@ void Parser::parse_and_visit_import(
         switch (this->peek().type) {
         // import type T, {U} from "module";  // Invalid.
         case Token_Type::left_curly:
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named{
                   .type_keyword = *type_span,
               });
@@ -4780,7 +4718,7 @@ void Parser::parse_and_visit_import(
 
         // import type T, * as U from "module";  // Invalid.
         case Token_Type::star:
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_TypeScript_Type_Only_Import_Cannot_Import_Default_And_Named{
                   .type_keyword = *type_span,
               });
@@ -4832,7 +4770,7 @@ void Parser::parse_and_visit_import(
 
   case Token_Type::string:
     declare_variable_if_needed();
-    this->diag_reporter_->report(Diag_Expected_From_Before_Module_Specifier{
+    this->diags_.add(Diag_Expected_From_Before_Module_Specifier{
         .module_specifier = this->peek().span(),
     });
     break;
@@ -4855,7 +4793,7 @@ void Parser::parse_and_visit_import(
           // import type fs = require("fs");
 
           if (!this->options_.typescript) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Import_Alias_Not_Allowed_In_JavaScript{
                     .import_keyword = import_span,
                     .equal = equal_span,
@@ -4871,12 +4809,11 @@ void Parser::parse_and_visit_import(
           declare_variable_if_needed();
           if (declare_context.declare_namespace_declare_keyword.has_value() &&
               !declare_context.in_module) {
-            this->diag_reporter_->report(
-                Diag_Declare_Namespace_Cannot_Import_Module{
-                    .importing_keyword = import_span,
-                    .declare_keyword =
-                        *declare_context.declare_namespace_declare_keyword,
-                });
+            this->diags_.add(Diag_Declare_Namespace_Cannot_Import_Module{
+                .importing_keyword = import_span,
+                .declare_keyword =
+                    *declare_context.declare_namespace_declare_keyword,
+            });
           }
 
           this->skip();
@@ -4888,13 +4825,13 @@ void Parser::parse_and_visit_import(
         } else {
           if (declared_variable_kind == Variable_Kind::_import_type) {
             // import type a = b; // Invalid.
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type{
                     .type_keyword = *type_span});
           } else {
             if (!this->options_.typescript) {
               // import a = b; // Invalid.
-              this->diag_reporter_->report(
+              this->diags_.add(
                   Diag_TypeScript_Namespace_Alias_Not_Allowed_In_JavaScript{
                       .import_keyword = import_span,
                       .equal = equal_span,
@@ -4940,7 +4877,7 @@ void Parser::parse_and_visit_import(
     [[fallthrough]];
   default:
     declare_variable_if_needed();
-    this->diag_reporter_->report(Diag_Expected_From_And_Module_Specifier{
+    this->diags_.add(Diag_Expected_From_And_Module_Specifier{
         .where = Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
     });
     return;
@@ -4951,7 +4888,7 @@ void Parser::parse_and_visit_import(
   case Token_Type::string:
     if (declare_context.declare_namespace_declare_keyword.has_value() &&
         !declare_context.in_module) {
-      this->diag_reporter_->report(Diag_Declare_Namespace_Cannot_Import_Module{
+      this->diags_.add(Diag_Declare_Namespace_Cannot_Import_Module{
           .importing_keyword = import_span,
           .declare_keyword = *declare_context.declare_namespace_declare_keyword,
       });
@@ -4963,7 +4900,7 @@ void Parser::parse_and_visit_import(
   // import foo from bar;  // Invalid.
   QLJS_CASE_KEYWORD:
   case Token_Type::identifier:
-    this->diag_reporter_->report(Diag_Cannot_Import_From_Unquoted_Module{
+    this->diags_.add(Diag_Cannot_Import_From_Unquoted_Module{
         .import_name = this->peek().span(),
     });
     this->skip();
@@ -4988,13 +4925,12 @@ void Parser::parse_and_visit_name_space_import(Parse_Visitor_Base &v) {
     break;
 
   case Token_Type::identifier:
-    this->diag_reporter_->report(
-        Diag_Expected_As_Before_Imported_Namespace_Alias{
-            .star_through_alias_token =
-                Source_Code_Span(star_span.begin(), this->peek().end),
-            .alias = this->peek().span(),
-            .star_token = star_span,
-        });
+    this->diags_.add(Diag_Expected_As_Before_Imported_Namespace_Alias{
+        .star_through_alias_token =
+            Source_Code_Span(star_span.begin(), this->peek().end),
+        .alias = this->peek().span(),
+        .star_token = star_span,
+    });
     break;
 
   default:
@@ -5005,7 +4941,7 @@ void Parser::parse_and_visit_name_space_import(Parse_Visitor_Base &v) {
   switch (this->peek().type) {
     // import * as var from "module";  // Invalid.
   QLJS_CASE_STRICT_RESERVED_KEYWORD:
-    this->diag_reporter_->report(Diag_Cannot_Import_Variable_Named_Keyword{
+    this->diags_.add(Diag_Cannot_Import_Variable_Named_Keyword{
         .import_name = this->peek().span(),
     });
     goto identifier;
@@ -5020,7 +4956,7 @@ void Parser::parse_and_visit_name_space_import(Parse_Visitor_Base &v) {
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case Token_Type::identifier:
     if (this->peek().type == Token_Type::kw_let) {
-      this->diag_reporter_->report(Diag_Cannot_Import_Let{
+      this->diags_.add(Diag_Cannot_Import_Let{
           .import_name = this->peek().identifier_name().span()});
     }
     v.visit_variable_declaration(this->peek().identifier_name(),
@@ -5135,7 +5071,7 @@ void Parser::parse_and_visit_named_exports(
         QLJS_CASE_CONTEXTUAL_KEYWORD:
         case Token_Type::identifier:
           if (right_token.type == Token_Type::kw_let) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_Cannot_Import_Let{.import_name = right_token.span()});
           }
           v.visit_variable_declaration(right_token.identifier_name(),
@@ -5145,10 +5081,9 @@ void Parser::parse_and_visit_named_exports(
 
           // import {var} from 'other';  // Invalid.
         QLJS_CASE_STRICT_RESERVED_KEYWORD:
-          this->diag_reporter_->report(
-              Diag_Cannot_Import_Variable_Named_Keyword{
-                  .import_name = right_token.span(),
-              });
+          this->diags_.add(Diag_Cannot_Import_Variable_Named_Keyword{
+              .import_name = right_token.span(),
+          });
           // FIXME(strager): Declaring a variable with a keyword name is
           // sketchy. Delete this?
           v.visit_variable_declaration(right_token.identifier_name(),
@@ -5169,10 +5104,9 @@ void Parser::parse_and_visit_named_exports(
 
         case Token_Type::string:
           QLJS_ASSERT(has_as);
-          this->diag_reporter_->report(
-              Diag_Expected_Variable_Name_For_Import_As{
-                  .unexpected_token = right_token.span(),
-              });
+          this->diags_.add(Diag_Expected_Variable_Name_For_Import_As{
+              .unexpected_token = right_token.span(),
+          });
           break;
 
         default:
@@ -5191,12 +5125,12 @@ void Parser::parse_and_visit_named_exports(
       auto report_diag_for_inline_type_import_if_needed = [&] {
         if (!this->options_.typescript) {
           if (is_export) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Type_Export_Not_Allowed_In_JavaScript{
                     .type_keyword = type_span,
                 });
           } else {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Type_Import_Not_Allowed_In_JavaScript{
                     .type_keyword = type_span,
                 });
@@ -5204,13 +5138,13 @@ void Parser::parse_and_visit_named_exports(
         }
         if (typescript_type_only_keyword.has_value()) {
           if (is_export) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Inline_Type_Export_Not_Allowed_In_Type_Only_Export{
                     .inline_type_keyword = type_span,
                     .type_only_keyword = *typescript_type_only_keyword,
                 });
           } else {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Inline_Type_Import_Not_Allowed_In_Type_Only_Import{
                     .inline_type_keyword = type_span,
                     .type_only_keyword = *typescript_type_only_keyword,
@@ -5291,7 +5225,7 @@ void Parser::parse_and_visit_named_exports(
         QLJS_CASE_CONTEXTUAL_KEYWORD:
         case Token_Type::identifier:
           if (this->peek().type == Token_Type::kw_let) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_Cannot_Import_Let{.import_name = this->peek().span()});
           }
           v.visit_variable_declaration(this->peek().identifier_name(),
@@ -5302,10 +5236,9 @@ void Parser::parse_and_visit_named_exports(
 
           // import {'name' as debugger} from 'other';  // Invalid.
         QLJS_CASE_STRICT_RESERVED_KEYWORD:
-          this->diag_reporter_->report(
-              Diag_Cannot_Import_Variable_Named_Keyword{
-                  .import_name = this->peek().span(),
-              });
+          this->diags_.add(Diag_Cannot_Import_Variable_Named_Keyword{
+              .import_name = this->peek().span(),
+          });
           v.visit_variable_declaration(this->peek().identifier_name(),
                                        Variable_Kind::_import,
                                        Variable_Declaration_Flags::none);
@@ -5323,10 +5256,9 @@ void Parser::parse_and_visit_named_exports(
           break;
 
         case Token_Type::string:
-          this->diag_reporter_->report(
-              Diag_Expected_Variable_Name_For_Import_As{
-                  .unexpected_token = this->peek().span(),
-              });
+          this->diags_.add(Diag_Expected_Variable_Name_For_Import_As{
+              .unexpected_token = this->peek().span(),
+          });
           this->skip();
           break;
 
@@ -5379,7 +5311,7 @@ void Parser::parse_and_visit_variable_declaration_statement(
   if (this->peek().type == Token_Type::kw_enum &&
       declaring_token.type == Token_Type::kw_const) {
     if (is_top_level_typescript_definition_without_declare_or_export) {
-      this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+      this->diags_.add(Diag_DTS_Missing_Declare_Or_Export{
           .expected = Source_Code_Span::unit(declaring_token.begin),
           .declaring_token = this->peek().span(),
       });
@@ -5419,7 +5351,7 @@ void Parser::parse_and_visit_let_bindings(
   }
 
   if (options.is_top_level_typescript_definition_without_declare_or_export) {
-    this->diag_reporter_->report(Diag_DTS_Missing_Declare_Or_Export{
+    this->diags_.add(Diag_DTS_Missing_Declare_Or_Export{
         .expected = Source_Code_Span::unit(options.declaring_token.begin),
         .declaring_token = options.declaring_token.span(),
     });
@@ -5454,11 +5386,10 @@ void Parser::parse_and_visit_let_bindings(
           return;
         } else {
           // let x y
-          this->diag_reporter_->report(
-              Diag_Missing_Comma_Between_Variable_Declarations{
-                  .expected_comma = Source_Code_Span::unit(
-                      this->lexer_.end_of_previous_token()),
-              });
+          this->diags_.add(Diag_Missing_Comma_Between_Variable_Declarations{
+              .expected_comma =
+                  Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
+          });
         }
         break;
 
@@ -5471,19 +5402,17 @@ void Parser::parse_and_visit_let_bindings(
     switch (this->peek().type) {
     case Token_Type::kw_await:
       if (this->in_async_function_) {
-        this->diag_reporter_->report(
-            Diag_Cannot_Declare_Await_In_Async_Function{
-                .name = this->peek().span(),
-            });
+        this->diags_.add(Diag_Cannot_Declare_Await_In_Async_Function{
+            .name = this->peek().span(),
+        });
       }
       goto variable_name;
 
     case Token_Type::kw_yield:
       if (this->in_generator_function_) {
-        this->diag_reporter_->report(
-            Diag_Cannot_Declare_Yield_In_Generator_Function{
-                .name = this->peek().span(),
-            });
+        this->diags_.add(Diag_Cannot_Declare_Yield_In_Generator_Function{
+            .name = this->peek().span(),
+        });
       }
       goto variable_name;
 
@@ -5529,7 +5458,7 @@ void Parser::parse_and_visit_let_bindings(
 
           if (has_type_annotation_after_definite_assignment_assertion) {
             // let x /* ASI */ !: Type;  // Invalid.
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_Newline_Not_Allowed_Before_Definite_Assignment_Assertion{
                     .definite_assignment_assertion = this->peek().span(),
                 });
@@ -5545,7 +5474,7 @@ void Parser::parse_and_visit_let_bindings(
         this->skip();
         if (!reported_issue_with_definite_assignment_assertion &&
             options.declare_keyword.has_value()) {
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context{
                   .definite_assignment_assertion =
                       *definite_assignment_assertion,
@@ -5555,7 +5484,7 @@ void Parser::parse_and_visit_let_bindings(
         }
         if (!reported_issue_with_definite_assignment_assertion &&
             declaration_kind == Variable_Kind::_const) {
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_TypeScript_Definite_Assignment_Assertion_On_Const{
                   .definite_assignment_assertion =
                       *definite_assignment_assertion,
@@ -5575,13 +5504,13 @@ void Parser::parse_and_visit_let_bindings(
         // let x!;  // Invalid.
         if (!reported_issue_with_definite_assignment_assertion) {
           if (this->options_.typescript) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation{
                     .definite_assignment_assertion =
                         *definite_assignment_assertion,
                 });
           } else {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Definite_Assignment_Assertion_Not_Allowed_In_JavaScript{
                     .definite_assignment_assertion =
                         *definite_assignment_assertion,
@@ -5600,23 +5529,22 @@ void Parser::parse_and_visit_let_bindings(
         if (options.is_declare(this) &&
             declaration_kind != Variable_Kind::_const) {
           if (this->options_.typescript_definition_file) {
-            this->diag_reporter_->report(Diag_DTS_Var_Cannot_Have_Initializer{
+            this->diags_.add(Diag_DTS_Var_Cannot_Have_Initializer{
                 .equal = equal_token.span(),
                 .declaring_token = options.declaring_token.span(),
             });
           } else {
-            this->diag_reporter_->report(
-                Diag_Declare_Var_Cannot_Have_Initializer{
-                    .equal = equal_token.span(),
-                    .declare_keyword = *options.declare_keyword,
-                    .declaring_token = options.declaring_token.span(),
-                });
+            this->diags_.add(Diag_Declare_Var_Cannot_Have_Initializer{
+                .equal = equal_token.span(),
+                .declare_keyword = *options.declare_keyword,
+                .declaring_token = options.declaring_token.span(),
+            });
           }
         }
         if (definite_assignment_assertion.has_value()) {
           // let x!: string = '';  // Invalid.
           if (!reported_issue_with_definite_assignment_assertion) {
-            this->diag_reporter_->report(
+            this->diags_.add(
                 Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer{
                     .definite_assignment_assertion =
                         *definite_assignment_assertion,
@@ -5651,10 +5579,9 @@ void Parser::parse_and_visit_let_bindings(
                 }
                 // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
                 assignment_ast->children_[1] = in_ast;
-                this->diag_reporter_->report(
-                    Diag_In_Disallowed_In_C_Style_For_Loop{
-                        .in_token = in_token_span,
-                    });
+                this->diags_.add(Diag_In_Disallowed_In_C_Style_For_Loop{
+                    .in_token = in_token_span,
+                });
                 return true;
               },
               [&] {
@@ -5662,7 +5589,7 @@ void Parser::parse_and_visit_let_bindings(
                   // for (var x = "initial" in obj)
                 } else {
                   // for (let x = "prop" in obj)  // Invalid.
-                  this->diag_reporter_->report(
+                  this->diags_.add(
                       Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop{
                           .equal_token = equal_token.span()});
                 }
@@ -5670,7 +5597,7 @@ void Parser::parse_and_visit_let_bindings(
         } else if (options.is_in_for_initializer &&
                    this->peek().type == Token_Type::kw_of) {
           // for (var x = "initial" of obj)  // Invalid.
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Cannot_Assign_To_Loop_Variable_In_For_Of_Or_In_Loop{
                   .equal_token = equal_token.span()});
         }
@@ -5707,7 +5634,7 @@ void Parser::parse_and_visit_let_bindings(
           return;
         }
         // let x null;  // ERROR
-        this->diag_reporter_->report(Diag_Missing_Equal_After_Variable{
+        this->diags_.add(Diag_Missing_Equal_After_Variable{
             .expected_equal =
                 Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
         });
@@ -5735,9 +5662,8 @@ void Parser::parse_and_visit_let_bindings(
               // We already reported
               // Diag_TypeScript_Definite_Assignment_Assertion_On_Const.
             } else {
-              this->diag_reporter_->report(
-                  Diag_Missing_Initializer_In_Const_Declaration{
-                      .variable_name = variable->span()});
+              this->diags_.add(Diag_Missing_Initializer_In_Const_Declaration{
+                  .variable_name = variable->span()});
             }
           }
         }
@@ -5791,10 +5717,9 @@ void Parser::parse_and_visit_let_bindings(
       case Token_Type::equal:
       case Token_Type::semicolon:
         this->lexer_.commit_transaction(std::move(transaction));
-        this->diag_reporter_->report(
-            Diag_Cannot_Declare_Variable_With_Keyword_Name{
-                .keyword = keyword_span,
-            });
+        this->diags_.add(Diag_Cannot_Declare_Variable_With_Keyword_Name{
+            .keyword = keyword_span,
+        });
         this->skip();
         this->parse_and_visit_expression(
             v, Precedence{.commas = false,
@@ -5805,9 +5730,9 @@ void Parser::parse_and_visit_let_bindings(
       default:
         this->lexer_.roll_back_transaction(std::move(transaction));
         if (this->peek().has_leading_newline) {
-          this->diag_reporter_->report(Diag_Let_With_No_Bindings{let_span});
+          this->diags_.add(Diag_Let_With_No_Bindings{let_span});
         } else {
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Unexpected_Token_In_Variable_Declaration{keyword_span});
           this->lexer_.insert_semicolon();
         }
@@ -5819,20 +5744,18 @@ void Parser::parse_and_visit_let_bindings(
       // let 42;  // Invalid.
     case Token_Type::complete_template:
     case Token_Type::number:
-      this->diag_reporter_->report(
-          Diag_Unexpected_Token_In_Variable_Declaration{
-              .unexpected_token = this->peek().span(),
-          });
+      this->diags_.add(Diag_Unexpected_Token_In_Variable_Declaration{
+          .unexpected_token = this->peek().span(),
+      });
       this->lexer_.insert_semicolon();
       break;
 
       // let v, `hello${world}`;  // Invalid.
     case Token_Type::incomplete_template:
       // TODO(strager): Improve the span.
-      this->diag_reporter_->report(
-          Diag_Unexpected_Token_In_Variable_Declaration{
-              .unexpected_token = this->peek().span(),
-          });
+      this->diags_.add(Diag_Unexpected_Token_In_Variable_Declaration{
+          .unexpected_token = this->peek().span(),
+      });
       this->lexer_.insert_semicolon();
       break;
 
@@ -5849,7 +5772,7 @@ void Parser::parse_and_visit_let_bindings(
       break;
 
     case Token_Type::equal:
-      this->diag_reporter_->report(Diag_Missing_Variable_Name_In_Declaration{
+      this->diags_.add(Diag_Missing_Variable_Name_In_Declaration{
           .equal_token = this->peek().span(),
       });
       this->skip();
@@ -5861,11 +5784,10 @@ void Parser::parse_and_visit_let_bindings(
     case Token_Type::semicolon:
     default:
       if (first_binding) {
-        this->diag_reporter_->report(Diag_Let_With_No_Bindings{let_span});
+        this->diags_.add(Diag_Let_With_No_Bindings{let_span});
       } else {
         QLJS_ASSERT(comma_span.has_value());
-        this->diag_reporter_->report(
-            Diag_Stray_Comma_In_Let_Statement{*comma_span});
+        this->diags_.add(Diag_Stray_Comma_In_Let_Statement{*comma_span});
       }
       break;
     }
@@ -5903,13 +5825,12 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   case Expression_Kind::Compound_Assignment:
     if (info.declaring_token.has_value()) {
       auto *assignment = expression_cast<Expression::Assignment *>(ast);
-      this->diag_reporter_->report(
-          Diag_Cannot_Update_Variable_During_Declaration{
-              .declaring_token = *info.declaring_token,
-              .updating_operator = assignment->operator_span_,
-          });
+      this->diags_.add(Diag_Cannot_Update_Variable_During_Declaration{
+          .declaring_token = *info.declaring_token,
+          .updating_operator = assignment->operator_span_,
+      });
     } else {
-      this->diag_reporter_->report(Diag_Invalid_Parameter{
+      this->diags_.add(Diag_Invalid_Parameter{
           .parameter = ast->span(),
       });
     }
@@ -5922,12 +5843,11 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
     if (lhs->kind() == Expression_Kind::Optional) {
       // TODO(strager): Only report this for parameters, not for other variable
       // kinds.
-      this->diag_reporter_->report(
-          Diag_Optional_Parameter_Cannot_Have_Initializer{
-              .equal = assignment->operator_span_,
-              .question = expression_cast<const Expression::Optional *>(lhs)
-                              ->question_span(),
-          });
+      this->diags_.add(Diag_Optional_Parameter_Cannot_Have_Initializer{
+          .equal = assignment->operator_span_,
+          .question = expression_cast<const Expression::Optional *>(lhs)
+                          ->question_span(),
+      });
     }
 
     this->visit_expression(rhs, v, Variable_Context::rhs);
@@ -5956,9 +5876,8 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
       // If this is an import, we would emit Diag_Cannot_Import_Let
       // instead.
       QLJS_ASSERT(info.declaration_kind != Variable_Kind::_import);
-      this->diag_reporter_->report(
-          Diag_Cannot_Declare_Variable_Named_Let_With_Let{.name =
-                                                              ident.span()});
+      this->diags_.add(Diag_Cannot_Declare_Variable_Named_Let_With_Let{
+          .name = ident.span()});
     }
     visit_variable_declaration(ident);
     break;
@@ -5979,7 +5898,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   case Expression_Kind::Spread: {
     Expression::Spread *spread = expression_cast<Expression::Spread *>(ast);
     if (spread->child_0()->kind() == Expression_Kind::Missing) {
-      this->diag_reporter_->report(Diag_Spread_Must_Precede_Variable_Name{
+      this->diags_.add(Diag_Spread_Must_Precede_Variable_Name{
           spread->spread_operator_span()});
     }
     this->visit_binding_element(
@@ -5991,7 +5910,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
     auto *await = expression_cast<Expression::Await *>(ast);
     Identifier ident(await->unary_operator_span());
     visit_variable_declaration(ident);
-    this->diag_reporter_->report(Diag_Cannot_Declare_Await_In_Async_Function{
+    this->diags_.add(Diag_Cannot_Declare_Await_In_Async_Function{
         .name = ident.span(),
     });
     break;
@@ -6000,10 +5919,9 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   case Expression_Kind::Yield_None: {
     Identifier ident(ast->span());
     visit_variable_declaration(ident);
-    this->diag_reporter_->report(
-        Diag_Cannot_Declare_Yield_In_Generator_Function{
-            .name = ident.span(),
-        });
+    this->diags_.add(Diag_Cannot_Declare_Yield_In_Generator_Function{
+        .name = ident.span(),
+    });
     break;
   }
   case Expression_Kind::Class:
@@ -6032,7 +5950,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   case Expression_Kind::Unary_Operator:
   case Expression_Kind::Yield_Many:
   case Expression_Kind::Yield_One:
-    this->diag_reporter_->report(Diag_Invalid_Parameter{
+    this->diags_.add(Diag_Invalid_Parameter{
         .parameter = ast->span(),
     });
     break;
@@ -6041,10 +5959,9 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   case Expression_Kind::Non_Null_Assertion: {
     auto *assertion =
         expression_cast<const Expression::Non_Null_Assertion *>(ast);
-    this->diag_reporter_->report(
-        Diag_Non_Null_Assertion_Not_Allowed_In_Parameter{
-            .bang = assertion->bang_span(),
-        });
+    this->diags_.add(Diag_Non_Null_Assertion_Not_Allowed_In_Parameter{
+        .bang = assertion->bang_span(),
+    });
     this->visit_binding_element(assertion->child_, v, info);
     break;
   }
@@ -6053,7 +5970,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   case Expression_Kind::Angle_Type_Assertion: {
     auto *assertion =
         expression_cast<const Expression::Angle_Type_Assertion *>(ast);
-    this->diag_reporter_->report(Diag_Invalid_Parameter{
+    this->diags_.add(Diag_Invalid_Parameter{
         .parameter = assertion->span(),
     });
     this->visit_binding_element(assertion->child_, v, info);
@@ -6064,7 +5981,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   case Expression_Kind::As_Type_Assertion: {
     auto *assertion =
         expression_cast<const Expression::As_Type_Assertion *>(ast);
-    this->diag_reporter_->report(
+    this->diags_.add(
         Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation{
             .bad_keyword = assertion->as_span(),
         });
@@ -6075,7 +5992,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   // function f(x satisfies T) {}  // Invalid.
   case Expression_Kind::Satisfies: {
     auto *s = expression_cast<const Expression::Satisfies *>(ast);
-    this->diag_reporter_->report(
+    this->diags_.add(
         Diag_TypeScript_As_Or_Satisfies_Used_For_Parameter_Type_Annotation{
             .bad_keyword = s->satisfies_span(),
         });
@@ -6085,7 +6002,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
 
     // function f([(p,)]) {}  // Invalid.
   case Expression_Kind::Trailing_Comma:
-    this->diag_reporter_->report(Diag_Stray_Comma_In_Parameter{
+    this->diags_.add(Diag_Stray_Comma_In_Parameter{
         .comma =
             expression_cast<Expression::Trailing_Comma *>(ast)->comma_span(),
     });
@@ -6102,7 +6019,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
     break;
 
   case Expression_Kind::Call:
-    this->diag_reporter_->report(Diag_Invalid_Parameter{
+    this->diags_.add(Diag_Invalid_Parameter{
         .parameter = ast->span(),
     });
     break;
@@ -6113,13 +6030,13 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
     auto *optional = expression_cast<const Expression::Optional *>(ast);
     if (info.is_destructuring) {
       // let [x?] = xs;  // Invalid.
-      this->diag_reporter_->report(Diag_Unexpected_Question_When_Destructuring{
+      this->diags_.add(Diag_Unexpected_Question_When_Destructuring{
           .question = optional->question_span(),
       });
     } else {
       // function f(param?) {}  // TypeScript only.
       if (!this->options_.typescript) {
-        this->diag_reporter_->report(
+        this->diags_.add(
             Diag_TypeScript_Optional_Parameters_Not_Allowed_In_JavaScript{
                 .question = optional->question_span(),
             });
@@ -6132,9 +6049,8 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
     // function f([(arg)]) {}  // Invalid.
   case Expression_Kind::Paren: {
     auto paren = expression_cast<Expression::Paren *>(ast);
-    this->diag_reporter_->report(
-        Diag_Unexpected_Function_Parameter_Is_Parenthesized{
-            .left_paren_to_right_paren = paren->span()});
+    this->diags_.add(Diag_Unexpected_Function_Parameter_Is_Parenthesized{
+        .left_paren_to_right_paren = paren->span()});
     this->visit_binding_element(ast->child_0(), v, info);
     break;
   }
@@ -6148,7 +6064,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   }
 
   case Expression_Kind::Literal:
-    this->diag_reporter_->report(Diag_Unexpected_Literal_In_Parameter_List{
+    this->diags_.add(Diag_Unexpected_Literal_In_Parameter_List{
         .literal = ast->span(),
     });
     break;
@@ -6158,27 +6074,24 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
     Source_Code_Span this_span = ast->span();
     if (info.declaration_kind == Variable_Kind::_arrow_parameter &&
         this->options_.typescript) {
-      this->diag_reporter_->report(
-          Diag_This_Parameter_Not_Allowed_In_Arrow_Functions{
-              .this_keyword = this_span,
-          });
+      this->diags_.add(Diag_This_Parameter_Not_Allowed_In_Arrow_Functions{
+          .this_keyword = this_span,
+      });
     } else if (info.has_spread_operator()) {
-      this->diag_reporter_->report(Diag_Spread_Parameter_Cannot_Be_This{
+      this->diags_.add(Diag_Spread_Parameter_Cannot_Be_This{
           .this_keyword = this_span,
           .spread_operator = info.spread_operator_span(),
       });
     } else if (info.is_destructuring) {
-      this->diag_reporter_->report(
-          Diag_This_Parameter_Not_Allowed_When_Destructuring{
-              .this_keyword = this_span,
-          });
+      this->diags_.add(Diag_This_Parameter_Not_Allowed_When_Destructuring{
+          .this_keyword = this_span,
+      });
     } else if (!this->options_.typescript) {
-      this->diag_reporter_->report(
-          Diag_This_Parameter_Not_Allowed_In_JavaScript{
-              .this_keyword = this_span,
-          });
+      this->diags_.add(Diag_This_Parameter_Not_Allowed_In_JavaScript{
+          .this_keyword = this_span,
+      });
     } else if (info.first_parameter_begin != this_span.begin()) {
-      this->diag_reporter_->report(Diag_This_Parameter_Must_Be_First{
+      this->diags_.add(Diag_This_Parameter_Must_Be_First{
           .this_keyword = this_span,
           .first_parameter_begin =
               Source_Code_Span::unit(info.first_parameter_begin),
@@ -6274,7 +6187,7 @@ void Parser::parse_and_visit_declare_statement(
       // declare const myVariable: any;
       this->is_current_typescript_namespace_non_empty_ = true;
       if (!this->options_.typescript) {
-        this->diag_reporter_->report(Diag_Declare_Var_Not_Allowed_In_JavaScript{
+        this->diags_.add(Diag_Declare_Var_Not_Allowed_In_JavaScript{
             .declare_keyword = declare_context.declare_keyword_span(),
             .declaring_token = const_keyword.span(),
         });
@@ -6314,10 +6227,9 @@ void Parser::parse_and_visit_declare_statement(
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(Token_Type::kw_class);
     if (this->peek().has_leading_newline) {
-      this->diag_reporter_->report(
-          Diag_Newline_Not_Allowed_After_Abstract_Keyword{
-              .abstract_keyword = abstract_token,
-          });
+      this->diags_.add(Diag_Newline_Not_Allowed_After_Abstract_Keyword{
+          .abstract_keyword = abstract_token,
+      });
     }
     maybe_visit_enter_declare_scope();
     this->parse_and_visit_class(
@@ -6336,7 +6248,7 @@ void Parser::parse_and_visit_declare_statement(
   case Token_Type::kw_var: {
     this->is_current_typescript_namespace_non_empty_ = true;
     if (!this->options_.typescript) {
-      this->diag_reporter_->report(Diag_Declare_Var_Not_Allowed_In_JavaScript{
+      this->diags_.add(Diag_Declare_Var_Not_Allowed_In_JavaScript{
           .declare_keyword = declare_context.declare_keyword_span(),
           .declaring_token = this->peek().span(),
       });
@@ -6377,11 +6289,11 @@ void Parser::parse_and_visit_declare_statement(
     this->is_current_typescript_namespace_non_empty_ = true;
     async_keyword = this->peek().span();
     if (this->options_.typescript_definition_file) {
-      this->diag_reporter_->report(Diag_DTS_Function_Cannot_Be_Async{
+      this->diags_.add(Diag_DTS_Function_Cannot_Be_Async{
           .async_keyword = *async_keyword,
       });
     } else {
-      this->diag_reporter_->report(Diag_Declare_Function_Cannot_Be_Async{
+      this->diags_.add(Diag_Declare_Function_Cannot_Be_Async{
           .async_keyword = *async_keyword,
       });
     }
@@ -6438,7 +6350,7 @@ void Parser::parse_and_visit_declare_statement(
     // * 'export declare import a from "b";':
     //   We report Diag_Import_Cannot_Have_Declare_Keyword below.
     if (declare_context.direct_declare_keyword.has_value()) {
-      this->diag_reporter_->report(Diag_Import_Cannot_Have_Declare_Keyword{
+      this->diags_.add(Diag_Import_Cannot_Have_Declare_Keyword{
           .declare_keyword = *declare_context.direct_declare_keyword,
       });
     }
@@ -6470,18 +6382,16 @@ void Parser::parse_and_visit_declare_global(
   this->skip();
 
   if (!this->options_.typescript) {
-    this->diag_reporter_->report(
-        Diag_TypeScript_Global_Block_Not_Allowed_In_JavaScript{
-            .global_keyword = global_keyword_span,
-        });
+    this->diags_.add(Diag_TypeScript_Global_Block_Not_Allowed_In_JavaScript{
+        .global_keyword = global_keyword_span,
+    });
   }
   if (this->in_typescript_namespace_or_module_.has_value() &&
       !this->in_typescript_module_) {
-    this->diag_reporter_->report(
-        Diag_TypeScript_Global_Block_Not_Allowed_In_Namespace{
-            .global_keyword = global_keyword_span,
-            .namespace_keyword = *this->in_typescript_namespace_or_module_,
-        });
+    this->diags_.add(Diag_TypeScript_Global_Block_Not_Allowed_In_Namespace{
+        .global_keyword = global_keyword_span,
+        .namespace_keyword = *this->in_typescript_namespace_or_module_,
+    });
   }
   v.visit_enter_declare_global_scope();
   this->parse_and_visit_typescript_declare_block(

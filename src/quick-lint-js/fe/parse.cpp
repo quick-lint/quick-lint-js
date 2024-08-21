@@ -188,20 +188,19 @@ void Parser::check_jsx_attribute(const Identifier& attribute_name) {
   if (auto alias_it = aliases.find(name); alias_it != aliases.end()) {
     const JSX_Attribute& alias = alias_it->second;
     if (name.size() != alias.expected.size()) {
-      this->diag_reporter_->report(Diag_JSX_Attribute_Renamed_By_React{
+      this->diags_.add(Diag_JSX_Attribute_Renamed_By_React{
           .attribute_name = attribute_name.span(),
           .react_attribute_name = alias.expected,
       });
       return;
     } else if (is_event_attribute) {
-      this->diag_reporter_->report(
-          Diag_JSX_Event_Attribute_Should_Be_Camel_Case{
-              .attribute_name = attribute_name.span(),
-              .expected_attribute_name = alias.expected,
-          });
+      this->diags_.add(Diag_JSX_Event_Attribute_Should_Be_Camel_Case{
+          .attribute_name = attribute_name.span(),
+          .expected_attribute_name = alias.expected,
+      });
       return;
     } else {
-      this->diag_reporter_->report(Diag_JSX_Attribute_Has_Wrong_Capitalization{
+      this->diags_.add(Diag_JSX_Attribute_Has_Wrong_Capitalization{
           .attribute_name = attribute_name.span(),
           .expected_attribute_name = alias.expected,
       });
@@ -216,7 +215,7 @@ void Parser::check_jsx_attribute(const Identifier& attribute_name) {
                              &this->diagnostic_memory_);
     fixed_name += name;
     fixed_name[2] = toupper(fixed_name[2]);
-    this->diag_reporter_->report(Diag_JSX_Event_Attribute_Should_Be_Camel_Case{
+    this->diags_.add(Diag_JSX_Event_Attribute_Should_Be_Camel_Case{
         .attribute_name = attribute_name.span(),
         .expected_attribute_name = fixed_name.release_to_string_view(),
     });
@@ -231,11 +230,10 @@ void Parser::check_jsx_attribute(const Identifier& attribute_name) {
     if (auto alias_it = aliases.find(String8_View(lowered_name));
         alias_it != aliases.end()) {
       if (alias_it->second.expected != name) {
-        this->diag_reporter_->report(
-            Diag_JSX_Attribute_Has_Wrong_Capitalization{
-                .attribute_name = attribute_name.span(),
-                .expected_attribute_name = alias_it->second.expected,
-            });
+        this->diags_.add(Diag_JSX_Attribute_Has_Wrong_Capitalization{
+            .attribute_name = attribute_name.span(),
+            .expected_attribute_name = alias_it->second.expected,
+        });
       }
     }
   }
@@ -288,11 +286,10 @@ Expression* Parser::maybe_wrap_erroneous_arrow_function(
     Expression* last_parameter =
         parameter_list->child(parameter_list->child_count() - 1);
     if (last_parameter->kind() == Expression_Kind::Spread) {
-      this->diag_reporter_->report(
-          Diag_Comma_Not_Allowed_After_Spread_Parameter{
-              .comma = parameter_list->comma_span(),
-              .spread = last_parameter->span(),
-          });
+      this->diags_.add(Diag_Comma_Not_Allowed_After_Spread_Parameter{
+          .comma = parameter_list->comma_span(),
+          .spread = last_parameter->span(),
+      });
     }
     return arrow_function;
   }
@@ -302,7 +299,7 @@ Expression* Parser::maybe_wrap_erroneous_arrow_function(
     auto* call = expression_cast<Expression::Call*>(lhs);
     Source_Code_Span missing_operator_span(call->span().begin(),
                                            call->left_paren_span().end());
-    this->diag_reporter_->report(
+    this->diags_.add(
         Diag_Missing_Operator_Between_Expression_And_Arrow_Function{
             .where = missing_operator_span,
         });
@@ -319,7 +316,7 @@ void Parser::error_on_sketchy_condition(Expression* ast) {
   if (ast->kind() == Expression_Kind::Assignment &&
       ast->child_1()->kind() == Expression_Kind::Literal) {
     auto* assignment = expression_cast<Expression::Assignment*>(ast);
-    this->diag_reporter_->report(Diag_Assignment_Makes_Condition_Constant{
+    this->diags_.add(Diag_Assignment_Makes_Condition_Constant{
         .assignment_operator = assignment->operator_span_,
     });
   }
@@ -338,7 +335,7 @@ void Parser::error_on_sketchy_condition(Expression* ast) {
     if (right_operator.string_view() == u8"||"_sv &&
         (left_operator.string_view() == u8"=="_sv ||
          left_operator.string_view() == u8"==="_sv)) {
-      this->diag_reporter_->report(Diag_Equals_Does_Not_Distribute_Over_Or{
+      this->diags_.add(Diag_Equals_Does_Not_Distribute_Over_Or{
           .or_operator = right_operator,
           .equals_operator = left_operator,
       });
@@ -355,9 +352,8 @@ void Parser::warn_on_comma_operator_in_conditional_statement(Expression* ast) {
   for (Span_Size i = binary_operator->child_count() - 2; i >= 0; i--) {
     Source_Code_Span op_span = binary_operator->operator_spans_[i];
     if (is_comma(op_span.string_view())) {
-      this->diag_reporter_->report(
-          Diag_Misleading_Comma_Operator_In_Conditional_Statement{.comma =
-                                                                      op_span});
+      this->diags_.add(Diag_Misleading_Comma_Operator_In_Conditional_Statement{
+          .comma = op_span});
       return;
     }
   }
@@ -373,9 +369,8 @@ void Parser::warn_on_comma_operator_in_index(Expression* ast,
   for (Span_Size i = binary_operator->child_count() - 2; i >= 0; i--) {
     Source_Code_Span op_span = binary_operator->operator_spans_[i];
     if (is_comma(op_span.string_view())) {
-      this->diag_reporter_->report(
-          Diag_Misleading_Comma_Operator_In_Index_Operation{
-              .comma = op_span, .left_square = left_square});
+      this->diags_.add(Diag_Misleading_Comma_Operator_In_Index_Operation{
+          .comma = op_span, .left_square = left_square});
       return;
     }
   }
@@ -392,9 +387,8 @@ void Parser::warn_on_unintuitive_bitshift_precedence(Expression* ast) {
     if (binary_op->child(0)->kind() == Expression_Kind::Variable &&
         binary_op->child(1)->kind() == Expression_Kind::Literal &&
         binary_op->child(2)->kind() == Expression_Kind::Literal) {
-      this->diag_reporter_->report(
-          quick_lint_js::Diag_Unintuitive_Bitshift_Precedence{
-              .bitshift_operator = right_op, .and_operator = left_op});
+      this->diags_.add(quick_lint_js::Diag_Unintuitive_Bitshift_Precedence{
+          .bitshift_operator = right_op, .and_operator = left_op});
     }
   }
 }
@@ -444,13 +438,11 @@ void Parser::error_on_pointless_string_compare(
 
       if (call == u8"toLowerCase"_sv) {
         if (hasupper(literal)) {
-          this->diag_reporter_->report(
-              Diag_Pointless_String_Comp_Contains_Upper{op_span});
+          this->diags_.add(Diag_Pointless_String_Comp_Contains_Upper{op_span});
         }
       } else if (call == u8"toUpperCase"_sv) {
         if (haslower(literal)) {
-          this->diag_reporter_->report(
-              Diag_Pointless_String_Comp_Contains_Lower{op_span});
+          this->diags_.add(Diag_Pointless_String_Comp_Contains_Lower{op_span});
         }
       }
     }
@@ -477,11 +469,10 @@ void Parser::error_on_invalid_as_const(Expression* ast,
 
   invalid:
   default:
-    this->diag_reporter_->report(
-        Diag_TypeScript_As_Const_With_Non_Literal_Typeable{
-            .expression = ast->span(),
-            .as_const = as_const_span,
-        });
+    this->diags_.add(Diag_TypeScript_As_Const_With_Non_Literal_Typeable{
+        .expression = ast->span(),
+        .as_const = as_const_span,
+    });
     break;
   }
 }
@@ -507,7 +498,7 @@ void Parser::warn_on_xor_operator_as_exponentiation(
       break;
     }
     if (report_diag) {
-      this->diag_reporter_->report(
+      this->diags_.add(
           Diag_Xor_Used_As_Exponentiation{.xor_operator = op_span});
     }
   }
@@ -540,7 +531,7 @@ void Parser::warn_on_typeof_variable_equals_undefined(
           expression_cast<Expression::Variable*>(undefined);
 
       if (undefined_variable->type_ == Token_Type::kw_undefined) {
-        this->diag_reporter_->report(Diag_Typeof_Variable_Equals_Undefined{
+        this->diags_.add(Diag_Typeof_Variable_Equals_Undefined{
             .undefined = undefined_variable->span()});
       }
     }
@@ -581,38 +572,36 @@ void Parser::check_compare_against_literal(Expression* lhs, Expression* rhs,
     child = child->without_paren();
     switch (child->kind()) {
     case Expression_Kind::Class:
-      this->diag_reporter_->report(Diag_Pointless_Comp_Against_Class_Literal{
+      this->diags_.add(Diag_Pointless_Comp_Against_Class_Literal{
           .equals_operator = op_span, .comparison_result = comparison_result});
       return;
     case Expression_Kind::Array:
       if (is_strict_operator(op_span.string_view())) {
         if (child->child_count() == 0) {
-          this->diag_reporter_->report(
+          this->diags_.add(
               Diag_Pointless_Strict_Comp_Against_Empty_Array_Literal{
                   .equals_operator = op_span,
                   .comparison_result = comparison_result});
         } else {
-          this->diag_reporter_->report(
-              Diag_Pointless_Strict_Comp_Against_Array_Literal{
-                  .equals_operator = op_span});
+          this->diags_.add(Diag_Pointless_Strict_Comp_Against_Array_Literal{
+              .equals_operator = op_span});
         }
         return;
       }
       break;
     case Expression_Kind::Arrow_Function:
-      this->diag_reporter_->report(Diag_Pointless_Comp_Against_Arrow_Function{
+      this->diags_.add(Diag_Pointless_Comp_Against_Arrow_Function{
           .equals_operator = op_span, .comparison_result = comparison_result});
       return;
     case Expression_Kind::Object:
-      this->diag_reporter_->report(Diag_Pointless_Comp_Against_Object_Literal{
+      this->diags_.add(Diag_Pointless_Comp_Against_Object_Literal{
           .equals_operator = op_span, .comparison_result = comparison_result});
       return;
     case Expression_Kind::Literal:
       if (expression_cast<Expression::Literal*>(child)->is_regexp()) {
-        this->diag_reporter_->report(
-            Diag_Pointless_Comp_Against_Regular_Expression_Literal{
-                .equals_operator = op_span,
-                .comparison_result = comparison_result});
+        this->diags_.add(Diag_Pointless_Comp_Against_Regular_Expression_Literal{
+            .equals_operator = op_span,
+            .comparison_result = comparison_result});
         return;
       }
       break;
@@ -624,7 +613,7 @@ void Parser::check_compare_against_literal(Expression* lhs, Expression* rhs,
 
 void Parser::error_on_class_statement(Statement_Kind statement_kind) {
   if (this->peek().type == Token_Type::kw_class) {
-    this->diag_reporter_->report(Diag_Class_Statement_Not_Allowed_In_Body{
+    this->diags_.add(Diag_Class_Statement_Not_Allowed_In_Body{
         .kind_of_statement = statement_kind,
         .expected_body =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
@@ -669,7 +658,7 @@ void Parser::error_on_lexical_declaration(Statement_Kind statement_kind) {
     break;
   }
   if (is_lexical_declaration) {
-    this->diag_reporter_->report(Diag_Lexical_Declaration_Not_Allowed_In_Body{
+    this->diags_.add(Diag_Lexical_Declaration_Not_Allowed_In_Body{
         .kind_of_statement = statement_kind,
         .expected_body =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
@@ -682,7 +671,7 @@ void Parser::error_on_function_statement(Statement_Kind statement_kind) {
   std::optional<Source_Code_Span> function_keywords =
       this->is_maybe_function_statement();
   if (function_keywords.has_value()) {
-    this->diag_reporter_->report(Diag_Function_Statement_Not_Allowed_In_Body{
+    this->diags_.add(Diag_Function_Statement_Not_Allowed_In_Body{
         .kind_of_statement = statement_kind,
         .expected_body =
             Source_Code_Span::unit(this->lexer_.end_of_previous_token()),
@@ -747,13 +736,12 @@ Parser::try_parse_function_with_leading_star() {
   Token maybe_function_name = this->peek();
   this->lexer_.roll_back_transaction(std::move(transaction));
   if (maybe_function_name.type == Token_Type::identifier) {
-    this->diag_reporter_->report(
-        Diag_Generator_Function_Star_Belongs_Before_Name{
-            .function_name = maybe_function_name.span(),
-            .star = star_token.span(),
-        });
+    this->diags_.add(Diag_Generator_Function_Star_Belongs_Before_Name{
+        .function_name = maybe_function_name.span(),
+        .star = star_token.span(),
+    });
   } else {
-    this->diag_reporter_->report(
+    this->diags_.add(
         Diag_Generator_Function_Star_Belongs_After_Keyword_Function{
             .star = star_token.span()});
   }
@@ -834,8 +822,7 @@ void Parser::consume_semicolon() {
       // Automatically insert a semicolon, then consume it.
     } else {
       this->lexer_.insert_semicolon();
-      this->diag_reporter_->report(
-          Missing_Semicolon_Diagnostic{this->peek().span()});
+      this->diags_.add(Missing_Semicolon_Diagnostic{this->peek().span()});
       this->skip();
     }
     break;
@@ -859,8 +846,7 @@ void Parser::consume_semicolon_or_comma() {
       // Automatically insert a semicolon, then consume it.
     } else {
       this->lexer_.insert_semicolon();
-      this->diag_reporter_->report(
-          Missing_Semicolon_Diagnostic{this->peek().span()});
+      this->diags_.add(Missing_Semicolon_Diagnostic{this->peek().span()});
       this->skip();
     }
     break;
@@ -924,7 +910,7 @@ void Parser::check_lhs_for_null_potential(Expression* lhs,
     break;
   }
   if (report_diag) {
-    this->diag_reporter_->report(Diag_Pointless_Nullish_Coalescing_Operator{
+    this->diags_.add(Diag_Pointless_Nullish_Coalescing_Operator{
         .question_question = op_span});
   }
 }

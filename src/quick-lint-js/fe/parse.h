@@ -151,12 +151,12 @@ class Parser {
 
           switch (exception.kind) {
           case Fatal_Parse_Error_Kind::depth_limit_exceeded:
-            this->diag_reporter_->report(Diag_Depth_Limit_Exceeded{
+            this->diags_.add(Diag_Depth_Limit_Exceeded{
                 .token = exception.error_span,
             });
             break;
           case Fatal_Parse_Error_Kind::unexpected_token:
-            this->diag_reporter_->report(Diag_Unexpected_Token{
+            this->diags_.add(Diag_Unexpected_Token{
                 .token = exception.error_span,
             });
             break;
@@ -1102,6 +1102,7 @@ class Parser {
   // Memory used for strings in diagnostic messages.
   Monotonic_Allocator diagnostic_memory_{"parser::diagnostic_memory_"};
 
+  Diag_List &diags_ = this->lexer_.diags();
   Diag_List_Diag_Reporter *diag_reporter_ =
       &this->lexer_.diag_list_diag_reporter();
 
@@ -1293,7 +1294,7 @@ void Parser::parse_and_visit_parenthesized_expression(
     this->skip();
 
     if (this->peek().type == Token_Type::right_paren) {
-      this->diag_reporter_->report(Diag_Empty_Paren_After_Control_Statement{
+      this->diags_.add(Diag_Empty_Paren_After_Control_Statement{
           .token = token_span,
           .expected_expression =
               Source_Code_Span::unit(left_paren_span.end())});
@@ -1321,15 +1322,15 @@ void Parser::parse_and_visit_parenthesized_expression(
   }
 
   if (!have_expression_left_paren && !have_expression_right_paren) {
-    this->diag_reporter_->report(Expected_Parentheses_Error{
+    this->diags_.add(Expected_Parentheses_Error{
         Source_Code_Span(expression_begin, expression_end)});
   } else if (!have_expression_right_paren) {
-    this->diag_reporter_->report(Expected_Parenthesis_Error{
+    this->diags_.add(Expected_Parenthesis_Error{
         .where = Source_Code_Span::unit(expression_end),
         .token = ')',
     });
   } else if (!have_expression_left_paren) {
-    this->diag_reporter_->report(Expected_Parenthesis_Error{
+    this->diags_.add(Expected_Parenthesis_Error{
         .where = Source_Code_Span::unit(expression_begin),
         .token = '(',
     });
