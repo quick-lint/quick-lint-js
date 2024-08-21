@@ -138,7 +138,6 @@ class Parser {
   template <class Func>
   bool catch_fatal_parse_errors(Func &&func) {
     int old_depth = this->depth_;
-    Diag_List_Diag_Reporter *old_diag_reporter = this->diag_reporter_;
 
     bool ok = this->fatal_parse_error_stack_.try_catch<bool>(
         [&]() -> bool {
@@ -147,7 +146,6 @@ class Parser {
         },
         [&](Fatal_Parse_Error &&exception) -> bool {
           // QLJS_PARSER_UNIMPLEMENTED was called.
-          this->diag_reporter_ = old_diag_reporter;
           QLJS_ASSERT(this->depth_ >= old_depth);
           this->depth_ = old_depth;
 
@@ -168,7 +166,6 @@ class Parser {
         });
 
     QLJS_ASSERT(this->depth_ == old_depth);
-    QLJS_ASSERT(this->diag_reporter_ == old_diag_reporter);
     return ok;
   }
 
