@@ -959,9 +959,9 @@ Parser_Transaction Parser::begin_transaction() {
 }
 
 void Parser::commit_transaction(Parser_Transaction&& transaction) {
-  auto* buffered_diagnostics =
-      derived_cast<Buffering_Diag_Reporter*>(this->diag_reporter_);
-  buffered_diagnostics->move_into(transaction.old_diag_reporter);
+  Diag_List_Diag_Reporter* buffered_diagnostics =
+      derived_cast<Diag_List_Diag_Reporter*>(this->diag_reporter_);
+  transaction.old_diag_reporter->report(buffered_diagnostics->diags());
   this->diag_reporter_ = transaction.old_diag_reporter;
 
   this->lexer_.commit_transaction(std::move(transaction.lex_transaction));

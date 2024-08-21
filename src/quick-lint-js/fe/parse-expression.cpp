@@ -1305,7 +1305,7 @@ Expression* Parser::parse_await_expression(Parse_Visitor_Base& v,
                 prec);
           }
         });
-        parsed_ok = parsed_ok && transaction.reporter.empty() &&
+        parsed_ok = parsed_ok && transaction.reporter.diags().empty() &&
                     !this->lexer_.transaction_has_lex_diagnostics(
                         transaction.lex_transaction);
 

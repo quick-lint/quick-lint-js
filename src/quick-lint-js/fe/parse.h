@@ -100,7 +100,7 @@ struct Parser_Transaction {
                               Monotonic_Allocator *allocator);
 
   Lexer_Transaction lex_transaction;
-  Buffering_Diag_Reporter reporter;
+  Diag_List_Diag_Reporter reporter;
   Diag_Reporter *old_diag_reporter;
 };
 
