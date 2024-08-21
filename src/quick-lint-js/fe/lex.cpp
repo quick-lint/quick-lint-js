@@ -1252,7 +1252,7 @@ void Lexer::roll_back_transaction(Lexer_Transaction&& transaction) {
   this->last_last_token_end_ = transaction.old_last_last_token_end;
   this->input_ = transaction.old_input;
 
-  this->diag_list_.diags().rewind(std::move(transaction.diag_list_rewind));
+  this->diags_.rewind(std::move(transaction.diag_list_rewind));
 }
 
 bool Lexer::transaction_has_lex_diagnostics(const Lexer_Transaction& transaction) const {

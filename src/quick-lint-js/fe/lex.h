@@ -144,12 +144,7 @@ class Lexer {
   bool test_for_regexp(const Char8* regexp_begin);
 
   // Returns all the diagnostics reported so far by the the lexer.
-  Diag_List& diags() { return this->diag_list_.diags(); }
-
-  // TODO(#1154): Delete.
-  Diag_List_Diag_Reporter& diag_list_diag_reporter() {
-    return this->diag_list_;
-  }
+  Diag_List& diags() { return this->diags_; }
 
   // Save lexer state.
   //
@@ -348,9 +343,7 @@ class Lexer {
 
   Monotonic_Allocator allocator_{"lexer::allocator_"};
 
-  Diag_List_Diag_Reporter diag_list_ =
-      Diag_List_Diag_Reporter(&this->allocator_);
-  Diag_List& diags_ = diag_list_.diags();
+  Diag_List diags_ = Diag_List(&this->allocator_);
 
   friend struct Lex_Tables;
 };

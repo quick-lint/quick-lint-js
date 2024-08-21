@@ -70,7 +70,8 @@ class Diag_List {
   Span_Size size() const;
 
   bool reported_any_diagnostic_except_since(
-      std::initializer_list<Diag_Type> ignored_types, const Rewind_State &);
+      std::initializer_list<Diag_Type> ignored_types,
+      const Rewind_State &) const;
   bool have_diagnostic(Diag_Type type) const;
 
   // Removes all diagnostics, but does not deallocate memory.

@@ -81,7 +81,8 @@ Span_Size Diag_List::size() const {
 }
 
 bool Diag_List::reported_any_diagnostic_except_since(
-    std::initializer_list<Diag_Type> ignored_types, const Rewind_State &r) {
+    std::initializer_list<Diag_Type> ignored_types,
+    const Rewind_State &r) const {
   for (Node_Base *node = r.last_ == nullptr ? this->first_ : r.last_;
        node != nullptr; node = node->next) {
     if (!contains(ignored_types, node->type)) {
