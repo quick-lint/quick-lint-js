@@ -519,7 +519,7 @@ Breakpoint 1, quick_lint_js::Parser::parse_and_visit_expression at src/./quick-l
 
         <figure>
           <pre><code class="cxx">Source_Code_Span op_span = /* usually this->peek().span */;
-this->diag_reporter_->report(Diag_Comparison_With_Empty_String{
+this->diags_.add(Diag_Comparison_With_Empty_String{
     .comparison_operator = op_span,
 });</code></pre>
         </figure>
