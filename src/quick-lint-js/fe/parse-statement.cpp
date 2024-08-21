@@ -6059,7 +6059,7 @@ void Parser::visit_binding_element(Expression *ast, Parse_Visitor_Base &v,
   case Expression_Kind::Paren_Empty: {
     Expression::Paren_Empty *paren_empty =
         expression_cast<Expression::Paren_Empty *>(ast);
-    paren_empty->report_missing_expression_error(this->diag_reporter_);
+    paren_empty->add_missing_expression_error(this->diags_);
     break;
   }
 

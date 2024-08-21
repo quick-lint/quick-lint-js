@@ -922,8 +922,8 @@ class Expression::Paren_Empty final : public Expression {
 
   Source_Code_Span right_paren_span() const { return this->right_paren_; }
 
-  void report_missing_expression_error(Diag_Reporter *reporter) {
-    reporter->report(Diag_Missing_Expression_Between_Parentheses{
+  void add_missing_expression_error(Diag_List &diags) {
+    diags.add(Diag_Missing_Expression_Between_Parentheses{
         .left_paren_to_right_paren = this->span(),
         .left_paren = this->left_paren_span(),
         .right_paren = this->right_paren_span(),

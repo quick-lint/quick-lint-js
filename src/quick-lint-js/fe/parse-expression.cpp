@@ -253,7 +253,7 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
   case Expression_Kind::Paren_Empty: {
     Expression::Paren_Empty* paren_empty =
         expression_cast<Expression::Paren_Empty*>(ast);
-    paren_empty->report_missing_expression_error(this->diag_reporter_);
+    paren_empty->add_missing_expression_error(this->diags_);
     break;
   }
   case Expression_Kind::RW_Unary_Prefix:
@@ -2562,7 +2562,7 @@ Expression* Parser::parse_arrow_function_expression_remainder(
         expression_cast<Expression::Paren_Empty*>(parameters_expression);
     if (parameter_list_begin) {
       // (()) => {}  // Invalid.
-      paren_empty->report_missing_expression_error(this->diag_reporter_);
+      paren_empty->add_missing_expression_error(this->diags_);
     } else {
       // () => {}
       parameter_list_begin = paren_empty->left_paren_.begin();
