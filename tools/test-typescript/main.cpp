@@ -10,7 +10,6 @@
 #include <quick-lint-js/container/hash-set.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/linter.h>
 #include <quick-lint-js/io/file-canonical.h>

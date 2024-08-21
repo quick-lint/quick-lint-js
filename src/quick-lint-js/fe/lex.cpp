@@ -11,7 +11,6 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/keyword-lexer.h>

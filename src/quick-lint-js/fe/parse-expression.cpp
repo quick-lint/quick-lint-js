@@ -9,7 +9,6 @@
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/diag/buffering-diag-reporter.h>
 #include <quick-lint-js/diag/diag-reporter.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
