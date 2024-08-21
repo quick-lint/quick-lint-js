@@ -96,12 +96,13 @@ struct Parser_Transaction {
   // Private to Parser's transaction functions. Do not construct, read, or
   // modify.
 
-  explicit Parser_Transaction(Lexer *l, Diag_Reporter **diag_reporter_pointer,
+  explicit Parser_Transaction(Lexer *l,
+                              Diag_List_Diag_Reporter **diag_reporter_pointer,
                               Monotonic_Allocator *allocator);
 
   Lexer_Transaction lex_transaction;
   Diag_List_Diag_Reporter reporter;
-  Diag_Reporter *old_diag_reporter;
+  Diag_List_Diag_Reporter *old_diag_reporter;
 };
 
 // A Parser reads JavaScript source code and calls the member functions of a
@@ -141,7 +142,7 @@ class Parser {
   template <class Func>
   bool catch_fatal_parse_errors(Func &&func) {
     int old_depth = this->depth_;
-    Diag_Reporter *old_diag_reporter = this->diag_reporter_;
+    Diag_List_Diag_Reporter *old_diag_reporter = this->diag_reporter_;
 
     bool ok = this->fatal_parse_error_stack_.try_catch<bool>(
         [&]() -> bool {
@@ -1108,7 +1109,8 @@ class Parser {
   // Memory used for strings in diagnostic messages.
   Monotonic_Allocator diagnostic_memory_{"parser::diagnostic_memory_"};
 
-  Diag_Reporter *diag_reporter_ = &this->lexer_.diag_list_diag_reporter();
+  Diag_List_Diag_Reporter *diag_reporter_ =
+      &this->lexer_.diag_list_diag_reporter();
 
   // Memory used for TypeScript type expressions.
   // TODO(strager): Rewind periodically (e.g. after parsing a function body).
