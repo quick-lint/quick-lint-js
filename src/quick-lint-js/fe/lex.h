@@ -353,7 +353,7 @@ class Lexer {
 
   Diag_List_Diag_Reporter diag_list_ =
       Diag_List_Diag_Reporter(&this->allocator_);
-  Diag_Reporter* diag_reporter_ = &this->diag_list_;
+  Diag_List_Diag_Reporter* diag_reporter_ = &this->diag_list_;
 
   friend struct Lex_Tables;
 };
@@ -366,7 +366,7 @@ struct Lexer_Transaction {
   explicit Lexer_Transaction(Token old_last_token,
                              const Char8* old_last_last_token_end,
                              const Char8* old_input,
-                             Diag_Reporter** diag_reporter_pointer,
+                             Diag_List_Diag_Reporter** diag_reporter_pointer,
                              Allocator_Type* allocator)
       : allocator_rewind(allocator->prepare_for_rewind()),
         old_last_token(old_last_token),
@@ -390,7 +390,7 @@ struct Lexer_Transaction {
   const Char8* old_last_last_token_end;
   const Char8* old_input;
   std::optional<Diag_List_Diag_Reporter> reporter;
-  Diag_Reporter* old_diag_reporter;
+  Diag_List_Diag_Reporter* old_diag_reporter;
 };
 
 bool is_plain_horizontal_whitespace(Source_Code_Span span);
