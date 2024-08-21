@@ -669,10 +669,6 @@ TEST_F(Test_Parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
         [&] { QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(&p); });
     EXPECT_FALSE(ok);
 
-    assert_diagnostics(&code, p.diags(), {});
-    // Diag_Unexpected_Token should be buffered in the transaction.
-    // FIXME(#1154): Instead of buffering, use a rewind mechanism. (No rewinding
-    // should happen in this test.)
     p.commit_transaction(std::move(transaction));
     // Diag_Unexpected_Token should be reported when committing the transaction.
     assert_diagnostics(&code, p.diags(),

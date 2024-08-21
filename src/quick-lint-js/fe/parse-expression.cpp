@@ -1304,9 +1304,11 @@ Expression* Parser::parse_await_expression(Parse_Visitor_Base& v,
                 prec);
           }
         });
-        parsed_ok = parsed_ok && transaction.reporter.diags().empty() &&
-                    !this->lexer_.transaction_has_lex_diagnostics(
-                        transaction.lex_transaction);
+        // NOTE(strager): transaction_has_lex_diagnostics covers parser
+        // diagnostics too. Perhaps it should be renamed or put into
+        // Parser_Transaction.
+        parsed_ok = parsed_ok && !this->lexer_.transaction_has_lex_diagnostics(
+                                     transaction.lex_transaction);
 
         this->roll_back_transaction(std::move(transaction));
 

@@ -36,13 +36,8 @@
 // the Parser class takes characters as input.
 
 namespace quick_lint_js {
-Parser_Transaction::Parser_Transaction(
-    Lexer* l, Diag_List_Diag_Reporter** diag_reporter_pointer,
-    Monotonic_Allocator* allocator)
-    : lex_transaction(l->begin_transaction()),
-      reporter(allocator),
-      old_diag_reporter(
-          std::exchange(*diag_reporter_pointer, &this->reporter)) {}
+Parser_Transaction::Parser_Transaction(Lexer* l)
+    : lex_transaction(l->begin_transaction()) {}
 
 Parser::Parser(Padded_String_View input, Parser_Options options)
     : lexer_(input,
@@ -954,20 +949,14 @@ template void Parser::consume_semicolon_or_comma<
     Diag_Missing_Separator_Between_Object_Type_Entries>();
 
 Parser_Transaction Parser::begin_transaction() {
-  return Parser_Transaction(&this->lexer_, &this->diag_reporter_,
-                            &this->temporary_memory_);
+  return Parser_Transaction(&this->lexer_);
 }
 
 void Parser::commit_transaction(Parser_Transaction&& transaction) {
-  Diag_List_Diag_Reporter* buffered_diagnostics = this->diag_reporter_;
-  transaction.old_diag_reporter->report(buffered_diagnostics->diags());
-  this->diag_reporter_ = transaction.old_diag_reporter;
-
   this->lexer_.commit_transaction(std::move(transaction.lex_transaction));
 }
 
 void Parser::roll_back_transaction(Parser_Transaction&& transaction) {
-  this->diag_reporter_ = transaction.old_diag_reporter;
   this->lexer_.roll_back_transaction(std::move(transaction.lex_transaction));
 }
 

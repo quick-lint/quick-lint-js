@@ -96,13 +96,9 @@ struct Parser_Transaction {
   // Private to Parser's transaction functions. Do not construct, read, or
   // modify.
 
-  explicit Parser_Transaction(Lexer *l,
-                              Diag_List_Diag_Reporter **diag_reporter_pointer,
-                              Monotonic_Allocator *allocator);
+  explicit Parser_Transaction(Lexer *l);
 
   Lexer_Transaction lex_transaction;
-  Diag_List_Diag_Reporter reporter;
-  Diag_List_Diag_Reporter *old_diag_reporter;
 };
 
 // A Parser reads JavaScript source code and calls the member functions of a

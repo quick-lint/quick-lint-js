@@ -978,9 +978,9 @@ Parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
 
   TypeScript_Type_Arrow_Or_Paren result = TypeScript_Type_Arrow_Or_Paren::arrow;
   this->try_parse(
-      [&](Parser_Transaction &transaction) {
+      [&](Parser_Transaction &) {
         Diag_List::Rewind_State diags_rewind =
-            transaction.reporter.diags().prepare_for_rewind();
+            this->diags().prepare_for_rewind();
 
         Stacked_Buffering_Visitor params_visitor =
             this->buffering_visitor_stack_.push();
@@ -1002,7 +1002,7 @@ Parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
           return false;
         }
 
-        if (transaction.reporter.diags().reported_any_diagnostic_except_since(
+        if (this->diags().reported_any_diagnostic_except_since(
                 {
                     Diag_Type::
                         Diag_Optional_Parameter_Cannot_Be_Followed_By_Required_Parameter,
