@@ -122,11 +122,6 @@ class Parser {
   // Returns all the diagnostics reported so far by the parser or the lexer.
   Diag_List &diags() { return this->lexer_.diags(); }
 
-  // TODO(#1154): Delete.
-  Diag_List_Diag_Reporter &diag_list_diag_reporter() {
-    return this->lexer_.diag_list_diag_reporter();
-  }
-
   // For testing and internal use only.
   [[nodiscard]] Function_Guard enter_function(Function_Attributes);
 
