@@ -25,6 +25,14 @@ Diag_List::Diag_List(Memory_Resource *memory) : memory_(memory) {}
 
 Diag_List::~Diag_List() { this->clear(); }
 
+void Diag_List::add_many(const Diag_List &other) {
+  other.for_each([&](Diag_Type diag_type, void *diag_data) {
+    // FIXME(strager): This wastes memory.
+    std::size_t diag_size = sizeof(Diag_List::Node::data);
+    this->add_impl(diag_type, diag_data, diag_size);
+  });
+}
+
 Diag_List::Rewind_State Diag_List::prepare_for_rewind() {
   return Rewind_State{
       .first_ = this->first_,

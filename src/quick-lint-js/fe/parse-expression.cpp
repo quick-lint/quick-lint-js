@@ -374,8 +374,8 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
 
   // \u{69}\u{66} // 'if', but escaped.
   case Token_Type::reserved_keyword_with_escape_sequence:
-    this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
-        this->diag_reporter_);
+    this->lexer_.peek().add_diags_for_escape_sequences_in_keyword(
+        this->diag_reporter_->diags());
     goto identifier;
 
   // protected
@@ -407,8 +407,8 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
 
   // `hello`
   case Token_Type::complete_template: {
-    this->peek().report_errors_for_escape_sequences_in_template(
-        this->diag_reporter_);
+    this->peek().add_diags_for_escape_sequences_in_template(
+        this->diag_reporter_->diags());
     Expression* ast =
         this->make_expression<Expression::Literal>(this->peek().span());
     this->skip();
@@ -3074,8 +3074,8 @@ Expression* Parser::parse_object_literal(Parse_Visitor_Base& v) {
 
         // { \u{69}f }  // Invalid.
         case Token_Type::reserved_keyword_with_escape_sequence:
-          key_token.report_errors_for_escape_sequences_in_keyword(
-              this->diag_reporter_);
+          key_token.add_diags_for_escape_sequences_in_keyword(
+              this->diag_reporter_->diags());
           goto single_token_key_and_value_identifier;
 
         // { #privateName }  // Invalid.
@@ -4299,8 +4299,8 @@ Expression* Parser::parse_untagged_template(Parse_Visitor_Base& v) {
       "parse_untagged_template children", this->expressions_.allocator());
   for (;;) {
     QLJS_ASSERT(this->peek().type == Token_Type::incomplete_template);
-    this->peek().report_errors_for_escape_sequences_in_template(
-        this->diag_reporter_);
+    this->peek().add_diags_for_escape_sequences_in_template(
+        this->diag_reporter_->diags());
     this->skip();
     if (this->peek().type == Token_Type::right_curly) {
       this->diag_reporter_->report(Diag_Expected_Expression_In_Template_Literal{
@@ -4314,8 +4314,8 @@ Expression* Parser::parse_untagged_template(Parse_Visitor_Base& v) {
       this->lexer_.skip_in_template(template_begin);
       switch (this->peek().type) {
       case Token_Type::complete_template: {
-        this->peek().report_errors_for_escape_sequences_in_template(
-            this->diag_reporter_);
+        this->peek().add_diags_for_escape_sequences_in_template(
+            this->diag_reporter_->diags());
         const Char8* template_end = this->peek().end;
         this->skip();
 

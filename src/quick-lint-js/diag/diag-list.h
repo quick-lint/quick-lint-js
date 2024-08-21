@@ -47,6 +47,9 @@ class Diag_List {
   QLJS_X_DIAG_TYPE_NAMES
 #undef QLJS_DIAG_TYPE_NAME
 
+  // Copy the given list into this list.
+  void add_many(const Diag_List &);
+
   Rewind_State prepare_for_rewind();
 
   void rewind(Rewind_State &&r);

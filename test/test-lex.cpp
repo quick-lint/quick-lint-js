@@ -1008,8 +1008,7 @@ TEST_F(Test_Lex, templates_buffer_unicode_escape_errors) {
 
     EXPECT_EQ(l.peek().type, Token_Type::complete_template);
     assert_diagnostics(&input, l.diags(), {});
-    l.peek().report_errors_for_escape_sequences_in_template(
-        &l.diag_list_diag_reporter());
+    l.peek().add_diags_for_escape_sequences_in_template(l.diags());
     assert_diagnostics(&input, l.diags(), {error});
 
     l.skip();
@@ -1025,8 +1024,7 @@ TEST_F(Test_Lex, templates_buffer_unicode_escape_errors) {
 
     EXPECT_EQ(l.peek().type, Token_Type::complete_template);
     assert_diagnostics(&input, l.diags(), {});
-    l.peek().report_errors_for_escape_sequences_in_template(
-        &l.diag_list_diag_reporter());
+    l.peek().add_diags_for_escape_sequences_in_template(l.diags());
     assert_diagnostics(&input, l.diags(), {error});
 
     l.skip();
@@ -1042,8 +1040,7 @@ TEST_F(Test_Lex, templates_buffer_unicode_escape_errors) {
 
     EXPECT_EQ(l.peek().type, Token_Type::incomplete_template);
     assert_diagnostics(&input, l.diags(), {});
-    l.peek().report_errors_for_escape_sequences_in_template(
-        &l.diag_list_diag_reporter());
+    l.peek().add_diags_for_escape_sequences_in_template(l.diags());
     assert_diagnostics(&input, l.diags(), {error});
 
     l.skip();
@@ -1058,8 +1055,7 @@ TEST_F(Test_Lex, templates_do_not_buffer_valid_unicode_escapes) {
 
     EXPECT_EQ(l.peek().type, Token_Type::complete_template);
     assert_diagnostics(&input, l.diags(), {});
-    l.peek().report_errors_for_escape_sequences_in_template(
-        &l.diag_list_diag_reporter());
+    l.peek().add_diags_for_escape_sequences_in_template(l.diags());
     assert_diagnostics(&input, l.diags(), {});
 
     l.skip();
@@ -1072,8 +1068,7 @@ TEST_F(Test_Lex, templates_do_not_buffer_valid_unicode_escapes) {
 
     EXPECT_EQ(l.peek().type, Token_Type::incomplete_template);
     assert_diagnostics(&input, l.diags(), {});
-    l.peek().report_errors_for_escape_sequences_in_template(
-        &l.diag_list_diag_reporter());
+    l.peek().add_diags_for_escape_sequences_in_template(l.diags());
     assert_diagnostics(&input, l.diags(), {});
 
     l.skip();
@@ -1848,8 +1843,7 @@ TEST_F(
     EXPECT_THAT(l.peek().identifier_name().normalized_name(), keyword);
     assert_diagnostics(&code, l.diags(), {});
 
-    l.peek().report_errors_for_escape_sequences_in_keyword(
-        &l.diag_list_diag_reporter());
+    l.peek().add_diags_for_escape_sequences_in_keyword(l.diags());
     assert_diagnostics(
         &code, l.diags(),
         {

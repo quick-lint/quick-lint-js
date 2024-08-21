@@ -295,22 +295,22 @@ struct Token {
   Identifier identifier_name() const;
   Source_Code_Span span() const;
 
-  // Report Diag_Keywords_Cannot_Contain_Escape_Sequences for each escape
+  // Add Diag_Keywords_Cannot_Contain_Escape_Sequences for each escape
   // sequence in the most recently parsed keyword-looking identifier.
   //
   // Precondition:
   //   this->type == Token_Type::reserved_keyword_with_escape_sequence
   // Precondition: This function was not previously called for the same token.
-  void report_errors_for_escape_sequences_in_keyword(Diag_Reporter*) const;
+  void add_diags_for_escape_sequences_in_keyword(Diag_List&) const;
 
-  // Report errors for each invalid escape sequence in the most recently parsed
-  // template.
+  // Add diags to the Diag_List for each invalid escape sequence in the most
+  // recently parsed template.
   //
   // Precondition:
   //   this->type == Token_Type::complete_template ||
   //   this->type == Token_Type::incomplete_template
   // Precondition: This function was not previously called for the same token.
-  void report_errors_for_escape_sequences_in_template(Diag_Reporter*) const;
+  void add_diags_for_escape_sequences_in_template(Diag_List&) const;
 
   const Char8* begin;
   const Char8* end;

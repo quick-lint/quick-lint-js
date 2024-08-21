@@ -29,24 +29,22 @@ Source_Code_Span Token::span() const {
   return Source_Code_Span(this->begin, this->end);
 }
 
-void Token::report_errors_for_escape_sequences_in_keyword(
-    Diag_Reporter* reporter) const {
+void Token::add_diags_for_escape_sequences_in_keyword(Diag_List& diags) const {
   QLJS_ASSERT(this->type == Token_Type::reserved_keyword_with_escape_sequence);
   QLJS_ASSERT(this->identifier_escape_sequences);
   QLJS_ASSERT(!this->identifier_escape_sequences->empty());
   for (const Source_Code_Span& escape_sequence :
        *this->identifier_escape_sequences) {
-    reporter->report(Diag_Keywords_Cannot_Contain_Escape_Sequences{
+    diags.add(Diag_Keywords_Cannot_Contain_Escape_Sequences{
         .escape_sequence = escape_sequence});
   }
 }
 
-void Token::report_errors_for_escape_sequences_in_template(
-    Diag_Reporter* reporter) const {
+void Token::add_diags_for_escape_sequences_in_template(Diag_List& diags) const {
   QLJS_ASSERT(this->type == Token_Type::complete_template ||
               this->type == Token_Type::incomplete_template);
   if (this->template_escape_sequence_diagnostics) {
-    reporter->report(*this->template_escape_sequence_diagnostics);
+    diags.add_many(*this->template_escape_sequence_diagnostics);
   }
 }
 
