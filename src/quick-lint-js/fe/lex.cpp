@@ -835,13 +835,9 @@ const Char8* Lexer::parse_string_literal() {
           }
         }
         break;
-      case 'u': {
-        // TODO(#1154): Remove this temporary Diag_List.
-        Diag_List diags(&this->allocator_);
-        c = this->parse_unicode_escape(escape_sequence_start, &diags).end;
-        this->diag_reporter_->report(diags);
+      case 'u':
+        c = this->parse_unicode_escape(escape_sequence_start, &this->diags_).end;
         break;
-      }
       default:
         ++c;
         break;
@@ -1824,11 +1820,8 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
 
   auto parse_unicode_escape = [&]() {
     const Char8* escape_begin = input;
-    // TODO(#1154): Remove this temporary Diag_List.
-    Diag_List diags(&this->allocator_);
     Parsed_Unicode_Escape escape =
-        this->parse_unicode_escape(escape_begin, &diags);
-    this->diag_reporter_->report(diags);
+        this->parse_unicode_escape(escape_begin, &this->diags_);
 
     if (escape.code_point.has_value()) {
       bool is_initial_identifier_character = escape_begin == identifier_begin;
