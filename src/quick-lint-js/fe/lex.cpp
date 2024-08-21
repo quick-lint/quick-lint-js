@@ -1240,8 +1240,7 @@ Lexer_Transaction Lexer::begin_transaction() {
       /*old_last_token=*/this->last_token_,
       /*old_last_last_token_end=*/this->last_last_token_end_,
       /*old_input=*/this->input_,
-      /*diag_list=*/
-      &this->diag_reporter_->diags());
+      /*diag_list=*/&this->diags_);
 }
 
 void Lexer::commit_transaction(Lexer_Transaction&&) {
@@ -1257,7 +1256,7 @@ void Lexer::roll_back_transaction(Lexer_Transaction&& transaction) {
 }
 
 bool Lexer::transaction_has_lex_diagnostics(const Lexer_Transaction& transaction) const {
-  return this->diag_reporter_->diags().reported_any_diagnostic_except_since({}, transaction.diag_list_rewind);
+  return this->diags_.reported_any_diagnostic_except_since({}, transaction.diag_list_rewind);
 }
 
 void Lexer::insert_semicolon() {

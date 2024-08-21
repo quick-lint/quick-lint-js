@@ -351,7 +351,6 @@ class Lexer {
   Diag_List_Diag_Reporter diag_list_ =
       Diag_List_Diag_Reporter(&this->allocator_);
   Diag_List& diags_ = diag_list_.diags();
-  Diag_List_Diag_Reporter* diag_reporter_ = &this->diag_list_;
 
   friend struct Lex_Tables;
 };
