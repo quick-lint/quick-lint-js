@@ -348,7 +348,6 @@ class Lexer {
   Lexer_Options options_;
 
   Monotonic_Allocator allocator_{"lexer::allocator_"};
-  Linked_Bump_Allocator transaction_allocator_{"lexer::transaction_allocator_"};
 
   Diag_List_Diag_Reporter diag_list_ =
       Diag_List_Diag_Reporter(&this->allocator_);
@@ -364,32 +363,19 @@ struct Lexer_Transaction {
 
   explicit Lexer_Transaction(Token old_last_token,
                              const Char8* old_last_last_token_end,
-                             const Char8* old_input,
-                             Diag_List_Diag_Reporter** diag_reporter_pointer,
-                             Allocator_Type* allocator)
-      : allocator_rewind(allocator->prepare_for_rewind()),
-        old_last_token(old_last_token),
+                             const Char8* old_input, Diag_List* diags)
+      : old_last_token(old_last_token),
         old_last_last_token_end(old_last_last_token_end),
         old_input(old_input),
-        reporter(std::in_place, allocator),
-        old_diag_reporter(
-            std::exchange(*diag_reporter_pointer, get(this->reporter))) {}
+        diag_list_rewind(diags->prepare_for_rewind()) {}
 
-  // Don't allow copying a transaction. Lexer::diag_reporter_ might point to
-  // Lexer_Transaction::diag_reporter.
   Lexer_Transaction(const Lexer_Transaction&) = delete;
   Lexer_Transaction& operator=(const Lexer_Transaction&) = delete;
-
-  // Rewinds memory allocated by 'reporter'. Must be constructed before
-  // 'reporter' is constructed. 'Allocator_Type::rewind' must be called before
-  // 'reporter' is destructed.
-  Allocator_Type::Rewind_State allocator_rewind;
 
   Token old_last_token;
   const Char8* old_last_last_token_end;
   const Char8* old_input;
-  std::optional<Diag_List_Diag_Reporter> reporter;
-  Diag_List_Diag_Reporter* old_diag_reporter;
+  Diag_List::Rewind_State diag_list_rewind;
 };
 
 bool is_plain_horizontal_whitespace(Source_Code_Span span);

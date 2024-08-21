@@ -5236,9 +5236,9 @@ void Parser::parse_and_visit_named_exports(
       case Token_Type::kw_set:
       case Token_Type::kw_static:
       case Token_Type::kw_type:
-        report_diag_for_inline_type_import_if_needed();
         is_local_type_export = true;
         this->lexer_.commit_transaction(std::move(transaction));
+        report_diag_for_inline_type_import_if_needed();
         goto named_export;
 
       case Token_Type::kw_as:
@@ -5247,9 +5247,9 @@ void Parser::parse_and_visit_named_exports(
         // import {type as} from "mod";  // TypeScript only
         case Token_Type::comma:
         case Token_Type::right_curly:
-          report_diag_for_inline_type_import_if_needed();
           is_local_type_export = true;
           this->lexer_.roll_back_transaction(std::move(transaction));
+          report_diag_for_inline_type_import_if_needed();
           this->skip();  // Skip 'type'.
           QLJS_ASSERT(this->peek().type == Token_Type::kw_as);
           goto named_export;

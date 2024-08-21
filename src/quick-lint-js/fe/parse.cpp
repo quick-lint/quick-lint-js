@@ -749,10 +749,12 @@ Parser::try_parse_function_with_leading_star() {
 
   // *function f() {}
   this->skip();
-  if (this->peek().type == Token_Type::identifier) {
+  Token maybe_function_name = this->peek();
+  this->lexer_.roll_back_transaction(std::move(transaction));
+  if (maybe_function_name.type == Token_Type::identifier) {
     this->diag_reporter_->report(
         Diag_Generator_Function_Star_Belongs_Before_Name{
-            .function_name = this->peek().span(),
+            .function_name = maybe_function_name.span(),
             .star = star_token.span(),
         });
   } else {
@@ -760,7 +762,6 @@ Parser::try_parse_function_with_leading_star() {
         Diag_Generator_Function_Star_Belongs_After_Keyword_Function{
             .star = star_token.span()});
   }
-  this->lexer_.roll_back_transaction(std::move(transaction));
   this->skip();
   // *async function f() {}
   if (has_leading_async) {

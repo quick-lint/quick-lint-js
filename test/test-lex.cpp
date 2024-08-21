@@ -2284,7 +2284,7 @@ TEST_F(Test_Lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   assert_diagnostics(&code, l.diags(), {});
 }
 
-TEST_F(Test_Lex, transaction_buffers_errors_until_commit) {
+TEST_F(Test_Lex, diags_in_transaction_are_visible_before_commit) {
   Padded_String code(u8"x 0b y"_sv);
   Lexer l(&code);
 
@@ -2294,21 +2294,23 @@ TEST_F(Test_Lex, transaction_buffers_errors_until_commit) {
   Lexer_Transaction transaction = l.begin_transaction();
   l.skip();
   EXPECT_EQ(l.peek().type, Token_Type::number);
-  // 0b error shouldn't be written to error reporter.
-  // FIXME(#1154): Instead of buffering, use a rewind mechanism. (No rewinding
-  // should happen in this test.)
-  assert_diagnostics(&code, l.diags(), {});
+  // 0b error should be in the diag list even before we commit.
+  assert_diagnostics(&code, l.diags(),
+                     {u8"Diag_No_Digits_In_Binary_Number"_diag});
 
   l.skip();
   EXPECT_EQ(l.peek().type, Token_Type::identifier);
-  assert_diagnostics(&code, l.diags(), {});
+  // 0b error should remaining in the diag list after parsing the next token.
+  assert_diagnostics(&code, l.diags(),
+                     {u8"Diag_No_Digits_In_Binary_Number"_diag});
 
   l.commit_transaction(std::move(transaction));
+  // 0b error should remaining in the diag list after committing.
   assert_diagnostics(&code, l.diags(),
                      {u8"Diag_No_Digits_In_Binary_Number"_diag});
 }
 
-TEST_F(Test_Lex, nested_transaction_buffers_errors_until_outer_commit) {
+TEST_F(Test_Lex, diags_in_nested_transaction_are_visible_before_commit) {
   Padded_String code(u8"x y 0b z"_sv);
   Lexer l(&code);
 
@@ -2322,27 +2324,27 @@ TEST_F(Test_Lex, nested_transaction_buffers_errors_until_outer_commit) {
   Lexer_Transaction inner_transaction = l.begin_transaction();
   l.skip();
   EXPECT_EQ(l.peek().type, Token_Type::number);  // 0b
-  // 0b error shouldn't be written to error reporter.
-  // FIXME(#1154): Instead of buffering, use a rewind mechanism. (No rewinding
-  // should happen in this test.)
-  assert_diagnostics(&code, l.diags(), {});
+  // 0b error should be in the diag list even before we commit.
+  assert_diagnostics(&code, l.diags(),
+                     {u8"Diag_No_Digits_In_Binary_Number"_diag});
 
   l.skip();
   EXPECT_EQ(l.peek().type, Token_Type::identifier);  // z
-  assert_diagnostics(&code, l.diags(), {});
+  // 0b error should remaining in the diag list after parsing the next token.
+  assert_diagnostics(&code, l.diags(),
+                     {u8"Diag_No_Digits_In_Binary_Number"_diag});
 
   l.commit_transaction(std::move(inner_transaction));
-  // committing inner_transaction should not report 0b error.
-  // FIXME(#1154): Instead of buffering, use a rewind mechanism. (No rewinding
-  // should happen in this test.)
-  assert_diagnostics(&code, l.diags(), {});
+  // 0b error should remaining in the diag list after committing the inner
+  // transaction.
+  assert_diagnostics(&code, l.diags(),
+                     {u8"Diag_No_Digits_In_Binary_Number"_diag});
 
   l.commit_transaction(std::move(outer_transaction));
-  // committing outer_transaction should report 0b error.
+  // 0b error should remaining in the diag list after committing the outer
+  // transaction.
   assert_diagnostics(&code, l.diags(),
-                     {
-                         u8"Diag_No_Digits_In_Binary_Number"_diag,
-                     });
+                     {u8"Diag_No_Digits_In_Binary_Number"_diag});
 }
 
 TEST_F(Test_Lex, rolled_back_inner_transaction_discards_errors) {
@@ -2362,12 +2364,16 @@ TEST_F(Test_Lex, rolled_back_inner_transaction_discards_errors) {
 
   l.skip();
   EXPECT_EQ(l.peek().type, Token_Type::identifier);  // z
-  // FIXME(#1154): Instead of buffering, use a rewind mechanism.
-  assert_diagnostics(&code, l.diags(), {});
+  // Diag should be visible before rollback.
+  assert_diagnostics(&code, l.diags(),
+                     {u8"Diag_No_Digits_In_Binary_Number"_diag});
 
   l.roll_back_transaction(std::move(inner_transaction));
+  // Diag should be undone after inner rollback.
+  assert_diagnostics(&code, l.diags(), {});
+
   l.commit_transaction(std::move(outer_transaction));
-  // 0b error shouldn't be written to error reporter.
+  // Diag should remain undone after outer commit.
   assert_diagnostics(&code, l.diags(), {});
 }
 
@@ -2388,12 +2394,17 @@ TEST_F(Test_Lex, rolled_back_outer_transaction_discards_errors) {
 
   l.skip();
   EXPECT_EQ(l.peek().type, Token_Type::identifier);  // z
-  // FIXME(#1154): Instead of buffering, use a rewind mechanism.
-  assert_diagnostics(&code, l.diags(), {});
+  // Diag should be visible before rollback.
+  assert_diagnostics(&code, l.diags(),
+                     {u8"Diag_No_Digits_In_Binary_Number"_diag});
 
   l.commit_transaction(std::move(inner_transaction));
+  // Diag should be visible after inner commit.
+  assert_diagnostics(&code, l.diags(),
+                     {u8"Diag_No_Digits_In_Binary_Number"_diag});
+
   l.roll_back_transaction(std::move(outer_transaction));
-  // 0b error shouldn't be written to error reporter.
+  // Diag should be undone after outer rollback.
   assert_diagnostics(&code, l.diags(), {});
 }
 

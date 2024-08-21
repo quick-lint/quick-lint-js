@@ -1245,32 +1245,24 @@ Lexer_Transaction Lexer::begin_transaction() {
       /*old_last_token=*/this->last_token_,
       /*old_last_last_token_end=*/this->last_last_token_end_,
       /*old_input=*/this->input_,
-      /*diag_reporter_pointer=*/
-      &this->diag_reporter_,
-      /*memory=*/&this->transaction_allocator_);
+      /*diag_list=*/
+      &this->diag_reporter_->diags());
 }
 
-void Lexer::commit_transaction(Lexer_Transaction&& transaction) {
-  Diag_List_Diag_Reporter* uncommitted_diagnostics = this->diag_reporter_;
-  transaction.old_diag_reporter->report(uncommitted_diagnostics->diags());
-
-  this->diag_reporter_ = transaction.old_diag_reporter;
-
-  transaction.reporter.reset();
+void Lexer::commit_transaction(Lexer_Transaction&&) {
+  // Do nothing.
 }
 
 void Lexer::roll_back_transaction(Lexer_Transaction&& transaction) {
   this->last_token_ = transaction.old_last_token;
   this->last_last_token_end_ = transaction.old_last_last_token_end;
   this->input_ = transaction.old_input;
-  this->diag_reporter_ = transaction.old_diag_reporter;
 
-  transaction.reporter.reset();
-  this->transaction_allocator_.rewind(std::move(transaction.allocator_rewind));
+  this->diag_list_.diags().rewind(std::move(transaction.diag_list_rewind));
 }
 
 bool Lexer::transaction_has_lex_diagnostics(const Lexer_Transaction& transaction) const {
-  return !transaction.reporter->diags().empty();
+  return this->diag_reporter_->diags().reported_any_diagnostic_except_since({}, transaction.diag_list_rewind);
 }
 
 void Lexer::insert_semicolon() {
