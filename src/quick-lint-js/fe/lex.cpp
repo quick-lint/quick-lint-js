@@ -657,7 +657,7 @@ bool Lexer::try_parse_current_token() {
   case '`': {
     this->input_ += 1;
     Parsed_Template_Body body = this->parse_template_body(
-        this->input_, this->last_token_.begin, this->diag_reporter_);
+        this->input_, this->last_token_.begin);
     this->last_token_.template_escape_sequence_diagnostics =
         body.escape_sequence_diagnostics;
     this->last_token_.type = body.type;
@@ -938,7 +938,7 @@ void Lexer::skip_in_template(const Char8* template_begin) {
   QLJS_ASSERT(this->peek().type == Token_Type::right_curly);
   this->last_token_.begin = this->input_;
   Parsed_Template_Body body = this->parse_template_body(
-      this->input_, template_begin, this->diag_reporter_);
+      this->input_, template_begin);
   this->last_token_.type = body.type;
   this->last_token_.template_escape_sequence_diagnostics =
       body.escape_sequence_diagnostics;
@@ -947,15 +947,14 @@ void Lexer::skip_in_template(const Char8* template_begin) {
 }
 
 Lexer::Parsed_Template_Body Lexer::parse_template_body(
-    const Char8* input, const Char8* template_begin,
-    Diag_Reporter* diag_reporter) {
+    const Char8* input, const Char8* template_begin) {
   Diag_List* escape_sequence_diagnostics = nullptr;
   const Char8* c = input;
   for (;;) {
     switch (*c) {
     case '\0':
       if (this->is_eof(c)) {
-        diag_reporter->report(
+        this->diags_.add(
             Diag_Unclosed_Template{Source_Code_Span(template_begin, c)});
         return Parsed_Template_Body{Token_Type::complete_template, c,
                                     escape_sequence_diagnostics};
@@ -975,7 +974,7 @@ Lexer::Parsed_Template_Body Lexer::parse_template_body(
       switch (*c) {
       case '\0':
         if (this->is_eof(c)) {
-          diag_reporter->report(
+        this->diags_.add(
               Diag_Unclosed_Template{Source_Code_Span(template_begin, c)});
           return Parsed_Template_Body{Token_Type::complete_template, c,
                                       escape_sequence_diagnostics};

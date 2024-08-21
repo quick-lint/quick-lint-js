@@ -267,8 +267,7 @@ class Lexer {
       const Decode_UTF8_Result& opening_quote);
 
   Parsed_Template_Body parse_template_body(const Char8* input,
-                                           const Char8* template_begin,
-                                           Diag_Reporter*);
+                                           const Char8* template_begin);
 
   void parse_binary_number();
   void parse_legacy_octal_number();  // 0775, 09999, 08.24
