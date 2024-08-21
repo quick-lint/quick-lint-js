@@ -1103,8 +1103,6 @@ class Parser {
   Monotonic_Allocator diagnostic_memory_{"parser::diagnostic_memory_"};
 
   Diag_List &diags_ = this->lexer_.diags();
-  Diag_List_Diag_Reporter *diag_reporter_ =
-      &this->lexer_.diag_list_diag_reporter();
 
   // Memory used for TypeScript type expressions.
   // TODO(strager): Rewind periodically (e.g. after parsing a function body).
