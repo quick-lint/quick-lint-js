@@ -105,7 +105,7 @@ struct Parser_Transaction {
 // Parse_Visitor (visit_variable_declaration, visit_enter_function_scope, etc.).
 class Parser {
  private:
-  template <bool Parser::*Member>
+  template <bool Parser:: *Member>
   class Bool_Guard;
 
  public:
@@ -604,6 +604,8 @@ class Parser {
   void warn_on_comma_operator_in_index(Expression *, Source_Code_Span);
   void warn_on_xor_operator_as_exponentiation(Expression::Binary_Operator *);
   void warn_on_typeof_variable_equals_undefined(Expression::Binary_Operator *);
+  void warn_on_typeof_variable_equals_invalid_literal(
+      Expression::Binary_Operator *);
   void warn_on_unintuitive_bitshift_precedence(Expression *ast);
   void error_on_pointless_string_compare(Expression::Binary_Operator *);
   void error_on_pointless_compare_against_literal(
@@ -1011,7 +1013,7 @@ class Parser {
 
  private:
   template <class New_Expression, class... Args>
-  Expression *make_expression(Args &&... args) {
+  Expression *make_expression(Args &&...args) {
     return this->expressions_.make_expression<New_Expression>(
         std::forward<Args>(args)...);
   }
@@ -1040,7 +1042,7 @@ class Parser {
   };
 
  private:
-  template <bool Parser::*Member>
+  template <bool Parser:: *Member>
   class Bool_Guard {
    public:
     explicit Bool_Guard(Parser *p, bool old_value)
