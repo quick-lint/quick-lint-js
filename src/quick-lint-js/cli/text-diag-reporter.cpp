@@ -28,6 +28,12 @@ void Text_Diag_Reporter::set_source(Padded_String_View input,
   this->file_path_ = file_path;
 }
 
+void Text_Diag_Reporter::report(const Diag_List &diags) {
+  diags.for_each([&](Diag_Type type, void *diag) -> void {
+    this->report_impl(type, diag);
+  });
+}
+
 void Text_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());

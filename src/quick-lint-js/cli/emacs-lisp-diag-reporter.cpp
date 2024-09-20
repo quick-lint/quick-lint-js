@@ -24,6 +24,12 @@ void Emacs_Lisp_Diag_Reporter::set_source(Padded_String_View input) {
   this->locator_.emplace(input);
 }
 
+void Emacs_Lisp_Diag_Reporter::report(const Diag_List &diags) {
+  diags.for_each([&](Diag_Type type, void *diag) -> void {
+    this->report_impl(type, diag);
+  });
+}
+
 void Emacs_Lisp_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   QLJS_ASSERT(this->locator_.has_value());
   Emacs_Lisp_Diag_Formatter formatter(this->translator_,

@@ -141,6 +141,12 @@ class VSCode_Diag_Reporter final : public Diag_Reporter {
 
   ::Napi::Array diagnostics() const { return this->diagnostics_; }
 
+  void report(const Diag_List& diags) override {
+    diags.for_each([&](Diag_Type type, void* diag) -> void {
+      this->report_impl(type, diag);
+    });
+  }
+
   void report_impl(Diag_Type type, void* diag) override {
     VSCode_Diag_Formatter formatter(
         /*vscode=*/this->vscode_,

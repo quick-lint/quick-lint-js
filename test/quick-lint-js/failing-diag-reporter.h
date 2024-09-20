@@ -9,6 +9,7 @@ namespace quick_lint_js {
 // Fails the test if any error is reported.
 class Failing_Diag_Reporter : public Diag_Reporter {
  public:
+  void report(const Diag_List &) override;
   void report_impl(Diag_Type type, void *diag) override;
 };
 }

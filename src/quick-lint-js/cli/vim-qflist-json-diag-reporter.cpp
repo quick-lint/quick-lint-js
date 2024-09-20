@@ -52,6 +52,12 @@ void Vim_QFList_JSON_Diag_Reporter::finish() {
   this->output_.append_literal(u8"]}"_sv);
 }
 
+void Vim_QFList_JSON_Diag_Reporter::report(const Diag_List &diags) {
+  diags.for_each([&](Diag_Type type, void *diag) -> void {
+    this->report_impl(type, diag);
+  });
+}
+
 void Vim_QFList_JSON_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   if (this->need_comma_) {
     this->output_.append_literal(u8",\n"_sv);

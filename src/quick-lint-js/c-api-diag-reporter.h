@@ -35,6 +35,7 @@ class C_API_Diag_Reporter final : public Diag_Reporter {
 
   const Diagnostic *get_diagnostics();
 
+  void report(const Diag_List &) override;
   void report_impl(Diag_Type type, void *diag) override;
 
  private:

@@ -2,10 +2,17 @@
 // See end of file for extended copyright information.
 
 #include <gtest/gtest.h>
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/failing-diag-reporter.h>
 
 namespace quick_lint_js {
-void Failing_Diag_Reporter::report_impl(Diag_Type type, void *) {
+void Failing_Diag_Reporter::report(const Diag_List& diags) {
+  diags.for_each([&](Diag_Type type, void* diag) -> void {
+    this->report_impl(type, diag);
+  });
+}
+
+void Failing_Diag_Reporter::report_impl(Diag_Type type, void*) {
   ADD_FAILURE() << "expected no errors, but got: " << type;
 }
 }

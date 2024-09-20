@@ -22,6 +22,12 @@ class Reported_Diag_Statistics final : public Diag_Reporter {
 
   bool found_matching_diag() const { return this->found_matching_diag_; }
 
+  void report(const Diag_List &diags) override final {
+    diags.for_each([&](Diag_Type type, void *diag) -> void {
+      this->report_impl(type, diag);
+    });
+  }
+
   void report_impl(Diag_Type type, void *diag) override final {
     if (this->predicate_->is_present(type)) {
       this->found_matching_diag_ = true;

@@ -40,6 +40,13 @@ void C_API_Diag_Reporter<Diagnostic, Locator>::set_translator(Translator t) {
 }
 
 template <class Diagnostic, class Locator>
+void C_API_Diag_Reporter<Diagnostic, Locator>::report(const Diag_List &diags) {
+  diags.for_each([&](Diag_Type type, void *diag) -> void {
+    this->report_impl(type, diag);
+  });
+}
+
+template <class Diagnostic, class Locator>
 void C_API_Diag_Reporter<Diagnostic, Locator>::report_impl(Diag_Type type,
                                                            void *diag) {
   C_API_Diag_Formatter formatter(this);

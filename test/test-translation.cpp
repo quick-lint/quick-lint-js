@@ -48,6 +48,12 @@ class Basic_Text_Diag_Reporter final : public Diag_Reporter {
 
   std::vector<String8> messages() { return this->messages_; }
 
+  void report(const Diag_List &diags) override {
+    diags.for_each([&](Diag_Type type, void *diag) -> void {
+      this->report_impl(type, diag);
+    });
+  }
+
   void report_impl(Diag_Type type, void *diag) override {
     Basic_Text_Diag_Formatter formatter(this);
     formatter.format(get_diagnostic_info(type), diag);
