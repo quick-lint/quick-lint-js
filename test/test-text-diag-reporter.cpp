@@ -45,6 +45,8 @@ class Test_Text_Diag_Reporter : public ::testing::Test {
            code + u8"\x1B]8;;\x1B\\";
   }
 
+  Monotonic_Allocator memory_ = Monotonic_Allocator("Test_Text_Diag_Reporter");
+
  private:
   Memory_Output_Stream stream_;
   static constexpr const char* file_path_ = "FILE";
@@ -55,13 +57,21 @@ TEST_F(Test_Text_Diag_Reporter, change_source) {
 
   Padded_String input_1(u8"aaaaaaaa"_sv);
   reporter.set_source(&input_1, /*file_name=*/"hello.js");
-  reporter.report(Diag_Assignment_To_Const_Global_Variable{
-      Source_Code_Span::unit(&input_1[4 - 1])});
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Assignment_To_Const_Global_Variable{
+        Source_Code_Span::unit(&input_1[4 - 1])});
+    reporter.report(diags);
+  }
 
   Padded_String input_2(u8"bbbbbbbb"_sv);
   reporter.set_source(&input_2, /*file_name=*/"world.js");
-  reporter.report(Diag_Assignment_To_Const_Global_Variable{
-      Source_Code_Span::unit(&input_2[5 - 1])});
+  {
+    Diag_List diags(&this->memory_);
+    diags.add(Diag_Assignment_To_Const_Global_Variable{
+        Source_Code_Span::unit(&input_2[5 - 1])});
+    reporter.report(diags);
+  }
 
   EXPECT_EQ(
       this->get_output(),
@@ -76,11 +86,13 @@ TEST_F(Test_Text_Diag_Reporter, assignment_before_variable_declaration) {
   Source_Code_Span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(declaration_span.string_view(), u8"x"_sv);
 
-  this->make_reporter(&input).report(
-      Diag_Assignment_Before_Variable_Declaration{
-          .assignment = assignment_span,
-          .declaration = declaration_span,
-      });
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Assignment_Before_Variable_Declaration{
+      .assignment = assignment_span,
+      .declaration = declaration_span,
+  });
+
+  this->make_reporter(&input).report(diags);
   EXPECT_EQ(
       this->get_output(),
       u8"FILE:1:1: error: variable assigned before its declaration [E0001]\n"
@@ -92,8 +104,10 @@ TEST_F(Test_Text_Diag_Reporter, assignment_to_const_global_variable) {
   Source_Code_Span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
   ASSERT_EQ(infinity_span.string_view(), u8"Infinity"_sv);
 
-  this->make_reporter(&input).report(
-      Diag_Assignment_To_Const_Global_Variable{infinity_span});
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Assignment_To_Const_Global_Variable{infinity_span});
+
+  this->make_reporter(&input).report(diags);
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:4: error: assignment to const global variable [E0002]\n");
 }
@@ -102,11 +116,13 @@ TEST_F(Test_Text_Diag_Reporter, expected_parenthesis_around_if_condition) {
   Padded_String input(u8"if cond) {}"_sv);
   Source_Code_Span parenthesis_span(&input[4 - 1], &input[4 - 1]);
 
-  this->make_reporter(&input).report(
-      Diag_Expected_Parenthesis_Around_If_Condition{
-          .where = parenthesis_span,
-          .token = '(',
-      });
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Expected_Parenthesis_Around_If_Condition{
+      .where = parenthesis_span,
+      .token = '(',
+  });
+
+  this->make_reporter(&input).report(diags);
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:4: error: if statement is missing '(' around condition "
             u8"[E0018]\n");
@@ -119,8 +135,11 @@ TEST_F(Test_Text_Diag_Reporter, redeclaration_of_variable) {
   Source_Code_Span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
-  this->make_reporter(&input).report(Diag_Redeclaration_Of_Variable{
-      redeclaration_span, original_declaration_span});
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Redeclaration_Of_Variable{redeclaration_span,
+                                           original_declaration_span});
+
+  this->make_reporter(&input).report(diags);
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:16: error: redeclaration of variable: myvar [E0034]\n"
             u8"FILE:1:5: note: variable already declared here [E0034]\n");
@@ -131,7 +150,10 @@ TEST_F(Test_Text_Diag_Reporter, unexpected_hash_character) {
   Source_Code_Span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(hash_span.string_view(), u8"#"_sv);
 
-  this->make_reporter(&input).report(Diag_Unexpected_Hash_Character{hash_span});
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Unexpected_Hash_Character{hash_span});
+
+  this->make_reporter(&input).report(diags);
   EXPECT_EQ(this->get_output(), u8"FILE:1:1: error: unexpected '#' [E0052]\n");
 }
 
@@ -140,8 +162,10 @@ TEST_F(Test_Text_Diag_Reporter, use_of_undeclared_variable) {
   Source_Code_Span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
-  this->make_reporter(&input).report(
-      Diag_Use_Of_Undeclared_Variable{myvar_span});
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Use_Of_Undeclared_Variable{myvar_span});
+
+  this->make_reporter(&input).report(diags);
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:1: warning: use of undeclared variable: myvar [E0057]\n");
 }
@@ -151,8 +175,10 @@ TEST_F(Test_Text_Diag_Reporter, use_of_undeclared_variable_escaped_error) {
   Source_Code_Span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
-  this->make_reporter(&input, /*escape_errors=*/true)
-      .report(Diag_Use_Of_Undeclared_Variable{myvar_span});
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Use_Of_Undeclared_Variable{myvar_span});
+
+  this->make_reporter(&input, /*escape_errors=*/true).report(diags);
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:1: warning: use of undeclared variable: myvar [" +
                 this->create_escape_error_code(u8"E0057") + u8"]\n");
@@ -165,11 +191,14 @@ TEST_F(Test_Text_Diag_Reporter, string8_view_parameter) {
   Source_Code_Span close_span(&input[10 - 1], &input[10 + 1 - 1]);
   ASSERT_EQ(close_span.string_view(), u8"c"_sv);
 
-  this->make_reporter(&input).report(Diag_Mismatched_JSX_Tags{
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Mismatched_JSX_Tags{
       .opening_tag_name = open_span,
       .closing_tag_name = close_span,
       .opening_tag_name_pretty = u8"a.b"_sv,
   });
+
+  this->make_reporter(&input).report(diags);
   EXPECT_EQ(
       this->get_output(),
       u8"FILE:1:10: error: mismatched JSX tags; expected '</a.b>' [E0187]\n"

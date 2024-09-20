@@ -6,13 +6,6 @@
 #include <quick-lint-js/diag/diagnostic-types.h>
 
 namespace quick_lint_js {
-#define QLJS_DIAG_TYPE_NAME(name)              \
-  void Diag_Reporter::report(name diag) {      \
-    this->report_impl(Diag_Type::name, &diag); \
-  }
-QLJS_X_DIAG_TYPE_NAMES
-#undef QLJS_DIAG_TYPE_NAME
-
 void Diag_Reporter::report(const Diag_List& diags) {
   diags.for_each([&](Diag_Type type, void* diag) -> void {
     this->report_impl(type, diag);

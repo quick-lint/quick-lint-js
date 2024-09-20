@@ -80,13 +80,17 @@ class Test_Translation : public ::testing::Test {
     static const Char8 hello[] = u8"hello";
     return Source_Code_Span(&hello[0], &hello[5]);
   }
+
+  Monotonic_Allocator memory_ = Monotonic_Allocator("Test_Translation");
 };
 
 TEST_F(Test_Translation, c_language_does_not_translate_diagnostics) {
   Translator t;
   t.use_messages_from_locale("C");
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Unexpected_Hash_Character{this->dummy_span()});
   Basic_Text_Diag_Reporter reporter(t);
-  reporter.report(Diag_Unexpected_Hash_Character{this->dummy_span()});
+  reporter.report(diags);
   EXPECT_THAT(reporter.messages(), ElementsAreArray({
                                        u8"unexpected '#'",
                                    }));
@@ -95,8 +99,10 @@ TEST_F(Test_Translation, c_language_does_not_translate_diagnostics) {
 TEST_F(Test_Translation, english_snarky_translates) {
   Translator t;
   t.use_messages_from_locale("en_US.utf8@snarky");
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Unexpected_Hash_Character{this->dummy_span()});
   Basic_Text_Diag_Reporter reporter(t);
-  reporter.report(Diag_Unexpected_Hash_Character{this->dummy_span()});
+  reporter.report(diags);
   EXPECT_THAT(reporter.messages(), ElementsAreArray({u8"#unexpected"}));
 }
 

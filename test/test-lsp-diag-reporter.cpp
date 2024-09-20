@@ -32,6 +32,8 @@ class Test_LSP_Diag_Reporter : public ::testing::Test {
   }
 
   Byte_Buffer buffer_;
+
+  Monotonic_Allocator memory_ = Monotonic_Allocator("Test_LSP_Diag_Reporter");
 };
 
 TEST_F(Test_LSP_Diag_Reporter, big_int_literal_contains_decimal_point) {
@@ -39,8 +41,11 @@ TEST_F(Test_LSP_Diag_Reporter, big_int_literal_contains_decimal_point) {
   Source_Code_Span number_span(&input[0], &input[6]);
   ASSERT_EQ(number_span.string_view(), u8"12.34n"_sv);
 
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Big_Int_Literal_Contains_Decimal_Point{number_span});
+
   LSP_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Big_Int_Literal_Contains_Decimal_Point{number_span});
+  reporter.report(diags);
   reporter.finish();
 
   TJSON diagnostics = this->parse_json();
@@ -65,9 +70,12 @@ TEST_F(Test_LSP_Diag_Reporter, assignment_before_variable_declaration) {
   Source_Code_Span declaration_span(&input[8], &input[9]);
   ASSERT_EQ(declaration_span.string_view(), u8"x"_sv);
 
-  LSP_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Assignment_Before_Variable_Declaration{
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Assignment_Before_Variable_Declaration{
       .assignment = assignment_span, .declaration = declaration_span});
+
+  LSP_Diag_Reporter reporter = this->make_reporter(&input);
+  reporter.report(diags);
   reporter.finish();
 
   TJSON diagnostics = this->parse_json();
@@ -91,9 +99,12 @@ TEST_F(Test_LSP_Diag_Reporter, assignment_to_undeclared_variable) {
   Source_Code_Span assignment_span(&input[0], &input[1]);
   ASSERT_EQ(assignment_span.string_view(), u8"x"_sv);
 
-  LSP_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(
+  Diag_List diags(&this->memory_);
+  diags.add(
       Diag_Assignment_To_Undeclared_Variable{.assignment = assignment_span});
+
+  LSP_Diag_Reporter reporter = this->make_reporter(&input);
+  reporter.report(diags);
   reporter.finish();
 
   TJSON diagnostics = this->parse_json();
@@ -116,10 +127,13 @@ TEST_F(Test_LSP_Diag_Reporter, multiple_errors) {
   Source_Code_Span b_span(&input[1], &input[2]);
   Source_Code_Span c_span(&input[2], &input[3]);
 
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Assignment_To_Const_Global_Variable{a_span});
+  diags.add(Diag_Assignment_To_Const_Global_Variable{b_span});
+  diags.add(Diag_Assignment_To_Const_Global_Variable{c_span});
+
   LSP_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Assignment_To_Const_Global_Variable{a_span});
-  reporter.report(Diag_Assignment_To_Const_Global_Variable{b_span});
-  reporter.report(Diag_Assignment_To_Const_Global_Variable{c_span});
+  reporter.report(diags);
   reporter.finish();
 
   TJSON diagnostics = this->parse_json();
@@ -132,10 +146,13 @@ TEST_F(Test_LSP_Diag_Reporter, messages_use_translator) {
 
   Padded_String input(u8"0e1n"_sv);
 
-  LSP_Diag_Reporter reporter(t, this->buffer_, &input);
-  reporter.report(Diag_Big_Int_Literal_Contains_Exponent{
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Big_Int_Literal_Contains_Exponent{
       .where = Source_Code_Span(&input[1], &input[2]),
   });
+
+  LSP_Diag_Reporter reporter(t, this->buffer_, &input);
+  reporter.report(diags);
   reporter.finish();
 
   TJSON diagnostics = this->parse_json();

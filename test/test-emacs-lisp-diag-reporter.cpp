@@ -25,6 +25,9 @@ class Test_Emacs_Lisp_Diag_Reporter : public ::testing::Test {
     return this->stream_.get_flushed_string8();
   }
 
+  Monotonic_Allocator memory_ =
+      Monotonic_Allocator("Test_Emacs_Lisp_Diag_Reporter");
+
  private:
   Memory_Output_Stream stream_;
 };
@@ -36,9 +39,11 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter, assignment_before_variable_declaration) {
   Source_Code_Span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(declaration_span.string_view(), u8"x"_sv);
 
-  Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Assignment_Before_Variable_Declaration{
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Assignment_Before_Variable_Declaration{
       .assignment = assignment_span, .declaration = declaration_span});
+  Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -50,9 +55,11 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter, assignment_to_const_global_variable) {
   Source_Code_Span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
   ASSERT_EQ(infinity_span.string_view(), u8"Infinity"_sv);
 
-  Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Assignment_To_Const_Global_Variable{infinity_span});
 
-  reporter.report(Diag_Assignment_To_Const_Global_Variable{infinity_span});
+  Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -63,11 +70,13 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter,
        expected_parenthesis_around_if_condition) {
   Padded_String input(u8"if cond) {}"_sv);
   Source_Code_Span parenthesis_span(&input[4 - 1], &input[4 - 1]);
-  Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Expected_Parenthesis_Around_If_Condition{
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Expected_Parenthesis_Around_If_Condition{
       .where = parenthesis_span,
       .token = '(',
   });
+  Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -81,9 +90,12 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter, redeclaration_of_variable) {
   Source_Code_Span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Redeclaration_Of_Variable{redeclaration_span,
+                                           original_declaration_span});
+
   Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Redeclaration_Of_Variable{redeclaration_span,
-                                                 original_declaration_span});
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -98,9 +110,12 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter,
   Source_Code_Span redeclaration_span(&input[22], &input[27]);
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar"_sv);
 
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Redeclaration_Of_Variable{redeclaration_span,
+                                           original_declaration_span});
+
   Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Redeclaration_Of_Variable{redeclaration_span,
-                                                 original_declaration_span});
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -112,8 +127,11 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter, unexpected_hash_character) {
   Source_Code_Span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(hash_span.string_view(), u8"#"_sv);
 
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Unexpected_Hash_Character{hash_span});
+
   Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Unexpected_Hash_Character{hash_span});
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(this->get_output(),
             u8R"--((((1 . 2) 0 "E0052" "unexpected '#'")))--");
@@ -124,8 +142,11 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter, use_of_undeclared_variable) {
   Source_Code_Span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Use_Of_Undeclared_Variable{myvar_span});
+
   Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Use_Of_Undeclared_Variable{myvar_span});
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -138,8 +159,11 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter,
   Source_Code_Span myvar_span(&input[7], &input[12]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar"_sv);
 
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Use_Of_Undeclared_Variable{myvar_span});
+
   Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Use_Of_Undeclared_Variable{myvar_span});
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -150,8 +174,11 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter, blackslash_is_escaped) {
   Padded_String input(u8"hello\backslash"_sv);
   Source_Code_Span span(&input[5], &input[6]);
 
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Unexpected_Backslash_In_Identifier{span});
+
   Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Unexpected_Backslash_In_Identifier{span});
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(this->get_output(),
             u8R"--((((6 . 7) 0 "E0043" "unexpected '\\' in identifier")))--");
@@ -161,8 +188,11 @@ TEST_F(Test_Emacs_Lisp_Diag_Reporter, double_quote_is_escaped) {
   Padded_String input(u8"import { x } ;"_sv);
   Source_Code_Span span(&input[12], &input[12]);
 
+  Diag_List diags(&this->memory_);
+  diags.add(Diag_Expected_From_And_Module_Specifier{span});
+
   Emacs_Lisp_Diag_Reporter reporter = this->make_reporter(&input);
-  reporter.report(Diag_Expected_From_And_Module_Specifier{span});
+  reporter.report(diags);
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),

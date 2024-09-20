@@ -20,10 +20,6 @@ class Diag_Reporter {
 
   virtual ~Diag_Reporter() = default;
 
-#define QLJS_DIAG_TYPE_NAME(name) void report(name diag);
-  QLJS_X_DIAG_TYPE_NAMES
-#undef QLJS_DIAG_TYPE_NAME
-
   void report(const Diag_List &);
 
   // TODO(#1154): Delete this in favor of report(const Diag_List&).
