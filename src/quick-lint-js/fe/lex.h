@@ -10,7 +10,7 @@
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/optional.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/diag/diag-list-diag-reporter.h>
+#include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>

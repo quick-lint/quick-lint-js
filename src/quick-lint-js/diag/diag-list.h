@@ -8,8 +8,6 @@
 #include <quick-lint-js/port/memory-resource.h>
 
 namespace quick_lint_js {
-class Diag_List_Diag_Reporter;
-
 // Internally, Diag_List is implemented as a singly linked list.
 class Diag_List {
  public:
@@ -86,8 +84,6 @@ class Diag_List {
   Memory_Resource *memory_;
   Node_Base *first_ = nullptr;
   Node_Base *last_ = nullptr;
-
-  friend class Diag_List_Diag_Reporter;
 };
 
 std::ostream &operator<<(std::ostream &, const Diag_List &);
