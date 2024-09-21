@@ -54,22 +54,18 @@ void Vim_QFList_JSON_Diag_Reporter::finish() {
 
 void Vim_QFList_JSON_Diag_Reporter::report(const Diag_List &diags) {
   diags.for_each([&](Diag_Type type, void *diag) -> void {
-    this->report_impl(type, diag);
+    if (this->need_comma_) {
+      this->output_.append_literal(u8",\n"_sv);
+    }
+    this->need_comma_ = true;
+    QLJS_ASSERT(this->locator_.has_value());
+    Vim_QFList_JSON_Diag_Formatter formatter(this->translator_,
+                                             /*output=*/&this->output_,
+                                             /*locator=*/*this->locator_,
+                                             /*file_name=*/this->file_name_,
+                                             /*bufnr=*/this->bufnr_);
+    formatter.format(get_diagnostic_info(type), diag);
   });
-}
-
-void Vim_QFList_JSON_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
-  if (this->need_comma_) {
-    this->output_.append_literal(u8",\n"_sv);
-  }
-  this->need_comma_ = true;
-  QLJS_ASSERT(this->locator_.has_value());
-  Vim_QFList_JSON_Diag_Formatter formatter(this->translator_,
-                                           /*output=*/&this->output_,
-                                           /*locator=*/*this->locator_,
-                                           /*file_name=*/this->file_name_,
-                                           /*bufnr=*/this->bufnr_);
-  formatter.format(get_diagnostic_info(type), diag);
 }
 
 Vim_QFList_JSON_Diag_Formatter::Vim_QFList_JSON_Diag_Formatter(

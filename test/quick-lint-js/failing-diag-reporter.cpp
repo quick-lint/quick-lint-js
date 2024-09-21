@@ -7,13 +7,9 @@
 
 namespace quick_lint_js {
 void Failing_Diag_Reporter::report(const Diag_List& diags) {
-  diags.for_each([&](Diag_Type type, void* diag) -> void {
-    this->report_impl(type, diag);
+  diags.for_each([&](Diag_Type type, [[maybe_unused]] void* diag) -> void {
+    ADD_FAILURE() << "expected no errors, but got: " << type;
   });
-}
-
-void Failing_Diag_Reporter::report_impl(Diag_Type type, void*) {
-  ADD_FAILURE() << "expected no errors, but got: " << type;
 }
 }
 

@@ -21,9 +21,6 @@ class Diag_Reporter {
   virtual ~Diag_Reporter() = default;
 
   virtual void report(const Diag_List &) = 0;
-
-  // TODO(#1154): Delete this in favor of report(const Diag_List&).
-  virtual void report_impl(Diag_Type type, void *diag) = 0;
 };
 
 class Null_Diag_Reporter : public Diag_Reporter {
@@ -31,7 +28,6 @@ class Null_Diag_Reporter : public Diag_Reporter {
   static Null_Diag_Reporter instance;
 
   void report(const Diag_List &) override {}
-  void report_impl(Diag_Type, void *) override {}
 };
 }
 

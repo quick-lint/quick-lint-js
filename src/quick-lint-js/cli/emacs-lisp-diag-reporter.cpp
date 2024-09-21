@@ -25,17 +25,13 @@ void Emacs_Lisp_Diag_Reporter::set_source(Padded_String_View input) {
 }
 
 void Emacs_Lisp_Diag_Reporter::report(const Diag_List &diags) {
-  diags.for_each([&](Diag_Type type, void *diag) -> void {
-    this->report_impl(type, diag);
-  });
-}
-
-void Emacs_Lisp_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   QLJS_ASSERT(this->locator_.has_value());
-  Emacs_Lisp_Diag_Formatter formatter(this->translator_,
-                                      /*output=*/&this->output_,
-                                      /*locator=*/*this->locator_);
-  formatter.format(get_diagnostic_info(type), diag);
+  diags.for_each([&](Diag_Type type, void *diag) -> void {
+    Emacs_Lisp_Diag_Formatter formatter(this->translator_,
+                                        /*output=*/&this->output_,
+                                        /*locator=*/*this->locator_);
+    formatter.format(get_diagnostic_info(type), diag);
+  });
 }
 
 Emacs_Lisp_Diag_Formatter::Emacs_Lisp_Diag_Formatter(Translator t,

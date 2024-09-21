@@ -143,19 +143,15 @@ class VSCode_Diag_Reporter final : public Diag_Reporter {
 
   void report(const Diag_List& diags) override {
     diags.for_each([&](Diag_Type type, void* diag) -> void {
-      this->report_impl(type, diag);
+      VSCode_Diag_Formatter formatter(
+          /*vscode=*/this->vscode_,
+          /*env=*/this->env_,
+          /*diagnostics=*/this->diagnostics_,
+          /*locator=*/this->locator_,
+          /*document_uri=*/this->document_uri_,
+          /*message_translator=*/this->message_translator_);
+      formatter.format(get_diagnostic_info(type), diag);
     });
-  }
-
-  void report_impl(Diag_Type type, void* diag) override {
-    VSCode_Diag_Formatter formatter(
-        /*vscode=*/this->vscode_,
-        /*env=*/this->env_,
-        /*diagnostics=*/this->diagnostics_,
-        /*locator=*/this->locator_,
-        /*document_uri=*/this->document_uri_,
-        /*message_translator=*/this->message_translator_);
-    formatter.format(get_diagnostic_info(type), diag);
   }
 
  private:

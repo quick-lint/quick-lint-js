@@ -29,21 +29,17 @@ void Text_Diag_Reporter::set_source(Padded_String_View input,
 }
 
 void Text_Diag_Reporter::report(const Diag_List &diags) {
-  diags.for_each([&](Diag_Type type, void *diag) -> void {
-    this->report_impl(type, diag);
-  });
-}
-
-void Text_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
-  Text_Diag_Formatter formatter(
-      this->translator_,
-      /*output=*/&this->output_,
-      /*file_path=*/this->file_path_,
-      /*locator=*/*this->locator_,
-      /*format_escape_errors=*/this->format_escape_errors_);
-  formatter.format(get_diagnostic_info(type), diag);
+  diags.for_each([&](Diag_Type type, void *diag) -> void {
+    Text_Diag_Formatter formatter(
+        this->translator_,
+        /*output=*/&this->output_,
+        /*file_path=*/this->file_path_,
+        /*locator=*/*this->locator_,
+        /*format_escape_errors=*/this->format_escape_errors_);
+    formatter.format(get_diagnostic_info(type), diag);
+  });
 }
 
 Text_Diag_Formatter::Text_Diag_Formatter(Translator t, Output_Stream *output,

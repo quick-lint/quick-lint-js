@@ -30,18 +30,14 @@ void LSP_Diag_Reporter::finish() { this->output_.append_copy(u8"]"_sv); }
 
 void LSP_Diag_Reporter::report(const Diag_List &diags) {
   diags.for_each([&](Diag_Type type, void *diag) -> void {
-    this->report_impl(type, diag);
+    if (this->need_comma_) {
+      this->output_.append_copy(u8",\n"_sv);
+    }
+    this->need_comma_ = true;
+    LSP_Diag_Formatter formatter(/*output=*/this->output_,
+                                 /*locator=*/this->locator_, this->translator_);
+    formatter.format(get_diagnostic_info(type), diag);
   });
-}
-
-void LSP_Diag_Reporter::report_impl(Diag_Type type, void *diag) {
-  if (this->need_comma_) {
-    this->output_.append_copy(u8",\n"_sv);
-  }
-  this->need_comma_ = true;
-  LSP_Diag_Formatter formatter(/*output=*/this->output_,
-                               /*locator=*/this->locator_, this->translator_);
-  formatter.format(get_diagnostic_info(type), diag);
 }
 
 LSP_Diag_Formatter::LSP_Diag_Formatter(Byte_Buffer &output,
