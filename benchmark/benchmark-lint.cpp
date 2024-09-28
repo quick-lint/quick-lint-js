@@ -46,10 +46,6 @@ void benchmark_lint(benchmark::State &state) {
     Diag_List diags(&memory);
     Variable_Analyzer l(&diags, &config.globals(), var_options);
     visitor.copy_into(l);
-
-    // FIXME(strager): This does not deallocate memory. Memory usage will grow
-    // and grow and grow.
-    p.diags().clear();
   }
 }
 BENCHMARK(benchmark_lint);
