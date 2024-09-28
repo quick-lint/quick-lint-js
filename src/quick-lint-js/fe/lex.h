@@ -341,9 +341,11 @@ class Lexer {
   Padded_String_View original_input_;
   Lexer_Options options_;
 
-  Monotonic_Allocator allocator_{"lexer::allocator_"};
+  // Allocator for diagnostic-related memory, including Diag_List and temporary
+  // strings.
+  Monotonic_Allocator diag_memory_{"Lexer::diag_memory_"};
 
-  Diag_List diags_ = Diag_List(&this->allocator_);
+  Diag_List diags_ = Diag_List(&this->diag_memory_);
 
   friend struct Lex_Tables;
 };

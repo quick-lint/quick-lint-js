@@ -985,7 +985,7 @@ Lexer::Parsed_Template_Body Lexer::parse_template_body(
       case 'u': {
         if (!escape_sequence_diagnostics) {
           escape_sequence_diagnostics =
-              this->allocator_.new_object<Diag_List>(&this->allocator_);
+              this->diag_memory_.new_object<Diag_List>(&this->diag_memory_);
         }
         c = this->parse_unicode_escape(escape_sequence_start,
                                        escape_sequence_diagnostics)
@@ -1474,7 +1474,7 @@ void Lexer::check_integer_precision_loss(String8_View number_literal) {
   if (cleaned_string != result_string_view) {
     // TODO(strager): Use Linked_Bump_Allocator::new_objects_copy
     Span<Char8> rounded_val =
-        this->allocator_.allocate_uninitialized_span<Char8>(
+        this->diag_memory_.allocate_uninitialized_span<Char8>(
             result_string_view.size());
     std::uninitialized_copy(result_string_view.begin(),
                             result_string_view.end(), rounded_val.data());
@@ -1809,12 +1809,12 @@ Lexer::Parsed_Identifier Lexer::parse_identifier_slow(
       is_private_identifier ? &identifier_begin[-1] : identifier_begin;
 
   Vector<Char8> normalized("parse_identifier_slow normalized",
-                           &this->allocator_);
+                           &this->diag_memory_);
   normalized.append(private_identifier_begin, input);
 
   Escape_Sequence_List* escape_sequences =
-      this->allocator_.new_object<Escape_Sequence_List>(
-          "parse_identifier_slow escape_sequences", &this->allocator_);
+      this->diag_memory_.new_object<Escape_Sequence_List>(
+          "parse_identifier_slow escape_sequences", &this->diag_memory_);
 
   auto parse_unicode_escape = [&]() {
     const Char8* escape_begin = input;
