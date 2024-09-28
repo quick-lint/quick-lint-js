@@ -40,7 +40,7 @@ Parser_Transaction::Parser_Transaction(Lexer* l)
     : lex_transaction(l->begin_transaction()) {}
 
 Parser::Parser(Padded_String_View input, Parser_Options options)
-    : lexer_(input,
+    : lexer_(input, &this->diagnostic_memory_,
              Lexer_Options{
                  .typescript = options.typescript,
              }),

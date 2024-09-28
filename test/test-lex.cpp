@@ -91,7 +91,7 @@ class Test_Lex : public ::testing::Test {
                                 Source_Location = Source_Location::current());
 
   Lexer& make_lexer(Padded_String_View input) {
-    return this->lexers_.emplace_back(input);
+    return this->lexers_.emplace_back(input, &this->memory_);
   }
 
   // If true, tell check_tokens_with_errors, lex_to_eof, etc. to call
@@ -115,7 +115,7 @@ TEST_F(Test_Lex, lex_block_comments) {
   {
     Padded_String input(u8"hello /* unterminated comment "_sv);
     auto error = /*  */ u8"      ^^ Diag_Unclosed_Block_Comment"_diag;
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
 
@@ -127,7 +127,7 @@ TEST_F(Test_Lex, lex_unopened_block_comment) {
   {
     Padded_String input(u8"hello */"_sv);
     auto error = /*  */ u8"      ^^ Diag_Unopened_Block_Comment"_diag;
-    Lexer l(&input);  // identifier
+    Lexer l(&input, &this->memory_);  // identifier
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
     l.skip();  // end of file
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
@@ -136,7 +136,7 @@ TEST_F(Test_Lex, lex_unopened_block_comment) {
   {
     Padded_String input(u8"*-----*/"_sv);
     auto error = /*  */ u8"      ^^ Diag_Unopened_Block_Comment"_diag;
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
 
     while (l.peek().type != Token_Type::end_of_file) {
       l.skip();
@@ -148,7 +148,7 @@ TEST_F(Test_Lex, lex_unopened_block_comment) {
   {
     Padded_String input(u8"*******/"_sv);
     auto error = /*  */ u8"      ^^ Diag_Unopened_Block_Comment"_diag;
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::star_star);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::star_star);
@@ -162,7 +162,7 @@ TEST_F(Test_Lex, lex_unopened_block_comment) {
   {
     Padded_String input(u8"*/"_sv);
     auto error = /*  */ u8"^^ Diag_Unopened_Block_Comment"_diag;
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
 
     assert_diagnostics(&input, l.diags(), {error});
@@ -170,7 +170,7 @@ TEST_F(Test_Lex, lex_unopened_block_comment) {
   {
     Padded_String input(u8"**/"_sv);
     auto error = /*  */ u8" ^^ Diag_Unopened_Block_Comment"_diag;
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::star);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
@@ -182,7 +182,7 @@ TEST_F(Test_Lex, lex_regexp_literal_starting_with_star_slash) {
   {
     // '/*' is not an end of block comment because it precedes a regexp literal
     Padded_String input(u8"*/ hello/"_sv);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::star);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::slash);
@@ -199,7 +199,7 @@ TEST_F(Test_Lex, lex_regexp_literal_starting_with_star_slash) {
 TEST_F(Test_Lex, lex_regexp_literal_starting_with_star_star_slash) {
   {
     Padded_String input(u8"3 **/ banana/"_sv);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::number);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::star_star);
@@ -637,7 +637,7 @@ TEST_F(Test_Lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
     auto error1 = /* */ u8"       ^^^ Diag_Number_Literal_Contains_Consecutive_Underscores"_diag;
     auto error0 = /* */ u8"   ^^ Diag_Number_Literal_Contains_Consecutive_Underscores"_diag;
     // clang-format on
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::number);
     EXPECT_EQ(*l.peek().begin, '1');
     l.skip();
@@ -692,7 +692,7 @@ TEST_F(Test_Lex, lex_strings) {
   for (String8_View line_terminator : line_terminators_except_ls_ps) {
     Padded_String input(
         concat(u8"'unterminated"_sv, line_terminator, u8"hello"_sv));
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
@@ -708,7 +708,7 @@ TEST_F(Test_Lex, lex_strings) {
   for (String8_View line_terminator : line_terminators_except_ls_ps) {
     Padded_String input(
         concat(u8"'separated"_sv, line_terminator, u8"hello'"_sv));
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file);
@@ -724,7 +724,7 @@ TEST_F(Test_Lex, lex_strings) {
   for (String8_View line_terminator : line_terminators_except_ls_ps) {
     Padded_String input(concat(u8"'separated"_sv, line_terminator,
                                line_terminator, u8"hello'"_sv));
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::string);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
@@ -750,7 +750,7 @@ TEST_F(Test_Lex, lex_strings) {
   for (String8_View line_terminator : line_terminators_except_ls_ps) {
     Padded_String input(
         concat(u8"let x = 'hello"_sv, line_terminator, u8"let y = 'world'"_sv));
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::kw_let);
     l.skip();
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
@@ -916,7 +916,7 @@ world`)"_sv,
 
   {
     Padded_String code(u8"`hello${42}`"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::incomplete_template);
     EXPECT_EQ(l.peek().span().string_view(), u8"`hello${"_sv);
     const Char8* template_begin = l.peek().begin;
@@ -933,7 +933,7 @@ world`)"_sv,
 
   {
     Padded_String code(u8"`${42}world`"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::incomplete_template);
     EXPECT_EQ(l.peek().span().string_view(), u8"`${"_sv);
     const Char8* template_begin = l.peek().begin;
@@ -950,7 +950,7 @@ world`)"_sv,
 
   {
     Padded_String code(u8"`${left}${right}`"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::incomplete_template);
     const Char8* template_begin = l.peek().begin;
     l.skip();
@@ -977,7 +977,7 @@ world`)"_sv,
     Padded_String input(u8"`${un}terminated"_sv);
     auto error = /*  */ u8"^^^^^^^^^^^^^^^^ Diag_Unclosed_Template"_diag;
 
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::incomplete_template);
     const Char8* template_begin = l.peek().begin;
     l.skip();
@@ -1098,7 +1098,7 @@ TEST_F(Test_Lex, lex_regular_expression_literals) {
   auto check_regexp = [&](String8_View raw_code) {
     Padded_String code(raw_code);
     SCOPED_TRACE(code);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
 
     EXPECT_THAT(l.peek().type,
                 testing::AnyOf(Token_Type::slash, Token_Type::slash_equal));
@@ -1123,7 +1123,7 @@ TEST_F(Test_Lex, lex_regular_expression_literals) {
   for (String8_View raw_code : {u8"/end_of_file"_sv, u8R"(/eof\)"_sv}) {
     Padded_String code(raw_code);
     SCOPED_TRACE(code);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::slash);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, Token_Type::regexp);
@@ -1145,7 +1145,7 @@ TEST_F(Test_Lex, lex_regular_expression_literals) {
     Padded_String code(
         concat(u8"/first_line"_sv, line_terminator, u8"second_line/"_sv));
     SCOPED_TRACE(code);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::slash);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, Token_Type::regexp);
@@ -1167,7 +1167,7 @@ TEST_F(Test_Lex, lex_regular_expression_literals) {
     Padded_String code(
         concat(u8"/first[line"_sv, line_terminator, u8"second]line/"_sv));
     SCOPED_TRACE(code);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::slash);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, Token_Type::regexp);
@@ -1193,7 +1193,7 @@ TEST_F(Test_Lex, lex_regular_expression_literals) {
 TEST_F(Test_Lex, lex_regular_expression_literal_with_digit_flag) {
   Padded_String input(u8"/cellular/3g"_sv);
 
-  Lexer l(&input);
+  Lexer l(&input, &this->memory_);
   EXPECT_EQ(l.peek().type, Token_Type::slash);
   l.reparse_as_regexp();
   EXPECT_EQ(l.peek().type, Token_Type::regexp);
@@ -1211,7 +1211,7 @@ TEST_F(Test_Lex, lex_unicode_escape_in_regular_expression_literal_flags) {
   auto error = /*  */ u8"       ^^^^^^^Diag_Regexp_Literal_Flags_Cannot_Contain_Unicode_Escapes"_diag;
   // clang-format on
 
-  Lexer l(&input);
+  Lexer l(&input, &this->memory_);
   l.reparse_as_regexp();
   EXPECT_EQ(l.peek().type, Token_Type::regexp);
   EXPECT_EQ(l.peek().begin, &input[0]);
@@ -1225,7 +1225,7 @@ TEST_F(Test_Lex, lex_unicode_escape_in_regular_expression_literal_flags) {
 TEST_F(Test_Lex, lex_non_ascii_in_regular_expression_literal_flags) {
   Padded_String input(u8"/hello/\u05d0"_sv);
 
-  Lexer l(&input);
+  Lexer l(&input, &this->memory_);
   l.reparse_as_regexp();
   EXPECT_EQ(l.peek().type, Token_Type::regexp);
   EXPECT_EQ(l.peek().begin, &input[0]);
@@ -1240,7 +1240,7 @@ TEST_F(Test_Lex,
        lex_regular_expression_literals_preserves_leading_newline_flag) {
   {
     Padded_String code(u8"\n/ /"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, Token_Type::regexp);
     EXPECT_TRUE(l.peek().has_leading_newline);
@@ -1248,7 +1248,7 @@ TEST_F(Test_Lex,
 
   {
     Padded_String code(u8"/ /"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, Token_Type::regexp);
     EXPECT_FALSE(l.peek().has_leading_newline);
@@ -1261,7 +1261,7 @@ TEST_F(Test_Lex, lex_regular_expression_literal_with_ascii_control_characters) {
     Padded_String input(
         concat(u8"/hello"_sv, control_character, u8"world/"_sv));
     SCOPED_TRACE(input);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
 
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, Token_Type::regexp);
@@ -1276,7 +1276,7 @@ TEST_F(Test_Lex, lex_regular_expression_literal_with_ascii_control_characters) {
     Padded_String input(
         concat(u8"/hello\\"_sv, control_character, u8"world/"_sv));
     SCOPED_TRACE(input);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
 
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, Token_Type::regexp);
@@ -1290,7 +1290,7 @@ TEST_F(Test_Lex, lex_regular_expression_literal_with_ascii_control_characters) {
 TEST_F(Test_Lex, split_less_less_into_two_tokens) {
   Padded_String input(u8"<<T>() => T>"_sv);
 
-  Lexer l(&input);
+  Lexer l(&input, &this->memory_);
   EXPECT_EQ(l.peek().type, Token_Type::less_less);
   l.skip_less_less_as_less();
   EXPECT_EQ(l.peek().type, Token_Type::less);
@@ -1304,7 +1304,7 @@ TEST_F(Test_Lex, split_less_less_into_two_tokens) {
 TEST_F(Test_Lex, split_less_less_has_no_leading_newline) {
   Padded_String input(u8"\n<<"_sv);
 
-  Lexer l(&input);
+  Lexer l(&input, &this->memory_);
   EXPECT_EQ(l.peek().type, Token_Type::less_less);
   EXPECT_TRUE(l.peek().has_leading_newline);
   l.skip_less_less_as_less();
@@ -1315,7 +1315,7 @@ TEST_F(Test_Lex, split_less_less_has_no_leading_newline) {
 TEST_F(Test_Lex, split_greater_from_bigger_token) {
   {
     Padded_String input(u8">>;"_sv);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::greater_greater);
 
     l.skip_as_greater();
@@ -1329,7 +1329,7 @@ TEST_F(Test_Lex, split_greater_from_bigger_token) {
 
   {
     Padded_String input(u8">>>;"_sv);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::greater_greater_greater);
 
     l.skip_as_greater();
@@ -1343,7 +1343,7 @@ TEST_F(Test_Lex, split_greater_from_bigger_token) {
 
   {
     Padded_String input(u8">=;"_sv);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::greater_equal);
 
     l.skip_as_greater();
@@ -1357,7 +1357,7 @@ TEST_F(Test_Lex, split_greater_from_bigger_token) {
 
   {
     Padded_String input(u8">>=;"_sv);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::greater_greater_equal);
 
     l.skip_as_greater();
@@ -1371,7 +1371,7 @@ TEST_F(Test_Lex, split_greater_from_bigger_token) {
 
   {
     Padded_String input(u8">>>=;"_sv);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::greater_greater_greater_equal);
 
     l.skip_as_greater();
@@ -1385,7 +1385,7 @@ TEST_F(Test_Lex, split_greater_from_bigger_token) {
 
   {
     Padded_String input(u8">=>;"_sv);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::greater_equal);
 
     l.skip_as_greater();
@@ -1402,7 +1402,7 @@ TEST_F(Test_Lex, split_greater_from_bigger_token) {
 TEST_F(Test_Lex, split_greater_from_bigger_token_has_no_leading_newline) {
   {
     Padded_String input(u8"\n>>"_sv);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::greater_greater);
     EXPECT_TRUE(l.peek().has_leading_newline);
     l.skip_as_greater();
@@ -1488,7 +1488,7 @@ TEST_F(Test_Lex, non_ascii_identifier_with_escape_sequence) {
 TEST_F(Test_Lex,
        identifier_with_escape_sequences_source_code_span_is_in_place) {
   Padded_String input(u8"\\u{77}a\\u{74}"_sv);
-  Lexer l(&input);
+  Lexer l(&input, &this->memory_);
   Source_Code_Span span = l.peek().identifier_name().span();
   EXPECT_EQ(span.begin(), &input[0]);
   EXPECT_EQ(span.end(), &input[input.size()]);
@@ -2047,7 +2047,7 @@ TEST_F(Test_Lex, unicode_next_line_is_invalid_in_javascript) {
   // TODO(strager): Treat U+0085 as whitespace but report a nice diagnostic.
   Padded_String code(u8"a\u0085false"_sv);
   auto error = /* */ u8" ^^^^^^ Diag_Character_Disallowed_In_Identifiers"_diag;
-  Lexer l(&code, Lexer_Options{.typescript = false});
+  Lexer l(&code, &this->memory_, Lexer_Options{.typescript = false});
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);
   l.skip();
@@ -2059,7 +2059,7 @@ TEST_F(Test_Lex, unicode_next_line_is_invalid_in_javascript) {
 
 TEST_F(Test_Lex, unicode_next_line_is_horizontal_whitespace_in_typescript) {
   Padded_String code(u8"a\u0085false"_sv);
-  Lexer l(&code, Lexer_Options{.typescript = true});
+  Lexer l(&code, &this->memory_, Lexer_Options{.typescript = true});
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);
   l.skip();
@@ -2080,7 +2080,7 @@ TEST_F(Test_Lex, lex_not_shebang) {
   {
     Padded_String input(u8"# !notashebang"_sv);
     auto error = /*  */ u8"^ Diag_Unexpected_Hash_Character"_diag;
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::bang) << "# should be skipped";
 
     assert_diagnostics(&input, l.diags(), {error});
@@ -2090,7 +2090,7 @@ TEST_F(Test_Lex, lex_not_shebang) {
   {
     Padded_String input(u8"\n#!notashebang\n"_sv);
     auto error = /*  */ u8"  ^ Diag_Unexpected_Hash_Character"_diag;
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::bang) << "# should be skipped";
 
     assert_diagnostics(&input, l.diags(), {error});
@@ -2100,7 +2100,7 @@ TEST_F(Test_Lex, lex_not_shebang) {
   {
     Padded_String input(u8"  #!notashebang\n"_sv);
     auto error = /*  */ u8"  ^ Diag_Unexpected_Hash_Character"_diag;
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::bang) << "# should be skipped";
 
     assert_diagnostics(&input, l.diags(), {error});
@@ -2111,7 +2111,7 @@ TEST_F(Test_Lex, lex_not_shebang) {
     Padded_String input(u8"#\\u{21}\n"_sv);
     auto error = /*  */ u8" ^^^^^^^ Diag_Escaped_Character_Disallowed_In_Identifiers"_diag;
     // clang-format on
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::private_identifier);
     EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"#\\u{21}"_sv);
 
@@ -2124,7 +2124,7 @@ TEST_F(Test_Lex, lex_unexpected_bom_before_shebang) {
   {
     Padded_String input(u8"\ufeff#!notashebang\n"_sv);
     auto error = /*  */ u8"^^^^^^ Diag_Unexpected_Bom_Before_Shebang"_diag;
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::end_of_file) << "# should be skipped";
 
     assert_diagnostics(&input, l.diags(), {error});
@@ -2136,7 +2136,7 @@ TEST_F(Test_Lex, ascii_control_characters_are_disallowed) {
     Padded_String input(String8(control_character) + u8"hello");
     SCOPED_TRACE(input);
 
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::identifier)
         << "control character should be skipped";
     assert_diagnostics(
@@ -2152,7 +2152,7 @@ TEST_F(Test_Lex, ascii_control_characters_sorta_treated_like_whitespace) {
   for (String8_View control_character : control_characters_except_whitespace) {
     Padded_String input(concat(u8"  "_sv, control_character, u8"  hello"_sv));
     SCOPED_TRACE(input);
-    Lexer l(&input);
+    Lexer l(&input, &this->memory_);
     EXPECT_EQ(l.peek().type, Token_Type::identifier)
         << "control character should be skipped";
     l.skip();
@@ -2163,7 +2163,7 @@ TEST_F(Test_Lex, ascii_control_characters_sorta_treated_like_whitespace) {
 TEST_F(Test_Lex, lex_token_notes_leading_newline) {
   for (String8_View line_terminator : line_terminators) {
     Padded_String code(concat(u8"a b"_sv, line_terminator, u8"c d"_sv));
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
     EXPECT_FALSE(l.peek().has_leading_newline);  // b
@@ -2177,7 +2177,7 @@ TEST_F(Test_Lex, lex_token_notes_leading_newline) {
 TEST_F(Test_Lex, lex_token_notes_leading_newline_after_single_line_comment) {
   for (String8_View line_terminator : line_terminators) {
     Padded_String code(concat(u8"a // hello"_sv, line_terminator, u8"b"_sv));
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
     EXPECT_TRUE(l.peek().has_leading_newline);  // b
@@ -2187,7 +2187,7 @@ TEST_F(Test_Lex, lex_token_notes_leading_newline_after_single_line_comment) {
 TEST_F(Test_Lex, lex_token_notes_leading_newline_after_comment_with_newline) {
   for (String8_View line_terminator : line_terminators) {
     Padded_String code(concat(u8"a /*"_sv, line_terminator, u8"*/ b"_sv));
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
     EXPECT_TRUE(l.peek().has_leading_newline);  // b
@@ -2196,7 +2196,7 @@ TEST_F(Test_Lex, lex_token_notes_leading_newline_after_comment_with_newline) {
 
 TEST_F(Test_Lex, lex_token_notes_leading_newline_after_comment) {
   Padded_String code(u8"a /* comment */\nb"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
   EXPECT_FALSE(l.peek().has_leading_newline);  // a
   l.skip();
   EXPECT_TRUE(l.peek().has_leading_newline);  // b
@@ -2204,7 +2204,7 @@ TEST_F(Test_Lex, lex_token_notes_leading_newline_after_comment) {
 
 TEST_F(Test_Lex, inserting_semicolon_at_newline_remembers_next_token) {
   Padded_String code(u8"hello\nworld"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);
   EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello"_sv);
@@ -2232,7 +2232,7 @@ TEST_F(Test_Lex, inserting_semicolon_at_newline_remembers_next_token) {
 
 TEST_F(Test_Lex, insert_semicolon_at_beginning_of_input) {
   Padded_String code(u8"hello world"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   l.insert_semicolon();
   EXPECT_EQ(l.peek().type, Token_Type::semicolon);
@@ -2254,7 +2254,7 @@ TEST_F(Test_Lex, insert_semicolon_at_beginning_of_input) {
 
 TEST_F(Test_Lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   Padded_String code(u8"{ x }"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::left_curly);
   EXPECT_FALSE(l.peek().has_leading_newline);
@@ -2286,7 +2286,7 @@ TEST_F(Test_Lex, inserting_semicolon_at_right_curly_remembers_next_token) {
 
 TEST_F(Test_Lex, diags_in_transaction_are_visible_before_commit) {
   Padded_String code(u8"x 0b y"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);
   assert_diagnostics(&code, l.diags(), {});
@@ -2312,7 +2312,7 @@ TEST_F(Test_Lex, diags_in_transaction_are_visible_before_commit) {
 
 TEST_F(Test_Lex, diags_in_nested_transaction_are_visible_before_commit) {
   Padded_String code(u8"x y 0b z"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);  // x
   assert_diagnostics(&code, l.diags(), {});
@@ -2349,7 +2349,7 @@ TEST_F(Test_Lex, diags_in_nested_transaction_are_visible_before_commit) {
 
 TEST_F(Test_Lex, rolled_back_inner_transaction_discards_errors) {
   Padded_String code(u8"x y 0b z"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);  // x
   assert_diagnostics(&code, l.diags(), {});
@@ -2379,7 +2379,7 @@ TEST_F(Test_Lex, rolled_back_inner_transaction_discards_errors) {
 
 TEST_F(Test_Lex, rolled_back_outer_transaction_discards_errors) {
   Padded_String code(u8"x y 0b z"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);  // x
   assert_diagnostics(&code, l.diags(), {});
@@ -2410,7 +2410,7 @@ TEST_F(Test_Lex, rolled_back_outer_transaction_discards_errors) {
 
 TEST_F(Test_Lex, errors_after_transaction_commit_are_reported_unbuffered) {
   Padded_String code(u8"x 'y' 0b"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);
   assert_diagnostics(&code, l.diags(), {});
@@ -2433,7 +2433,7 @@ TEST_F(Test_Lex, errors_after_transaction_commit_are_reported_unbuffered) {
 
 TEST_F(Test_Lex, errors_after_transaction_rollback_are_reported_unbuffered) {
   Padded_String code(u8"x 'y' 0b"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);
   assert_diagnostics(&code, l.diags(), {});
@@ -2458,7 +2458,7 @@ TEST_F(Test_Lex, errors_after_transaction_rollback_are_reported_unbuffered) {
 
 TEST_F(Test_Lex, rolling_back_transaction) {
   Padded_String code(u8"x 'y' 3"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);
   assert_diagnostics(&code, l.diags(), {});
@@ -2484,7 +2484,7 @@ TEST_F(Test_Lex, rolling_back_transaction) {
 
 TEST_F(Test_Lex, insert_semicolon_after_rolling_back_transaction) {
   Padded_String code(u8"x 'y' 3"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   EXPECT_EQ(l.peek().type, Token_Type::identifier);
   assert_diagnostics(&code, l.diags(), {});
@@ -2513,7 +2513,7 @@ TEST_F(Test_Lex, unfinished_transaction_does_not_leak_memory) {
   // Clang's LeakSanitizer.
 
   Padded_String code(u8"a b c d e f g"_sv);
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
 
   [[maybe_unused]] Lexer_Transaction outer_transaction = l.begin_transaction();
   l.skip();
@@ -2573,7 +2573,7 @@ TEST_F(Test_Lex, jsx_identifier) {
     SCOPED_TRACE(out_string8(tag_code));
 
     Padded_String code(u8"!" + String8(tag_code));
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '!'.
 
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
@@ -2632,7 +2632,7 @@ TEST_F(Test_Lex, jsx_string) {
     SCOPED_TRACE(out_string8(string_code));
 
     Padded_String code(u8"!" + String8(string_code));
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '!'.
 
     EXPECT_EQ(l.peek().type, Token_Type::string);
@@ -2673,7 +2673,7 @@ TEST_F(Test_Lex, jsx_string) {
 TEST_F(Test_Lex, jsx_string_ignores_comments) {
   {
     Padded_String code(u8"! 'hello // '\nworld'"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '!'.
 
     EXPECT_EQ(l.peek().type, Token_Type::string);
@@ -2690,7 +2690,7 @@ TEST_F(Test_Lex, jsx_string_ignores_comments) {
 
   {
     Padded_String code(u8R"(! "hello/* not"comment */world")"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '!'.
 
     EXPECT_EQ(l.peek().type, Token_Type::string);
@@ -2709,7 +2709,7 @@ TEST_F(Test_Lex, jsx_string_ignores_comments) {
 TEST_F(Test_Lex, unterminated_jsx_string) {
   Padded_String code(u8"! 'hello"_sv);
   auto error = /* */ u8"  ^ Diag_Unclosed_JSX_String_Literal"_diag;
-  Lexer l(&code);
+  Lexer l(&code, &this->memory_);
   l.skip_in_jsx();  // Ignore '!'.
 
   EXPECT_EQ(l.peek().type, Token_Type::string);
@@ -2722,7 +2722,7 @@ TEST_F(Test_Lex, unterminated_jsx_string) {
 TEST_F(Test_Lex, jsx_tag) {
   {
     Padded_String code(u8"<svg:rect>"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '<'.
 
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
@@ -2740,7 +2740,7 @@ TEST_F(Test_Lex, jsx_tag) {
 
   {
     Padded_String code(u8"<myModule.MyComponent>"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '<'.
 
     EXPECT_EQ(l.peek().type, Token_Type::identifier);
@@ -2760,7 +2760,7 @@ TEST_F(Test_Lex, jsx_tag) {
 TEST_F(Test_Lex, jsx_text_children) {
   {
     Padded_String code(u8"<>hello world"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '<'.
 
     l.skip_in_jsx_children();  // Skip '>'.
@@ -2771,7 +2771,7 @@ TEST_F(Test_Lex, jsx_text_children) {
 
   {
     Padded_String code(u8"<>hello</>"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '<'.
 
     l.skip_in_jsx_children();  // Skip '>'.
@@ -2786,7 +2786,7 @@ TEST_F(Test_Lex, jsx_text_children) {
   for (String8 text_begin : {u8"=", u8">", u8">>", u8">=", u8">>="}) {
     Padded_String code(u8"<>" + text_begin + u8"hello");
     SCOPED_TRACE(code);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '<'.
 
     EXPECT_EQ(l.peek().type, Token_Type::greater);
@@ -2822,7 +2822,7 @@ TEST_F(Test_Lex, jsx_illegal_text_children) {
   {
     Padded_String code(u8"<>hello>world</>"_sv);
     auto error = /* */ u8"       ^ Diag_Unexpected_Greater_In_JSX_Text"_diag;
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '<'.
 
     l.skip_in_jsx_children();  // Skip '>'.
@@ -2835,7 +2835,7 @@ TEST_F(Test_Lex, jsx_illegal_text_children) {
     Padded_String code(u8"<>hello}world</>"_sv);
     auto error = /* */ u8"       ^ Diag_Unexpected_Right_Curly_In_JSX_Text"_diag;
     // clang-format on
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     l.skip_in_jsx();  // Ignore '<'.
 
     l.skip_in_jsx_children();  // Skip '>'.
@@ -2849,7 +2849,7 @@ TEST_F(Test_Lex, jsx_expression_children) {
 
   {
     Padded_String code(u8"<>hello {name}!</>"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
 
     // <>hello
     EXPECT_EQ(l.peek().type, Token_Type::less);
@@ -2881,7 +2881,7 @@ TEST_F(Test_Lex, jsx_nested_children) {
 
   {
     Padded_String code(u8"<>hello <span>world</span>!</>"_sv);
-    Lexer l(&code);
+    Lexer l(&code, &this->memory_);
     // <>hello
     EXPECT_EQ(l.peek().type, Token_Type::less);
     l.skip_in_jsx();

@@ -12,7 +12,8 @@ namespace {
 void benchmark_lex(::benchmark::State &state, String8_View raw_source) {
   Padded_String source(raw_source);
   for (auto _ : state) {
-    Lexer l(&source);
+    Monotonic_Allocator diag_memory("benchmark_lex diag_memory");
+    Lexer l(&source, &diag_memory);
     while (l.peek().type != Token_Type::end_of_file) {
       l.skip();
     }

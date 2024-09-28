@@ -224,13 +224,14 @@ bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
 }
 }
 
-Lexer::Lexer(Padded_String_View input)
-    : Lexer(input, Lexer_Options()) {}
+Lexer::Lexer(Padded_String_View input, Monotonic_Allocator* diag_memory)
+    : Lexer(input, diag_memory, Lexer_Options()) {}
 
-Lexer::Lexer(Padded_String_View input, Lexer_Options options)
+Lexer::Lexer(Padded_String_View input, Monotonic_Allocator* diag_memory, Lexer_Options options)
     : input_(input.data()),
       original_input_(input),
-      options_(options) {
+      options_(options),
+      diag_memory_(*diag_memory) {
   this->last_token_.end = this->input_;
   this->parse_bom_before_shebang();
   this->parse_current_token();

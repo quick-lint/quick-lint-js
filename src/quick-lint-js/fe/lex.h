@@ -42,8 +42,9 @@ class Lexer {
     jsx,  // Allows '-'.
   };
 
-  explicit Lexer(Padded_String_View input);
-  explicit Lexer(Padded_String_View input, Lexer_Options);
+  explicit Lexer(Padded_String_View input, Monotonic_Allocator* diag_memory);
+  explicit Lexer(Padded_String_View input, Monotonic_Allocator* diag_memory,
+                 Lexer_Options);
 
   // Return information about the current token.
   const Token& peek() const { return this->last_token_; }
@@ -343,7 +344,7 @@ class Lexer {
 
   // Allocator for diagnostic-related memory, including Diag_List and temporary
   // strings.
-  Monotonic_Allocator diag_memory_{"Lexer::diag_memory_"};
+  Monotonic_Allocator& diag_memory_;
 
   Diag_List diags_ = Diag_List(&this->diag_memory_);
 

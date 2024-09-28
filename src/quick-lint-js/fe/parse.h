@@ -1092,15 +1092,16 @@ class Parser {
   Parse_Expression_Cache_Key parse_expression_cache_key_for_current_state()
       const;
 
+  // Memory used for strings in diagnostic messages.
+  // Must be initialized before lexer_.
+  Monotonic_Allocator diagnostic_memory_{"parser::diagnostic_memory_"};
+
   quick_lint_js::Lexer lexer_;
   Parser_Options options_;
   Expression_Arena expressions_;
 
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
   Monotonic_Allocator temporary_memory_{"parser::temporary_memory_"};
-
-  // Memory used for strings in diagnostic messages.
-  Monotonic_Allocator diagnostic_memory_{"parser::diagnostic_memory_"};
 
   Diag_List &diags_ = this->lexer_.diags();
 
