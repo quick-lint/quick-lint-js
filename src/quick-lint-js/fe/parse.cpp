@@ -39,12 +39,14 @@ namespace quick_lint_js {
 Parser_Transaction::Parser_Transaction(Lexer* l)
     : lex_transaction(l->begin_transaction()) {}
 
-Parser::Parser(Padded_String_View input, Parser_Options options)
-    : lexer_(input, &this->diagnostic_memory_,
+Parser::Parser(Padded_String_View input, Monotonic_Allocator* diag_memory,
+               Parser_Options options)
+    : lexer_(input, diag_memory,
              Lexer_Options{
                  .typescript = options.typescript,
              }),
-      options_(options) {}
+      options_(options),
+      diagnostic_memory_(*diag_memory) {}
 
 Parser::Function_Guard Parser::enter_function(Function_Attributes attributes) {
   bool was_in_top_level = this->in_top_level_;

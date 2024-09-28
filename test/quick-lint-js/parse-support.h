@@ -93,7 +93,7 @@ class Test_Parser {
 
   explicit Test_Parser(String8_View input, const Parser_Options& options,
                        Capture_Diags_Tag)
-      : code_(input), parser_(&this->code_, options) {}
+      : code_(input), parser_(&this->code_, &this->diag_memory_, options) {}
 
   // Fails the test if there are any diagnostics during parsing.
   explicit Test_Parser(String8_View input)
@@ -102,7 +102,7 @@ class Test_Parser {
   // Fails the test if there are any diagnostics during parsing.
   explicit Test_Parser(String8_View input, const Parser_Options& options)
       : code_(input),
-        parser_(&this->code_, options),
+        parser_(&this->code_, &this->diag_memory_, options),
         fail_on_any_diagnostic_(true) {}
 
   Expression* parse_expression(
@@ -209,6 +209,9 @@ class Test_Parser {
       this->assert_diagnostics({}, caller);
     }
   }
+
+  Monotonic_Allocator diag_memory_ =
+      Monotonic_Allocator("Test_Parser::diag_memory_");
 
   Padded_String code_;
   Spy_Visitor errors_;

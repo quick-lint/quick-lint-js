@@ -34,10 +34,13 @@ void benchmark_lint(benchmark::State &state) {
   Padded_String source = quick_lint_js::read_file_or_exit(source_path);
 
   Configuration config;
-  Parser_Options p_options;
-  Parser p(&source, p_options);
   Buffering_Visitor visitor(new_delete_resource());
-  p.parse_and_visit_module(visitor);
+  {
+    Parser_Options p_options;
+    Monotonic_Allocator diag_memory("benchmark_lint diag_memory");
+    Parser p(&source, &diag_memory, p_options);
+    p.parse_and_visit_module(visitor);
+  }
 
   Variable_Analyzer_Options var_options;
 
@@ -68,7 +71,8 @@ void benchmark_parse_and_lint(benchmark::State &state) {
   Variable_Analyzer_Options var_options;
   Configuration config;
   for (auto _ : state) {
-    Parser p(&source, p_options);
+    Monotonic_Allocator diag_memory("benchmark_parse_and_lint diag_memory");
+    Parser p(&source, &diag_memory, p_options);
     Variable_Analyzer l(&p.diags(), &config.globals(), var_options);
     p.parse_and_visit_module(l);
   }

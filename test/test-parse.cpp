@@ -571,7 +571,7 @@ Padded_String unimplemented_token_code(u8"]"_sv);
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
 TEST_F(Test_Parse, unimplemented_token_crashes_SLOW) {
   auto check = [&] {
-    Parser p(&unimplemented_token_code, javascript_options);
+    Parser p(&unimplemented_token_code, &this->memory_, javascript_options);
     Spy_Visitor v;
     p.parse_and_visit_module(v);
   };
@@ -581,7 +581,7 @@ TEST_F(Test_Parse, unimplemented_token_crashes_SLOW) {
 
 TEST_F(Test_Parse, unimplemented_token_doesnt_crash_if_caught) {
   {
-    Parser p(&unimplemented_token_code, javascript_options);
+    Parser p(&unimplemented_token_code, &this->memory_, javascript_options);
     Spy_Visitor v;
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
@@ -597,7 +597,7 @@ TEST_F(Test_Parse, unimplemented_token_doesnt_crash_if_caught) {
 TEST_F(Test_Parse, unimplemented_token_returns_to_innermost_handler) {
   {
     Padded_String code(u8"hello world"_sv);
-    Parser p(&code, javascript_options);
+    Parser p(&code, &this->memory_, javascript_options);
     volatile bool inner_catch_returned = false;
     bool outer_ok = p.catch_fatal_parse_errors([&] {
       bool inner_ok = p.catch_fatal_parse_errors(
@@ -618,7 +618,7 @@ TEST_F(Test_Parse,
        unimplemented_token_after_handler_ends_returns_to_outer_handler) {
   {
     Padded_String code(u8"hello world"_sv);
-    Parser p(&code, javascript_options);
+    Parser p(&code, &this->memory_, javascript_options);
     volatile bool inner_catch_returned = false;
     bool outer_ok = p.catch_fatal_parse_errors([&] {
       bool inner_ok = p.catch_fatal_parse_errors([] {
@@ -640,7 +640,7 @@ TEST_F(Test_Parse,
 TEST_F(Test_Parse, unimplemented_token_rolls_back_parser_depth) {
   {
     Padded_String code(u8"hello world"_sv);
-    Parser p(&code, javascript_options);
+    Parser p(&code, &this->memory_, javascript_options);
     volatile bool inner_catch_returned = false;
     bool outer_ok = p.catch_fatal_parse_errors([&] {
       Parser::Depth_Guard outer_g(&p);
@@ -662,7 +662,7 @@ TEST_F(Test_Parse, unimplemented_token_rolls_back_parser_depth) {
 TEST_F(Test_Parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
   {
     Padded_String code(u8"hello world"_sv);
-    Parser p(&code, javascript_options);
+    Parser p(&code, &this->memory_, javascript_options);
 
     Parser_Transaction transaction = p.begin_transaction();
     bool ok = p.catch_fatal_parse_errors(
@@ -771,7 +771,7 @@ TEST_F(Test_No_Overflow, parser_depth_limit_not_exceeded) {
        }) {
     Padded_String code(u8"return " + jsx);
     SCOPED_TRACE(code);
-    Parser p(&code, jsx_options);
+    Parser p(&code, &this->memory_, jsx_options);
     Spy_Visitor v;
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_TRUE(ok);
@@ -783,7 +783,7 @@ TEST_F(Test_No_Overflow, parser_depth_limit_not_exceeded) {
        }) {
     Padded_String code(concat(u8"let x: "_sv, type, u8";"_sv));
     SCOPED_TRACE(code);
-    Parser p(&code, typescript_options);
+    Parser p(&code, &this->memory_, typescript_options);
     Spy_Visitor v;
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_TRUE(ok);
@@ -838,7 +838,7 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
        }) {
     Padded_String code(exps);
     SCOPED_TRACE(code);
-    Parser p(&code, javascript_options);
+    Parser p(&code, &this->memory_, javascript_options);
     Spy_Visitor v;
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
@@ -885,7 +885,7 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
        }) {
     Padded_String code(concat(u8"return "_sv, jsx));
     SCOPED_TRACE(code);
-    Parser p(&code, jsx_options);
+    Parser p(&code, &this->memory_, jsx_options);
     Spy_Visitor v;
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
@@ -900,7 +900,7 @@ TEST_F(Test_Overflow, parser_depth_limit_exceeded) {
        }) {
     Padded_String code(concat(u8"let x: "_sv, type, u8";"_sv));
     SCOPED_TRACE(code);
-    Parser p(&code, typescript_options);
+    Parser p(&code, &this->memory_, typescript_options);
     Spy_Visitor v;
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);

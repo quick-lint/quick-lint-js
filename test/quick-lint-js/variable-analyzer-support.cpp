@@ -60,7 +60,8 @@ void test_parse_and_analyze(String8_View input,
   Monotonic_Allocator memory("test");
   Padded_String code(input);
 
-  Parser p(&code, options.parse_options);
+  Monotonic_Allocator diag_memory("test_parse_and_analyze diag_memory");
+  Parser p(&code, &diag_memory, options.parse_options);
   Variable_Analyzer var_analyzer(&p.diags(), &globals, options.analyze_options);
   p.parse_and_visit_module(var_analyzer);
 

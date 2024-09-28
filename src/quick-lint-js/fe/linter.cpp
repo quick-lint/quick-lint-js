@@ -43,7 +43,8 @@ void parse_and_lint(Padded_String_View code, Diag_Reporter& reporter,
     break;
   }
 
-  Parser p(code, parser_options);
+  Monotonic_Allocator diag_memory("parse_and_lint diag_memory");
+  Parser p(code, &diag_memory, parser_options);
   Variable_Analyzer var_analyzer(
       &p.diags(), &options.configuration->globals(),
       Variable_Analyzer_Options{

@@ -31,7 +31,8 @@ void benchmark_parse_file(benchmark::State &state) {
 
   Parser_Options p_options;
   for (auto _ : state) {
-    Parser p(&source, p_options);
+    Monotonic_Allocator diag_memory("benchmark_parse_file diag_memory");
+    Parser p(&source, &diag_memory, p_options);
     Null_Visitor visitor;
     p.parse_and_visit_module(visitor);
   }
@@ -43,7 +44,8 @@ void benchmark_parse(benchmark::State &state, String8_View raw_source) {
   Padded_String source(raw_source);
   Parser_Options p_options;
   for (auto _ : state) {
-    Parser p(&source, p_options);
+    Monotonic_Allocator diag_memory("benchmark_parse diag_memory");
+    Parser p(&source, &diag_memory, p_options);
     Null_Visitor visitor;
     p.parse_and_visit_module(visitor);
   }
