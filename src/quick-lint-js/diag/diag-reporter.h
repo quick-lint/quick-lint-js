@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <quick-lint-js/diag/diagnostic-types.h>
-
 namespace quick_lint_js {
 class Diag_List;
 
