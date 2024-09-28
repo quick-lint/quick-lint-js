@@ -18,7 +18,6 @@ std::ostream& operator<<(std::ostream& out, const Diag_List& diags) {
   }
   return out;
 }
-
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
