@@ -36,8 +36,11 @@ class Diag_List {
 
   explicit Diag_List(Memory_Resource *);
 
-  Diag_List(Diag_List &&) = delete;
-  Diag_List &operator=(Diag_List &&) = delete;
+  Diag_List(const Diag_List &) = delete;
+  Diag_List &operator=(const Diag_List &) = delete;
+
+  Diag_List(Diag_List &&);
+  Diag_List &operator=(Diag_List &&) = delete;  // TODO(strager)
 
   ~Diag_List();
 

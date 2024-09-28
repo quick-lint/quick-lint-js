@@ -23,6 +23,11 @@ static_assert(alignof(Diag_List::Node) == alignof(Diag_List::Node_Base),
 
 Diag_List::Diag_List(Memory_Resource *memory) : memory_(memory) {}
 
+Diag_List::Diag_List(Diag_List &&other)
+    : memory_(other.memory_), first_(other.first_), last_(other.last_) {
+  other.clear();
+}
+
 Diag_List::~Diag_List() { this->clear(); }
 
 void Diag_List::add_many(const Diag_List &other) {

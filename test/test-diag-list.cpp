@@ -7,6 +7,7 @@
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diag/diag-list.h>
 #include <quick-lint-js/diag/diagnostic-types.h>
+#include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/identifier-support.h>
 #include <type_traits>
@@ -188,6 +189,41 @@ TEST(Test_Diag_List, pretty_print_one_diag) {
     ss << diags;
     EXPECT_EQ(ss.str(), "1 diagnostic: {\n  Diag_Let_With_No_Bindings,\n}");
   }
+}
+
+TEST(Test_Diag_List, moving_diag_list_clears_original) {
+  Linked_Bump_Allocator memory("test");
+  Diag_List diags_1(&memory);
+  Padded_String code(u8"hello"_sv);
+  diags_1.add(Diag_Let_With_No_Bindings{.where = span_of(code)});
+  Diag_List diags_2 = std::move(diags_1);
+  EXPECT_EQ(diags_1.size(), 0);
+}
+
+TEST(Test_Diag_List, moving_diag_list_keeps_single_diag) {
+  Linked_Bump_Allocator memory("test");
+  Diag_List diags_1(&memory);
+  Padded_String code(u8"hello"_sv);
+  diags_1.add(Diag_Let_With_No_Bindings{.where = span_of(code)});
+
+  Diag_List diags_2 = std::move(diags_1);
+  EXPECT_EQ(diags_2.size(), 1);
+}
+
+TEST(Test_Diag_List, moving_diag_list_keeps_multiple_diags) {
+  Linked_Bump_Allocator memory("test");
+  Diag_List diags_1(&memory);
+  Padded_String code(u8"hello"_sv);
+  diags_1.add(Diag_Let_With_No_Bindings{.where = span_of(code)});
+  diags_1.add(Diag_Expected_Parenthesis_Around_If_Condition{
+      .where = span_of(code),
+      .token = u8')',
+  });
+
+  Diag_List diags_2 = std::move(diags_1);
+  assert_diagnostics(&code, diags_2,
+                     {u8"Diag_Let_With_No_Bindings"_diag,
+                      u8"Diag_Expected_Parenthesis_Around_If_Condition"_diag});
 }
 }
 }
