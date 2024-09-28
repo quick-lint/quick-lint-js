@@ -86,6 +86,7 @@ authored portions of quick-lint-js:
 * Youness Asserare; signed CLA-v1.md
 * Yunus; ynsmrycl2007@gmail.com; signed CLA-v1.md
 * alex-huff; alexanderhuff53@gmail.com; signed CLA-v1.md
+* andjimenezuf; signed CLA-v1.md
 * catac; https://github.com/catac1; signed CLA-v1.md
 * clegoz; signed CLA-v1.md
 * daethtech; https://github.com/daethtech; signed CLA-v1.md
