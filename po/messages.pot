@@ -2429,6 +2429,10 @@ msgstr ""
 msgid "function 'let' call may be confused for destructuring; remove parentheses to declare a variable"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "typeof comparison with invalid string literal: {0}"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

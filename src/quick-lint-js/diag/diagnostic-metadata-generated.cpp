@@ -6975,6 +6975,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+
+    // Diag_Typeof_Invalid_String_Comparison
+    {
+      .code = 721,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("typeof comparison with invalid string literal: {0}"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Typeof_Invalid_String_Comparison, literal), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 

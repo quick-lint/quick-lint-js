@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[608] = {
+inline const Translated_String test_translation_table[609] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -5878,6 +5878,17 @@ inline const Translated_String test_translation_table[608] = {
             u8"type {0} is being defined here",
             u8"type {0} is being defined here",
             u8"type {0} is being defined here",
+        },
+    },
+    {
+        "typeof comparison with invalid string literal: {0}"_translatable,
+        u8"typeof comparison with invalid string literal: {0}",
+        {
+            u8"typeof comparison with invalid string literal: {0}",
+            u8"typeof comparison with invalid string literal: {0}",
+            u8"typeof comparison with invalid string literal: {0}",
+            u8"typeof comparison with invalid string literal: {0}",
+            u8"typeof comparison with invalid string literal: {0}",
         },
     },
     {
