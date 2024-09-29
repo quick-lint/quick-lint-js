@@ -8,6 +8,12 @@
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
 
 namespace quick_lint_js {
+
+// source: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Build_a_cross_browser_extension#api_namespace
+constexpr const Char8 global_variables_browser_extensions[] =
+  u8"browser\0"
+  u8"chrome\0";
+
 // Last updated: Bun v0.1.4
 // Excludes ECMAScript globals.
 constexpr const Char8 global_variables_bun[] =
@@ -464,6 +470,11 @@ const Global_Group global_groups[] = {
         .type_only_globals = global_variables_web_types,
         .globals_count = 990,
         .type_only_globals_count = 515,
+    },    
+    {
+        .name = u8"browser_extensions",
+        .globals = global_variables_browser_extensions,
+        .globals_count = 2,
     },
     {
         .name = u8"bun",
