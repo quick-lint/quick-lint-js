@@ -1883,6 +1883,14 @@ next:
       binary_builder.replace_last(
           this->make_expression<Expression::RW_Unary_Suffix>(
               binary_builder.last_expression(), operator_span));
+      Token_Type next_type = this->peek().type;
+      if (next_type == Token_Type::dot ||
+          next_type == Token_Type::question_dot) {
+        this->diag_reporter_->report(
+            Diag_Invalid_Operator_Directly_After_Postfix{
+                .postfix_expression =
+                    binary_builder.last_expression()->span()});
+      }
     }
     goto next;
 
