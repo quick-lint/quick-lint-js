@@ -2390,6 +2390,10 @@ msgid "typeof result is of type string and so will never equal undefined; use 'u
 msgstr ""
 
 #: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "equality check result is unused; did you mean to use assignment (=) instead?"
+msgstr ""
+
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
 msgid "missing expression in placeholder within template literal"
 msgstr ""
 

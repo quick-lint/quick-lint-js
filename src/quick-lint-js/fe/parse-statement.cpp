@@ -507,6 +507,9 @@ parse_statement:
       Expression *ast =
           this->make_expression<Expression::Variable>(ident, ident_token_type);
       ast = this->parse_expression_remainder(v, ast, Precedence{});
+
+      this->warn_on_equality_check_used_as_statement(ast);
+
       this->visit_expression(ast, v, Variable_Context::rhs);
       this->parse_end_of_expression_statement();
       break;

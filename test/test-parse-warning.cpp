@@ -153,15 +153,15 @@ TEST_F(Test_Error_Equals_Does_Not_Distribute_Over_Or, non_constant) {
 }
 
 TEST_F(Test_Parse_Warning, warn_on_pointless_string_compare) {
-  test_parse_and_visit_statement(u8"s.toLowerCase() == 'banana'"_sv, no_diags);
-  test_parse_and_visit_statement(
+  test_parse_and_visit_expression(u8"s.toLowerCase() == 'banana'"_sv, no_diags);
+  test_parse_and_visit_expression(
       u8"s.toLowerCase() == 'BANANA'"_sv,  //
       u8"                ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  test_parse_and_visit_statement(u8"s.toUpperCase() == 'BANANA'"_sv, no_diags);
-  test_parse_and_visit_statement(
+  test_parse_and_visit_expression(u8"s.toUpperCase() == 'BANANA'"_sv, no_diags);
+  test_parse_and_visit_expression(
       u8"s.toUpperCase() == 'banana'"_sv,  //
       u8"                ^^ Diag_Pointless_String_Comp_Contains_Lower"_diag);
-  test_parse_and_visit_statement(
+  test_parse_and_visit_expression(
       u8"s.toLowerCase() == \"BANANA\""_sv,  //
       u8"                ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
 }
@@ -171,7 +171,7 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_string_compare_all_operators) {
     for (String8_View op : {u8"=="_sv, u8"==="_sv, u8"!="_sv, u8"!=="_sv}) {
       Test_Parser p(concat(u8"s.toLowerCase() "_sv, op, u8" 'Banana'"_sv),
                     capture_diags);
-      p.parse_and_visit_statement();
+      p.parse_and_visit_expression();
       assert_diagnostics(
           p.code, p.errors,
           {
@@ -186,14 +186,14 @@ TEST_F(Test_Parse_Warning, warn_on_pointless_string_compare_all_operators) {
 
 TEST_F(Test_Parse_Warning,
        warn_on_pointless_string_compare_function_signatures) {
-  test_parse_and_visit_statement(u8"s.tolowercase() == 'BANANA'"_sv, no_diags);
-  test_parse_and_visit_statement(u8"s.myToLowerCase() == 'BANANA'"_sv,
-                                 no_diags);
-  test_parse_and_visit_statement(
+  test_parse_and_visit_expression(u8"s.tolowercase() == 'BANANA'"_sv, no_diags);
+  test_parse_and_visit_expression(u8"s.myToLowerCase() == 'BANANA'"_sv,
+                                  no_diags);
+  test_parse_and_visit_expression(
       u8"stringBuilder.build().toLowerCase() == 'BANANA'"_sv,  //
       u8"                                    ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  test_parse_and_visit_statement(u8"o.arr[0]() == 'BANANA'"_sv, no_diags);
-  test_parse_and_visit_statement(
+  test_parse_and_visit_expression(u8"o.arr[0]() == 'BANANA'"_sv, no_diags);
+  test_parse_and_visit_expression(
       u8"'BANANA' == s.toLowerCase()"_sv,  //
       u8"         ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
 }
@@ -255,23 +255,23 @@ TEST_F(Test_Parse_Warning,
   test_parse_and_visit_expression(
       u8"(((s.toLowerCase())) === ((('BANANA'))))"_sv,  //
       u8"                     ^^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  test_parse_and_visit_statement(
+  test_parse_and_visit_expression(
       u8"s.toLowerCase() == 'BANANA' && s.toUpperCase() !== 'orange'"_sv,  //
       u8"                                               ^^^ Diag_Pointless_String_Comp_Contains_Lower"_diag,  //
       u8"                ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
-  test_parse_and_visit_statement(
+  test_parse_and_visit_expression(
       u8"((s.toLowerCase() == 'BANANA') && s.toUpperCase() !== 'orange')"_sv,  //
       u8"                                                  ^^^ Diag_Pointless_String_Comp_Contains_Lower"_diag,  //
       u8"                  ^^ Diag_Pointless_String_Comp_Contains_Upper"_diag);
 }
 
 TEST_F(Test_Parse_Warning, warn_on_pointless_string_compare_literals) {
-  test_parse_and_visit_statement(u8"s.toLowerCase() == 'Ba\\u006Eana'"_sv,
-                                 no_diags);
-  test_parse_and_visit_statement(
+  test_parse_and_visit_expression(u8"s.toLowerCase() == 'Ba\\u006Eana'"_sv,
+                                  no_diags);
+  test_parse_and_visit_expression(
       u8"s.toLowerCase() == 0xeF || s.toUpperCase() == 0xeF"_sv, no_diags);
-  test_parse_and_visit_statement(u8"s.toUpperCase() == 'C:\\User\\tom'"_sv,
-                                 no_diags);
+  test_parse_and_visit_expression(u8"s.toUpperCase() == 'C:\\User\\tom'"_sv,
+                                  no_diags);
 }
 
 TEST_F(Test_Parse_Warning,
@@ -440,6 +440,35 @@ TEST_F(Test_Parse_Warning, warn_on_typeof_variable_equals_undefined) {
                                  no_diags);
   test_parse_and_visit_statement(u8"if (typeof x === 'undefined') {}"_sv,
                                  no_diags);
+}
+
+TEST_F(Test_Parse_Warning, warn_on_equality_check_used_as_statement) {
+  test_parse_and_visit_statement(
+      u8"x == y;"_sv,  //
+      u8"  ^^ Diag_Equality_Check_Used_As_Statement"_diag);
+  test_parse_and_visit_statement(
+      u8"x != y;"_sv,  //
+      u8"  ^^ Diag_Equality_Check_Used_As_Statement"_diag);
+  test_parse_and_visit_statement(
+      u8"x === y;"_sv,  //
+      u8"  ^^^ Diag_Equality_Check_Used_As_Statement"_diag);
+  test_parse_and_visit_statement(
+      u8"x !== y;"_sv,  //
+      u8"  ^^^ Diag_Equality_Check_Used_As_Statement"_diag);
+  test_parse_and_visit_statement(
+      u8"x == y(42);"_sv,  //
+      u8"  ^^ Diag_Equality_Check_Used_As_Statement"_diag);
+  test_parse_and_visit_statement(
+      u8"x == y == z;"_sv,  //
+      u8"  ^^ Diag_Equality_Check_Used_As_Statement"_diag);
+
+  test_parse_and_visit_statement(u8"let _ = x == y;"_sv, no_diags);
+  test_parse_and_visit_statement(u8"void (x == y);"_sv, no_diags);
+  test_parse_and_visit_statement(u8"f(x == y);"_sv, no_diags);
+
+  test_parse_and_visit_statement(u8"x + y == z;"_sv, no_diags);
+  test_parse_and_visit_statement(u8"x = y;"_sv, no_diags);
+  test_parse_and_visit_statement(u8"x + y;"_sv, no_diags);
 }
 
 TEST_F(Test_Parse_Warning, warn_on_xor_operation_used_as_exponentiation) {
