@@ -52,6 +52,41 @@ TEST_F(Test_Parse_Warning, condition_with_assignment_from_literal) {
   }
 }
 
+TEST_F(Test_Parse_Warning, warn_on_pointless_nullish_coalescing_operator) {
+  test_parse_and_visit_expression(
+      u8"true ?? false"_sv,  //
+      u8"     ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
+  test_parse_and_visit_expression(
+      u8"(a < b) ?? false"_sv,  //
+      u8"        ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
+  test_parse_and_visit_expression(
+      u8"!b ?? false"_sv,  //
+      u8"   ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
+  test_parse_and_visit_expression(
+      u8"'hi' ?? true"_sv,  //
+      u8"     ^^ Diag_Pointless_Nullish_Coalescing_Operator"_diag);
+  for (String8_View code : {
+           u8"s.toLowerCase() ?? false"_sv,
+           u8"s ?? false"_sv,
+           u8"null ?? false"_sv,
+           u8"(foo) ?? false"_sv,
+           u8"{}.missingProp ?? false"_sv,
+           u8"{}['missingProp'] ?? false"_sv,
+           u8"await foo ?? false"_sv,
+           u8"void 42 ?? false"_sv,
+           u8"bar`hello` ?? false"_sv,
+           u8"this ?? false"_sv,
+           u8"(2+2 && null) ?? false"_sv,
+           u8"(2+2 || null) ?? false"_sv,
+           u8"(2+2 , null) ?? false"_sv,
+           u8"(2+2 ?? null) ?? false"_sv,
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    Test_Parser p(code);
+    p.parse_and_visit_expression();
+  }
+}
+
 TEST_F(Test_Parse_Warning, non_condition_with_assignment_from_literal) {
   for (String8_View code : {
            u8"with (x = 'hello') {}"_sv,

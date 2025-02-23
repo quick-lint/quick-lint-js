@@ -2429,6 +2429,10 @@ msgstr ""
 msgid "function 'let' call may be confused for destructuring; remove parentheses to declare a variable"
 msgstr ""
 
+#: src/quick-lint-js/diag/diagnostic-metadata-generated.cpp
+msgid "mixing `??` with `>` or `==` may lead to unexpected behavior; use parentheses to clarify the intended precedence"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

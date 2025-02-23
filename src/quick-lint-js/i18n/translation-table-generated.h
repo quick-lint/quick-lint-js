@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 609;
-constexpr std::size_t translation_table_string_table_size = 82687;
+constexpr std::uint16_t translation_table_mapping_table_size = 610;
+constexpr std::size_t translation_table_string_table_size = 82744;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -42,6 +42,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'.' is not allowed after generic arguments; write [\"{1}\"] instead"sv,
           "'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key"sv,
           "'...' belongs before the tuple element name, not before the type"sv,
+          "Nullish coalescing operator '??' cannot be used with comparison operators"sv,
           "'...' belongs only before the tuple element name, not also before the type"sv,
           "'...' goes here"sv,
           "':' should be 'extends' instead"sv,

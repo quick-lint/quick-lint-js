@@ -3628,6 +3628,13 @@ struct Diag_Confusing_Let_Call {
   Source_Code_Span let_function_call;
 };
 
+struct Diag_Mixing_Nullish_Coalescing_With_Comparison {
+  [[qljs::diag("E0721", Diagnostic_Severity::warning)]]  //
+  [[qljs::message("mixing `??` with `>` or `==` may lead to unexpected behavior; use parentheses to clarify the intended precedence",
+                  ARG(nullish_coalescing_expression))]]  //
+  Source_Code_Span nullish_coalescing_expression;
+};
+
 }
 QLJS_WARNING_POP
 
