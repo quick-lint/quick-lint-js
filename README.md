@@ -69,11 +69,6 @@ details.
 
 Check out the [contributing guide here](https://quick-lint-js.com/contribute/).
 
-
-## License
-
-quick-lint-js is licensed under the [MIT License](LICENSE).
-
 ## Contact
 
 If you have any questions or feedback, feel free to reach out:
