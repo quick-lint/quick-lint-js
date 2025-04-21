@@ -80,3 +80,4 @@ If you have any questions or feedback, feel free to reach out:
   [strager.nds@gmail.com](mailto:strager.nds@gmail.com).
 
 [quick-lint-js-irc-web]: https://kiwiirc.com/nextclient/irc.libera.chat/#quick-lint-js
+I have read and hereby agree to quick-lint-js' Contributor License Agreement (CLA-v1.md).
