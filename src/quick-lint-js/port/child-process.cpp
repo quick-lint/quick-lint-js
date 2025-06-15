@@ -42,6 +42,10 @@
 
 using namespace std::literals::string_view_literals;
 
+#if QLJS_HAVE_UNISTD_H && !QLJS_HAVE_NS_GET_ENVIRON
+extern "C" char** environ;
+#endif
+
 namespace quick_lint_js {
 namespace {
 #if QLJS_HAVE_UNISTD_H
@@ -353,10 +357,6 @@ Run_Program_Result run_program(Span<const char* const> command,
 
 namespace {
 #if QLJS_HAVE_UNISTD_H
-#if !QLJS_HAVE_NS_GET_ENVIRON
-extern "C" char** environ;
-#endif
-
 char** get_posix_environment() {
 #if QLJS_HAVE_NS_GET_ENVIRON
   return *::_NSGetEnviron();
