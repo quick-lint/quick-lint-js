@@ -5,6 +5,7 @@
 // No event loops on the web.
 #else
 
+#include <chrono>
 #include <cstdint>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

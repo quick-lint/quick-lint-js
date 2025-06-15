@@ -6,6 +6,7 @@
 #else
 
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstring>
 #include <future>
