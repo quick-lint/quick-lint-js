@@ -16,7 +16,7 @@ jobs:
       matrix:
         os:
           - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-baseline-builder:v1", build_env: ""}
-          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v1", build_env: ""}
+          - {arch: arm64, runs_on: ubuntu-24.04-arm, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v1", build_env: ""}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
     steps:
@@ -71,10 +71,10 @@ jobs:
           #- {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial"}
           #- {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic"}
           - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
-          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "debian:bullseye", name: "Debian 11 Bullseye"}
-          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "debian:buster", name: "Debian 10 Buster"}
-          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
-          - {arch: arm64, runs_on: stracle-linux-aarch64, docker_container: "ubuntu:22.04", name: "Ubuntu 22.04 LTS Jammy"}
+          - {arch: arm64, runs_on: ubuntu-24.04-arm, docker_container: "debian:bullseye", name: "Debian 11 Bullseye"}
+          - {arch: arm64, runs_on: ubuntu-24.04-arm, docker_container: "debian:buster", name: "Debian 10 Buster"}
+          - {arch: arm64, runs_on: ubuntu-24.04-arm, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal"}
+          - {arch: arm64, runs_on: ubuntu-24.04-arm, docker_container: "ubuntu:22.04", name: "Ubuntu 22.04 LTS Jammy"}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
 
