@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <cerrno>
+#include <cstdint>
 #include <cstring>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/logging/log.h>
