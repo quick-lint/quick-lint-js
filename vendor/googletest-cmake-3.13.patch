@@ -1,0 +1,89 @@
+commit 4fed5f285030085b096c930ff03e42c7814739b2
+Author: Juan Ramos <juan@lunarg.com>
+Date:   Mon Jun 19 11:21:44 2023 -0600
+
+    cmake: Raise min to 3.6
+    
+    From the CMake 3.27 release notes:
+    Compatibility with versions of CMake older than 3.5 is now
+    deprecated and will be removed from a future version. Calls to
+    cmake_minimum_required() or cmake_policy() that set the policy
+    version to an older value now issue a deprecation diagnostic.
+    
+    This PR also removes manually setting policy CMP0048. This is
+    redundant since the CMake min is already 3.X
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6af41437..33a6c6ff 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,11 +1,7 @@
+ # Note: CMake support is community-based. The maintainers do not use CMake
+ # internally.
+ 
+-cmake_minimum_required(VERSION 3.5)
+-
+-if (POLICY CMP0048)
+-  cmake_policy(SET CMP0048 NEW)
+-endif (POLICY CMP0048)
++cmake_minimum_required(VERSION 3.6)
+ 
+ if (POLICY CMP0069)
+   cmake_policy(SET CMP0069 NEW)
+diff --git a/docs/pkgconfig.md b/docs/pkgconfig.md
+index 18a2546a..bf05d593 100644
+--- a/docs/pkgconfig.md
++++ b/docs/pkgconfig.md
+@@ -19,19 +19,15 @@ examples here we assume you want to compile the sample
+ Using `pkg-config` in CMake is fairly easy:
+ 
+ ```cmake
+-cmake_minimum_required(VERSION 3.0)
+-
+-cmake_policy(SET CMP0048 NEW)
+-project(my_gtest_pkgconfig VERSION 0.0.1 LANGUAGES CXX)
+-
+ find_package(PkgConfig)
+ pkg_search_module(GTEST REQUIRED gtest_main)
+ 
+-add_executable(testapp samples/sample3_unittest.cc)
+-target_link_libraries(testapp ${GTEST_LDFLAGS})
+-target_compile_options(testapp PUBLIC ${GTEST_CFLAGS})
++add_executable(testapp)
++target_sources(testapp PRIVATE samples/sample3_unittest.cc)
++target_link_libraries(testapp PRIVATE ${GTEST_LDFLAGS})
++target_compile_options(testapp PRIVATE ${GTEST_CFLAGS})
+ 
+-include(CTest)
++enable_testing()
+ add_test(first_and_only_test testapp)
+ ```
+ 
+diff --git a/googlemock/CMakeLists.txt b/googlemock/CMakeLists.txt
+index 5c1f0daf..444c5ae8 100644
+--- a/googlemock/CMakeLists.txt
++++ b/googlemock/CMakeLists.txt
+@@ -36,8 +36,7 @@ endif()
+ # as ${gmock_SOURCE_DIR} and to the root binary directory as
+ # ${gmock_BINARY_DIR}.
+ # Language "C" is required for find_package(Threads).
+-cmake_minimum_required(VERSION 3.5)
+-cmake_policy(SET CMP0048 NEW)
++cmake_minimum_required(VERSION 3.6)
+ project(gmock VERSION ${GOOGLETEST_VERSION} LANGUAGES CXX C)
+ 
+ if (COMMAND set_up_hermetic_build)
+diff --git a/googletest/CMakeLists.txt b/googletest/CMakeLists.txt
+index d06c1479..efc2c3cb 100644
+--- a/googletest/CMakeLists.txt
++++ b/googletest/CMakeLists.txt
+@@ -46,8 +46,7 @@ endif()
+ 
+ # Project version:
+ 
+-cmake_minimum_required(VERSION 3.5)
+-cmake_policy(SET CMP0048 NEW)
++cmake_minimum_required(VERSION 3.6)
+ project(gtest VERSION ${GOOGLETEST_VERSION} LANGUAGES CXX C)
+ 
+ if (POLICY CMP0063) # Visibility

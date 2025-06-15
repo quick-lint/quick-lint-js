@@ -28,6 +28,8 @@ applications, and Google Mock, its companion mocking framework.
 
 The following patches have been manually applied:
 
+* googletest-cmake-3.5.patch
+* googletest-cmake-3.13.patch
 * googletest-werror.patch
 
 Copyright: Copyright 2008, Google Inc.
