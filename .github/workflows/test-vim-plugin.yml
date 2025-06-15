@@ -14,8 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         vim:
-          - {name: "Neovim", version_command: "nvim --version", test_command: "./plugin/vim/test-nvim.sh"}
-          - {name: "Vim", version_command: "vim --version", test_command: "./plugin/vim/test-vim.sh"}
+          - {name: "Neovim", version_command: "nvim --version", test_command: "./plugin/vim/test-nvim.sh", artifact_suffix: "-vim"}
+          - {name: "Vim", version_command: "vim --version", test_command: "./plugin/vim/test-vim.sh", artifact_suffix: "-neovim"}
     runs-on: ubuntu-latest
     container: ghcr.io/quick-lint/quick-lint-js-github-vim:v1
     steps:
@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           if-no-files-found: error
-          name: web-demo-dist-${{ github.sha }}
+          name: plugin${{ matrix.vim.artifact_suffix }}-${{ github.sha }}
           path: plugin/vim/quick-lint-js-vim.zip
       - name: upload archive to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
