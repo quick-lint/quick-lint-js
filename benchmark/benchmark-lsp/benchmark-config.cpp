@@ -389,7 +389,8 @@ Benchmark_Config Benchmark_Config::load() {
                 if (parser
                         .parse(reinterpret_cast<const char*>(
                                    package_json_content->data()),
-                               package_json_content->size())
+                               narrow_cast<std::size_t>(
+                                   package_json_content->size()))
                         .get(root) != ::simdjson::SUCCESS) {
                   std::fprintf(stderr, "error: %s: parsing JSON failed\n",
                                package_json_path);
