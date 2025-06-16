@@ -66,33 +66,33 @@ jobs:
         run: ctest --build-config Debug --verbose
 
   ubuntu:
-    name: Ubuntu 20.04
-    runs-on: ubuntu-20.04
+    name: Ubuntu 24.04
+    runs-on: ubuntu-24.04
     steps:
       - name: install dependencies
         run: |
           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y \
+            libbenchmark-dev \
             libgmock-dev \
-            libgtest-dev
+            libgtest-dev \
+            libsimdjson-dev
 
       - name: checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
 
       - name: configure
         run: |
-          # TODO(strager): Use host Google Benchmark after this bug is fixed:
-          # https://bugs.launchpad.net/ubuntu/+source/benchmark/+bug/1887872
-          # TODO(strager): Use host Boost after Ubuntu upgrades to version 1.75
-          # or newer:
-          # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=978748#15
-          # TODO(strager): Use host simdjson after Ubuntu imports a stable
-          # version from Debian.
+          # HACK(strager): QUICK_LINT_JS_HAVE_WORKING_CHAR8_T is needed because
+          # Arch's gmock doesn't link with -fchar8_t.
           cmake \
             -DCMAKE_EXE_LINKER_FLAGS=-ffat-lto-objects \
             -DCMAKE_BUILD_TYPE=Debug \
             -DBUILD_TESTING=YES \
             -DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES \
+            -DQUICK_LINT_JS_HAVE_WORKING_FCHAR8_T=NO \
+            -DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=NO \
             -DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=NO \
+            -DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=NO \
             -S . -B .
         shell: bash
       - name: build
