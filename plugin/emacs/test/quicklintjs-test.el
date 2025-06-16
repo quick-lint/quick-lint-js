@@ -41,6 +41,13 @@
   (quicklintjs-install-deps (if (>= emacs-major-version 26)
                                 '(flycheck eglot lsp-mode)
                               '(flycheck)))
+
+  ; HACK(strager): Work around error:
+  ; Feature `project' is now provided by a different file
+  ; /__w/quick-lint-js/quick-lint-js/plugin/emacs/.melpa-cache/project-0.11.1/project.elc"
+  ; https://github.com/joaotavora/eglot/discussions/1436
+  (delete 'project features)
+
   (def-flycheck-tests)
   (def-eglot-tests)
   (def-lsp-tests)
