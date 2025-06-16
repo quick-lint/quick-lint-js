@@ -9,6 +9,8 @@
 #include <quick-lint-js/diagnostic-assertion.h>
 #include <quick-lint-js/gtest.h>
 
+using ::testing::AnyOf;
+
 namespace quick_lint_js {
 namespace {
 Diagnostic_Assertion parse_or_fail(
@@ -613,9 +615,14 @@ TEST_F(Test_Diagnostic_Assertion_2, match_error_type_with_1_field_message) {
   diags.add(Diag_Invalid_Break{
       .break_statement = Source_Code_Span(&code[0], &code[5]),
   });
-  EXPECT_EQ(get_matcher_message(matcher, diags),
-            "whose element #0 doesn't match, whose type (Diag_Invalid_Break) "
-            "isn't Diag_Invalid_Continue");
+  EXPECT_THAT(
+      get_matcher_message(matcher, diags),
+      AnyOf("whose element #0 (Diag_Invalid_Break) not "
+            "Diag_Invalid_Continue{.continue_statement = 0..5}, "
+            "whose type (Diag_Invalid_Break) isn't Diag_Invalid_Continue",
+            // Old googletest:
+            "whose element #0 doesn't match, "
+            "whose type (Diag_Invalid_Break) isn't Diag_Invalid_Continue"));
 }
 
 TEST_F(Test_Diagnostic_Assertion_2, match_offsets_of_1_field_span) {
@@ -656,9 +663,13 @@ TEST_F(Test_Diagnostic_Assertion_2, match_offsets_of_1_field_message) {
     diags.add(Diag_Invalid_Continue{
         .continue_statement = Source_Code_Span(&code[1], &code[4]),
     });
-    EXPECT_EQ(get_matcher_message(matcher, diags),
-              "whose element #0 doesn't match, whose .continue_statement (1-4) "
-              "doesn't equal 0-5");
+    EXPECT_THAT(get_matcher_message(matcher, diags),
+                AnyOf("whose element #0 (Diag_Invalid_Continue) not "
+                      "Diag_Invalid_Continue{.continue_statement = 0..5}, "
+                      "whose .continue_statement (1-4) doesn't equal 0-5",
+                      // Old googletest:
+                      "whose element #0 doesn't match, "
+                      "whose .continue_statement (1-4) doesn't equal 0-5"));
     EXPECT_EQ(get_matcher_description(matcher),
               "1 diagnostic: {\n  "
               "Diag_Invalid_Continue{.continue_statement = 0..5},\n"
@@ -672,9 +683,13 @@ TEST_F(Test_Diagnostic_Assertion_2, match_offsets_of_1_field_message) {
     diags.add(Diag_Invalid_Break{
         .break_statement = Source_Code_Span(&code[1], &code[4]),
     });
-    EXPECT_EQ(get_matcher_message(matcher, diags),
-              "whose element #0 doesn't match, whose .break_statement (1-4) "
-              "doesn't equal 0-5");
+    EXPECT_THAT(get_matcher_message(matcher, diags),
+                AnyOf("whose element #0 (Diag_Invalid_Break) not "
+                      "Diag_Invalid_Break{.break_statement = 0..5}, "
+                      "whose .break_statement (1-4) doesn't equal 0-5",
+                      // Old googletest:
+                      "whose element #0 doesn't match, "
+                      "whose .break_statement (1-4) doesn't equal 0-5"));
     EXPECT_EQ(get_matcher_description(matcher),
               "1 diagnostic: {\n  "
               "Diag_Invalid_Break{.break_statement = 0..5},\n"
@@ -718,9 +733,17 @@ TEST_F(Test_Diagnostic_Assertion_2, char8_message) {
       .where = Source_Code_Span(&code[0], &code[1]),
       .token = u8'(',
   });
-  EXPECT_EQ(get_matcher_message(matcher, diags),
-            "whose element #0 doesn't match, whose .where (0-1) equals 0-1 and "
-            "whose .token ('(') doesn't equal ')'");
+  EXPECT_THAT(get_matcher_message(matcher, diags),
+              AnyOf("whose element #0 "
+                    "(Diag_Expected_Parenthesis_Around_Do_While_Condition) not "
+                    "Diag_Expected_Parenthesis_Around_Do_While_Condition"
+                    "{.where = 0..1, .token = ')'}, "
+                    "whose .where (0-1) equals 0-1 and "
+                    "whose .token ('(') doesn't equal ')'",
+                    // Old googletest:
+                    "whose element #0 doesn't match, "
+                    "whose .where (0-1) equals 0-1 and "
+                    "whose .token ('(') doesn't equal ')'"));
   EXPECT_EQ(get_matcher_description(matcher),
             "1 diagnostic: {\n"
             "  Diag_Expected_Parenthesis_Around_Do_While_Condition"
@@ -764,10 +787,17 @@ TEST_F(Test_Diagnostic_Assertion_2, string8_view_message) {
       .characters = Source_Code_Span(&code[0], &code[1]),
       .rounded_val = u8"HELLO"_sv,
   });
-  EXPECT_EQ(
+  EXPECT_THAT(
       get_matcher_message(matcher, diags),
-      "whose element #0 doesn't match, whose .characters (0-1) equals 0-1 and "
-      "whose .rounded_val (\"HELLO\") doesn't equal \"hello\"");
+      AnyOf("whose element #0 (Diag_Integer_Literal_Will_Lose_Precision) not "
+            "Diag_Integer_Literal_Will_Lose_Precision"
+            "{.characters = 0..1, .rounded_val = \"hello\"}, "
+            "whose .characters (0-1) equals 0-1 and "
+            "whose .rounded_val (\"HELLO\") doesn't equal \"hello\"",
+            // Old googletest:
+            "whose element #0 doesn't match, "
+            "whose .characters (0-1) equals 0-1 and "
+            "whose .rounded_val (\"HELLO\") doesn't equal \"hello\""));
   EXPECT_EQ(get_matcher_description(matcher),
             "1 diagnostic: {\n"
             "  Diag_Integer_Literal_Will_Lose_Precision"

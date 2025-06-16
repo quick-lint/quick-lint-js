@@ -55,6 +55,8 @@ struct Any_Diag_Pointer {
   const void *data;
 };
 
+void PrintTo(const Any_Diag_Pointer &diag, std::ostream *out);
+
 // A mix of ::testing::VariantWith, ::testing::Field, and Offsets_Matcher. These
 // are combined into one matcher to significantly reduce compile times.
 class Diag_Matcher_2 {

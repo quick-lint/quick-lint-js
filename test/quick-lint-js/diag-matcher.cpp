@@ -72,6 +72,10 @@ Variable_Kind Diag_Matcher_Arg::get_variable_kind(
   return *static_cast<const Variable_Kind *>(member_data);
 }
 
+void PrintTo(const Any_Diag_Pointer &diag, std::ostream *out) {
+  *out << diag.type;
+}
+
 template <class State, class Field>
 class Diag_Fields_Matcher_Impl_Base
     : public testing::MatcherInterface<const Any_Diag_Pointer &> {
