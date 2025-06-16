@@ -16,6 +16,7 @@ Semantic Versioning.
 * `typeof myVar === undefined` now reports [E0458][] ("typeof result is of type
   string and so will never equal undefined; use 'undefined' instead").
   (Implemented by [CoderMuffin][].) ([#1207][])
+* Emacs: The Eglot plugin now supports `typescript-mode`.
 
 ### Fixed
 

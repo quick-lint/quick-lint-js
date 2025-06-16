@@ -18,6 +18,7 @@
 ;;   ;; Optional: Make Eglot run automatically when `js-mode' is loaded
 ;;   (eglot-ensure))
 ;; (add-hook 'js-mode-hook #'my-eglot-quicklintjs-setup)
+;; (add-hook 'typescript-mode-hook #'my-eglot-quicklintjs-setup)
 
 ;;; Code:
 
@@ -38,9 +39,10 @@
   :group 'eglot-quicklintjs
   :type '(repeat string))
 
-(add-to-list 'eglot-server-programs `(js-mode . (,eglot-quicklintjs-program
-                                                  "--lsp-server"
-                                                  ,@eglot-quicklintjs-args)))
+(add-to-list 'eglot-server-programs
+             `((js-mode typescript-mode) . (,eglot-quicklintjs-program
+                                            "--lsp-server"
+                                            ,@eglot-quicklintjs-args)))
 
 (provide 'eglot-quicklintjs)
 

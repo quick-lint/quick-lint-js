@@ -148,7 +148,7 @@ foobar\")((16 . 22) 2 \"E0057\" \"use of undeclared variable: foobar\")(\
   (ert-deftest quicklintjs-is-in-eglot-servers ()
     (skip-unless (>= emacs-major-version 26))
     (require 'eglot-quicklintjs)
-    (should (member '(js-mode "quick-lint-js" "--lsp-server")
+    (should (member '((js-mode typescript-mode) "quick-lint-js" "--lsp-server")
                     eglot-server-programs))))
 
 (defun def-lsp-tests ()
