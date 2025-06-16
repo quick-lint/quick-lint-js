@@ -1473,6 +1473,9 @@ TEST_F(Test_Lex, non_ascii_identifier) {
 
   // KHOJKI LETTER QA, introduced in Unicode 15.
   this->check_single_token(u8"\U0001123f"_sv, u8"\U0001123f"_sv);
+
+  // CYRILLIC CAPITAL LETTER TJE, introduced in Unicode 16.
+  this->check_single_token(u8"\u1c89"_sv, u8"\u1c89"_sv);
 }
 
 TEST_F(Test_Lex, non_ascii_identifier_with_escape_sequence) {
