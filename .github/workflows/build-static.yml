@@ -14,7 +14,9 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-12, name: "macOS x86_64", archive_name: "macos", archive_extension: ".tar.gz", test: true, CC: /usr/local/opt/llvm@15/bin/clang, CXX: /usr/local/opt/llvm@15/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm@15/include -isystem /usr/local/opt/llvm@15/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm@15/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm@15/lib/c++/libc++.a /usr/local/opt/llvm@15/lib/c++/libc++abi.a", CMAKE_FLAGS: "-G Ninja", homebrew_packages: "ninja"}
+          # HACK(strager): -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES omits
+          # references to .a files in the linkmap, breaking collect-copyright.
+          - {runs_on: macos-13, name: "macOS x86_64", archive_name: "macos", archive_extension: ".tar.gz", test: true, CFLAGS: "-mmacosx-version-min=10.9", CMAKE_FLAGS: "-G Ninja -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=NO", homebrew_packages: "ninja"}
           - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", archive_name: "macos-aarch64", archive_extension: ".tar.gz", test: true, CFLAGS: "-mmacosx-version-min=11.0", CMAKE_FLAGS: "-G Ninja"}
           - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-baseline-builder:v1", test: true, LDFLAGS: "-static-libgcc -static-libstdc++", CMAKE_FLAGS: "-G Ninja"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", archive_name: "linux-armhf", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", test: false, cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
@@ -145,7 +147,8 @@ jobs:
       matrix:
         os:
           - {runs_on: windows-latest, name: "Windows", archive_name: "windows", exe_file: "bin/quick-lint-js.exe"}
-          - {runs_on: macos-12, name: "macOS 12", archive_name: "macos", exe_file: "bin/quick-lint-js"}
+          - {runs_on: macos-13, name: "macOS 13 (x86_64)", archive_name: "macos", exe_file: "bin/quick-lint-js"}
+          # TODO(strager): Test ARM64 macOS.
           - {runs_on: ubuntu-latest, docker_container: "archlinux:base", name: "Arch Linux", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:bullseye", name: "Debian 11 Bullseye", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster", archive_name: "linux", exe_file: "bin/quick-lint-js"}
@@ -281,7 +284,7 @@ jobs:
       matrix:
         os:
           - {runs_on: windows-latest, name: "Windows", test_cmd: true}
-          - {runs_on: macos-12, name: "macOS 12"}
+          - {runs_on: macos-13, name: "macOS 13 (x86_64)"}
           - {runs_on: ubuntu-latest, name: "Ubuntu", global_install_command_prefix: "sudo"}
         manager:
           - {name: "npm", install_command: "npm install", global: false}
