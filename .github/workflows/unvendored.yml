@@ -21,18 +21,13 @@ jobs:
             cmake \
             git \
             gtest \
+            simdjson \
             sudo
 
           # HACK(strager): Create a user so we can run makepkg. makepkg refuses
           # to run as root.
           useradd arch-builder
           printf 'arch-builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/arch-builder
-
-          sudo -u arch-builder sh -e -c '
-            git clone https://aur.archlinux.org/simdjson.git /tmp/aur-simdjson
-            cd /tmp/aur-simdjson
-            makepkg --syncdeps --install --noconfirm
-          '
 
       # HACK(strager): Work around the following error from
       # 'git remote add origin ...':
