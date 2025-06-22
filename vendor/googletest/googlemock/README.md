@@ -8,8 +8,8 @@ derive better designs of your system and write better tests.
 It is inspired by:
 
 *   [jMock](http://www.jmock.org/)
-*   [EasyMock](http://www.easymock.org/)
-*   [Hamcrest](http://code.google.com/p/hamcrest/)
+*   [EasyMock](https://easymock.org/)
+*   [Hamcrest](https://code.google.com/p/hamcrest/)
 
 It is designed with C++'s specifics in mind.
 
@@ -35,10 +35,6 @@ Details and examples can be found here:
 *   [gMock Cookbook](https://google.github.io/googletest/gmock_cook_book.html)
 *   [gMock Cheat Sheet](https://google.github.io/googletest/gmock_cheat_sheet.html)
 
-Please note that code under scripts/generator/ is from the
-[cppclean project](http://code.google.com/p/cppclean/) and under the Apache
-License, which is different from GoogleMock's license.
-
 GoogleMock is a part of
-[GoogleTest C++ testing framework](http://github.com/google/googletest/) and a
+[GoogleTest C++ testing framework](https://github.com/google/googletest/) and a
 subject to the same requirements.

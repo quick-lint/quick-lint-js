@@ -1,9 +1,9 @@
-# Advanced googletest Topics
+# Advanced GoogleTest Topics
 
 ## Introduction
 
-Now that you have read the [googletest Primer](primer.md) and learned how to
-write tests using googletest, it's time to learn some new tricks. This document
+Now that you have read the [GoogleTest Primer](primer.md) and learned how to
+write tests using GoogleTest, it's time to learn some new tricks. This document
 will show you more assertions as well as how to construct complex failure
 messages, propagate fatal failures, reuse and speed up your test fixtures, and
 use various flags with your tests.
@@ -25,7 +25,7 @@ Reference.
 
 ### Predicate Assertions for Better Error Messages
 
-Even though googletest has a rich set of assertions, they can never be complete,
+Even though GoogleTest has a rich set of assertions, they can never be complete,
 as it's impossible (nor a good idea) to anticipate all scenarios a user might
 run into. Therefore, sometimes a user has to use `EXPECT_TRUE()` to check a
 complex expression, for lack of a better macro. This has the problem of not
@@ -35,7 +35,7 @@ failure message by themselves, streaming it into `EXPECT_TRUE()`. However, this
 is awkward especially when the expression has side-effects or is expensive to
 evaluate.
 
-googletest gives you three different options to solve this problem:
+GoogleTest gives you three different options to solve this problem:
 
 #### Using an Existing Boolean Function
 
@@ -157,8 +157,11 @@ that can be used in the predicate assertion macro
 example:
 
 ```c++
-EXPECT_PRED_FORMAT2(testing::FloatLE, val1, val2);
-EXPECT_PRED_FORMAT2(testing::DoubleLE, val1, val2);
+using ::testing::FloatLE;
+using ::testing::DoubleLE;
+...
+EXPECT_PRED_FORMAT2(FloatLE, val1, val2);
+EXPECT_PRED_FORMAT2(DoubleLE, val1, val2);
 ```
 
 The above code verifies that `val1` is less than, or approximately equal to,
@@ -202,10 +205,9 @@ You can call the function
 
 to assert that types `T1` and `T2` are the same. The function does nothing if
 the assertion is satisfied. If the types are different, the function call will
-fail to compile, the compiler error message will say that
-`T1 and T2 are not the same type` and most likely (depending on the compiler)
-show you the actual values of `T1` and `T2`. This is mainly useful inside
-template code.
+fail to compile, the compiler error message will say that `T1 and T2 are not the
+same type` and most likely (depending on the compiler) show you the actual
+values of `T1` and `T2`. This is mainly useful inside template code.
 
 **Caveat**: When used inside a member function of a class template or a function
 template, `StaticAssertTypeEq<T1, T2>()` is effective only if the function is
@@ -284,7 +286,7 @@ For example:
 ```c++
 TEST(SkipTest, DoesSkip) {
   GTEST_SKIP() << "Skipping single test";
-  EXPECT_EQ(0, 1);  // Won't fail; it won't be executed
+  FAIL();  // Won't fail; it won't be executed
 }
 
 class SkipFixture : public ::testing::Test {
@@ -296,15 +298,15 @@ class SkipFixture : public ::testing::Test {
 
 // Tests for SkipFixture won't be executed.
 TEST_F(SkipFixture, SkipsOneTest) {
-  EXPECT_EQ(5, 7);  // Won't fail
+  FAIL();  // Won't fail; it won't be executed
 }
 ```
 
 As with assertion macros, you can stream a custom message into `GTEST_SKIP()`.
 
-## Teaching googletest How to Print Your Values
+## Teaching GoogleTest How to Print Your Values
 
-When a test assertion such as `EXPECT_EQ` fails, googletest prints the argument
+When a test assertion such as `EXPECT_EQ` fails, GoogleTest prints the argument
 values to help you debug. It does this using a user-extensible value printer.
 
 This printer knows how to print built-in C++ types, native arrays, STL
@@ -313,85 +315,153 @@ prints the raw bytes in the value and hopes that you the user can figure it out.
 
 As mentioned earlier, the printer is *extensible*. That means you can teach it
 to do a better job at printing your particular type than to dump the bytes. To
-do that, define `<<` for your type:
+do that, define an `AbslStringify()` overload as a `friend` function template
+for your type:
 
-```c++
-#include <ostream>
-
+```cpp
 namespace foo {
 
-class Bar {  // We want googletest to be able to print instances of this.
-...
-  // Create a free inline friend function.
-  friend std::ostream& operator<<(std::ostream& os, const Bar& bar) {
-    return os << bar.DebugString();  // whatever needed to print bar to os
+class Point {  // We want GoogleTest to be able to print instances of this.
+  ...
+  // Provide a friend overload.
+  template <typename Sink>
+  friend void AbslStringify(Sink& sink, const Point& point) {
+    absl::Format(&sink, "(%d, %d)", point.x, point.y);
   }
+
+  int x;
+  int y;
 };
 
 // If you can't declare the function in the class it's important that the
-// << operator is defined in the SAME namespace that defines Bar.  C++'s look-up
-// rules rely on that.
-std::ostream& operator<<(std::ostream& os, const Bar& bar) {
-  return os << bar.DebugString();  // whatever needed to print bar to os
+// AbslStringify overload is defined in the SAME namespace that defines Point.
+// C++'s look-up rules rely on that.
+enum class EnumWithStringify { kMany = 0, kChoices = 1 };
+
+template <typename Sink>
+void AbslStringify(Sink& sink, EnumWithStringify e) {
+  absl::Format(&sink, "%s", e == EnumWithStringify::kMany ? "Many" : "Choices");
 }
 
 }  // namespace foo
 ```
 
-Sometimes, this might not be an option: your team may consider it bad style to
-have a `<<` operator for `Bar`, or `Bar` may already have a `<<` operator that
-doesn't do what you want (and you cannot change it). If so, you can instead
-define a `PrintTo()` function like this:
+{: .callout .note}
+Note: `AbslStringify()` utilizes a generic "sink" buffer to construct its
+string. For more information about supported operations on `AbslStringify()`'s
+sink, see go/abslstringify.
+
+`AbslStringify()` can also use `absl::StrFormat`'s catch-all `%v` type specifier
+within its own format strings to perform type deduction. `Point` above could be
+formatted as `"(%v, %v)"` for example, and deduce the `int` values as `%d`.
+
+Sometimes, `AbslStringify()` might not be an option: your team may wish to print
+types with extra debugging information for testing purposes only. If so, you can
+instead define a `PrintTo()` function like this:
 
 ```c++
 #include <ostream>
 
 namespace foo {
 
-class Bar {
+class Point {
   ...
-  friend void PrintTo(const Bar& bar, std::ostream* os) {
-    *os << bar.DebugString();  // whatever needed to print bar to os
+  friend void PrintTo(const Point& point, std::ostream* os) {
+    *os << "(" << point.x << "," << point.y << ")";
   }
+
+  int x;
+  int y;
 };
 
 // If you can't declare the function in the class it's important that PrintTo()
-// is defined in the SAME namespace that defines Bar.  C++'s look-up rules rely
-// on that.
-void PrintTo(const Bar& bar, std::ostream* os) {
-  *os << bar.DebugString();  // whatever needed to print bar to os
+// is defined in the SAME namespace that defines Point.  C++'s look-up rules
+// rely on that.
+void PrintTo(const Point& point, std::ostream* os) {
+    *os << "(" << point.x << "," << point.y << ")";
 }
 
 }  // namespace foo
 ```
 
-If you have defined both `<<` and `PrintTo()`, the latter will be used when
-googletest is concerned. This allows you to customize how the value appears in
-googletest's output without affecting code that relies on the behavior of its
-`<<` operator.
+If you have defined both `AbslStringify()` and `PrintTo()`, the latter will be
+used by GoogleTest. This allows you to customize how the value appears in
+GoogleTest's output without affecting code that relies on the behavior of
+`AbslStringify()`.
 
-If you want to print a value `x` using googletest's value printer yourself, just
+If you have an existing `<<` operator and would like to define an
+`AbslStringify()`, the latter will be used for GoogleTest printing.
+
+If you want to print a value `x` using GoogleTest's value printer yourself, just
 call `::testing::PrintToString(x)`, which returns an `std::string`:
 
 ```c++
-vector<pair<Bar, int> > bar_ints = GetBarIntVector();
+vector<pair<Point, int> > point_ints = GetPointIntVector();
 
-EXPECT_TRUE(IsCorrectBarIntVector(bar_ints))
-    << "bar_ints = " << testing::PrintToString(bar_ints);
+EXPECT_TRUE(IsCorrectPointIntVector(point_ints))
+    << "point_ints = " << testing::PrintToString(point_ints);
 ```
+
+For more details regarding `AbslStringify()` and its integration with other
+libraries, see go/abslstringify.
+
+## Regular Expression Syntax
+
+When built with Bazel and using Abseil, GoogleTest uses the
+[RE2](https://github.com/google/re2/wiki/Syntax) syntax. Otherwise, for POSIX
+systems (Linux, Cygwin, Mac), GoogleTest uses the
+[POSIX extended regular expression](https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap09.html#tag_09_04)
+syntax. To learn about POSIX syntax, you may want to read this
+[Wikipedia entry](https://en.wikipedia.org/wiki/Regular_expression#POSIX_extended).
+
+On Windows, GoogleTest uses its own simple regular expression implementation. It
+lacks many features. For example, we don't support union (`"x|y"`), grouping
+(`"(xy)"`), brackets (`"[xy]"`), and repetition count (`"x{5,7}"`), among
+others. Below is what we do support (`A` denotes a literal character, period
+(`.`), or a single `\\ ` escape sequence; `x` and `y` denote regular
+expressions.):
+
+Expression | Meaning
+---------- | --------------------------------------------------------------
+`c`        | matches any literal character `c`
+`\\d`      | matches any decimal digit
+`\\D`      | matches any character that's not a decimal digit
+`\\f`      | matches `\f`
+`\\n`      | matches `\n`
+`\\r`      | matches `\r`
+`\\s`      | matches any ASCII whitespace, including `\n`
+`\\S`      | matches any character that's not a whitespace
+`\\t`      | matches `\t`
+`\\v`      | matches `\v`
+`\\w`      | matches any letter, `_`, or decimal digit
+`\\W`      | matches any character that `\\w` doesn't match
+`\\c`      | matches any literal character `c`, which must be a punctuation
+`.`        | matches any single character except `\n`
+`A?`       | matches 0 or 1 occurrences of `A`
+`A*`       | matches 0 or many occurrences of `A`
+`A+`       | matches 1 or many occurrences of `A`
+`^`        | matches the beginning of a string (not that of each line)
+`$`        | matches the end of a string (not that of each line)
+`xy`       | matches `x` followed by `y`
+
+To help you determine which capability is available on your system, GoogleTest
+defines macros to govern which regular expression it is using. The macros are:
+`GTEST_USES_SIMPLE_RE=1` or `GTEST_USES_POSIX_RE=1`. If you want your death
+tests to work in all cases, you can either `#if` on these macros or use the more
+limited syntax only.
 
 ## Death Tests
 
 In many applications, there are assertions that can cause application failure if
-a condition is not met. These sanity checks, which ensure that the program is in
-a known good state, are there to fail at the earliest possible time after some
-program state is corrupted. If the assertion checks the wrong condition, then
-the program may proceed in an erroneous state, which could lead to memory
+a condition is not met. These consistency checks, which ensure that the program
+is in a known good state, are there to fail at the earliest possible time after
+some program state is corrupted. If the assertion checks the wrong condition,
+then the program may proceed in an erroneous state, which could lead to memory
 corruption, security holes, or worse. Hence it is vitally important to test that
 such assertion statements work as expected.
 
 Since these precondition checks cause the processes to die, we call such tests
-_death tests_. More generally, any test that checks that a program terminates
+*death tests*. More generally, any test that checks that a program terminates
 (except by throwing an exception) in an expected fashion is also a death test.
 
 Note that if a piece of code throws an exception, we don't consider it "death"
@@ -437,6 +507,12 @@ verifies that:
     exit with exit code 0, and
 *   calling `KillProcess()` kills the process with signal `SIGKILL`.
 
+{: .callout .warning}
+Warning: If your death test contains mocks and is expecting a specific exit
+code, then you must allow the mock objects to be leaked via `Mock::AllowLeak`.
+This is because the mock leak detector will exit with its own error code if it
+detects a leak.
+
 The test function body may contain other assertions and statements as well, if
 necessary.
 
@@ -449,7 +525,7 @@ Note that a death test only cares about three things:
 3.  does the stderr output match `matcher`?
 
 In particular, if `statement` generates an `ASSERT_*` or `EXPECT_*` failure, it
-will **not** cause the death test to fail, as googletest assertions don't abort
+will **not** cause the death test to fail, as GoogleTest assertions don't abort
 the process.
 
 ### Death Test Naming
@@ -478,49 +554,6 @@ TEST_F(FooDeathTest, DoesThat) {
 }
 ```
 
-### Regular Expression Syntax
-
-On POSIX systems (e.g. Linux, Cygwin, and Mac), googletest uses the
-[POSIX extended regular expression](http://www.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap09.html#tag_09_04)
-syntax. To learn about this syntax, you may want to read this
-[Wikipedia entry](http://en.wikipedia.org/wiki/Regular_expression#POSIX_Extended_Regular_Expressions).
-
-On Windows, googletest uses its own simple regular expression implementation. It
-lacks many features. For example, we don't support union (`"x|y"`), grouping
-(`"(xy)"`), brackets (`"[xy]"`), and repetition count (`"x{5,7}"`), among
-others. Below is what we do support (`A` denotes a literal character, period
-(`.`), or a single `\\ ` escape sequence; `x` and `y` denote regular
-expressions.):
-
-Expression | Meaning
----------- | --------------------------------------------------------------
-`c`        | matches any literal character `c`
-`\\d`      | matches any decimal digit
-`\\D`      | matches any character that's not a decimal digit
-`\\f`      | matches `\f`
-`\\n`      | matches `\n`
-`\\r`      | matches `\r`
-`\\s`      | matches any ASCII whitespace, including `\n`
-`\\S`      | matches any character that's not a whitespace
-`\\t`      | matches `\t`
-`\\v`      | matches `\v`
-`\\w`      | matches any letter, `_`, or decimal digit
-`\\W`      | matches any character that `\\w` doesn't match
-`\\c`      | matches any literal character `c`, which must be a punctuation
-`.`        | matches any single character except `\n`
-`A?`       | matches 0 or 1 occurrences of `A`
-`A*`       | matches 0 or many occurrences of `A`
-`A+`       | matches 1 or many occurrences of `A`
-`^`        | matches the beginning of a string (not that of each line)
-`$`        | matches the end of a string (not that of each line)
-`xy`       | matches `x` followed by `y`
-
-To help you determine which capability is available on your system, googletest
-defines macros to govern which regular expression it is using. The macros are:
-`GTEST_USES_SIMPLE_RE=1` or `GTEST_USES_POSIX_RE=1`. If you want your death
-tests to work in all cases, you can either `#if` on these macros or use the more
-limited syntax only.
-
 ### How It Works
 
 See [Death Assertions](reference/assertions.md#death) in the Assertions
@@ -535,7 +568,7 @@ arrange that kind of environment. For example, statically-initialized modules
 may start threads before main is ever reached. Once threads have been created,
 it may be difficult or impossible to clean them up.
 
-googletest has three features intended to raise awareness of threading issues.
+GoogleTest has three features intended to raise awareness of threading issues.
 
 1.  A warning is emitted if multiple threads are running when a death test is
     encountered.
@@ -558,7 +591,7 @@ The automated testing framework does not set the style flag. You can choose a
 particular style of death tests by setting the flag programmatically:
 
 ```c++
-testing::FLAGS_gtest_death_test_style="threadsafe"
+GTEST_FLAG_SET(death_test_style, "threadsafe");
 ```
 
 You can do this in `main()` to set the style for all death tests in the binary,
@@ -568,12 +601,12 @@ restored afterwards, so you need not do that yourself. For example:
 ```c++
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
-  testing::FLAGS_gtest_death_test_style = "fast";
+  GTEST_FLAG_SET(death_test_style, "fast");
   return RUN_ALL_TESTS();
 }
 
 TEST(MyDeathTest, TestOne) {
-  testing::FLAGS_gtest_death_test_style = "threadsafe";
+  GTEST_FLAG_SET(death_test_style, "threadsafe");
   // This test is run in the "threadsafe" style:
   ASSERT_DEATH(ThisShouldDie(), "");
 }
@@ -588,7 +621,7 @@ TEST(MyDeathTest, TestTwo) {
 
 The `statement` argument of `ASSERT_EXIT()` can be any valid C++ statement. If
 it leaves the current function via a `return` statement or by throwing an
-exception, the death test is considered to have failed. Some googletest macros
+exception, the death test is considered to have failed. Some GoogleTest macros
 may return from the current function (e.g. `ASSERT_TRUE()`), so be sure to avoid
 them in `statement`.
 
@@ -610,15 +643,14 @@ Despite the improved thread safety afforded by the "threadsafe" style of death
 test, thread problems such as deadlock are still possible in the presence of
 handlers registered with `pthread_atfork(3)`.
 
-
 ## Using Assertions in Sub-routines
 
 {: .callout .note}
 Note: If you want to put a series of test assertions in a subroutine to check
 for a complex condition, consider using
-[a custom GMock matcher](gmock_cook_book.md#NewMatchers)
-instead. This lets you provide a more readable error message in case of failure
-and avoid all of the issues described below.
+[a custom GMock matcher](gmock_cook_book.md#NewMatchers) instead. This lets you
+provide a more readable error message in case of failure and avoid all of the
+issues described below.
 
 ### Adding Traces to Assertions
 
@@ -631,6 +663,7 @@ the `SCOPED_TRACE` macro or the `ScopedTrace` utility:
 ```c++
 SCOPED_TRACE(message);
 ```
+
 ```c++
 ScopedTrace trace("file_path", line_number, message);
 ```
@@ -700,7 +733,7 @@ Some tips on using `SCOPED_TRACE`:
 ### Propagating Fatal Failures
 
 A common pitfall when using `ASSERT_*` and `FAIL*` is not understanding that
-when they fail they only abort the _current function_, not the entire test. For
+when they fail they only abort the *current function*, not the entire test. For
 example, the following test will segfault:
 
 ```c++
@@ -722,7 +755,7 @@ TEST(FooTest, Bar) {
 }
 ```
 
-To alleviate this, googletest provides three different solutions. You could use
+To alleviate this, GoogleTest provides three different solutions. You could use
 either exceptions, the `(ASSERT|EXPECT)_NO_FATAL_FAILURE` assertions or the
 `HasFatalFailure()` function. They are described in the following two
 subsections.
@@ -756,7 +789,7 @@ in it, the test will continue after the subroutine returns. This may not be what
 you want.
 
 Often people want fatal failures to propagate like exceptions. For that
-googletest offers the following macros:
+GoogleTest offers the following macros:
 
 Fatal assertion                       | Nonfatal assertion                    | Verifies
 ------------------------------------- | ------------------------------------- | --------
@@ -837,7 +870,7 @@ will output XML like this:
 
 ```xml
   ...
-    <testcase name="MinAndMaxWidgets" status="run" time="0.006" classname="WidgetUsageTest" MaximumWidgets="12" MinimumWidgets="9" />
+    <testcase name="MinAndMaxWidgets" file="test.cpp" line="1" status="run" time="0.006" classname="WidgetUsageTest" MaximumWidgets="12" MinimumWidgets="9" />
   ...
 ```
 
@@ -848,7 +881,7 @@ will output XML like this:
 >     needs to be prefixed with `::testing::Test::` if used outside of the
 >     `TEST` body and the test fixture class.
 > *   *`key`* must be a valid XML attribute name, and cannot conflict with the
->     ones already used by googletest (`name`, `status`, `time`, `classname`,
+>     ones already used by GoogleTest (`name`, `status`, `time`, `classname`,
 >     `type_param`, and `value_param`).
 > *   Calling `RecordProperty()` outside of the lifespan of a test is allowed.
 >     If it's called outside of a test but between a test suite's
@@ -859,25 +892,25 @@ will output XML like this:
 
 ## Sharing Resources Between Tests in the Same Test Suite
 
-googletest creates a new test fixture object for each test in order to make
+GoogleTest creates a new test fixture object for each test in order to make
 tests independent and easier to debug. However, sometimes tests use resources
 that are expensive to set up, making the one-copy-per-test model prohibitively
 expensive.
 
 If the tests don't change the resource, there's no harm in their sharing a
-single resource copy. So, in addition to per-test set-up/tear-down, googletest
+single resource copy. So, in addition to per-test set-up/tear-down, GoogleTest
 also supports per-test-suite set-up/tear-down. To use it:
 
 1.  In your test fixture class (say `FooTest` ), declare as `static` some member
     variables to hold the shared resources.
 2.  Outside your test fixture class (typically just below it), define those
     member variables, optionally giving them initial values.
-3.  In the same test fixture class, define a `static void SetUpTestSuite()`
-    function (remember not to spell it as **`SetupTestSuite`** with a small
-    `u`!) to set up the shared resources and a `static void TearDownTestSuite()`
-    function to tear them down.
+3.  In the same test fixture class, define a public member function `static void
+    SetUpTestSuite()` (remember not to spell it as **`SetupTestSuite`** with a
+    small `u`!) to set up the shared resources and a `static void
+    TearDownTestSuite()` function to tear them down.
 
-That's it! googletest automatically calls `SetUpTestSuite()` before running the
+That's it! GoogleTest automatically calls `SetUpTestSuite()` before running the
 *first test* in the `FooTest` test suite (i.e. before creating the first
 `FooTest` object), and calls `TearDownTestSuite()` after running the *last test*
 in it (i.e. after deleting the last `FooTest` object). In between, the tests can
@@ -887,6 +920,13 @@ Remember that the test order is undefined, so your code can't depend on a test
 preceding or following another. Also, the tests must either not modify the state
 of any shared resource, or, if they do modify the state, they must restore the
 state to its original value before passing control to the next test.
+
+Note that `SetUpTestSuite()` may be called multiple times for a test fixture
+class that has derived classes, so you should not expect code in the function
+body to be run only once. Also, derived classes still have access to shared
+resources defined as static members, so careful consideration is needed when
+managing shared resources to avoid memory leaks if shared resources are not
+properly cleaned up in `TearDownTestSuite()`.
 
 Here's an example of per-test-suite set-up and tear-down:
 
@@ -898,6 +938,14 @@ class FooTest : public testing::Test {
   // Can be omitted if not needed.
   static void SetUpTestSuite() {
     shared_resource_ = new ...;
+
+    // If `shared_resource_` is **not deleted** in `TearDownTestSuite()`,
+    // reallocation should be prevented because `SetUpTestSuite()` may be called
+    // in subclasses of FooTest and lead to memory leak.
+    //
+    // if (shared_resource_ == nullptr) {
+    //   shared_resource_ = new ...;
+    // }
   }
 
   // Per-test-suite tear-down.
@@ -955,24 +1003,34 @@ class Environment : public ::testing::Environment {
 };
 ```
 
-Then, you register an instance of your environment class with googletest by
+Then, you register an instance of your environment class with GoogleTest by
 calling the `::testing::AddGlobalTestEnvironment()` function:
 
 ```c++
 Environment* AddGlobalTestEnvironment(Environment* env);
 ```
 
-Now, when `RUN_ALL_TESTS()` is called, it first calls the `SetUp()` method of
-each environment object, then runs the tests if none of the environments
-reported fatal failures and `GTEST_SKIP()` was not called. `RUN_ALL_TESTS()`
-always calls `TearDown()` with each environment object, regardless of whether or
-not the tests were run.
+Now, when `RUN_ALL_TESTS()` is invoked, it first calls the `SetUp()` method. The
+tests are then executed, provided that none of the environments have reported
+fatal failures and `GTEST_SKIP()` has not been invoked. Finally, `TearDown()` is
+called.
+
+Note that `SetUp()` and `TearDown()` are only invoked if there is at least one
+test to be performed. Importantly, `TearDown()` is executed even if the test is
+not run due to a fatal failure or `GTEST_SKIP()`.
+
+Calling `SetUp()` and `TearDown()` for each iteration depends on the flag
+`gtest_recreate_environments_when_repeating`. `SetUp()` and `TearDown()` are
+called for each environment object when the object is recreated for each
+iteration. However, if test environments are not recreated for each iteration,
+`SetUp()` is called only on the first iteration, and `TearDown()` is called only
+on the last iteration.
 
 It's OK to register multiple environment objects. In this suite, their `SetUp()`
 will be called in the order they are registered, and their `TearDown()` will be
 called in the reverse order.
 
-Note that googletest takes ownership of the registered environment objects.
+Note that GoogleTest takes ownership of the registered environment objects.
 Therefore **do not delete them** by yourself.
 
 You should call `AddGlobalTestEnvironment()` before `RUN_ALL_TESTS()` is called,
@@ -1024,7 +1082,7 @@ they must be declared **public** rather than **protected** in order to use
 
 ```c++
 class FooTest :
-    public testing::TestWithParam<const char*> {
+    public testing::TestWithParam<absl::string_view> {
   // You can implement all the usual fixture class members here.
   // To access the test parameter, call GetParam() from class
   // TestWithParam<T>.
@@ -1035,7 +1093,7 @@ class BaseTest : public testing::Test {
   ...
 };
 class BarTest : public BaseTest,
-                public testing::WithParamInterface<const char*> {
+                public testing::WithParamInterface<absl::string_view> {
   ...
 };
 ```
@@ -1082,6 +1140,11 @@ instantiation of the test suite. The next argument is the name of the test
 pattern, and the last is the
 [parameter generator](reference/testing.md#param-generators).
 
+The parameter generator expression is not evaluated until GoogleTest is
+initialized (via `InitGoogleTest()`). Any prior initialization done in the
+`main` function will be accessible from the parameter generator, for example,
+the results of flag parsing.
+
 You can instantiate a test pattern more than once, so to distinguish different
 instances of the pattern, the instantiation name is added as a prefix to the
 actual test suite name. Remember to pick unique prefixes for different
@@ -1101,8 +1164,8 @@ with parameter values `"cat"` and `"dog"` using the
 [`ValuesIn`](reference/testing.md#param-generators) parameter generator:
 
 ```c++
-const char* pets[] = {"cat", "dog"};
-INSTANTIATE_TEST_SUITE_P(Pets, FooTest, testing::ValuesIn(pets));
+constexpr absl::string_view kPets[] = {"cat", "dog"};
+INSTANTIATE_TEST_SUITE_P(Pets, FooTest, testing::ValuesIn(kPets));
 ```
 
 The tests from the instantiation above will have these names:
@@ -1129,8 +1192,8 @@ GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(FooTest);
 
 You can see [sample7_unittest.cc] and [sample8_unittest.cc] for more examples.
 
-[sample7_unittest.cc]: https://github.com/google/googletest/blob/master/googletest/samples/sample7_unittest.cc "Parameterized Test example"
-[sample8_unittest.cc]: https://github.com/google/googletest/blob/master/googletest/samples/sample8_unittest.cc "Parameterized Test example with multiple parameters"
+[sample7_unittest.cc]: https://github.com/google/googletest/blob/main/googletest/samples/sample7_unittest.cc "Parameterized Test example"
+[sample8_unittest.cc]: https://github.com/google/googletest/blob/main/googletest/samples/sample8_unittest.cc "Parameterized Test example with multiple parameters"
 
 ### Creating Value-Parameterized Abstract Tests
 
@@ -1281,7 +1344,7 @@ TYPED_TEST(FooTest, HasPropertyA) { ... }
 
 You can see [sample6_unittest.cc] for a complete example.
 
-[sample6_unittest.cc]: https://github.com/google/googletest/blob/master/googletest/samples/sample6_unittest.cc "Typed Test example"
+[sample6_unittest.cc]: https://github.com/google/googletest/blob/main/googletest/samples/sample6_unittest.cc "Typed Test example"
 
 ## Type-Parameterized Tests
 
@@ -1302,6 +1365,7 @@ First, define a fixture class template, as we did with typed tests:
 ```c++
 template <typename T>
 class FooTest : public testing::Test {
+  void DoSomethingInteresting();
   ...
 };
 ```
@@ -1319,6 +1383,9 @@ this as many times as you want:
 TYPED_TEST_P(FooTest, DoesBlah) {
   // Inside a test, refer to TypeParam to get the type parameter.
   TypeParam n = 0;
+
+  // You will need to use `this` explicitly to refer to fixture members.
+  this->DoSomethingInteresting()
   ...
 }
 
@@ -1473,16 +1540,16 @@ To test them, we use the following special techniques:
 
 ## "Catching" Failures
 
-If you are building a testing utility on top of googletest, you'll want to test
-your utility. What framework would you use to test it? googletest, of course.
+If you are building a testing utility on top of GoogleTest, you'll want to test
+your utility. What framework would you use to test it? GoogleTest, of course.
 
 The challenge is to verify that your testing utility reports failures correctly.
 In frameworks that report a failure by throwing an exception, you could catch
-the exception and assert on it. But googletest doesn't use exceptions, so how do
+the exception and assert on it. But GoogleTest doesn't use exceptions, so how do
 we test that a piece of code generates an expected failure?
 
-`"gtest/gtest-spi.h"` contains some constructs to do this. After #including this header,
-you can use
+`"gtest/gtest-spi.h"` contains some constructs to do this.
+After #including this header, you can use
 
 ```c++
   EXPECT_FATAL_FAILURE(statement, substring);
@@ -1586,12 +1653,14 @@ void RegisterMyTests(const std::vector<int>& values) {
 }
 ...
 int main(int argc, char** argv) {
+  testing::InitGoogleTest(&argc, argv);
   std::vector<int> values_to_test = LoadValuesFromConfig();
   RegisterMyTests(values_to_test);
   ...
   return RUN_ALL_TESTS();
 }
 ```
+
 ## Getting the Current Test's Name
 
 Sometimes a function may need to know the name of the currently running test.
@@ -1619,9 +1688,9 @@ particular, you cannot find the test suite name in `SetUpTestSuite()`,
 `TearDownTestSuite()` (where you know the test suite name implicitly), or
 functions called from them.
 
-## Extending googletest by Handling Test Events
+## Extending GoogleTest by Handling Test Events
 
-googletest provides an **event listener API** to let you receive notifications
+GoogleTest provides an **event listener API** to let you receive notifications
 about the progress of a test program and test failures. The events you can
 listen to include the start and end of the test program, a test suite, or a test
 method, among others. You may use this API to augment or replace the standard
@@ -1682,7 +1751,7 @@ Here's an example:
 ### Using Event Listeners
 
 To use the event listener you have defined, add an instance of it to the
-googletest event listener list (represented by class
+GoogleTest event listener list (represented by class
 [`TestEventListeners`](reference/testing.md#TestEventListeners) - note the "s"
 at the end of the name) in your `main()` function, before calling
 `RUN_ALL_TESTS()`:
@@ -1693,7 +1762,7 @@ int main(int argc, char** argv) {
   // Gets hold of the event listener list.
   testing::TestEventListeners& listeners =
       testing::UnitTest::GetInstance()->listeners();
-  // Adds a listener to the end.  googletest takes the ownership.
+  // Adds a listener to the end.  GoogleTest takes the ownership.
   listeners.Append(new MinimalistPrinter);
   return RUN_ALL_TESTS();
 }
@@ -1714,7 +1783,7 @@ You can do so by adding one line:
 Now, sit back and enjoy a completely different output from your tests. For more
 details, see [sample9_unittest.cc].
 
-[sample9_unittest.cc]: https://github.com/google/googletest/blob/master/googletest/samples/sample9_unittest.cc "Event listener example"
+[sample9_unittest.cc]: https://github.com/google/googletest/blob/main/googletest/samples/sample9_unittest.cc "Event listener example"
 
 You may append more than one listener to the list. When an `On*Start()` or
 `OnTestPartResult()` event is fired, the listeners will receive it in the order
@@ -1741,17 +1810,17 @@ by the former.
 
 See [sample10_unittest.cc] for an example of a failure-raising listener.
 
-[sample10_unittest.cc]: https://github.com/google/googletest/blob/master/googletest/samples/sample10_unittest.cc "Failure-raising listener example"
+[sample10_unittest.cc]: https://github.com/google/googletest/blob/main/googletest/samples/sample10_unittest.cc "Failure-raising listener example"
 
 ## Running Test Programs: Advanced Options
 
-googletest test programs are ordinary executables. Once built, you can run them
+GoogleTest test programs are ordinary executables. Once built, you can run them
 directly and affect their behavior via the following environment variables
 and/or command line flags. For the flags to work, your programs must call
 `::testing::InitGoogleTest()` before calling `RUN_ALL_TESTS()`.
 
 To see a list of supported flags and their usage, please run your test program
-with the `--help` flag. You can also use `-h`, `-?`, or `/?` for short.
+with the `--help` flag.
 
 If an option is specified both by an environment variable and by a flag, the
 latter takes precedence.
@@ -1778,10 +1847,10 @@ corresponding environment variable for this flag.
 
 #### Running a Subset of the Tests
 
-By default, a googletest program runs all tests the user has defined. Sometimes,
+By default, a GoogleTest program runs all tests the user has defined. Sometimes,
 you want to run only a subset of the tests (e.g. for debugging or quickly
 verifying a change). If you set the `GTEST_FILTER` environment variable or the
-`--gtest_filter` flag to a filter string, googletest will only run the tests
+`--gtest_filter` flag to a filter string, GoogleTest will only run the tests
 whose full names (in the form of `TestSuiteName.TestName`) match the filter.
 
 The format of a filter is a '`:`'-separated list of wildcard patterns (called
@@ -1812,12 +1881,11 @@ For example:
 
 #### Stop test execution upon first failure
 
-By default, a googletest program runs all tests the user has defined. In some
+By default, a GoogleTest program runs all tests the user has defined. In some
 cases (e.g. iterative test development & execution) it may be desirable stop
 test execution upon first failure (trading improved latency for completeness).
 If `GTEST_FAIL_FAST` environment variable or `--gtest_fail_fast` flag is set,
-the test runner will stop execution as soon as the first test failure is
-found.
+the test runner will stop execution as soon as the first test failure is found.
 
 #### Temporarily Disabling Tests
 
@@ -1830,7 +1898,7 @@ If you need to disable all tests in a test suite, you can either add `DISABLED_`
 to the front of the name of each test, or alternatively add it to the front of
 the test suite name.
 
-For example, the following tests won't be run by googletest, even though they
+For example, the following tests won't be run by GoogleTest, even though they
 will still be compiled:
 
 ```c++
@@ -1845,7 +1913,7 @@ TEST_F(DISABLED_BarTest, DoesXyz) { ... }
 
 {: .callout .note}
 NOTE: This feature should only be used for temporary pain-relief. You still have
-to fix the disabled tests at a later date. As a reminder, googletest will print
+to fix the disabled tests at a later date. As a reminder, GoogleTest will print
 a banner warning you if a test program contains any disabled tests.
 
 {: .callout .tip}
@@ -1860,6 +1928,20 @@ the `--gtest_also_run_disabled_tests` flag or set the
 `GTEST_ALSO_RUN_DISABLED_TESTS` environment variable to a value other than `0`.
 You can combine this with the `--gtest_filter` flag to further select which
 disabled tests to run.
+
+### Enforcing Having At Least One Test Case
+
+A not uncommon programmer mistake is to write a test program that has no test
+case linked in. This can happen, for example, when you put test case definitions
+in a library and the library is not marked as "always link".
+
+To catch such mistakes, run the test program with the
+`--gtest_fail_if_no_test_linked` flag or set the `GTEST_FAIL_IF_NO_TEST_LINKED`
+environment variable to a value other than `0`. Now the program will fail if no
+test case is linked in.
+
+Note that *any* test case linked in makes the program valid for the purpose of
+this check. In particular, even a disabled test case suffices.
 
 ### Repeating the Tests
 
@@ -1890,8 +1972,12 @@ Repeat the tests whose name matches the filter 1000 times.
 
 If your test program contains
 [global set-up/tear-down](#global-set-up-and-tear-down) code, it will be
-repeated in each iteration as well, as the flakiness may be in it. You can also
-specify the repeat count by setting the `GTEST_REPEAT` environment variable.
+repeated in each iteration as well, as the flakiness may be in it. To avoid
+repeating global set-up/tear-down, specify
+`--gtest_recreate_environments_when_repeating=false`{.nowrap}.
+
+You can also specify the repeat count by setting the `GTEST_REPEAT` environment
+variable.
 
 ### Shuffling the Tests
 
@@ -1899,23 +1985,75 @@ You can specify the `--gtest_shuffle` flag (or set the `GTEST_SHUFFLE`
 environment variable to `1`) to run the tests in a program in a random order.
 This helps to reveal bad dependencies between tests.
 
-By default, googletest uses a random seed calculated from the current time.
+By default, GoogleTest uses a random seed calculated from the current time.
 Therefore you'll get a different order every time. The console output includes
 the random seed value, such that you can reproduce an order-related test failure
 later. To specify the random seed explicitly, use the `--gtest_random_seed=SEED`
 flag (or set the `GTEST_RANDOM_SEED` environment variable), where `SEED` is an
 integer in the range [0, 99999]. The seed value 0 is special: it tells
-googletest to do the default behavior of calculating the seed from the current
+GoogleTest to do the default behavior of calculating the seed from the current
 time.
 
-If you combine this with `--gtest_repeat=N`, googletest will pick a different
+If you combine this with `--gtest_repeat=N`, GoogleTest will pick a different
 random seed and re-shuffle the tests in each iteration.
+
+### Distributing Test Functions to Multiple Machines
+
+If you have more than one machine you can use to run a test program, you might
+want to run the test functions in parallel and get the result faster. We call
+this technique *sharding*, where each machine is called a *shard*.
+
+GoogleTest is compatible with test sharding. To take advantage of this feature,
+your test runner (not part of GoogleTest) needs to do the following:
+
+1.  Allocate a number of machines (shards) to run the tests.
+1.  On each shard, set the `GTEST_TOTAL_SHARDS` environment variable to the total
+    number of shards. It must be the same for all shards.
+1.  On each shard, set the `GTEST_SHARD_INDEX` environment variable to the index
+    of the shard. Different shards must be assigned different indices, which
+    must be in the range `[0, GTEST_TOTAL_SHARDS - 1]`.
+1.  Run the same test program on all shards. When GoogleTest sees the above two
+    environment variables, it will select a subset of the test functions to run.
+    Across all shards, each test function in the program will be run exactly
+    once.
+1.  Wait for all shards to finish, then collect and report the results.
+
+Your project may have tests that were written without GoogleTest and thus don't
+understand this protocol. In order for your test runner to figure out which test
+supports sharding, it can set the environment variable `GTEST_SHARD_STATUS_FILE`
+to a non-existent file path. If a test program supports sharding, it will create
+this file to acknowledge that fact; otherwise it will not create it. The actual
+contents of the file are not important at this time, although we may put some
+useful information in it in the future.
+
+Here's an example to make it clear. Suppose you have a test program `foo_test`
+that contains the following 5 test functions:
+
+```
+TEST(A, V)
+TEST(A, W)
+TEST(B, X)
+TEST(B, Y)
+TEST(B, Z)
+```
+
+Suppose you have 3 machines at your disposal. To run the test functions in
+parallel, you would set `GTEST_TOTAL_SHARDS` to 3 on all machines, and set
+`GTEST_SHARD_INDEX` to 0, 1, and 2 on the machines respectively. Then you would
+run the same `foo_test` on each machine.
+
+GoogleTest reserves the right to change how the work is distributed across the
+shards, but here's one possible scenario:
+
+*   Machine #0 runs `A.V` and `B.X`.
+*   Machine #1 runs `A.W` and `B.Y`.
+*   Machine #2 runs `B.Z`.
 
 ### Controlling Test Output
 
 #### Colored Terminal Output
 
-googletest can use colors in its terminal output to make it easier to spot the
+GoogleTest can use colors in its terminal output to make it easier to spot the
 important information:
 
 <pre>...
@@ -1940,36 +2078,34 @@ important information:
 
 You can set the `GTEST_COLOR` environment variable or the `--gtest_color`
 command line flag to `yes`, `no`, or `auto` (the default) to enable colors,
-disable colors, or let googletest decide. When the value is `auto`, googletest
+disable colors, or let GoogleTest decide. When the value is `auto`, GoogleTest
 will use colors if and only if the output goes to a terminal and (on non-Windows
 platforms) the `TERM` environment variable is set to `xterm` or `xterm-color`.
 
 #### Suppressing test passes
 
-By default, googletest prints 1 line of output for each test, indicating if it
+By default, GoogleTest prints 1 line of output for each test, indicating if it
 passed or failed. To show only test failures, run the test program with
 `--gtest_brief=1`, or set the GTEST_BRIEF environment variable to `1`.
 
 #### Suppressing the Elapsed Time
 
-By default, googletest prints the time it takes to run each test. To disable
+By default, GoogleTest prints the time it takes to run each test. To disable
 that, run the test program with the `--gtest_print_time=0` command line flag, or
 set the GTEST_PRINT_TIME environment variable to `0`.
 
 #### Suppressing UTF-8 Text Output
 
-In case of assertion failures, googletest prints expected and actual values of
+In case of assertion failures, GoogleTest prints expected and actual values of
 type `string` both as hex-encoded strings as well as in readable UTF-8 text if
 they contain valid non-ASCII UTF-8 characters. If you want to suppress the UTF-8
 text because, for example, you don't have an UTF-8 compatible output medium, run
 the test program with `--gtest_print_utf8=0` or set the `GTEST_PRINT_UTF8`
 environment variable to `0`.
 
-
-
 #### Generating an XML Report
 
-googletest can emit a detailed XML report to a file in addition to its normal
+GoogleTest can emit a detailed XML report to a file in addition to its normal
 textual output. The report contains the duration of each test, and thus can help
 you identify slow tests.
 
@@ -1980,15 +2116,15 @@ in which case the output can be found in the `test_detail.xml` file in the
 current directory.
 
 If you specify a directory (for example, `"xml:output/directory/"` on Linux or
-`"xml:output\directory\"` on Windows), googletest will create the XML file in
+`"xml:output\directory\"` on Windows), GoogleTest will create the XML file in
 that directory, named after the test executable (e.g. `foo_test.xml` for test
 program `foo_test` or `foo_test.exe`). If the file already exists (perhaps left
-over from a previous run), googletest will pick a different name (e.g.
+over from a previous run), GoogleTest will pick a different name (e.g.
 `foo_test_1.xml`) to avoid overwriting it.
 
 The report is based on the `junitreport` Ant task. Since that format was
 originally intended for Java, a little interpretation is required to make it
-apply to googletest tests, as shown here:
+apply to GoogleTest tests, as shown here:
 
 ```xml
 <testsuites name="AllTests" ...>
@@ -2003,8 +2139,8 @@ apply to googletest tests, as shown here:
 ```
 
 *   The root `<testsuites>` element corresponds to the entire test program.
-*   `<testsuite>` elements correspond to googletest test suites.
-*   `<testcase>` elements correspond to googletest test functions.
+*   `<testsuite>` elements correspond to GoogleTest test suites.
+*   `<testcase>` elements correspond to GoogleTest test functions.
 
 For instance, the following program
 
@@ -2020,15 +2156,15 @@ could generate this report:
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites tests="3" failures="1" errors="0" time="0.035" timestamp="2011-10-31T18:52:42" name="AllTests">
   <testsuite name="MathTest" tests="2" failures="1" errors="0" time="0.015">
-    <testcase name="Addition" status="run" time="0.007" classname="">
+    <testcase name="Addition" file="test.cpp" line="1" status="run" time="0.007" classname="">
       <failure message="Value of: add(1, 1)&#x0A;  Actual: 3&#x0A;Expected: 2" type="">...</failure>
       <failure message="Value of: add(1, -1)&#x0A;  Actual: 1&#x0A;Expected: 0" type="">...</failure>
     </testcase>
-    <testcase name="Subtraction" status="run" time="0.005" classname="">
+    <testcase name="Subtraction" file="test.cpp" line="2" status="run" time="0.005" classname="">
     </testcase>
   </testsuite>
   <testsuite name="LogicTest" tests="1" failures="0" errors="0" time="0.005">
-    <testcase name="NonContradiction" status="run" time="0.005" classname="">
+    <testcase name="NonContradiction" file="test.cpp" line="3" status="run" time="0.005" classname="">
     </testcase>
   </testsuite>
 </testsuites>
@@ -2037,7 +2173,7 @@ could generate this report:
 Things to note:
 
 *   The `tests` attribute of a `<testsuites>` or `<testsuite>` element tells how
-    many test functions the googletest program or test suite contains, while the
+    many test functions the GoogleTest program or test suite contains, while the
     `failures` attribute tells how many of them failed.
 
 *   The `time` attribute expresses the duration of the test, test suite, or
@@ -2046,12 +2182,15 @@ Things to note:
 *   The `timestamp` attribute records the local date and time of the test
     execution.
 
-*   Each `<failure>` element corresponds to a single failed googletest
+*   The `file` and `line` attributes record the source file location, where the
+    test was defined.
+
+*   Each `<failure>` element corresponds to a single failed GoogleTest
     assertion.
 
 #### Generating a JSON Report
 
-googletest can also emit a JSON report as an alternative format to XML. To
+GoogleTest can also emit a JSON report as an alternative format to XML. To
 generate the JSON report, set the `GTEST_OUTPUT` environment variable or the
 `--gtest_output` flag to the string `"json:path_to_output_file"`, which will
 create the file at the given location. You can also just use the string
@@ -2062,7 +2201,7 @@ The report format conforms to the following JSON Schema:
 
 ```json
 {
-  "$schema": "http://json-schema.org/schema#",
+  "$schema": "https://json-schema.org/schema#",
   "type": "object",
   "definitions": {
     "TestCase": {
@@ -2085,6 +2224,8 @@ The report format conforms to the following JSON Schema:
       "type": "object",
       "properties": {
         "name": { "type": "string" },
+        "file": { "type": "string" },
+        "line": { "type": "integer" },
         "status": {
           "type": "string",
           "enum": ["RUN", "NOTRUN"]
@@ -2162,6 +2303,8 @@ message TestCase {
 
 message TestInfo {
   string name = 1;
+  string file = 6;
+  int32 line = 7;
   enum Status {
     RUN = 0;
     NOTRUN = 1;
@@ -2205,6 +2348,8 @@ could generate this report:
       "testsuite": [
         {
           "name": "Addition",
+          "file": "test.cpp",
+          "line": 1,
           "status": "RUN",
           "time": "0.007s",
           "classname": "",
@@ -2221,6 +2366,8 @@ could generate this report:
         },
         {
           "name": "Subtraction",
+          "file": "test.cpp",
+          "line": 2,
           "status": "RUN",
           "time": "0.005s",
           "classname": ""
@@ -2236,6 +2383,8 @@ could generate this report:
       "testsuite": [
         {
           "name": "NonContradiction",
+          "file": "test.cpp",
+          "line": 3,
           "status": "RUN",
           "time": "0.005s",
           "classname": ""
@@ -2253,12 +2402,11 @@ IMPORTANT: The exact format of the JSON document is subject to change.
 
 #### Detecting Test Premature Exit
 
-Google Test implements the _premature-exit-file_ protocol for test runners
-to catch any kind of unexpected exits of test programs. Upon start,
-Google Test creates the file which will be automatically deleted after
-all work has been finished. Then, the test runner can check if this file
-exists. In case the file remains undeleted, the inspected test has exited
-prematurely.
+Google Test implements the *premature-exit-file* protocol for test runners to
+catch any kind of unexpected exits of test programs. Upon start, Google Test
+creates the file which will be automatically deleted after all work has been
+finished. Then, the test runner can check if this file exists. In case the file
+remains undeleted, the inspected test has exited prematurely.
 
 This feature is enabled only if the `TEST_PREMATURE_EXIT_FILE` environment
 variable has been set.
@@ -2267,7 +2415,7 @@ variable has been set.
 
 When running test programs under a debugger, it's very convenient if the
 debugger can catch an assertion failure and automatically drop into interactive
-mode. googletest's *break-on-failure* mode supports this behavior.
+mode. GoogleTest's *break-on-failure* mode supports this behavior.
 
 To enable it, set the `GTEST_BREAK_ON_FAILURE` environment variable to a value
 other than `0`. Alternatively, you can use the `--gtest_break_on_failure`
@@ -2275,9 +2423,9 @@ command line flag.
 
 #### Disabling Catching Test-Thrown Exceptions
 
-googletest can be used either with or without exceptions enabled. If a test
+GoogleTest can be used either with or without exceptions enabled. If a test
 throws a C++ exception or (on Windows) a structured exception (SEH), by default
-googletest catches it, reports it as a test failure, and continues with the next
+GoogleTest catches it, reports it as a test failure, and continues with the next
 test method. This maximizes the coverage of a test run. Also, on Windows an
 uncaught exception will cause a pop-up window, so catching the exceptions allows
 you to run the tests automatically.
@@ -2315,4 +2463,4 @@ void __tsan_on_report() {
 ```
 
 After compiling your project with one of the sanitizers enabled, if a particular
-test triggers a sanitizer error, googletest will report that it failed.
+test triggers a sanitizer error, GoogleTest will report that it failed.

@@ -8,7 +8,7 @@ Given
 
 ```cpp
 class Foo {
-  ...
+ public:
   virtual ~Foo();
   virtual int GetSize() const = 0;
   virtual string Describe(const char* name) = 0;
@@ -20,10 +20,10 @@ class Foo {
 (note that `~Foo()` **must** be virtual) we can define its mock as
 
 ```cpp
-#include "gmock/gmock.h"
+#include <gmock/gmock.h>
 
 class MockFoo : public Foo {
-  ...
+ public:
   MOCK_METHOD(int, GetSize, (), (const, override));
   MOCK_METHOD(string, Describe, (const char* name), (override));
   MOCK_METHOD(string, Describe, (int type), (override));
@@ -58,7 +58,7 @@ To mock
 ```cpp
 template <typename Elem>
 class StackInterface {
-  ...
+ public:
   virtual ~StackInterface();
   virtual int GetSize() const = 0;
   virtual void Push(const Elem& x) = 0;
@@ -71,7 +71,7 @@ class StackInterface {
 ```cpp
 template <typename Elem>
 class MockStack : public StackInterface<Elem> {
-  ...
+ public:
   MOCK_METHOD(int, GetSize, (), (const, override));
   MOCK_METHOD(void, Push, (const Elem& x), (override));
 };
@@ -140,7 +140,7 @@ To customize the default action for functions with return type `T`, use
   // Sets the default action for return type std::unique_ptr<Buzz> to
   // creating a new Buzz every time.
   DefaultValue<std::unique_ptr<Buzz>>::SetFactory(
-      [] { return MakeUnique<Buzz>(AccessLevel::kInternal); });
+      [] { return std::make_unique<Buzz>(AccessLevel::kInternal); });
 
   // When this fires, the default action of MakeBuzz() will run, which
   // will return a new Buzz object.
@@ -230,7 +230,7 @@ class MockFunction<R(A1, ..., An)> {
 };
 ```
 
-See this [recipe](gmock_cook_book.md#using-check-points) for one application of
+See this [recipe](gmock_cook_book.md#UsingCheckPoints) for one application of
 it.
 
 ## Flags
