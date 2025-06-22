@@ -10,10 +10,10 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  # Double-check that our worker is still running scripts as ARM64 (not x86_64).
+  # Double-check that macos-15 is running scripts as ARM64 (not x86_64).
   macos-arm:
     name: macOS Apple Silicon (ARM64/AArch64)
-    runs-on: stracle-macos-aarch64
+    runs-on: macos-15
     steps:
       - name: check architecture
         run: |

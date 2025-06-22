@@ -15,7 +15,9 @@ jobs:
       matrix:
         os:
           - {runs_on: macos-13, name: "macOS x86_64", platform_arch: "darwin-x64", test: true, CC: /usr/local/opt/llvm@15/bin/clang, CXX: /usr/local/opt/llvm@15/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm@15/include -isystem /usr/local/opt/llvm@15/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm@15/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm@15/lib/c++/libc++.a /usr/local/opt/llvm@15/lib/c++/libc++abi.a", CMAKE_FLAGS: "-G Ninja", homebrew_packages: "ninja"}
-          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", platform_arch: "darwin-arm64", test: true, CFLAGS: "-mmacosx-version-min=11.0", CMAKE_FLAGS: "-G Ninja"}
+          # HACK(strager): -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES omits
+          # references to .a files in the linkmap, breaking collect-copyright.
+          - {runs_on: macos-15, name: "macOS AArch64", platform_arch: "darwin-arm64", test: true, CFLAGS: "-mmacosx-version-min=11.0", CMAKE_FLAGS: "-G Ninja -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=NO"}
           - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-baseline-builder:v1", LDFLAGS: "-static-libgcc -static-libstdc++", CMAKE_FLAGS: "-G Ninja"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", platform_arch: "linux-arm", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux AArch64", platform_arch: "linux-arm64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
@@ -120,7 +122,7 @@ jobs:
       matrix:
         os:
           - {runs_on: macos-13, name: "macOS x86_64", platform_arch: "darwin-x64"}
-          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", platform_arch: "darwin-arm64"}
+          - {runs_on: macos-15, name: "macOS AArch64", platform_arch: "darwin-arm64"}
           # FIXME(strager): For some reason, tests fail with the a Docker
           # container.
           - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", xvfb: true}
