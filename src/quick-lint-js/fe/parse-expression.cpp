@@ -77,6 +77,7 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
         expression_cast<Expression::Binary_Operator*>(ast));
     this->warn_on_unintuitive_bitshift_precedence(
         expression_cast<Expression::Binary_Operator*>(ast));
+    this->check_for_nullish_coalescing_with_comparison(*ast);
     break;
   case Expression_Kind::Trailing_Comma: {
     auto& trailing_comma_ast =
@@ -304,6 +305,14 @@ void Parser::visit_compound_or_conditional_assignment_expression(
   this->visit_expression(lhs, v, Variable_Context::rhs);
   this->visit_expression(rhs, v, Variable_Context::rhs);
   this->maybe_visit_assignment(lhs, v, Variable_Assignment_Flags::none);
+}
+
+void Parser::check_for_nullish_coalescing_with_comparison(const Expression &expr) {
+  if (expr.contains_nullish_coalescing() && expr.contains_comparison_operator()) {
+    this->diags_.add(Diag_Mixing_Nullish_Coalescing_With_Comparison{
+        .nullish_coalescing_expression = expr.span(),
+    });
+  }
 }
 
 void Parser::maybe_visit_assignment(Expression* ast, Parse_Visitor_Base& v,

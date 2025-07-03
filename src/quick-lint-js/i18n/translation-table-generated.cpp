@@ -619,6 +619,7 @@ const Translation_Table translation_data = {
         {0, 0, 0, 17, 0, 29},                //
         {0, 0, 0, 0, 0, 53},                 //
         {0, 15, 0, 72, 0, 47},               //
+        {0, 0, 0, 0, 0, 60},                 //
     }}),
 
     // clang-format off
@@ -644,6 +645,7 @@ const Translation_Table translation_data = {
         u8"if-Anweisung\0"
         u8"Ung\u00fcltiges 'in' innerhalb Initialisierung der C-\u00e4hnlichen for-Schleife\0"
         u8"while-Schleife\0"
+        u8"Nullish coalescing operator '??' cannot be used with comparison operators\0"
         u8"with-Anweisung\0"
         u8"'{0}' ist hier\0"
         u8"'{0}' ist f\u00fcr Strings nicht erlaubt. '{1}' anstattdessen verwenden.\0"

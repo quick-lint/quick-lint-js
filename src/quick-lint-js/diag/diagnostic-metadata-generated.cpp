@@ -6975,6 +6975,19 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
         },
       },
     },
+        // Diag_Mixing_Nullish_Coalescing_With_Comparison
+    {
+      .code = 722,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("mixing `??` with `>` or `==` may lead to unexpected behavior; use parentheses to clarify the intended precedence"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Mixing_Nullish_Coalescing_With_Comparison, nullish_coalescing_expression), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
 };
 }
 
