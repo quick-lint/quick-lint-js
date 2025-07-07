@@ -18,8 +18,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 609;
-constexpr std::size_t translation_table_string_table_size = 82687;
+constexpr std::uint16_t translation_table_mapping_table_size = 610;
+constexpr std::size_t translation_table_string_table_size = 82738;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -558,6 +558,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "type annotation is required when using '!' (definite assignment assertion)"sv,
           "type predicates are only allowed as function return types"sv,
           "type {0} is being defined here"sv,
+          "typeof comparison with invalid string literal: {0}"sv,
           "typeof result is of type string and so will never equal undefined; use 'undefined' instead"sv,
           "unclosed block comment"sv,
           "unclosed class; expected '}' by end of file"sv,
