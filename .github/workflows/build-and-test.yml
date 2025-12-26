@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-13, name: "macOS Clang", CC: clang, CXX: clang++, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", CMAKE_FLAGS: "-G Ninja", homebrew_packages: "ninja"}
+          - {runs_on: macos-14, name: "macOS Clang", CC: clang, CXX: clang++, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", CMAKE_FLAGS: "-G Ninja", homebrew_packages: "ninja"}
           - {runs_on: ubuntu-latest, name: "Clang 13 libc++", container: "ghcr.io/quick-lint/quick-lint-js-github-clang:v1", CC: clang-13, CXX: clang++-13, CFLAGS: "-stdlib=libc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", CMAKE_FLAGS: "-G Ninja"}
           - {runs_on: ubuntu-latest, name: "Clang 13 libstdc++", container: "ghcr.io/quick-lint/quick-lint-js-github-clang:v1", CC: clang-13, CXX: clang++-13, CFLAGS: "-stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", CMAKE_FLAGS: "-G Ninja"}
           - {runs_on: ubuntu-latest, name: "Clang 13 ASAN+UBSAN libstdc++", container: "ghcr.io/quick-lint/quick-lint-js-github-clang:v1", CC: clang-13, CXX: clang++-13, CFLAGS: "-fsanitize=address,undefined -fsanitize-address-use-after-scope -fno-sanitize-recover=address,undefined -stdlib=libstdc++", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{1}", ASAN_OPTIONS: "strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1", CMAKE_FLAGS: "-G Ninja"}
