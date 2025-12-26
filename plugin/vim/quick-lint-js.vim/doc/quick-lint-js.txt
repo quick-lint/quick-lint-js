@@ -205,17 +205,17 @@ module directly: >
     nvim_lsp.quick_lint_js.setup {}
 
 quick-lint-js is fast. To feel the speed, you might want to lint while in
-insert mode. Edit the "handlers" key in the setup function call to make
+insert mode. Edit the "on_attach" key in the setup function call to make
 JavaScript linting as fast as possible: >
 
     require('lspconfig/quick_lint_js').setup {
-      handlers = {
-        ['textDocument/publishDiagnostics'] = vim.lsp.with(
-          vim.lsp.diagnostic.on_publish_diagnostics, {
-            update_in_insert = true
-          }
-        )
-      }
+      on_attach = function(client, bufnr)
+        if client.name == "quick-lint-js" then
+          vim.diagnostic.config({
+            update_in_insert = true,
+          }, client.id)
+        end
+      end,
     }
 
 The `setup` function can take the following configuration options:
