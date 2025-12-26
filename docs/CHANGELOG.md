@@ -17,8 +17,8 @@ Semantic Versioning.
   string and so will never equal undefined; use 'undefined' instead").
   (Implemented by [CoderMuffin][].) ([#1207][])
 * Emacs: The Eglot plugin now supports `typescript-mode`.
-* Unicode 16 is now supported, including new Cyrillic code points in
-  identifiers.
+* Unicode 16 and Unicode 17 are now supported, including new Cyrillic code
+  points in identifiers.
 
 ### Fixed
 

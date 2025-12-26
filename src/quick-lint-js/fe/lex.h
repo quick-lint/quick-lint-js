@@ -199,7 +199,7 @@ class Lexer {
   static const std::uint8_t unicode_tables_chunks[];
 
   using Unicode_Table_Chunk_Index_Type = std::uint8_t;
-  static constexpr std::size_t identifier_start_chunk_indexes_size = 804;
+  static constexpr std::size_t identifier_start_chunk_indexes_size = 821;
   static const Unicode_Table_Chunk_Index_Type identifier_start_chunk_indexes[];
 
   static constexpr std::size_t identifier_part_chunk_indexes_size = 3586;

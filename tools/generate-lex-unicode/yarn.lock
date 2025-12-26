@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@unicode/unicode-16.0.0@*":
-  version "1.6.6"
-  resolved "https://registry.yarnpkg.com/@unicode/unicode-16.0.0/-/unicode-16.0.0-1.6.6.tgz#b4c4b7d2b8976cb6b322ff553308862e6da0cc23"
-  integrity sha512-NQRvvfCYA+bZztjMRN8xgAELYDxBRDHEQaU648UYd4leEUkiEOBlezGLvZKvzA9wiN04GbNypXcrEGQxuU0Wxw==
+"@unicode/unicode-17.0.0@*":
+  version "1.6.16"
+  resolved "https://registry.yarnpkg.com/@unicode/unicode-17.0.0/-/unicode-17.0.0-1.6.16.tgz#23150e81c1b452e831b700a0f3c2bf1a6b9dc205"
+  integrity sha512-advq5p36zZ+PDRUpDkWcHHR++R19kx0LYB5iG3bj0KB8mYVKg0ywS996e2bXeXxDb8XdOF7KTivcx7VkYie1pg==
 
 prettier@^2.8.4:
   version "2.8.4"

@@ -1476,6 +1476,9 @@ TEST_F(Test_Lex, non_ascii_identifier) {
 
   // CYRILLIC CAPITAL LETTER TJE, introduced in Unicode 16.
   this->check_single_token(u8"\u1c89"_sv, u8"\u1c89"_sv);
+
+  // CJK UNIFIED IDEOGRAPH-33479, introduced in Unicode 17.
+  this->check_single_token(u8"\U00033479"_sv, u8"\U00033479"_sv);
 }
 
 TEST_F(Test_Lex, non_ascii_identifier_with_escape_sequence) {
