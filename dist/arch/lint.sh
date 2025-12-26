@@ -26,6 +26,15 @@ trap 'rm -f "${errors}"' EXIT
 # check fails on libm. Even with -Wl,--as-needed, the linker keeps the NEEDED
 # entry, so I don't know how to work around the libm dependency.
 namcap --exclude=emptydir,symlink,unusedsodepends PKGBUILD-dev PKGBUILD-git PKGBUILD-release ./quick-lint-js-*.pkg.tar.zst |& tee "${errors}"
+# HACK(strager): --exclude doesn't work properly in namcap, probably as of
+# commit
+# <https://gitlab.archlinux.org/pacman/namcap/-/commit/6b19729433dd5c3d2d6be0d6f60732fefb006749>
+# (unconfirmed). Manually filter out errors that we wish to exclude.
+sed -i \
+    -e '\,Directory (usr/src/debug/quick-lint-js-dev/quick-lint-js/build) is empty,d' \
+    -e '\,Symlink (usr/lib/debug/\.build-id/5f/.*) points to non-existing \.\./\.\./\.\./\.\./bin/quick-lint-js,d' \
+    "${errors}"
+
 if [ -s "${errors}" ]; then
   printf 'error: namcap reported an error\n' >&2
   exit 1
