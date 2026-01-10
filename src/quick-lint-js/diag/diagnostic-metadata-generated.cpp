@@ -6848,6 +6848,20 @@ const QLJS_CONSTINIT Diagnostic_Info all_diagnostic_infos[] = {
       },
     },
 
+    // Diag_Equality_Check_Used_As_Statement
+    {
+      .code = 459,
+      .severity = Diagnostic_Severity::warning,
+      .message_formats = {
+        QLJS_TRANSLATABLE("equality check result is unused; did you mean to use assignment (=) instead?"),
+      },
+      .message_args = {
+        {
+          Diagnostic_Message_Arg_Info(offsetof(Diag_Equality_Check_Used_As_Statement, equals_operator), Diagnostic_Arg_Type::source_code_span),
+        },
+      },
+    },
+
     // Diag_Expected_Expression_In_Template_Literal
     {
       .code = 711,

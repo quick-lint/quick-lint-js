@@ -27,7 +27,7 @@ struct Translated_String {
 };
 
 // clang-format off
-inline const Translated_String test_translation_table[608] = {
+inline const Translated_String test_translation_table[609] = {
     {
         "\"global-groups\" entries must be strings"_translatable,
         u8"\"global-groups\" entries must be strings",
@@ -2974,6 +2974,17 @@ inline const Translated_String test_translation_table[608] = {
             u8"enum member needs initializer",
             u8"membro do enum precisa de um inicializador",
             u8"enum member needs initializer",
+        },
+    },
+    {
+        "equality check result is unused; did you mean to use assignment (=) instead?"_translatable,
+        u8"equality check result is unused; did you mean to use assignment (=) instead?",
+        {
+            u8"equality check result is unused; did you mean to use assignment (=) instead?",
+            u8"equality check result is unused; did you mean to use assignment (=) instead?",
+            u8"equality check result is unused; did you mean to use assignment (=) instead?",
+            u8"equality check result is unused; did you mean to use assignment (=) instead?",
+            u8"equality check result is unused; did you mean to use assignment (=) instead?",
         },
     },
     {
