@@ -543,8 +543,16 @@ bool Lexer::try_parse_current_token() {
     break;
 
   case '<':
-    if (this->input_[1] == '!' && this->input_[2] == '-' &&
-        this->input_[3] == '-') {
+  // checking for EJS or PHP syntax
+    if((this->input_[0] == '<' && (this->input_[1] == '%')) || (this->input_[0] == '?')){
+      this->diag_reporter_->report(Diag_EJS_or_PHP_Syntax_Detected{
+        Source_Code_Span(&this->input_[0], &this->input_[2])
+      });
+      // moving the input pointer after detecting sequence
+      this->input_+=2;
+      return false;
+    }else if (this->input_[1] == '!' && this->input_[2] == '-' &&
+      this->input_[3] == '-') {
       this->input_ += 4;
       this->skip_line_comment_body();
       return false;
