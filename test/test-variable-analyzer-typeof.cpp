@@ -66,6 +66,13 @@ TEST(
       u8"^ Diag_Use_Of_Undeclared_Variable.name"_diag,
       typescript_analyze_options, default_globals);
 }
+
+TEST(Test_Variable_Analyzer_Typeof, typeof_comparison_invalid_string_literals) {
+  test_parse_and_analyze(
+      u8"let v = 5; typeof v == 'nmber'"_sv,
+      u8"                       ^^^^^^^ Diag_Typeof_Invalid_String_Comparison"_diag,
+      typescript_analyze_options, default_globals);
+}
 }
 }
 

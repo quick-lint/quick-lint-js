@@ -540,6 +540,60 @@ void Parser::warn_on_typeof_variable_equals_undefined(
   }
 }
 
+void Parser::warn_on_typeof_variable_equals_invalid_literal(
+    Expression::Binary_Operator* ast) {
+  static const auto existingLiterals =
+      std::to_array<std::basic_string_view<char8_t>>(
+          {u8"undefined", u8"object", u8"boolean", u8"number", u8"bigint",
+           u8"string", u8"symbol", u8"function"});
+
+  auto is_comparison_operator = [](String8_View s) -> bool {
+    return s == u8"=="_sv || s == u8"==="_sv || s == u8"!="_sv ||
+           s == u8"!=="_sv;
+  };
+
+  auto normalize = [](String8_View str) -> String8_View {
+    auto start = str.find_first_not_of(u8"'\"\\");
+    if (start == String8_View::npos) {
+      return {};
+    }
+    auto end = str.find_last_not_of(u8"'\"\\");
+    if (end == String8_View::npos || end < start) {
+      return {};
+    }
+    return str.substr(start, end - start + 1);
+  };
+
+  for (Span_Size i = 0; i < ast->child_count() - 1; i++) {
+    Source_Code_Span eq_span = ast->operator_spans_[i];
+    if (is_comparison_operator(eq_span.string_view())) {
+      Expression* typeof_op = ast->child(i)->without_paren();
+      Expression* literal = ast->child(i + 1)->without_paren();
+      if (typeof_op->kind() == Expression_Kind::Typeof &&
+          literal->kind() == Expression_Kind::Literal) {
+        // fallthrough
+      } else if (literal->kind() == Expression_Kind::Typeof &&
+                 typeof_op->kind() == Expression_Kind::Literal) {
+        std::swap(literal, typeof_op);
+        // falltrough
+      } else {
+        continue;  // does not match
+      }
+
+      Expression::Literal* type_literal =
+          expression_cast<Expression::Literal*>(literal);
+      String8_View literal_value =
+          normalize(type_literal->span().string_view());
+
+      if (std::find(existingLiterals.begin(), existingLiterals.end(),
+                    literal_value) == existingLiterals.end()) {
+        this->diags_.add(Diag_Typeof_Invalid_String_Comparison{
+            .literal = type_literal->span()});
+      }
+    }
+  }
+}
+
 void Parser::error_on_pointless_compare_against_literal(
     Expression::Binary_Operator* ast) {
   auto is_comparison_operator = [](String8_View s) -> bool {

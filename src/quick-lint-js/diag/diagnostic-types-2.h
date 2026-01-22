@@ -788,10 +788,10 @@ struct Diag_Duplicated_Cases_In_Switch_Statement {
 
 struct Diag_Fallthrough_Without_Comment_In_Switch {
   [[qljs::diag("E0427", Diagnostic_Severity::warning)]]  //
-  [
-      [qljs::message("missing 'break;' or '// fallthrough' comment between "
-                     "statement and 'case'",
-                     ARG(end_of_case))]]  //
+  [[qljs::message(
+      "missing 'break;' or '// fallthrough' comment between "
+      "statement and 'case'",
+      ARG(end_of_case))]]  //
   Source_Code_Span end_of_case;
 };
 
@@ -2281,10 +2281,10 @@ struct Diag_TypeScript_Delete_Cannot_Delete_Variables {
 
 struct Diag_TypeScript_Definite_Assignment_Assertion_In_Ambient_Context {
   [[qljs::diag("E0445", Diagnostic_Severity::error)]]  //
-  [
-      [qljs::message("'!' (definite assignment assertion) is not allowed on "
-                     "'declare' variables",
-                     ARG(definite_assignment_assertion))]]  //
+  [[qljs::message(
+      "'!' (definite assignment assertion) is not allowed on "
+      "'declare' variables",
+      ARG(definite_assignment_assertion))]]  //
   [[qljs::message("'declare' here",
                   ARG(declare_keyword))]]  //
   Source_Code_Span definite_assignment_assertion;
@@ -2309,10 +2309,10 @@ struct Diag_TypeScript_Definite_Assignment_Assertion_On_Const {
 
 struct Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer {
   [[qljs::diag("E0442", Diagnostic_Severity::error)]]  //
-  [
-      [qljs::message("'!' (definite assignment assertion) cannot be used with "
-                     "an initial value",
-                     ARG(definite_assignment_assertion))]]  //
+  [[qljs::message(
+      "'!' (definite assignment assertion) cannot be used with "
+      "an initial value",
+      ARG(definite_assignment_assertion))]]  //
   [[qljs::message("initial value was given here",
                   ARG(equal))]]  //
   Source_Code_Span definite_assignment_assertion;
@@ -2321,10 +2321,10 @@ struct Diag_TypeScript_Definite_Assignment_Assertion_With_Initializer {
 
 struct Diag_TypeScript_Definite_Assignment_Assertion_Without_Type_Annotation {
   [[qljs::diag("E0443", Diagnostic_Severity::error)]]  //
-  [
-      [qljs::message("type annotation is required when using '!' (definite "
-                     "assignment assertion)",
-                     ARG(definite_assignment_assertion))]]  //
+  [[qljs::message(
+      "type annotation is required when using '!' (definite "
+      "assignment assertion)",
+      ARG(definite_assignment_assertion))]]  //
   Source_Code_Span definite_assignment_assertion;
 };
 
@@ -2586,10 +2586,10 @@ struct Diag_TypeScript_Declare_Field_Not_Allowed_In_JavaScript {
 
 struct Diag_TypeScript_Declare_Field_Cannot_Use_Private_Identifier {
   [[qljs::diag("E0416", Diagnostic_Severity::error)]]  //
-  [
-      [qljs::message("private identifiers are not allowed for 'declare' "
-                     "fields; use 'private' instead",
-                     ARG(private_identifier_hash))]]         //
+  [[qljs::message(
+      "private identifiers are not allowed for 'declare' "
+      "fields; use 'private' instead",
+      ARG(private_identifier_hash))]]                        //
   [[qljs::message("'declare' here", ARG(declare_keyword))]]  //
   Source_Code_Span private_identifier_hash;
   Source_Code_Span declare_keyword;
@@ -3621,14 +3621,21 @@ struct Diag_TypeScript_Namespace_Alias_Cannot_Use_Import_Type {
 
 struct Diag_Confusing_Let_Call {
   [[qljs::diag("E0720", Diagnostic_Severity::warning)]]  //
-  [
-      [qljs::message("function 'let' call may be confused for destructuring; "
-                     "remove parentheses to declare a variable",
-                     ARG(let_function_call))]]  //
+  [[qljs::message(
+      "function 'let' call may be confused for destructuring; "
+      "remove parentheses to declare a variable",
+      ARG(let_function_call))]]  //
   Source_Code_Span let_function_call;
 };
 
+struct Diag_Typeof_Invalid_String_Comparison {
+  [[qljs::diag("E0721", Diagnostic_Severity::warning)]]  //
+  [[qljs::message("typeof comparison with invalid string literal: {0}",
+                  ARG(literal))]]  //
+  Source_Code_Span literal;
+};
 }
+
 QLJS_WARNING_POP
 
 // quick-lint-js finds bugs in JavaScript programs.

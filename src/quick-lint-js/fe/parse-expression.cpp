@@ -75,6 +75,8 @@ void Parser::visit_expression(Expression* ast, Parse_Visitor_Base& v,
         expression_cast<Expression::Binary_Operator*>(ast));
     this->warn_on_typeof_variable_equals_undefined(
         expression_cast<Expression::Binary_Operator*>(ast));
+    this->warn_on_typeof_variable_equals_invalid_literal(
+        expression_cast<Expression::Binary_Operator*>(ast));
     this->warn_on_unintuitive_bitshift_precedence(
         expression_cast<Expression::Binary_Operator*>(ast));
     break;
@@ -518,11 +520,10 @@ Expression* Parser::parse_primary_expression(Parse_Visitor_Base& v,
     Expression* ast =
         type == Token_Type::kw_delete
             ? this->make_expression<Expression::Delete>(child, operator_span)
-            : type == Token_Type::kw_typeof
-                  ? this->make_expression<Expression::Typeof>(child,
-                                                              operator_span)
-                  : this->make_expression<Expression::Unary_Operator>(
-                        child, operator_span);
+        : type == Token_Type::kw_typeof
+            ? this->make_expression<Expression::Typeof>(child, operator_span)
+            : this->make_expression<Expression::Unary_Operator>(child,
+                                                                operator_span);
     return ast;
   }
 
@@ -1683,7 +1684,7 @@ next:
   // x += y
   // x[y] &&= z
   QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
-  QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR : {
+  QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR: {
     if (!prec.math_or_logical_or_assignment) {
       break;
     }
@@ -3016,7 +3017,7 @@ Expression* Parser::parse_object_literal(Parse_Visitor_Base& v) {
           break;
         }
 
-        QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD : {
+        QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD: {
           Expression* value =
               this->make_expression<Expression::Missing>(key_token.span());
           this->diags_.add(Diag_Missing_Value_For_Object_Literal_Entry{
@@ -3990,10 +3991,11 @@ next:
             .opening_tag_name =
                 tag_namespace
                     ? Source_Code_Span(tag_namespace->span().begin(), tag_end)
-                    : !tag_members.empty()
-                          ? Source_Code_Span(tag_members.front().span().begin(),
-                                             tag_end)
-                          : tag ? tag->span() : Source_Code_Span::unit(tag_end),
+                : !tag_members.empty()
+                    ? Source_Code_Span(tag_members.front().span().begin(),
+                                       tag_end)
+                : tag ? tag->span()
+                      : Source_Code_Span::unit(tag_end),
             .closing_tag_name =
                 closing_tag_begin <= closing_tag_end
                     ? Source_Code_Span(closing_tag_begin, closing_tag_end)
