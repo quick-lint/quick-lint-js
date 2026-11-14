@@ -33,12 +33,18 @@ function (quick_lint_js_enable_char8_t_if_supported)
       set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -fchar8_t")
       # On some compilers, -fchar8_t appears to work, unless typeid is used.
       # Avoid -fchar8_t on these broken compilers.
+      #
+      # With Clang 13 and libstdc++ 12, constructing a std::u8string from a
+      # pointer and a length fails to link. Avoid -fchar8_t on these broken
+      # toolchains too.
       check_cxx_source_compiles(
         "#include <cstdio>
+        #include <string>
         #include <typeinfo>
         int main() {
           std::puts(typeid(char8_t).name());
-          return 0;
+          std::u8string s(u8\"hello\", 5);
+          return static_cast<int>(s.size());
         }" QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T)
     else ()
       set(QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T TRUE CACHE BOOL "Whether the -fchar8_t C++ flag works reliably")
