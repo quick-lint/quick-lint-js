@@ -109,6 +109,9 @@ REPORT-FN is Flymake's callback."
     (process-send-region flymake-quicklintjs--proc (point-min) (point-max))
     (process-send-eof flymake-quicklintjs--proc)))
 
+;; Allow running quick-lint-js on "untrusted" buffers.
+(put 'flymake-quicklintjs 'flymake-always-safe t)
+
 (provide 'flymake-quicklintjs)
 
 ;; quick-lint-js finds bugs in JavaScript programs.

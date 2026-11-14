@@ -28,9 +28,7 @@
 (defun quicklintjs-test-main ()
   (setq package-user-dir cache-dir-name
         package-check-signature nil)
-  ; NOTE(strager): MELPA (non-stable) only supports Emacs 25 and newer, causing
-  ; flycheck to fail to install. We choose MELPA Stable because it (as of
-  ; February 2023) supports Emacs version 24.
+  ; Needed for lsp-mode.
   (add-to-list 'package-archives
                '("MELPA Stable" . "https://stable.melpa.org/packages/"))
   (package-initialize)
@@ -166,38 +164,65 @@ foobar\")((16 . 22) 2 \"E0057\" \"use of undeclared variable: foobar\")(\
 
 (defun def-flycheck-tests ()
   (require 'flycheck)
-  (require 'flycheck-ert)
   (require 'flycheck-quicklintjs)
 
   (ert-deftest quicklintjs-is-in-flycheck-checkers ()
     (should (member 'javascript-quicklintjs flycheck-checkers)))
 
-  (flycheck-ert-def-checker-test
-   javascript-quicklintjs javascript error-file-checks
-   (let ((flycheck-checker 'javascript-quicklintjs)
-         (inhibit-message 't))
-     (flycheck-ert-should-syntax-check
-      "test/error.js" 'js-mode
-      '(1 9 error "missing name in function statement"
-          :id "E0061" :checker javascript-quicklintjs
-          :end-line 1 :end-column 9)
-      '(1 12 error "unclosed code block; expected '}' by end of file"
-          :id "E0134" :checker javascript-quicklintjs
-          :end-line 1 :end-column 13)
-      '(2 7 error
-          "unexpected token in variable declaration; expected variable name"
-          :id "E0114" :checker javascript-quicklintjs
-          :end-line 2 :end-column 10))))
+  (ert-deftest quicklintjs-flycheck-error-file-checks ()
+    (should (equal
+             (quicklintjs-flycheck-check-file "error.js")
+             '((1 9 error "missing name in function statement"
+                  :id "E0061" :checker javascript-quicklintjs
+                  :end-line 1 :end-column 9)
+               (1 12 error "unclosed code block; expected '}' by end of file"
+                  :id "E0134" :checker javascript-quicklintjs
+                  :end-line 1 :end-column 13)
+               (2 7 error
+                  "unexpected token in variable declaration; expected variable name"
+                  :id "E0114" :checker javascript-quicklintjs
+                  :end-line 2 :end-column 10)))))
 
-  (flycheck-ert-def-checker-test
-   javascript-quicklintjs javascript warning-file-checks
-   (let ((flycheck-checker 'javascript-quicklintjs)
-         (inhibit-message 't))
-     (flycheck-ert-should-syntax-check
-      "test/warning.js" 'js-mode
-      '(1 1 warning "assignment to undeclared variable"
-          :id "E0059" :checker javascript-quicklintjs
-          :end-line 1 :end-column 2)))))
+  (ert-deftest quicklintjs-flycheck-warning-file-checks ()
+    (should (equal
+             (quicklintjs-flycheck-check-file "warning.js")
+             '((1 1 warning "assignment to undeclared variable"
+                  :id "E0059" :checker javascript-quicklintjs
+                  :end-line 1 :end-column 2))))))
+
+(defun quicklintjs-flycheck-check-file (file-name)
+  "Run the javascript-quicklintjs Flycheck checker on FILE-NAME."
+  (let ((buf (find-file-noselect (expand-file-name file-name
+                                                   quicklintjs-test-dir)))
+        (status nil))
+    (unwind-protect
+        (with-current-buffer buf
+          (let ((flycheck-checker 'javascript-quicklintjs)
+                (flycheck-check-syntax-automatically nil)
+                (inhibit-message t))
+            (js-mode)
+            (flycheck-mode 1)
+            (add-hook 'flycheck-status-changed-functions
+                      (lambda (new-status) (setq status new-status))
+                      nil t)
+            (flycheck-buffer)
+            (with-timeout (5
+                           (ert-fail "Test timed out waiting for flycheck."))
+              (while (not (memq status '(finished errored suspicious
+                                         interrupted no-checker)))
+                (accept-process-output nil 0.01)))
+            (should (eq status 'finished))
+            (mapcar (lambda (err)
+                      (list (flycheck-error-line err)
+                            (flycheck-error-column err)
+                            (flycheck-error-level err)
+                            (flycheck-error-message err)
+                            :id (flycheck-error-id err)
+                            :checker (flycheck-error-checker err)
+                            :end-line (flycheck-error-end-line err)
+                            :end-column (flycheck-error-end-column err)))
+                    (seq-sort #'flycheck-error-< flycheck-current-errors))))
+      (kill-buffer buf))))
 
 ;; quick-lint-js finds bugs in JavaScript programs.
 ;; Copyright (C) 2020  Matthew "strager" Glazar
