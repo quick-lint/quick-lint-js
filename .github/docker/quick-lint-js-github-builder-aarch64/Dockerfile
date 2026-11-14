@@ -1,8 +1,8 @@
-FROM debian:buster
+FROM debian:bookworm
 
 RUN \
     apt-get update && \
-    sed -n -e 's/^deb /deb-src /p' /etc/apt/sources.list >/etc/apt/sources.list.d/quick-lint-js-sources.list && \
+    sed -i -e 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/debian.sources && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       build-essential \
       cmake \
@@ -16,7 +16,7 @@ RUN \
       ninja-build \
       nodejs \
       pkg-config \
-      python3.7 \
+      python3 \
       sudo \
       tar \
       unzip \

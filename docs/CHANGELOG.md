@@ -31,6 +31,13 @@ Semantic Versioning.
   "namespace aliases" instead of "import aliases". (Implemented by
   [UnfairBots][].) ([#1138][])
 
+### Changed
+
+* Support for Debian 10 Buster and Debian 11 Bullseye has been dropped.
+* Pre-built Linux binary packages now build against glibc version 2.31.
+  Compatibility with distributions using an older version of glibc is not
+  guaranteed.
+
 ## 3.2.0 (2024-03-03)
 
 [Downloads](https://c.quick-lint-js.com/releases/3.2.0/)

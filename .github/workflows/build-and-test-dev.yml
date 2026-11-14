@@ -16,7 +16,6 @@ jobs:
       matrix:
         toolchain:
           - {docker_container: "archlinux:base", name: "Arch Linux", install_dependencies_script: "pacman -Syyuu --noconfirm cmake gcc ninja", extra_environment: ""}
-          - {docker_container: "debian:bullseye", name: "Debian 11 Bullseye", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
           - {docker_container: "debian:bookworm", name: "Debian 12 Bookworm", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
           - {docker_container: "debian:trixie", name: "Debian 13 Trixie", install_dependencies_script: "apt-get update && apt-get install -y cmake g++ ninja-build", extra_environment: ""}
           - {docker_container: "fedora:38", name: "Fedora 38", install_dependencies_script: "dnf install -y cmake gcc-c++ ninja-build", extra_environment: ""}

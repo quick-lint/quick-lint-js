@@ -15,7 +15,7 @@ jobs:
       matrix:
         toolchain:
           - {runs_on: macos-14, name: "macOS"}
-          - {runs_on: ubuntu-latest, name: "Linux", "ghcr.io/quick-lint/quick-lint-js-github-gcc:v1"}
+          - {runs_on: ubuntu-latest, name: "Linux", "ghcr.io/quick-lint/quick-lint-js-github-gcc:v2"}
     runs-on: ${{ matrix.toolchain.runs_on }}
     container: ${{ matrix.toolchain.container }}
 

@@ -18,7 +18,7 @@ jobs:
           # references to .a files in the linkmap, breaking collect-copyright.
           - {runs_on: macos-14, name: "macOS x86_64", archive_name: "macos", archive_extension: ".tar.gz", test: true, CFLAGS: "-mmacosx-version-min=10.9", CMAKE_FLAGS: "-G Ninja -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=NO", homebrew_packages: "ninja"}
           - {runs_on: macos-15, name: "macOS AArch64", archive_name: "macos-aarch64", archive_extension: ".tar.gz", test: true, CFLAGS: "-mmacosx-version-min=11.0", CMAKE_FLAGS: "-G Ninja -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=NO"}
-          - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-baseline-builder:v1", test: true, LDFLAGS: "-static-libgcc -static-libstdc++", CMAKE_FLAGS: "-G Ninja"}
+          - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-baseline-builder:v2", test: true, LDFLAGS: "-static-libgcc -static-libstdc++", CMAKE_FLAGS: "-G Ninja"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", archive_name: "linux-armhf", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", test: false, cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux AArch64", archive_name: "linux-aarch64", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v3", test: false, cross_compiling: true, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           # HACK(strager): -Wl,-allow-multiple-definition works around a GCC bug: https://sourceware.org/bugzilla/show_bug.cgi?id=12762
@@ -150,7 +150,6 @@ jobs:
           - {runs_on: macos-14, name: "macOS 14 (x86_64)", archive_name: "macos", exe_file: "bin/quick-lint-js"}
           # TODO(strager): Test ARM64 macOS.
           - {runs_on: ubuntu-latest, docker_container: "archlinux:base", name: "Arch Linux", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "debian:bullseye", name: "Debian 11 Bullseye", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:bookworm", name: "Debian 12 Bookworm", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:trixie", name: "Debian 13 Trixie", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "fedora:35", name: "Fedora 35", archive_name: "linux", exe_file: "bin/quick-lint-js"}

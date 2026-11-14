@@ -17,7 +17,7 @@ jobs:
           - {name: "Neovim", version_command: "nvim --version", test_command: "./plugin/vim/test-nvim.sh", artifact_suffix: "-vim"}
           - {name: "Vim", version_command: "vim --version", test_command: "./plugin/vim/test-vim.sh", artifact_suffix: "-neovim"}
     runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-vim:v1
+    container: ghcr.io/quick-lint/quick-lint-js-github-vim:v2
     steps:
       - name: checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
