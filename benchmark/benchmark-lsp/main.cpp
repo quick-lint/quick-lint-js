@@ -17,7 +17,14 @@
 #include <quick-lint-js/lsp-benchmarks.h>
 #include <quick-lint-js/lsp-logging.h>
 #include <quick-lint-js/lsp-server-process.h>
+#include <quick-lint-js/port/warning.h>
 #include <unistd.h>
+
+// HACK(strager): GCC 12 reports -Wzero-as-null-pointer-constant for the closing
+// brace of every coroutine.
+#if __GNUC__ == 12
+QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
+#endif
 
 using namespace quick_lint_js;
 using namespace std::literals::string_view_literals;
@@ -283,18 +290,18 @@ Parsed_Args parse_arguments(int argc, char** argv) {
       }
     } else if (parser.match_flag_option("--list"sv, "--list"sv)) {
       args.list_benchmarks = true;
-    } else if (const char* arg_value =
+    } else if (const char* output_json_path =
                    parser.match_option_with_value("--output-json"sv)) {
-      args.output_json_path = arg_value;
-    } else if (const char* arg_value =
+      args.output_json_path = output_json_path;
+    } else if (const char* samples =
                    parser.match_option_with_value("--samples"sv)) {
-      args.run_config.samples = read_number(arg_value);
-    } else if (const char* arg_value =
+      args.run_config.samples = read_number(samples);
+    } else if (const char* iterations =
                    parser.match_option_with_value("--iterations"sv)) {
-      args.run_config.measurement_iterations = read_number(arg_value);
-    } else if (const char* arg_value =
+      args.run_config.measurement_iterations = read_number(iterations);
+    } else if (const char* warmup_iterations =
                    parser.match_option_with_value("--warmup-iterations"sv)) {
-      args.run_config.warmup_iterations = read_number(arg_value);
+      args.run_config.warmup_iterations = read_number(warmup_iterations);
     } else {
       const char* unrecognized = parser.match_anything();
       std::fprintf(stderr, "error: invalid option: %s\n", unrecognized);

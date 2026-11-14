@@ -18,6 +18,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/memory-resource.h>
+#include <quick-lint-js/port/warning.h>
 #include <simdjson.h>
 #include <type_traits>
 #include <unistd.h>
@@ -33,6 +34,13 @@
 
 #if QLJS_HAVE_POLL
 #include <poll.h>
+#endif
+
+QLJS_WARNING_PUSH
+// HACK(strager): GCC 12 reports -Wzero-as-null-pointer-constant for the closing
+// brace of every coroutine.
+#if __GNUC__ == 12
+QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 #endif
 
 namespace quick_lint_js {
@@ -410,6 +418,8 @@ class LSP_Server_Process : private Event_Loop_Pipe_Read_Delegate
   std::int64_t text_document_sync_kind_ = TEXT_DOCUMENT_SYNC_KIND_NONE;
 };
 }
+
+QLJS_WARNING_POP
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

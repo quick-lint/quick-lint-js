@@ -5,7 +5,19 @@
 
 #include <memory>
 #include <quick-lint-js/lsp-server-process.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
+
+QLJS_WARNING_PUSH
+#if __GNUC__ == 12
+// HACK(strager): GCC 12 reports -Wzero-as-null-pointer-constant for the closing
+// brace of every coroutine.
+QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
+// HACK(strager): GCC 12 incorrectly reports these diagnostics for
+// Benchmark::is_supported().
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-final-methods")
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-final-types")
+#endif
 
 namespace quick_lint_js {
 class Benchmark {
@@ -35,6 +47,8 @@ using Benchmark_Factory = std::unique_ptr<Benchmark> (*)();
 
 std::vector<Benchmark_Factory> get_benchmark_factories();
 }
+
+QLJS_WARNING_POP
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

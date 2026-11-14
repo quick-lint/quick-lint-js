@@ -129,9 +129,9 @@ std::map<std::string, std::string> get_yarn_packages_versions(
     std::size_t version_separator_index = full_package_name.rfind('@');
     QLJS_ALWAYS_ASSERT(version_separator_index != full_package_name.npos);
     std::string_view package_name =
-        std::string_view(full_package_name).substr(0, version_separator_index);
+        full_package_name.substr(0, version_separator_index);
     std::string_view package_version =
-        std::string_view(full_package_name).substr(version_separator_index + 1);
+        full_package_name.substr(version_separator_index + 1);
     auto [_it, inserted] = package_versions.try_emplace(
         std::string(package_name), package_version);
     // If the following assertion fails, 'yarn list' gave multiple entries for

@@ -14,6 +14,7 @@
 #include <quick-lint-js/lsp-logging.h>
 #include <quick-lint-js/lsp-server-process.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/process.h>
 #include <quick-lint-js/util/cast.h>
 #include <signal.h>
@@ -27,6 +28,12 @@
 extern "C" {
 extern char** environ;
 }
+
+// HACK(strager): GCC 12 reports -Wzero-as-null-pointer-constant for the closing
+// brace of every coroutine.
+#if __GNUC__ == 12
+QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
+#endif
 
 namespace quick_lint_js {
 Byte_Buffer make_text_document_did_open_notification(String8_View uri,
