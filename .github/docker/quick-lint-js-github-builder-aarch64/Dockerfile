@@ -12,6 +12,7 @@ RUN \
       git \
       libgmock-dev \
       libgtest-dev \
+      libsimdjson-dev \
       lintian \
       ninja-build \
       nodejs \

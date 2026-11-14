@@ -16,7 +16,7 @@ jobs:
       matrix:
         os:
           - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-baseline-builder:v2", build_env: ""}
-          - {arch: arm64, runs_on: ubuntu-24.04-arm, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v2", build_env: ""}
+          - {arch: arm64, runs_on: ubuntu-24.04-arm, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v3", build_env: ""}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
     steps:

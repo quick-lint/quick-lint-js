@@ -21,11 +21,19 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/cast.h>
 #include <thread>
 
 #if QLJS_HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+
+// GCC 12 reports false positive warnings for some inlined
+// std::basic_string operations (such as operator+).
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ == 12
+QLJS_WARNING_IGNORE_GCC("-Wstringop-overflow")
+QLJS_WARNING_IGNORE_GCC("-Wrestrict")
 #endif
 
 using namespace std::literals::chrono_literals;

@@ -10,6 +10,7 @@
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/type-traits.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/integer.h>
 
@@ -63,6 +64,12 @@ class Output_Stream {
   void append_padded_decimal_integer(
       T value, int pad_width,
       std::enable_if_t<std::is_unsigned_v<T>, Char8> pad_character) {
+    QLJS_WARNING_PUSH
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ == 12
+    QLJS_WARNING_IGNORE_GCC("-Warray-bounds")
+    QLJS_WARNING_IGNORE_GCC("-Wstringop-overflow")
+#endif
+
     int max_width = (std::max)(integer_string_length<T>, pad_width);
     this->append(max_width, [&](Char8* out) -> int {
       Char8* integer_end = write_integer<T>(value, out);
@@ -83,6 +90,8 @@ class Output_Stream {
       }
       return pad_width;
     });
+
+    QLJS_WARNING_POP
   }
 
   template <class T>

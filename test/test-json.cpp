@@ -5,8 +5,16 @@
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/cast.h>
 #include <simdjson.h>
+
+// GCC 12 reports false positive warnings for some inlined
+// std::basic_string operations (such as operator+).
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ == 12
+QLJS_WARNING_IGNORE_GCC("-Warray-bounds")
+QLJS_WARNING_IGNORE_GCC("-Wstringop-overread")
+#endif
 
 namespace quick_lint_js {
 namespace {

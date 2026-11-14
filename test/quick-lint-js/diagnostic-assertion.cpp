@@ -145,7 +145,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
             string += u8'{';
             p += 2;  // Skip '{{'.
           } else {
-            errors.push_back("'{' must be escaped with '{'");
+            errors.emplace_back("'{' must be escaped with '{'");
             p += 1;  // Skip '{'.
           }
         } else if (p[0] == u8'}') {
@@ -157,7 +157,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
             return string.release_to_string_view();
           }
         } else if (p[0] == u8'\0') {
-          errors.push_back("expected closing '}'");
+          errors.emplace_back("expected closing '}'");
           return String8_View();
         } else {
           string += p[0];
@@ -243,7 +243,7 @@ Diagnostic_Assertion::parse(const Char8* specification) {
     ++lexer.p;
     String8_View name = lexer.parse_identifier();
     if (name.empty()) {
-      lexer.errors.push_back("expected member variable name after '{.'");
+      lexer.errors.emplace_back("expected member variable name after '{.'");
     }
 
     if (*lexer.p != u8'=') {

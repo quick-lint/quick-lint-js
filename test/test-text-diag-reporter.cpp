@@ -10,7 +10,15 @@
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
+
+// GCC 12 reports false positive warnings for some inlined
+// std::basic_string operations (such as operator+).
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ == 12
+QLJS_WARNING_IGNORE_GCC("-Warray-bounds")
+QLJS_WARNING_IGNORE_GCC("-Wstringop-overflow")
+#endif
 
 using namespace std::literals::string_literals;
 

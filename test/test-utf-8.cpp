@@ -11,6 +11,13 @@
 #include <quick-lint-js/util/cast.h>
 #include <quick-lint-js/util/utf-8.h>
 
+// GCC 12 reports false positive warnings for some inlined
+// std::basic_string operations (such as operator+).
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ == 12
+QLJS_WARNING_IGNORE_GCC("-Warray-bounds")
+QLJS_WARNING_IGNORE_GCC("-Wstringop-overread")
+#endif
+
 #define EXPECT_ENCODE_UTF_8(code_point, expected)        \
   do {                                                   \
     String8 out((expected).size(), u8'\0');              \
