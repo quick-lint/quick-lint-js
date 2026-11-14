@@ -1,5 +1,7 @@
 # <img src="dist/artwork/dusty-right.svg" alt="" title="Dusty, the quick-lint-js mascot" width="46.4" height="36" align="top"> quick-lint-js
 
+**⚠️ This project is currently not maintained. ⚠️**
+
 quick-lint-js finds bugs in JavaScript programs.
 
 quick-lint-js finds many bugs, including:
