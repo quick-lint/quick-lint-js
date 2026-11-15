@@ -14,7 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-14, name: "macOS 14 (x86_64)"}
+          - {runs_on: macos-15, name: "macOS 15 (AArch64)"}
+          - {runs_on: macos-15-intel, name: "macOS 15 (x86_64)"}
     runs-on: ${{ matrix.toolchain.runs_on }}
     env:
       HOMEBREW_NO_ANALYTICS: 1
