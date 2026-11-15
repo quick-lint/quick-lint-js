@@ -16,7 +16,7 @@ jobs:
       matrix:
         os:
           - {arch: amd64, runs_on: ubuntu-latest, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-baseline-builder:v2", build_env: ""}
-          - {arch: arm64, runs_on: ubuntu-24.04-arm, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v3", build_env: ""}
+          - {arch: arm64, runs_on: ubuntu-24.04-arm, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder-aarch64:v2", build_env: ""}
     runs-on: ${{ matrix.os.runs_on }}
     container: ${{ matrix.os.docker_container }}
     steps:
@@ -33,7 +33,7 @@ jobs:
         run: git config --global --add safe.directory /__w/quick-lint-js/quick-lint-js
 
       - name: build
-        run: ${{ matrix.os.build_env }} ./dist/debian/build.sh --bionic
+        run: ${{ matrix.os.build_env }} ./dist/debian/build.sh
 
       - name: upload build to workflow
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

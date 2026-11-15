@@ -3,7 +3,7 @@
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@
+	dh $@ --buildsystem=cmake+ninja
 
 # HACK(strager): googletest was compiled without -fchar8_t (default for
 # -std=c++20). It is missing symbols which might be referenced if quick-lint-js
@@ -11,6 +11,10 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 # exists (QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG=YES) but doesn't work
 # (QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T=NO), causing it to build with
 # -fno-char8_t. This fixes undefined symbol errors when linking tests.
+#
+# HACK(strager): To make quick-lint-js easier to install across different
+# distribution versions, use our bundled simdjson instead of the Debian-provided
+# package.
 override_dh_auto_configure:
 	dh_auto_configure -- \
 		-DQUICK_LINT_JS_HAVE_FCHAR8_T_FLAG=YES \
@@ -20,7 +24,7 @@ override_dh_auto_configure:
 		-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON \
 		-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=NO \
 		-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=NO \
-		-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=NO \
+		-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=YES \
 		-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES
 
 override_dh_auto_install:

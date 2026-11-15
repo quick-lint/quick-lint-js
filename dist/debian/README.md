@@ -7,14 +7,10 @@ quick-lint-js on Debian, Ubuntu, and other Linux distributions.
 
 On a Debian-based machine, install dependencies for .deb generation:
 
-    # libgmock-dev, libgtest-dev, libsimdjson-dev, and pkg-config are optional
-    # when building with --bionic.
     $ sudo apt-get install build-essential cmake debhelper dpkg-dev fakeroot git libgmock-dev libgtest-dev libsimdjson-dev lintian pkg-config
 
 Then, run the `build.sh` script:
 
-    # If you are on an old distribution (such as Ubuntu 18.04 Bionic), give
-    # the '--bionic' flag to build.sh.
     $ ./dist/debian/build.sh
 
 The above command will create `dist/debian/quick-lint-js_2.4.2-1_amd64.deb`,

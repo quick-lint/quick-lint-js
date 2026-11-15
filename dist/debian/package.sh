@@ -6,14 +6,12 @@
 set -e
 set -u
 
-variant=default
 output_directory=
 orig_file=
 have_orig_signature=
 sign=
 while [ "${#}" -gt 0 ]; do
   case "${1}" in
-    --bionic) variant=bionic ;;
     --orig) orig_file="$(realpath -- "${2}")" ; shift ;;
     --output-directory) output_directory="$(realpath -- "${2}")" ; shift ;;
     --sign) sign=1 ;;
@@ -57,16 +55,6 @@ tar xzf "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz" -C "${temp_di
 source_dir="${temp_dir}/quick-lint-js-${package_version}"
 
 cp -aL dist/debian/debian "${source_dir}/debian"
-temp_debian_dir="${source_dir}/debian"
-if [ "${variant}" != default ]; then
-  cp -a "dist/debian/debian/changelog-${variant}" "${source_dir}/debian/compat"
-  cp -a "dist/debian/debian/compat-${variant}" "${source_dir}/debian/compat"
-  cp -a "dist/debian/debian/control-${variant}" "${source_dir}/debian/control"
-  cp -a "dist/debian/debian/copyright-${variant}" "${source_dir}/debian/copyright"
-  cp -a "dist/debian/debian/rules-${variant}" "${source_dir}/debian/rules"
-  cp -a "dist/debian/debian/source/lintian-overrides-${variant}" "${source_dir}/debian/source/lintian-overrides"
-fi
-rm "${source_dir}/debian/"{changelog,compat,control,copyright,rules,source/lintian-overrides}-*
 
 (
   cd "${source_dir}"

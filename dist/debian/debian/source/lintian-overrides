@@ -1,2 +1,2 @@
-quick-lint-js source: source-is-missing benchmark/benchmark-lsp/corpus/edex-ui-filesystem.class.js
-quick-lint-js source: source-contains-prebuilt-javascript-object benchmark/benchmark-lsp/corpus/edex-ui-filesystem.class.js
+quick-lint-js source: source-is-missing [benchmark/benchmark-lsp/corpus/edex-ui-filesystem.class.js]
+quick-lint-js source: source-is-missing [website/public/blog/version-3.0/index.ejs.html]

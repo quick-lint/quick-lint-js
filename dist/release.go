@@ -105,7 +105,6 @@ var Steps []Step = []Step{
 		Title: "Update Debian changelogs",
 		Run: func() {
 			for _, changelogFilePath := range []string{
-				"dist/debian/debian/changelog-bionic",
 				"dist/debian/debian/changelog",
 			} {
 				if err := UpdateDebianChangelog(changelogFilePath, VersionFileInfo{
