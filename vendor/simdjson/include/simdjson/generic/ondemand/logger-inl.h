@@ -85,7 +85,7 @@ inline void log_headers() noexcept {
       printf("# skip says 'this is a structural or value I am skipping'\n");
       printf("# +/-skip says 'this is a start/end array or object I am skipping'\n");
       printf("#\n");
-      printf("# The identation of the terms (array, string,...) indicates the depth,\n");
+      printf("# The indentation of the terms (array, string,...) indicates the depth,\n");
       printf("# in addition to the depth being displayed.\n");
       printf("#\n");
       printf("# Every token in the document has a single depth determined by the tokens before it,\n");
@@ -152,7 +152,7 @@ inline void log_line(const json_iterator &iter, token_position index, depth_t de
       printf(" ");
     }
     // printf("| %5u ", *(index+1));
-    printf("| %5u ", depth);
+    printf("| %5i ", depth);
     printf("| %.*s ", int(detail.size()), detail.data());
     printf("|\n");
     fflush(stdout);

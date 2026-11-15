@@ -15,12 +15,12 @@ namespace dom {
 //
 // parser inline implementation
 //
-simdjson_really_inline parser::parser(size_t max_capacity) noexcept
+simdjson_inline parser::parser(size_t max_capacity) noexcept
   : _max_capacity{max_capacity},
     loaded_bytes(nullptr) {
 }
-simdjson_really_inline parser::parser(parser &&other) noexcept = default;
-simdjson_really_inline parser &parser::operator=(parser &&other) noexcept = default;
+simdjson_inline parser::parser(parser &&other) noexcept = default;
+simdjson_inline parser &parser::operator=(parser &&other) noexcept = default;
 
 inline bool parser::is_valid() const noexcept { return valid; }
 inline int parser::get_error_code() const noexcept { return error; }
@@ -42,7 +42,13 @@ inline simdjson_result<size_t> parser::read_file(const std::string &path) noexce
   }
 
   // Get the file size
-  if(std::fseek(fp, 0, SEEK_END) < 0) {
+  int ret;
+#if defined(SIMDJSON_VISUAL_STUDIO) && !SIMDJSON_IS_32BITS
+  ret = _fseeki64(fp, 0, SEEK_END);
+#else
+  ret = std::fseek(fp, 0, SEEK_END);
+#endif // _WIN64
+  if(ret < 0) {
     std::fclose(fp);
     return IO_ERROR;
   }
@@ -118,13 +124,13 @@ inline simdjson_result<element> parser::parse_into_document(document& provided_d
   return provided_doc.root();
 }
 
-simdjson_really_inline simdjson_result<element> parser::parse_into_document(document& provided_doc, const char *buf, size_t len, bool realloc_if_needed) & noexcept {
+simdjson_inline simdjson_result<element> parser::parse_into_document(document& provided_doc, const char *buf, size_t len, bool realloc_if_needed) & noexcept {
   return parse_into_document(provided_doc, reinterpret_cast<const uint8_t *>(buf), len, realloc_if_needed);
 }
-simdjson_really_inline simdjson_result<element> parser::parse_into_document(document& provided_doc, const std::string &s) & noexcept {
+simdjson_inline simdjson_result<element> parser::parse_into_document(document& provided_doc, const std::string &s) & noexcept {
   return parse_into_document(provided_doc, s.data(), s.length(), s.capacity() - s.length() < SIMDJSON_PADDING);
 }
-simdjson_really_inline simdjson_result<element> parser::parse_into_document(document& provided_doc, const padded_string &s) & noexcept {
+simdjson_inline simdjson_result<element> parser::parse_into_document(document& provided_doc, const padded_string &s) & noexcept {
   return parse_into_document(provided_doc, s.data(), s.length(), false);
 }
 
@@ -133,13 +139,13 @@ inline simdjson_result<element> parser::parse(const uint8_t *buf, size_t len, bo
   return parse_into_document(doc, buf, len, realloc_if_needed);
 }
 
-simdjson_really_inline simdjson_result<element> parser::parse(const char *buf, size_t len, bool realloc_if_needed) & noexcept {
+simdjson_inline simdjson_result<element> parser::parse(const char *buf, size_t len, bool realloc_if_needed) & noexcept {
   return parse(reinterpret_cast<const uint8_t *>(buf), len, realloc_if_needed);
 }
-simdjson_really_inline simdjson_result<element> parser::parse(const std::string &s) & noexcept {
+simdjson_inline simdjson_result<element> parser::parse(const std::string &s) & noexcept {
   return parse(s.data(), s.length(), s.capacity() - s.length() < SIMDJSON_PADDING);
 }
-simdjson_really_inline simdjson_result<element> parser::parse(const padded_string &s) & noexcept {
+simdjson_inline simdjson_result<element> parser::parse(const padded_string &s) & noexcept {
   return parse(s.data(), s.length(), false);
 }
 
@@ -157,13 +163,13 @@ inline simdjson_result<document_stream> parser::parse_many(const padded_string &
   return parse_many(s.data(), s.length(), batch_size);
 }
 
-simdjson_really_inline size_t parser::capacity() const noexcept {
+simdjson_inline size_t parser::capacity() const noexcept {
   return implementation ? implementation->capacity() : 0;
 }
-simdjson_really_inline size_t parser::max_capacity() const noexcept {
+simdjson_inline size_t parser::max_capacity() const noexcept {
   return _max_capacity;
 }
-simdjson_really_inline size_t parser::max_depth() const noexcept {
+simdjson_inline size_t parser::max_depth() const noexcept {
   return implementation ? implementation->max_depth() : DEFAULT_MAX_DEPTH;
 }
 
@@ -176,7 +182,7 @@ inline error_code parser::allocate(size_t capacity, size_t max_depth) noexcept {
   if (implementation) {
     err = implementation->allocate(capacity, max_depth);
   } else {
-    err = simdjson::active_implementation->create_dom_parser_implementation(capacity, max_depth, implementation);
+    err = simdjson::get_active_implementation()->create_dom_parser_implementation(capacity, max_depth, implementation);
   }
   if (err) { return err; }
   return SUCCESS;
@@ -216,7 +222,7 @@ inline error_code parser::ensure_capacity(document& target_document, size_t desi
   return SUCCESS;
 }
 
-simdjson_really_inline void parser::set_max_capacity(size_t max_capacity) noexcept {
+simdjson_inline void parser::set_max_capacity(size_t max_capacity) noexcept {
   if(max_capacity < MINIMAL_DOCUMENT_CAPACITY) {
     _max_capacity = max_capacity;
   } else {

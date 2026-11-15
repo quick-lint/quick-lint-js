@@ -3,7 +3,7 @@
 [![Ubuntu 20.04 CI](https://github.com/simdjson/simdjson/workflows/Ubuntu%2020.04%20CI%20(GCC%209)/badge.svg)](https://simdjson.org/plots.html)
 ![VS16-CI](https://github.com/simdjson/simdjson/workflows/VS16-CI/badge.svg)
 ![MinGW64-CI](https://github.com/simdjson/simdjson/workflows/MinGW64-CI/badge.svg)
-[![][license img]][license]  [![Doxygen Documentation](https://img.shields.io/badge/docs-doxygen-green.svg)](https://simdjson.org/api/1.0.0/index.html)
+[![][license img]][license]  [![Doxygen Documentation](https://img.shields.io/badge/docs-doxygen-green.svg)](https://simdjson.org/api/2.0.0/index.html)
 
 simdjson : Parsing gigabytes of JSON per second
 ===============================================
@@ -111,10 +111,12 @@ For NDJSON files, we can exceed 3 GB/s with [our  multithreaded parsing function
 Real-world usage
 ----------------
 
-- [Microsoft FishStore](https://github.com/microsoft/FishStore)
-- [Yandex ClickHouse](https://github.com/yandex/ClickHouse)
+- [ClickHouse](https://github.com/ClickHouse/ClickHouse)
 - [Clang Build Analyzer](https://github.com/aras-p/ClangBuildAnalyzer)
 - [Shopify HeapProfiler](https://github.com/Shopify/heap-profiler)
+- [StarRocks](https://github.com/StarRocks/starrocks)
+- [Microsoft FishStore](https://github.com/microsoft/FishStore)
+
 
 If you are planning to use simdjson in a product, please work from one of our releases.
 
@@ -138,7 +140,8 @@ We distinguish between "bindings" (which just wrap the C++ code) and a port to a
 - [rcppsimdjson](https://github.com/eddelbuettel/rcppsimdjson): R bindings.
 - [simdjson_erlang](https://github.com/ChomperT/simdjson_erlang): erlang bindings.
 - [lua-simdjson](https://github.com/FourierTransformer/lua-simdjson): lua bindings.
-
+- [hermes-json](https://hackage.haskell.org/package/hermes-json): haskell bindings.
+- [simdjzon](https://github.com/travisstaloch/simdjzon): zig port.
 
 About simdjson
 --------------

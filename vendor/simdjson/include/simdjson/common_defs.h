@@ -37,12 +37,12 @@ constexpr size_t SIMDJSON_MAXSIZE_BYTES = 0xFFFFFFFF;
 /**
  * The amount of padding needed in a buffer to parse JSON.
  *
- * the input buf should be readable up to buf + SIMDJSON_PADDING
+ * The input buf should be readable up to buf + SIMDJSON_PADDING
  * this is a stopgap; there should be a better description of the
  * main loop and its behavior that abstracts over this
  * See https://github.com/simdjson/simdjson/issues/174
  */
-constexpr size_t SIMDJSON_PADDING = 32;
+constexpr size_t SIMDJSON_PADDING = 64;
 
 /**
  * By default, simdjson supports this many nested objects and arrays.
@@ -107,14 +107,7 @@ constexpr size_t DEFAULT_MAX_DEPTH = 1024;
 
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO
 
-  #if defined(__SANITIZE_ADDRESS__)
-  // HACK(strager): Compilation takes a long time with GCC 8 and
-  // -fsanitize=address,undefined when forcing inlining. Reduce compile times for
-  // ASAN builds by not forcing inlining for nearly every simdjson function.
-  #define simdjson_really_inline inline
-  #else
   #define simdjson_really_inline inline __attribute__((always_inline))
-  #endif
   #define simdjson_never_inline inline __attribute__((noinline))
 
   #define simdjson_unused __attribute__((unused))
@@ -129,6 +122,9 @@ constexpr size_t DEFAULT_MAX_DEPTH = 1024;
 
   #define SIMDJSON_PUSH_DISABLE_WARNINGS _Pragma("GCC diagnostic push")
   // gcc doesn't seem to disable all warnings with all and extra, add warnings here as necessary
+  // We do it separately for clang since it has different warnings.
+  #ifdef __clang__
+  // clang is missing -Wmaybe-uninitialized.
   #define SIMDJSON_PUSH_DISABLE_ALL_WARNINGS SIMDJSON_PUSH_DISABLE_WARNINGS \
     SIMDJSON_DISABLE_GCC_WARNING(-Weffc++) \
     SIMDJSON_DISABLE_GCC_WARNING(-Wall) \
@@ -141,6 +137,22 @@ constexpr size_t DEFAULT_MAX_DEPTH = 1024;
     SIMDJSON_DISABLE_GCC_WARNING(-Wshadow) \
     SIMDJSON_DISABLE_GCC_WARNING(-Wunused-parameter) \
     SIMDJSON_DISABLE_GCC_WARNING(-Wunused-variable)
+  #else // __clang__
+  #define SIMDJSON_PUSH_DISABLE_ALL_WARNINGS SIMDJSON_PUSH_DISABLE_WARNINGS \
+    SIMDJSON_DISABLE_GCC_WARNING(-Weffc++) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wall) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wconversion) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wextra) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wattributes) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wimplicit-fallthrough) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wnon-virtual-dtor) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wreturn-type) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wshadow) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wunused-parameter) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wunused-variable) \
+    SIMDJSON_DISABLE_GCC_WARNING(-Wmaybe-uninitialized)
+  #endif // __clang__
+
   #define SIMDJSON_PRAGMA(P) _Pragma(#P)
   #define SIMDJSON_DISABLE_GCC_WARNING(WARNING) SIMDJSON_PRAGMA(GCC diagnostic ignored #WARNING)
   #if defined(SIMDJSON_CLANG_VISUAL_STUDIO)
@@ -155,6 +167,18 @@ constexpr size_t DEFAULT_MAX_DEPTH = 1024;
 
 
 #endif // MSC_VER
+
+#if defined(simdjson_inline)
+  // Prefer the user's definition of simdjson_inline; don't define it ourselves.
+#elif defined(__GNUC__) && !defined(__OPTIMIZE__)
+  // If optimizations are disabled, forcing inlining can lead to significant
+  // code bloat and high compile times. Don't use simdjson_really_inline for
+  // unoptimized builds.
+  #define simdjson_inline inline
+#else
+  // Force inlining for most simdjson functions.
+  #define simdjson_inline simdjson_really_inline
+#endif
 
 #if defined(SIMDJSON_VISUAL_STUDIO)
     /**
@@ -254,11 +278,30 @@ namespace std {
 /// If EXPR is an error, returns it.
 #define SIMDJSON_TRY(EXPR) { auto _err = (EXPR); if (_err) { return _err; } }
 
+// Unless the programmer has already set SIMDJSON_DEVELOPMENT_CHECKS,
+// we want to set it under debug builds. We detect a debug build
+// under Visual Studio when the _DEBUG macro is set. Under the other
+// compilers, we use the fact that they define __OPTIMIZE__ whenever
+// they allow optimizations.
+// It is possible that this could miss some cases where SIMDJSON_DEVELOPMENT_CHECKS
+// is helpful, but the programmer can set the macro SIMDJSON_DEVELOPMENT_CHECKS.
+// It could also wrongly set SIMDJSON_DEVELOPMENT_CHECKS (e.g., if the programmer
+// sets _DEBUG in a release build under Visual Studio, or if some compiler fails to
+// set the __OPTIMIZE__ macro).
 #ifndef SIMDJSON_DEVELOPMENT_CHECKS
-#ifndef NDEBUG
-#define SIMDJSON_DEVELOPMENT_CHECKS
-#endif
-#endif
+#ifdef _MSC_VER
+// Visual Studio seems to set _DEBUG for debug builds.
+#ifdef _DEBUG
+#define SIMDJSON_DEVELOPMENT_CHECKS 1
+#endif // _DEBUG
+#else // _MSC_VER
+// All other compilers appear to set __OPTIMIZE__ to a positive integer
+// when the compiler is optimizing.
+#ifndef __OPTIMIZE__
+#define SIMDJSON_DEVELOPMENT_CHECKS 1
+#endif // __OPTIMIZE__
+#endif // _MSC_VER
+#endif // SIMDJSON_DEVELOPMENT_CHECKS
 
 // The SIMDJSON_CHECK_EOF macro is a feature flag for the "don't require padding"
 // feature.

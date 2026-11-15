@@ -5,7 +5,7 @@ namespace utf8_validation {
 
 using namespace simd;
 
-  simdjson_really_inline simd8<uint8_t> check_special_cases(const simd8<uint8_t> input, const simd8<uint8_t> prev1) {
+  simdjson_inline simd8<uint8_t> check_special_cases(const simd8<uint8_t> input, const simd8<uint8_t> prev1) {
 // Bit 0 = Too Short (lead byte/ASCII followed by lead byte/ASCII)
 // Bit 1 = Too Long (ASCII followed by continuation)
 // Bit 2 = Overlong 3-byte
@@ -95,7 +95,7 @@ using namespace simd;
     );
     return (byte_1_high & byte_1_low & byte_2_high);
   }
-  simdjson_really_inline simd8<uint8_t> check_multibyte_lengths(const simd8<uint8_t> input,
+  simdjson_inline simd8<uint8_t> check_multibyte_lengths(const simd8<uint8_t> input,
       const simd8<uint8_t> prev_input, const simd8<uint8_t> sc) {
     simd8<uint8_t> prev2 = input.prev<2>(prev_input);
     simd8<uint8_t> prev3 = input.prev<3>(prev_input);
@@ -108,15 +108,28 @@ using namespace simd;
   // Return nonzero if there are incomplete multibyte characters at the end of the block:
   // e.g. if there is a 4-byte character, but it's 3 bytes from the end.
   //
-  simdjson_really_inline simd8<uint8_t> is_incomplete(const simd8<uint8_t> input) {
+  simdjson_inline simd8<uint8_t> is_incomplete(const simd8<uint8_t> input) {
     // If the previous input's last 3 bytes match this, they're too short (they ended at EOF):
     // ... 1111____ 111_____ 11______
+#if SIMDJSON_IMPLEMENTATION_ICELAKE
+    static const uint8_t max_array[64] = {
+      255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 255, 255, 255,
+      255, 255, 255, 255, 255, 0xf0u-1, 0xe0u-1, 0xc0u-1
+    };
+#else
     static const uint8_t max_array[32] = {
       255, 255, 255, 255, 255, 255, 255, 255,
       255, 255, 255, 255, 255, 255, 255, 255,
       255, 255, 255, 255, 255, 255, 255, 255,
-      255, 255, 255, 255, 255, 0b11110000u-1, 0b11100000u-1, 0b11000000u-1
+      255, 255, 255, 255, 255, 0xf0u-1, 0xe0u-1, 0xc0u-1
     };
+#endif
     const simd8<uint8_t> max_value(&max_array[sizeof(max_array)-sizeof(simd8<uint8_t>)]);
     return input.gt_bits(max_value);
   }
@@ -132,7 +145,7 @@ using namespace simd;
     //
     // Check whether the current bytes are valid UTF-8.
     //
-    simdjson_really_inline void check_utf8_bytes(const simd8<uint8_t> input, const simd8<uint8_t> prev_input) {
+    simdjson_inline void check_utf8_bytes(const simd8<uint8_t> input, const simd8<uint8_t> prev_input) {
       // Flip prev1...prev3 so we can easily determine if they are 2+, 3+ or 4+ lead bytes
       // (2, 3, 4-byte leads become large positive numbers instead of small negative numbers)
       simd8<uint8_t> prev1 = input.prev<1>(prev_input);
@@ -143,23 +156,35 @@ using namespace simd;
     // The only problem that can happen at EOF is that a multibyte character is too short
     // or a byte value too large in the last bytes: check_special_cases only checks for bytes
     // too large in the first of two bytes.
-    simdjson_really_inline void check_eof() {
+    simdjson_inline void check_eof() {
       // If the previous block had incomplete UTF-8 characters at the end, an ASCII block can't
       // possibly finish them.
       this->error |= this->prev_incomplete;
     }
 
-    simdjson_really_inline void check_next_input(const simd8x64<uint8_t>& input) {
+#ifndef SIMDJSON_IF_CONSTEXPR
+#if SIMDJSON_CPLUSPLUS17
+#define SIMDJSON_IF_CONSTEXPR if constexpr
+#else
+#define SIMDJSON_IF_CONSTEXPR if
+#endif
+#endif
+
+    simdjson_inline void check_next_input(const simd8x64<uint8_t>& input) {
       if(simdjson_likely(is_ascii(input))) {
         this->error |= this->prev_incomplete;
       } else {
         // you might think that a for-loop would work, but under Visual Studio, it is not good enough.
-        static_assert((simd8x64<uint8_t>::NUM_CHUNKS == 2) || (simd8x64<uint8_t>::NUM_CHUNKS == 4),
-            "We support either two or four chunks per 64-byte block.");
-        if(simd8x64<uint8_t>::NUM_CHUNKS == 2) {
+        static_assert((simd8x64<uint8_t>::NUM_CHUNKS == 1)
+                ||(simd8x64<uint8_t>::NUM_CHUNKS == 2)
+                || (simd8x64<uint8_t>::NUM_CHUNKS == 4),
+                "We support one, two or four chunks per 64-byte block.");
+        SIMDJSON_IF_CONSTEXPR (simd8x64<uint8_t>::NUM_CHUNKS == 1) {
+          this->check_utf8_bytes(input.chunks[0], this->prev_input_block);
+        } else SIMDJSON_IF_CONSTEXPR (simd8x64<uint8_t>::NUM_CHUNKS == 2) {
           this->check_utf8_bytes(input.chunks[0], this->prev_input_block);
           this->check_utf8_bytes(input.chunks[1], input.chunks[0]);
-        } else if(simd8x64<uint8_t>::NUM_CHUNKS == 4) {
+        } else SIMDJSON_IF_CONSTEXPR (simd8x64<uint8_t>::NUM_CHUNKS == 4) {
           this->check_utf8_bytes(input.chunks[0], this->prev_input_block);
           this->check_utf8_bytes(input.chunks[1], input.chunks[0]);
           this->check_utf8_bytes(input.chunks[2], input.chunks[1]);
@@ -170,7 +195,7 @@ using namespace simd;
       }
     }
     // do not forget to call check_eof!
-    simdjson_really_inline error_code errors() {
+    simdjson_inline error_code errors() {
       return this->error.any_bits_set_anywhere() ? error_code::UTF8_ERROR : error_code::SUCCESS;
     }
 

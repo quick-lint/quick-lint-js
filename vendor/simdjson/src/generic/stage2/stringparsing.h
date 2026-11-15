@@ -40,33 +40,43 @@ static const uint8_t escape_map[256] = {
 // return true if the unicode codepoint was valid
 // We work in little-endian then swap at write time
 simdjson_warn_unused
-simdjson_really_inline bool handle_unicode_codepoint(const uint8_t **src_ptr,
+simdjson_inline bool handle_unicode_codepoint(const uint8_t **src_ptr,
                                             uint8_t **dst_ptr) {
   // jsoncharutils::hex_to_u32_nocheck fills high 16 bits of the return value with 1s if the
   // conversion isn't valid; we defer the check for this to inside the
   // multilingual plane check
   uint32_t code_point = jsoncharutils::hex_to_u32_nocheck(*src_ptr + 2);
   *src_ptr += 6;
-  // check for low surrogate for characters outside the Basic
+
+  // If we found a high surrogate, we must
+  // check for low surrogate for characters
+  // outside the Basic
   // Multilingual Plane.
   if (code_point >= 0xd800 && code_point < 0xdc00) {
-    if (((*src_ptr)[0] != '\\') || (*src_ptr)[1] != 'u') {
+    const uint8_t *src_data = *src_ptr;
+    /* Compiler optimizations convert this to a single 16-bit load and compare on most platforms */
+    if (((src_data[0] << 8) | src_data[1]) != ((static_cast<uint8_t> ('\\') << 8) | static_cast<uint8_t> ('u'))) {
       return false;
     }
-    uint32_t code_point_2 = jsoncharutils::hex_to_u32_nocheck(*src_ptr + 2);
+    uint32_t code_point_2 = jsoncharutils::hex_to_u32_nocheck(src_data + 2);
 
-    // if the first code point is invalid we will get here, as we will go past
-    // the check for being outside the Basic Multilingual plane. If we don't
-    // find a \u immediately afterwards we fail out anyhow, but if we do,
-    // this check catches both the case of the first code point being invalid
-    // or the second code point being invalid.
-    if ((code_point | code_point_2) >> 16) {
+    // We have already checked that the high surrogate is valid and
+    // (code_point - 0xd800) < 1024.
+    //
+    // Check that code_point_2 is in the range 0xdc00..0xdfff
+    // and that code_point_2 was parsed from valid hex.
+    uint32_t low_bit = code_point_2 - 0xdc00;
+    if (low_bit >> 10) {
       return false;
     }
 
     code_point =
-        (((code_point - 0xd800) << 10) | (code_point_2 - 0xdc00)) + 0x10000;
+        (((code_point - 0xd800) << 10) | low_bit) + 0x10000;
     *src_ptr += 6;
+  } else if (code_point >= 0xdc00 && code_point <= 0xdfff) {
+      // If we encounter a low surrogate (not preceded by a high surrogate)
+      // then we have an error.
+      return false;
   }
   size_t offset = jsoncharutils::codepoint_to_utf8(code_point, *dst_ptr);
   *dst_ptr += offset;
@@ -74,10 +84,14 @@ simdjson_really_inline bool handle_unicode_codepoint(const uint8_t **src_ptr,
 }
 
 /**
- * Unescape a string from src to dst, stopping at a final unescaped quote. E.g., if src points at 'joe"', then
- * dst needs to have four free bytes.
+ * Unescape a valid UTF-8 string from src to dst, stopping at a final unescaped quote. There
+ * must be an unescaped quote terminating the string. It returns the final output
+ * position as pointer. In case of error (e.g., the string has bad escaped codes),
+ * then null_nullptrptr is returned. It is assumed that the output buffer is large
+ * enough. E.g., if src points at 'joe"', then dst needs to have four free bytes +
+ * SIMDJSON_PADDING bytes.
  */
-simdjson_warn_unused simdjson_really_inline uint8_t *parse_string(const uint8_t *src, uint8_t *dst) {
+simdjson_warn_unused simdjson_inline uint8_t *parse_string(const uint8_t *src, uint8_t *dst) {
   while (1) {
     // Copy the next n bytes, and find the backslash and quote in them.
     auto bs_quote = backslash_and_quote::copy_and_find(src, dst);
@@ -121,15 +135,6 @@ simdjson_warn_unused simdjson_really_inline uint8_t *parse_string(const uint8_t 
   }
   /* can't be reached */
   return nullptr;
-}
-
-simdjson_unused simdjson_warn_unused simdjson_really_inline error_code parse_string_to_buffer(const uint8_t *src, uint8_t *&current_string_buf_loc, std::string_view &s) {
-  if (*(src++) != '"') { return STRING_ERROR; }
-  auto end = stringparsing::parse_string(src, current_string_buf_loc);
-  if (!end) { return STRING_ERROR; }
-  s = std::string_view(reinterpret_cast<const char *>(current_string_buf_loc), end-current_string_buf_loc);
-  current_string_buf_loc = end;
-  return SUCCESS;
 }
 
 } // namespace stringparsing
