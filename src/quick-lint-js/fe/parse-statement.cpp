@@ -5724,11 +5724,18 @@ void Parser::parse_and_visit_let_bindings(
         // let if (x) {}    // Invalid.
       default:
         this->lexer_.roll_back_transaction(std::move(transaction));
-        if (this->peek().has_leading_newline) {
+        if (this->peek().has_leading_newline && first_binding) {
+          // No bindings at all: e.g. "let\nx"
           this->diags_.add(Diag_Let_With_No_Bindings{let_span});
         } else {
-          this->diags_.add(
-              Diag_Unexpected_Token_In_Variable_Declaration{keyword_span});
+          if (!first_binding && comma_span.has_value()) {
+            // const [a, setA] = useState(),  ← stray comma
+            // const [b, setB] = useState();
+            this->diags_.add(Diag_Stray_Comma_In_Let_Statement{*comma_span});
+          } else {
+            this->diags_.add(
+                Diag_Unexpected_Token_In_Variable_Declaration{keyword_span});
+          }
           this->lexer_.insert_semicolon();
         }
         break;
